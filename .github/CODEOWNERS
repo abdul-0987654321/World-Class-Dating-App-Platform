@@ -1,0 +1,31 @@
+# ConnectSphere Code Owners
+# These owners will be the default owners for everything in the repo
+
+# Global owners
+* @connectsphere/engineering-team
+
+# Backend services
+/backend/ @connectsphere/backend-team
+/backend/services/user-service/ @connectsphere/auth-team
+/backend/services/matching-service/ @connectsphere/ml-team
+/backend/services/messaging-service/ @connectsphere/backend-team
+/backend/services/media-service/ @connectsphere/backend-team
+/backend/services/payment-service/ @connectsphere/payment-team
+/backend/shared/ @connectsphere/backend-team
+
+# Frontend
+/frontend/ @connectsphere/frontend-team
+/frontend/web/ @connectsphere/web-team
+/frontend/mobile/ @connectsphere/mobile-team
+
+# Infrastructure
+/infrastructure/ @connectsphere/devops-team
+/infrastructure/terraform/ @connectsphere/devops-team
+/infrastructure/kubernetes/ @connectsphere/devops-team
+
+# CI/CD
+/.github/ @connectsphere/devops-team
+
+# Documentation
+/docs/ @connectsphere/engineering-team
+*.md @connectsphere/engineering-team

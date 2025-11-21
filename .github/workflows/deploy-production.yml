@@ -1,0 +1,81 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  AZURE_CONTAINER_REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+  AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME_PRODUCTION }}
+  AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP_PRODUCTION }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push Docker images
+        run: |
+          az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+
+          services=("user-service" "matching-service" "messaging-service" "media-service" "payment-service" "notification-service" "moderation-service" "analytics-service" "api-gateway")
+
+          for service in "${services[@]}"; do
+            docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:${{ github.sha }} \
+              -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:production \
+              ./backend/services/$service
+
+            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:${{ github.sha }}
+            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:production
+          done
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+
+      - name: Deploy to AKS (Blue-Green)
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/
+          kubectl apply -f infrastructure/kubernetes/services/
+
+          # Rolling update with blue-green deployment
+          kubectl set image deployment/user-service user-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/user-service:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/matching-service matching-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/matching-service:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/messaging-service messaging-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/messaging-service:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/media-service media-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/media-service:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/payment-service payment-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/payment-service:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/api-gateway api-gateway=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/api-gateway:${{ github.sha }} -n connectsphere
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/user-service -n connectsphere --timeout=5m
+          kubectl rollout status deployment/matching-service -n connectsphere --timeout=5m
+          kubectl rollout status deployment/messaging-service -n connectsphere --timeout=5m
+          kubectl rollout status deployment/api-gateway -n connectsphere --timeout=5m
+
+      - name: Run smoke tests
+        run: |
+          # Add smoke test commands here
+          echo "Running smoke tests..."
+
+      - name: Notify deployment
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

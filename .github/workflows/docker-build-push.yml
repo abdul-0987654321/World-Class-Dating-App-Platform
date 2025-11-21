@@ -1,0 +1,152 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'Dockerfile'
+      - '.github/workflows/docker-build-push.yml'
+  release:
+    types: [published]
+
+env:
+  DOCKER_REGISTRY: docker.io
+  DOCKER_USERNAME: citadelcloud1
+
+jobs:
+  build-and-push:
+    name: Build and Push - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - service: user-service
+            context: ./backend/services/user-service
+            image: world-class-dating-platform
+            tag: user-service
+
+          - service: matching-service
+            context: ./backend/services/matching-service
+            image: world-class-dating-platform
+            tag: matching-service
+
+          - service: messaging-service
+            context: ./backend/services/messaging-service
+            image: world-class-dating-platform
+            tag: messaging-service
+
+          - service: media-service
+            context: ./backend/services/media-service
+            image: world-class-dating-platform
+            tag: media-service
+
+          - service: payment-service
+            context: ./backend/services/payment-service
+            image: world-class-dating-platform
+            tag: payment-service
+
+          - service: api-gateway
+            context: ./backend/services/api-gateway
+            image: world-class-dating-platform
+            tag: api-gateway
+
+          - service: analytics-service
+            context: ./backend/services/analytics-service
+            image: world-class-dating-platform
+            tag: analytics-service
+
+          - service: moderation-service
+            context: ./backend/services/moderation-service
+            image: world-class-dating-platform
+            tag: moderation-service
+
+          - service: notification-service
+            context: ./backend/services/notification-service
+            image: world-class-dating-platform
+            tag: notification-service
+
+          - service: web-frontend
+            context: ./frontend/web
+            image: world-class-dating-platform
+            tag: web-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_USERNAME }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value=${{ matrix.tag }}-latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ matrix.tag }}-latest
+            ${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ matrix.tag }}-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ matrix.tag }}-latest
+          cache-to: type=inline
+          build-args: |
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+  verify-images:
+    name: Verify Docker Images
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull and verify images
+        run: |
+          services=("user-service" "matching-service" "messaging-service" "media-service" "payment-service" "api-gateway" "analytics-service" "moderation-service" "notification-service" "web-frontend")
+
+          for service in "${services[@]}"; do
+            echo "Verifying $service..."
+            docker pull ${{ env.DOCKER_USERNAME }}/world-class-dating-platform:$service-latest
+            docker inspect ${{ env.DOCKER_USERNAME }}/world-class-dating-platform:$service-latest
+          done
+
+      - name: Run security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_USERNAME }}/world-class-dating-platform:user-service-latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
