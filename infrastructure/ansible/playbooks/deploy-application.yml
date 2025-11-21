@@ -1,0 +1,103 @@
+---
+# Application deployment playbook
+# Deploys the dating app using Docker Compose
+
+- name: Deploy Dating App Application
+  hosts: dev_app_servers:staging_app_servers:prod_app_servers
+  become: yes
+  vars:
+    app_dir: "/opt/dating-app"
+
+  tasks:
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0755'
+
+    - name: Copy docker-compose file
+      template:
+        src: ../templates/docker-compose.yml.j2
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0644'
+
+    - name: Copy environment file
+      template:
+        src: "../templates/env.{{ environment }}.j2"
+        dest: "{{ app_dir }}/.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0600'
+
+    - name: Pull latest Docker images
+      become_user: "{{ app_user }}"
+      command: docker-compose pull
+      args:
+        chdir: "{{ app_dir }}"
+      register: pull_result
+      changed_when: "'Downloaded' in pull_result.stdout"
+
+    - name: Stop existing containers
+      become_user: "{{ app_user }}"
+      command: docker-compose down
+      args:
+        chdir: "{{ app_dir }}"
+      ignore_errors: yes
+
+    - name: Start application containers
+      become_user: "{{ app_user }}"
+      command: docker-compose up -d
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Wait for application to be ready
+      uri:
+        url: "http://localhost:{{ api_port }}/health"
+        method: GET
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 10
+
+    - name: Clean up old Docker images
+      command: docker image prune -af --filter "until=168h"
+      register: prune_result
+      changed_when: "'Total reclaimed space' in prune_result.stdout"
+
+    - name: Create application log directory
+      file:
+        path: /var/log/dating-app
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0755'
+
+    - name: Configure log rotation
+      copy:
+        dest: /etc/logrotate.d/dating-app
+        content: |
+          /var/log/dating-app/*.log {
+              daily
+              rotate 14
+              compress
+              delaycompress
+              notifempty
+              create 0640 {{ app_user }} {{ app_group }}
+              sharedscripts
+              postrotate
+                  docker-compose -f {{ app_dir }}/docker-compose.yml restart > /dev/null 2>&1 || true
+              endscript
+          }
+
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "Deployment completed successfully!"
+          - "Environment: {{ environment }}"
+          - "Application URL: https://{{ app_domain }}"
+          - "Health check: http://{{ ansible_host }}:{{ api_port }}/health"

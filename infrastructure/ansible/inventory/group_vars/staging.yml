@@ -1,0 +1,45 @@
+---
+# Staging environment variables
+
+environment: staging
+environment_tier: staging
+
+# Application
+app_debug: false
+app_log_level: info
+api_base_url: https://api-staging.datingapp.com
+
+# Database
+db_host: staging-db-01
+db_port: 5432
+db_name: dating_app_staging
+db_user: datingapp_staging
+db_max_connections: 50
+db_replica_host: staging-db-02
+
+# Redis
+redis_host: staging-redis-01
+redis_port: 6379
+redis_db: 0
+
+# Resources
+app_server_cpu: 4
+app_server_memory: 8192
+db_server_cpu: 4
+db_server_memory: 16384
+
+# Scaling
+min_replicas: 2
+max_replicas: 4
+
+# Load Balancer
+lb_algorithm: round_robin
+lb_health_check_interval: 10
+
+# Monitoring
+datadog_enabled: true
+newrelic_enabled: true
+
+# Backup
+backup_enabled: true
+backup_retention_days: 14

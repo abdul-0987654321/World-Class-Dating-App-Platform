@@ -1,0 +1,102 @@
+---
+# Redis setup playbook
+# Installs and configures Redis
+
+- name: Setup Redis Cache
+  hosts: dev_cache_servers:staging_cache_servers:prod_cache_servers
+  become: yes
+  tasks:
+    - name: Install Redis
+      apt:
+        name:
+          - redis-server
+          - redis-tools
+        state: present
+        update_cache: yes
+
+    - name: Configure Redis
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^bind', line: 'bind 0.0.0.0' }
+        - { regexp: '^protected-mode', line: 'protected-mode yes' }
+        - { regexp: '^port', line: 'port {{ redis_port }}' }
+        - { regexp: '^maxmemory', line: 'maxmemory 2gb' }
+        - { regexp: '^maxmemory-policy', line: 'maxmemory-policy allkeys-lru' }
+        - { regexp: '^appendonly', line: 'appendonly yes' }
+        - { regexp: '^appendfsync', line: 'appendfsync everysec' }
+        - { regexp: '^save 900', line: 'save 900 1' }
+        - { regexp: '^save 300', line: 'save 300 10' }
+        - { regexp: '^save 60', line: 'save 60 10000' }
+        - { regexp: '^tcp-keepalive', line: 'tcp-keepalive 300' }
+        - { regexp: '^timeout', line: 'timeout 300' }
+      notify: Restart Redis
+
+    - name: Set Redis password
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^requirepass'
+        line: "requirepass {{ lookup('env', 'REDIS_PASSWORD') }}"
+        state: present
+      when: lookup('env', 'REDIS_PASSWORD') | length > 0
+      notify: Restart Redis
+
+    - name: Configure Redis master (production only)
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^replica-read-only', line: 'replica-read-only no' }
+        - { regexp: '^repl-diskless-sync', line: 'repl-diskless-sync yes' }
+      when: redis_role is defined and redis_role == "master"
+      notify: Restart Redis
+
+    - name: Configure Redis replica
+      lineinfile:
+        path: /etc/redis/redis.conf
+        line: "replicaof {{ redis_master_host }} {{ redis_port }}"
+        state: present
+      when: redis_role is defined and redis_role == "slave"
+      notify: Restart Redis
+
+    - name: Configure Redis Sentinel (production only)
+      copy:
+        dest: /etc/redis/sentinel.conf
+        content: |
+          port 26379
+          sentinel monitor mymaster {{ redis_master_host }} {{ redis_port }} 2
+          sentinel down-after-milliseconds mymaster 5000
+          sentinel parallel-syncs mymaster 1
+          sentinel failover-timeout mymaster 10000
+        mode: '0640'
+      when: environment == "production" and redis_sentinel_enabled | default(false)
+
+    - name: Ensure Redis is started and enabled
+      service:
+        name: redis-server
+        state: started
+        enabled: yes
+
+    - name: Configure Redis systemd override
+      copy:
+        dest: /etc/systemd/system/redis-server.service.d/override.conf
+        content: |
+          [Service]
+          LimitNOFILE=65536
+        mode: '0644'
+      notify: Reload systemd
+
+  handlers:
+    - name: Restart Redis
+      service:
+        name: redis-server
+        state: restarted
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
