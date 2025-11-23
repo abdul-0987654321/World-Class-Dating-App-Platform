@@ -8,8 +8,16 @@ import rateLimit from 'express-rate-limit';
 import { AuthMiddleware } from '../../middleware/auth.middleware.enhanced';
 import { Sanitizer } from '../../utils/sanitizer';
 import { logger } from '../../utils/logger';
+import { AuthService } from '../../services/core';
+import { UserRepository, ProfileRepository } from '../../repositories';
+import { db, mongodb } from '../../config/database.config';
 
 const router = Router();
+
+// Initialize services
+const userRepo = new UserRepository(db);
+const profileRepo = new ProfileRepository(db);
+const authService = new AuthService(userRepo, profileRepo);
 
 // Stricter rate limiting for auth endpoints
 const authLimiter = rateLimit({
@@ -32,12 +40,24 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
   try {
     // Sanitize inputs
     const email = Sanitizer.sanitizeEmail(req.body.email);
-    const phone = Sanitizer.sanitizePhone(req.body.phone);
+    const phone = req.body.phone ? Sanitizer.sanitizePhone(req.body.phone) : undefined;
     const firstName = Sanitizer.sanitizeString(req.body.firstName);
-    const lastName = Sanitizer.sanitizeString(req.body.lastName);
+    const lastName = req.body.lastName ? Sanitizer.sanitizeString(req.body.lastName) : undefined;
+    const { password, dateOfBirth, gender } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !firstName || !dateOfBirth || !gender) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Missing required fields',
+          code: 'MISSING_FIELDS',
+        },
+      });
+    }
 
     // Validate password
-    const passwordValidation = Sanitizer.validatePassword(req.body.password);
+    const passwordValidation = Sanitizer.validatePassword(password);
     if (!passwordValidation.valid) {
       return res.status(400).json({
         success: false,
@@ -49,25 +69,49 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement actual registration logic
-    // const user = await userService.register({ email, phone, firstName, lastName, password });
-    // const token = generateToken(user);
-    // await AuthMiddleware.createSession(user.id, { email: user.email });
+    // Validate date of birth
+    const dobValidation = Sanitizer.validateDate(dateOfBirth);
+    if (!dobValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Invalid date of birth',
+          code: 'INVALID_DOB',
+        },
+      });
+    }
+
+    // Register user
+    const result = await authService.register({
+      email,
+      phone,
+      firstName,
+      lastName,
+      dateOfBirth,
+      gender,
+      password,
+    });
+
+    // Create session
+    await AuthMiddleware.createSession(result.user.id, { email: result.user.email });
+
+    logger.info(`User registered: ${result.user.id}`);
 
     res.status(201).json({
       success: true,
       data: {
         message: 'Registration successful',
-        // token,
-        // user: { id: user.id, email: user.email }
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Registration error:', error);
-    res.status(500).json({
+    res.status(400).json({
       success: false,
       error: {
-        message: 'Registration failed',
+        message: error.message || 'Registration failed',
         code: 'REGISTRATION_ERROR',
       },
     });
@@ -97,32 +141,34 @@ router.post(
         });
       }
 
-      // TODO: Implement actual authentication logic
-      // const user = await userService.authenticate(email, password);
-      // if (!user) {
-      //   AuthMiddleware.recordFailedAttempt(email);
-      //   return res.status(401).json({ error: 'Invalid credentials' });
-      // }
-      //
-      // AuthMiddleware.clearFailedAttempts(email);
-      // const token = generateToken(user);
-      // await AuthMiddleware.createSession(user.id, { email: user.email });
+      // Authenticate user
+      const result = await authService.login(email, password);
+
+      // Clear failed attempts
+      AuthMiddleware.clearFailedAttempts(email);
+
+      // Create session
+      await AuthMiddleware.createSession(result.user.id, { email: result.user.email });
+
+      logger.info(`User logged in: ${result.user.id}`);
 
       res.status(200).json({
         success: true,
         data: {
           message: 'Login successful',
-          // token,
-          // user: { id: user.id, email: user.email }
+          user: result.user,
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Login error:', error);
       AuthMiddleware.recordFailedAttempt(req.body.email);
-      res.status(500).json({
+
+      res.status(401).json({
         success: false,
         error: {
-          message: 'Login failed',
+          message: error.message || 'Invalid credentials',
           code: 'LOGIN_ERROR',
         },
       });
@@ -148,6 +194,8 @@ router.post('/logout', AuthMiddleware.verifyToken, async (req: Request, res: Res
         await AuthMiddleware.destroySession(req.user.userId);
       }
     }
+
+    logger.info(`User logged out: ${req.user?.userId}`);
 
     res.status(200).json({
       success: true,
@@ -186,23 +234,116 @@ router.post('/refresh', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement token refresh logic
-    // const newToken = await refreshAccessToken(refreshToken);
+    // Refresh token
+    const result = await authService.refreshAccessToken(refreshToken);
 
     res.status(200).json({
       success: true,
       data: {
         message: 'Token refreshed',
-        // token: newToken
+        accessToken: result.accessToken,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Token refresh error:', error);
     res.status(401).json({
       success: false,
       error: {
-        message: 'Token refresh failed',
+        message: error.message || 'Token refresh failed',
         code: 'REFRESH_ERROR',
+      },
+    });
+  }
+});
+
+/**
+ * POST /api/auth/request-password-reset
+ * Request password reset email
+ */
+router.post('/request-password-reset', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const email = Sanitizer.sanitizeEmail(req.body.email);
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Email is required',
+          code: 'MISSING_EMAIL',
+        },
+      });
+    }
+
+    await authService.requestPasswordReset(email);
+
+    // Always return success to prevent email enumeration
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'If an account exists with this email, a password reset link has been sent',
+      },
+    });
+  } catch (error) {
+    logger.error('Password reset request error:', error);
+
+    // Still return success to prevent email enumeration
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'If an account exists with this email, a password reset link has been sent',
+      },
+    });
+  }
+});
+
+/**
+ * POST /api/auth/change-password
+ * Change user password (requires authentication)
+ */
+router.post('/change-password', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Current password and new password are required',
+          code: 'MISSING_PASSWORDS',
+        },
+      });
+    }
+
+    // Validate new password
+    const passwordValidation = Sanitizer.validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'New password does not meet requirements',
+          code: 'INVALID_PASSWORD',
+          details: passwordValidation.errors,
+        },
+      });
+    }
+
+    await authService.changePassword(req.user!.userId, currentPassword, newPassword);
+
+    logger.info(`Password changed: ${req.user!.userId}`);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Password changed successfully',
+      },
+    });
+  } catch (error: any) {
+    logger.error('Change password error:', error);
+    res.status(400).json({
+      success: false,
+      error: {
+        message: error.message || 'Password change failed',
+        code: 'CHANGE_PASSWORD_ERROR',
       },
     });
   }

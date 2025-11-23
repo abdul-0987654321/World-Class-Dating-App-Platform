@@ -9,8 +9,15 @@ import { AuthMiddleware } from '../../middleware/auth.middleware.enhanced';
 import { CSRFProtection } from '../../middleware/csrf.middleware';
 import { Sanitizer } from '../../utils/sanitizer';
 import { logger } from '../../utils/logger';
+import { UserService } from '../../services/core';
+import { UserRepository } from '../../repositories';
+import { db } from '../../config/database.config';
 
 const router = Router();
+
+// Initialize services
+const userRepo = new UserRepository(db);
+const userService = new UserService(userRepo);
 
 /**
  * GET /api/users/me
@@ -19,35 +26,19 @@ const router = Router();
  */
 router.get('/me', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.userId;
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          message: 'Authentication required',
-          code: 'NO_AUTH',
-        },
-      });
-    }
-
-    // TODO: Fetch user from database
-    // const user = await userService.findById(userId);
+    const user = await userService.getUserById(req.user!.userId);
 
     res.status(200).json({
       success: true,
-      data: {
-        // user
-        message: 'User profile retrieved (TODO: implement actual logic)',
-      },
+      data: user,
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Get user error:', error);
-    res.status(500).json({
+    res.status(404).json({
       success: false,
       error: {
-        message: 'Failed to retrieve user',
-        code: 'USER_GET_ERROR',
+        message: error.message || 'User not found',
+        code: 'USER_NOT_FOUND',
       },
     });
   }
