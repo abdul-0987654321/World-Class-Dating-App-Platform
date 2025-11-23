@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(find /c/Users/kogun/OneDrive/Documents/Dating-Site/World-Class-Dating-App-Platform/backend/services -maxdepth 2 -type d -name \"src\" -exec sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && ls -la {}')",
+      "Bash(test:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(mv:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

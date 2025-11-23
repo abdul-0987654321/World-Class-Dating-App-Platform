@@ -1,0 +1,190 @@
+[
+  {
+    "id": "profile-1",
+    "userId": "user-1",
+    "bio": "Adventure seeker, coffee lover, and aspiring chef. Looking for someone to explore new restaurants and hiking trails with. Let's make some memories together!",
+    "gender": "female",
+    "orientation": "straight",
+    "relationshipGoal": "serious",
+    "age": 28,
+    "height": 165,
+    "education": "masters",
+    "occupation": "Marketing Manager",
+    "company": "Tech Innovations Inc.",
+    "school": "University of California",
+    "location": {
+      "type": "Point",
+      "coordinates": [-118.2437, 34.0522]
+    },
+    "address": {
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "USA"
+    },
+    "interests": ["hiking", "cooking", "photography", "travel", "yoga"],
+    "drinking": "socially",
+    "smoking": "never",
+    "exercise": "regularly",
+    "diet": "vegetarian",
+    "pets": "dog",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "prompt-1",
+        "question": "My perfect Sunday",
+        "answer": "Brunch with friends, hiking in the afternoon, and cooking a nice dinner",
+        "order": 1
+      },
+      {
+        "id": "prompt-2",
+        "question": "I'm looking for",
+        "answer": "Someone who values deep conversations and spontaneous adventures",
+        "order": 2
+      }
+    ],
+    "verified": {
+      "phone": true,
+      "photo": true,
+      "identity": false
+    },
+    "completionPercentage": 95
+  },
+  {
+    "id": "profile-2",
+    "userId": "user-2",
+    "bio": "Software engineer by day, musician by night. Love playing guitar, trying new craft beers, and discussing philosophy. Swipe right if you appreciate dad jokes!",
+    "gender": "male",
+    "orientation": "straight",
+    "relationshipGoal": "casual",
+    "age": 31,
+    "height": 178,
+    "education": "bachelors",
+    "occupation": "Software Engineer",
+    "company": "Google",
+    "school": "Stanford University",
+    "location": {
+      "type": "Point",
+      "coordinates": [-122.4194, 37.7749]
+    },
+    "address": {
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "USA"
+    },
+    "interests": ["music", "coding", "gaming", "craft beer", "philosophy"],
+    "drinking": "regularly",
+    "smoking": "never",
+    "exercise": "sometimes",
+    "diet": "omnivore",
+    "pets": "none",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "prompt-3",
+        "question": "A life goal of mine",
+        "answer": "To perform at a major music festival with my band",
+        "order": 1
+      }
+    ],
+    "verified": {
+      "phone": true,
+      "photo": false,
+      "identity": false
+    },
+    "completionPercentage": 80
+  },
+  {
+    "id": "profile-3",
+    "userId": "user-3",
+    "bio": "Artist and dreamer. I paint murals around the city and teach art to kids. Looking for someone creative and kind who loves spontaneous road trips.",
+    "gender": "female",
+    "orientation": "bisexual",
+    "relationshipGoal": "serious",
+    "age": 25,
+    "height": 168,
+    "education": "bachelors",
+    "occupation": "Artist",
+    "company": "Freelance",
+    "school": "Art Institute of Chicago",
+    "location": {
+      "type": "Point",
+      "coordinates": [-118.2437, 34.0522]
+    },
+    "address": {
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "USA"
+    },
+    "interests": ["art", "teaching", "travel", "photography", "music"],
+    "drinking": "rarely",
+    "smoking": "never",
+    "exercise": "regularly",
+    "diet": "vegan",
+    "pets": "cat",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "prompt-4",
+        "question": "You should NOT go out with me if",
+        "answer": "You can't appreciate a good art museum or street tacos",
+        "order": 1
+      },
+      {
+        "id": "prompt-5",
+        "question": "My most controversial opinion",
+        "answer": "Pineapple absolutely belongs on pizza!",
+        "order": 2
+      }
+    ],
+    "verified": {
+      "phone": false,
+      "photo": true,
+      "identity": false
+    },
+    "completionPercentage": 90
+  },
+  {
+    "id": "profile-4",
+    "userId": "user-4",
+    "bio": "Former athlete turned personal trainer. Passionate about fitness, healthy living, and helping others reach their goals. Let's hit the gym together!",
+    "gender": "male",
+    "orientation": "straight",
+    "relationshipGoal": "serious",
+    "age": 33,
+    "height": 185,
+    "education": "bachelors",
+    "occupation": "Personal Trainer",
+    "company": "Elite Fitness",
+    "school": "UCLA",
+    "location": {
+      "type": "Point",
+      "coordinates": [-118.2437, 34.0522]
+    },
+    "address": {
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "USA"
+    },
+    "interests": ["fitness", "nutrition", "basketball", "hiking", "meditation"],
+    "drinking": "never",
+    "smoking": "never",
+    "exercise": "daily",
+    "diet": "omnivore",
+    "pets": "dog",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "prompt-6",
+        "question": "I geek out on",
+        "answer": "Fitness tech and nutrition science",
+        "order": 1
+      }
+    ],
+    "verified": {
+      "phone": true,
+      "photo": true,
+      "identity": false
+    },
+    "completionPercentage": 85
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "name": "ConnectSphere",
+  "displayName": "ConnectSphere",
+  "version": "1.0.0",
+  "build": "1",
+  "slug": "connectsphere",
+  "description": "Find meaningful connections nearby",
+  "privacy": "https://connectsphere.com/privacy",
+  "termsOfService": "https://connectsphere.com/terms",
+  "support": "https://connectsphere.com/support",
+  "contact": "support@connectsphere.com",
+  "orientation": "portrait",
+  "platforms": ["ios", "android"],
+  "ios": {
+    "bundleIdentifier": "com.connectsphere",
+    "buildNumber": "1",
+    "supportsTablet": false,
+    "infoPlist": {
+      "NSCameraUsageDescription": "Take photos to add to your profile and verify your identity",
+      "NSPhotoLibraryUsageDescription": "Choose photos from your library to add to your profile",
+      "NSLocationWhenInUseUsageDescription": "We use your location to show you potential matches nearby",
+      "NSUserNotificationsUsageDescription": "Get notified when you have new matches and messages"
+    },
+    "config": {
+      "usesNonExemptEncryption": false
+    }
+  },
+  "android": {
+    "package": "com.connectsphere",
+    "versionCode": 1,
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#FFFFFF"
+    },
+    "permissions": [
+      "CAMERA",
+      "READ_MEDIA_IMAGES",
+      "ACCESS_COARSE_LOCATION",
+      "POST_NOTIFICATIONS",
+      "INTERNET"
+    ],
+    "compileSdkVersion": 34,
+    "targetSdkVersion": 34,
+    "minSdkVersion": 23
+  },
+  "ratingRequired": true,
+  "contentRating": "MATURE_17_PLUS",
+  "ageRating": "17+"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@connectsphere/validators",
+  "version": "1.0.0",
+  "description": "Validation schemas for ConnectSphere",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@connectsphere/types": "^1.0.0",
+    "@connectsphere/constants": "^1.0.0",
+    "joi": "^17.11.0"
+  },
+  "devDependencies": {
+    "@types/joi": "^17.2.3",
+    "typescript": "^5.3.2"
+  }
+}

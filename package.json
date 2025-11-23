@@ -1,0 +1,57 @@
+{
+  "name": "connectsphere-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ConnectSphere - World-Class Dating App Platform (Web & Mobile)",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "backend"
+  ],
+  "scripts": {
+    "install:all": "yarn install",
+    "build:all": "lerna run build",
+    "test:all": "lerna run test",
+    "lint:all": "lerna run lint",
+    "clean": "lerna clean -y && rm -rf node_modules",
+    "dev:web": "yarn workspace @connectsphere/web dev",
+    "dev:mobile": "yarn workspace @connectsphere/mobile start",
+    "dev:backend": "yarn workspace @connectsphere/backend dev",
+    "build:web": "yarn workspace @connectsphere/web build",
+    "build:mobile:ios": "cd apps/mobile && npx react-native run-ios --configuration Release",
+    "build:mobile:android": "cd apps/mobile && npx react-native run-android --variant=release",
+    "build:backend": "yarn workspace @connectsphere/backend build",
+    "test:web": "yarn workspace @connectsphere/web test",
+    "test:mobile": "yarn workspace @connectsphere/mobile test",
+    "test:backend": "yarn workspace @connectsphere/backend test",
+    "seed": "ts-node scripts/seed-data.ts",
+    "setup:dev": "yarn install && yarn seed && docker-compose up -d",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:rebuild": "docker-compose down && docker-compose build && docker-compose up -d"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
+    "lerna": "^8.0.0",
+    "prettier": "^3.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/connectsphere"
+  },
+  "author": "ConnectSphere Team",
+  "license": "MIT"
+}
