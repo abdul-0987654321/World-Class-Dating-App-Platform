@@ -7,6 +7,7 @@ import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
 import { MatchesPage } from './pages/Matches/MatchesPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
+import TierShowcase from './pages/TierShowcase';
 
 // Auth check hook
 const useAuth = () => {
@@ -50,6 +51,9 @@ const App: React.FC = () => {
         <Route path="/login" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <LoginPage />
         } />
+
+        {/* Public demo route */}
+        <Route path="/tier-showcase" element={<TierShowcase />} />
 
         {/* Protected routes */}
         <Route path="/discover" element={

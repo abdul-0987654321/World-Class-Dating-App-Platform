@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FiHeart, FiX, FiStar, FiMapPin, FiBriefcase, FiCheckCircle } from 'react-icons/fi';
 import { DiscoveryProfile } from '@services/discovery.service';
+import { TierIcon, SubscriptionTier } from './subscription/SubscriptionBadge';
 
 interface SwipeCardProps {
   profile: DiscoveryProfile;
@@ -214,6 +215,13 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, o
             <Name>{profile.first_name}</Name>
             <Age>{profile.age}</Age>
             {profile.is_verified && <VerifiedBadge />}
+            {profile.premium_tier && profile.premium_tier !== 'FREE' && (
+              <TierIcon
+                tier={profile.premium_tier as SubscriptionTier}
+                size="sm"
+                showTooltip={true}
+              />
+            )}
           </NameRow>
           {(profile.occupation || profile.city) && (
             <>
