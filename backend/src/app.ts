@@ -37,6 +37,10 @@ import mediaRoutes from './api/rest/media.routes';
 import paymentRoutes from './api/rest/payment.routes';
 import analyticsRoutes from './api/rest/analytics.routes';
 import healthRoutes from './api/rest/health.routes';
+import gamificationRoutes from './api/rest/gamification.routes';
+import referralRoutes from './api/rest/referral.routes';
+import communityRoutes from './api/rest/community.routes';
+import speedDatingRoutes from './api/rest/speed-dating.routes';
 
 // Swagger documentation
 import swaggerUi from 'swagger-ui-express';
@@ -137,6 +141,10 @@ export function createApp(): Application {
   app.use('/api/media', mediaRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/gamification', gamificationRoutes);
+  app.use('/api/referrals', referralRoutes);
+  app.use('/api/communities', communityRoutes);
+  app.use('/api/speed-dating', speedDatingRoutes);
 
   // 404 handler
   app.use(notFoundHandler);
