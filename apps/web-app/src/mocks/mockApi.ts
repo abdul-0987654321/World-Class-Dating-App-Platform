@@ -1,0 +1,178 @@
+// Mock API for development without backend
+import { mockUsers, mockProfiles, mockMatches, mockConversations, mockLikes, mockStats } from './mockData';
+
+// Simulate network delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Current logged in user
+let currentUser: any = null;
+let profiles = [...mockProfiles];
+let matches = [...mockMatches];
+let conversations = [...mockConversations];
+
+export const mockApi = {
+  // Auth
+  async login(email: string, password: string) {
+    await delay(500);
+
+    if (email === 'test1@connectsphere.com' && password === 'TestUser1!') {
+      currentUser = mockUsers['test-user-1'];
+      localStorage.setItem('authToken', 'mock-token-user-1');
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      return { user: currentUser, token: 'mock-token-user-1' };
+    }
+
+    if (email === 'test2@connectsphere.com' && password === 'TestUser2!') {
+      currentUser = mockUsers['test-user-2'];
+      localStorage.setItem('authToken', 'mock-token-user-2');
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      return { user: currentUser, token: 'mock-token-user-2' };
+    }
+
+    throw new Error('Invalid email or password');
+  },
+
+  async logout() {
+    await delay(200);
+    currentUser = null;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+  },
+
+  async getCurrentUser() {
+    await delay(300);
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      currentUser = JSON.parse(stored);
+      return currentUser;
+    }
+    throw new Error('Not authenticated');
+  },
+
+  // Recommendations
+  async getRecommendations() {
+    await delay(600);
+    return {
+      profiles: profiles.slice(0, 5),
+      nextCursor: null,
+      remainingToday: 50,
+    };
+  },
+
+  // Swipe
+  async swipe(targetUserId: string, action: 'like' | 'pass' | 'super_like') {
+    await delay(400);
+
+    // Remove from recommendations
+    profiles = profiles.filter(p => p.userId !== targetUserId);
+
+    // Simulate match (30% chance on like)
+    const isMatch = action !== 'pass' && Math.random() > 0.7;
+
+    if (isMatch) {
+      const matchedProfile = mockProfiles.find(p => p.userId === targetUserId);
+      const newMatch = {
+        id: `match-${Date.now()}`,
+        matchedUser: {
+          id: targetUserId,
+          name: matchedProfile?.name || 'New Match',
+          photoUrl: matchedProfile?.photos[0] || '',
+          isOnline: Math.random() > 0.5,
+        },
+        matchedAt: new Date().toISOString(),
+        lastMessage: null,
+        lastMessageAt: null,
+        hasUnread: false,
+      };
+      matches.unshift(newMatch);
+    }
+
+    return {
+      isMatch,
+      match: isMatch ? matches[0] : null,
+      remainingLikes: mockStats.remainingLikes - 1,
+      remainingSuperLikes: action === 'super_like' ? mockStats.remainingSuperLikes - 1 : mockStats.remainingSuperLikes,
+    };
+  },
+
+  // Matches
+  async getMatches() {
+    await delay(400);
+    return {
+      matches,
+      nextCursor: null,
+      totalCount: matches.length,
+    };
+  },
+
+  // Likes
+  async getLikes() {
+    await delay(400);
+    return {
+      likes: mockLikes,
+      nextCursor: null,
+      totalCount: mockLikes.length,
+      canSeeLikes: currentUser?.subscription === 'premium',
+    };
+  },
+
+  // Conversations
+  async getConversations() {
+    await delay(400);
+    return {
+      conversations: conversations.map(c => ({
+        id: c.id,
+        participant: c.participant,
+        lastMessage: c.messages[c.messages.length - 1],
+        unreadCount: c.unreadCount,
+      })),
+      nextCursor: null,
+      totalUnread: conversations.reduce((sum, c) => sum + c.unreadCount, 0),
+    };
+  },
+
+  async getMessages(conversationId: string) {
+    await delay(300);
+    const conv = conversations.find(c => c.id === conversationId);
+    return {
+      messages: conv?.messages || [],
+      hasMore: false,
+    };
+  },
+
+  async sendMessage(conversationId: string, content: string) {
+    await delay(300);
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) throw new Error('Conversation not found');
+
+    const newMessage = {
+      id: `m-${Date.now()}`,
+      senderId: currentUser?.id || 'test-user-1',
+      content,
+      sentAt: new Date().toISOString(),
+      status: 'sent',
+    };
+
+    conv.messages.push(newMessage);
+    return newMessage;
+  },
+
+  // Stats
+  async getStats() {
+    await delay(200);
+    return mockStats;
+  },
+
+  // Profile
+  async updateProfile(data: any) {
+    await delay(400);
+    if (currentUser) {
+      currentUser = { ...currentUser, ...data };
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    }
+    return currentUser;
+  },
+};
+
+// Export for use in components
+export default mockApi;

@@ -13,10 +13,6 @@
     "pod-install": "cd ios && pod install"
   },
   "dependencies": {
-    "@connectsphere/api-client": "^1.0.0",
-    "@connectsphere/types": "^1.0.0",
-    "@connectsphere/utils": "^1.0.0",
-    "@connectsphere/constants": "^1.0.0",
     "@react-native-async-storage/async-storage": "^1.21.0",
     "@react-native-community/geolocation": "^3.2.1",
     "@react-navigation/native": "^6.1.9",

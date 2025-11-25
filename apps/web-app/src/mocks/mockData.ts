@@ -1,0 +1,243 @@
+// Mock data for development/demo purposes
+
+export const mockUsers = {
+  'test-user-1': {
+    id: 'test-user-1',
+    email: 'test1@connectsphere.com',
+    firstName: 'Alex',
+    lastName: 'Demo',
+    name: 'Alex Demo',
+    age: 28,
+    gender: 'male',
+    bio: 'Tech enthusiast and coffee addict. I love exploring new cities, trying local cuisines, and having deep conversations.',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop',
+    ],
+    location: { city: 'Austin', state: 'TX', country: 'USA' },
+    interests: ['technology', 'coffee', 'travel', 'photography', 'music'],
+    occupation: 'Product Designer',
+    company: 'Tech Startup',
+    education: 'University of Texas',
+    height: 180,
+    verified: { phone: true, photo: true, identity: true },
+    subscription: 'premium',
+    coinBalance: 100,
+  },
+  'test-user-2': {
+    id: 'test-user-2',
+    email: 'test2@connectsphere.com',
+    firstName: 'Jordan',
+    lastName: 'Demo',
+    name: 'Jordan Demo',
+    age: 27,
+    gender: 'female',
+    bio: 'Yoga instructor by morning, foodie by night. I believe in living life fully and finding joy in small moments.',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop',
+    ],
+    location: { city: 'Austin', state: 'TX', country: 'USA' },
+    interests: ['yoga', 'cooking', 'reading', 'hiking', 'meditation'],
+    occupation: 'Yoga Instructor',
+    company: 'Zen Studio',
+    education: 'UCLA',
+    height: 167,
+    verified: { phone: true, photo: true, identity: true },
+    subscription: 'premium',
+    coinBalance: 100,
+  },
+};
+
+export const mockProfiles = [
+  {
+    userId: 'profile-1',
+    name: 'Sarah',
+    age: 26,
+    bio: 'Adventure seeker and coffee lover. Always planning my next trip!',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=600&fit=crop',
+    ],
+    distance: 3,
+    city: 'Austin',
+    interests: ['travel', 'photography', 'hiking', 'coffee'],
+    verified: true,
+    compatibilityScore: 92,
+  },
+  {
+    userId: 'profile-2',
+    name: 'Michael',
+    age: 29,
+    bio: 'Software engineer who loves live music and trying new restaurants.',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=600&fit=crop',
+    ],
+    distance: 5,
+    city: 'Austin',
+    interests: ['music', 'coding', 'food', 'gaming'],
+    verified: true,
+    compatibilityScore: 87,
+  },
+  {
+    userId: 'profile-3',
+    name: 'Emma',
+    age: 25,
+    bio: 'Artist and dreamer. Looking for someone to explore galleries with.',
+    photos: [
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&h=600&fit=crop',
+    ],
+    distance: 2,
+    city: 'Austin',
+    interests: ['art', 'museums', 'painting', 'wine'],
+    verified: false,
+    compatibilityScore: 95,
+  },
+  {
+    userId: 'profile-4',
+    name: 'David',
+    age: 31,
+    bio: 'Fitness enthusiast and amateur chef. Let me cook for you!',
+    photos: [
+      'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=600&fit=crop',
+    ],
+    distance: 8,
+    city: 'Austin',
+    interests: ['fitness', 'cooking', 'hiking', 'dogs'],
+    verified: true,
+    compatibilityScore: 83,
+  },
+  {
+    userId: 'profile-5',
+    name: 'Olivia',
+    age: 27,
+    bio: 'Bookworm by day, salsa dancer by night. Looking for my partner in crime.',
+    photos: [
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&h=600&fit=crop',
+    ],
+    distance: 4,
+    city: 'Austin',
+    interests: ['reading', 'dancing', 'languages', 'travel'],
+    verified: true,
+    compatibilityScore: 91,
+  },
+];
+
+export const mockMatches = [
+  {
+    id: 'match-1',
+    matchedUser: {
+      id: 'matched-user-1',
+      name: 'Emily',
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
+      isOnline: true,
+    },
+    matchedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
+    lastMessage: 'Hey! How are you?',
+    lastMessageAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 min ago
+    hasUnread: true,
+  },
+  {
+    id: 'match-2',
+    matchedUser: {
+      id: 'matched-user-2',
+      name: 'James',
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      isOnline: false,
+    },
+    matchedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    lastMessage: 'That sounds great!',
+    lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    hasUnread: false,
+  },
+  {
+    id: 'match-3',
+    matchedUser: {
+      id: 'matched-user-3',
+      name: 'Sophie',
+      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop',
+      isOnline: true,
+    },
+    matchedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
+    lastMessage: null,
+    lastMessageAt: null,
+    hasUnread: false,
+  },
+];
+
+export const mockConversations = [
+  {
+    id: 'conv-1',
+    participant: {
+      id: 'matched-user-1',
+      name: 'Emily',
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
+      isOnline: true,
+      isTyping: false,
+    },
+    messages: [
+      { id: 'm1', senderId: 'matched-user-1', content: 'Hey! I saw you like coffee too!', sentAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(), status: 'read' },
+      { id: 'm2', senderId: 'test-user-1', content: 'Yes! I\'m obsessed with finding the best local roasters', sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'read' },
+      { id: 'm3', senderId: 'matched-user-1', content: 'Have you tried the new place on 6th street?', sentAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(), status: 'read' },
+      { id: 'm4', senderId: 'test-user-1', content: 'Not yet! Is it good?', sentAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(), status: 'read' },
+      { id: 'm5', senderId: 'matched-user-1', content: 'It\'s amazing! We should go together sometime 😊', sentAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'delivered' },
+    ],
+    unreadCount: 1,
+  },
+  {
+    id: 'conv-2',
+    participant: {
+      id: 'matched-user-2',
+      name: 'James',
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      isOnline: false,
+      isTyping: false,
+    },
+    messages: [
+      { id: 'm6', senderId: 'test-user-1', content: 'Hey James! Nice to match with you', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), status: 'read' },
+      { id: 'm7', senderId: 'matched-user-2', content: 'Hey! Likewise! I see you\'re into photography?', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(), status: 'read' },
+      { id: 'm8', senderId: 'test-user-1', content: 'Yeah I love street photography! Do you shoot?', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), status: 'read' },
+      { id: 'm9', senderId: 'matched-user-2', content: 'That sounds great!', sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'read' },
+    ],
+    unreadCount: 0,
+  },
+];
+
+export const mockLikes = [
+  {
+    id: 'like-1',
+    fromUser: {
+      blurredPhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&blur=20',
+      name: null,
+      age: null,
+    },
+    isSuperLike: false,
+    isRevealed: false,
+    likedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+  },
+  {
+    id: 'like-2',
+    fromUser: {
+      blurredPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&blur=20',
+      name: null,
+      age: null,
+    },
+    isSuperLike: true,
+    isRevealed: false,
+    likedAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+  },
+];
+
+export const mockStats = {
+  remainingLikes: 50,
+  remainingSuperLikes: 5,
+  remainingBoosts: 3,
+  likesResetAt: new Date(Date.now() + 1000 * 60 * 60 * 12).toISOString(),
+  isPremium: true,
+};
