@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockApi from '../../mocks/mockApi';
+import { matchingService, Match as ServiceMatch, Like as ServiceLike } from '../../services';
 
 interface Match {
   id: string;
@@ -42,11 +42,34 @@ export const MatchesPage: React.FC = () => {
   const loadData = async () => {
     try {
       const [matchesData, likesData] = await Promise.all([
-        mockApi.getMatches(),
-        mockApi.getLikes(),
+        matchingService.getMatches(),
+        matchingService.getLikes(),
       ]);
-      setMatches(matchesData.matches);
-      setLikes(likesData.likes);
+      // Transform to local format
+      setMatches(matchesData.matches.map((m: ServiceMatch) => ({
+        id: m.id,
+        matchedUser: {
+          id: m.matchedUser.id,
+          name: m.matchedUser.name,
+          photoUrl: m.matchedUser.photoUrl,
+          isOnline: m.matchedUser.isOnline,
+        },
+        matchedAt: m.matchedAt,
+        lastMessage: m.lastMessage?.content || null,
+        lastMessageAt: m.lastMessageAt || null,
+        hasUnread: m.hasUnread,
+      })));
+      setLikes(likesData.likes.map((l: ServiceLike) => ({
+        id: l.id,
+        fromUser: {
+          blurredPhotoUrl: l.user.photoUrl,
+          name: l.isBlurred ? null : l.user.name,
+          age: l.isBlurred ? null : l.user.age || null,
+        },
+        isSuperLike: l.isSuperLike,
+        isRevealed: !l.isBlurred,
+        likedAt: l.likedAt,
+      })));
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {

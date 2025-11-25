@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockApi from '../../mocks/mockApi';
+import { discoveryService, DiscoveryProfile } from '../../services';
 
 interface Profile {
   userId: string;
@@ -32,8 +32,20 @@ export const DiscoveryPage: React.FC = () => {
 
   const loadProfiles = async () => {
     try {
-      const data = await mockApi.getRecommendations();
-      setProfiles(data.profiles);
+      const data = await discoveryService.getRecommendations();
+      // Transform DiscoveryProfile to local Profile format
+      setProfiles(data.profiles.map((p: DiscoveryProfile) => ({
+        userId: p.user_id,
+        name: p.first_name,
+        age: p.age,
+        bio: p.bio || '',
+        photos: p.photos.map((photo) => photo.url),
+        distance: p.distance || 0,
+        city: p.city || '',
+        interests: p.interests,
+        verified: p.is_verified,
+        compatibilityScore: p.compatibility_score || 0,
+      })));
     } catch (err) {
       console.error('Failed to load profiles:', err);
     } finally {
@@ -43,7 +55,7 @@ export const DiscoveryPage: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const data = await mockApi.getStats();
+      const data = await discoveryService.getStats();
       setStats(data);
     } catch (err) {
       console.error('Failed to load stats:', err);
@@ -55,7 +67,7 @@ export const DiscoveryPage: React.FC = () => {
     if (!profile) return;
 
     try {
-      const result = await mockApi.swipe(profile.userId, action);
+      const result = await discoveryService.swipe(profile.userId, action);
 
       if (result.isMatch) {
         setMatchedProfile(result.match);

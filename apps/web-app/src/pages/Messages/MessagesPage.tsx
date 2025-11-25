@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import mockApi from '../../mocks/mockApi';
+import { messagingService, Conversation as ServiceConversation, Message as ServiceMessage } from '../../services';
 
 interface Conversation {
   id: string;
@@ -55,8 +55,20 @@ export const MessagesPage: React.FC = () => {
 
   const loadConversations = async () => {
     try {
-      const data = await mockApi.getConversations();
-      setConversations(data.conversations);
+      const data = await messagingService.getConversations();
+      // Transform to local format
+      setConversations(data.conversations.map((conv: ServiceConversation) => ({
+        id: conv.id,
+        participant: {
+          id: conv.participant.id,
+          name: conv.participant.name,
+          photoUrl: conv.participant.photoUrl,
+          isOnline: conv.participant.isOnline,
+          isTyping: conv.isTyping || false,
+        },
+        lastMessage: conv.lastMessage,
+        unreadCount: conv.unreadCount,
+      })));
     } catch (err) {
       console.error('Failed to load conversations:', err);
     } finally {
@@ -66,8 +78,14 @@ export const MessagesPage: React.FC = () => {
 
   const loadMessages = async (conversationId: string) => {
     try {
-      const data = await mockApi.getMessages(conversationId);
-      setMessages(data.messages);
+      const data = await messagingService.getMessages(conversationId);
+      setMessages(data.messages.map((msg: ServiceMessage) => ({
+        id: msg.id,
+        senderId: msg.senderId,
+        content: msg.content,
+        sentAt: msg.sentAt,
+        status: msg.status,
+      })));
     } catch (err) {
       console.error('Failed to load messages:', err);
     }
@@ -77,8 +95,14 @@ export const MessagesPage: React.FC = () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
     try {
-      const message = await mockApi.sendMessage(selectedConversation, newMessage);
-      setMessages([...messages, message]);
+      const message = await messagingService.sendMessage(selectedConversation, newMessage);
+      setMessages([...messages, {
+        id: message.id,
+        senderId: message.senderId,
+        content: message.content,
+        sentAt: message.sentAt,
+        status: message.status,
+      }]);
       setNewMessage('');
     } catch (err) {
       console.error('Failed to send message:', err);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockApi from '../../mocks/mockApi';
+import { authService } from '../../services';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await mockApi.login(email, password);
+      await authService.login(email, password);
       navigate('/discover');
     } catch (err: any) {
       setError(err.message || 'Login failed');
