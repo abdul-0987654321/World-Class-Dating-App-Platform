@@ -42,3 +42,6 @@ export type {
   UpdateProfileData,
   UpdateSettingsData,
 } from './profile.service';
+
+// AI Services
+export * from './ai';
