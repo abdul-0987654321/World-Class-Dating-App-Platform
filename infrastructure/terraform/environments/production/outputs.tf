@@ -1,37 +1,58 @@
-output "vpc_id" {
-  description = "VPC ID"
-  value       = module.vpc.vpc_id
+output "resource_group_name" {
+  description = "Resource group name"
+  value       = module.vnet.resource_group_name
 }
 
-output "eks_cluster_name" {
-  description = "EKS Cluster Name"
-  value       = module.eks.cluster_name
+output "aks_cluster_name" {
+  description = "AKS cluster name"
+  value       = module.aks.cluster_name
 }
 
-output "eks_cluster_endpoint" {
-  description = "EKS Cluster Endpoint"
-  value       = module.eks.cluster_endpoint
+output "aks_cluster_fqdn" {
+  description = "AKS cluster FQDN"
+  value       = module.aks.cluster_fqdn
+}
+
+output "postgres_fqdn" {
+  description = "PostgreSQL server FQDN"
+  value       = azurerm_postgresql_flexible_server.main.fqdn
   sensitive   = true
 }
 
-output "rds_endpoint" {
-  description = "RDS Database Endpoint"
-  value       = aws_db_instance.main.endpoint
+output "redis_hostname" {
+  description = "Redis hostname"
+  value       = azurerm_redis_cache.main.hostname
   sensitive   = true
 }
 
-output "redis_endpoint" {
-  description = "Redis Cluster Endpoint"
-  value       = aws_elasticache_replication_group.main.primary_endpoint_address
+output "redis_primary_key" {
+  description = "Redis primary key"
+  value       = azurerm_redis_cache.main.primary_access_key
   sensitive   = true
 }
 
-output "s3_media_bucket" {
-  description = "S3 Media Bucket Name"
-  value       = aws_s3_bucket.media.id
+output "storage_account_name" {
+  description = "Media storage account name"
+  value       = azurerm_storage_account.media.name
 }
 
-output "cloudfront_distribution_domain" {
-  description = "CloudFront Distribution Domain"
-  value       = aws_cloudfront_distribution.media.domain_name
+output "cdn_endpoint_hostname" {
+  description = "CDN endpoint hostname"
+  value       = azurerm_cdn_endpoint.media.host_name
+}
+
+output "key_vault_uri" {
+  description = "Key Vault URI"
+  value       = azurerm_key_vault.main.vault_uri
+}
+
+output "container_registry_login_server" {
+  description = "Container registry login server"
+  value       = azurerm_container_registry.main.login_server
+}
+
+output "application_insights_instrumentation_key" {
+  description = "Application Insights instrumentation key"
+  value       = azurerm_application_insights.main.instrumentation_key
+  sensitive   = true
 }

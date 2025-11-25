@@ -1,30 +1,48 @@
-# Development Environment Variables
-
-aws_region = "us-east-1"
+# Azure Development Environment Variables
 
 # Network Configuration
-vpc_cidr           = "10.1.0.0/16"
-availability_zones = ["us-east-1a", "us-east-1b"]
-enable_nat_gateway = false # Save costs in dev
+vnet_address_space        = "10.1.0.0/16"
+enable_nat_gateway        = false # Save costs in dev
+enable_bastion            = false
+enable_network_monitoring = false
 
-# EKS Configuration
-kubernetes_version = "1.28"
-instance_types     = ["t3.medium"]
-capacity_type      = "SPOT" # Use spot instances to save costs
-desired_capacity   = 2
-min_capacity       = 1
-max_capacity       = 4
-disk_size          = 50
+# AKS Configuration
+kubernetes_version     = "1.28.3"
+system_node_size       = "Standard_B4ms"
+system_node_count      = 1
+system_node_min_count  = 1
+system_node_max_count  = 2
+system_node_disk_size  = 64
 
-# RDS Configuration
-db_instance_class          = "db.t3.small"
-db_allocated_storage       = 20
-db_backup_retention_period = 7
-db_multi_az                = false
+user_node_size        = "Standard_D4s_v3"
+user_node_count       = 1
+user_node_min_count   = 1
+user_node_max_count   = 3
+user_node_disk_size   = 128
+
+enable_spot_instances = true
+spot_node_min_count   = 0
+spot_node_max_count   = 2
+
+# PostgreSQL Configuration
+postgres_sku_name              = "B_Standard_B1ms"
+postgres_storage_mb            = 32768 # 32 GB
+postgres_backup_retention_days = 7
+postgres_geo_redundant_backup  = false
+postgres_high_availability     = false
 
 # Redis Configuration
-redis_node_type       = "cache.t3.micro"
-redis_num_cache_nodes = 1
+redis_sku_name  = "Basic"
+redis_family    = "C"
+redis_capacity  = 0
+redis_replicas  = 0
 
-# Other Settings
-enable_flow_logs = false
+# Storage Configuration
+storage_account_replication_type = "LRS"
+enable_geo_replication           = false
+
+# Container Registry
+acr_sku = "Basic"
+
+# Monitoring
+log_analytics_retention_days = 30

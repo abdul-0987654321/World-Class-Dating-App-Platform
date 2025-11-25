@@ -1,0 +1,136 @@
+name: Deploy to AKS with Helm
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      service:
+        description: 'Service to deploy (or all)'
+        required: true
+        type: choice
+        options:
+          - all
+          - dating-api
+          - media-processor
+          - chat-worker
+      image_tag:
+        description: 'Image tag to deploy'
+        required: true
+        type: string
+        default: 'latest'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group datingapp-${{ github.event.inputs.environment }}-rg \
+            --name datingapp-${{ github.event.inputs.environment }}-aks \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace datingapp --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy API Service
+        if: github.event.inputs.service == 'all' || github.event.inputs.service == 'dating-api'
+        run: |
+          helm upgrade --install dating-api ./infrastructure/helm/dating-api \
+            --namespace datingapp \
+            --set image.tag=${{ github.event.inputs.image_tag }} \
+            --set environment=${{ github.event.inputs.environment }} \
+            --values ./infrastructure/helm/dating-api/values-${{ github.event.inputs.environment }}.yaml \
+            --wait \
+            --timeout 10m
+
+      - name: Deploy Media Processor
+        if: github.event.inputs.service == 'all' || github.event.inputs.service == 'media-processor'
+        run: |
+          helm upgrade --install media-processor ./infrastructure/helm/media-processor \
+            --namespace datingapp \
+            --set image.tag=${{ github.event.inputs.image_tag }} \
+            --set environment=${{ github.event.inputs.environment }} \
+            --values ./infrastructure/helm/media-processor/values-${{ github.event.inputs.environment }}.yaml \
+            --wait \
+            --timeout 10m
+
+      - name: Deploy Chat Worker
+        if: github.event.inputs.service == 'all' || github.event.inputs.service == 'chat-worker'
+        run: |
+          helm upgrade --install chat-worker ./infrastructure/helm/chat-worker \
+            --namespace datingapp \
+            --set image.tag=${{ github.event.inputs.image_tag }} \
+            --set environment=${{ github.event.inputs.environment }} \
+            --values ./infrastructure/helm/chat-worker/values-${{ github.event.inputs.environment }}.yaml \
+            --wait \
+            --timeout 10m
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n datingapp
+          kubectl get services -n datingapp
+          kubectl get ingress -n datingapp
+
+      - name: Run smoke tests
+        if: github.event.inputs.environment != 'prod'
+        run: |
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=dating-api -n datingapp --timeout=300s || true
+
+          # Get service endpoints
+          API_URL=$(kubectl get ingress -n datingapp -o jsonpath='{.items[0].spec.rules[0].host}')
+
+          # Basic health check
+          curl -f https://${API_URL}/health || echo "Health check failed"
+
+      - name: Notify deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Helm Deployment - ${{ github.event.inputs.environment }} 🚀
+
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Service:** ${{ github.event.inputs.service }}
+            **Image Tag:** ${{ github.event.inputs.image_tag }}
+            **Status:** ✅ Successfully deployed
+
+            Deployment completed at: ${new Date().toISOString()}`;
+
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: output
+            })

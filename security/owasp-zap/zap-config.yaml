@@ -1,0 +1,118 @@
+---
+# OWASP ZAP Configuration for Dating App
+env:
+  contexts:
+    - name: "Dating App"
+      urls:
+        - "${TARGET_URL}"
+      includePaths:
+        - "${TARGET_URL}/.*"
+      excludePaths:
+        - ".*\\.js"
+        - ".*\\.css"
+        - ".*\\.png"
+        - ".*\\.jpg"
+        - ".*\\.gif"
+        - ".*\\.ico"
+      authentication:
+        method: "json"
+        parameters:
+          loginPageUrl: "${TARGET_URL}/api/auth/login"
+          loginRequestData: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: "response"
+          loggedInRegex: "\\Qtoken\\E"
+          loggedOutRegex: "\\Qunauthorized\\E"
+      sessionManagement:
+        method: "cookie"
+        parameters:
+          cookieName: "session"
+      users:
+        - name: "test-user"
+          credentials:
+            username: "${TEST_USER_EMAIL}"
+            password: "${TEST_USER_PASSWORD}"
+
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  - type: spider
+    parameters:
+      context: "Dating App"
+      user: "test-user"
+      maxDuration: 10
+      maxDepth: 5
+      maxChildren: 10
+
+  - type: spiderAjax
+    parameters:
+      context: "Dating App"
+      user: "test-user"
+      maxDuration: 10
+      maxCrawlDepth: 5
+      numberOfBrowsers: 2
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+
+  - type: activeScan
+    parameters:
+      context: "Dating App"
+      user: "test-user"
+      maxRuleDurationInMins: 5
+      maxScanDurationInMins: 30
+      policy: "API-Scan"
+    policyDefinition:
+      defaultStrength: "medium"
+      defaultThreshold: "medium"
+      rules:
+        # SQL Injection
+        - id: 40018
+          strength: "high"
+          threshold: "low"
+        # XSS
+        - id: 40012
+          strength: "high"
+          threshold: "low"
+        # Path Traversal
+        - id: 6
+          strength: "high"
+          threshold: "low"
+        # Remote Code Execution
+        - id: 90019
+          strength: "high"
+          threshold: "low"
+        # Server Side Request Forgery
+        - id: 40046
+          strength: "high"
+          threshold: "low"
+        # NoSQL Injection
+        - id: 40033
+          strength: "high"
+          threshold: "low"
+
+  - type: report
+    parameters:
+      template: "modern"
+      reportDir: "/zap/reports"
+      reportFile: "zap-report"
+      reportTitle: "Dating App Security Report"
+      reportDescription: "Security scan results for Dating App"
+    risks:
+      - high
+      - medium
+      - low
+      - info
+    confidences:
+      - high
+      - medium
+      - low
+
+  - type: outputSummary
+    parameters:
+      format: "long"
+      summaryFile: "/zap/reports/summary.json"
