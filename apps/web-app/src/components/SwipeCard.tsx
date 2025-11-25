@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FiHeart, FiX, FiStar, FiMapPin, FiBriefcase, FiCheckCircle } from 'react-icons/fi';
-import { DiscoveryProfile } from '@services/discovery.service';
+import { DiscoveryProfile } from '../services/discovery.service';
 import { TierIcon, SubscriptionTier } from './subscription/SubscriptionBadge';
 
 interface SwipeCardProps {
