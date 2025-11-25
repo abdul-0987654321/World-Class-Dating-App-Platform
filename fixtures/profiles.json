@@ -1,5 +1,105 @@
 [
   {
+    "id": "test-profile-1",
+    "userId": "test-user-1",
+    "bio": "Tech enthusiast and coffee addict. I love exploring new cities, trying local cuisines, and having deep conversations. Looking for someone to share adventures and lazy Sunday mornings with.",
+    "gender": "male",
+    "orientation": "straight",
+    "relationshipGoal": "serious",
+    "age": 28,
+    "height": 180,
+    "education": "bachelors",
+    "occupation": "Product Designer",
+    "company": "Tech Startup",
+    "school": "University of Texas",
+    "location": {
+      "type": "Point",
+      "coordinates": [-97.7431, 30.2672]
+    },
+    "address": {
+      "city": "Austin",
+      "state": "TX",
+      "country": "USA"
+    },
+    "interests": ["technology", "coffee", "travel", "photography", "music"],
+    "drinking": "socially",
+    "smoking": "never",
+    "exercise": "regularly",
+    "diet": "omnivore",
+    "pets": "cat",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "test-prompt-1",
+        "question": "My perfect first date",
+        "answer": "Coffee at a local cafe, followed by exploring a bookstore or museum",
+        "order": 1
+      },
+      {
+        "id": "test-prompt-2",
+        "question": "I'm looking for",
+        "answer": "Someone genuine who appreciates both adventure and quiet moments",
+        "order": 2
+      }
+    ],
+    "verified": {
+      "phone": true,
+      "photo": true,
+      "identity": true
+    },
+    "completionPercentage": 100
+  },
+  {
+    "id": "test-profile-2",
+    "userId": "test-user-2",
+    "bio": "Yoga instructor by morning, foodie by night. I believe in living life fully and finding joy in small moments. Let's grab tacos and talk about our dreams!",
+    "gender": "female",
+    "orientation": "straight",
+    "relationshipGoal": "serious",
+    "age": 27,
+    "height": 167,
+    "education": "bachelors",
+    "occupation": "Yoga Instructor",
+    "company": "Zen Studio",
+    "school": "UCLA",
+    "location": {
+      "type": "Point",
+      "coordinates": [-97.7431, 30.2672]
+    },
+    "address": {
+      "city": "Austin",
+      "state": "TX",
+      "country": "USA"
+    },
+    "interests": ["yoga", "cooking", "reading", "hiking", "meditation"],
+    "drinking": "rarely",
+    "smoking": "never",
+    "exercise": "daily",
+    "diet": "vegetarian",
+    "pets": "dog",
+    "photos": [],
+    "prompts": [
+      {
+        "id": "test-prompt-3",
+        "question": "A typical Sunday",
+        "answer": "Morning yoga class, farmers market, cooking something new, and ending with a good book",
+        "order": 1
+      },
+      {
+        "id": "test-prompt-4",
+        "question": "My simple pleasures",
+        "answer": "Sunsets, good coffee, deep conversations, and spontaneous dance parties",
+        "order": 2
+      }
+    ],
+    "verified": {
+      "phone": true,
+      "photo": true,
+      "identity": true
+    },
+    "completionPercentage": 100
+  },
+  {
     "id": "profile-1",
     "userId": "user-1",
     "bio": "Adventure seeker, coffee lover, and aspiring chef. Looking for someone to explore new restaurants and hiking trails with. Let's make some memories together!",
