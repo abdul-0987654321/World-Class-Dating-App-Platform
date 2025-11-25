@@ -15,18 +15,22 @@ export const mockApi = {
   async login(email: string, password: string) {
     await delay(500);
 
-    if (email === 'test1@connectsphere.com' && password === 'TestUser1!') {
-      currentUser = mockUsers['test-user-1'];
-      localStorage.setItem('authToken', 'mock-token-user-1');
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      return { user: currentUser, token: 'mock-token-user-1' };
-    }
+    // Test user credentials mapping
+    const credentials: Record<string, { password: string; userId: string }> = {
+      'test1@connectsphere.com': { password: 'TestUser1!', userId: 'test-user-1' },
+      'test2@connectsphere.com': { password: 'TestUser2!', userId: 'test-user-2' },
+      'test3@connectsphere.com': { password: 'TestUser3!', userId: 'test-user-3' },
+      'test4@connectsphere.com': { password: 'TestUser4!', userId: 'test-user-4' },
+      'test5@connectsphere.com': { password: 'TestUser5!', userId: 'test-user-5' },
+    };
 
-    if (email === 'test2@connectsphere.com' && password === 'TestUser2!') {
-      currentUser = mockUsers['test-user-2'];
-      localStorage.setItem('authToken', 'mock-token-user-2');
+    const cred = credentials[email];
+    if (cred && cred.password === password) {
+      currentUser = mockUsers[cred.userId as keyof typeof mockUsers];
+      const token = `mock-token-${cred.userId}`;
+      localStorage.setItem('authToken', token);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      return { user: currentUser, token: 'mock-token-user-2' };
+      return { user: currentUser, token };
     }
 
     throw new Error('Invalid email or password');
