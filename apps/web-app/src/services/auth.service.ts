@@ -21,6 +21,7 @@ export interface User {
 export interface LoginResponse {
   user: User;
   token: string;
+  accessToken?: string; // Backend returns accessToken
   refreshToken?: string;
 }
 
@@ -42,14 +43,23 @@ class AuthService {
       return mockApi.login(email, password);
     }
 
-    const response = await apiClient.post<LoginResponse>(
+    // Backend returns { success: true, data: { user, accessToken, refreshToken } }
+    const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
       '/api/auth/login',
       { email, password },
       { skipAuth: true }
     );
 
-    this.saveSession(response);
-    return response;
+    // Transform to LoginResponse format
+    const loginResponse: LoginResponse = {
+      user: response.data.user,
+      token: response.data.accessToken,
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+    };
+
+    this.saveSession(loginResponse);
+    return loginResponse;
   }
 
   async register(data: RegisterData): Promise<LoginResponse> {
@@ -69,14 +79,23 @@ class AuthService {
       return { user: mockUser as User, token };
     }
 
-    const response = await apiClient.post<LoginResponse>(
+    // Backend returns { success: true, data: { user, accessToken, refreshToken } }
+    const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
       '/api/auth/register',
       data,
       { skipAuth: true }
     );
 
-    this.saveSession(response);
-    return response;
+    // Transform to LoginResponse format
+    const loginResponse: LoginResponse = {
+      user: response.data.user,
+      token: response.data.accessToken,
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+    };
+
+    this.saveSession(loginResponse);
+    return loginResponse;
   }
 
   async logout(): Promise<void> {

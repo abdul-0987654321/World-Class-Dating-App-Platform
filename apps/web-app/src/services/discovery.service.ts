@@ -97,7 +97,9 @@ class DiscoveryService {
       throw new Error('Failed to fetch recommendations');
     }
 
-    return response.json();
+    // Backend returns { success: true, data: { profiles, nextCursor, remainingToday } }
+    const json = await response.json();
+    return json.data || json;
   }
 
   async swipe(targetUserId: string, action: 'like' | 'pass' | 'super_like'): Promise<SwipeResult> {
