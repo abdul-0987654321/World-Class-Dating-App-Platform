@@ -17,11 +17,11 @@ export const mockApi = {
 
     // Test user credentials mapping
     const credentials: Record<string, { password: string; userId: string }> = {
-      'test1@connectsphere.com': { password: 'TestUser1!', userId: 'test-user-1' },
-      'test2@connectsphere.com': { password: 'TestUser2!', userId: 'test-user-2' },
-      'test3@connectsphere.com': { password: 'TestUser3!', userId: 'test-user-3' },
-      'test4@connectsphere.com': { password: 'TestUser4!', userId: 'test-user-4' },
-      'test5@connectsphere.com': { password: 'TestUser5!', userId: 'test-user-5' },
+      'test1@flamoral.com': { password: 'TestUser1!', userId: 'test-user-1' },
+      'test2@flamoral.com': { password: 'TestUser2!', userId: 'test-user-2' },
+      'test3@flamoral.com': { password: 'TestUser3!', userId: 'test-user-3' },
+      'test4@flamoral.com': { password: 'TestUser4!', userId: 'test-user-4' },
+      'test5@flamoral.com': { password: 'TestUser5!', userId: 'test-user-5' },
     };
 
     const cred = credentials[email];
@@ -127,8 +127,12 @@ export const mockApi = {
       conversations: conversations.map(c => ({
         id: c.id,
         participant: c.participant,
-        lastMessage: c.messages[c.messages.length - 1],
+        lastMessage: c.messages[c.messages.length - 1] ? {
+          ...c.messages[c.messages.length - 1],
+          status: c.messages[c.messages.length - 1].status as 'sending' | 'sent' | 'delivered' | 'read',
+        } : undefined,
         unreadCount: c.unreadCount,
+        createdAt: new Date().toISOString(),
       })),
       nextCursor: null,
       totalUnread: conversations.reduce((sum, c) => sum + c.unreadCount, 0),
@@ -139,7 +143,10 @@ export const mockApi = {
     await delay(300);
     const conv = conversations.find(c => c.id === conversationId);
     return {
-      messages: conv?.messages || [],
+      messages: (conv?.messages || []).map(m => ({
+        ...m,
+        status: m.status as 'sending' | 'sent' | 'delivered' | 'read',
+      })),
       hasMore: false,
     };
   },
@@ -154,7 +161,7 @@ export const mockApi = {
       senderId: currentUser?.id || 'test-user-1',
       content,
       sentAt: new Date().toISOString(),
-      status: 'sent',
+      status: 'sent' as const,
     };
 
     conv.messages.push(newMessage);

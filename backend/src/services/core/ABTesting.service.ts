@@ -334,7 +334,7 @@ class ABTestingService {
         metrics: {
           assignments: { value: assignments },
           conversions: { value: conversions },
-          conversionRate: { value: conversionRate },
+          conversionRate: { value: conversionRate, improvement: 0 },
         },
       };
     });

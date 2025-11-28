@@ -3,7 +3,7 @@
 export const mockUsers = {
   'test-user-1': {
     id: 'test-user-1',
-    email: 'test1@connectsphere.com',
+    email: 'test1@flamoral.com',
     firstName: 'Alex',
     lastName: 'Demo',
     name: 'Alex Demo',
@@ -28,7 +28,7 @@ export const mockUsers = {
   },
   'test-user-2': {
     id: 'test-user-2',
-    email: 'test2@connectsphere.com',
+    email: 'test2@flamoral.com',
     firstName: 'Jordan',
     lastName: 'Demo',
     name: 'Jordan Demo',
@@ -53,7 +53,7 @@ export const mockUsers = {
   },
   'test-user-3': {
     id: 'test-user-3',
-    email: 'test3@connectsphere.com',
+    email: 'test3@flamoral.com',
     firstName: 'Sam',
     lastName: 'Developer',
     name: 'Sam Developer',
@@ -77,7 +77,7 @@ export const mockUsers = {
   },
   'test-user-4': {
     id: 'test-user-4',
-    email: 'test4@connectsphere.com',
+    email: 'test4@flamoral.com',
     firstName: 'Riley',
     lastName: 'Tester',
     name: 'Riley Tester',
@@ -102,7 +102,7 @@ export const mockUsers = {
   },
   'test-user-5': {
     id: 'test-user-5',
-    email: 'test5@connectsphere.com',
+    email: 'test5@flamoral.com',
     firstName: 'Morgan',
     lastName: 'Sample',
     name: 'Morgan Sample',

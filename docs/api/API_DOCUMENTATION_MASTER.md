@@ -1,4 +1,4 @@
-# ConnectSphere API Documentation - Master Guide
+# Flamoral API Documentation - Master Guide
 
 **Version:** 1.0.0
 **Last Updated:** 2025-11-21
@@ -160,12 +160,12 @@ http://localhost:3006/api  (API Gateway)
 
 ### Staging
 ```
-https://api-staging.connectsphere.com/api
+https://api-staging.flamoral.com/api
 ```
 
 ### Production
 ```
-https://api.connectsphere.com/api
+https://api.flamoral.com/api
 ```
 
 ---
@@ -504,7 +504,7 @@ const event = stripe.webhooks.constructEvent(
 
 ### Import Collection
 
-1. Download: [ConnectSphere.postman_collection.json](#)
+1. Download: [Flamoral.postman_collection.json](#)
 2. Open Postman
 3. Click **Import** → Select file
 4. Collection will be imported with all endpoints
@@ -575,15 +575,15 @@ Access interactive API documentation for each service:
 ### JavaScript/TypeScript
 
 ```bash
-npm install @connectsphere/api-client
+npm install @flamoral/api-client
 ```
 
 **Usage:**
 ```typescript
-import { ConnectSphereClient } from '@connectsphere/api-client';
+import { FlamoralClient } from '@flamoral/api-client';
 
-const client = new ConnectSphereClient({
-  baseURL: 'https://api.connectsphere.com',
+const client = new FlamoralClient({
+  baseURL: 'https://api.flamoral.com',
   accessToken: 'your-access-token'
 });
 
@@ -600,7 +600,7 @@ await client.messages.send(matchId, { text: 'Hello!' });
 ### React Hooks
 
 ```typescript
-import { useUser, useMatches, useMessages } from '@connectsphere/react-hooks';
+import { useUser, useMatches, useMessages } from '@flamoral/react-hooks';
 
 function App() {
   const { user, loading } = useUser();
@@ -623,7 +623,7 @@ Pre-seeded test users for development:
 |-------|----------|------|
 | test.user@example.com | Test123! | Free |
 | premium.user@example.com | Test123! | Premium |
-| admin@connectsphere.com | Admin123! | Admin |
+| admin@flamoral.com | Admin123! | Admin |
 
 ### Test Cards (Stripe)
 
@@ -643,9 +643,9 @@ Pre-seeded test users for development:
 - Stripe Setup: `STRIPE_PRODUCTION_SETUP.md`
 
 ### Contact
-- **Engineering:** engineering@connectsphere.com
-- **Support:** support@connectsphere.com
-- **API Issues:** api-support@connectsphere.com
+- **Engineering:** engineering@flamoral.com
+- **Support:** support@flamoral.com
+- **API Issues:** api-support@flamoral.com
 
 ---
 

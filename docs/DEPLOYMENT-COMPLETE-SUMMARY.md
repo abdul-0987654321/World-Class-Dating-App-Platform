@@ -1,4 +1,4 @@
-# ConnectSphere - Complete Implementation Summary
+# Flamoral - Complete Implementation Summary
 
 **Date:** November 18, 2025
 **Status:** Phase 1 Database Schema Complete ✅
@@ -10,8 +10,8 @@
 
 ### 1. ✅ Infrastructure Started
 - **Docker Services Running:**
-  - PostgreSQL (connectsphere-postgres) - Port 5432
-  - Redis (connectsphere-redis) - Port 6379
+  - PostgreSQL (flamoral-postgres) - Port 5432
+  - Redis (flamoral-redis) - Port 6379
   - Elasticsearch - Port 9200
   - Azure Storage (Azurite) - Ports 10000-10002
   - pgAdmin - Port 5050
@@ -53,7 +53,7 @@
 
 ### 4. ✅ Migrations Attempted
 - Migrations were created and ran successfully (batch 4: 12 migrations)
-- **Note:** Migrations ran against `connectsphere_users` database (per knexfile config)
+- **Note:** Migrations ran against `flamoral_users` database (per knexfile config)
 - Need to verify correct database configuration
 
 ---
@@ -79,17 +79,17 @@
 
 ### Step 1: Verify Database Configuration
 
-The knexfile is configured to connect to `connectsphere_users` database, but Docker is running `connectsphere` database. We need to either:
+The knexfile is configured to connect to `flamoral_users` database, but Docker is running `flamoral` database. We need to either:
 
-**Option A: Update knexfile to use `connectsphere`**
+**Option A: Update knexfile to use `flamoral`**
 ```typescript
 // backend/services/user-service/src/infrastructure/database/knexfile.ts
-database: process.env.DB_NAME || 'connectsphere', // Changed from 'connectsphere_users'
+database: process.env.DB_NAME || 'flamoral', // Changed from 'flamoral_users'
 ```
 
-**Option B: Create the `connectsphere_users` database**
+**Option B: Create the `flamoral_users` database**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -c "CREATE DATABASE connectsphere_users;"
+docker exec flamoral-postgres psql -U postgres -c "CREATE DATABASE flamoral_users;"
 ```
 
 ### Step 2: Re-run Migrations
@@ -100,7 +100,7 @@ npm run migrate
 
 ### Step 3: Verify Tables Created
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "\dt"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "\dt"
 ```
 
 ### Step 4: Build Docker Images (When Ready)
@@ -236,9 +236,9 @@ backend/services/user-service/src/infrastructure/database/migrations/
 ## ⚠️ IMPORTANT NOTES
 
 ### Database Connection Issue
-The migrations ran successfully but created tables in `connectsphere_users` database (per knexfile configuration), while Docker Compose is running a `connectsphere` database. This needs to be aligned.
+The migrations ran successfully but created tables in `flamoral_users` database (per knexfile configuration), while Docker Compose is running a `flamoral` database. This needs to be aligned.
 
-**Recommended Fix:** Update knexfile to use `connectsphere` database to match Docker Compose configuration.
+**Recommended Fix:** Update knexfile to use `flamoral` database to match Docker Compose configuration.
 
 ### Docker Build Requirements
 Before building Docker images, each service needs:
@@ -251,7 +251,7 @@ Before building Docker images, each service needs:
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=connectsphere  # or connectsphere_users
+DB_NAME=flamoral  # or flamoral_users
 DB_USER=postgres
 DB_PASSWORD=postgres
 

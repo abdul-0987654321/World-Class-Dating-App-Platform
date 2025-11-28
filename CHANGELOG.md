@@ -1,6 +1,6 @@
-# ConnectSphere - Changelog
+# Flamoral - Changelog
 
-All notable changes to the ConnectSphere dating platform will be documented in this file.
+All notable changes to the Flamoral dating platform will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -270,7 +270,7 @@ None in version 1.0.0 (initial release)
 
 ## Contributors
 
-- **Development Team:** ConnectSphere Engineering
+- **Development Team:** Flamoral Engineering
 - **AI Assistant:** Claude (Anthropic)
 - **Project Lead:** [Your Name]
 
@@ -278,10 +278,10 @@ None in version 1.0.0 (initial release)
 
 ## Links
 
-- **Repository:** https://github.com/connectsphere/platform
-- **Documentation:** https://docs.connectsphere.com
-- **Issue Tracker:** https://github.com/connectsphere/platform/issues
-- **Docker Hub:** https://hub.docker.com/u/connectsphere
+- **Repository:** https://github.com/flamoral/platform
+- **Documentation:** https://docs.flamoral.com
+- **Issue Tracker:** https://github.com/flamoral/platform/issues
+- **Docker Hub:** https://hub.docker.com/u/flamoral
 
 ---
 

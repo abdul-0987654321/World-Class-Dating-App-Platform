@@ -187,12 +187,13 @@ export function addToBlacklist(ip: string) {
 // Session Security
 export function sessionSecurity(req: Request, res: Response, next: NextFunction) {
   // Regenerate session ID periodically
-  if (req.session && req.session.createdAt) {
-    const sessionAge = Date.now() - req.session.createdAt;
+  const session = (req as any).session;
+  if (session && session.createdAt) {
+    const sessionAge = Date.now() - session.createdAt;
     const MAX_SESSION_AGE = 24 * 60 * 60 * 1000; // 24 hours
 
     if (sessionAge > MAX_SESSION_AGE) {
-      req.session.destroy((err) => {
+      session.destroy((err: any) => {
         if (err) {
           logger.error('Session destruction error:', err);
         }

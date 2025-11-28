@@ -45,7 +45,7 @@ const RegisterScreen = ({ navigation }: Props) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Join ConnectSphere today</Text>
+      <Text style={styles.subtitle}>Join Flamoral today</Text>
 
       <View style={styles.form}>
         <TextInput
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#D62839',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signInLink: {
-    color: '#FF6B6B',
+    color: '#D62839',
     fontWeight: '600',
   },
 });

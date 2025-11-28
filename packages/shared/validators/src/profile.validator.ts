@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { MIN_BIO_LENGTH, MAX_BIO_LENGTH, MAX_INTERESTS } from '@connectsphere/constants';
+import { MIN_BIO_LENGTH, MAX_BIO_LENGTH, MAX_INTERESTS } from '@flamoral/constants';
 
 export const updateProfileSchema = Joi.object({
   bio: Joi.string().min(MIN_BIO_LENGTH).max(MAX_BIO_LENGTH).optional(),

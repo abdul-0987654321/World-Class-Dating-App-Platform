@@ -121,7 +121,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user2_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.timestamp('matched_at').notNullable().defaultTo(knex.fn.now());
     table.boolean('conversation_started').notNullable().defaultTo(false);
-    table.uuid('conversation_id').references('id').inTable('conversations');
+    table.uuid('conversation_id'); // Will reference conversations when that table exists
     table.timestamp('conversation_started_at');
 
     table.unique(['event_id', 'user1_id', 'user2_id']);

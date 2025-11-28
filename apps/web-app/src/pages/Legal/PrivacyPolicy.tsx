@@ -16,7 +16,7 @@ export const PrivacyPolicy: React.FC = () => {
 
         <Section>
           <Paragraph>
-            At ConnectSphere, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our dating platform and mobile application. Please read this policy carefully. If you do not agree with the terms of this Privacy Policy, please do not access the Service.
+            At Flamoral, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our dating platform and mobile application. Please read this policy carefully. If you do not agree with the terms of this Privacy Policy, please do not access the Service.
           </Paragraph>
         </Section>
 
@@ -104,7 +104,7 @@ export const PrivacyPolicy: React.FC = () => {
 
           <SubsectionTitle>3.4 Business Transfers</SubsectionTitle>
           <Paragraph>
-            If ConnectSphere is involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will provide notice before your information is transferred and becomes subject to a different Privacy Policy.
+            If Flamoral is involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will provide notice before your information is transferred and becomes subject to a different Privacy Policy.
           </Paragraph>
 
           <SubsectionTitle>3.5 With Your Consent</SubsectionTitle>
@@ -200,10 +200,10 @@ export const PrivacyPolicy: React.FC = () => {
         <Section>
           <SectionTitle>8. Children's Privacy</SectionTitle>
           <Paragraph>
-            ConnectSphere is not intended for individuals under the age of 18. We do not knowingly collect personal information from children under 18. If we become aware that we have collected personal information from a child under 18, we will take steps to delete such information as soon as possible.
+            Flamoral is not intended for individuals under the age of 18. We do not knowingly collect personal information from children under 18. If we become aware that we have collected personal information from a child under 18, we will take steps to delete such information as soon as possible.
           </Paragraph>
           <Paragraph>
-            If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at privacy@connectsphere.com.
+            If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at privacy@flamoral.com.
           </Paragraph>
         </Section>
 
@@ -247,20 +247,20 @@ export const PrivacyPolicy: React.FC = () => {
             If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
           </Paragraph>
           <ContactInfo>
-            <div><Strong>ConnectSphere, Inc.</Strong></div>
-            <div>Email: privacy@connectsphere.com</div>
+            <div><Strong>Flamoral, Inc.</Strong></div>
+            <div>Email: privacy@flamoral.com</div>
             <div>Address: [Your Business Address]</div>
-            <div>Data Protection Officer: dpo@connectsphere.com</div>
+            <div>Data Protection Officer: dpo@flamoral.com</div>
           </ContactInfo>
           <Paragraph style={{ marginTop: '1.5rem' }}>
-            <Strong>For EU Residents:</Strong> You may also contact our EU representative at eu-representative@connectsphere.com.
+            <Strong>For EU Residents:</Strong> You may also contact our EU representative at eu-representative@flamoral.com.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>13. Your California Privacy Rights</SectionTitle>
           <Paragraph>
-            California Civil Code Section 1798.83 permits California residents to request certain information regarding our disclosure of personal information to third parties for their direct marketing purposes. To make such a request, please contact us at privacy@connectsphere.com.
+            California Civil Code Section 1798.83 permits California residents to request certain information regarding our disclosure of personal information to third parties for their direct marketing purposes. To make such a request, please contact us at privacy@flamoral.com.
           </Paragraph>
 
           <SubsectionTitle>California Consumer Privacy Act (CCPA)</SubsectionTitle>
@@ -274,14 +274,14 @@ export const PrivacyPolicy: React.FC = () => {
             <ListItem><Strong>Right to Non-Discrimination:</Strong> You have the right not to receive discriminatory treatment for exercising your privacy rights</ListItem>
           </List>
           <Paragraph>
-            To exercise these rights, please email us at privacy@connectsphere.com or use the data download/deletion features in your account settings.
+            To exercise these rights, please email us at privacy@flamoral.com or use the data download/deletion features in your account settings.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>14. Nevada Residents</SectionTitle>
           <Paragraph>
-            Nevada residents have the right to opt-out of the sale of certain personal information. We do not sell your personal information as defined under Nevada law. If you have questions, please contact us at privacy@connectsphere.com.
+            Nevada residents have the right to opt-out of the sale of certain personal information. We do not sell your personal information as defined under Nevada law. If you have questions, please contact us at privacy@flamoral.com.
           </Paragraph>
         </Section>
 

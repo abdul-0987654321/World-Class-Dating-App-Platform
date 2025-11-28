@@ -388,7 +388,7 @@ class ReferralService {
   async getReferralLink(userId: string): Promise<string> {
     const code = await this.getReferralCode(userId);
     // In production, this would be your actual app URL
-    return `https://app.connectsphere.com/r/${code.code}`;
+    return `https://app.flamoral.com/r/${code.code}`;
   }
 
   /**

@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We actively support security updates for the following versions of ConnectSphere:
+We actively support security updates for the following versions of Flamoral:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,13 +11,13 @@ We actively support security updates for the following versions of ConnectSphere
 
 ## Reporting a Vulnerability
 
-We take the security of ConnectSphere seriously. If you believe you have found a security vulnerability, please report it to us responsibly.
+We take the security of Flamoral seriously. If you believe you have found a security vulnerability, please report it to us responsibly.
 
 ### How to Report
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, please send an email to: **security@connectsphere.com**
+Instead, please send an email to: **security@flamoral.com**
 
 Include the following information in your report:
 - Type of vulnerability (e.g., XSS, SQL injection, authentication bypass)
@@ -86,5 +86,5 @@ We are currently developing a bug bounty program. Details will be announced soon
 
 ## Contact
 
-- **Security Team**: security@connectsphere.com
-- **General Inquiries**: support@connectsphere.com
+- **Security Team**: security@flamoral.com
+- **General Inquiries**: support@flamoral.com

@@ -36,7 +36,7 @@
 - Report categories (10 seeded)
 - Privacy settings
 
-**Database:** `connectsphere_users` (per knexfile config)
+**Database:** `flamoral_users` (per knexfile config)
 **Tables Created:** 12 new + 14 existing = 26 total
 **Seed Data:** 77 records
 
@@ -847,8 +847,8 @@ export default new EntityNameRepository();
 ## 📋 IMMEDIATE ACTION ITEMS
 
 1. **Fix Database Configuration**
-   - Update knexfile to use `connectsphere` database
-   - OR create `connectsphere_users` database
+   - Update knexfile to use `flamoral` database
+   - OR create `flamoral_users` database
    - Re-run migrations if needed
 
 2. **Create Repositories** (Top Priority)

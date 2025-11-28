@@ -7,7 +7,32 @@ import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
 import { MatchesPage } from './pages/Matches/MatchesPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
+import { ProfileEditPage } from './pages/Profile/ProfileEditPage';
+import { SafetyCenterPage } from './pages/Safety/SafetyCenterPage';
+import { GamificationPage } from './pages/Gamification/GamificationPage';
+import { CommunitiesPage } from './pages/Communities/CommunitiesPage';
+import { SpeedDatingPage } from './pages/SpeedDating/SpeedDatingPage';
+import { ReferralPage } from './pages/Referral/ReferralPage';
+import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
+import { AdvancedFiltersPage } from './pages/Filters/AdvancedFiltersPage';
+import { VideoCallPage } from './pages/VideoCall/VideoCallPage';
+import { SettingsPage } from './pages/Settings/SettingsPage';
+import { PrivacySettingsPage } from './pages/Settings/PrivacySettingsPage';
+import { NotificationSettingsPage } from './pages/Settings/NotificationSettingsPage';
+import { PhotoVerificationPage } from './pages/Verification/PhotoVerificationPage';
+import { HelpSupportPage } from './pages/Help/HelpSupportPage';
 import TierShowcase from './pages/TierShowcase';
+
+// Admin Pages
+import {
+  AdminDashboardPage,
+  AdminUsersPage,
+  AdminVerificationsPage,
+  AdminReportsPage,
+  AdminAnalyticsPage,
+  AdminModerationPage,
+  AdminSettingsPage,
+} from './pages/Admin';
 
 // Auth check hook
 const useAuth = () => {
@@ -67,6 +92,71 @@ const App: React.FC = () => {
         } />
         <Route path="/profile" element={
           <ProtectedRoute><ProfilePage /></ProtectedRoute>
+        } />
+        <Route path="/safety" element={
+          <ProtectedRoute><SafetyCenterPage /></ProtectedRoute>
+        } />
+        <Route path="/rewards" element={
+          <ProtectedRoute><GamificationPage /></ProtectedRoute>
+        } />
+        <Route path="/communities" element={
+          <ProtectedRoute><CommunitiesPage /></ProtectedRoute>
+        } />
+        <Route path="/speed-dating" element={
+          <ProtectedRoute><SpeedDatingPage /></ProtectedRoute>
+        } />
+        <Route path="/referrals" element={
+          <ProtectedRoute><ReferralPage /></ProtectedRoute>
+        } />
+        <Route path="/subscription" element={
+          <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
+        } />
+        <Route path="/filters" element={
+          <ProtectedRoute><AdvancedFiltersPage /></ProtectedRoute>
+        } />
+        <Route path="/video-call/:matchId" element={
+          <ProtectedRoute><VideoCallPage /></ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute><SettingsPage /></ProtectedRoute>
+        } />
+        <Route path="/profile/edit" element={
+          <ProtectedRoute><ProfileEditPage /></ProtectedRoute>
+        } />
+        <Route path="/verification" element={
+          <ProtectedRoute><PhotoVerificationPage /></ProtectedRoute>
+        } />
+        <Route path="/privacy" element={
+          <ProtectedRoute><PrivacySettingsPage /></ProtectedRoute>
+        } />
+        <Route path="/notifications" element={
+          <ProtectedRoute><NotificationSettingsPage /></ProtectedRoute>
+        } />
+        <Route path="/help" element={
+          <ProtectedRoute><HelpSupportPage /></ProtectedRoute>
+        } />
+
+        {/* Admin routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute><AdminDashboardPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/users" element={
+          <ProtectedRoute><AdminUsersPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/verifications" element={
+          <ProtectedRoute><AdminVerificationsPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/reports" element={
+          <ProtectedRoute><AdminReportsPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/analytics" element={
+          <ProtectedRoute><AdminAnalyticsPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/moderation" element={
+          <ProtectedRoute><AdminModerationPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <ProtectedRoute><AdminSettingsPage /></ProtectedRoute>
         } />
 
         {/* Default redirect */}

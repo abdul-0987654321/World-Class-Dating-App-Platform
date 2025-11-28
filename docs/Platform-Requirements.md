@@ -1,4 +1,4 @@
-# ConnectSphere Platform - Requirements Specification
+# Flamoral Platform - Requirements Specification
 
 **Version:** 1.0.0  
 **Date:** November 14, 2025  
@@ -23,10 +23,10 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document specifies the complete requirements for the ConnectSphere dating platform, including functional capabilities, performance standards, user experience expectations, and compliance needs.
+This document specifies the complete requirements for the Flamoral dating platform, including functional capabilities, performance standards, user experience expectations, and compliance needs.
 
 ### 1.2 Scope
-ConnectSphere is a comprehensive dating platform encompassing:
+Flamoral is a comprehensive dating platform encompassing:
 - Mobile applications (iOS and Android)
 - Web application
 - Backend services and APIs

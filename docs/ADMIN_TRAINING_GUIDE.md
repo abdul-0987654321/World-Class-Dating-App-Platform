@@ -1,6 +1,6 @@
 # Content Moderation System - Admin Training Guide
 
-**ConnectSphere Dating Platform**
+**Flamoral Dating Platform**
 **Version:** 1.0
 **Date:** November 18, 2025
 
@@ -23,9 +23,9 @@
 
 ## Introduction
 
-### Welcome to ConnectSphere Moderation
+### Welcome to Flamoral Moderation
 
-Welcome to the ConnectSphere Content Moderation System! As an admin, you play a crucial role in maintaining a safe, respectful community for all users.
+Welcome to the Flamoral Content Moderation System! As an admin, you play a crucial role in maintaining a safe, respectful community for all users.
 
 ### Your Role
 
@@ -38,7 +38,7 @@ As a Content Moderator, you will:
 
 ### System Overview
 
-ConnectSphere uses a **three-tier moderation system**:
+Flamoral uses a **three-tier moderation system**:
 
 1. **AI Auto-Moderation** (AWS Rekognition + Azure Content Moderator)
    - Automatically approves safe content (risk < 50%)
@@ -61,7 +61,7 @@ ConnectSphere uses a **three-tier moderation system**:
 
 ### Logging In
 
-1. Navigate to: `https://app.connectsphere.com`
+1. Navigate to: `https://app.flamoral.com`
 2. Click **"Admin Login"** or go to `/admin/login`
 3. Enter your admin credentials
 4. Two-factor authentication required (if enabled)
@@ -667,7 +667,7 @@ A:
 
 **Q: How do I report a bug or suggest an improvement?**
 
-A: Use the "Feedback" button in the admin panel or email `moderation-support@connectsphere.com`.
+A: Use the "Feedback" button in the admin panel or email `moderation-support@flamoral.com`.
 
 **Q: What if I see illegal content (child exploitation, terrorism)?**
 
@@ -736,7 +736,7 @@ Add detailed notes → Submit
 
 ### Congratulations!
 
-You've completed the Admin Training Guide for the ConnectSphere Content Moderation System.
+You've completed the Admin Training Guide for the Flamoral Content Moderation System.
 
 ### Next Steps
 
@@ -750,13 +750,13 @@ You've completed the Admin Training Guide for the ConnectSphere Content Moderati
 
 - **Community Guidelines:** `/docs/community-guidelines.pdf`
 - **Moderator Handbook:** `/docs/moderator-handbook.md`
-- **Tech Support:** `support@connectsphere.com`
+- **Tech Support:** `support@flamoral.com`
 - **Manager:** `[Your Manager's Contact]`
 - **Emergency Escalation:** `[Emergency Contact]`
 
 ---
 
-**Welcome to the team! Thank you for helping keep ConnectSphere safe.**
+**Welcome to the team! Thank you for helping keep Flamoral safe.**
 
 ---
 

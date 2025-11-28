@@ -1,8 +1,8 @@
-# ConnectSphere API Documentation
+# Flamoral API Documentation
 
 **Version**: 2.0.0
-**Base URL**: `https://api.connectsphere.com/v1`
-**WebSocket URL**: `wss://api.connectsphere.com`
+**Base URL**: `https://api.flamoral.com/v1`
+**WebSocket URL**: `wss://api.flamoral.com`
 
 ---
 
@@ -169,7 +169,7 @@ Get current user's profile
     "photos": [
       {
         "id": "uuid",
-        "url": "https://cdn.connectsphere.com/photos/...",
+        "url": "https://cdn.flamoral.com/photos/...",
         "position": 0,
         "is_primary": true
       }
@@ -224,8 +224,8 @@ position: 0
   "data": {
     "photo": {
       "id": "uuid",
-      "url": "https://cdn.connectsphere.com/photos/...",
-      "thumbnail_url": "https://cdn.connectsphere.com/thumbnails/...",
+      "url": "https://cdn.flamoral.com/photos/...",
+      "thumbnail_url": "https://cdn.flamoral.com/thumbnails/...",
       "position": 0,
       "moderation_status": "pending"
     }
@@ -657,7 +657,7 @@ Resolve a report
 
 ### Connection
 ```javascript
-const socket = io('wss://api.connectsphere.com', {
+const socket = io('wss://api.flamoral.com', {
   auth: {
     token: 'jwt_access_token'
   }

@@ -76,7 +76,7 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified, onUnderage }) => {
     const age = calculateAge(birthDate);
 
     if (age < MINIMUM_AGE) {
-      setError(`You must be at least ${MINIMUM_AGE} years old to use ConnectSphere`);
+      setError(`You must be at least ${MINIMUM_AGE} years old to use Flamoral`);
       if (onUnderage) {
         setTimeout(() => onUnderage(), 3000);
       }
@@ -96,12 +96,12 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified, onUnderage }) => {
       <Modal>
         <Logo>
           <HeartIcon>❤️</HeartIcon>
-          <LogoText>ConnectSphere</LogoText>
+          <LogoText>Flamoral</LogoText>
         </Logo>
 
         <Title>Age Verification Required</Title>
         <Subtitle>
-          You must be at least {MINIMUM_AGE} years old to use ConnectSphere
+          You must be at least {MINIMUM_AGE} years old to use Flamoral
         </Subtitle>
 
         <Form onSubmit={handleSubmit}>

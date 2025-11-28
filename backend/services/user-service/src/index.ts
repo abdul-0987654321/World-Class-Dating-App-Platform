@@ -61,7 +61,7 @@ app.get('/health', (_req: Request, res: Response) => {
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'ConnectSphere User Service API Documentation',
+  customSiteTitle: 'Flamoral User Service API Documentation',
 }));
 
 // Swagger JSON endpoint
@@ -73,7 +73,7 @@ app.get('/api-docs.json', (_req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere User Service',
+    service: 'Flamoral User Service',
     version: '1.0.0',
     status: 'running',
     documentation: '/api-docs',

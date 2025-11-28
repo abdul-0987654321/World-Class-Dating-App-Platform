@@ -8,7 +8,7 @@ import type {
   VerifyEmailRequest,
   VerifyPhoneRequest,
   ResetPasswordRequest
-} from '@connectsphere/types';
+} from '@flamoral/types';
 
 export class AuthApi {
   constructor(private client: ApiClient) {}

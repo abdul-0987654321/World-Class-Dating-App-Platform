@@ -1,10 +1,10 @@
 @echo off
 REM ============================================
-REM ConnectSphere - Quick Docker Build Script
+REM Flamoral - Quick Docker Build Script
 REM ============================================
 
 echo ============================================
-echo ConnectSphere Docker Build
+echo Flamoral Docker Build
 echo ============================================
 echo.
 

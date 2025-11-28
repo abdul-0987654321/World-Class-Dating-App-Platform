@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/matching-service",
+  "name": "@flamoral/matching-service",
   "version": "1.0.0",
   "description": "AI-powered matching and recommendation service",
   "main": "dist/index.js",

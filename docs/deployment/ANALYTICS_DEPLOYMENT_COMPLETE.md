@@ -287,7 +287,7 @@ Analytics service `.env`:
 # Database
 DB_HOST=postgres
 DB_PORT=5432
-DB_NAME=connectsphere_analytics
+DB_NAME=flamoral_analytics
 DB_USER=postgres
 DB_PASSWORD=your_secure_password
 
@@ -366,7 +366,7 @@ curl -X POST http://localhost:3007/api/tracking/event \
 
 ```sql
 -- Connect to database
-psql -U postgres -d connectsphere_analytics
+psql -U postgres -d flamoral_analytics
 
 -- Check tracking events
 SELECT event_type, event_name, created_at
@@ -493,10 +493,10 @@ docker-compose down
 
 ```bash
 # Run migrations
-psql -U postgres -d connectsphere_analytics -f backend/services/analytics-service/src/infrastructure/database/migrations/001_create_tracking_tables.sql
+psql -U postgres -d flamoral_analytics -f backend/services/analytics-service/src/infrastructure/database/migrations/001_create_tracking_tables.sql
 
 # Connect to database
-docker-compose exec postgres psql -U postgres -d connectsphere_analytics
+docker-compose exec postgres psql -U postgres -d flamoral_analytics
 
 # Check tracking events
 SELECT COUNT(*) FROM tracking_events;

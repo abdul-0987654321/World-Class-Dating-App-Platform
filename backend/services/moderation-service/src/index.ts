@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import moderationRoutes from './routes/moderation.routes';
 import config from './config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();
@@ -39,7 +39,7 @@ app.get('/health', (req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere Content Moderation Service',
+    service: 'Flamoral Content Moderation Service',
     version: '1.0.0',
     status: 'running',
     features: [

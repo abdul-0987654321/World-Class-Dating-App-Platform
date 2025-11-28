@@ -8,19 +8,23 @@ import { logger } from '../../../utils/logger';
 export class SendGridService {
   private fromEmail: string;
   private fromName: string;
+  private initialized: boolean = false;
 
   constructor() {
     const apiKey = process.env.SENDGRID_API_KEY;
-    if (!apiKey) {
-      throw new Error('SENDGRID_API_KEY is not configured');
+    if (apiKey) {
+      sgMail.setApiKey(apiKey);
+      this.initialized = true;
     }
-
-    sgMail.setApiKey(apiKey);
-    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@connectsphere.com';
-    this.fromName = process.env.SENDGRID_FROM_NAME || 'ConnectSphere';
+    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@flamoral.com';
+    this.fromName = process.env.SENDGRID_FROM_NAME || 'Flamoral';
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<void> {
+    if (!this.initialized) {
+      logger.warn('SendGrid not configured, skipping email send to:', to);
+      return;
+    }
     try {
       await sgMail.send({
         to,
@@ -81,3 +85,6 @@ export class SendGridService {
     });
   }
 }
+
+// Export singleton instance
+export const sendEmailService = new SendGridService();

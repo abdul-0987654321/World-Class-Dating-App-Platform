@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FiHeart, FiStar, FiRotateCcw } from 'react-icons/fi';
-import { usageLimitService, UserLimits } from '@services/usage-limit.service';
+import { usageLimitService, UserLimits } from '../../services/usage-limit.service';
 
 const Container = styled.div`
   background: ${({ theme }) => theme.colors.white};

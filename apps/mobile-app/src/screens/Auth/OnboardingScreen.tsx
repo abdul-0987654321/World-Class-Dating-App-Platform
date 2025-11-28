@@ -8,8 +8,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 const OnboardingScreen = ({ navigation }: Props) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>ConnectSphere</Text>
-      <Text style={styles.tagline}>Find meaningful connections nearby</Text>
+      <Text style={styles.logo}>Flamoral</Text>
+      <Text style={styles.tagline}>Where Passion Meets Connection</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: '#D62839',
     marginBottom: 10,
   },
   tagline: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSecondaryText: {
-    color: '#FF6B6B',
+    color: '#D62839',
     fontSize: 16,
     fontWeight: '600',
   },

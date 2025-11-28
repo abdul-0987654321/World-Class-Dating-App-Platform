@@ -2,7 +2,7 @@
 
 ## Current Status
 
-The ConnectSphere mobile app has:
+The Flamoral mobile app has:
 - ✅ React Native project structure
 - ✅ TypeScript configuration
 - ✅ Navigation setup (React Navigation)
@@ -40,7 +40,7 @@ From the `apps/mobile` directory:
 cd apps/mobile
 
 # This will create iOS and Android native projects
-npx react-native init ConnectSphere --directory . --skip-install
+npx react-native init Flamoral --directory . --skip-install
 
 # The --skip-install flag prevents npm install since we use yarn workspaces
 ```
@@ -91,7 +91,7 @@ cp -r /tmp/TempProject/android /path/to/apps/mobile/
 
 ### iOS: Info.plist
 
-Add to `ios/ConnectSphere/Info.plist`:
+Add to `ios/Flamoral/Info.plist`:
 
 ```xml
 <!-- Age Restriction -->
@@ -129,7 +129,7 @@ android {
     buildToolsVersion "34.0.0"
 
     defaultConfig {
-        applicationId "com.connectsphere"
+        applicationId "com.flamoral"
         minSdkVersion 23      // Android 6.0
         targetSdkVersion 34   // Android 14 - REQUIRED
         versionCode 1
@@ -178,7 +178,7 @@ Add to `android/app/src/main/AndroidManifest.xml`:
 ## App Icons and Splash Screens
 
 ### iOS
-Place icons in `ios/ConnectSphere/Images.xcassets/AppIcon.appiconset/`
+Place icons in `ios/Flamoral/Images.xcassets/AppIcon.appiconset/`
 
 Required sizes:
 - 1024x1024 (App Store)
@@ -211,10 +211,10 @@ Place icons in:
 cd ios
 
 # Archive build
-xcodebuild -workspace ConnectSphere.xcworkspace \
-  -scheme ConnectSphere \
+xcodebuild -workspace Flamoral.xcworkspace \
+  -scheme Flamoral \
   -configuration Release \
-  -archivePath ConnectSphere.xcarchive \
+  -archivePath Flamoral.xcarchive \
   archive
 
 # Upload to App Store Connect

@@ -28,7 +28,7 @@ interface TestUser {
 
 const TEST_USERS: TestUser[] = [
   {
-    email: 'test1@connectsphere.com',
+    email: 'test1@flamoral.com',
     password: 'TestUser1!',
     firstName: 'Alex',
     lastName: 'Demo',
@@ -48,7 +48,7 @@ const TEST_USERS: TestUser[] = [
     location: { city: 'San Francisco', country: 'USA', lat: 37.7749, lng: -122.4194 },
   },
   {
-    email: 'test2@connectsphere.com',
+    email: 'test2@flamoral.com',
     password: 'TestUser2!',
     firstName: 'Jordan',
     lastName: 'Demo',
@@ -68,7 +68,7 @@ const TEST_USERS: TestUser[] = [
     location: { city: 'San Francisco', country: 'USA', lat: 37.7849, lng: -122.4094 },
   },
   {
-    email: 'test3@connectsphere.com',
+    email: 'test3@flamoral.com',
     password: 'TestUser3!',
     firstName: 'Sam',
     lastName: 'Developer',
@@ -87,7 +87,7 @@ const TEST_USERS: TestUser[] = [
     location: { city: 'New York', country: 'USA', lat: 40.7128, lng: -74.0060 },
   },
   {
-    email: 'test4@connectsphere.com',
+    email: 'test4@flamoral.com',
     password: 'TestUser4!',
     firstName: 'Riley',
     lastName: 'Tester',
@@ -107,7 +107,7 @@ const TEST_USERS: TestUser[] = [
     location: { city: 'Los Angeles', country: 'USA', lat: 34.0522, lng: -118.2437 },
   },
   {
-    email: 'test5@connectsphere.com',
+    email: 'test5@flamoral.com',
     password: 'TestUser5!',
     firstName: 'Morgan',
     lastName: 'Sample',
@@ -129,7 +129,7 @@ const TEST_USERS: TestUser[] = [
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up existing test users (be careful not to delete real users!)
-  await knex('users').where('email', 'like', '%@connectsphere.com').del();
+  await knex('users').where('email', 'like', '%@flamoral.com').del();
 
   // Create test users
   for (const testUser of TEST_USERS) {
@@ -141,11 +141,17 @@ export async function seed(knex: Knex): Promise<void> {
       id: userId,
       email: testUser.email,
       password_hash: hashedPassword,
-      phone_number: `+1555${Math.floor(1000000 + Math.random() * 9000000)}`,
+      first_name: testUser.firstName,
+      last_name: testUser.lastName,
+      date_of_birth: testUser.birthDate,
+      gender: testUser.gender === 'non-binary' ? 'other' : testUser.gender,
+      phone: `+1555${Math.floor(1000000 + Math.random() * 9000000)}`,
       phone_verified: true,
       email_verified: true,
       is_active: true,
-      premium_tier: testUser.tier,
+      is_verified: testUser.verified,
+      subscription_tier: testUser.tier === 'FREE' ? 'free' : testUser.tier === 'GOLD' ? 'premium' : 'premium_plus',
+      coin_balance: testUser.coins,
       created_at: new Date(),
       updated_at: new Date(),
     });
@@ -154,51 +160,52 @@ export async function seed(knex: Knex): Promise<void> {
     await knex('profiles').insert({
       id: uuidv4(),
       user_id: userId,
-      first_name: testUser.firstName,
-      last_name: testUser.lastName,
-      display_name: testUser.firstName,
-      birth_date: testUser.birthDate,
-      gender: testUser.gender,
       bio: testUser.bio,
       occupation: testUser.occupation,
-      photos: JSON.stringify(testUser.photos),
       interests: JSON.stringify(testUser.interests),
-      city: testUser.location.city,
-      country: testUser.location.country,
-      location_lat: testUser.location.lat,
-      location_lng: testUser.location.lng,
-      is_verified: testUser.verified,
-      profile_completion: 100,
+      current_city: testUser.location.city,
+      profile_completion_percentage: 100,
       created_at: new Date(),
       updated_at: new Date(),
     });
 
-    // Insert wallet
-    await knex('user_wallets').insert({
-      id: uuidv4(),
-      user_id: userId,
-      coins: testUser.coins,
-      gems: Math.floor(testUser.coins / 10),
-      super_likes: 5,
-      boost_minutes: 30,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
+    // Insert profile photos
+    for (let i = 0; i < testUser.photos.length; i++) {
+      await knex('profile_photos').insert({
+        id: uuidv4(),
+        user_id: userId,
+        url: testUser.photos[i],
+        order_index: i,
+        is_verified: true,
+        moderation_status: 'approved',
+        uploaded_at: new Date(),
+        created_at: new Date(),
+      });
+    }
 
     // Insert user settings
     await knex('user_settings').insert({
-      id: uuidv4(),
       user_id: userId,
-      discovery_enabled: true,
-      show_age: true,
-      show_distance: true,
-      push_notifications: true,
-      email_notifications: true,
-      age_min: 21,
-      age_max: 45,
-      distance_max: 50,
-      gender_preference: JSON.stringify(['male', 'female', 'non-binary']),
+      notifications_push: true,
+      notifications_email: true,
+      privacy_show_online: true,
+      privacy_show_distance: true,
+      privacy_show_age: true,
+      discovery_age_min: 21,
+      discovery_age_max: 45,
+      discovery_distance_max: 50,
+      discovery_show_me: JSON.stringify(['all']),
       created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    // Insert user location
+    await knex('user_locations').insert({
+      user_id: userId,
+      latitude: testUser.location.lat,
+      longitude: testUser.location.lng,
+      city: testUser.location.city,
+      country: testUser.location.country,
       updated_at: new Date(),
     });
 

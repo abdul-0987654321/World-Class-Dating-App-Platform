@@ -77,7 +77,7 @@ jobs:
         working-directory: frontend/web
         run: npm run build
         env:
-          VITE_API_URL: https://api-staging.connectsphere.com
+          VITE_API_URL: https://api-staging.flamoral.com
           VITE_ENVIRONMENT: staging
 
       - name: Upload build artifacts

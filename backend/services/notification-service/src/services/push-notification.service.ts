@@ -209,7 +209,7 @@ class PushNotificationService {
           priority: 'high',
           notification: {
             sound: 'default',
-            channelId: 'connectsphere_notifications',
+            channelId: 'flamoral_notifications',
             priority: 'high',
           },
         },

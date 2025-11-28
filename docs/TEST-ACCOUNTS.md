@@ -1,4 +1,4 @@
-# Test Accounts - ConnectSphere Platform
+# Test Accounts - Flamoral Platform
 
 **Created:** November 15, 2025
 **Purpose:** Frontend and E2E testing
@@ -158,8 +158,8 @@
    - To: jane.smith.test@example.com
 
 **Email Details:**
-- **Subject:** "Verify your ConnectSphere account"
-- **From:** ConnectSphere
+- **Subject:** "Verify your Flamoral account"
+- **From:** Flamoral
 - **Contains:** Verification link with token
 - **Expiry:** 24 hours
 
@@ -204,7 +204,7 @@ ORDER BY created_at DESC;
 
 **Run in Terminal:**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "SELECT id, email, first_name, last_name, is_verified FROM users WHERE email LIKE '%test@example.com';"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "SELECT id, email, first_name, last_name, is_verified FROM users WHERE email LIKE '%test@example.com';"
 ```
 
 ---
@@ -227,7 +227,7 @@ ORDER BY created_at DESC;
 
 **Run in Terminal:**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "SELECT user_id, type, is_used, expires_at FROM verification_tokens ORDER BY created_at DESC LIMIT 5;"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "SELECT user_id, type, is_used, expires_at FROM verification_tokens ORDER BY created_at DESC LIMIT 5;"
 ```
 
 ---
@@ -261,7 +261,7 @@ DELETE FROM users WHERE email LIKE '%test@example.com';
 
 **Run in Terminal:**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "DELETE FROM users WHERE email LIKE '%test@example.com';"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "DELETE FROM users WHERE email LIKE '%test@example.com';"
 ```
 
 **Note:** This will cascade delete:
@@ -393,7 +393,7 @@ curl -X POST http://localhost:3001/api/auth/register \
 
 2. **Check database:**
    ```bash
-   docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "SELECT COUNT(*) FROM users;"
+   docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "SELECT COUNT(*) FROM users;"
    ```
 
 3. **Recreate accounts:**

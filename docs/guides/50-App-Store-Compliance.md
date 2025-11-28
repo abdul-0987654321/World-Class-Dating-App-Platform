@@ -13,7 +13,7 @@
 ### Content & Functionality
 - [x] Privacy Policy included and linked
 - [x] Terms of Service included and linked
-- [ ] Support contact information (email: support@connectsphere.com)
+- [ ] Support contact information (email: support@flamoral.com)
 - [ ] App is 100% complete and functional
 - [ ] No forced ratings/reviews required to use app
 - [ ] Provides substantial value (dating/matchmaking service)
@@ -126,12 +126,12 @@ Required permissions in AndroidManifest.xml with clear explanations:
 ## Test Credentials for Review
 
 **Demo Account 1 (Standard User)**
-- Email: demo@connectsphere.com
+- Email: demo@flamoral.com
 - Password: Demo123!
 - Features: Standard free account with sample matches
 
 **Demo Account 2 (Premium User)**
-- Email: premium@connectsphere.com
+- Email: premium@flamoral.com
 - Password: Premium123!
 - Features: Premium subscription active, all features unlocked
 
@@ -182,8 +182,8 @@ Required permissions in AndroidManifest.xml with clear explanations:
 
 Users can delete account through:
 1. **In-App**: Settings > Account > Delete Account
-2. **Email Request**: privacy@connectsphere.com
-3. **Web Portal**: https://connectsphere.com/delete-account
+2. **Email Request**: privacy@flamoral.com
+3. **Web Portal**: https://flamoral.com/delete-account
 
 Deletion timeline:
 - Immediate: Account deactivated
@@ -229,10 +229,10 @@ Deletion timeline:
 
 ## Contact Information
 
-**Support Email**: support@connectsphere.com
-**Privacy Email**: privacy@connectsphere.com
-**Legal Email**: legal@connectsphere.com
-**Website**: https://connectsphere.com
+**Support Email**: support@flamoral.com
+**Privacy Email**: privacy@flamoral.com
+**Legal Email**: legal@flamoral.com
+**Website**: https://flamoral.com
 
 ---
 

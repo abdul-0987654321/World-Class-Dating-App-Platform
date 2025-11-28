@@ -186,4 +186,16 @@ export class ProfileRepository {
 
     return photos;
   }
+
+  async deleteByUserId(userId: string): Promise<void> {
+    // Delete all photos first
+    await this.db('profile_photos')
+      .where({ user_id: userId })
+      .delete();
+
+    // Delete profile
+    await this.db('profiles')
+      .where({ user_id: userId })
+      .delete();
+  }
 }

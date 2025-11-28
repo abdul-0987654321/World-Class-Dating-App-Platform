@@ -33,12 +33,12 @@ jobs:
           services=("user-service" "matching-service" "messaging-service" "media-service" "payment-service" "notification-service" "moderation-service" "analytics-service" "api-gateway")
 
           for service in "${services[@]}"; do
-            docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:${{ github.sha }} \
-              -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:production \
+            docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/$service:${{ github.sha }} \
+              -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/$service:production \
               ./backend/services/$service
 
-            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:${{ github.sha }}
-            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/$service:production
+            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/$service:${{ github.sha }}
+            docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/$service:production
           done
 
       - name: Set AKS context
@@ -53,19 +53,19 @@ jobs:
           kubectl apply -f infrastructure/kubernetes/services/
 
           # Rolling update with blue-green deployment
-          kubectl set image deployment/user-service user-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/user-service:${{ github.sha }} -n connectsphere
-          kubectl set image deployment/matching-service matching-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/matching-service:${{ github.sha }} -n connectsphere
-          kubectl set image deployment/messaging-service messaging-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/messaging-service:${{ github.sha }} -n connectsphere
-          kubectl set image deployment/media-service media-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/media-service:${{ github.sha }} -n connectsphere
-          kubectl set image deployment/payment-service payment-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/payment-service:${{ github.sha }} -n connectsphere
-          kubectl set image deployment/api-gateway api-gateway=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/connectsphere/api-gateway:${{ github.sha }} -n connectsphere
+          kubectl set image deployment/user-service user-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/user-service:${{ github.sha }} -n flamoral
+          kubectl set image deployment/matching-service matching-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/matching-service:${{ github.sha }} -n flamoral
+          kubectl set image deployment/messaging-service messaging-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/messaging-service:${{ github.sha }} -n flamoral
+          kubectl set image deployment/media-service media-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/media-service:${{ github.sha }} -n flamoral
+          kubectl set image deployment/payment-service payment-service=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/payment-service:${{ github.sha }} -n flamoral
+          kubectl set image deployment/api-gateway api-gateway=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/flamoral/api-gateway:${{ github.sha }} -n flamoral
 
       - name: Verify deployment
         run: |
-          kubectl rollout status deployment/user-service -n connectsphere --timeout=5m
-          kubectl rollout status deployment/matching-service -n connectsphere --timeout=5m
-          kubectl rollout status deployment/messaging-service -n connectsphere --timeout=5m
-          kubectl rollout status deployment/api-gateway -n connectsphere --timeout=5m
+          kubectl rollout status deployment/user-service -n flamoral --timeout=5m
+          kubectl rollout status deployment/matching-service -n flamoral --timeout=5m
+          kubectl rollout status deployment/messaging-service -n flamoral --timeout=5m
+          kubectl rollout status deployment/api-gateway -n flamoral --timeout=5m
 
       - name: Run smoke tests
         run: |

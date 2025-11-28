@@ -1,6 +1,6 @@
-# ConnectSphere - What Can Users Do?
+# Flamoral - What Can Users Do?
 
-**Platform:** ConnectSphere Dating Platform
+**Platform:** Flamoral Dating Platform
 **Version:** 1.0.0
 **Last Updated:** November 16, 2025
 
@@ -8,7 +8,7 @@
 
 ## 🎯 Platform Overview
 
-ConnectSphere is a comprehensive dating platform that goes beyond simple swiping. It helps users find meaningful connections through intelligent matching, shared experiences, and safety-first features.
+Flamoral is a comprehensive dating platform that goes beyond simple swiping. It helps users find meaningful connections through intelligent matching, shared experiences, and safety-first features.
 
 ---
 
@@ -161,7 +161,7 @@ ConnectSphere is a comprehensive dating platform that goes beyond simple swiping
 
 ### Phase 4: Unique Features
 
-#### 7. **Experience Matching** 🎭 (Unique to ConnectSphere)
+#### 7. **Experience Matching** 🎭 (Unique to Flamoral)
 **What users can do:**
 
 **Activity Preferences:**
@@ -355,7 +355,7 @@ ConnectSphere is a comprehensive dating platform that goes beyond simple swiping
 
 ---
 
-## 🎯 What Makes ConnectSphere Different?
+## 🎯 What Makes Flamoral Different?
 
 ### 1. **Experience-First Matching** 🎭
 - Match based on what you like to DO, not just how you look
@@ -435,7 +435,7 @@ ConnectSphere is a comprehensive dating platform that goes beyond simple swiping
 
 ---
 
-## 🎓 Getting the Most Out of ConnectSphere
+## 🎓 Getting the Most Out of Flamoral
 
 ### Profile Tips
 1. ✅ Use 5-9 high-quality photos
@@ -475,7 +475,7 @@ ConnectSphere is a comprehensive dating platform that goes beyond simple swiping
 
 ### General
 
-**Q: Is ConnectSphere free?**
+**Q: Is Flamoral free?**
 A: Yes! Basic features are completely free. Premium tiers offer additional features.
 
 **Q: Do I need to pay to message?**
@@ -572,14 +572,14 @@ A: No, to protect privacy. Use discovery algorithm.
 
 ### Contact Support
 - In-app support chat
-- Email: support@connectsphere.com
+- Email: support@flamoral.com
 - Emergency: panic button in app
 
 ---
 
 ## 🎉 Summary
 
-**ConnectSphere is more than a dating app—it's a complete platform for building authentic connections through shared experiences.**
+**Flamoral is more than a dating app—it's a complete platform for building authentic connections through shared experiences.**
 
 Users can:
 - ✅ Create detailed, authentic profiles

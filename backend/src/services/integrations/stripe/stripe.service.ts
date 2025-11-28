@@ -6,20 +6,30 @@ import Stripe from 'stripe';
 import { logger } from '../../../utils/logger';
 
 export class StripeService {
-  private stripe: Stripe;
+  private stripe: Stripe | null = null;
+  private initialized: boolean = false;
 
   constructor() {
     const apiKey = process.env.STRIPE_SECRET_KEY;
-    if (!apiKey) {
-      throw new Error('STRIPE_SECRET_KEY is not configured');
+    if (apiKey) {
+      this.stripe = new Stripe(apiKey, {
+        apiVersion: '2023-10-16',
+      });
+      this.initialized = true;
     }
-
-    this.stripe = new Stripe(apiKey, {
-      apiVersion: '2024-11-20.acacia',
-    });
   }
 
-  async createCustomer(email: string, name: string): Promise<Stripe.Customer> {
+  private ensureInitialized(): void {
+    if (!this.initialized || !this.stripe) {
+      throw new Error('Stripe not configured');
+    }
+  }
+
+  async createCustomer(email: string, name: string): Promise<Stripe.Customer | null> {
+    if (!this.initialized || !this.stripe) {
+      logger.warn('Stripe not configured, skipping customer creation');
+      return null;
+    }
     try {
       return await this.stripe.customers.create({
         email,
@@ -34,7 +44,11 @@ export class StripeService {
   async createSubscription(
     customerId: string,
     priceId: string
-  ): Promise<Stripe.Subscription> {
+  ): Promise<Stripe.Subscription | null> {
+    if (!this.initialized || !this.stripe) {
+      logger.warn('Stripe not configured, skipping subscription creation');
+      return null;
+    }
     try {
       return await this.stripe.subscriptions.create({
         customer: customerId,
@@ -49,7 +63,11 @@ export class StripeService {
     }
   }
 
-  async cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  async cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription | null> {
+    if (!this.initialized || !this.stripe) {
+      logger.warn('Stripe not configured, skipping subscription cancel');
+      return null;
+    }
     try {
       return await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
@@ -58,7 +76,11 @@ export class StripeService {
     }
   }
 
-  async createPaymentIntent(amount: number, currency: string = 'usd'): Promise<Stripe.PaymentIntent> {
+  async createPaymentIntent(amount: number, currency: string = 'usd'): Promise<Stripe.PaymentIntent | null> {
+    if (!this.initialized || !this.stripe) {
+      logger.warn('Stripe not configured, skipping payment intent creation');
+      return null;
+    }
     try {
       return await this.stripe.paymentIntents.create({
         amount,
@@ -70,7 +92,11 @@ export class StripeService {
     }
   }
 
-  async verifyWebhookSignature(payload: string | Buffer, signature: string): Promise<Stripe.Event> {
+  async verifyWebhookSignature(payload: string | Buffer, signature: string): Promise<Stripe.Event | null> {
+    if (!this.initialized || !this.stripe) {
+      logger.warn('Stripe not configured, cannot verify webhook');
+      return null;
+    }
     try {
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
       return this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
@@ -80,3 +106,6 @@ export class StripeService {
     }
   }
 }
+
+// Export singleton instance
+export const stripeService = new StripeService();

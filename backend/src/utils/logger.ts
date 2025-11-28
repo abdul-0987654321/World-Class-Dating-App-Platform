@@ -39,7 +39,7 @@ export const logger = winston.createLogger({
 
 // Add file transport in production
 if (process.env.NODE_ENV === 'production' && process.env.LOG_FILE_ENABLED === 'true') {
-  const logPath = process.env.LOG_FILE_PATH || '/var/log/connectsphere';
+  const logPath = process.env.LOG_FILE_PATH || '/var/log/flamoral';
 
   logger.add(
     new winston.transports.File({

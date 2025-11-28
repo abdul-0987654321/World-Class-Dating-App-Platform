@@ -1,4 +1,4 @@
-# ConnectSphere - Database Schema
+# Flamoral - Database Schema
 
 **Version**: 2.0.0
 **Database**: PostgreSQL 15 (Primary), MongoDB 7 (Messages), Redis 7 (Cache)

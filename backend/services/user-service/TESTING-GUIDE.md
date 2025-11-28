@@ -460,4 +460,4 @@ it('should create user successfully', async () => {
 ---
 
 **Last Updated:** November 14, 2025
-**Maintained By:** ConnectSphere Engineering Team
+**Maintained By:** Flamoral Engineering Team

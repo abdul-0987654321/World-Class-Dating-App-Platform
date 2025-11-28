@@ -1,4 +1,4 @@
-# ConnectSphere - Complete Product Specification
+# Flamoral - Complete Product Specification
 
 **Version**: 2.0.0
 **Date**: November 23, 2025
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-ConnectSphere is a world-class dating application ecosystem featuring iOS, Android, and web applications, backed by a scalable microservices architecture and comprehensive admin dashboard. The platform incorporates all modern features expected from leading global dating apps including Tinder, Bumble, and Hinge.
+Flamoral is a world-class dating application ecosystem featuring iOS, Android, and web applications, backed by a scalable microservices architecture and comprehensive admin dashboard. The platform incorporates all modern features expected from leading global dating apps including Tinder, Bumble, and Hinge.
 
 ---
 

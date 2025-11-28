@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document summarizes the Phase 1 implementation work completed for the ConnectSphere dating platform. Phase 1 focuses on critical revenue-generating features and safety infrastructure.
+This document summarizes the Phase 1 implementation work completed for the Flamoral dating platform. Phase 1 focuses on critical revenue-generating features and safety infrastructure.
 
 ---
 
@@ -217,7 +217,7 @@ All migrations located in: `backend/services/user-service/src/infrastructure/dat
 2. **Verify Tables Created**
    ```bash
    # Connect to PostgreSQL
-   docker exec -it connectsphere-postgres psql -U postgres -d connectsphere
+   docker exec -it flamoral-postgres psql -U postgres -d flamoral
 
    # List all tables
    \dt

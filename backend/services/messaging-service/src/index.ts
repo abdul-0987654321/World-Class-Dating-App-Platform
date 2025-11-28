@@ -4,9 +4,10 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
+import apiRoutes from './api/routes';
 
 // Load environment variables
 dotenv.config();
@@ -56,12 +57,22 @@ app.get('/health', (req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere Messaging Service',
+    service: 'Flamoral Messaging Service',
     version: '1.0.0',
     status: 'running',
     activeConnections: socketManager.getConnectedCount(),
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      conversations: '/api/conversations',
+      messages: '/api/messages',
+      websocket: `ws://localhost:${PORT}`,
+    },
   });
 });
+
+// Mount API routes
+app.use('/api', apiRoutes);
 
 // API endpoint to check user online status
 app.get('/api/users/:userId/status', async (req: Request, res: Response) => {

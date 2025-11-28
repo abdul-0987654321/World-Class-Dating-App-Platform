@@ -2,7 +2,7 @@ import contentModerationService from './content-moderation.service';
 import mediaRepository from '../repositories/media.repository';
 import queueManager from '../../infrastructure/queue/queue-manager';
 import { JobPriority } from '../../infrastructure/queue/queue-config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import axios from 'axios';
 import * as faceapi from '@azure/cognitiveservices-face';
 import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';

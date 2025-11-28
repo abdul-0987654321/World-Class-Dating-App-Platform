@@ -1,12 +1,14 @@
 version: '3.8'
 
 services:
+  # ==================== Infrastructure ====================
+
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
-    container_name: connectsphere-postgres
+    image: postgres:16-alpine
+    container_name: flamoral-postgres
     environment:
-      POSTGRES_DB: connectsphere
+      POSTGRES_DB: flamoral
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_dev_password
     ports:
@@ -18,13 +20,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - flamoral-network
 
   # MongoDB Database
   mongodb:
     image: mongo:7
-    container_name: connectsphere-mongodb
+    container_name: flamoral-mongodb
     environment:
-      MONGO_INITDB_DATABASE: connectsphere
+      MONGO_INITDB_DATABASE: flamoral
     ports:
       - "27017:27017"
     volumes:
@@ -34,11 +38,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - flamoral-network
 
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: connectsphere-redis
+    container_name: flamoral-redis
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
     volumes:
@@ -48,11 +55,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - flamoral-network
 
   # Elasticsearch
   elasticsearch:
     image: elasticsearch:8.11.0
-    container_name: connectsphere-elasticsearch
+    container_name: flamoral-elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -66,11 +75,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - flamoral-network
 
   # RabbitMQ Message Queue
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: connectsphere-rabbitmq
+    container_name: flamoral-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -81,6 +92,193 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - flamoral-network
+
+  # ==================== Backend Services ====================
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: flamoral-api-gateway
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - JWT_SECRET=your-jwt-secret-key-min-32-chars-long
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - JWT_REFRESH_SECRET=your-refresh-secret-key-min-32-chars
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - MATCHING_SERVICE_URL=http://matching-service:3003
+      - MESSAGING_SERVICE_URL=http://messaging-service:3004
+      - MEDIA_SERVICE_URL=http://media-service:3006
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - INTERNAL_SERVICE_KEY=internal-service-key
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+    ports:
+      - "4000:4000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - flamoral-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/services/auth-service
+      dockerfile: Dockerfile
+    container_name: flamoral-auth-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - JWT_REFRESH_SECRET=your-refresh-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_KEY=internal-service-key
+      - FRONTEND_URL=http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: services/user-service/Dockerfile
+    container_name: flamoral-user-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - JWT_REFRESH_SECRET=your-refresh-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Matching Service
+  matching-service:
+    build:
+      context: ./backend
+      dockerfile: services/matching-service/Dockerfile
+    container_name: flamoral-matching-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Messaging Service
+  messaging-service:
+    build:
+      context: ./backend
+      dockerfile: services/messaging-service/Dockerfile
+    container_name: flamoral-messaging-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - JWT_SECRET=your-access-secret-key-min-32-chars
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_KEY=internal-service-key
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+    ports:
+      - "3004:3004"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Media Service
+  media-service:
+    build:
+      context: ./backend
+      dockerfile: services/media-service/Dockerfile
+    container_name: flamoral-media-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3006:3006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
 
 volumes:
   postgres_data:
@@ -90,5 +288,5 @@ volumes:
   rabbitmq_data:
 
 networks:
-  default:
-    name: connectsphere-network
+  flamoral-network:
+    driver: bridge

@@ -1,10 +1,10 @@
 # Matching Service
 
-AI-powered matching and recommendation service for ConnectSphere dating platform.
+AI-powered matching and recommendation service for Flamoral dating platform.
 
 ## 🎯 Overview
 
-The Matching Service is a core component of the ConnectSphere platform that handles:
+The Matching Service is a core component of the Flamoral platform that handles:
 - Smart matching algorithm with compatibility scoring
 - Swipe mechanics (Like, Pass, Super Like)
 - Automatic match creation
@@ -331,4 +331,4 @@ For issues or questions, please contact the development team.
 
 ---
 
-**Built with ❤️ for ConnectSphere**
+**Built with ❤️ for Flamoral**

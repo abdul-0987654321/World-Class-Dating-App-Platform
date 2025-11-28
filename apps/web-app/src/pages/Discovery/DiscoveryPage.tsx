@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { discoveryService, DiscoveryProfile } from '../../services';
+import { Navigation } from '../../components/Navigation';
 
 interface Profile {
   userId: string;
@@ -102,28 +103,7 @@ export const DiscoveryPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            ConnectSphere
-          </h1>
-          <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-pink-500 font-medium">
-              Discover
-            </button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">
-              Matches
-            </button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">
-              Messages
-            </button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">
-              Profile
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       {/* Main Content */}
       <main className="max-w-lg mx-auto px-4 py-6">

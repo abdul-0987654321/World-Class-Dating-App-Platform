@@ -2,7 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();
@@ -35,7 +35,7 @@ app.get('/health', (req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere API Gateway',
+    service: 'Flamoral API Gateway',
     version: '1.0.0',
     status: 'running',
     endpoints: {
@@ -49,7 +49,7 @@ app.get('/', (req: Request, res: Response) => {
 // API v1 routes placeholder
 app.get('/api/v1', (req: Request, res: Response) => {
   res.json({
-    message: 'ConnectSphere API v1',
+    message: 'Flamoral API v1',
     status: 'operational',
     services: {
       user: `${process.env.USER_SERVICE_URL}`,

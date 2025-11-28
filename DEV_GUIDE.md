@@ -1,6 +1,6 @@
-# ConnectSphere Development Guide
+# Flamoral Development Guide
 
-Complete guide to running the ConnectSphere dating platform locally.
+Complete guide to running the Flamoral dating platform locally.
 
 ## Quick Start
 
@@ -43,8 +43,8 @@ yarn dev:web
 
 ## Test Accounts
 
-- User: demo@connectsphere.com / Demo123!
-- Premium: premium@connectsphere.com / Premium123!
-- Admin: admin@connectsphere.com / Admin123!
+- User: demo@flamoral.com / Demo123!
+- Premium: premium@flamoral.com / Premium123!
+- Admin: admin@flamoral.com / Admin123!
 
 For complete documentation, see DOCUMENTATION/ folder.

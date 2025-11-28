@@ -5,7 +5,7 @@ import {
   ContentModerationJobData,
   PhotoVerificationJobData,
 } from './job-types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('queue-manager');
 

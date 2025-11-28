@@ -1,5 +1,5 @@
 /**
- * HTTP Client for ConnectSphere Mobile App
+ * HTTP Client for Flamoral Mobile App
  * Provides standardized HTTP methods with error handling, retries, and auth
  */
 

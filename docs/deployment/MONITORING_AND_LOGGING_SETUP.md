@@ -23,7 +23,7 @@
 
 ## Overview
 
-A comprehensive monitoring and logging strategy for ConnectSphere dating platform covering:
+A comprehensive monitoring and logging strategy for Flamoral dating platform covering:
 
 - ✅ **Error Tracking** - Real-time error monitoring with Sentry
 - ✅ **APM** - Application performance monitoring
@@ -73,14 +73,14 @@ A comprehensive monitoring and logging strategy for ConnectSphere dating platfor
 #### 1. Create Sentry Account
 
 1. Sign up at [sentry.io](https://sentry.io)
-2. Create organization: "ConnectSphere"
+2. Create organization: "Flamoral"
 3. Create projects for each service:
-   - `connectsphere-user-service`
-   - `connectsphere-matching-service`
-   - `connectsphere-messaging-service`
-   - `connectsphere-media-service`
-   - `connectsphere-payment-service`
-   - `connectsphere-frontend`
+   - `flamoral-user-service`
+   - `flamoral-matching-service`
+   - `flamoral-messaging-service`
+   - `flamoral-media-service`
+   - `flamoral-payment-service`
+   - `flamoral-frontend`
 
 #### 2. Install Sentry SDK
 
@@ -314,7 +314,7 @@ Create `newrelic.js` in project root:
 'use strict';
 
 exports.config = {
-  app_name: ['ConnectSphere User Service'],
+  app_name: ['Flamoral User Service'],
   license_key: process.env.NEW_RELIC_LICENSE_KEY,
 
   logging: {
@@ -469,7 +469,7 @@ filter {
 output {
   elasticsearch {
     hosts => ["elasticsearch:9200"]
-    index => "connectsphere-logs-%{+YYYY.MM.dd}"
+    index => "flamoral-logs-%{+YYYY.MM.dd}"
   }
 
   stdout {
@@ -532,7 +532,7 @@ import WinstonCloudWatch from 'winston-cloudwatch';
 const logger = winston.createLogger({
   transports: [
     new WinstonCloudWatch({
-      logGroupName: '/connectsphere/user-service',
+      logGroupName: '/flamoral/user-service',
       logStreamName: () => {
         const date = new Date().toISOString().split('T')[0];
         return `${process.env.NODE_ENV}-${date}`;
@@ -708,7 +708,7 @@ async function sendSlackAlert(message: string, severity: 'info' | 'warning' | 'e
         color: colors[severity],
         title: `🚨 Alert: ${severity.toUpperCase()}`,
         text: message,
-        footer: 'ConnectSphere Monitoring',
+        footer: 'Flamoral Monitoring',
         ts: Math.floor(Date.now() / 1000),
       },
     ],
@@ -741,13 +741,13 @@ await sendSlackAlert('High error rate detected: 7.5%', 'error');
 
 | Name | URL | Type | Interval |
 |------|-----|------|----------|
-| API Gateway | https://api.connectsphere.com/health | HTTP(S) | 5 min |
-| User Service | https://api.connectsphere.com/users/health | HTTP(S) | 5 min |
-| Web Frontend | https://connectsphere.com | HTTP(S) | 5 min |
-| Stripe Webhook | https://api.connectsphere.com/payments/webhook | HTTP(S) | 15 min |
+| API Gateway | https://api.flamoral.com/health | HTTP(S) | 5 min |
+| User Service | https://api.flamoral.com/users/health | HTTP(S) | 5 min |
+| Web Frontend | https://flamoral.com | HTTP(S) | 5 min |
+| Stripe Webhook | https://api.flamoral.com/payments/webhook | HTTP(S) | 15 min |
 
 3. Configure alerts:
-   - Email: engineering@connectsphere.com
+   - Email: engineering@flamoral.com
    - Slack: Connect to #alerts channel
    - SMS: Critical services only
 

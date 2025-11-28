@@ -1,6 +1,6 @@
 # Dating App Platform - Documentation Index
 
-**Project Name:** ConnectSphere Dating Platform  
+**Project Name:** Flamoral Dating Platform  
 **Version:** 1.0.0  
 **Last Updated:** November 14, 2025  
 **Status:** Planning & Development Phase
@@ -9,7 +9,7 @@
 
 ## 📋 Documentation Overview
 
-This documentation index serves as the central hub for all technical, operational, and strategic documentation for the ConnectSphere Dating Platform - a next-generation dating application designed to revolutionize how people connect globally.
+This documentation index serves as the central hub for all technical, operational, and strategic documentation for the Flamoral Dating Platform - a next-generation dating application designed to revolutionize how people connect globally.
 
 ---
 
@@ -194,7 +194,7 @@ User experience and interface:
 ## 📞 Support & Resources
 
 ### Internal Resources
-- **Slack Channel:** #connectsphere-dev
+- **Slack Channel:** #flamoral-dev
 - **Project Management:** Azure DevOps Board
 - **Wiki:** Internal Confluence Space
 - **Design Files:** Figma Workspace
@@ -209,7 +209,7 @@ User experience and interface:
 - **Technical Issues:** Create ticket in Azure DevOps
 - **Infrastructure Questions:** Contact DevOps team
 - **Product Questions:** Contact Product Management
-- **Security Concerns:** Email security@connectsphere.com
+- **Security Concerns:** Email security@flamoral.com
 
 ---
 

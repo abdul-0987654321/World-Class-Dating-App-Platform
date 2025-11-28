@@ -252,7 +252,7 @@ export const ReportUser: React.FC<ReportUserProps> = ({
             </View>
             <Text style={styles.warningTitle}>Report {userName}</Text>
             <Text style={styles.warningMessage}>
-              Help us keep ConnectSphere safe. Your report is anonymous and will be
+              Help us keep Flamoral safe. Your report is anonymous and will be
               reviewed by our moderation team.
             </Text>
           </View>

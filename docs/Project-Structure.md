@@ -3,7 +3,7 @@
 ## 📁 Complete Directory Organization
 
 ```
-connectsphere/
+flamoral/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci-backend.yml
@@ -399,8 +399,8 @@ connectsphere/
 │       │   │   └── build.gradle
 │       │   └── build.gradle
 │       ├── ios/
-│       │   ├── ConnectSphere/
-│       │   └── ConnectSphere.xcodeproj/
+│       │   ├── Flamoral/
+│       │   └── Flamoral.xcodeproj/
 │       ├── src/
 │       │   ├── components/
 │       │   │   ├── common/
@@ -514,7 +514,7 @@ connectsphere/
 │   │   │   ├── grafana.yaml
 │   │   │   └── alerts.yaml
 │   │   └── helm/
-│   │       └── connectsphere/
+│   │       └── flamoral/
 │   │           ├── Chart.yaml
 │   │           ├── values.yaml
 │   │           └── templates/

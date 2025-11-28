@@ -2,7 +2,7 @@
 
 ## 🏗️ Overview
 
-This document details the complete Infrastructure as Code (IaC) implementation for the ConnectSphere dating platform using Microsoft Azure cloud services. We utilize Terraform for infrastructure provisioning and Azure DevOps for CI/CD pipelines.
+This document details the complete Infrastructure as Code (IaC) implementation for the Flamoral dating platform using Microsoft Azure cloud services. We utilize Terraform for infrastructure provisioning and Azure DevOps for CI/CD pipelines.
 
 **Cloud Provider:** Microsoft Azure  
 **IaC Tool:** Terraform v1.6+  
@@ -73,8 +73,8 @@ terraform {
   }
   
   backend "azurerm" {
-    resource_group_name  = "connectsphere-tfstate-rg"
-    storage_account_name = "connectspheretfstate"
+    resource_group_name  = "flamoral-tfstate-rg"
+    storage_account_name = "flamoraltfstate"
     container_name       = "tfstate"
     key                  = "production.terraform.tfstate"
   }
@@ -93,46 +93,46 @@ provider "azurerm" {
 
 # Resource Groups
 resource "azurerm_resource_group" "core" {
-  name     = "connectsphere-core-${var.environment}-rg"
+  name     = "flamoral-core-${var.environment}-rg"
   location = var.primary_region
   
   tags = {
     Environment = var.environment
-    Project     = "ConnectSphere"
+    Project     = "Flamoral"
     ManagedBy   = "Terraform"
     CostCenter  = "Engineering"
   }
 }
 
 resource "azurerm_resource_group" "networking" {
-  name     = "connectsphere-network-${var.environment}-rg"
+  name     = "flamoral-network-${var.environment}-rg"
   location = var.primary_region
   
   tags = {
     Environment = var.environment
-    Project     = "ConnectSphere"
+    Project     = "Flamoral"
     ManagedBy   = "Terraform"
   }
 }
 
 resource "azurerm_resource_group" "data" {
-  name     = "connectsphere-data-${var.environment}-rg"
+  name     = "flamoral-data-${var.environment}-rg"
   location = var.primary_region
   
   tags = {
     Environment = var.environment
-    Project     = "ConnectSphere"
+    Project     = "Flamoral"
     ManagedBy   = "Terraform"
   }
 }
 
 resource "azurerm_resource_group" "compute" {
-  name     = "connectsphere-compute-${var.environment}-rg"
+  name     = "flamoral-compute-${var.environment}-rg"
   location = var.primary_region
   
   tags = {
     Environment = var.environment
-    Project     = "ConnectSphere"
+    Project     = "Flamoral"
     ManagedBy   = "Terraform"
   }
 }
@@ -144,7 +144,7 @@ resource "azurerm_resource_group" "compute" {
 # terraform/modules/networking/vnet.tf
 
 resource "azurerm_virtual_network" "main" {
-  name                = "connectsphere-vnet-${var.environment}"
+  name                = "flamoral-vnet-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = ["10.0.0.0/16"]
@@ -245,10 +245,10 @@ resource "azurerm_subnet_network_security_group_association" "aks" {
 # terraform/modules/aks/main.tf
 
 resource "azurerm_kubernetes_cluster" "main" {
-  name                = "connectsphere-aks-${var.environment}"
+  name                = "flamoral-aks-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
-  dns_prefix          = "connectsphere-${var.environment}"
+  dns_prefix          = "flamoral-${var.environment}"
   kubernetes_version  = "1.28.3"
   
   default_node_pool {
@@ -361,7 +361,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "ml" {
 # terraform/modules/database/postgresql.tf
 
 resource "azurerm_postgresql_flexible_server" "main" {
-  name                   = "connectsphere-postgres-${var.environment}"
+  name                   = "flamoral-postgres-${var.environment}"
   resource_group_name    = var.resource_group_name
   location               = var.location
   version                = "15"
@@ -449,7 +449,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
 # terraform/modules/database/cosmosdb.tf
 
 resource "azurerm_cosmosdb_account" "main" {
-  name                = "connectsphere-cosmos-${var.environment}"
+  name                = "flamoral-cosmos-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   offer_type          = "Standard"
@@ -547,7 +547,7 @@ resource "azurerm_cosmosdb_sql_container" "activity" {
 # terraform/modules/cache/redis.tf
 
 resource "azurerm_redis_cache" "main" {
-  name                = "connectsphere-redis-${var.environment}"
+  name                = "flamoral-redis-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   capacity            = 3
@@ -603,7 +603,7 @@ resource "azurerm_private_endpoint" "redis" {
 # terraform/modules/storage/blob.tf
 
 resource "azurerm_storage_account" "media" {
-  name                     = "connectspheremedia${var.environment}"
+  name                     = "flamoralmedia${var.environment}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -629,7 +629,7 @@ resource "azurerm_storage_account" "media" {
     cors_rule {
       allowed_headers    = ["*"]
       allowed_methods    = ["GET", "HEAD", "POST", "PUT"]
-      allowed_origins    = ["https://*.connectsphere.com"]
+      allowed_origins    = ["https://*.flamoral.com"]
       exposed_headers    = ["*"]
       max_age_in_seconds = 3600
     }
@@ -692,7 +692,7 @@ resource "azurerm_storage_management_policy" "media" {
 # terraform/modules/cdn/frontdoor.tf
 
 resource "azurerm_cdn_frontdoor_profile" "main" {
-  name                = "connectsphere-fd-${var.environment}"
+  name                = "flamoral-fd-${var.environment}"
   resource_group_name = var.resource_group_name
   sku_name            = "Premium_AzureFrontDoor"
   
@@ -701,7 +701,7 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
 
 # Endpoint
 resource "azurerm_cdn_frontdoor_endpoint" "main" {
-  name                     = "connectsphere-${var.environment}"
+  name                     = "flamoral-${var.environment}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
   
   tags = var.tags
@@ -784,7 +784,7 @@ resource "azurerm_cdn_frontdoor_route" "api" {
 
 # WAF Policy
 resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
-  name                              = "connectspherewaf${var.environment}"
+  name                              = "flamoralwaf${var.environment}"
   resource_group_name               = var.resource_group_name
   sku_name                          = azurerm_cdn_frontdoor_profile.main.sku_name
   enabled                           = true
@@ -841,7 +841,7 @@ resource "azurerm_public_ip" "appgw" {
 }
 
 resource "azurerm_application_gateway" "main" {
-  name                = "connectsphere-appgw-${var.environment}"
+  name                = "flamoral-appgw-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   
@@ -1060,7 +1060,7 @@ resource "random_string" "suffix" {
 # terraform/modules/monitoring/log_analytics.tf
 
 resource "azurerm_log_analytics_workspace" "main" {
-  name                = "connectsphere-law-${var.environment}"
+  name                = "flamoral-law-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "PerGB2018"
@@ -1070,7 +1070,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 resource "azurerm_application_insights" "main" {
-  name                = "connectsphere-ai-${var.environment}"
+  name                = "flamoral-ai-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   workspace_id        = azurerm_log_analytics_workspace.main.id
@@ -1143,7 +1143,7 @@ resource "azurerm_monitor_action_group" "ops" {
   
   email_receiver {
     name                    = "ops-team"
-    email_address           = "ops@connectsphere.com"
+    email_address           = "ops@flamoral.com"
     use_common_alert_schema = true
   }
   
@@ -1200,7 +1200,7 @@ aks_node_count    = 5
 # Tags
 tags = {
   Environment = "Production"
-  Project     = "ConnectSphere"
+  Project     = "Flamoral"
   ManagedBy   = "Terraform"
   CostCenter  = "Engineering"
   Compliance  = "GDPR,CCPA"
@@ -1212,8 +1212,8 @@ tags = {
 ```hcl
 # environments/production/backend.hcl
 
-resource_group_name  = "connectsphere-tfstate-rg"
-storage_account_name = "connectspheretfstate"
+resource_group_name  = "flamoral-tfstate-rg"
+storage_account_name = "flamoraltfstate"
 container_name       = "tfstate"
 key                  = "production.terraform.tfstate"
 ```

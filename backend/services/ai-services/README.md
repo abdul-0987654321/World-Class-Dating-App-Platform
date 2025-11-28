@@ -1,6 +1,6 @@
 # AI Services
 
-ConnectSphere AI microservices for intelligent matching, safety, and content analysis.
+Flamoral AI microservices for intelligent matching, safety, and content analysis.
 
 ## Services
 

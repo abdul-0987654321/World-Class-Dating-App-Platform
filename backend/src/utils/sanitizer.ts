@@ -281,6 +281,50 @@ export class Sanitizer {
   }
 
   /**
+   * Validate date input (returns validation result)
+   */
+  static validateDate(date: any): { valid: boolean; date?: Date; errors?: string[] } {
+    const errors: string[] = [];
+
+    if (!date) {
+      errors.push('Date is required');
+      return { valid: false, errors };
+    }
+
+    const parsed = new Date(date);
+
+    if (isNaN(parsed.getTime())) {
+      errors.push('Invalid date format');
+      return { valid: false, errors };
+    }
+
+    const year = parsed.getFullYear();
+    if (year < 1900 || year > 2100) {
+      errors.push('Date must be between 1900 and 2100');
+      return { valid: false, errors };
+    }
+
+    // For date of birth, check minimum age (18 years)
+    const today = new Date();
+    const age = today.getFullYear() - parsed.getFullYear();
+    const monthDiff = today.getMonth() - parsed.getMonth();
+    const dayDiff = today.getDate() - parsed.getDate();
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
+    if (actualAge < 18) {
+      errors.push('Must be at least 18 years old');
+      return { valid: false, errors };
+    }
+
+    if (actualAge > 120) {
+      errors.push('Invalid date of birth');
+      return { valid: false, errors };
+    }
+
+    return { valid: true, date: parsed };
+  }
+
+  /**
    * Sanitize boolean
    */
   static sanitizeBoolean(value: any): boolean {

@@ -76,8 +76,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 # Create FastAPI app
 app = FastAPI(
-    title="ConnectSphere NLP Service",
-    description="AI-powered natural language processing for the ConnectSphere dating platform",
+    title="Flamoral NLP Service",
+    description="AI-powered natural language processing for the Flamoral dating platform",
     version=settings.VERSION,
     lifespan=lifespan,
 )

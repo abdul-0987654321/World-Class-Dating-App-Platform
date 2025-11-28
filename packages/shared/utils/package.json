@@ -1,7 +1,7 @@
 {
-  "name": "@connectsphere/utils",
+  "name": "@flamoral/utils",
   "version": "1.0.0",
-  "description": "Shared utility functions for ConnectSphere",
+  "description": "Shared utility functions for Flamoral",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -11,8 +11,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@connectsphere/types": "^1.0.0",
-    "@connectsphere/constants": "^1.0.0",
+    "@flamoral/types": "^1.0.0",
+    "@flamoral/constants": "^1.0.0",
     "date-fns": "^3.0.0"
   },
   "devDependencies": {

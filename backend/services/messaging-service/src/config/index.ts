@@ -9,7 +9,7 @@ export default {
   cosmos: {
     endpoint: process.env.COSMOS_ENDPOINT || '',
     key: process.env.COSMOS_KEY || '',
-    databaseId: process.env.COSMOS_DATABASE_ID || 'ConnectSphere',
+    databaseId: process.env.COSMOS_DATABASE_ID || 'Flamoral',
     containers: {
       messages: process.env.COSMOS_MESSAGES_CONTAINER || 'Messages',
       conversations: process.env.COSMOS_CONVERSATIONS_CONTAINER || 'Conversations',

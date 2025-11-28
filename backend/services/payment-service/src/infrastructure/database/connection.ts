@@ -10,7 +10,7 @@ const config: Knex.Config = {
     port: parseInt(process.env.DB_PORT || '5432', 10),
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'connectsphere_payments',
+    database: process.env.DB_NAME || 'flamoral_payments',
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   },
   pool: {

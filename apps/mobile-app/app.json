@@ -1,18 +1,18 @@
 {
-  "name": "ConnectSphere",
-  "displayName": "ConnectSphere",
+  "name": "Flamoral",
+  "displayName": "Flamoral",
   "version": "1.0.0",
   "build": "1",
-  "slug": "connectsphere",
-  "description": "Find meaningful connections nearby",
-  "privacy": "https://connectsphere.com/privacy",
-  "termsOfService": "https://connectsphere.com/terms",
-  "support": "https://connectsphere.com/support",
-  "contact": "support@connectsphere.com",
+  "slug": "flamoral",
+  "description": "Where Passion Meets Connection",
+  "privacy": "https://flamoral.com/privacy",
+  "termsOfService": "https://flamoral.com/terms",
+  "support": "https://flamoral.com/support",
+  "contact": "support@flamoral.com",
   "orientation": "portrait",
   "platforms": ["ios", "android"],
   "ios": {
-    "bundleIdentifier": "com.connectsphere",
+    "bundleIdentifier": "com.flamoral",
     "buildNumber": "1",
     "supportsTablet": false,
     "infoPlist": {
@@ -26,7 +26,7 @@
     }
   },
   "android": {
-    "package": "com.connectsphere",
+    "package": "com.flamoral",
     "versionCode": 1,
     "adaptiveIcon": {
       "foregroundImage": "./assets/adaptive-icon.png",

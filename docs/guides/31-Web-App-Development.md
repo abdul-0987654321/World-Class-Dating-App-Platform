@@ -1,6 +1,6 @@
-# ConnectSphere Web App
+# Flamoral Web App
 
-React web application for ConnectSphere dating platform.
+React web application for Flamoral dating platform.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@ React web application for ConnectSphere dating platform.
 - **State Management:** Redux Toolkit + Redux Persist
 - **Routing:** React Router v6
 - **Styling:** Tailwind CSS
-- **API Client:** @connectsphere/api-client (shared package)
+- **API Client:** @flamoral/api-client (shared package)
 
 ## Development
 
@@ -21,7 +21,7 @@ yarn install
 yarn build:all
 
 # Start dev server
-yarn workspace @connectsphere/web dev
+yarn workspace @flamoral/web dev
 
 # Or from this directory
 yarn dev
@@ -61,11 +61,11 @@ src/
 
 This app uses monorepo shared packages:
 
-- `@connectsphere/api-client` - HTTP client & API methods
-- `@connectsphere/types` - TypeScript type definitions
-- `@connectsphere/utils` - Common utility functions
-- `@connectsphere/constants` - App-wide constants
-- `@connectsphere/validators` - Validation schemas
+- `@flamoral/api-client` - HTTP client & API methods
+- `@flamoral/types` - TypeScript type definitions
+- `@flamoral/utils` - Common utility functions
+- `@flamoral/constants` - App-wide constants
+- `@flamoral/validators` - Validation schemas
 
 ## Environment Variables
 
@@ -105,7 +105,7 @@ yarn preview
 ## Next Steps
 
 1. Implement page components using existing components from `src/components/`
-2. Wire up API calls using `@connectsphere/api-client`
+2. Wire up API calls using `@flamoral/api-client`
 3. Add comprehensive error handling
 4. Implement real-time features with WebSocket
 5. Add loading states and skeletons

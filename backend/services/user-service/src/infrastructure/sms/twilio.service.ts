@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 import config from '../../config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('twilio-service');
 
@@ -77,7 +77,7 @@ export class TwilioService {
     messageId?: string;
     error?: string;
   }> {
-    const message = `Your ConnectSphere verification code is: ${code}. This code expires in 10 minutes. Do not share this code with anyone.`;
+    const message = `Your Flamoral verification code is: ${code}. This code expires in 10 minutes. Do not share this code with anyone.`;
 
     return await this.sendSMS(phoneNumber, message);
   }

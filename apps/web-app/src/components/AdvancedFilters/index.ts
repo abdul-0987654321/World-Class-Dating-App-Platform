@@ -1,2 +1,3 @@
 export { AdvancedFilters } from './AdvancedFilters';
-export default AdvancedFilters;
+import { AdvancedFilters as AdvancedFiltersComponent } from './AdvancedFilters';
+export default AdvancedFiltersComponent;

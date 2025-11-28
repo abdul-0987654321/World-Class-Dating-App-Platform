@@ -4,7 +4,7 @@ import type {
   Match,
   SwipeAction,
   DiscoveryFilters
-} from '@connectsphere/types';
+} from '@flamoral/types';
 
 export class MatchingApi {
   constructor(private client: ApiClient) {}

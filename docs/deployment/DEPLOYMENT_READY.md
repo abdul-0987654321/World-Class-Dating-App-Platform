@@ -1,4 +1,4 @@
-# ConnectSphere - Ready for Deployment
+# Flamoral - Ready for Deployment
 
 **Version:** 2.0.0
 **Status:** READY FOR DOCKER HUB DEPLOYMENT

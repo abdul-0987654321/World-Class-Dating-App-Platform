@@ -147,7 +147,7 @@ export function usePhotoAnalysis() {
 }
 
 export function usePhotoUploadAnalysis() {
-  return useAsyncOperation<PhotoAnalysisResult, [string, File, ('face' | 'quality' | 'moderation' | 'verification' | 'all')?[]]>(
+  return useAsyncOperation<PhotoAnalysisResult, [string, File, ('face' | 'quality' | 'moderation' | 'verification' | 'all')[]?]>(
     (userId, file, analysisTypes) => photoAnalysisService.uploadAndAnalyze(userId, file, analysisTypes)
   );
 }

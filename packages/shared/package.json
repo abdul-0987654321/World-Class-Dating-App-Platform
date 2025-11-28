@@ -1,7 +1,7 @@
 {
-  "name": "@connectsphere/shared",
+  "name": "@flamoral/shared",
   "version": "1.0.0",
-  "description": "Shared packages for ConnectSphere (types, utils, constants, validators)",
+  "description": "Shared packages for Flamoral (types, utils, constants, validators)",
   "private": true,
   "workspaces": [
     "types",

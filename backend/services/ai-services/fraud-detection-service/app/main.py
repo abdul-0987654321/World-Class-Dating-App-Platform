@@ -76,8 +76,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 # Create FastAPI app
 app = FastAPI(
-    title="ConnectSphere Fraud Detection Service",
-    description="AI-powered fraud detection for the ConnectSphere dating platform",
+    title="Flamoral Fraud Detection Service",
+    description="AI-powered fraud detection for the Flamoral dating platform",
     version=settings.VERSION,
     lifespan=lifespan,
 )

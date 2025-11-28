@@ -3,7 +3,7 @@ import type {
   Conversation,
   Message,
   SendMessageRequest
-} from '@connectsphere/types';
+} from '@flamoral/types';
 
 export class MessagingApi {
   constructor(private client: ApiClient) {}

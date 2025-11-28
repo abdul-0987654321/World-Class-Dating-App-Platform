@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/media-service",
+  "name": "@flamoral/media-service",
   "version": "1.0.0",
   "description": "Media upload, processing, and verification service",
   "main": "dist/index.js",

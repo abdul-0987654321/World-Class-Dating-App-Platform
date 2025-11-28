@@ -1,7 +1,7 @@
 [
   {
     "id": "test-user-1",
-    "email": "test1@connectsphere.com",
+    "email": "test1@flamoral.com",
     "password": "TestUser1!",
     "firstName": "Alex",
     "lastName": "Demo",
@@ -18,7 +18,7 @@
   },
   {
     "id": "test-user-2",
-    "email": "test2@connectsphere.com",
+    "email": "test2@flamoral.com",
     "password": "TestUser2!",
     "firstName": "Jordan",
     "lastName": "Demo",
@@ -103,7 +103,7 @@
   },
   {
     "id": "user-5",
-    "email": "admin@connectsphere.com",
+    "email": "admin@flamoral.com",
     "password": "admin123",
     "firstName": "Admin",
     "lastName": "User",

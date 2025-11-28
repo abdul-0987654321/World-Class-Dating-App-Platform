@@ -1,4 +1,4 @@
-# ConnectSphere - World-Class Dating Application Platform
+# Flamoral - World-Class Dating Application Platform
 
 **Version 2.0.0** | **Production Ready** | **iOS | Android | Web**
 
@@ -56,9 +56,9 @@ yarn dev:backend  # Backend API → http://localhost:3000
 ```
 
 ### 🔑 Test Accounts
-- **User**: demo@connectsphere.com / Demo123!
-- **Premium**: premium@connectsphere.com / Premium123!
-- **Admin**: admin@connectsphere.com / Admin123!
+- **User**: demo@flamoral.com / Demo123!
+- **Premium**: premium@flamoral.com / Premium123!
+- **Admin**: admin@flamoral.com / Admin123!
 
 ---
 
@@ -255,7 +255,7 @@ yarn test:e2e          # E2E tests
 
 **📚 Documentation**: [DOCUMENTATION/](DOCUMENTATION/)
 **🐛 Issues**: [GitHub Issues](https://github.com/oks-citadel/World-Class-Dating-App-Platform/issues)
-**📧 Email**: support@connectsphere.com
+**📧 Email**: support@flamoral.com
 
 ---
 

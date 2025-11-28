@@ -1,5 +1,5 @@
 # ============================================
-# ConnectSphere - Complete Docker Build & Push Script
+# Flamoral - Complete Docker Build & Push Script
 # Builds and pushes all services to Docker Hub
 # ============================================
 
@@ -11,7 +11,7 @@ $DOCKER_REPO = "citadelcloud1/world-class-dating-platform"
 $VERSION = "1.0.0"
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "ConnectSphere Docker Build & Push" -ForegroundColor Cyan
+Write-Host "Flamoral Docker Build & Push" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 

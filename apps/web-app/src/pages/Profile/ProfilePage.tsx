@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockApi from '../../mocks/mockApi';
+import { authService, profileService } from '../../services';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,9 +15,44 @@ export const ProfilePage: React.FC = () => {
 
   const loadUser = async () => {
     try {
-      const data = await mockApi.getCurrentUser();
-      setUser(data);
-      setEditedBio(data.bio);
+      // First try to get from localStorage (set during login)
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        // Merge with profile data format
+        setUser({
+          id: userData.id,
+          name: userData.firstName || userData.name,
+          age: 28, // Default age
+          email: userData.email,
+          bio: userData.bio || 'Tell us about yourself...',
+          occupation: userData.occupation || 'Not specified',
+          location: { city: userData.city || 'Not specified', state: '' },
+          photos: userData.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'],
+          interests: userData.interests || ['Travel', 'Music', 'Food'],
+          verified: { photo: userData.isVerified },
+          coinBalance: userData.coinBalance || 100,
+          premiumTier: userData.premiumTier || userData.subscription || 'FREE',
+        });
+        setEditedBio(userData.bio || '');
+      } else {
+        // Fallback to API call
+        const data = await authService.getCurrentUser();
+        setUser({
+          id: data.id,
+          name: data.firstName,
+          age: 28,
+          email: data.email,
+          bio: '',
+          occupation: '',
+          location: { city: '', state: '' },
+          photos: [data.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'],
+          interests: [],
+          verified: { photo: data.isVerified },
+          coinBalance: data.coinBalance || 0,
+          premiumTier: data.premiumTier || 'FREE',
+        });
+      }
     } catch (err) {
       console.error('Failed to load user:', err);
       navigate('/login');
@@ -27,14 +62,20 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await mockApi.logout();
+    await authService.logout();
     navigate('/login');
   };
 
   const handleSaveBio = async () => {
     try {
-      await mockApi.updateProfile({ bio: editedBio });
+      await profileService.updateProfile({ bio: editedBio });
       setUser({ ...user, bio: editedBio });
+      // Update localStorage as well
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        localStorage.setItem('currentUser', JSON.stringify({ ...userData, bio: editedBio }));
+      }
       setEditing(false);
     } catch (err) {
       console.error('Failed to save bio:', err);
@@ -58,8 +99,8 @@ export const ProfilePage: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            ConnectSphere
+          <h1 className="text-2xl font-bold text-gradient-flamoral">
+            Flamoral
           </h1>
           <nav className="flex items-center gap-6">
             <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
@@ -73,6 +114,9 @@ export const ProfilePage: React.FC = () => {
             </button>
             <button onClick={() => navigate('/profile')} className="text-pink-500 font-medium">
               Profile
+            </button>
+            <button onClick={() => navigate('/safety')} className="text-gray-600 hover:text-pink-500">
+              Safety
             </button>
           </nav>
         </div>
@@ -203,26 +247,59 @@ export const ProfilePage: React.FC = () => {
 
         {/* Settings */}
         <div className="bg-white rounded-xl shadow-sm divide-y mb-6">
-          <button className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800">Account Settings</span>
+          <button onClick={() => navigate('/settings')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
+            <span className="text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Account Settings
+            </span>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800">Privacy Settings</span>
+          <button onClick={() => navigate('/safety')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
+            <span className="text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Safety Center
+            </span>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800">Notification Settings</span>
+          <button onClick={() => navigate('/privacy')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
+            <span className="text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Privacy Settings
+            </span>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800">Help & Support</span>
+          <button onClick={() => navigate('/notifications')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
+            <span className="text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              Notification Settings
+            </span>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button onClick={() => navigate('/help')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
+            <span className="text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Help & Support
+            </span>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

@@ -1,12 +1,12 @@
-# 🚀 ConnectSphere - Start Here!
+# 🚀 Flamoral - Start Here!
 
-**Welcome to ConnectSphere - Your complete dating application platform!**
+**Welcome to Flamoral - Your complete dating application platform!**
 
 ---
 
-## 📖 What is ConnectSphere?
+## 📖 What is Flamoral?
 
-ConnectSphere is a **production-ready dating application ecosystem** featuring:
+Flamoral is a **production-ready dating application ecosystem** featuring:
 
 ✅ **Mobile Apps** - iOS & Android (React Native)
 ✅ **Web Application** - Responsive React app
@@ -61,15 +61,15 @@ World-Class-Dating-App-Platform/
 ## 🔑 Test Accounts
 
 **Standard User**
-- Email: demo@connectsphere.com
+- Email: demo@flamoral.com
 - Password: Demo123!
 
 **Premium User**
-- Email: premium@connectsphere.com
+- Email: premium@flamoral.com
 - Password: Premium123!
 
 **Administrator**
-- Email: admin@connectsphere.com
+- Email: admin@flamoral.com
 - Password: Admin123!
 
 ---
@@ -117,7 +117,7 @@ World-Class-Dating-App-Platform/
 
 - **Documentation**: You're in the right place!
 - **Issues**: GitHub Issues
-- **Support**: support@connectsphere.com
+- **Support**: support@flamoral.com
 
 ---
 

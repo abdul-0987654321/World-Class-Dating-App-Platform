@@ -1,6 +1,6 @@
 # Content Moderation Service - Complete Documentation
 
-**Service:** ConnectSphere Content Moderation Service
+**Service:** Flamoral Content Moderation Service
 **Version:** 1.0.0
 **Status:** ✅ **COMPLETE - BACKEND IMPLEMENTATION**
 **Date:** November 18, 2025
@@ -26,7 +26,7 @@
 
 ## 1. Overview
 
-The Content Moderation Service is an AI-powered system that automatically detects and handles inappropriate content on the ConnectSphere platform. It uses AWS Rekognition for image analysis and Azure Content Moderator for text analysis to ensure user safety and community standards compliance.
+The Content Moderation Service is an AI-powered system that automatically detects and handles inappropriate content on the Flamoral platform. It uses AWS Rekognition for image analysis and Azure Content Moderator for text analysis to ensure user safety and community standards compliance.
 
 ### Key Capabilities
 - ✅ **Image Moderation** - Detect NSFW, violence, hate symbols, drugs, etc.
@@ -436,7 +436,7 @@ NODE_ENV=development
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=connectsphere_moderation
+DB_NAME=flamoral_moderation
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_SSL=false
@@ -575,7 +575,7 @@ const checkUserRestriction = async (userId: string) => {
 
 ```bash
 # Create database
-createdb connectsphere_moderation
+createdb flamoral_moderation
 
 # Run migrations
 cd backend/services/moderation-service
@@ -693,12 +693,12 @@ npm run test:integration
 
 ```bash
 # Build image
-docker build -t connectsphere/moderation-service:1.0.0 .
+docker build -t flamoral/moderation-service:1.0.0 .
 
 # Run container
 docker run -p 3005:3005 \
   --env-file .env \
-  connectsphere/moderation-service:1.0.0
+  flamoral/moderation-service:1.0.0
 ```
 
 ### Kubernetes Deployment

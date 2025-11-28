@@ -100,6 +100,6 @@ echo "All services built and pushed successfully!"
 ## Issues Fixed
 
 ✓ TypeScript compilation errors in messaging-service and api-gateway
-✓ Missing @connectsphere/shared/utils/logger imports (fixed in 37 files)
+✓ Missing @flamoral/shared/utils/logger imports (fixed in 37 files)
 ✓ Duplicate identifier errors in messaging-service types
 ✓ Redis client method call issues in socket-manager

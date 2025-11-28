@@ -69,7 +69,7 @@ const config: Config = {
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'connectsphere_analytics',
+    name: process.env.DB_NAME || 'flamoral_analytics',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),

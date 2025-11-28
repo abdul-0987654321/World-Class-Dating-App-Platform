@@ -109,8 +109,8 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('notification_id').references('id').inTable('notifications');
     table.uuid('user_id').notNullable();
     table.string('to_email', 255).notNullable();
-    table.string('from_email', 255).defaultTo('noreply@connectsphere.com');
-    table.string('from_name', 100).defaultTo('ConnectSphere');
+    table.string('from_email', 255).defaultTo('noreply@flamoral.com');
+    table.string('from_name', 100).defaultTo('Flamoral');
     table.string('subject', 255).notNullable();
     table.text('text_body');
     table.text('html_body');
@@ -194,10 +194,10 @@ export async function up(knex: Knex): Promise<void> {
       name: 'welcome_email',
       type: 'email',
       category: 'system',
-      subject: 'Welcome to ConnectSphere! 💝',
-      title: 'Welcome to ConnectSphere',
-      body: 'Hi {{first_name}}, welcome to ConnectSphere! Start swiping to find your match.',
-      html_body: '<h1>Welcome to ConnectSphere!</h1><p>Hi {{first_name}},</p><p>Welcome to ConnectSphere! Start swiping to find your match.</p>',
+      subject: 'Welcome to Flamoral! 💝',
+      title: 'Welcome to Flamoral',
+      body: 'Hi {{first_name}}, welcome to Flamoral! Start swiping to find your match.',
+      html_body: '<h1>Welcome to Flamoral!</h1><p>Hi {{first_name}},</p><p>Welcome to Flamoral! Start swiping to find your match.</p>',
       variables: JSON.stringify(['first_name']),
     },
     {
@@ -214,7 +214,7 @@ export async function up(knex: Knex): Promise<void> {
       type: 'sms',
       category: 'security',
       title: 'Verification Code',
-      body: 'Your ConnectSphere verification code is: {{code}}. Valid for 10 minutes.',
+      body: 'Your Flamoral verification code is: {{code}}. Valid for 10 minutes.',
       variables: JSON.stringify(['code']),
     },
     {
@@ -222,7 +222,7 @@ export async function up(knex: Knex): Promise<void> {
       type: 'sms',
       category: 'security',
       title: 'Security Alert',
-      body: 'New login to your ConnectSphere account from {{device}}. If this wasn\'t you, secure your account.',
+      body: 'New login to your Flamoral account from {{device}}. If this wasn\'t you, secure your account.',
       variables: JSON.stringify(['device', 'location']),
     },
   ]);

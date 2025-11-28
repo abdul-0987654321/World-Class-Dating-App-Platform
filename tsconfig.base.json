@@ -17,12 +17,12 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@connectsphere/api-client": ["packages/shared/api-client/src"],
-      "@connectsphere/types": ["packages/shared/types/src"],
-      "@connectsphere/utils": ["packages/shared/utils/src"],
-      "@connectsphere/constants": ["packages/shared/constants/src"],
-      "@connectsphere/validators": ["packages/shared/validators/src"],
-      "@connectsphere/ui-components": ["packages/ui-components/src"]
+      "@flamoral/api-client": ["packages/shared/api-client/src"],
+      "@flamoral/types": ["packages/shared/types/src"],
+      "@flamoral/utils": ["packages/shared/utils/src"],
+      "@flamoral/constants": ["packages/shared/constants/src"],
+      "@flamoral/validators": ["packages/shared/validators/src"],
+      "@flamoral/ui-components": ["packages/ui-components/src"]
     }
   },
   "exclude": [

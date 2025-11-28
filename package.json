@@ -1,8 +1,8 @@
 {
-  "name": "connectsphere-monorepo",
+  "name": "flamoral-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "ConnectSphere - World-Class Dating App Platform (Web & Mobile)",
+  "description": "Flamoral - Where Passion Meets Connection (Web & Mobile Dating Platform)",
   "workspaces": [
     "packages/*",
     "apps/*",
@@ -14,16 +14,16 @@
     "test:all": "lerna run test",
     "lint:all": "lerna run lint",
     "clean": "lerna clean -y && rm -rf node_modules",
-    "dev:web": "yarn workspace @connectsphere/web dev",
-    "dev:mobile": "yarn workspace @connectsphere/mobile start",
-    "dev:backend": "yarn workspace @connectsphere/backend dev",
-    "build:web": "yarn workspace @connectsphere/web build",
+    "dev:web": "yarn workspace @flamoral/web dev",
+    "dev:mobile": "yarn workspace @flamoral/mobile start",
+    "dev:backend": "yarn workspace @flamoral/backend dev",
+    "build:web": "yarn workspace @flamoral/web build",
     "build:mobile:ios": "cd apps/mobile && npx react-native run-ios --configuration Release",
     "build:mobile:android": "cd apps/mobile && npx react-native run-android --variant=release",
-    "build:backend": "yarn workspace @connectsphere/backend build",
-    "test:web": "yarn workspace @connectsphere/web test",
-    "test:mobile": "yarn workspace @connectsphere/mobile test",
-    "test:backend": "yarn workspace @connectsphere/backend test",
+    "build:backend": "yarn workspace @flamoral/backend build",
+    "test:web": "yarn workspace @flamoral/web test",
+    "test:mobile": "yarn workspace @flamoral/mobile test",
+    "test:backend": "yarn workspace @flamoral/backend test",
     "seed": "ts-node scripts/seed-data.ts",
     "setup:dev": "yarn install && yarn seed && docker-compose up -d",
     "docker:up": "docker-compose up -d",
@@ -50,8 +50,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/oks-citadel/World-Class-Dating-App-Platform.git"
+    "url": "https://github.com/flamoral/flamoral-dating-platform.git"
   },
-  "author": "ConnectSphere Team",
+  "author": "Flamoral Team",
   "license": "MIT"
 }

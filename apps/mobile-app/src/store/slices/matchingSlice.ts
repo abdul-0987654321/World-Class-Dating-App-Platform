@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { Match, DiscoveryProfile } from '@connectsphere/types';
+import type { Match, DiscoveryProfile } from '@flamoral/types';
 
 interface MatchingState {
   matches: Match[];

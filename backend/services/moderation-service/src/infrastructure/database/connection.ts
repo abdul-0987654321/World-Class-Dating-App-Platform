@@ -1,6 +1,6 @@
 import knex, { Knex } from 'knex';
 import config from '../../config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('database-connection');
 

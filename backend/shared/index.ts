@@ -13,3 +13,6 @@ export * from './constants/app.constants';
 
 // Config
 export * from './config/environment';
+
+// Services
+export * from './src/services/service-client';

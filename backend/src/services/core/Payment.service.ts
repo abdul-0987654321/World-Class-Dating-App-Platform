@@ -19,12 +19,18 @@ export class PaymentService {
 
     // Create or get Stripe customer
     const stripeCustomer = await stripeService.createCustomer(user.email, user.first_name);
+    if (!stripeCustomer) {
+      throw new Error('Payment service not configured');
+    }
 
     // Get price
     const price = SUBSCRIPTION_PRICES[tier][billingPeriod];
 
     // Create Stripe subscription
-    const stripeSubscription = await stripeService.createSubscription(stripeCustomer.id, price);
+    const stripeSubscription = await stripeService.createSubscription(stripeCustomer.id, String(price));
+    if (!stripeSubscription) {
+      throw new Error('Failed to create subscription');
+    }
 
     // Create subscription record
     const subscription = await this.paymentRepo.createSubscription(
@@ -81,9 +87,11 @@ export class PaymentService {
     // Create payment intent
     const paymentIntent = await stripeService.createPaymentIntent(
       coinPackage.price,
-      'usd',
-      { userId, type: 'coin_purchase', coins: coinPackage.coins }
+      'usd'
     );
+    if (!paymentIntent) {
+      throw new Error('Payment service not configured');
+    }
 
     // Create transaction record
     const transaction = await this.paymentRepo.createTransaction(

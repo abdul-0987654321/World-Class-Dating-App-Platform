@@ -41,6 +41,10 @@ import gamificationRoutes from './api/rest/gamification.routes';
 import referralRoutes from './api/rest/referral.routes';
 import communityRoutes from './api/rest/community.routes';
 import speedDatingRoutes from './api/rest/speed-dating.routes';
+import safetyRoutes from './api/rest/safety.routes';
+import discoveryRoutes from './api/rest/discovery.routes';
+import subscriptionRoutes from './api/rest/subscription.routes';
+import storiesRoutes from './api/rest/stories.routes';
 
 // Swagger documentation
 import swaggerUi from 'swagger-ui-express';
@@ -119,7 +123,7 @@ export function createApp(): Application {
 
   // API Documentation
   const swaggerSpec = swaggerJsdoc(swaggerOptions);
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use('/api-docs', swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
 
   // Health check endpoint (no auth required)
   app.use('/health', healthRoutes);
@@ -145,6 +149,11 @@ export function createApp(): Application {
   app.use('/api/referrals', referralRoutes);
   app.use('/api/communities', communityRoutes);
   app.use('/api/speed-dating', speedDatingRoutes);
+  app.use('/api/safety', safetyRoutes);
+  app.use('/api/discovery', discoveryRoutes);
+  app.use('/api/subscriptions', subscriptionRoutes);
+  app.use('/api/stories', storiesRoutes);
+  app.use('/api/matches', matchingRoutes); // Alias for frontend compatibility
 
   // 404 handler
   app.use(notFoundHandler);

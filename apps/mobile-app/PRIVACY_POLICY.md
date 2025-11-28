@@ -1,10 +1,10 @@
-# ConnectSphere Privacy Policy
+# Flamoral Privacy Policy
 
 **Last Updated: November 23, 2025**
 
 ## Introduction
 
-ConnectSphere ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This privacy policy explains how we collect, use, and share information when you use our dating application.
+Flamoral ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This privacy policy explains how we collect, use, and share information when you use our dating application.
 
 ## Information We Collect
 
@@ -51,7 +51,7 @@ You have the right to:
 ### Account Deletion
 You can delete your account anytime through:
 1. App Settings > Account > Delete Account
-2. Email: privacy@connectsphere.com
+2. Email: privacy@flamoral.com
 
 All your data will be permanently deleted within 30 days.
 
@@ -66,7 +66,7 @@ We use industry-standard security measures including:
 
 ## Children's Privacy
 
-ConnectSphere is only for users 18 years and older. We do not knowingly collect data from anyone under 18.
+Flamoral is only for users 18 years and older. We do not knowingly collect data from anyone under 18.
 
 ## Data Retention
 
@@ -89,9 +89,9 @@ We may update this privacy policy. We'll notify you of significant changes throu
 ## Contact Us
 
 For privacy questions or to exercise your rights:
-- **Email**: privacy@connectsphere.com
-- **Support**: support@connectsphere.com
-- **Website**: https://connectsphere.com/privacy
+- **Email**: privacy@flamoral.com
+- **Support**: support@flamoral.com
+- **Website**: https://flamoral.com/privacy
 
 ## Permissions Explained
 

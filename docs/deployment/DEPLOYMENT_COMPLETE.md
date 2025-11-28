@@ -1,6 +1,6 @@
 # Testing, Training & Staging Deployment - Complete
 
-**Project:** ConnectSphere Dating App Platform
+**Project:** Flamoral Dating App Platform
 **Component:** Content Moderation System
 **Date:** November 18, 2025
 **Status:** ✅ **READY FOR STAGING DEPLOYMENT**
@@ -240,7 +240,7 @@ npx cypress run
 docker-compose -f docker-compose.staging.yml logs -f
 
 # View specific service
-docker logs connectsphere-moderation-service-staging -f
+docker logs flamoral-moderation-service-staging -f
 
 # Check service status
 docker-compose -f docker-compose.staging.yml ps
@@ -433,7 +433,7 @@ docker-compose -f docker-compose.staging.yml ps
 **Issue: Service won't start**
 ```bash
 # Check logs
-docker logs connectsphere-moderation-service-staging
+docker logs flamoral-moderation-service-staging
 
 # Check environment
 cat .env.staging
@@ -445,7 +445,7 @@ docker network ls
 **Issue: Database migrations fail**
 ```bash
 # Connect to database
-docker exec -it connectsphere-postgres-moderation-staging psql -U connectsphere
+docker exec -it flamoral-postgres-moderation-staging psql -U flamoral
 
 # Check migration status
 SELECT * FROM knex_migrations;
@@ -460,7 +460,7 @@ npm run migrate:rollback
 curl http://localhost:3005/health
 
 # Check logs for errors
-docker logs connectsphere-moderation-service-staging --tail 100
+docker logs flamoral-moderation-service-staging --tail 100
 
 # Restart service
 docker-compose -f docker-compose.staging.yml restart moderation-service
@@ -557,11 +557,11 @@ docker-compose -f docker-compose.staging.yml restart moderation-service
 ## 📞 Support Contacts
 
 **Technical Issues:**
-- Email: tech-support@connectsphere.com
+- Email: tech-support@flamoral.com
 - Slack: #moderation-tech-support
 
 **Admin Training:**
-- Email: training@connectsphere.com
+- Email: training@flamoral.com
 - Slack: #moderation-training
 
 **Emergencies:**
@@ -609,6 +609,6 @@ docker-compose -f docker-compose.staging.yml restart moderation-service
 
 ---
 
-**Built with ❤️ for ConnectSphere**
+**Built with ❤️ for Flamoral**
 
 *A world-class dating platform with world-class content moderation.*

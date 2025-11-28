@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide walks through switching from Stripe test mode to production mode for the ConnectSphere dating app payment system.
+This guide walks through switching from Stripe test mode to production mode for the Flamoral dating app payment system.
 
 ---
 
@@ -81,7 +81,7 @@ Navigate to **Products** → **Add Product** for each tier:
 
 **Basic Subscription:**
 ```
-Product Name: ConnectSphere Basic
+Product Name: Flamoral Basic
 Description: Basic premium features including unlimited likes and profile boosts
 Pricing Model: Recurring
 Price: $9.99/month
@@ -92,7 +92,7 @@ Billing Period: Monthly
 
 **Mid Subscription:**
 ```
-Product Name: ConnectSphere Mid
+Product Name: Flamoral Mid
 Description: Mid-tier premium features with advanced filters and read receipts
 Pricing Model: Recurring
 Price: $19.99/month
@@ -103,7 +103,7 @@ Billing Period: Monthly
 
 **Ultra Subscription:**
 ```
-Product Name: ConnectSphere Ultra
+Product Name: Flamoral Ultra
 Description: Ultimate features including priority support and profile highlights
 Pricing Model: Recurring
 Price: $29.99/month

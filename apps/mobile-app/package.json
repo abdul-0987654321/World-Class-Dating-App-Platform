@@ -1,7 +1,7 @@
 {
-  "name": "@connectsphere/mobile",
+  "name": "@flamoral/mobile",
   "version": "1.0.0",
-  "description": "ConnectSphere Mobile App (iOS & Android)",
+  "description": "Flamoral Mobile App - Where Passion Meets Connection (iOS & Android)",
   "main": "index.js",
   "scripts": {
     "android": "react-native run-android",

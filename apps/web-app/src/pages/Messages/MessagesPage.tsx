@@ -137,7 +137,7 @@ export const MessagesPage: React.FC = () => {
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            ConnectSphere
+            Flamoral
           </h1>
           <nav className="flex items-center gap-6">
             <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
@@ -151,6 +151,9 @@ export const MessagesPage: React.FC = () => {
             </button>
             <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">
               Profile
+            </button>
+            <button onClick={() => navigate('/safety')} className="text-gray-600 hover:text-pink-500">
+              Safety
             </button>
           </nav>
         </div>

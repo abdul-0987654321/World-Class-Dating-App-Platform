@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { Conversation, Message } from '@connectsphere/types';
+import type { Conversation, Message } from '@flamoral/types';
 
 interface MessagingState {
   conversations: Conversation[];

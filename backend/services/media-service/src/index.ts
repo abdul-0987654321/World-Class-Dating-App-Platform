@@ -2,7 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import mediaRoutes from './api/routes/media.routes';
 import azureStorageService from './infrastructure/storage/azure-storage.service';
 import workerManager from './workers/worker-manager';
@@ -36,7 +36,7 @@ app.get('/health', (_req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere Media Service',
+    service: 'Flamoral Media Service',
     version: '1.0.0',
     status: 'running',
   });

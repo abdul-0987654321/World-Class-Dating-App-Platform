@@ -26,7 +26,7 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
     if (age < 18) {
       Alert.alert(
         'Age Requirement',
-        'You must be 18 or older to use ConnectSphere.',
+        'You must be 18 or older to use Flamoral.',
         [{ text: 'OK' }]
       );
       return;
@@ -38,7 +38,7 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>When's your birthday?</Text>
-      <Text style={styles.subtitle}>You must be 18+ to use ConnectSphere</Text>
+      <Text style={styles.subtitle}>You must be 18+ to use Flamoral</Text>
 
       <View style={styles.dateContainer}>
         <Input

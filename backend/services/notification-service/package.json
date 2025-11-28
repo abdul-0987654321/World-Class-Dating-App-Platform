@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/notification-service",
+  "name": "@flamoral/notification-service",
   "version": "1.0.0",
   "description": "Multi-channel notification service (push, email, SMS)",
   "main": "dist/index.js",

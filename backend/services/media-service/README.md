@@ -1,6 +1,6 @@
 # Media Service
 
-Media upload, processing, and content moderation service for ConnectSphere dating platform.
+Media upload, processing, and content moderation service for Flamoral dating platform.
 
 ## Features
 
@@ -186,4 +186,4 @@ All errors return consistent JSON format:
 
 ## License
 
-Proprietary - ConnectSphere Platform
+Proprietary - Flamoral Platform

@@ -4,7 +4,7 @@ import azureStorageService from '../../infrastructure/storage/azure-storage.serv
 import contentModerationService from './content-moderation.service';
 import mediaRepository from '../repositories/media.repository';
 import { MediaMetadata, ModerationStatus, UploadedFile } from '../../types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('upload-service');
 

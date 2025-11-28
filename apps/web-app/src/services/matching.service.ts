@@ -55,7 +55,26 @@ class MatchingService {
   async getMatches(cursor?: string): Promise<MatchesResponse> {
     if (this.isMock) {
       const { mockApi } = await import('../mocks/mockApi');
-      return mockApi.getMatches();
+      const result = await mockApi.getMatches();
+
+      // Transform mock matches to Match format
+      return {
+        matches: result.matches.map((m: any) => ({
+          id: m.id,
+          matchedUser: {
+            id: m.matchedUser.id,
+            name: m.matchedUser.name,
+            photoUrl: m.matchedUser.photoUrl,
+            isOnline: m.matchedUser.isOnline,
+          },
+          matchedAt: m.matchedAt,
+          lastMessage: m.lastMessage ? { content: m.lastMessage, sentAt: m.lastMessageAt || new Date().toISOString() } : undefined,
+          lastMessageAt: m.lastMessageAt,
+          hasUnread: m.hasUnread,
+        })),
+        nextCursor: result.nextCursor,
+        totalCount: result.totalCount,
+      };
     }
 
     const url = cursor
@@ -68,7 +87,32 @@ class MatchingService {
   async getLikes(cursor?: string): Promise<LikesResponse> {
     if (this.isMock) {
       const { mockApi } = await import('../mocks/mockApi');
-      return mockApi.getLikes();
+      const result = await mockApi.getLikes();
+
+      // Transform mock likes to Like format
+      return {
+        likes: result.likes.map((l: any) => ({
+          id: l.id,
+          user: l.fromUser ? {
+            id: l.id,
+            name: l.fromUser.name || 'Hidden',
+            photoUrl: l.fromUser.blurredPhotoUrl || '',
+            isOnline: false,
+            age: l.fromUser.age,
+          } : {
+            id: l.id,
+            name: 'Hidden',
+            photoUrl: '',
+            isOnline: false,
+          },
+          likedAt: l.likedAt,
+          isSuperLike: l.isSuperLike,
+          isBlurred: !l.isRevealed,
+        })),
+        nextCursor: result.nextCursor,
+        totalCount: result.totalCount,
+        canSeeLikes: result.canSeeLikes,
+      };
     }
 
     const url = cursor

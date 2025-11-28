@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { API_BASE_URL, API_TIMEOUT } from '@connectsphere/constants';
+import { API_BASE_URL, API_TIMEOUT } from '@flamoral/constants';
 
 export interface ApiClientConfig {
   baseURL?: string;

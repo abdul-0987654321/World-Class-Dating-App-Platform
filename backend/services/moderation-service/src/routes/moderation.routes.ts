@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import moderationService from '../services/moderation.service';
 import { ModerateImageRequest, ModerateTextRequest } from '../types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('moderation-routes');
 const router = Router();

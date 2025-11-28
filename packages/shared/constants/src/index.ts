@@ -4,7 +4,7 @@ export const WS_BASE_URL = process.env.REACT_APP_WS_URL || process.env.WS_URL ||
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // App Configuration
-export const APP_NAME = 'ConnectSphere';
+export const APP_NAME = 'Flamoral';
 export const APP_VERSION = '1.0.0';
 export const MIN_AGE = 18;
 export const MAX_AGE = 99;

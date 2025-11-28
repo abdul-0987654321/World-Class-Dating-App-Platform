@@ -1,6 +1,6 @@
-# ConnectSphere - Startup Guide
+# Flamoral - Startup Guide
 
-This guide explains how to run the ConnectSphere dating app platform.
+This guide explains how to run the Flamoral dating app platform.
 
 ## Quick Start (Demo Mode with Mock Data)
 
@@ -20,8 +20,8 @@ npm run dev
 The app will start at `http://localhost:5173` with mock data.
 
 ### Test Accounts (Mock Mode)
-- Email: `test1@connectsphere.com` / Password: `TestUser1!`
-- Email: `test2@connectsphere.com` / Password: `TestUser2!`
+- Email: `test1@flamoral.com` / Password: `TestUser1!`
+- Email: `test2@flamoral.com` / Password: `TestUser2!`
 
 ---
 
@@ -53,8 +53,8 @@ Create `.env` file in `backend/` directory:
 
 ```bash
 # Database
-DATABASE_URL=postgresql://postgres:postgres_dev_password@localhost:5432/connectsphere
-MONGODB_URI=mongodb://localhost:27017/connectsphere
+DATABASE_URL=postgresql://postgres:postgres_dev_password@localhost:5432/flamoral
+MONGODB_URI=mongodb://localhost:27017/flamoral
 REDIS_URL=redis://localhost:6379
 
 # JWT
@@ -120,11 +120,11 @@ After running seeds, these accounts are available:
 
 | Tier | Email | Password | Name |
 |------|-------|----------|------|
-| FREE | test3@connectsphere.com | TestUser3! | Sam Developer |
-| GOLD | test2@connectsphere.com | TestUser2! | Jordan Demo |
-| GOLD | test5@connectsphere.com | TestUser5! | Morgan Sample |
-| PLATINUM | test1@connectsphere.com | TestUser1! | Alex Demo |
-| DIAMOND | test4@connectsphere.com | TestUser4! | Riley Tester |
+| FREE | test3@flamoral.com | TestUser3! | Sam Developer |
+| GOLD | test2@flamoral.com | TestUser2! | Jordan Demo |
+| GOLD | test5@flamoral.com | TestUser5! | Morgan Sample |
+| PLATINUM | test1@flamoral.com | TestUser1! | Alex Demo |
+| DIAMOND | test4@flamoral.com | TestUser4! | Riley Tester |
 
 ---
 
@@ -193,7 +193,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ### "Database connection failed"
 1. Ensure Docker containers are running: `docker ps`
-2. Check PostgreSQL: `docker logs connectsphere-postgres`
+2. Check PostgreSQL: `docker logs flamoral-postgres`
 3. Verify DATABASE_URL in backend `.env`
 
 ### "Login not working"
@@ -206,7 +206,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ## Architecture
 
 ```
-ConnectSphere/
+Flamoral/
 ├── apps/
 │   ├── web-app/          # React frontend (Vite + TypeScript)
 │   └── mobile-app/       # React Native mobile app

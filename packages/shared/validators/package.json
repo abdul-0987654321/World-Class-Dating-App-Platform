@@ -1,7 +1,7 @@
 {
-  "name": "@connectsphere/validators",
+  "name": "@flamoral/validators",
   "version": "1.0.0",
-  "description": "Validation schemas for ConnectSphere",
+  "description": "Validation schemas for Flamoral",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,8 +10,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@connectsphere/types": "^1.0.0",
-    "@connectsphere/constants": "^1.0.0",
+    "@flamoral/types": "^1.0.0",
+    "@flamoral/constants": "^1.0.0",
     "joi": "^17.11.0"
   },
   "devDependencies": {

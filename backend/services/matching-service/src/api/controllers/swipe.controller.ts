@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import swipeService from '../../domain/services/swipe.service';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('swipe-controller');
 

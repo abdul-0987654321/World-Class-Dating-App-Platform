@@ -4,15 +4,18 @@ export default () => ({
 
   // JWT Configuration
   jwt: {
-    secret: process.env.JWT_SECRET,
-    accessTokenExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY || '15m',
-    refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '7d',
+    secret: process.env.JWT_SECRET || 'your-secret-key',
+    accessSecret: process.env.JWT_ACCESS_SECRET || 'your-access-secret-key',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
+    accessTokenExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY || '24h',
+    refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '30d',
   },
 
   // Service URLs
   services: {
-    userService: process.env.USER_SERVICE_URL || 'http://localhost:3001',
-    profileService: process.env.PROFILE_SERVICE_URL || 'http://localhost:3002',
+    authService: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+    userService: process.env.USER_SERVICE_URL || 'http://localhost:3002',
+    profileService: process.env.PROFILE_SERVICE_URL || 'http://localhost:3002', // Same as user service
     matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3003',
     messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3004',
     notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005',
@@ -21,6 +24,9 @@ export default () => ({
     moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3008',
     aiService: process.env.AI_SERVICE_URL || 'http://localhost:8000',
   },
+
+  // Internal service communication key
+  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
 
   // Redis Configuration
   redis: {

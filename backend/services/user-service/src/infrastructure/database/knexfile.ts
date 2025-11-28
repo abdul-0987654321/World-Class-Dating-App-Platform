@@ -10,7 +10,7 @@ const config: { [key: string]: Knex.Config } = {
     connection: {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'connectsphere_users',
+      database: process.env.DB_NAME || 'flamoral_users',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
     },
@@ -76,7 +76,7 @@ const config: { [key: string]: Knex.Config } = {
     connection: process.env.DATABASE_URL || {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'connectsphere_test',
+      database: process.env.DB_NAME || 'flamoral_test',
       user: process.env.DB_USER || 'test',
       password: process.env.DB_PASSWORD || 'test',
     },

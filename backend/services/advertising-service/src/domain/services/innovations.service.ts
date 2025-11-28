@@ -100,7 +100,7 @@ export class InnovationsService {
         ],
         co_branding_guidelines: {
           logo_placement_rules: ['Top right corner', 'Max 15% of creative space'],
-          color_restrictions: ['No colors that clash with ConnectSphere pink'],
+          color_restrictions: ['No colors that clash with Flamoral pink'],
           messaging_do_and_donts: {
             dos: ['Focus on shared experiences', 'Emphasize connection'],
             donts: ['No alcohol-focused messaging', 'No explicit content'],
@@ -675,7 +675,7 @@ export class InnovationsService {
         recruitment_pipeline: {
           prospects: [],
           outreach_templates: [
-            { template_id: uuidv4(), template_name: 'Initial Outreach', subject: 'Partnership with ConnectSphere', body: 'Hi {name}...', response_rate: 0.25 },
+            { template_id: uuidv4(), template_name: 'Initial Outreach', subject: 'Partnership with Flamoral', body: 'Hi {name}...', response_rate: 0.25 },
           ],
           conversion_rate: 0.15,
         },
@@ -701,7 +701,7 @@ export class InnovationsService {
             publish_date: new Date(),
             performance: { views: 150000, engagement: 12000, shares: 3500, comments: 850, click_throughs: 4500 },
             sponsored: true,
-            brand_mentions: ['ConnectSphere'],
+            brand_mentions: ['Flamoral'],
           },
         ],
         curation_process: {
@@ -715,14 +715,14 @@ export class InnovationsService {
         {
           campaign_id: uuidv4(),
           campaign_name: 'Summer Dating Tips',
-          sponsor: 'ConnectSphere',
+          sponsor: 'Flamoral',
           influencers: ['influencer_1', 'influencer_2'],
           content_briefs: [
             {
               brief_id: uuidv4(),
-              key_messages: ['Download ConnectSphere', 'AI-powered matching'],
-              hashtags: ['#ConnectSphere', '#DatingTips', '#FindYourPerson'],
-              mentions: ['@connectsphere'],
+              key_messages: ['Download Flamoral', 'AI-powered matching'],
+              hashtags: ['#Flamoral', '#DatingTips', '#FindYourPerson'],
+              mentions: ['@flamoral'],
               dos_and_donts: { dos: ['Be authentic', 'Share personal experience'], donts: ['Don\'t compare to competitors'] },
               approval_required: true,
             },

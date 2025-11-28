@@ -1,6 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();
@@ -28,7 +28,7 @@ app.get('/health', (req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere Notification Service',
+    service: 'Flamoral Notification Service',
     version: '1.0.0',
     status: 'running',
   });

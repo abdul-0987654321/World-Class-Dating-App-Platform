@@ -2,7 +2,7 @@
 
 ## 🎯 Technology Stack Overview
 
-ConnectSphere's technology stack is carefully curated to provide scalability, performance, security, and an exceptional user experience. Each technology choice is driven by specific requirements and proven capabilities.
+Flamoral's technology stack is carefully curated to provide scalability, performance, security, and an exceptional user experience. Each technology choice is driven by specific requirements and proven capabilities.
 
 ---
 

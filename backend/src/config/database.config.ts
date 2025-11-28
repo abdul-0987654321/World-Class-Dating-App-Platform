@@ -15,7 +15,7 @@ export const postgresConfig: Knex.Config = {
   connection: {
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME || 'connectsphere',
+    database: process.env.DB_NAME || 'flamoral',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
@@ -50,10 +50,10 @@ export async function connectMongoDB(): Promise<Db> {
   }
 
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/connectsphere';
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/flamoral';
     mongoClient = new MongoClient(uri);
     await mongoClient.connect();
-    mongoDb = mongoClient.db(process.env.MONGODB_DB || 'connectsphere');
+    mongoDb = mongoClient.db(process.env.MONGODB_DB || 'flamoral');
     logger.info('MongoDB connected successfully');
     return mongoDb;
   } catch (error) {
@@ -104,3 +104,10 @@ export async function disconnectDatabases() {
     throw error;
   }
 }
+
+// Export aliases for backward compatibility
+export const db = getPostgresConnection();
+export const mongodb = {
+  getDb: getMongoDb,
+  connect: connectMongoDB,
+};

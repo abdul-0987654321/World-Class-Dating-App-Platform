@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import matchRepository from '../../domain/repositories/match.repository';
 import { MatchStatus } from '../../types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('match-controller');
 

@@ -1,5 +1,5 @@
 /**
- * ConnectSphere Backend Server
+ * Flamoral Backend Server
  * Main entry point for REST + GraphQL + WebSocket servers
  */
 
@@ -21,7 +21,7 @@ const WS_PORT = process.env.WS_PORT || 5000;
 
 async function startServer() {
   try {
-    logger.info('Starting ConnectSphere Backend...');
+    logger.info('Starting Flamoral Backend...');
 
     // Validate environment variables first
     logger.info('Validating environment configuration...');

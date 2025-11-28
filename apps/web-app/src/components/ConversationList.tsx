@@ -15,9 +15,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onConversationSelect,
   loading = false,
 }) => {
-  const formatTime = (date?: Date) => {
+  const formatTime = (date?: Date | string) => {
     if (!date) return '';
-    const messageDate = new Date(date);
+    const messageDate = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
     const diffMs = now.getTime() - messageDate.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -60,27 +60,27 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           onClick={() => onConversationSelect(conversation)}
         >
           <Avatar>
-            {conversation.other_user.photo_url ? (
-              <AvatarImage src={conversation.other_user.photo_url} alt={conversation.other_user.name} />
+            {conversation.participant.photoUrl ? (
+              <AvatarImage src={conversation.participant.photoUrl} alt={conversation.participant.name} />
             ) : (
               <AvatarPlaceholder>
-                {conversation.other_user.name.charAt(0).toUpperCase()}
+                {conversation.participant.name.charAt(0).toUpperCase()}
               </AvatarPlaceholder>
             )}
           </Avatar>
 
           <ConversationContent>
             <ConversationHeader>
-              <UserName>{conversation.other_user.name}</UserName>
-              <TimeStamp>{formatTime(conversation.last_message_at)}</TimeStamp>
+              <UserName>{conversation.participant.name}</UserName>
+              <TimeStamp>{formatTime(conversation.lastMessage?.sentAt)}</TimeStamp>
             </ConversationHeader>
 
             <ConversationPreview>
-              <LastMessage $hasUnread={conversation.unread_count > 0}>
-                {conversation.last_message || 'No messages yet'}
+              <LastMessage $hasUnread={conversation.unreadCount > 0}>
+                {conversation.lastMessage?.content || 'No messages yet'}
               </LastMessage>
-              {conversation.unread_count > 0 && (
-                <UnreadBadge>{conversation.unread_count}</UnreadBadge>
+              {conversation.unreadCount > 0 && (
+                <UnreadBadge>{conversation.unreadCount}</UnreadBadge>
               )}
             </ConversationPreview>
           </ConversationContent>

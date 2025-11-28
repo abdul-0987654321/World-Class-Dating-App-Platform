@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/moderation-service",
+  "name": "@flamoral/moderation-service",
   "version": "1.0.0",
   "description": "AI-powered content moderation and safety service",
   "main": "dist/index.js",

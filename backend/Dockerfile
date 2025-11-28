@@ -1,13 +1,13 @@
 # ============================================
 # Multi-Stage Dockerfile for Backend
-# ConnectSphere Unified Backend
+# Flamoral Unified Backend
 # ============================================
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS dependencies
 
-LABEL maintainer="ConnectSphere Team"
-LABEL description="ConnectSphere Backend - REST + GraphQL + WebSocket"
+LABEL maintainer="Flamoral Team"
+LABEL description="Flamoral Backend - REST + GraphQL + WebSocket"
 
 WORKDIR /app
 

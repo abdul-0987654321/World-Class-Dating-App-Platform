@@ -278,12 +278,12 @@ jobs:
       - name: Build Docker image
         working-directory: backend/services/${{ matrix.service }}
         run: |
-          docker build -t connectsphere/${{ matrix.service }}:test .
+          docker build -t flamoral/${{ matrix.service }}:test .
 
       - name: Test Docker image
         run: |
-          docker run --rm connectsphere/${{ matrix.service }}:test node --version
-          docker run --rm connectsphere/${{ matrix.service }}:test npm --version
+          docker run --rm flamoral/${{ matrix.service }}:test node --version
+          docker run --rm flamoral/${{ matrix.service }}:test npm --version
 
   # API Gateway Build Test
   api-gateway-build:

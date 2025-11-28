@@ -1,6 +1,6 @@
-# ConnectSphere Unified Backend
+# Flamoral Unified Backend
 
-This is the consolidated backend for the ConnectSphere Dating Platform, combining all microservices into a single, unified application.
+This is the consolidated backend for the Flamoral Dating Platform, combining all microservices into a single, unified application.
 
 ## Architecture
 
@@ -112,13 +112,13 @@ npm run seed
 ### Build Image
 
 ```bash
-docker build -t connectsphere-backend .
+docker build -t flamoral-backend .
 ```
 
 ### Run Container
 
 ```bash
-docker run -p 3000:3000 -p 4000:4000 -p 5000:5000 --env-file .env connectsphere-backend
+docker run -p 3000:3000 -p 4000:4000 -p 5000:5000 --env-file .env flamoral-backend
 ```
 
 ## API Documentation

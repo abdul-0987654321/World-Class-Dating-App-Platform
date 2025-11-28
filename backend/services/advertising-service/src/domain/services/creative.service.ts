@@ -437,7 +437,7 @@ export class CreativeService {
             interests: ['travel', 'fitness'],
           },
           content: {
-            quote: 'I never thought I would find someone who shares my passion for adventure. Thanks to ConnectSphere!',
+            quote: 'I never thought I would find someone who shares my passion for adventure. Thanks to Flamoral!',
             story_length: 'medium',
             emotional_tone: ['excitement', 'love'],
             topics_mentioned: ['travel', 'adventure', 'connection'],

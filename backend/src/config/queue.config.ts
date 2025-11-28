@@ -3,10 +3,10 @@
  * Message queue for async processing
  */
 
-import amqp, { Connection, Channel } from 'amqplib';
+import amqp, { Channel, ChannelModel } from 'amqplib';
 import { logger } from '../utils/logger';
 
-let connection: Connection | null = null;
+let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
 
 export const QUEUES = {

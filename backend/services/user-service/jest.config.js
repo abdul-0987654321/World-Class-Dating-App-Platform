@@ -23,7 +23,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@connectsphere/shared/(.*)$': '<rootDir>/../../shared/$1',
+    '^@flamoral/shared/(.*)$': '<rootDir>/../../shared/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   verbose: true,

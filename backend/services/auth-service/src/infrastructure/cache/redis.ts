@@ -1,0 +1,157 @@
+import { createClient, RedisClientType } from 'redis';
+import { config } from '../../config';
+import logger from '../../utils/logger';
+
+class RedisCache {
+  private client: RedisClientType | null = null;
+  private isConnected: boolean = false;
+
+  async connect(): Promise<void> {
+    try {
+      this.client = createClient({ url: config.redis.url });
+
+      this.client.on('error', (err) => {
+        logger.error('Redis client error', err);
+        this.isConnected = false;
+      });
+
+      this.client.on('connect', () => {
+        logger.info('Redis client connected');
+        this.isConnected = true;
+      });
+
+      await this.client.connect();
+    } catch (error) {
+      logger.error('Failed to connect to Redis', error);
+      // Don't throw - allow service to work without Redis
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    if (this.client && this.isConnected) {
+      await this.client.disconnect();
+      this.isConnected = false;
+      logger.info('Redis client disconnected');
+    }
+  }
+
+  /**
+   * Store a refresh token for a user
+   */
+  async setRefreshToken(userId: string, token: string, expiresInSeconds: number): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.setEx(`refresh_token:${userId}`, expiresInSeconds, token);
+    } catch (error) {
+      logger.error('Failed to store refresh token', error);
+    }
+  }
+
+  /**
+   * Get the stored refresh token for a user
+   */
+  async getRefreshToken(userId: string): Promise<string | null> {
+    if (!this.client || !this.isConnected) return null;
+
+    try {
+      return await this.client.get(`refresh_token:${userId}`);
+    } catch (error) {
+      logger.error('Failed to get refresh token', error);
+      return null;
+    }
+  }
+
+  /**
+   * Remove a user's refresh token (logout)
+   */
+  async removeRefreshToken(userId: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.del(`refresh_token:${userId}`);
+    } catch (error) {
+      logger.error('Failed to remove refresh token', error);
+    }
+  }
+
+  /**
+   * Blacklist an access token (for logout before expiry)
+   */
+  async blacklistToken(token: string, expiresInSeconds: number): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.setEx(`blacklist:${token}`, expiresInSeconds, '1');
+    } catch (error) {
+      logger.error('Failed to blacklist token', error);
+    }
+  }
+
+  /**
+   * Check if a token is blacklisted
+   */
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    if (!this.client || !this.isConnected) return false;
+
+    try {
+      const result = await this.client.get(`blacklist:${token}`);
+      return result !== null;
+    } catch (error) {
+      logger.error('Failed to check token blacklist', error);
+      return false;
+    }
+  }
+
+  /**
+   * Store a verification token
+   */
+  async setVerificationToken(
+    token: string,
+    data: { userId: string; type: string },
+    expiresInSeconds: number
+  ): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.setEx(
+        `verification:${token}`,
+        expiresInSeconds,
+        JSON.stringify(data)
+      );
+    } catch (error) {
+      logger.error('Failed to store verification token', error);
+    }
+  }
+
+  /**
+   * Get verification token data
+   */
+  async getVerificationToken(token: string): Promise<{ userId: string; type: string } | null> {
+    if (!this.client || !this.isConnected) return null;
+
+    try {
+      const data = await this.client.get(`verification:${token}`);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      logger.error('Failed to get verification token', error);
+      return null;
+    }
+  }
+
+  /**
+   * Remove verification token
+   */
+  async removeVerificationToken(token: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.del(`verification:${token}`);
+    } catch (error) {
+      logger.error('Failed to remove verification token', error);
+    }
+  }
+}
+
+export const redisCache = new RedisCache();
+export default redisCache;

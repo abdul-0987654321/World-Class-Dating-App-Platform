@@ -2,9 +2,9 @@ export const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'ConnectSphere API',
+      title: 'Flamoral API',
       version: '1.0.0',
-      description: 'ConnectSphere Dating Platform API',
+      description: 'Flamoral Dating Platform API',
     },
     servers: [
       {

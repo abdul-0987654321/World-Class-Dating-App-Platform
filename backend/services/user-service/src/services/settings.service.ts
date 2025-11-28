@@ -456,7 +456,7 @@ export class SettingsService {
       return {
         success: true,
         message: 'Data export will be sent to your email within 24 hours',
-        // downloadUrl: 'https://storage.connectsphere.com/exports/user-data-123.json',
+        // downloadUrl: 'https://storage.flamoral.com/exports/user-data-123.json',
       };
     } catch (error: any) {
       logger.error('Failed to export user data', { userId, error: error.message });
@@ -498,7 +498,7 @@ export class SettingsService {
       // Soft delete: Mark as inactive and anonymize data
       await db('users').where({ id: userId }).update({
         is_active: false,
-        email: `deleted_${userId}@connectsphere.com`,
+        email: `deleted_${userId}@flamoral.com`,
         phone: null,
         first_name: 'Deleted',
         last_name: 'User',

@@ -43,7 +43,7 @@ export class EmailService {
       if (this.useSMTP) {
         // Send via SMTP (Mailhog)
         await this.smtpTransporter.sendMail({
-          from: `${process.env.FROM_NAME || 'ConnectSphere'} <${process.env.FROM_EMAIL || 'noreply@connectsphere.com'}>`,
+          from: `${process.env.FROM_NAME || 'Flamoral'} <${process.env.FROM_EMAIL || 'noreply@flamoral.com'}>`,
           to: template.to,
           subject: template.subject,
           html: template.html,
@@ -55,8 +55,8 @@ export class EmailService {
         const msg = {
           to: template.to,
           from: {
-            email: process.env.FROM_EMAIL || 'noreply@connectsphere.com',
-            name: process.env.FROM_NAME || 'ConnectSphere',
+            email: process.env.FROM_EMAIL || 'noreply@flamoral.com',
+            name: process.env.FROM_NAME || 'Flamoral',
           },
           subject: template.subject,
           html: template.html,
@@ -93,7 +93,7 @@ export class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to ConnectSphere!</h1>
+              <h1>Welcome to Flamoral!</h1>
             </div>
             <div class="content">
               <h2>Hi ${firstName},</h2>
@@ -105,11 +105,11 @@ export class EmailService {
               <p>Or copy and paste this link into your browser:</p>
               <p style="word-break: break-all; color: #667eea;">${verificationUrl}</p>
               <p><strong>This link will expire in 24 hours.</strong></p>
-              <p>If you didn't create an account with ConnectSphere, please ignore this email.</p>
-              <p>Best regards,<br>The ConnectSphere Team</p>
+              <p>If you didn't create an account with Flamoral, please ignore this email.</p>
+              <p>Best regards,<br>The Flamoral Team</p>
             </div>
             <div class="footer">
-              <p>&copy; 2025 ConnectSphere. All rights reserved.</p>
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
               <p>This is an automated message, please do not reply to this email.</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export class EmailService {
     `;
 
     const text = `
-      Welcome to ConnectSphere!
+      Welcome to Flamoral!
 
       Hi ${firstName},
 
@@ -130,12 +130,12 @@ export class EmailService {
       If you didn't create an account, please ignore this email.
 
       Best regards,
-      The ConnectSphere Team
+      The Flamoral Team
     `;
 
     await this.sendEmail({
       to: email,
-      subject: 'Verify your ConnectSphere account',
+      subject: 'Verify your Flamoral account',
       html,
       text,
     });
@@ -165,7 +165,7 @@ export class EmailService {
             </div>
             <div class="content">
               <h2>Hi ${firstName},</h2>
-              <p>We received a request to reset your password for your ConnectSphere account.</p>
+              <p>We received a request to reset your password for your Flamoral account.</p>
               <p>Click the button below to reset your password:</p>
               <div style="text-align: center;">
                 <a href="${resetUrl}" class="button">Reset Password</a>
@@ -180,10 +180,10 @@ export class EmailService {
                   <li>Your password will not be changed unless you click the link above</li>
                 </ul>
               </div>
-              <p>Best regards,<br>The ConnectSphere Team</p>
+              <p>Best regards,<br>The Flamoral Team</p>
             </div>
             <div class="footer">
-              <p>&copy; 2025 ConnectSphere. All rights reserved.</p>
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
               <p>This is an automated message, please do not reply to this email.</p>
             </div>
           </div>
@@ -204,12 +204,12 @@ export class EmailService {
       If you didn't request this, please ignore this email. Your password will not be changed.
 
       Best regards,
-      The ConnectSphere Team
+      The Flamoral Team
     `;
 
     await this.sendEmail({
       to: email,
-      subject: 'Reset your ConnectSphere password',
+      subject: 'Reset your Flamoral password',
       html,
       text,
     });
@@ -237,7 +237,7 @@ export class EmailService {
             </div>
             <div class="content">
               <h2>Welcome, ${firstName}!</h2>
-              <p>Your email has been verified and your ConnectSphere account is now active.</p>
+              <p>Your email has been verified and your Flamoral account is now active.</p>
               <div class="tips">
                 <h3>✨ Get Started:</h3>
                 <ol>
@@ -250,10 +250,10 @@ export class EmailService {
                 <a href="${process.env.WEB_APP_URL || 'http://localhost:3000'}/profile" class="button">Complete Your Profile</a>
               </div>
               <p>Happy connecting!</p>
-              <p>Best regards,<br>The ConnectSphere Team</p>
+              <p>Best regards,<br>The Flamoral Team</p>
             </div>
             <div class="footer">
-              <p>&copy; 2025 ConnectSphere. All rights reserved.</p>
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -262,7 +262,7 @@ export class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: '🎉 Welcome to ConnectSphere!',
+      subject: '🎉 Welcome to Flamoral!',
       html,
     });
   }

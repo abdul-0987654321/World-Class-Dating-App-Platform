@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive testing infrastructure that has been set up for the ConnectSphere User Service.
+This document summarizes the comprehensive testing infrastructure that has been set up for the Flamoral User Service.
 
 ## What Was Created
 
@@ -10,7 +10,7 @@ This document summarizes the comprehensive testing infrastructure that has been 
 
 **File**: `src/infrastructure/database/knexfile.ts`
 - Added `test` environment configuration
-- Configured to use `connectsphere_test` database
+- Configured to use `flamoral_test` database
 - Optimized pool settings for testing (min: 0, max: 5)
 
 ### 2. Test Fixtures and Mock Data

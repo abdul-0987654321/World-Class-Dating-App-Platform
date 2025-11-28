@@ -1,7 +1,7 @@
 {
-  "name": "@connectsphere/types",
+  "name": "@flamoral/types",
   "version": "1.0.0",
-  "description": "Shared TypeScript types and interfaces for ConnectSphere",
+  "description": "Shared TypeScript types and interfaces for Flamoral",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

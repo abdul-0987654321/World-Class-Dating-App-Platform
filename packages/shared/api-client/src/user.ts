@@ -4,7 +4,7 @@ import type {
   Profile,
   UpdateProfileRequest,
   UploadPhotoResponse
-} from '@connectsphere/types';
+} from '@flamoral/types';
 
 export class UserApi {
   constructor(private client: ApiClient) {}

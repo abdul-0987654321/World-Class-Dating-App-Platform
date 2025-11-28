@@ -1,4 +1,4 @@
-# ConnectSphere - Quick Start Guide
+# Flamoral - Quick Start Guide
 
 ## 🚀 Get Started in 5 Minutes
 
@@ -53,7 +53,7 @@ yarn dev:mobile
 | Email | Password | Type |
 |-------|----------|------|
 | sarah.johnson@example.com | password123 | Premium User |
-| admin@connectsphere.com | admin123 | Admin |
+| admin@flamoral.com | admin123 | Admin |
 
 ---
 

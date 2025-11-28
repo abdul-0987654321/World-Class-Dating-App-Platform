@@ -24,7 +24,7 @@ This directory contains seed data for local development and testing.
 
 | Email | Password | Role |
 |-------|----------|------|
-| admin@connectsphere.com | admin123 | Admin |
+| admin@flamoral.com | admin123 | Admin |
 
 ## Usage
 

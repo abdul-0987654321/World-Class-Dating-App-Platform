@@ -156,7 +156,7 @@ Status:   Email Verified
 
 ### View Test Users
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "SELECT id, email, first_name, is_verified FROM users WHERE email LIKE '%test@example.com';"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "SELECT id, email, first_name, is_verified FROM users WHERE email LIKE '%test@example.com';"
 ```
 
 **Expected Output:**
@@ -204,7 +204,7 @@ npm run dev
 
 **Solution: Verify Database**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users -c "SELECT COUNT(*) FROM users;"
+docker exec flamoral-postgres psql -U postgres -d flamoral_users -c "SELECT COUNT(*) FROM users;"
 
 # Should show at least 2 users (test accounts)
 ```
@@ -280,7 +280,7 @@ docker-compose ps
 
 **View Database:**
 ```bash
-docker exec connectsphere-postgres psql -U postgres -d connectsphere_users
+docker exec flamoral-postgres psql -U postgres -d flamoral_users
 \dt  # List tables
 \q   # Quit
 ```

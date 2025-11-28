@@ -3,7 +3,7 @@ import queueManager from '../infrastructure/queue/queue-manager';
 import { QueueName } from '../infrastructure/queue/queue-config';
 import { PhotoVerificationJobData, JobResult } from '../infrastructure/queue/job-types';
 import photoVerificationService from '../domain/services/photo-verification.service';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('photo-verification-worker');
 

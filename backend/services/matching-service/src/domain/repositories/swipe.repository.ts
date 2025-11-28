@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
 import { Swipe } from '../entities/Swipe.entity';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('swipe-repository');
 

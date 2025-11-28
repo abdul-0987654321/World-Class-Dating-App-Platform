@@ -1,0 +1,353 @@
+# =============================================================================
+# Flamoral Dating Platform - Helm Values (Default)
+# =============================================================================
+
+global:
+  image:
+    registry: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: acr-secret
+  environment: "dev"
+
+# =============================================================================
+# API Gateway
+# =============================================================================
+apiGateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/api-gateway
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3000"
+
+# =============================================================================
+# Auth Service
+# =============================================================================
+authService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/auth-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3001
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+# =============================================================================
+# User Service
+# =============================================================================
+userService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/user-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3002
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# =============================================================================
+# Matching Service
+# =============================================================================
+matchingService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/matching-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3003
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 60
+
+# =============================================================================
+# Messaging Service
+# =============================================================================
+messagingService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/messaging-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3004
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# =============================================================================
+# Media Service
+# =============================================================================
+mediaService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/media-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3005
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+
+# =============================================================================
+# Notification Service
+# =============================================================================
+notificationService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/notification-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3006
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+# =============================================================================
+# Realtime Service (WebSocket)
+# =============================================================================
+realtimeService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/realtime-service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3007
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 60
+  env:
+    - name: REDIS_HOST
+      valueFrom:
+        secretKeyRef:
+          name: flamoral-secrets
+          key: redis-host
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: flamoral-secrets
+          key: redis-password
+
+# =============================================================================
+# Web Frontend
+# =============================================================================
+web:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: flamoral/web
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/websocket-services: "api-gateway,realtime-service"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "FLAMORAL_AFFINITY"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web
+        - path: /api
+          pathType: Prefix
+          service: api-gateway
+        - path: /ws
+          pathType: Prefix
+          service: api-gateway
+        - path: /realtime
+          pathType: Prefix
+          service: realtime-service
+  tls: []
+
+# =============================================================================
+# Service Account
+# =============================================================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# =============================================================================
+# Pod Security
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Health Checks
+# =============================================================================
+healthCheck:
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# =============================================================================
+# External Dependencies (disabled by default - use Azure managed services)
+# =============================================================================
+redis:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+# =============================================================================
+# ConfigMaps
+# =============================================================================
+configMaps:
+  enabled: true
+
+# =============================================================================
+# Secrets (from Azure Key Vault)
+# =============================================================================
+secrets:
+  enabled: true
+  keyVaultName: ""
+  useAzureKeyVault: true

@@ -58,7 +58,7 @@ app.get('/health', async (req: Request, res: Response) => {
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'ConnectSphere Analytics Service',
+    service: 'Flamoral Analytics Service',
     version: '1.0.0',
     status: 'running',
     endpoints: {

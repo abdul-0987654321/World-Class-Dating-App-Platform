@@ -12,7 +12,7 @@ export default {
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'connectsphere_users',
+    name: process.env.DB_NAME || 'flamoral_users',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     ssl: process.env.DB_SSL === 'true',
@@ -42,8 +42,8 @@ export default {
 
   sendgrid: {
     apiKey: process.env.SENDGRID_API_KEY,
-    fromEmail: process.env.FROM_EMAIL || 'noreply@connectsphere.com',
-    fromName: process.env.FROM_NAME || 'ConnectSphere',
+    fromEmail: process.env.FROM_EMAIL || 'noreply@flamoral.com',
+    fromName: process.env.FROM_NAME || 'Flamoral',
   },
 
   azure: {

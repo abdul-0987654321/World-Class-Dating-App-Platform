@@ -37,8 +37,8 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Copy shared package dist
-COPY --from=builder /app/backend/shared/dist ./node_modules/@connectsphere/shared/dist
-COPY --from=builder /app/backend/shared/package.json ./node_modules/@connectsphere/shared/
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/shared/dist
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/shared/
 
 # Copy service package files and install production dependencies
 COPY package*.json ./

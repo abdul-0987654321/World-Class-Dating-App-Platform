@@ -1,6 +1,6 @@
 # Docker Deployment Guide - Photo Verification System
 
-Complete guide for building, testing, and deploying the ConnectSphere platform with Photo Verification System to Docker Hub.
+Complete guide for building, testing, and deploying the Flamoral platform with Photo Verification System to Docker Hub.
 
 **Last Updated**: November 18, 2025
 **Version**: 2.0.0
@@ -32,8 +32,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 docker login
 
 # Tag and push
-docker tag connectsphere-media-service YOUR_USERNAME/connectsphere-media-service:2.0.0
-docker push YOUR_USERNAME/connectsphere-media-service:2.0.0
+docker tag flamoral-media-service YOUR_USERNAME/flamoral-media-service:2.0.0
+docker push YOUR_USERNAME/flamoral-media-service:2.0.0
 ```
 
 ---
@@ -59,7 +59,7 @@ The photo verification system requires these new tables:
 Run migrations after deployment:
 
 ```bash
-docker exec connectsphere-media-service npm run migrate:latest
+docker exec flamoral-media-service npm run migrate:latest
 ```
 
 ---
@@ -75,7 +75,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 ### Build Media Service Only
 
 ```bash
-docker build -t connectsphere-media-service:2.0.0 ./backend/services/media-service
+docker build -t flamoral-media-service:2.0.0 ./backend/services/media-service
 ```
 
 ### Build with No Cache
@@ -100,42 +100,42 @@ Replace `YOUR_USERNAME` with your Docker Hub username:
 
 ```bash
 # Media Service
-docker tag connectsphere-media-service YOUR_USERNAME/connectsphere-media-service:2.0.0
-docker tag connectsphere-media-service YOUR_USERNAME/connectsphere-media-service:latest
+docker tag flamoral-media-service YOUR_USERNAME/flamoral-media-service:2.0.0
+docker tag flamoral-media-service YOUR_USERNAME/flamoral-media-service:latest
 
 # User Service
-docker tag connectsphere-user-service YOUR_USERNAME/connectsphere-user-service:2.0.0
-docker tag connectsphere-user-service YOUR_USERNAME/connectsphere-user-service:latest
+docker tag flamoral-user-service YOUR_USERNAME/flamoral-user-service:2.0.0
+docker tag flamoral-user-service YOUR_USERNAME/flamoral-user-service:latest
 
 # Matching Service
-docker tag connectsphere-matching-service YOUR_USERNAME/connectsphere-matching-service:2.0.0
-docker tag connectsphere-matching-service YOUR_USERNAME/connectsphere-matching-service:latest
+docker tag flamoral-matching-service YOUR_USERNAME/flamoral-matching-service:2.0.0
+docker tag flamoral-matching-service YOUR_USERNAME/flamoral-matching-service:latest
 
 # Messaging Service
-docker tag connectsphere-messaging-service YOUR_USERNAME/connectsphere-messaging-service:2.0.0
-docker tag connectsphere-messaging-service YOUR_USERNAME/connectsphere-messaging-service:latest
+docker tag flamoral-messaging-service YOUR_USERNAME/flamoral-messaging-service:2.0.0
+docker tag flamoral-messaging-service YOUR_USERNAME/flamoral-messaging-service:latest
 
 # API Gateway
-docker tag connectsphere-api-gateway YOUR_USERNAME/connectsphere-api-gateway:2.0.0
-docker tag connectsphere-api-gateway YOUR_USERNAME/connectsphere-api-gateway:latest
+docker tag flamoral-api-gateway YOUR_USERNAME/flamoral-api-gateway:2.0.0
+docker tag flamoral-api-gateway YOUR_USERNAME/flamoral-api-gateway:latest
 ```
 
 ### 3. Push Images
 
 ```bash
 # Push all with version 2.0.0
-docker push YOUR_USERNAME/connectsphere-media-service:2.0.0
-docker push YOUR_USERNAME/connectsphere-user-service:2.0.0
-docker push YOUR_USERNAME/connectsphere-matching-service:2.0.0
-docker push YOUR_USERNAME/connectsphere-messaging-service:2.0.0
-docker push YOUR_USERNAME/connectsphere-api-gateway:2.0.0
+docker push YOUR_USERNAME/flamoral-media-service:2.0.0
+docker push YOUR_USERNAME/flamoral-user-service:2.0.0
+docker push YOUR_USERNAME/flamoral-matching-service:2.0.0
+docker push YOUR_USERNAME/flamoral-messaging-service:2.0.0
+docker push YOUR_USERNAME/flamoral-api-gateway:2.0.0
 
 # Push latest tags
-docker push YOUR_USERNAME/connectsphere-media-service:latest
-docker push YOUR_USERNAME/connectsphere-user-service:latest
-docker push YOUR_USERNAME/connectsphere-matching-service:latest
-docker push YOUR_USERNAME/connectsphere-messaging-service:latest
-docker push YOUR_USERNAME/connectsphere-api-gateway:latest
+docker push YOUR_USERNAME/flamoral-media-service:latest
+docker push YOUR_USERNAME/flamoral-user-service:latest
+docker push YOUR_USERNAME/flamoral-matching-service:latest
+docker push YOUR_USERNAME/flamoral-messaging-service:latest
+docker push YOUR_USERNAME/flamoral-api-gateway:latest
 ```
 
 ---
@@ -168,7 +168,7 @@ curl -X POST http://localhost:3004/api/verification/photo/test \
 ### 3. Run Database Migrations
 
 ```bash
-docker exec -it connectsphere-media-service npm run migrate:latest
+docker exec -it flamoral-media-service npm run migrate:latest
 ```
 
 ---
@@ -183,7 +183,7 @@ Create `scripts/deploy-to-dockerhub.sh`:
 DOCKER_USERNAME="YOUR_USERNAME"
 VERSION="2.0.0"
 
-echo "Building and pushing ConnectSphere services to Docker Hub..."
+echo "Building and pushing Flamoral services to Docker Hub..."
 
 # Login
 docker login
@@ -194,18 +194,18 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 
 # Tag and Push Media Service
 echo "Deploying media-service..."
-docker tag connectsphere-media-service $DOCKER_USERNAME/connectsphere-media-service:$VERSION
-docker tag connectsphere-media-service $DOCKER_USERNAME/connectsphere-media-service:latest
-docker push $DOCKER_USERNAME/connectsphere-media-service:$VERSION
-docker push $DOCKER_USERNAME/connectsphere-media-service:latest
+docker tag flamoral-media-service $DOCKER_USERNAME/flamoral-media-service:$VERSION
+docker tag flamoral-media-service $DOCKER_USERNAME/flamoral-media-service:latest
+docker push $DOCKER_USERNAME/flamoral-media-service:$VERSION
+docker push $DOCKER_USERNAME/flamoral-media-service:latest
 
 # Tag and Push Other Services
 for SERVICE in user-service matching-service messaging-service api-gateway; do
   echo "Deploying $SERVICE..."
-  docker tag connectsphere-$SERVICE $DOCKER_USERNAME/connectsphere-$SERVICE:$VERSION
-  docker tag connectsphere-$SERVICE $DOCKER_USERNAME/connectsphere-$SERVICE:latest
-  docker push $DOCKER_USERNAME/connectsphere-$SERVICE:$VERSION
-  docker push $DOCKER_USERNAME/connectsphere-$SERVICE:latest
+  docker tag flamoral-$SERVICE $DOCKER_USERNAME/flamoral-$SERVICE:$VERSION
+  docker tag flamoral-$SERVICE $DOCKER_USERNAME/flamoral-$SERVICE:latest
+  docker push $DOCKER_USERNAME/flamoral-$SERVICE:$VERSION
+  docker push $DOCKER_USERNAME/flamoral-$SERVICE:latest
 done
 
 echo "✅ All services deployed to Docker Hub!"
@@ -226,17 +226,17 @@ chmod +x scripts/deploy-to-dockerhub.sh
 
 ```bash
 # Pull images
-docker pull YOUR_USERNAME/connectsphere-media-service:2.0.0
+docker pull YOUR_USERNAME/flamoral-media-service:2.0.0
 
 # Run with production config
 docker run -d \
-  --name connectsphere-media-service \
+  --name flamoral-media-service \
   -p 3004:3004 \
   -e AZURE_FACE_API_KEY=$AZURE_FACE_API_KEY \
   -e AZURE_FACE_ENDPOINT=$AZURE_FACE_ENDPOINT \
   -e DB_HOST=your-db-host \
   -e REDIS_HOST=your-redis-host \
-  YOUR_USERNAME/connectsphere-media-service:2.0.0
+  YOUR_USERNAME/flamoral-media-service:2.0.0
 ```
 
 ---
@@ -247,14 +247,14 @@ If issues occur:
 
 ```bash
 # Pull previous version
-docker pull YOUR_USERNAME/connectsphere-media-service:1.0.0
+docker pull YOUR_USERNAME/flamoral-media-service:1.0.0
 
 # Stop current
-docker stop connectsphere-media-service
-docker rm connectsphere-media-service
+docker stop flamoral-media-service
+docker rm flamoral-media-service
 
 # Run previous version
-docker run -d --name connectsphere-media-service YOUR_USERNAME/connectsphere-media-service:1.0.0
+docker run -d --name flamoral-media-service YOUR_USERNAME/flamoral-media-service:1.0.0
 ```
 
 ---
@@ -265,7 +265,7 @@ docker run -d --name connectsphere-media-service YOUR_USERNAME/connectsphere-med
 
 ```bash
 # Verify credentials are set
-docker exec connectsphere-media-service env | grep AZURE_FACE
+docker exec flamoral-media-service env | grep AZURE_FACE
 
 # Test API manually
 curl -X POST "https://your-region.api.cognitive.microsoft.com/face/v1.0/detect" \
@@ -276,10 +276,10 @@ curl -X POST "https://your-region.api.cognitive.microsoft.com/face/v1.0/detect" 
 
 ```bash
 # Check database connection
-docker exec connectsphere-media-service ping postgres
+docker exec flamoral-media-service ping postgres
 
 # Verify credentials
-docker exec connectsphere-media-service env | grep DB_
+docker exec flamoral-media-service env | grep DB_
 ```
 
 ---
@@ -303,5 +303,5 @@ docker exec connectsphere-media-service env | grep DB_
 - [PHOTO_VERIFICATION_COMPLETE.md](./PHOTO_VERIFICATION_COMPLETE.md)
 - [Frontend Components README](./frontend/web/src/components/Verification/README.md)
 
-**Built for ConnectSphere**
+**Built for Flamoral**
 **Last Updated**: November 18, 2025

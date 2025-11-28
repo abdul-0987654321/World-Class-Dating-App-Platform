@@ -180,7 +180,7 @@ PONG
 ### 3. Access Web UIs
 
 - **pgAdmin:** http://localhost:5050
-  - Email: admin@connectsphere.com
+  - Email: admin@flamoral.com
   - Password: admin
 
 - **Redis Commander:** http://localhost:8081

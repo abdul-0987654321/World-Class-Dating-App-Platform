@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import recommendationService from '../../domain/services/recommendation.service';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('recommendation-controller');
 

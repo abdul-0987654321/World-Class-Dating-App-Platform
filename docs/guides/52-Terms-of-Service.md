@@ -1,15 +1,15 @@
-# ConnectSphere Terms of Service
+# Flamoral Terms of Service
 
 **Last Updated: November 23, 2025**
 
 ## 1. Acceptance of Terms
 
-By accessing or using ConnectSphere, you agree to be bound by these Terms of Service. If you don't agree to these terms, please don't use our app.
+By accessing or using Flamoral, you agree to be bound by these Terms of Service. If you don't agree to these terms, please don't use our app.
 
 ## 2. Eligibility
 
 ### Age Requirement
-You must be at least **18 years old** to use ConnectSphere. By creating an account, you represent and warrant that:
+You must be at least **18 years old** to use Flamoral. By creating an account, you represent and warrant that:
 - You are at least 18 years of age
 - You have the legal capacity to enter into these Terms
 - You will comply with all applicable laws
@@ -123,7 +123,7 @@ If you choose to meet someone:
 - Report suspicious behavior
 
 ### We Are Not Responsible
-ConnectSphere is not responsible for:
+Flamoral is not responsible for:
 - User conduct
 - Offline interactions
 - Accuracy of user-provided information
@@ -144,7 +144,7 @@ We may suspend or terminate your account if you:
 ## 11. Intellectual Property
 
 ### Our Rights
-ConnectSphere, our logo, and app features are protected by copyright, trademark, and other intellectual property laws.
+Flamoral, our logo, and app features are protected by copyright, trademark, and other intellectual property laws.
 
 ### Your License
 We grant you a limited, non-exclusive, non-transferable license to use the app for personal, non-commercial purposes.
@@ -190,9 +190,9 @@ Continued use after changes constitutes acceptance.
 ## 16. Contact Us
 
 Questions about these Terms:
-- **Email**: legal@connectsphere.com
-- **Support**: support@connectsphere.com
-- **Website**: https://connectsphere.com/terms
+- **Email**: legal@flamoral.com
+- **Support**: support@flamoral.com
+- **Website**: https://flamoral.com/terms
 
 ## 17. Miscellaneous
 
@@ -210,4 +210,4 @@ Nothing in these Terms creates a partnership, agency, or employment relationship
 **Effective Date**: November 23, 2025
 **Version**: 1.0.0
 
-By using ConnectSphere, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+By using Flamoral, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.

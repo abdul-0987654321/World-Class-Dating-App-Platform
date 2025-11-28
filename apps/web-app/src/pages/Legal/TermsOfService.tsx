@@ -17,17 +17,17 @@ export const TermsOfService: React.FC = () => {
         <Section>
           <SectionTitle>1. Acceptance of Terms</SectionTitle>
           <Paragraph>
-            Welcome to ConnectSphere! By accessing or using our dating platform, mobile application, or any related services (collectively, the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service.
+            Welcome to Flamoral! By accessing or using our dating platform, mobile application, or any related services (collectively, the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service.
           </Paragraph>
           <Paragraph>
-            These Terms constitute a legally binding agreement between you and ConnectSphere, Inc. ("ConnectSphere," "we," "us," or "our"). We reserve the right to update or modify these Terms at any time without prior notice. Your continued use of the Service after any such changes constitutes your acceptance of the new Terms.
+            These Terms constitute a legally binding agreement between you and Flamoral, Inc. ("Flamoral," "we," "us," or "our"). We reserve the right to update or modify these Terms at any time without prior notice. Your continued use of the Service after any such changes constitutes your acceptance of the new Terms.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>2. Eligibility</SectionTitle>
           <Paragraph>
-            You must be at least 18 years old to create an account and use ConnectSphere. By creating an account, you represent and warrant that:
+            You must be at least 18 years old to create an account and use Flamoral. By creating an account, you represent and warrant that:
           </Paragraph>
           <List>
             <ListItem>You are at least 18 years of age</ListItem>
@@ -45,7 +45,7 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>3. Account Registration and Security</SectionTitle>
           <SubsectionTitle>3.1 Account Creation</SubsectionTitle>
           <Paragraph>
-            To use ConnectSphere, you must register for an account. You agree to provide accurate, current, and complete information during registration and to update your information to keep it accurate and current.
+            To use Flamoral, you must register for an account. You agree to provide accurate, current, and complete information during registration and to update your information to keep it accurate and current.
           </Paragraph>
 
           <SubsectionTitle>3.2 Account Security</SubsectionTitle>
@@ -59,7 +59,7 @@ export const TermsOfService: React.FC = () => {
             <ListItem>Log out of your account at the end of each session</ListItem>
           </List>
           <Paragraph>
-            ConnectSphere will not be liable for any loss or damage arising from your failure to maintain account security.
+            Flamoral will not be liable for any loss or damage arising from your failure to maintain account security.
           </Paragraph>
 
           <SubsectionTitle>3.3 One Account Per Person</SubsectionTitle>
@@ -106,7 +106,7 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>5. Content Ownership and License</SectionTitle>
           <SubsectionTitle>5.1 Your Content</SubsectionTitle>
           <Paragraph>
-            You retain ownership of all content you post on ConnectSphere, including photos, text, and other materials ("User Content"). However, by posting User Content, you grant ConnectSphere a worldwide, non-exclusive, royalty-free, sublicensable, and transferable license to use, reproduce, distribute, prepare derivative works of, display, and perform your User Content in connection with the Service.
+            You retain ownership of all content you post on Flamoral, including photos, text, and other materials ("User Content"). However, by posting User Content, you grant Flamoral a worldwide, non-exclusive, royalty-free, sublicensable, and transferable license to use, reproduce, distribute, prepare derivative works of, display, and perform your User Content in connection with the Service.
           </Paragraph>
 
           <SubsectionTitle>5.2 Content Moderation</SubsectionTitle>
@@ -116,7 +116,7 @@ export const TermsOfService: React.FC = () => {
 
           <SubsectionTitle>5.3 Our Content</SubsectionTitle>
           <Paragraph>
-            The Service and all materials therein, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and software, are the property of ConnectSphere or its licensors and are protected by copyright, trademark, and other intellectual property laws.
+            The Service and all materials therein, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and software, are the property of Flamoral or its licensors and are protected by copyright, trademark, and other intellectual property laws.
           </Paragraph>
         </Section>
 
@@ -124,7 +124,7 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>6. Subscriptions and Payments</SectionTitle>
           <SubsectionTitle>6.1 Subscription Plans</SubsectionTitle>
           <Paragraph>
-            ConnectSphere offers various subscription plans (Basic, Mid, Ultra) that provide access to premium features. Subscription fees are billed in advance on a recurring monthly basis.
+            Flamoral offers various subscription plans (Basic, Mid, Ultra) that provide access to premium features. Subscription fees are billed in advance on a recurring monthly basis.
           </Paragraph>
 
           <SubsectionTitle>6.2 Pricing and Payment</SubsectionTitle>
@@ -144,7 +144,7 @@ export const TermsOfService: React.FC = () => {
 
           <SubsectionTitle>6.5 Virtual Currency (Coins)</SubsectionTitle>
           <Paragraph>
-            ConnectSphere offers virtual currency ("Coins") that can be purchased and used within the Service. Coins have no monetary value outside the Service, cannot be exchanged for cash, and are non-refundable except as required by law.
+            Flamoral offers virtual currency ("Coins") that can be purchased and used within the Service. Coins have no monetary value outside the Service, cannot be exchanged for cash, and are non-refundable except as required by law.
           </Paragraph>
 
           <SubsectionTitle>6.6 Boosts and Power-Ups</SubsectionTitle>
@@ -164,7 +164,7 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>8. Safety and Verification</SectionTitle>
           <SubsectionTitle>8.1 Background Checks</SubsectionTitle>
           <Paragraph>
-            ConnectSphere does not conduct criminal background checks on users. We are not responsible for the conduct of any user, whether on or off the Service.
+            Flamoral does not conduct criminal background checks on users. We are not responsible for the conduct of any user, whether on or off the Service.
           </Paragraph>
 
           <SubsectionTitle>8.2 Photo Verification</SubsectionTitle>
@@ -188,7 +188,7 @@ export const TermsOfService: React.FC = () => {
             THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
           </Paragraph>
           <Paragraph>
-            CONNECTSPHERE DOES NOT WARRANT THAT:
+            FLAMORAL DOES NOT WARRANT THAT:
           </Paragraph>
           <List>
             <ListItem>The Service will be uninterrupted, secure, or error-free</ListItem>
@@ -202,7 +202,7 @@ export const TermsOfService: React.FC = () => {
         <Section>
           <SectionTitle>10. Limitation of Liability</SectionTitle>
           <Paragraph>
-            TO THE MAXIMUM EXTENT PERMITTED BY LAW, CONNECTSPHERE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
+            TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLAMORAL SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
           </Paragraph>
           <List>
             <ListItem>Your use or inability to use the Service</ListItem>
@@ -213,14 +213,14 @@ export const TermsOfService: React.FC = () => {
             <ListItem>The conduct or content of any user or third party on the Service</ListItem>
           </List>
           <Paragraph>
-            IN NO EVENT SHALL CONNECTSPHERE'S TOTAL LIABILITY TO YOU FOR ALL CLAIMS RELATED TO THE SERVICE EXCEED THE AMOUNT YOU PAID TO CONNECTSPHERE IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR $100, WHICHEVER IS GREATER.
+            IN NO EVENT SHALL FLAMORAL'S TOTAL LIABILITY TO YOU FOR ALL CLAIMS RELATED TO THE SERVICE EXCEED THE AMOUNT YOU PAID TO FLAMORAL IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR $100, WHICHEVER IS GREATER.
           </Paragraph>
         </Section>
 
         <Section>
           <SectionTitle>11. Indemnification</SectionTitle>
           <Paragraph>
-            You agree to indemnify, defend, and hold harmless ConnectSphere, its officers, directors, employees, agents, licensors, and suppliers from and against all losses, expenses, damages, and costs, including reasonable attorneys' fees, resulting from:
+            You agree to indemnify, defend, and hold harmless Flamoral, its officers, directors, employees, agents, licensors, and suppliers from and against all losses, expenses, damages, and costs, including reasonable attorneys' fees, resulting from:
           </Paragraph>
           <List>
             <ListItem>Your violation of these Terms</ListItem>
@@ -272,7 +272,7 @@ export const TermsOfService: React.FC = () => {
 
           <SubsectionTitle>13.3 Class Action Waiver</SubsectionTitle>
           <Paragraph>
-            YOU AND CONNECTSPHERE AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
+            YOU AND FLAMORAL AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
           </Paragraph>
         </Section>
 
@@ -280,7 +280,7 @@ export const TermsOfService: React.FC = () => {
           <SectionTitle>14. Miscellaneous</SectionTitle>
           <SubsectionTitle>14.1 Entire Agreement</SubsectionTitle>
           <Paragraph>
-            These Terms, together with the Privacy Policy and Community Guidelines, constitute the entire agreement between you and ConnectSphere regarding the Service.
+            These Terms, together with the Privacy Policy and Community Guidelines, constitute the entire agreement between you and Flamoral regarding the Service.
           </Paragraph>
 
           <SubsectionTitle>14.2 Severability</SubsectionTitle>
@@ -300,7 +300,7 @@ export const TermsOfService: React.FC = () => {
 
           <SubsectionTitle>14.5 Force Majeure</SubsectionTitle>
           <Paragraph>
-            ConnectSphere shall not be liable for any delay or failure to perform resulting from causes outside its reasonable control, including but not limited to acts of God, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation facilities, fuel, energy, labor, or materials.
+            Flamoral shall not be liable for any delay or failure to perform resulting from causes outside its reasonable control, including but not limited to acts of God, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation facilities, fuel, energy, labor, or materials.
           </Paragraph>
 
           <SubsectionTitle>14.6 Export Controls</SubsectionTitle>
@@ -315,8 +315,8 @@ export const TermsOfService: React.FC = () => {
             If you have any questions about these Terms, please contact us at:
           </Paragraph>
           <ContactInfo>
-            <div>ConnectSphere, Inc.</div>
-            <div>Email: legal@connectsphere.com</div>
+            <div>Flamoral, Inc.</div>
+            <div>Email: legal@flamoral.com</div>
             <div>Address: [Your Business Address]</div>
             <div>Phone: [Your Phone Number]</div>
           </ContactInfo>

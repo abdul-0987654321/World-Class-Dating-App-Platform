@@ -7,7 +7,7 @@ import swipeRepository from '../repositories/swipe.repository';
 import matchRepository from '../repositories/match.repository';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('swipe-service');
 

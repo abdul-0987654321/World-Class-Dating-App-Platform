@@ -1,4 +1,4 @@
-# ConnectSphere - Complete Documentation
+# Flamoral - Complete Documentation
 
 **All documentation in one place for easy access**
 

@@ -1,6 +1,6 @@
 # Security Audit Report - User Service
 
-**Service:** ConnectSphere User Service
+**Service:** Flamoral User Service
 **Audit Date:** November 15, 2025
 **Auditor:** Automated Security Review + Manual Code Analysis
 **Severity Levels:** 🔴 Critical | 🟠 High | 🟡 Medium | 🟢 Low | ✅ Pass

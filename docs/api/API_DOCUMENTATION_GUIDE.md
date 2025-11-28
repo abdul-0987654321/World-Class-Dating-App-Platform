@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide provides complete instructions for documenting all ConnectSphere APIs using OpenAPI/Swagger specification, making it easy for frontend developers and third-party integrators to understand and use the APIs.
+This guide provides complete instructions for documenting all Flamoral APIs using OpenAPI/Swagger specification, making it easy for frontend developers and third-party integrators to understand and use the APIs.
 
 ---
 
@@ -91,14 +91,14 @@ backend/services/user-service/
 ```yaml
 openapi: 3.0.0
 info:
-  title: ConnectSphere API
+  title: Flamoral API
   version: 1.0.0
   description: Dating platform API documentation
 
 servers:
-  - url: https://api.connectsphere.com
+  - url: https://api.flamoral.com
     description: Production server
-  - url: https://api-staging.connectsphere.com
+  - url: https://api-staging.flamoral.com
     description: Staging server
   - url: http://localhost:3001
     description: Development server
@@ -156,26 +156,26 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'ConnectSphere User Service API',
+      title: 'Flamoral User Service API',
       version: '1.0.0',
-      description: 'User management and authentication API for ConnectSphere dating platform',
+      description: 'User management and authentication API for Flamoral dating platform',
       contact: {
         name: 'API Support',
-        email: 'api@connectsphere.com',
-        url: 'https://connectsphere.com/support',
+        email: 'api@flamoral.com',
+        url: 'https://flamoral.com/support',
       },
       license: {
         name: 'Proprietary',
-        url: 'https://connectsphere.com/license',
+        url: 'https://flamoral.com/license',
       },
     },
     servers: [
       {
-        url: 'https://api.connectsphere.com',
+        url: 'https://api.flamoral.com',
         description: 'Production server',
       },
       {
-        url: 'https://api-staging.connectsphere.com',
+        url: 'https://api-staging.flamoral.com',
         description: 'Staging server',
       },
       {
@@ -262,7 +262,7 @@ const app = express();
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'ConnectSphere API Documentation',
+  customSiteTitle: 'Flamoral API Documentation',
   customfavIcon: '/favicon.ico',
 }));
 
@@ -756,8 +756,8 @@ Create `src/swagger/schemas/user.schema.ts`:
 
 Once configured, visit:
 - **Development:** http://localhost:3001/api-docs
-- **Staging:** https://api-staging.connectsphere.com/api-docs
-- **Production:** https://api.connectsphere.com/api-docs
+- **Staging:** https://api-staging.flamoral.com/api-docs
+- **Production:** https://api.flamoral.com/api-docs
 
 ### Features:
 - **Try It Out** - Test endpoints directly from browser
@@ -961,7 +961,7 @@ const router = express.Router();
  *     summary: Register new user
  *     tags: [Authentication]
  *     description: |
- *       Create a new user account for ConnectSphere.
+ *       Create a new user account for Flamoral.
  *
  *       **Requirements:**
  *       - Email must be unique
@@ -1085,5 +1085,5 @@ export default router;
 
 **Access Documentation:**
 - Development: http://localhost:3001/api-docs
-- Staging: https://api-staging.connectsphere.com/api-docs
-- Production: https://api.connectsphere.com/api-docs
+- Staging: https://api-staging.flamoral.com/api-docs
+- Production: https://api.flamoral.com/api-docs

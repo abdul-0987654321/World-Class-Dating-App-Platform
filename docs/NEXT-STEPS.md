@@ -1,4 +1,4 @@
-# ConnectSphere - Next Steps & Quick Start Guide
+# Flamoral - Next Steps & Quick Start Guide
 
 **Status:** Phase 1 Database Schema Complete ✅
 **Date:** November 18, 2025
@@ -47,7 +47,7 @@ Connect to PostgreSQL and verify:
 
 ```bash
 # Connect to database
-docker exec -it connectsphere-postgres psql -U postgres -d connectsphere
+docker exec -it flamoral-postgres psql -U postgres -d flamoral
 
 # List all tables
 \dt
@@ -253,15 +253,15 @@ Expected results:
 
 ### Infrastructure (Running)
 - **Docker Compose:** All services containerized
-- **PostgreSQL:** connectsphere-postgres (port 5432)
-- **Redis:** connectsphere-redis (port 6379)
-- **Elasticsearch:** connectsphere-elasticsearch (port 9200)
+- **PostgreSQL:** flamoral-postgres (port 5432)
+- **Redis:** flamoral-redis (port 6379)
+- **Elasticsearch:** flamoral-elasticsearch (port 9200)
 - **Azurite:** Azure storage emulator (ports 10000-10002)
 
 ### Monitoring Tools
 - **pgAdmin:** Database management (port 5050)
   - URL: http://localhost:5050
-  - Email: admin@connectsphere.com
+  - Email: admin@flamoral.com
   - Password: admin
 
 - **Redis Commander:** Redis GUI (port 8081)

@@ -1,6 +1,6 @@
-# ConnectSphere Documentation
+# Flamoral Documentation
 
-Welcome to the ConnectSphere platform documentation. This directory contains all technical and project documentation.
+Welcome to the Flamoral platform documentation. This directory contains all technical and project documentation.
 
 ## 📚 Documentation Structure
 

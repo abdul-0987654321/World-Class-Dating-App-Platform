@@ -1,18 +1,18 @@
 /**
- * API Configuration for ConnectSphere Mobile App
+ * API Configuration for Flamoral Mobile App
  * Centralized configuration for all backend service endpoints
  */
 
 export const API_CONFIG = {
   // Base URLs for microservices
-  BASE_URL: process.env.API_BASE_URL || 'https://api.connectsphere.com',
+  BASE_URL: process.env.API_BASE_URL || 'https://api.flamoral.com',
 
   // AI Services
   AI_SERVICES: {
-    FRAUD_DETECTION: process.env.FRAUD_DETECTION_URL || 'https://ai.connectsphere.com/fraud',
-    NLP_SERVICE: process.env.NLP_SERVICE_URL || 'https://ai.connectsphere.com/nlp',
-    PHOTO_ANALYSIS: process.env.PHOTO_ANALYSIS_URL || 'https://ai.connectsphere.com/photos',
-    RECOMMENDATION: process.env.RECOMMENDATION_URL || 'https://ai.connectsphere.com/recommendations',
+    FRAUD_DETECTION: process.env.FRAUD_DETECTION_URL || 'https://ai.flamoral.com/fraud',
+    NLP_SERVICE: process.env.NLP_SERVICE_URL || 'https://ai.flamoral.com/nlp',
+    PHOTO_ANALYSIS: process.env.PHOTO_ANALYSIS_URL || 'https://ai.flamoral.com/photos',
+    RECOMMENDATION: process.env.RECOMMENDATION_URL || 'https://ai.flamoral.com/recommendations',
   },
 
   // Core Services

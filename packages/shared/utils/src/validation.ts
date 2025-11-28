@@ -1,4 +1,4 @@
-import { EMAIL_REGEX, PHONE_REGEX, PASSWORD_MIN_LENGTH } from '@connectsphere/constants';
+import { EMAIL_REGEX, PHONE_REGEX, PASSWORD_MIN_LENGTH } from '@flamoral/constants';
 
 export const isValidEmail = (email: string): boolean => {
   return EMAIL_REGEX.test(email);

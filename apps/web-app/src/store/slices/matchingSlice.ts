@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { Match } from '@connectsphere/types';
+import type { Match } from '../../types';
 
 interface MatchingState {
   matches: Match[];

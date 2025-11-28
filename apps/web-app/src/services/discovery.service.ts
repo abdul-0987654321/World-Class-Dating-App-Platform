@@ -106,7 +106,24 @@ class DiscoveryService {
     // In mock mode, use mock API
     if (!import.meta.env.VITE_API_URL) {
       const { mockApi } = await import('../mocks/mockApi');
-      return mockApi.swipe(targetUserId, action);
+      const result = await mockApi.swipe(targetUserId, action);
+
+      // Transform mock result to SwipeResult format
+      return {
+        isMatch: result.isMatch,
+        match: result.match ? {
+          id: result.match.id,
+          matchedUser: {
+            id: result.match.matchedUser.id,
+            name: result.match.matchedUser.name,
+            photoUrl: result.match.matchedUser.photoUrl,
+            isOnline: result.match.matchedUser.isOnline,
+          },
+          matchedAt: result.match.matchedAt,
+        } : undefined,
+        remainingLikes: result.remainingLikes,
+        remainingSuperLikes: result.remainingSuperLikes,
+      };
     }
 
     const response = await fetch(`${this.baseUrl}/swipe`, {

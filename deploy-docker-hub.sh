@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# ConnectSphere - Docker Hub Deployment Script
+# Flamoral - Docker Hub Deployment Script
 # This script builds, tags, and pushes all Docker images to Docker Hub
 
 set -e  # Exit on error
 
 # Configuration
 VERSION="1.0.0"
-DOCKER_USERNAME="${DOCKER_USERNAME:-connectsphere}"
+DOCKER_USERNAME="${DOCKER_USERNAME:-flamoral}"
 SERVICES=("user-service" "frontend-web")
 
 # Colors for output

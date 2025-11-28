@@ -1,1 +1,1 @@
-"""Fraud Detection Service for ConnectSphere Dating Platform."""
+"""Fraud Detection Service for Flamoral Dating Platform."""

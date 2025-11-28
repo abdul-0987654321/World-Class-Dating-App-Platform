@@ -7,7 +7,7 @@ import { hashPassword, comparePassword } from '../../utils/encryption';
 import jwtUtils from '../../utils/jwt';
 import emailService from '../../infrastructure/email/email.service';
 import logger from '../../utils/logger';
-import { isValidEmail, isValidPassword, isValidAge } from '@connectsphere/shared/utils/validation';
+import { isValidEmail, isValidPassword, isValidAge } from '@flamoral/shared/utils/validation';
 
 export interface LoginDto {
   email: string;

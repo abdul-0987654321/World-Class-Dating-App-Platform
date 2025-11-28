@@ -4,12 +4,12 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'ConnectSphere User Service API',
+      title: 'Flamoral User Service API',
       version: '1.0.0',
-      description: 'User authentication, profile management, email verification, and password reset service for ConnectSphere dating platform',
+      description: 'User authentication, profile management, email verification, and password reset service for Flamoral dating platform',
       contact: {
-        name: 'ConnectSphere Engineering Team',
-        email: 'engineering@connectsphere.com',
+        name: 'Flamoral Engineering Team',
+        email: 'engineering@flamoral.com',
       },
       license: {
         name: 'MIT',
@@ -22,11 +22,11 @@ const options: swaggerJsdoc.Options = {
         description: 'Development server',
       },
       {
-        url: 'https://api-staging.connectsphere.com',
+        url: 'https://api-staging.flamoral.com',
         description: 'Staging server',
       },
       {
-        url: 'https://api.connectsphere.com',
+        url: 'https://api.flamoral.com',
         description: 'Production server',
       },
     ],

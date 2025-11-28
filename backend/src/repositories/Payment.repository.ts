@@ -258,7 +258,7 @@ export class PaymentRepository {
         this.db.raw('SUM(CASE WHEN type = \'coin_purchase\' THEN amount ELSE 0 END) as coin_revenue'),
         this.db.raw('COUNT(*) as transaction_count')
       )
-      .first();
+      .first() as any;
 
     return {
       totalRevenue: Number(result?.total_revenue || 0) / 100, // Convert from cents to dollars

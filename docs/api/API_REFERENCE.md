@@ -1,4 +1,4 @@
-# ConnectSphere API Reference Guide
+# Flamoral API Reference Guide
 
 Quick reference for all API endpoints with examples.
 

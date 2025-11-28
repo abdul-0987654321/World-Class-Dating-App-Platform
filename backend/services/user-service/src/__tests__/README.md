@@ -282,11 +282,11 @@ Create a `.env.test` file:
 
 ```env
 NODE_ENV=test
-DATABASE_URL=postgresql://test:test@localhost:5432/connectsphere_test
+DATABASE_URL=postgresql://test:test@localhost:5432/flamoral_test
 
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=connectsphere_test
+DB_NAME=flamoral_test
 DB_USER=test
 DB_PASSWORD=test
 
@@ -303,7 +303,7 @@ npm run setup:test-db
 ```
 
 This script will:
-1. Create the `connectsphere_test` database (if it doesn't exist)
+1. Create the `flamoral_test` database (if it doesn't exist)
 2. Run all migrations
 3. Run seed files to populate reference data
 

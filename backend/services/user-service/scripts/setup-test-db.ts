@@ -16,7 +16,7 @@
 import knex, { Knex } from 'knex';
 import config from '../src/infrastructure/database/knexfile';
 
-const TEST_DB_NAME = 'connectsphere_test';
+const TEST_DB_NAME = 'flamoral_test';
 
 async function setupTestDatabase() {
   console.log('🚀 Starting test database setup...\n');

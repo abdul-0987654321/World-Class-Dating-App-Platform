@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import db from '../../infrastructure/database/connection';
 import { calculateAge, MINIMUM_AGE } from '../../utils/age-verification';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('age-verification-middleware');
 

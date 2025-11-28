@@ -61,8 +61,8 @@ export class AuthMiddleware {
         });
       }
 
-      // Verify token
-      const secret = process.env.JWT_ACCESS_SECRET;
+      // Verify token - use JWT_SECRET (same as Auth.service.ts)
+      const secret = process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET;
       if (!secret) {
         throw new Error('JWT secret not configured');
       }
@@ -273,9 +273,9 @@ export class AuthMiddleware {
       });
     }
 
-    const user Data = JSON.parse(userData);
+    const parsedUser = JSON.parse(userData);
 
-    if (!userData.emailVerified) {
+    if (!parsedUser.emailVerified) {
       return res.status(403).json({
         success: false,
         error: {

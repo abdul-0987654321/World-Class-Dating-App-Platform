@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/connectsphere"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/flamoral"
     MONGODB_URL: str = "mongodb://localhost:27017"
-    MONGODB_DATABASE: str = "connectsphere"
+    MONGODB_DATABASE: str = "flamoral"
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

@@ -5,7 +5,7 @@ jest.mock('../../../infrastructure/database/connection', () => ({
 }));
 
 // Mock validation functions
-jest.mock('@connectsphere/shared/utils/validation', () => ({
+jest.mock('@flamoral/shared/utils/validation', () => ({
   isValidEmail: jest.fn(() => true),
   isValidPassword: jest.fn(() => true),
   isValidAge: jest.fn(() => true),
@@ -416,7 +416,7 @@ describe('AuthService', () => {
       mockTokenRepository.findByToken = jest.fn().mockResolvedValue(mockToken);
 
       // Mock validation to return false for weak password
-      const { isValidPassword } = require('@connectsphere/shared/utils/validation');
+      const { isValidPassword } = require('@flamoral/shared/utils/validation');
       (isValidPassword as jest.Mock).mockReturnValueOnce(false);
 
       await expect(authService.resetPassword(token, weakPassword)).rejects.toThrow(

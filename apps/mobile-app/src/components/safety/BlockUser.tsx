@@ -153,7 +153,7 @@ export const BlockUser: React.FC<BlockUserProps> = ({
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Why are you blocking this person?</Text>
             <Text style={styles.sectionSubtitle}>
-              Optional - This helps us keep ConnectSphere safe
+              Optional - This helps us keep Flamoral safe
             </Text>
 
             <View style={styles.reasonsList}>

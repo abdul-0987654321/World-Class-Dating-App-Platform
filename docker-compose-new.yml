@@ -1,5 +1,5 @@
 # ============================================
-# Docker Compose - ConnectSphere Platform
+# Docker Compose - Flamoral Platform
 # Complete Production Configuration
 # ============================================
 
@@ -9,7 +9,7 @@ version: '3.9'
 # NETWORKS
 # ==========================================
 networks:
-  connectsphere:
+  flamoral:
     driver: bridge
     ipam:
       config:
@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/nginx/Dockerfile
-    container_name: connectsphere-nginx
+    container_name: flamoral-nginx
     ports:
       - "80:80"
       - "443:443"
@@ -55,7 +55,7 @@ services:
       - backend
       - frontend
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
@@ -84,11 +84,11 @@ services:
         BUILD_DATE: ${BUILD_DATE}
         VCS_REF: ${VCS_REF}
         VERSION: ${VERSION:-1.0.0}
-    container_name: connectsphere-frontend
+    container_name: flamoral-frontend
     expose:
       - "8080"
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
@@ -112,7 +112,7 @@ services:
         BUILD_DATE: ${BUILD_DATE}
         VCS_REF: ${VCS_REF}
         VERSION: ${VERSION:-1.0.0}
-    container_name: connectsphere-backend
+    container_name: flamoral-backend
     expose:
       - "3000"  # REST API
       - "4000"  # GraphQL
@@ -127,15 +127,15 @@ services:
       # PostgreSQL
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-connectsphere}
+      DB_NAME: ${DB_NAME:-flamoral}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_POOL_MIN: ${DB_POOL_MIN:-2}
       DB_POOL_MAX: ${DB_POOL_MAX:-10}
 
       # MongoDB
-      MONGODB_URI: mongodb://mongodb:27017/${MONGODB_DB:-connectsphere}
-      MONGODB_DB: ${MONGODB_DB:-connectsphere}
+      MONGODB_URI: mongodb://mongodb:27017/${MONGODB_DB:-flamoral}
+      MONGODB_DB: ${MONGODB_DB:-flamoral}
 
       # Redis
       REDIS_HOST: redis
@@ -178,7 +178,7 @@ services:
       # SendGrid
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
-      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-ConnectSphere}
+      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-Flamoral}
 
       # Agora
       AGORA_APP_ID: ${AGORA_APP_ID}
@@ -209,7 +209,7 @@ services:
       rabbitmq:
         condition: service_healthy
     networks:
-      - connectsphere
+      - flamoral
       - monitoring
     restart: unless-stopped
     healthcheck:
@@ -229,9 +229,9 @@ services:
   # ==========================================
   postgres:
     image: postgres:15-alpine
-    container_name: connectsphere-postgres
+    container_name: flamoral-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-connectsphere}
+      POSTGRES_DB: ${DB_NAME:-flamoral}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
@@ -241,10 +241,10 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-connectsphere}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-flamoral}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -259,18 +259,18 @@ services:
   # ==========================================
   mongodb:
     image: mongo:7-jammy
-    container_name: connectsphere-mongodb
+    container_name: flamoral-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGODB_DB:-connectsphere}
+      MONGO_INITDB_DATABASE: ${MONGODB_DB:-flamoral}
     volumes:
       - mongodb_data:/data/db
       - ./infrastructure/database/mongodb/init:/docker-entrypoint-initdb.d
     ports:
       - "${MONGODB_PORT:-27017}:27017"
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -288,14 +288,14 @@ services:
   # ==========================================
   redis:
     image: redis:7-alpine
-    container_name: connectsphere-redis
+    container_name: flamoral-redis
     command: redis-server --requirepass ${REDIS_PASSWORD:-} --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     ports:
       - "${REDIS_PORT:-6379}:6379"
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -313,7 +313,7 @@ services:
   # ==========================================
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: connectsphere-rabbitmq
+    container_name: flamoral-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -324,7 +324,7 @@ services:
       - "${RABBITMQ_PORT:-5672}:5672"   # AMQP
       - "${RABBITMQ_MGMT_PORT:-15672}:15672" # Management UI
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
@@ -342,7 +342,7 @@ services:
   # ==========================================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: connectsphere-elasticsearch
+    container_name: flamoral-elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -353,7 +353,7 @@ services:
       - "${ELASTICSEARCH_PORT:-9200}:9200"
       - "9300:9300"
     networks:
-      - connectsphere
+      - flamoral
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
@@ -371,7 +371,7 @@ services:
   # ==========================================
   prometheus:
     image: prom/prometheus:latest
-    container_name: connectsphere-prometheus
+    container_name: flamoral-prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -400,7 +400,7 @@ services:
   # ==========================================
   grafana:
     image: grafana/grafana:latest
-    container_name: connectsphere-grafana
+    container_name: flamoral-grafana
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}

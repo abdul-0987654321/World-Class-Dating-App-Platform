@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for setting up comprehensive monitoring, logging, and error tracking for the ConnectSphere dating platform.
+This guide provides step-by-step instructions for setting up comprehensive monitoring, logging, and error tracking for the Flamoral dating platform.
 
 ---
 
@@ -26,17 +26,17 @@ This guide provides step-by-step instructions for setting up comprehensive monit
 #### A. Create Sentry Account
 1. Go to https://sentry.io/
 2. Sign up for free account
-3. Create a new organization: "ConnectSphere"
+3. Create a new organization: "Flamoral"
 
 #### B. Create Projects
 Create separate projects for each service:
-- `connectsphere-user-service`
-- `connectsphere-payment-service`
-- `connectsphere-messaging-service`
-- `connectsphere-matching-service`
-- `connectsphere-moderation-service`
-- `connectsphere-media-service`
-- `connectsphere-frontend-web`
+- `flamoral-user-service`
+- `flamoral-payment-service`
+- `flamoral-messaging-service`
+- `flamoral-matching-service`
+- `flamoral-moderation-service`
+- `flamoral-media-service`
+- `flamoral-frontend-web`
 
 #### C. Get DSN Keys
 For each project, copy the DSN (Data Source Name):
@@ -300,7 +300,7 @@ app.use(
 #### A. Sign Up
 1. Go to https://newrelic.com/
 2. Sign up for free account
-3. Create application: "ConnectSphere"
+3. Create application: "Flamoral"
 
 #### B. Install Agent
 ```bash
@@ -312,7 +312,7 @@ npm install --save newrelic
 Create `newrelic.js` in project root:
 ```javascript
 exports.config = {
-  app_name: ['ConnectSphere User Service'],
+  app_name: ['Flamoral User Service'],
   license_key: process.env.NEW_RELIC_LICENSE_KEY,
   logging: {
     level: 'info',
@@ -335,7 +335,7 @@ require('newrelic');
 #### E. Environment Variables
 ```env
 NEW_RELIC_LICENSE_KEY=your_license_key_here
-NEW_RELIC_APP_NAME=ConnectSphere-User-Service
+NEW_RELIC_APP_NAME=Flamoral-User-Service
 ```
 
 ---

@@ -4,7 +4,7 @@ import type {
   SubscriptionPlan,
   PaymentMethod,
   Transaction
-} from '@connectsphere/types';
+} from '@flamoral/types';
 
 export class PaymentApi {
   constructor(private client: ApiClient) {}

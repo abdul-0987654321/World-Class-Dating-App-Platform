@@ -1,15 +1,15 @@
 @echo off
-REM ConnectSphere - Docker Hub Deployment Script (Windows)
+REM Flamoral - Docker Hub Deployment Script (Windows)
 REM This script builds, tags, and pushes all Docker images to Docker Hub
 
 setlocal enabledelayedexpansion
 
 REM Configuration
 set VERSION=1.0.0
-set DOCKER_USERNAME=connectsphere
+set DOCKER_USERNAME=flamoral
 
 echo ========================================
-echo ConnectSphere Docker Hub Deployment
+echo Flamoral Docker Hub Deployment
 echo ========================================
 echo Version: %VERSION%
 echo Docker Username: %DOCKER_USERNAME%

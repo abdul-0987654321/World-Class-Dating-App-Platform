@@ -1,6 +1,6 @@
-# ConnectSphere User Service API Documentation
+# Flamoral User Service API Documentation
 
-Comprehensive API documentation for the ConnectSphere User Service, including authentication, profile management, subscriptions, virtual currency, profile boosting, privacy controls, and safety features.
+Comprehensive API documentation for the Flamoral User Service, including authentication, profile management, subscriptions, virtual currency, profile boosting, privacy controls, and safety features.
 
 ## Table of Contents
 
@@ -45,8 +45,8 @@ The User Service provides RESTful APIs for managing user accounts, profiles, sub
 
 ```
 Development:  http://localhost:3001
-Staging:      https://api-staging.connectsphere.com
-Production:   https://api.connectsphere.com
+Staging:      https://api-staging.flamoral.com
+Production:   https://api.flamoral.com
 ```
 
 All API endpoints are prefixed with `/api`:
@@ -888,10 +888,10 @@ Authorization: Bearer <token>
 - **Health Check**: http://localhost:3001/health
 - **Service Info**: http://localhost:3001/
 
-For support or questions, contact engineering@connectsphere.com
+For support or questions, contact engineering@flamoral.com
 
 ---
 
 **Last Updated**: 2025-01-18
 **API Version**: 1.0.0
-**Service**: ConnectSphere User Service
+**Service**: Flamoral User Service

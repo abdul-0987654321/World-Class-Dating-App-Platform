@@ -16,7 +16,7 @@ import matchingReducer from './slices/matchingSlice';
 import messagingReducer from './slices/messagingSlice';
 
 const persistConfig = {
-  key: 'connectsphere-web',
+  key: 'flamoral-web',
   version: 1,
   storage,
   whitelist: ['auth'], // Only persist auth state

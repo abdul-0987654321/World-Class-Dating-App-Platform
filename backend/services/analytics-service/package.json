@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/analytics-service",
+  "name": "@flamoral/analytics-service",
   "version": "1.0.0",
   "description": "Analytics tracking and reporting service",
   "main": "dist/index.js",

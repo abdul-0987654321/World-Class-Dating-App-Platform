@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 ConnectSphere - Development Environment Setup"
+echo "🚀 Flamoral - Development Environment Setup"
 echo "=================================================="
 echo ""
 
@@ -79,5 +79,5 @@ echo "Or start everything:     yarn setup:dev"
 echo "─────────────────────────────────────────"
 echo ""
 echo "📚 Documentation: ./docs/"
-echo "🐛 Issues: https://github.com/yourusername/connectsphere/issues"
+echo "🐛 Issues: https://github.com/yourusername/flamoral/issues"
 echo ""

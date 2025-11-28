@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { WS_BASE_URL } from '@connectsphere/constants';
-import type { Message } from '@connectsphere/types';
+import { WS_BASE_URL } from '@flamoral/constants';
+import type { Message } from '@flamoral/types';
 
 export interface WebSocketConfig {
   url?: string;

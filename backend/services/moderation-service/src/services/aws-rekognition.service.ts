@@ -1,7 +1,7 @@
 import { RekognitionClient, DetectModerationLabelsCommand } from '@aws-sdk/client-rekognition';
 import axios from 'axios';
 import config from '../config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import { ImageModerationResult, ViolationType } from '../types';
 
 const logger = createLogger('aws-rekognition-service');

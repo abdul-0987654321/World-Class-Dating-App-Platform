@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 interface EventCardProps {
   id: string;
@@ -84,7 +84,7 @@ const EventCard: React.FC<EventCardProps> = ({
       transition={{ duration: 0.2 }}
       className="bg-white rounded-2xl shadow-md overflow-hidden group"
     >
-      <Link href={`/events/${id}`}>
+      <Link to={`/events/${id}`}>
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img

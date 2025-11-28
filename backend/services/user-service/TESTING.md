@@ -1,6 +1,6 @@
 # Testing Guide
 
-A comprehensive guide to running tests for the ConnectSphere User Service.
+A comprehensive guide to running tests for the Flamoral User Service.
 
 ## Quick Start
 
@@ -263,7 +263,7 @@ jobs:
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
-          POSTGRES_DB: connectsphere_test
+          POSTGRES_DB: flamoral_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -286,7 +286,7 @@ jobs:
       - name: Setup test database
         run: npm run setup:test-db
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/connectsphere_test
+          DATABASE_URL: postgresql://test:test@localhost:5432/flamoral_test
 
       - name: Run unit tests
         run: npm run test:unit

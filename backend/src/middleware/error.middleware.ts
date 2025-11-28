@@ -21,7 +21,7 @@ export function errorHandler(
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) {
   const statusCode = (err as AppError).statusCode || 500;
   const isOperational = (err as AppError).isOperational || false;
@@ -44,8 +44,9 @@ export function errorHandler(
     },
   });
 
-  // If error is not operational, exit process
-  if (!isOperational) {
+  // In production, exit on non-operational errors
+  // In development, just log the error
+  if (!isOperational && process.env.NODE_ENV === 'production') {
     logger.error('Non-operational error detected. Shutting down...');
     process.exit(1);
   }

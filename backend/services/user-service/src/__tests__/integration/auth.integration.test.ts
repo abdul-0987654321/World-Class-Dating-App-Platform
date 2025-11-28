@@ -8,7 +8,7 @@ jest.mock('../../infrastructure/database/connection', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('@connectsphere/shared/utils/validation', () => ({
+jest.mock('@flamoral/shared/utils/validation', () => ({
   isValidEmail: jest.fn(() => true),
   isValidPassword: jest.fn(() => true),
   isValidAge: jest.fn(() => true),

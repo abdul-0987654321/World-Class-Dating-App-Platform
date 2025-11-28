@@ -154,7 +154,7 @@ export class OptimizationService {
         {
           touchpoint_id: uuidv4(),
           channel: 'in_app',
-          platform: 'ConnectSphere',
+          platform: 'Flamoral',
           timestamp: new Date(),
           interaction_type: 'registration',
         },

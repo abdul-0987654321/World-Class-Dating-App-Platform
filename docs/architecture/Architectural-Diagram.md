@@ -1,4 +1,4 @@
-# ConnectSphere - System Architecture Documentation
+# Flamoral - System Architecture Documentation
 
 **Version:** 1.0.0  
 **Last Updated:** November 14, 2025  
@@ -234,7 +234,7 @@
 - `GET /api/v1/messages/{conversationId}` - Get messages
 - `POST /api/v1/messages` - Send message
 - `DELETE /api/v1/messages/{id}` - Delete message
-- WebSocket: `wss://api.connectsphere.com/ws` - Real-time messaging
+- WebSocket: `wss://api.flamoral.com/ws` - Real-time messaging
 
 **Technology Stack:**
 - Language: Node.js (TypeScript)
@@ -801,9 +801,9 @@ User App → WebSocket → Messaging Service
 ### 5.1 Azure Resource Organization
 
 ```
-Azure Subscription: ConnectSphere Production
+Azure Subscription: Flamoral Production
 │
-├── Resource Group: connectsphere-prod-eastus
+├── Resource Group: flamoral-prod-eastus
 │   ├── AKS Cluster (Kubernetes)
 │   ├── Azure Container Registry
 │   ├── Azure PostgreSQL Flexible Server
@@ -818,16 +818,16 @@ Azure Subscription: ConnectSphere Production
 │   ├── Azure Log Analytics Workspace
 │   └── Virtual Network
 │
-├── Resource Group: connectsphere-prod-westus
+├── Resource Group: flamoral-prod-westus
 │   └── [Same resources for multi-region]
 │
-├── Resource Group: connectsphere-shared
+├── Resource Group: flamoral-shared
 │   ├── Azure Front Door
 │   ├── Azure Traffic Manager
 │   ├── Azure DNS Zone
 │   └── Azure Security Center
 │
-└── Resource Group: connectsphere-ml
+└── Resource Group: flamoral-ml
     ├── Azure Machine Learning Workspace
     ├── Azure Databricks
     └── Compute Clusters
@@ -895,7 +895,7 @@ Azure Subscription: ConnectSphere Production
 ### 5.3 Kubernetes (AKS) Architecture
 
 ```
-AKS Cluster: connectsphere-prod-aks
+AKS Cluster: flamoral-prod-aks
 │
 ├── System Node Pool (3 nodes)
 │   ├── VM Size: Standard_D4s_v3
@@ -920,8 +920,8 @@ Namespaces:
 ├── ingress-nginx (Ingress controller)
 ├── cert-manager (SSL certificates)
 ├── monitoring (Prometheus, Grafana)
-├── connectsphere-prod (Production apps)
-├── connectsphere-staging (Staging apps)
+├── flamoral-prod (Production apps)
+├── flamoral-staging (Staging apps)
 └── ml-services (ML workloads)
 ```
 
@@ -1136,7 +1136,7 @@ User App → [Access Token] → API Gateway
 
 **Payment Processing (Stripe):**
 ```
-ConnectSphere Payment Service
+Flamoral Payment Service
     ↓
 Stripe API
     ├─ Create Customer

@@ -3,13 +3,29 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Flamoral Brand Colors */
+  --flame-red: #D62839;
+  --ember-orange: #FF6E35;
+  --velvet-wine: #7A1020;
+  --rich-charcoal: #1A1A1A;
+  --ember-gold: #D9A657;
+  --blush-coral: #E45C5C;
+  --copper: #C77A45;
+  --smoke-grey: #C4C4C4;
+  --soft-ivory: #FFF6EE;
+
+  /* Gradients */
+  --gradient-flamoral: linear-gradient(135deg, #D62839 0%, #FF6E35 100%);
+  --gradient-velvet: linear-gradient(135deg, #7A1020 0%, #1A1A1A 100%);
+  --gradient-gold: linear-gradient(135deg, #D9A657 0%, #C77A45 100%);
+
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #1A1A1A;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -33,9 +49,62 @@ body {
   min-height: 100vh;
 }
 
+/* Flamoral Gradient Text */
+.text-gradient-flamoral {
+  background: var(--gradient-flamoral);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-gold {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Flamoral Button Styles */
+.btn-flamoral {
+  background: var(--gradient-flamoral);
+  color: var(--soft-ivory);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 24px rgba(214, 40, 57, 0.35);
+}
+
+.btn-flamoral:hover {
+  box-shadow: 0 8px 32px rgba(214, 40, 57, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-flamoral:active {
+  transform: translateY(0);
+}
+
+/* Glow Effects */
+.glow-flame {
+  box-shadow: 0 4px 24px rgba(214, 40, 57, 0.35);
+}
+
+.glow-gold {
+  box-shadow: 0 4px 24px rgba(217, 166, 87, 0.35);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #1A1A1A;
+    background-color: #FFF6EE;
   }
+}
+
+/* Heading Font */
+h1, h2, h3, .font-heading {
+  font-family: 'Playfair Display', Georgia, serif;
 }

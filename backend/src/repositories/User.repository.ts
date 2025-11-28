@@ -263,6 +263,53 @@ export class UserRepository {
     return location || null;
   }
 
+  // Safety-related methods
+  async updateVerificationStatus(id: string, isVerified: boolean): Promise<void> {
+    await this.db('users')
+      .where({ id })
+      .update({
+        is_verified: isVerified,
+        updated_at: new Date(),
+      });
+  }
+
+  async updateStatus(id: string, status: { is_active?: boolean; is_banned?: boolean }): Promise<void> {
+    await this.db('users')
+      .where({ id })
+      .update({
+        ...status,
+        updated_at: new Date(),
+      });
+  }
+
+  async banUser(id: string): Promise<void> {
+    await this.db('users')
+      .where({ id })
+      .update({
+        is_banned: true,
+        is_active: false,
+        updated_at: new Date(),
+      });
+  }
+
+  async anonymize(id: string, data: {
+    email: string;
+    firstName: string;
+    lastName?: string;
+    phone?: string;
+  }): Promise<void> {
+    await this.db('users')
+      .where({ id })
+      .update({
+        email: data.email,
+        first_name: data.firstName,
+        last_name: data.lastName || null,
+        phone: data.phone || null,
+        is_active: false,
+        updated_at: new Date(),
+      });
+  }
+
   async search(filters: {
     query?: string;
     gender?: string;

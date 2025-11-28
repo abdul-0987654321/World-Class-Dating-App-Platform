@@ -4,19 +4,19 @@ services:
   # PostgreSQL Database for Moderation Service
   postgres-moderation:
     image: postgres:15-alpine
-    container_name: connectsphere-postgres-moderation-staging
+    container_name: flamoral-postgres-moderation-staging
     environment:
-      POSTGRES_DB: connectsphere_moderation_staging
-      POSTGRES_USER: ${POSTGRES_USER:-connectsphere}
+      POSTGRES_DB: flamoral_moderation_staging
+      POSTGRES_USER: ${POSTGRES_USER:-flamoral}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5435:5432"
     volumes:
       - postgres-moderation-staging-data:/var/lib/postgresql/data
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U connectsphere"]
+      test: ["CMD-SHELL", "pg_isready -U flamoral"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,13 +25,13 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: connectsphere-redis-staging
+    container_name: flamoral-redis-staging
     ports:
       - "6380:6379"
     volumes:
       - redis-staging-data:/data
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -44,11 +44,11 @@ services:
     build:
       context: ./backend/services/moderation-service
       dockerfile: Dockerfile
-    container_name: connectsphere-moderation-service-staging
+    container_name: flamoral-moderation-service-staging
     environment:
       NODE_ENV: staging
       PORT: 3005
-      DATABASE_URL: postgres://connectsphere:${POSTGRES_PASSWORD}@postgres-moderation:5432/connectsphere_moderation_staging
+      DATABASE_URL: postgres://flamoral:${POSTGRES_PASSWORD}@postgres-moderation:5432/flamoral_moderation_staging
       REDIS_URL: redis://redis:6379
 
       # AWS Rekognition
@@ -79,7 +79,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
       interval: 30s
@@ -95,7 +95,7 @@ services:
     build:
       context: ./backend/services/media-service
       dockerfile: Dockerfile
-    container_name: connectsphere-media-service-staging
+    container_name: flamoral-media-service-staging
     environment:
       NODE_ENV: staging
       PORT: 3004
@@ -116,7 +116,7 @@ services:
     depends_on:
       - moderation-service
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
       interval: 30s
@@ -129,7 +129,7 @@ services:
     build:
       context: ./backend/services/user-service
       dockerfile: Dockerfile
-    container_name: connectsphere-user-service-staging
+    container_name: flamoral-user-service-staging
     environment:
       NODE_ENV: staging
       PORT: 3001
@@ -148,7 +148,7 @@ services:
     depends_on:
       - moderation-service
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -165,7 +165,7 @@ services:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:3001}
         REACT_APP_MEDIA_SERVICE_URL: ${REACT_APP_MEDIA_SERVICE_URL:-http://localhost:3004}
         REACT_APP_MODERATION_SERVICE_URL: ${REACT_APP_MODERATION_SERVICE_URL:-http://localhost:3005}
-    container_name: connectsphere-frontend-web-staging
+    container_name: flamoral-frontend-web-staging
     ports:
       - "3000:3000"
     depends_on:
@@ -173,13 +173,13 @@ services:
       - media-service
       - moderation-service
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     restart: unless-stopped
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: connectsphere-nginx-staging
+    container_name: flamoral-nginx-staging
     ports:
       - "80:80"
       - "443:443"
@@ -192,13 +192,13 @@ services:
       - media-service
       - moderation-service
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     restart: unless-stopped
 
   # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:latest
-    container_name: connectsphere-prometheus-staging
+    container_name: flamoral-prometheus-staging
     ports:
       - "9090:9090"
     volumes:
@@ -210,13 +210,13 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     restart: unless-stopped
 
   # Grafana Dashboards
   grafana:
     image: grafana/grafana:latest
-    container_name: connectsphere-grafana-staging
+    container_name: flamoral-grafana-staging
     ports:
       - "3010:3000"
     environment:
@@ -229,11 +229,11 @@ services:
     depends_on:
       - prometheus
     networks:
-      - connectsphere-staging
+      - flamoral-staging
     restart: unless-stopped
 
 networks:
-  connectsphere-staging:
+  flamoral-staging:
     driver: bridge
 
 volumes:

@@ -9,7 +9,7 @@ services:
     build:
       context: ./backend/services/user-service
       dockerfile: Dockerfile
-    container_name: connectsphere-user-service
+    container_name: flamoral-user-service
     environment:
       - NODE_ENV=development
       - PORT=3001
@@ -21,7 +21,7 @@ services:
       - ./backend/services/user-service:/app
       - /app/node_modules
     networks:
-      - connectsphere-network
+      - flamoral-network
     depends_on:
       - postgres
       - redis
@@ -32,7 +32,7 @@ services:
     build:
       context: ./backend/services/matching-service
       dockerfile: Dockerfile
-    container_name: connectsphere-matching-service
+    container_name: flamoral-matching-service
     environment:
       - NODE_ENV=development
       - PORT=3002
@@ -44,7 +44,7 @@ services:
       - ./backend/services/matching-service:/app
       - /app/node_modules
     networks:
-      - connectsphere-network
+      - flamoral-network
     depends_on:
       - postgres
       - redis
@@ -55,7 +55,7 @@ services:
     build:
       context: ./backend/services/messaging-service
       dockerfile: Dockerfile
-    container_name: connectsphere-messaging-service
+    container_name: flamoral-messaging-service
     environment:
       - NODE_ENV=development
       - PORT=3003
@@ -66,7 +66,7 @@ services:
       - ./backend/services/messaging-service:/app
       - /app/node_modules
     networks:
-      - connectsphere-network
+      - flamoral-network
     depends_on:
       - redis
     command: npm run dev
@@ -76,7 +76,7 @@ services:
     build:
       context: ./backend/services/media-service
       dockerfile: Dockerfile
-    container_name: connectsphere-media-service
+    container_name: flamoral-media-service
     environment:
       - NODE_ENV=development
       - PORT=3004
@@ -94,7 +94,7 @@ services:
       - ./backend/services/media-service:/app
       - /app/node_modules
     networks:
-      - connectsphere-network
+      - flamoral-network
     depends_on:
       - postgres
       - redis
@@ -106,7 +106,7 @@ services:
     build:
       context: ./backend/services/api-gateway
       dockerfile: Dockerfile
-    container_name: connectsphere-api-gateway
+    container_name: flamoral-api-gateway
     environment:
       - NODE_ENV=development
       - PORT=4000
@@ -121,7 +121,7 @@ services:
       - ./backend/services/api-gateway:/app
       - /app/node_modules
     networks:
-      - connectsphere-network
+      - flamoral-network
     depends_on:
       - user-service
       - matching-service
@@ -130,5 +130,5 @@ services:
     command: npm run dev
 
 networks:
-  connectsphere-network:
+  flamoral-network:
     external: true

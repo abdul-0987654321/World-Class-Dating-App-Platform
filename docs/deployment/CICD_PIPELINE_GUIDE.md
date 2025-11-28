@@ -21,7 +21,7 @@
 
 ## Overview
 
-ConnectSphere uses **GitHub Actions** for continuous integration and continuous deployment (CI/CD).
+Flamoral uses **GitHub Actions** for continuous integration and continuous deployment (CI/CD).
 
 ### Key Features
 
@@ -150,7 +150,7 @@ citadelcloud1/world-class-dating-platform:user-service-v1.0.0
 - Notify team via Slack
 
 **Environment:** `staging`
-**URL:** https://app-staging.connectsphere.com
+**URL:** https://app-staging.flamoral.com
 
 ### 5. Deploy to Production (`deploy-production.yml`)
 
@@ -169,7 +169,7 @@ citadelcloud1/world-class-dating-platform:user-service-v1.0.0
 - Notify team
 
 **Environment:** `production`
-**URL:** https://app.connectsphere.com
+**URL:** https://app.flamoral.com
 
 ---
 
@@ -196,7 +196,7 @@ npm run lint
 
 **Branch:** `staging`
 **Auto-Deploy:** Yes
-**URL:** https://app-staging.connectsphere.com
+**URL:** https://app-staging.flamoral.com
 
 **Purpose:**
 - QA testing
@@ -212,7 +212,7 @@ npm run lint
 
 **Branch:** `main`
 **Auto-Deploy:** Only on release
-**URL:** https://app.connectsphere.com
+**URL:** https://app.flamoral.com
 
 **Features:**
 - Blue-green deployment
@@ -331,7 +331,7 @@ gh secret set DOCKER_PASSWORD --body "your-password"
 
 5. **Verify deployment:**
    ```bash
-   curl https://api-staging.connectsphere.com/health
+   curl https://api-staging.flamoral.com/health
    ```
 
 ### Manual Deployment (Production)
@@ -363,10 +363,10 @@ gh secret set DOCKER_PASSWORD --body "your-password"
 4. **Monitor deployment:**
    ```bash
    # Watch rollout
-   kubectl rollout status deployment/user-service -n connectsphere-production
+   kubectl rollout status deployment/user-service -n flamoral-production
 
    # Check logs
-   kubectl logs -f deployment/user-service -n connectsphere-production
+   kubectl logs -f deployment/user-service -n flamoral-production
    ```
 
 ### Manual Workflow Dispatch
@@ -391,7 +391,7 @@ If deployment fails (health checks, smoke tests), automatic rollback occurs:
 - name: Rollback on failure
   if: failure()
   run: |
-    kubectl rollout undo deployment/user-service --namespace=connectsphere-production
+    kubectl rollout undo deployment/user-service --namespace=flamoral-production
 ```
 
 ### Manual Rollback
@@ -400,11 +400,11 @@ If deployment fails (health checks, smoke tests), automatic rollback occurs:
 
 ```bash
 # Rollback to previous version
-kubectl rollout undo deployment/user-service -n connectsphere-production
+kubectl rollout undo deployment/user-service -n flamoral-production
 
 # Rollback to specific revision
-kubectl rollout history deployment/user-service -n connectsphere-production
-kubectl rollout undo deployment/user-service --to-revision=5 -n connectsphere-production
+kubectl rollout history deployment/user-service -n flamoral-production
+kubectl rollout undo deployment/user-service --to-revision=5 -n flamoral-production
 ```
 
 #### Option 2: Redeploy Previous Version
@@ -418,10 +418,10 @@ gh workflow run deploy-production.yml -f version=v1.1.0
 
 ```bash
 # Scale down new version
-kubectl scale deployment/user-service --replicas=0 -n connectsphere-production
+kubectl scale deployment/user-service --replicas=0 -n flamoral-production
 
 # Scale up old version
-kubectl scale deployment/user-service-old --replicas=5 -n connectsphere-production
+kubectl scale deployment/user-service-old --replicas=5 -n flamoral-production
 ```
 
 ---
@@ -562,19 +562,19 @@ docker build --no-cache -t test ./
 kubectl apply --dry-run=client -f k8s/production/
 
 # View events
-kubectl get events -n connectsphere-production --sort-by='.lastTimestamp'
+kubectl get events -n flamoral-production --sort-by='.lastTimestamp'
 ```
 
 **Pods not starting:**
 ```bash
 # Check pod status
-kubectl get pods -n connectsphere-production
+kubectl get pods -n flamoral-production
 
 # View logs
-kubectl logs deployment/user-service -n connectsphere-production
+kubectl logs deployment/user-service -n flamoral-production
 
 # Describe pod
-kubectl describe pod user-service-xxx -n connectsphere-production
+kubectl describe pod user-service-xxx -n flamoral-production
 ```
 
 ### Rollback Fails
@@ -583,23 +583,23 @@ If automatic rollback fails:
 
 1. **Emergency scale down:**
    ```bash
-   kubectl scale deployment/user-service --replicas=0 -n connectsphere-production
+   kubectl scale deployment/user-service --replicas=0 -n flamoral-production
    ```
 
 2. **Check revision history:**
    ```bash
-   kubectl rollout history deployment/user-service -n connectsphere-production
+   kubectl rollout history deployment/user-service -n flamoral-production
    ```
 
 3. **Manual rollback:**
    ```bash
-   kubectl rollout undo deployment/user-service -n connectsphere-production
+   kubectl rollout undo deployment/user-service -n flamoral-production
    ```
 
 4. **Verify:**
    ```bash
-   kubectl get pods -n connectsphere-production
-   curl https://api.connectsphere.com/health
+   kubectl get pods -n flamoral-production
+   curl https://api.flamoral.com/health
    ```
 
 ---
@@ -619,7 +619,7 @@ Track these metrics in GitHub Actions:
 
 ### Deployment Dashboard
 
-Monitor at: https://github.com/connectsphere/app/actions
+Monitor at: https://github.com/flamoral/app/actions
 
 **Key indicators:**
 - ✅ Green: All checks passed
@@ -661,8 +661,8 @@ GitHub automatically scans for:
 - Docker: https://docs.docker.com/
 
 ### Team Contacts
-- **DevOps Lead:** devops@connectsphere.com
-- **On-Call:** oncall@connectsphere.com
+- **DevOps Lead:** devops@flamoral.com
+- **On-Call:** oncall@flamoral.com
 - **Slack:** #devops channel
 
 ---

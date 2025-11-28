@@ -1,1 +1,1 @@
-"""NLP Service for ConnectSphere Dating Platform."""
+"""NLP Service for Flamoral Dating Platform."""

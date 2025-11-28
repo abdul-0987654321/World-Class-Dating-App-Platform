@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/payment-service",
+  "name": "@flamoral/payment-service",
   "version": "1.0.0",
   "description": "Payment processing and subscription management service",
   "main": "dist/index.js",

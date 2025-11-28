@@ -1,5 +1,5 @@
 {
-  "name": "@connectsphere/user-service",
+  "name": "@flamoral/user-service",
   "version": "1.0.0",
   "description": "User authentication and profile management service",
   "main": "dist/index.js",

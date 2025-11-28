@@ -1,6 +1,6 @@
 /**
  * API Client
- * Central API client for ConnectSphere web application
+ * Central API client for Flamoral web application
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';

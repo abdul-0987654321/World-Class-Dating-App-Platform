@@ -263,7 +263,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 preferences.email.weeklyDigest,
                 () =>
                   updatePreference('email', 'weeklyDigest', !preferences.email.weeklyDigest),
-                'Summary of your week on ConnectSphere'
+                'Summary of your week on Flamoral'
               )}
               {renderToggle(
                 'Promotions & Offers',

@@ -13,7 +13,7 @@ updates:
       timezone: "America/New_York"
     open-pull-requests-limit: 10
     reviewers:
-      - "connectsphere/engineering-team"
+      - "flamoral/engineering-team"
     labels:
       - "dependencies"
       - "automated"

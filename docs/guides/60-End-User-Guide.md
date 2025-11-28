@@ -1,11 +1,11 @@
-# ConnectSphere User Guide
+# Flamoral User Guide
 
 ## Getting Started
 
 ### 1. Download the App
 - **iOS**: Download from App Store
 - **Android**: Download from Google Play Store
-- **Web**: Visit https://connectsphere.com
+- **Web**: Visit https://flamoral.com
 
 ### 2. Create Your Account
 1. Enter your email address
@@ -122,7 +122,7 @@ Settings > Account > Delete Account
 ## Support
 
 **In-App**: Settings > Help & Support
-**Email**: support@connectsphere.com
+**Email**: support@flamoral.com
 **Hours**: 24/7 automated, M-F 9-5 human support
 
 ---

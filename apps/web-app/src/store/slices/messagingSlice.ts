@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { Message, Conversation } from '@connectsphere/types';
+import type { Message, Conversation } from '../../types';
 
 interface MessagingState {
   conversations: Conversation[];

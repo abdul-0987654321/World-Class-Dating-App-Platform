@@ -6,7 +6,7 @@
 
 #### iOS (iPhone/iPad)
 1. Open App Store on your device
-2. Search for "ConnectSphere"
+2. Search for "Flamoral"
 3. Tap "Get" then "Install"
 4. Open app and create account
 
@@ -14,14 +14,14 @@
 
 #### Android
 1. Open Google Play Store
-2. Search for "ConnectSphere"
+2. Search for "Flamoral"
 3. Tap "Install"
 4. Open app and create account
 
 **Requirements**: Android 6.0 or later
 
 ### Web App
-1. Visit https://connectsphere.com
+1. Visit https://flamoral.com
 2. Click "Sign Up"
 3. Create account
 4. Start matching!
@@ -89,9 +89,9 @@ yarn dev:mobile
 
 | Email | Password | Type |
 |-------|----------|------|
-| demo@connectsphere.com | Demo123! | Standard User |
-| premium@connectsphere.com | Premium123! | Premium User |
-| admin@connectsphere.com | Admin123! | Administrator |
+| demo@flamoral.com | Demo123! | Standard User |
+| premium@flamoral.com | Premium123! | Premium User |
+| admin@flamoral.com | Admin123! | Administrator |
 
 ### Mobile Development
 
@@ -169,10 +169,10 @@ yarn build
 ```bash
 cd apps/mobile
 cd ios
-xcodebuild -workspace ConnectSphere.xcworkspace \
-  -scheme ConnectSphere \
+xcodebuild -workspace Flamoral.xcworkspace \
+  -scheme Flamoral \
   -configuration Release \
-  -archivePath build/ConnectSphere.xcarchive \
+  -archivePath build/Flamoral.xcarchive \
   archive
 ```
 
@@ -209,17 +209,17 @@ kubectl apply -f infrastructure/kubernetes/
 # Point domains to load balancer IP
 
 # 5. Verify deployment
-kubectl get pods -n connectsphere
+kubectl get pods -n flamoral
 ```
 
 ### Admin Dashboard Access
 
-1. Visit https://admin.connectsphere.com
+1. Visit https://admin.flamoral.com
 2. Login with admin credentials
 3. Access user management, moderation, analytics
 
 **Default Admin**:
-- Email: admin@connectsphere.com
+- Email: admin@flamoral.com
 - Password: (Set during deployment)
 
 ---
@@ -261,7 +261,7 @@ yarn test
 
 - **Documentation**: See `docs/` directory
 - **GitHub Issues**: https://github.com/oks-citadel/World-Class-Dating-App-Platform/issues
-- **Email Support**: support@connectsphere.com
+- **Email Support**: support@flamoral.com
 
 ---
 

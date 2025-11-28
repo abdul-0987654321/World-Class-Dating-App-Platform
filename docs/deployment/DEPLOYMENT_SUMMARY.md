@@ -1,4 +1,4 @@
-# ConnectSphere - Deployment Summary
+# Flamoral - Deployment Summary
 
 **Date:** November 18, 2025
 **Version:** 1.0.0
@@ -88,8 +88,8 @@
 
 | Image Name | Version | Size (est.) | Status |
 |------------|---------|-------------|--------|
-| connectsphere/user-service | 1.0.0, latest | ~150MB | ✅ Ready |
-| connectsphere/frontend-web | 1.0.0, latest | ~50MB | ✅ Ready |
+| flamoral/user-service | 1.0.0, latest | ~150MB | ✅ Ready |
+| flamoral/frontend-web | 1.0.0, latest | ~50MB | ✅ Ready |
 
 ### Deployment Command
 
@@ -116,19 +116,19 @@ docker login
 
 # Build User Service
 cd backend/services/user-service
-docker build -t connectsphere/user-service:1.0.0 .
-docker tag connectsphere/user-service:1.0.0 connectsphere/user-service:latest
+docker build -t flamoral/user-service:1.0.0 .
+docker tag flamoral/user-service:1.0.0 flamoral/user-service:latest
 
 # Build Frontend
 cd ../../../frontend/web
-docker build -t connectsphere/frontend-web:1.0.0 .
-docker tag connectsphere/frontend-web:1.0.0 connectsphere/frontend-web:latest
+docker build -t flamoral/frontend-web:1.0.0 .
+docker tag flamoral/frontend-web:1.0.0 flamoral/frontend-web:latest
 
 # Push to Docker Hub
-docker push connectsphere/user-service:1.0.0
-docker push connectsphere/user-service:latest
-docker push connectsphere/frontend-web:1.0.0
-docker push connectsphere/frontend-web:latest
+docker push flamoral/user-service:1.0.0
+docker push flamoral/user-service:latest
+docker push flamoral/frontend-web:1.0.0
+docker push flamoral/frontend-web:latest
 ```
 
 ---
@@ -138,8 +138,8 @@ docker push connectsphere/frontend-web:latest
 ### 1. Pull Images from Docker Hub
 
 ```bash
-docker pull connectsphere/user-service:latest
-docker pull connectsphere/frontend-web:latest
+docker pull flamoral/user-service:latest
+docker pull flamoral/frontend-web:latest
 ```
 
 ### 2. Start Services
@@ -252,7 +252,7 @@ PORT=3001
 # Database
 DB_HOST=postgres
 DB_PORT=5432
-DB_NAME=connectsphere
+DB_NAME=flamoral
 DB_USER=postgres
 DB_PASSWORD=your_secure_password
 
@@ -447,4 +447,4 @@ Before deploying to production:
 
 **Version:** 1.0.0
 **Last Updated:** November 18, 2025
-**Prepared By:** ConnectSphere Development Team
+**Prepared By:** Flamoral Development Team

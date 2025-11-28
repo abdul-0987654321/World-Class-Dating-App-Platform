@@ -1,4 +1,4 @@
-# ConnectSphere - Complete Deployment Guide
+# Flamoral - Complete Deployment Guide
 
 **Version**: 2.0.0
 **Target Environment**: Production

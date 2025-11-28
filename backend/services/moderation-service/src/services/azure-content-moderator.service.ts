@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from '../config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import { TextModerationResult, ViolationType, AzureTextModerationResponse } from '../types';
 
 const logger = createLogger('azure-content-moderator-service');

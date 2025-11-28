@@ -1,2 +1,3 @@
 export { AgeGate } from './AgeGate';
-export default AgeGate;
+import { AgeGate as AgeGateComponent } from './AgeGate';
+export default AgeGateComponent;

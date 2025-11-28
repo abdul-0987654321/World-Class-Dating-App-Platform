@@ -275,7 +275,7 @@ RUN npm run build
 - Verify token: `dckr_pat_ouIaa9OjRdEf-s-lPeHDqkcufpI`
 - Check Docker Hub repository permissions
 
-### Build fails with "Cannot find module @connectsphere/shared"
+### Build fails with "Cannot find module @flamoral/shared"
 - Dockerfiles need updating to include shared package
 - Build from project root directory (not service directory)
 
@@ -292,7 +292,7 @@ RUN npm run build
 - Fixed 37 logger import statements across all services
 - Fixed messaging-service duplicate identifier errors
 - Fixed Redis client method calls
-- Successfully built: @connectsphere/shared, messaging-service, api-gateway
+- Successfully built: @flamoral/shared, messaging-service, api-gateway
 
 ✅ **Code is Ready for Deployment**
 - All services compile successfully

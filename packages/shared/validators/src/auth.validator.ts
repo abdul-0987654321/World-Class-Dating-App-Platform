@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { PASSWORD_MIN_LENGTH, MIN_AGE } from '@connectsphere/constants';
+import { PASSWORD_MIN_LENGTH, MIN_AGE } from '@flamoral/constants';
 
 export const loginSchema = Joi.object({
   email: Joi.string().email().required().messages({

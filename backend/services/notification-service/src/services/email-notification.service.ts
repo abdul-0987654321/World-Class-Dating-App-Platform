@@ -31,8 +31,8 @@ export class EmailNotificationService {
   private fromName: string;
 
   constructor() {
-    this.fromEmail = process.env.EMAIL_FROM || 'noreply@connectsphere.com';
-    this.fromName = process.env.EMAIL_FROM_NAME || 'ConnectSphere';
+    this.fromEmail = process.env.EMAIL_FROM || 'noreply@flamoral.com';
+    this.fromName = process.env.EMAIL_FROM_NAME || 'Flamoral';
   }
 
   /**

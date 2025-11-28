@@ -1,8 +1,8 @@
-# ConnectSphere Platform - Architecture Documentation
+# Flamoral Platform - Architecture Documentation
 
 ## System Overview
 
-ConnectSphere is a world-class dating platform built with a modern, scalable architecture featuring:
+Flamoral is a world-class dating platform built with a modern, scalable architecture featuring:
 - **Unified Backend** (REST + GraphQL + WebSocket)
 - **React Frontend** with mobile support
 - **Microservices-inspired** but monolith-first approach

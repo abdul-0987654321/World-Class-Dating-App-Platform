@@ -1,4 +1,4 @@
-# ConnectSphere API Testing Guide
+# Flamoral API Testing Guide
 
 ## Access the Swagger UI
 **URL:** http://localhost:3001/api-docs/

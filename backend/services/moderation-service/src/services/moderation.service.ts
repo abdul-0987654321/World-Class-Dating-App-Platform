@@ -3,7 +3,7 @@ import awsRekognitionService from './aws-rekognition.service';
 import azureContentModeratorService from './azure-content-moderator.service';
 import db from '../infrastructure/database/connection';
 import config from '../config';
-import { createLogger } from '@connectsphere/shared';
+import { createLogger } from '@flamoral/shared';
 import {
   ModerationResult,
   ModerationStatus,
