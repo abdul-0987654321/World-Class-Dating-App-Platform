@@ -1,7 +1,7 @@
 {
-  "name": "@heartly/video-sdk",
+  "name": "@flamoral/video-sdk",
   "version": "1.0.0",
-  "description": "Video calling SDK for Heartly dating app",
+  "description": "Video calling SDK for Flamoral dating app",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -29,6 +29,6 @@
     "video",
     "webrtc",
     "calling",
-    "heartly"
+    "flamoral"
   ]
 }

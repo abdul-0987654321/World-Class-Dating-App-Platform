@@ -65,6 +65,12 @@ docker-compose.override.yml
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+terraform.exe
+terraform
+*.tfplan
+tfplan
+terraform_*.zip
+LICENSE.txt
 
 # Kubernetes
 *.kubeconfig

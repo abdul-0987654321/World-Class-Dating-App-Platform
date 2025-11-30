@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { VideoCallClient, CallState, CallStatus } from '@heartly/video-sdk';
+import { VideoCallClient, CallState, CallStatus } from '@flamoral/video-sdk';
 
 interface VideoCallModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 {
-  "name": "@heartly/api-client",
+  "name": "@flamoral/react-api-client",
   "version": "1.0.0",
-  "description": "API client with React Query hooks for Heartly",
+  "description": "React Query hooks for Flamoral API client",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -30,6 +30,6 @@
   "keywords": [
     "api",
     "react-query",
-    "heartly"
+    "flamoral"
   ]
 }

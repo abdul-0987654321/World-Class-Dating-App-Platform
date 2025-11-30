@@ -1,7 +1,7 @@
 {
-  "name": "@heartly/i18n",
+  "name": "@flamoral/i18n",
   "version": "1.0.0",
-  "description": "Internationalization package for Heartly apps",
+  "description": "Internationalization package for Flamoral apps",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
   "keywords": [
     "i18n",
     "internationalization",
-    "heartly",
+    "flamoral",
     "localization"
   ]
 }

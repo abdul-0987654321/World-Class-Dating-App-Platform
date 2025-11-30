@@ -99,14 +99,13 @@ router.put(
         }
       }
 
-      // TODO: Update user in database
-      // const updatedUser = await userService.update(userId, updates);
+      const updatedUser = await userService.updateUser(userId, updates);
 
       res.status(200).json({
         success: true,
         data: {
-          message: 'Profile updated successfully (TODO: implement actual logic)',
-          // user: updatedUser
+          message: 'Profile updated successfully',
+          user: updatedUser
         },
       });
     } catch (error) {
@@ -145,8 +144,7 @@ router.delete(
         });
       }
 
-      // TODO: Soft delete user account
-      // await userService.softDelete(userId);
+      await userService.deleteUser(userId);
 
       // Revoke token and destroy session
       const token = req.headers.authorization?.replace('Bearer ', '');
@@ -193,17 +191,22 @@ router.get('/:userId', AuthMiddleware.verifyToken, async (req: Request, res: Res
       });
     }
 
-    // TODO: Fetch user from database
-    // const user = await userService.findById(userId);
-    // if (!user) {
-    //   return res.status(404).json({ error: 'User not found' });
-    // }
+    const user = await userService.getUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        },
+      });
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        message: 'User retrieved (TODO: implement actual logic)',
-        // user
+        user
       },
     });
   } catch (error) {
@@ -229,16 +232,18 @@ router.post('/search', AuthMiddleware.verifyToken, async (req: Request, res: Res
     const query = Sanitizer.sanitizeSearchQuery(req.body.query || '');
     const pagination = Sanitizer.sanitizePagination(req.body.page, req.body.limit);
 
-    // TODO: Search users in database
-    // const results = await userService.search(query, pagination);
+    const results = await userService.searchUsers({
+      query,
+      page: pagination.page,
+      limit: pagination.limit,
+    });
 
     res.status(200).json({
       success: true,
       data: {
-        message: 'Search completed (TODO: implement actual logic)',
         query,
         pagination,
-        // results
+        results
       },
     });
   } catch (error) {

@@ -1,7 +1,7 @@
 {
-  "name": "@heartly/api-gateway",
+  "name": "@flamoral/api-gateway",
   "version": "1.0.0",
-  "description": "Heartly API Gateway - REST & GraphQL routing, rate limiting, authentication",
+  "description": "Flamoral API Gateway - REST & GraphQL routing, rate limiting, authentication",
   "main": "dist/main.js",
   "scripts": {
     "prebuild": "rimraf dist",

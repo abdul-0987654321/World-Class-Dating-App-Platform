@@ -1,7 +1,7 @@
 {
-  "name": "@heartly/socket-client",
+  "name": "@flamoral/socket-client",
   "version": "1.0.0",
-  "description": "Shared WebSocket client for Heartly apps",
+  "description": "Shared WebSocket client for Flamoral apps",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
   "keywords": [
     "socket",
     "websocket",
-    "heartly",
+    "flamoral",
     "realtime"
   ]
 }
