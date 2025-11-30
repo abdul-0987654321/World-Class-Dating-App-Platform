@@ -9,6 +9,15 @@ build/
 .next/
 out/
 
+# TypeScript compiled files in shared directories
+backend/shared/**/*.js
+backend/shared/**/*.d.ts
+backend/shared/**/*.map
+packages/shared/**/*.js
+packages/shared/**/*.d.ts
+packages/shared/**/*.map
+!packages/shared/**/package.json
+
 # Testing
 coverage/
 .nyc_output/
