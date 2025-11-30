@@ -7,6 +7,8 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { AuthMiddleware } from '../../middleware/auth.middleware.enhanced';
 import { CSRFProtection } from '../../middleware/csrf.middleware';
+import { RBACMiddleware, UserRole } from '../../middleware/rbac.middleware';
+import { uploadLimiter } from '../../middleware/rateLimit.middleware';
 import { logger } from '../../utils/logger';
 import { MediaService } from '../../services/core';
 import { ProfileRepository } from '../../repositories';
@@ -36,12 +38,13 @@ const mediaService = new MediaService(profileRepo);
 /**
  * POST /api/media/photos
  * Upload a new photo
- * Requires: Authentication + CSRF
+ * Requires: Authentication + CSRF + Rate Limit
  */
 router.post(
   '/photos',
   AuthMiddleware.verifyToken,
   CSRFProtection.protect(),
+  uploadLimiter,
   upload.single('photo'),
   async (req: Request, res: Response) => {
     try {
@@ -229,12 +232,13 @@ router.put(
 
 /**
  * GET /api/media/moderation/pending
- * Get photos pending moderation (Admin only)
- * Requires: Authentication + Admin role
+ * Get photos pending moderation (Admin/Moderator only)
+ * Requires: Authentication + Moderator role
  */
 router.get(
   '/moderation/pending',
   AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
@@ -259,12 +263,13 @@ router.get(
 
 /**
  * POST /api/media/moderation/:photoId
- * Moderate a photo (Admin only)
- * Requires: Authentication + Admin role + CSRF
+ * Moderate a photo (Admin/Moderator only)
+ * Requires: Authentication + Moderator role + CSRF
  */
 router.post(
   '/moderation/:photoId',
   AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   CSRFProtection.protect(),
   async (req: Request, res: Response) => {
     try {

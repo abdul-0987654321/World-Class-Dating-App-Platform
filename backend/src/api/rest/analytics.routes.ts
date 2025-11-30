@@ -6,6 +6,8 @@
 import { Router, Request, Response } from 'express';
 import { AuthMiddleware } from '../../middleware/auth.middleware.enhanced';
 import { CSRFProtection } from '../../middleware/csrf.middleware';
+import { RBACMiddleware, UserRole } from '../../middleware/rbac.middleware';
+import { RateLimitMiddleware } from '../../middleware/rateLimit.middleware';
 import { logger } from '../../utils/logger';
 import { AnalyticsDashboardService } from '../../services/core/AnalyticsDashboard.service';
 
@@ -17,7 +19,11 @@ const analyticsService = new AnalyticsDashboardService();
  * Get dashboard metrics overview
  * Requires: Authentication + Admin role
  */
-router.get('/dashboard', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
+router.get(
+  '/dashboard',
+  AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  async (req: Request, res: Response) => {
   try {
     const timeRange = (req.query.timeRange as string) || '7d';
     const metrics = await analyticsService.getDashboardMetrics(timeRange);
@@ -41,9 +47,13 @@ router.get('/dashboard', AuthMiddleware.verifyToken, async (req: Request, res: R
 /**
  * GET /api/analytics/users
  * Get user analytics
- * Requires: Authentication
+ * Requires: Authentication + Admin role
  */
-router.get('/users', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
+router.get(
+  '/users',
+  AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  async (req: Request, res: Response) => {
   try {
     const timeRange = (req.query.timeRange as string) || '30d';
     const metrics = await analyticsService.getUserMetrics(timeRange);
@@ -95,7 +105,11 @@ router.get('/engagement', AuthMiddleware.verifyToken, async (req: Request, res: 
  * Get revenue analytics
  * Requires: Authentication + Admin role
  */
-router.get('/revenue', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
+router.get(
+  '/revenue',
+  AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  async (req: Request, res: Response) => {
   try {
     const timeRange = (req.query.timeRange as string) || '30d';
     const metrics = await analyticsService.getRevenueMetrics(timeRange);
@@ -166,7 +180,11 @@ router.post('/events', AuthMiddleware.verifyToken, async (req: Request, res: Res
  * Get all A/B tests
  * Requires: Authentication + Admin role
  */
-router.get('/ab-tests', AuthMiddleware.verifyToken, async (req: Request, res: Response) => {
+router.get(
+  '/ab-tests',
+  AuthMiddleware.verifyToken,
+  RBACMiddleware.requireRole(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  async (req: Request, res: Response) => {
   try {
     const status = req.query.status as string;
     const tests = await analyticsService.getABTests(status);

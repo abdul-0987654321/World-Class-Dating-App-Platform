@@ -74,8 +74,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 # Create FastAPI app
 app = FastAPI(
-    title="Heartly Photo Analysis Service",
-    description="AI-powered photo analysis for the Heartly dating app",
+    title="Flamoral Photo Analysis Service",
+    description="AI-powered photo analysis for the Flamoral dating platform",
     version=settings.VERSION,
     lifespan=lifespan,
 )

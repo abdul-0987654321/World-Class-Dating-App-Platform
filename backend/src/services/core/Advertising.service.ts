@@ -90,22 +90,33 @@ export interface SponsoredProfile {
   status: 'active' | 'paused' | 'completed' | 'pending';
 }
 
-// AdMob configuration
+// AdMob configuration - Use environment variables in production
 const ADMOB_CONFIG = {
   ios: {
-    discovery_feed: 'ca-app-pub-XXXXX/YYYYYYY',
-    match_reveal: 'ca-app-pub-XXXXX/YYYYYYY',
-    reward_video: 'ca-app-pub-XXXXX/YYYYYYY',
-    // ... other placements
+    discovery_feed: process.env.ADMOB_IOS_DISCOVERY_FEED || 'ca-app-pub-XXXXX/YYYYYYY',
+    match_reveal: process.env.ADMOB_IOS_MATCH_REVEAL || 'ca-app-pub-XXXXX/YYYYYYY',
+    profile_view: process.env.ADMOB_IOS_PROFILE_VIEW || 'ca-app-pub-XXXXX/YYYYYYY',
+    message_list: process.env.ADMOB_IOS_MESSAGE_LIST || 'ca-app-pub-XXXXX/YYYYYYY',
+    reward_video: process.env.ADMOB_IOS_REWARD_VIDEO || 'ca-app-pub-XXXXX/YYYYYYY',
+    settings: process.env.ADMOB_IOS_SETTINGS || 'ca-app-pub-XXXXX/YYYYYYY',
+    coin_store: process.env.ADMOB_IOS_COIN_STORE || 'ca-app-pub-XXXXX/YYYYYYY',
+    boost_screen: process.env.ADMOB_IOS_BOOST_SCREEN || 'ca-app-pub-XXXXX/YYYYYYY',
   },
   android: {
-    discovery_feed: 'ca-app-pub-XXXXX/YYYYYYY',
-    match_reveal: 'ca-app-pub-XXXXX/YYYYYYY',
-    reward_video: 'ca-app-pub-XXXXX/YYYYYYY',
+    discovery_feed: process.env.ADMOB_ANDROID_DISCOVERY_FEED || 'ca-app-pub-XXXXX/YYYYYYY',
+    match_reveal: process.env.ADMOB_ANDROID_MATCH_REVEAL || 'ca-app-pub-XXXXX/YYYYYYY',
+    profile_view: process.env.ADMOB_ANDROID_PROFILE_VIEW || 'ca-app-pub-XXXXX/YYYYYYY',
+    message_list: process.env.ADMOB_ANDROID_MESSAGE_LIST || 'ca-app-pub-XXXXX/YYYYYYY',
+    reward_video: process.env.ADMOB_ANDROID_REWARD_VIDEO || 'ca-app-pub-XXXXX/YYYYYYY',
+    settings: process.env.ADMOB_ANDROID_SETTINGS || 'ca-app-pub-XXXXX/YYYYYYY',
+    coin_store: process.env.ADMOB_ANDROID_COIN_STORE || 'ca-app-pub-XXXXX/YYYYYYY',
+    boost_screen: process.env.ADMOB_ANDROID_BOOST_SCREEN || 'ca-app-pub-XXXXX/YYYYYYY',
   },
   web: {
-    discovery_feed: '/6355419/Travel/Europe/France/Paris',
-    profile_view: '/6355419/Travel/Europe/France/Paris',
+    discovery_feed: process.env.ADMOB_WEB_DISCOVERY_FEED || '/6355419/Travel/Europe/France/Paris',
+    profile_view: process.env.ADMOB_WEB_PROFILE_VIEW || '/6355419/Travel/Europe/France/Paris',
+    message_list: process.env.ADMOB_WEB_MESSAGE_LIST || '/6355419/Travel/Europe/France/Paris',
+    settings: process.env.ADMOB_WEB_SETTINGS || '/6355419/Travel/Europe/France/Paris',
   },
 };
 

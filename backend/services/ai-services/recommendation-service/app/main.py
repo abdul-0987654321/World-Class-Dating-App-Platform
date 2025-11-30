@@ -70,8 +70,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 # Create FastAPI app
 app = FastAPI(
-    title="Heartly Recommendation Service",
-    description="AI-powered recommendation engine for the Heartly dating app",
+    title="Flamoral Recommendation Service",
+    description="AI-powered recommendation engine for the Flamoral dating app",
     version=settings.VERSION,
     lifespan=lifespan,
 )

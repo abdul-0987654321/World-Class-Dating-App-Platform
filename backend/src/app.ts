@@ -3,7 +3,7 @@
  * REST API setup with middleware and routes
  */
 
-import express, { Application } from 'express';
+import express, { Application, Router } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -26,6 +26,9 @@ import {
 } from './middleware/security.middleware';
 
 import { CSRFProtection } from './middleware/csrf.middleware';
+import { RBACMiddleware } from './middleware/rbac.middleware';
+import { AuditMiddleware } from './middleware/audit.middleware';
+import { apiVersioning } from './middleware/versioning.middleware';
 
 // API Routes
 import authRoutes from './api/rest/auth.routes';
@@ -121,6 +124,17 @@ export function createApp(): Application {
   // 10. HTTP request logging
   app.use(httpLogger);
 
+  // 11. API Versioning
+  app.use(apiVersioning.versionMiddleware());
+
+  // 12. RBAC - Load user roles for all authenticated requests
+  app.use(RBACMiddleware.loadUserRole);
+
+  // 13. Audit logging for security-sensitive endpoints
+  app.use('/api/auth', AuditMiddleware.log({ action: 'AUTH', riskLevel: 'high' }));
+  app.use('/api/payments', AuditMiddleware.log({ action: 'PAYMENT', riskLevel: 'high' }));
+  app.use('/api/admin', AuditMiddleware.log({ action: 'ADMIN', riskLevel: 'critical' }));
+
   // API Documentation
   const swaggerSpec = swaggerJsdoc(swaggerOptions);
   app.use('/api-docs', swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
@@ -133,27 +147,36 @@ export function createApp(): Application {
   // Returns: { success: true, data: { csrfToken: "..." } }
   app.get('/api/csrf-token', CSRFProtection.getTokenEndpoint);
 
-  // API Routes
+  // ============================================
+  // API v1 Routes (current)
+  // ============================================
   // Note: Individual routes should apply AuthMiddleware.verifyToken and CSRFProtection.protect() as needed
   // Example in route file:
   //   router.post('/profile', AuthMiddleware.verifyToken, CSRFProtection.protect(), controller.update)
-  app.use('/api/auth', authRoutes);
-  app.use('/api/users', userRoutes);
-  app.use('/api/profiles', profileRoutes);
-  app.use('/api/matching', matchingRoutes);
-  app.use('/api/messages', messagingRoutes);
-  app.use('/api/media', mediaRoutes);
-  app.use('/api/payments', paymentRoutes);
-  app.use('/api/analytics', analyticsRoutes);
-  app.use('/api/gamification', gamificationRoutes);
-  app.use('/api/referrals', referralRoutes);
-  app.use('/api/communities', communityRoutes);
-  app.use('/api/speed-dating', speedDatingRoutes);
-  app.use('/api/safety', safetyRoutes);
-  app.use('/api/discovery', discoveryRoutes);
-  app.use('/api/subscriptions', subscriptionRoutes);
-  app.use('/api/stories', storiesRoutes);
-  app.use('/api/matches', matchingRoutes); // Alias for frontend compatibility
+
+  // Versioned routes (supports /api/v1/... and /api/...)
+  const v1Router = Router();
+  v1Router.use('/auth', authRoutes);
+  v1Router.use('/users', userRoutes);
+  v1Router.use('/profiles', profileRoutes);
+  v1Router.use('/matching', matchingRoutes);
+  v1Router.use('/messages', messagingRoutes);
+  v1Router.use('/media', mediaRoutes);
+  v1Router.use('/payments', paymentRoutes);
+  v1Router.use('/analytics', analyticsRoutes);
+  v1Router.use('/gamification', gamificationRoutes);
+  v1Router.use('/referrals', referralRoutes);
+  v1Router.use('/communities', communityRoutes);
+  v1Router.use('/speed-dating', speedDatingRoutes);
+  v1Router.use('/safety', safetyRoutes);
+  v1Router.use('/discovery', discoveryRoutes);
+  v1Router.use('/subscriptions', subscriptionRoutes);
+  v1Router.use('/stories', storiesRoutes);
+  v1Router.use('/matches', matchingRoutes); // Alias for frontend compatibility
+
+  // Mount v1 routes at /api/v1 and /api (for backwards compatibility)
+  app.use('/api/v1', v1Router);
+  app.use('/api', v1Router);
 
   // 404 handler
   app.use(notFoundHandler);
