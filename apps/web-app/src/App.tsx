@@ -23,6 +23,10 @@ import { PhotoVerificationPage } from './pages/Verification/PhotoVerificationPag
 import { HelpSupportPage } from './pages/Help/HelpSupportPage';
 import TierShowcase from './pages/TierShowcase';
 
+// Legal Pages
+import { PrivacyPolicy } from './pages/Legal/PrivacyPolicy';
+import { TermsOfService } from './pages/Legal/TermsOfService';
+
 // Admin Pages
 import {
   AdminDashboardPage,
@@ -79,6 +83,10 @@ const App: React.FC = () => {
 
         {/* Public demo route */}
         <Route path="/tier-showcase" element={<TierShowcase />} />
+
+        {/* Legal pages - public */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
 
         {/* Protected routes */}
         <Route path="/discover" element={
