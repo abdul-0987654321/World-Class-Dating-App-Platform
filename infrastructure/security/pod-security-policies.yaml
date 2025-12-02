@@ -1,0 +1,315 @@
+# Pod Security Standards for Production
+
+# Restricted Pod Security Policy
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: restricted
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'runtime/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: true
+---
+# Baseline Pod Security Policy (less restrictive)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: baseline
+spec:
+  privileged: false
+  allowPrivilegeEscalation: true
+  requiredDropCapabilities:
+    - NET_RAW
+  volumes:
+    - '*'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false
+---
+# ClusterRole for Restricted PSP
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: restricted-psp-user
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - restricted
+---
+# ClusterRoleBinding for Production Namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dating-app-production-psp
+roleRef:
+  kind: ClusterRole
+  name: restricted-psp-user
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: dating-app-production
+- kind: ServiceAccount
+  name: dating-api
+  namespace: dating-app-production
+- kind: ServiceAccount
+  name: dating-app
+  namespace: dating-app-production
+---
+# OPA Gatekeeper Constraint Template
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlabels
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredLabels
+      validation:
+        openAPIV3Schema:
+          properties:
+            labels:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredlabels
+
+        violation[{"msg": msg, "details": {"missing_labels": missing}}] {
+          provided := {label | input.review.object.metadata.labels[label]}
+          required := {label | label := input.parameters.labels[_]}
+          missing := required - provided
+          count(missing) > 0
+          msg := sprintf("Required labels missing: %v", [missing])
+        }
+---
+# Constraint to enforce required labels
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: require-labels-production
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+    namespaces:
+      - dating-app-production
+  parameters:
+    labels:
+      - "app"
+      - "environment"
+      - "tier"
+---
+# Falco Rules for Runtime Security
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-rules
+  namespace: falco-system
+data:
+  custom_rules.yaml: |
+    - rule: Shell in Container
+      desc: Detect shell execution in container
+      condition: >
+        spawned_process and container and
+        shell_procs and
+        proc.tty != 0 and
+        container_entrypoint
+      output: >
+        Shell spawned in container
+        (user=%user.name container_id=%container.id container_name=%container.name
+        shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)
+      priority: WARNING
+      tags: [container, shell, mitre_execution]
+
+    - rule: Unexpected Network Connection
+      desc: Detect unexpected outbound network connections
+      condition: >
+        outbound and container and
+        not proc.name in (known_outbound_processes) and
+        not fd.sip in (trusted_ips)
+      output: >
+        Unexpected outbound connection
+        (container=%container.name process=%proc.name
+        connection=%fd.name)
+      priority: WARNING
+      tags: [network, mitre_exfiltration]
+
+    - rule: File Modified in /etc
+      desc: Detect file modifications in /etc directory
+      condition: >
+        open_write and container and
+        fd.name startswith /etc
+      output: >
+        File modification in /etc
+        (user=%user.name container=%container.name
+        file=%fd.name process=%proc.name)
+      priority: ERROR
+      tags: [filesystem, mitre_persistence]
+
+    - rule: Privilege Escalation Attempt
+      desc: Detect privilege escalation attempts
+      condition: >
+        spawned_process and container and
+        proc.name in (privilege_escalation_binaries) and
+        not user.name = "root"
+      output: >
+        Privilege escalation attempt detected
+        (user=%user.name container=%container.name
+        process=%proc.name cmdline=%proc.cmdline)
+      priority: CRITICAL
+      tags: [privilege_escalation, mitre_privilege_escalation]
+
+    - rule: Crypto Mining Detected
+      desc: Detect cryptocurrency mining activity
+      condition: >
+        spawned_process and container and
+        proc.name in (crypto_miners)
+      output: >
+        Cryptocurrency mining detected
+        (container=%container.name process=%proc.name
+        cmdline=%proc.cmdline)
+      priority: CRITICAL
+      tags: [malware, cryptomining]
+
+    - list: known_outbound_processes
+      items: [curl, wget, node, python, java]
+
+    - list: trusted_ips
+      items: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+
+    - list: privilege_escalation_binaries
+      items: [su, sudo, passwd, usermod, chsh]
+
+    - list: crypto_miners
+      items: [xmrig, ethminer, cpuminer, minerd]
+---
+# Trivy Scan CronJob for Container Vulnerability Scanning
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: trivy-scanner
+  namespace: dating-app-production
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: trivy
+            image: aquasec/trivy:latest
+            command:
+            - sh
+            - -c
+            - |
+              trivy image --severity HIGH,CRITICAL \
+                --format json \
+                --output /reports/trivy-report-$(date +%Y%m%d).json \
+                productiondatingappacr.azurecr.io/dating-api:latest
+
+              trivy image --severity HIGH,CRITICAL \
+                --format json \
+                --output /reports/trivy-report-web-$(date +%Y%m%d).json \
+                productiondatingappacr.azurecr.io/dating-app:latest
+
+              # Upload to storage or send alert if critical vulnerabilities found
+              if grep -q '"Severity":"CRITICAL"' /reports/*.json; then
+                echo "CRITICAL vulnerabilities found!"
+                # Send alert
+              fi
+            volumeMounts:
+            - name: reports
+              mountPath: /reports
+          volumes:
+          - name: reports
+            persistentVolumeClaim:
+              claimName: trivy-reports
+---
+# Network Policy to deny all by default
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: dating-app-production
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Image Policy for only allowing approved registries
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: image-policy-webhook
+webhooks:
+- name: image-policy.k8s.io
+  admissionReviewVersions: ["v1"]
+  clientConfig:
+    service:
+      name: image-policy-webhook
+      namespace: kube-system
+      path: "/validate"
+    caBundle: ${CA_BUNDLE}
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["apps"]
+    apiVersions: ["v1"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+  failurePolicy: Fail
+  sideEffects: None
+  namespaceSelector:
+    matchLabels:
+      image-policy: "enabled"

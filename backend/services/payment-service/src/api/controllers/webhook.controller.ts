@@ -63,7 +63,17 @@ export class WebhookController {
           await webhookService.handleTrialWillEnd(event.data.object as Stripe.Subscription);
           break;
 
+        // Subscription update events
+        case 'customer.subscription.pending_update_applied':
+          await webhookService.handleSubscriptionPendingUpdateApplied(event.data.object as Stripe.Subscription);
+          break;
+
+        case 'customer.subscription.pending_update_expired':
+          await webhookService.handleSubscriptionPendingUpdateExpired(event.data.object as Stripe.Subscription);
+          break;
+
         // Invoice events
+        case 'invoice.paid':
         case 'invoice.payment_succeeded':
           await webhookService.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
           break;
@@ -72,8 +82,16 @@ export class WebhookController {
           await webhookService.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
           break;
 
+        case 'invoice.payment_action_required':
+          await webhookService.handleInvoicePaymentActionRequired(event.data.object as Stripe.Invoice);
+          break;
+
         case 'invoice.upcoming':
           await webhookService.handleInvoiceUpcoming(event.data.object as Stripe.Invoice);
+          break;
+
+        case 'invoice.finalized':
+          await webhookService.handleInvoiceFinalized(event.data.object as Stripe.Invoice);
           break;
 
         // Payment intent events
@@ -85,7 +103,32 @@ export class WebhookController {
           await webhookService.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
           break;
 
+        case 'payment_intent.canceled':
+          await webhookService.handlePaymentIntentCanceled(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'payment_intent.requires_action':
+          await webhookService.handlePaymentIntentRequiresAction(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        // Checkout events
+        case 'checkout.session.completed':
+          await webhookService.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+          break;
+
+        case 'checkout.session.expired':
+          await webhookService.handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+          break;
+
         // Charge events
+        case 'charge.succeeded':
+          await webhookService.handleChargeSucceeded(event.data.object as Stripe.Charge);
+          break;
+
+        case 'charge.failed':
+          await webhookService.handleChargeFailed(event.data.object as Stripe.Charge);
+          break;
+
         case 'charge.refunded':
           await webhookService.handleChargeRefunded(event.data.object as Stripe.Charge);
           break;
@@ -101,6 +144,10 @@ export class WebhookController {
 
         case 'customer.updated':
           await webhookService.handleCustomerUpdated(event.data.object as Stripe.Customer);
+          break;
+
+        case 'customer.deleted':
+          await webhookService.handleCustomerDeleted(event.data.object as Stripe.Customer);
           break;
 
         // Payment method events

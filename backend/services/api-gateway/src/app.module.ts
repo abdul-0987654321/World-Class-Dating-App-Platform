@@ -11,7 +11,11 @@ import { ControllersModule } from './controllers/controllers.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
+import { ComprehensiveRateLimitGuard } from './guards/comprehensive-rate-limit.guard';
 import { TracingMiddleware } from './middleware/tracing.middleware';
+import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
+import { DDoSProtectionService } from './services/ddos-protection.service';
+import { RateLimitAdminController } from './controllers/rate-limit-admin.controller';
 
 @Module({
   imports: [
@@ -48,14 +52,24 @@ import { TracingMiddleware } from './middleware/tracing.middleware';
     // WebSocket Gateway
     WebsocketModule,
   ],
+  controllers: [
+    // Admin controllers for rate limit management
+    RateLimitAdminController,
+  ],
   providers: [
     // Tracing middleware
     TracingMiddleware,
 
-    // Global Redis-based rate limiting
+    // Advanced rate limiting middleware
+    AdvancedRateLimiterMiddleware,
+
+    // DDoS protection service
+    DDoSProtectionService,
+
+    // Global comprehensive rate limiting (replaces RedisThrottlerGuard)
     {
       provide: APP_GUARD,
-      useClass: RedisThrottlerGuard,
+      useClass: ComprehensiveRateLimitGuard,
     },
     // Global JWT authentication
     {

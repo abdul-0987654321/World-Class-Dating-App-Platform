@@ -84,7 +84,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('stripe_invoice_id', 100);
     table.string('stripe_charge_id', 100);
     table.enum('type', ['subscription', 'one_time', 'coin_purchase', 'boost_purchase', 'refund']).notNullable();
-    table.enum('status', ['pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded']).defaultTo('pending');
+    table.enum('status', ['pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded', 'partially_refunded', 'disputed']).defaultTo('pending');
     table.decimal('amount', 10, 2).notNullable();
     table.string('currency', 3).defaultTo('USD');
     table.text('description');
@@ -140,7 +140,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('stripe_event_id', 100).unique().notNullable();
     table.string('event_type', 100).notNullable();
     table.jsonb('payload').notNullable();
-    table.enum('status', ['pending', 'processed', 'failed']).defaultTo('pending');
+    table.enum('status', ['pending', 'processed', 'failed', 'permanently_failed']).defaultTo('pending');
     table.text('error_message');
     table.integer('retry_count').defaultTo(0);
     table.timestamp('processed_at');

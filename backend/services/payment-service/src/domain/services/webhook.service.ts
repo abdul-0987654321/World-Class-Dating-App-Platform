@@ -213,6 +213,66 @@ export class WebhookService {
     }
   }
 
+  async handleSubscriptionPendingUpdateApplied(subscription: Stripe.Subscription): Promise<void> {
+    logger.info(`Processing subscription pending update applied: ${subscription.id}`);
+
+    const existingSub = await db('user_subscriptions')
+      .where({ stripe_subscription_id: subscription.id })
+      .first();
+
+    if (!existingSub) {
+      logger.warn(`Subscription ${subscription.id} not found in database`);
+      return;
+    }
+
+    const planId = await this.getPlanIdFromStripePriceId(
+      subscription.items.data[0]?.price.id
+    );
+
+    const planName = await this.getPlanName(planId);
+
+    // Update subscription with new plan
+    await db('user_subscriptions')
+      .where({ stripe_subscription_id: subscription.id })
+      .update({
+        plan_id: planId,
+        status: subscription.status,
+        billing_cycle: this.getBillingCycle(subscription),
+        current_period_start: new Date(subscription.current_period_start * 1000),
+        current_period_end: new Date(subscription.current_period_end * 1000),
+        updated_at: new Date(),
+      });
+
+    // Update user service
+    await userServiceClient.updateUserSubscription(existingSub.user_id, {
+      subscription_tier: planName,
+      subscription_status: subscription.status,
+    });
+
+    logger.info(`Subscription update applied for user ${existingSub.user_id}: ${planName}`);
+  }
+
+  async handleSubscriptionPendingUpdateExpired(subscription: Stripe.Subscription): Promise<void> {
+    logger.info(`Processing subscription pending update expired: ${subscription.id}`);
+
+    const existingSub = await db('user_subscriptions')
+      .where({ stripe_subscription_id: subscription.id })
+      .first();
+
+    if (existingSub) {
+      // Notify user that the scheduled update didn't happen
+      await notificationServiceClient.sendNotification({
+        userId: existingSub.user_id,
+        type: 'subscription_updated',
+        title: 'Subscription Update Expired',
+        body: 'Your scheduled subscription update has expired. Your current plan remains active.',
+        data: {},
+      });
+
+      logger.info(`Subscription update expired notification sent to user ${existingSub.user_id}`);
+    }
+  }
+
   // Invoice Handlers
 
   async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
@@ -295,16 +355,20 @@ export class WebhookService {
         .where({ stripe_subscription_id: invoice.subscription as string })
         .update({ status: 'past_due', updated_at: new Date() });
 
-      // Update user service
+      // Get subscription for grace period handling
       const subscription = await db('user_subscriptions')
         .where({ stripe_subscription_id: invoice.subscription as string })
         .first();
 
       if (subscription) {
+        // Update user service
         await userServiceClient.updateUserSubscription(userId, {
           subscription_tier: await this.getPlanName(subscription.plan_id),
           subscription_status: 'past_due',
         });
+
+        // Handle grace period
+        await this.handlePaymentGracePeriod(subscription);
       }
     }
 
@@ -332,6 +396,47 @@ export class WebhookService {
     await notificationServiceClient.notifyUpcomingPayment(userId, amount, billingDate);
 
     logger.info(`Upcoming payment notification sent to user ${userId}: $${amount} on ${billingDate.toLocaleDateString()}`);
+  }
+
+  async handleInvoicePaymentActionRequired(invoice: Stripe.Invoice): Promise<void> {
+    logger.info(`Processing invoice payment action required: ${invoice.id}`);
+
+    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    if (!userId) {
+      logger.warn('User ID not found for invoice requiring action');
+      return;
+    }
+
+    const amount = (invoice.amount_due || 0) / 100;
+
+    // Notify user that action is required
+    await notificationServiceClient.sendNotification({
+      userId,
+      type: 'payment_failed',
+      title: 'Payment Action Required',
+      body: `Action is required to complete your payment of $${amount.toFixed(2)}. Please update your payment method.`,
+      data: {
+        invoiceId: invoice.id,
+        amount,
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+      },
+    });
+
+    logger.info(`Payment action required notification sent to user ${userId}`);
+  }
+
+  async handleInvoiceFinalized(invoice: Stripe.Invoice): Promise<void> {
+    logger.info(`Processing invoice finalized: ${invoice.id}`);
+
+    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    if (!userId) {
+      logger.warn('User ID not found for finalized invoice');
+      return;
+    }
+
+    // Invoice is finalized and ready for payment
+    // This can be used for internal tracking or notifications
+    logger.info(`Invoice finalized for user ${userId}: ${invoice.id}`);
   }
 
   // Payment Intent Handlers
@@ -408,20 +513,208 @@ export class WebhookService {
     logger.info(`Payment failed for user ${userId}: ${failureReason}`);
   }
 
+  async handlePaymentIntentCanceled(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    logger.info(`Processing payment intent canceled: ${paymentIntent.id}`);
+
+    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id;
+
+    if (!userId) {
+      logger.warn(`Canceled payment intent ${paymentIntent.id} missing user_id in metadata`);
+      return;
+    }
+
+    // Record canceled transaction
+    await db('transactions').insert({
+      user_id: userId,
+      stripe_payment_intent_id: paymentIntent.id,
+      type: metadata?.type || 'one_time',
+      status: 'canceled',
+      amount: paymentIntent.amount / 100,
+      currency: paymentIntent.currency.toUpperCase(),
+      description: metadata?.product_name || 'Purchase canceled',
+      metadata: JSON.stringify(metadata),
+    });
+
+    logger.info(`Payment canceled for user ${userId}`);
+  }
+
+  async handlePaymentIntentRequiresAction(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    logger.info(`Processing payment intent requires action: ${paymentIntent.id}`);
+
+    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id;
+
+    if (!userId) {
+      logger.warn(`Payment intent ${paymentIntent.id} requiring action missing user_id in metadata`);
+      return;
+    }
+
+    // Notify user that additional action is required (e.g., 3D Secure)
+    await notificationServiceClient.sendNotification({
+      userId,
+      type: 'payment_failed',
+      title: 'Payment Action Required',
+      body: 'Additional verification is required to complete your payment. Please check your email or card provider.',
+      data: {
+        paymentIntentId: paymentIntent.id,
+        nextAction: paymentIntent.next_action?.type,
+      },
+    });
+
+    logger.info(`Payment action required notification sent to user ${userId}`);
+  }
+
+  // Checkout Session Handlers
+
+  async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
+    logger.info(`Processing checkout session completed: ${session.id}`);
+
+    const metadata = session.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id || session.client_reference_id;
+
+    if (!userId) {
+      logger.warn(`Checkout session ${session.id} missing user_id`);
+      return;
+    }
+
+    const purchaseType = metadata?.type || 'one_time';
+
+    // Handle different purchase types
+    if (session.mode === 'subscription') {
+      // Subscription checkout - will be handled by subscription.created event
+      logger.info(`Subscription checkout completed for user ${userId}`);
+    } else if (session.mode === 'payment') {
+      // One-time payment checkout
+      const paymentIntentId = session.payment_intent as string;
+
+      if (paymentIntentId) {
+        // Payment intent handler will process the actual fulfillment
+        logger.info(`Payment checkout completed for user ${userId}: ${paymentIntentId}`);
+      }
+    }
+  }
+
+  async handleCheckoutSessionExpired(session: Stripe.Checkout.Session): Promise<void> {
+    logger.info(`Processing checkout session expired: ${session.id}`);
+
+    const metadata = session.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id || session.client_reference_id;
+
+    if (userId) {
+      // Optionally notify user that their checkout session expired
+      logger.info(`Checkout session expired for user ${userId}`);
+    }
+  }
+
   // Charge Handlers
+
+  async handleChargeSucceeded(charge: Stripe.Charge): Promise<void> {
+    logger.info(`Processing charge succeeded: ${charge.id}`);
+
+    // Update transaction with charge ID if it exists
+    if (charge.payment_intent) {
+      await db('transactions')
+        .where({ stripe_payment_intent_id: charge.payment_intent as string })
+        .update({
+          stripe_charge_id: charge.id,
+          updated_at: new Date(),
+        });
+    }
+
+    logger.info(`Charge succeeded: ${charge.id}`);
+  }
+
+  async handleChargeFailed(charge: Stripe.Charge): Promise<void> {
+    logger.info(`Processing charge failed: ${charge.id}`);
+
+    // Update transaction with failure information
+    if (charge.payment_intent) {
+      await db('transactions')
+        .where({ stripe_payment_intent_id: charge.payment_intent as string })
+        .update({
+          stripe_charge_id: charge.id,
+          status: 'failed',
+          failure_code: charge.failure_code || null,
+          failure_message: charge.failure_message || null,
+          updated_at: new Date(),
+        });
+    }
+
+    logger.warn(`Charge failed: ${charge.id} - ${charge.failure_message}`);
+  }
 
   async handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     logger.info(`Processing charge refunded: ${charge.id}`);
 
-    await db('transactions')
+    // Find the original transaction
+    const transaction = await db('transactions')
       .where({ stripe_charge_id: charge.id })
-      .update({ status: 'refunded', updated_at: new Date() });
+      .orWhere({ stripe_payment_intent_id: charge.payment_intent as string })
+      .first();
+
+    if (!transaction) {
+      logger.warn(`Transaction not found for refunded charge: ${charge.id}`);
+      return;
+    }
+
+    const refundAmount = charge.amount_refunded / 100;
+    const isPartialRefund = charge.amount_refunded < charge.amount;
+
+    // Update original transaction status
+    await db('transactions')
+      .where({ id: transaction.id })
+      .update({
+        status: isPartialRefund ? 'partially_refunded' : 'refunded',
+        updated_at: new Date(),
+      });
+
+    // Create refund transaction record
+    await db('transactions').insert({
+      user_id: transaction.user_id,
+      stripe_charge_id: charge.id,
+      stripe_payment_intent_id: charge.payment_intent as string,
+      type: 'refund',
+      status: 'succeeded',
+      amount: -refundAmount, // Negative amount for refund
+      currency: charge.currency.toUpperCase(),
+      description: `Refund for ${transaction.description || 'purchase'}`,
+      metadata: JSON.stringify({ original_transaction_id: transaction.id }),
+      processed_at: new Date(),
+    });
+
+    // Handle refund logic based on purchase type
+    await this.processRefundLogic(transaction, refundAmount, isPartialRefund);
+
+    logger.info(`Charge refunded: ${charge.id} - Amount: $${refundAmount}`);
   }
 
   async handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
-    logger.error(`Dispute created: ${dispute.id}`);
-    // Log for manual review
-    // In production, integrate with dispute management system
+    logger.error(`Dispute created: ${dispute.id} for charge: ${dispute.charge}`);
+
+    // Find the transaction
+    const transaction = await db('transactions')
+      .where({ stripe_charge_id: dispute.charge as string })
+      .first();
+
+    if (transaction) {
+      // Update transaction with dispute information
+      await db('transactions')
+        .where({ id: transaction.id })
+        .update({
+          status: 'disputed',
+          failure_message: `Dispute: ${dispute.reason}`,
+          updated_at: new Date(),
+        });
+
+      // Notify admin about dispute
+      logger.error(`ADMIN ALERT: Dispute created for transaction ${transaction.id} - User: ${transaction.user_id}, Amount: $${transaction.amount}, Reason: ${dispute.reason}`);
+
+      // In production, send notification to admin/support team
+      // await notificationService.notifyAdminDispute(transaction, dispute);
+    }
+
+    logger.info(`Dispute logged for charge: ${dispute.charge}`);
   }
 
   // Customer Handlers
@@ -434,6 +727,39 @@ export class WebhookService {
   async handleCustomerUpdated(customer: Stripe.Customer): Promise<void> {
     logger.info(`Customer updated: ${customer.id}`);
     // Update payment methods if needed
+  }
+
+  async handleCustomerDeleted(customer: Stripe.Customer): Promise<void> {
+    logger.info(`Customer deleted: ${customer.id}`);
+
+    // Clean up customer data in our database
+    const subscription = await db('user_subscriptions')
+      .where({ stripe_customer_id: customer.id })
+      .first();
+
+    if (subscription) {
+      // Cancel any active subscriptions
+      await db('user_subscriptions')
+        .where({ stripe_customer_id: customer.id, status: 'active' })
+        .update({
+          status: 'canceled',
+          canceled_at: new Date(),
+          updated_at: new Date(),
+        });
+
+      // Update user service
+      await userServiceClient.updateUserSubscription(subscription.user_id, {
+        subscription_tier: 'free',
+        subscription_status: 'canceled',
+      });
+    }
+
+    // Delete payment methods
+    await db('payment_methods')
+      .where({ stripe_customer_id: customer.id })
+      .delete();
+
+    logger.info(`Customer data cleaned up for: ${customer.id}`);
   }
 
   // Payment Method Handlers
@@ -660,5 +986,224 @@ export class WebhookService {
       .orderBy('created_at', 'desc')
       .first();
     return lastTransaction?.balance_after || 0;
+  }
+
+  /**
+   * Process refund logic - revoke features, deduct coins, etc.
+   */
+  private async processRefundLogic(
+    transaction: any,
+    refundAmount: number,
+    isPartialRefund: boolean
+  ): Promise<void> {
+    const userId = transaction.user_id;
+
+    switch (transaction.type) {
+      case 'coin_purchase':
+        await this.handleCoinPurchaseRefund(userId, transaction, refundAmount, isPartialRefund);
+        break;
+
+      case 'boost_purchase':
+        await this.handleBoostPurchaseRefund(userId, transaction, refundAmount, isPartialRefund);
+        break;
+
+      case 'subscription':
+        await this.handleSubscriptionRefund(userId, transaction, refundAmount, isPartialRefund);
+        break;
+
+      default:
+        logger.info(`No specific refund logic for transaction type: ${transaction.type}`);
+    }
+
+    // Notify user about refund
+    await notificationServiceClient.sendNotification({
+      userId,
+      type: 'payment_success',
+      title: 'Refund Processed',
+      body: `Your refund of $${refundAmount.toFixed(2)} has been processed successfully.`,
+      data: {
+        refundAmount,
+        originalAmount: transaction.amount,
+        isPartialRefund,
+      },
+    });
+  }
+
+  /**
+   * Handle coin purchase refund - deduct coins from user balance
+   */
+  private async handleCoinPurchaseRefund(
+    userId: string,
+    transaction: any,
+    refundAmount: number,
+    isPartialRefund: boolean
+  ): Promise<void> {
+    // Find the original coin transaction
+    const coinTransaction = await db('coin_transactions')
+      .where({ transaction_id: transaction.id, type: 'purchase' })
+      .first();
+
+    if (!coinTransaction) {
+      logger.warn(`Coin transaction not found for refund: ${transaction.id}`);
+      return;
+    }
+
+    // Calculate coins to deduct
+    const coinsToDeduct = isPartialRefund
+      ? Math.floor((refundAmount / transaction.amount) * coinTransaction.amount)
+      : coinTransaction.amount;
+
+    // Get current balance
+    const currentBalance = await this.getUserCoinBalance(userId);
+    const newBalance = Math.max(0, currentBalance - coinsToDeduct);
+
+    // Create refund coin transaction
+    await db('coin_transactions').insert({
+      user_id: userId,
+      transaction_id: transaction.id,
+      type: 'refund',
+      amount: -coinsToDeduct,
+      balance_after: newBalance,
+      description: `Refund: ${coinsToDeduct} coins deducted`,
+    });
+
+    // Update user service
+    await userServiceClient.subtractCoins(
+      userId,
+      coinsToDeduct,
+      `Refund for transaction ${transaction.id}`
+    );
+
+    logger.info(`Refunded ${coinsToDeduct} coins from user ${userId}`);
+  }
+
+  /**
+   * Handle boost purchase refund - deactivate boost if active
+   */
+  private async handleBoostPurchaseRefund(
+    userId: string,
+    transaction: any,
+    refundAmount: number,
+    isPartialRefund: boolean
+  ): Promise<void> {
+    // In production, check if boost is still active and deactivate it
+    // For now, just log the refund
+    logger.info(`Boost purchase refunded for user ${userId}: $${refundAmount}`);
+
+    // Optionally deactivate active boost via user service
+    // await userServiceClient.deactivateBoost(userId, transaction.stripe_payment_intent_id);
+  }
+
+  /**
+   * Handle subscription refund - calculate prorated amount
+   */
+  private async handleSubscriptionRefund(
+    userId: string,
+    transaction: any,
+    refundAmount: number,
+    isPartialRefund: boolean
+  ): Promise<void> {
+    const subscription = await db('user_subscriptions')
+      .where({ id: transaction.subscription_id })
+      .first();
+
+    if (!subscription) {
+      logger.warn(`Subscription not found for refund: ${transaction.subscription_id}`);
+      return;
+    }
+
+    // If full refund, downgrade user to free tier immediately
+    if (!isPartialRefund) {
+      await db('user_subscriptions')
+        .where({ id: subscription.id })
+        .update({
+          status: 'canceled',
+          canceled_at: new Date(),
+          updated_at: new Date(),
+        });
+
+      await userServiceClient.updateUserSubscription(userId, {
+        subscription_tier: 'free',
+        subscription_status: 'canceled',
+      });
+
+      logger.info(`Subscription canceled due to full refund for user ${userId}`);
+    } else {
+      // Partial refund - log but keep subscription active
+      logger.info(`Partial subscription refund processed for user ${userId}: $${refundAmount}`);
+    }
+  }
+
+  /**
+   * Calculate prorated refund amount for subscription
+   */
+  private calculateProratedRefund(
+    subscriptionAmount: number,
+    periodStart: Date,
+    periodEnd: Date,
+    canceledAt: Date = new Date()
+  ): number {
+    const totalDuration = periodEnd.getTime() - periodStart.getTime();
+    const usedDuration = canceledAt.getTime() - periodStart.getTime();
+    const remainingDuration = totalDuration - usedDuration;
+
+    if (remainingDuration <= 0) {
+      return 0;
+    }
+
+    const proratedAmount = (subscriptionAmount * remainingDuration) / totalDuration;
+    return Math.max(0, Math.round(proratedAmount * 100) / 100); // Round to 2 decimals
+  }
+
+  /**
+   * Handle grace period for failed subscription payments
+   */
+  async handlePaymentGracePeriod(subscription: any): Promise<void> {
+    const GRACE_PERIOD_DAYS = 3; // 3 days grace period
+    const now = new Date();
+    const gracePeriodEnd = new Date(subscription.current_period_end);
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + GRACE_PERIOD_DAYS);
+
+    if (now <= gracePeriodEnd) {
+      // Still within grace period - send reminder
+      const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      await notificationServiceClient.sendNotification({
+        userId: subscription.user_id,
+        type: 'payment_failed',
+        title: 'Payment Failed - Grace Period',
+        body: `Your payment failed, but you still have ${daysRemaining} day(s) to update your payment method before losing access to premium features.`,
+        data: {
+          gracePeriodEnds: gracePeriodEnd.toISOString(),
+          daysRemaining,
+        },
+      });
+
+      logger.info(`Grace period notification sent to user ${subscription.user_id} - ${daysRemaining} days remaining`);
+    } else {
+      // Grace period expired - downgrade to free
+      await db('user_subscriptions')
+        .where({ id: subscription.id })
+        .update({
+          status: 'canceled',
+          canceled_at: new Date(),
+          updated_at: new Date(),
+        });
+
+      await userServiceClient.updateUserSubscription(subscription.user_id, {
+        subscription_tier: 'free',
+        subscription_status: 'canceled',
+      });
+
+      await notificationServiceClient.sendNotification({
+        userId: subscription.user_id,
+        type: 'subscription_canceled',
+        title: 'Subscription Canceled',
+        body: 'Your subscription has been canceled due to payment failure. You have been downgraded to the free plan.',
+        data: {},
+      });
+
+      logger.info(`Grace period expired for user ${subscription.user_id} - subscription canceled`);
+    }
   }
 }
