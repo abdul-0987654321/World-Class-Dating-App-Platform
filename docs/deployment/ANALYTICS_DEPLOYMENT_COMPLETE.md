@@ -107,7 +107,7 @@ All services are ready to be built and pushed to:
 4. **messaging-service** (Port 3003)
 5. **media-service** (Port 3004)
 6. **moderation-service** (Port 3005)
-7. **notification-service** (Port 3006)
+7. **notification-service** (Port 3008)
 8. **payment-service** (Port 3008)
 9. **api-gateway** (Port 4000)
 10. **web-frontend** (Port 3000) - **UPDATED** with analytics

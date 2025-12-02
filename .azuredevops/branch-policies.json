@@ -1,0 +1,282 @@
+{
+  "branchPolicies": {
+    "description": "Branch policies for Dating Platform repository",
+    "version": "1.0",
+
+    "policies": [
+      {
+        "name": "Require Work Item Linking",
+        "enabled": true,
+        "branches": ["main", "develop", "release/*", "hotfix/*"],
+        "settings": {
+          "requireWorkItemLinks": true,
+          "minimumWorkItems": 1,
+          "allowedWorkItemTypes": [
+            "User Story",
+            "Bug",
+            "Task",
+            "Feature"
+          ],
+          "blockPushWithoutWorkItem": true,
+          "message": "At least one work item must be linked to this pull request. Use AB#123 in PR description."
+        }
+      },
+
+      {
+        "name": "Require Pull Request Reviews",
+        "enabled": true,
+        "branches": ["main", "develop"],
+        "settings": {
+          "minimumApprovers": 2,
+          "requireApproversForMain": 3,
+          "allowSelfApproval": false,
+          "resetOnPush": true,
+          "requireCodeOwnerReview": true,
+          "blockLastPusherVote": true,
+          "requireLatestCommit": true
+        }
+      },
+
+      {
+        "name": "Build Validation",
+        "enabled": true,
+        "branches": ["main", "develop", "release/*"],
+        "settings": {
+          "buildDefinitions": [
+            {
+              "name": "CI-Backend",
+              "required": true,
+              "pipelineId": "backend-ci",
+              "timeout": 60,
+              "displayName": "Backend CI"
+            },
+            {
+              "name": "CI-Frontend",
+              "required": true,
+              "pipelineId": "frontend-ci",
+              "timeout": 60,
+              "displayName": "Frontend CI"
+            },
+            {
+              "name": "Security-Tests",
+              "required": true,
+              "pipelineId": "security-tests",
+              "timeout": 30,
+              "displayName": "Security Scanning"
+            },
+            {
+              "name": "E2E-Tests",
+              "required": false,
+              "pipelineId": "e2e-tests",
+              "timeout": 45,
+              "displayName": "End-to-End Tests",
+              "optional": true
+            }
+          ],
+          "blockOnFailure": true,
+          "expirationInMinutes": 720,
+          "requireSuccessfulLastRun": true
+        }
+      },
+
+      {
+        "name": "Status Checks",
+        "enabled": true,
+        "branches": ["main", "develop"],
+        "settings": {
+          "requiredStatusChecks": [
+            "code-quality/eslint",
+            "code-quality/prettier",
+            "security/dependency-check",
+            "security/sonarqube",
+            "tests/unit-tests",
+            "tests/integration-tests"
+          ],
+          "requireBranchUpToDate": true
+        }
+      },
+
+      {
+        "name": "Comment Requirements",
+        "enabled": true,
+        "branches": ["main", "develop"],
+        "settings": {
+          "requireCommentResolution": true,
+          "blockOnActiveComments": true,
+          "allowedCommentTypes": ["suggestion", "issue", "question"]
+        }
+      },
+
+      {
+        "name": "Merge Strategy",
+        "enabled": true,
+        "branches": ["main", "develop"],
+        "settings": {
+          "allowedMergeTypes": [
+            "squash",
+            "rebase",
+            "merge"
+          ],
+          "defaultMergeType": "squash",
+          "deleteSourceBranch": true,
+          "enforceLinearHistory": false
+        }
+      },
+
+      {
+        "name": "Branch Naming Convention",
+        "enabled": true,
+        "settings": {
+          "patterns": [
+            {
+              "pattern": "^feature/AB#\\d+-[a-z0-9-]+$",
+              "description": "Feature branches: feature/AB#123-feature-name"
+            },
+            {
+              "pattern": "^bugfix/AB#\\d+-[a-z0-9-]+$",
+              "description": "Bugfix branches: bugfix/AB#456-bug-description"
+            },
+            {
+              "pattern": "^hotfix/AB#\\d+-[a-z0-9-]+$",
+              "description": "Hotfix branches: hotfix/AB#789-critical-fix"
+            },
+            {
+              "pattern": "^release/v\\d+\\.\\d+\\.\\d+$",
+              "description": "Release branches: release/v1.2.3"
+            }
+          ],
+          "enforceNaming": true,
+          "blockInvalidNames": true
+        }
+      },
+
+      {
+        "name": "Protected Branches",
+        "enabled": true,
+        "settings": {
+          "branches": [
+            {
+              "name": "main",
+              "protection": {
+                "allowForcePush": false,
+                "allowDeletion": false,
+                "requirePullRequest": true,
+                "requireStatusChecks": true,
+                "requireWorkItemLink": true,
+                "adminOverride": false
+              }
+            },
+            {
+              "name": "develop",
+              "protection": {
+                "allowForcePush": false,
+                "allowDeletion": false,
+                "requirePullRequest": true,
+                "requireStatusChecks": true,
+                "requireWorkItemLink": true,
+                "adminOverride": true
+              }
+            },
+            {
+              "name": "release/*",
+              "protection": {
+                "allowForcePush": false,
+                "allowDeletion": false,
+                "requirePullRequest": true,
+                "requireStatusChecks": true,
+                "requireWorkItemLink": true,
+                "adminOverride": true
+              }
+            }
+          ]
+        }
+      },
+
+      {
+        "name": "File Size Restrictions",
+        "enabled": true,
+        "settings": {
+          "maxFileSize": "10MB",
+          "blockedExtensions": [".exe", ".dll", ".so", ".dylib"],
+          "blockedPaths": ["node_modules/", "dist/", "build/", ".env"],
+          "warnOnLargeFiles": true,
+          "warnThreshold": "5MB"
+        }
+      },
+
+      {
+        "name": "Commit Message Convention",
+        "enabled": true,
+        "settings": {
+          "patterns": [
+            {
+              "pattern": "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\\([a-z-]+\\))?: .{10,}( AB#\\d+)?$",
+              "description": "Conventional commits with optional work item reference"
+            }
+          ],
+          "examples": [
+            "feat(auth): implement OAuth2 login AB#123",
+            "fix(matching): resolve algorithm timeout bug AB#456",
+            "docs: update API documentation",
+            "refactor(messaging): optimize query performance AB#789"
+          ],
+          "requireWorkItemInMessage": false,
+          "enforceConventionalCommits": true
+        }
+      }
+    ],
+
+    "approvalGates": {
+      "production": {
+        "required": true,
+        "approvers": {
+          "minimumRequired": 2,
+          "requiredGroups": [
+            "Release Managers",
+            "DevOps Lead"
+          ],
+          "timeout": "24 hours",
+          "allowReassign": true
+        },
+        "conditions": [
+          "All tests passed",
+          "Security scan completed",
+          "No critical bugs",
+          "Staging validation successful"
+        ]
+      },
+
+      "staging": {
+        "required": true,
+        "approvers": {
+          "minimumRequired": 1,
+          "requiredGroups": ["Tech Leads"],
+          "timeout": "4 hours",
+          "allowReassign": true
+        },
+        "conditions": [
+          "All tests passed",
+          "Code review completed"
+        ]
+      }
+    },
+
+    "notifications": {
+      "policyViolations": {
+        "enabled": true,
+        "recipients": [
+          "PR Author",
+          "Code Reviewers",
+          "DevOps Team"
+        ],
+        "channels": ["email", "slack"]
+      },
+
+      "approvalRequired": {
+        "enabled": true,
+        "recipients": ["Approvers"],
+        "channels": ["email", "slack", "teams"]
+      }
+    }
+  }
+}

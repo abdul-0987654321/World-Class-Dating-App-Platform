@@ -12,6 +12,17 @@ export interface PrivacySettings {
   blockScreenshots: boolean;
   showAge: boolean;
   showLocation: boolean;
+  // Aliases for component compatibility
+  showDistance?: boolean; // Inverse of hideDistance
+  onlineStatus?: string; // String version for presets display
+  profileVisibility?: string; // String version for presets display
+}
+
+export interface IncognitoSession {
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
 }
 
 export interface PrivacyPreset {

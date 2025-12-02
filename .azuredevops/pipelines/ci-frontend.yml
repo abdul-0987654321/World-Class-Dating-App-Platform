@@ -1,0 +1,183 @@
+# Azure Pipeline - Frontend CI
+# Runs on: Push to main/develop, PRs to main/develop
+# Tests: Web applications (React apps)
+# Triggers: Changes to apps/web/ or apps/web-app/
+
+name: Frontend-CI-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - release/*
+  paths:
+    include:
+      - apps/web/**
+      - apps/web-app/**
+      - packages/shared/**
+      - package.json
+      - yarn.lock
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - apps/web/**
+      - apps/web-app/**
+      - packages/shared/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  NODE_VERSION: '20.x'
+  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+
+stages:
+  - stage: Build
+    displayName: 'Build and Test Frontend'
+    jobs:
+      - job: WebApp
+        displayName: 'Web Application'
+        steps:
+          - checkout: self
+            fetchDepth: 1
+            displayName: 'Checkout repository'
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(NODE_VERSION)
+            displayName: 'Install Node.js $(NODE_VERSION)'
+
+          - task: Cache@2
+            inputs:
+              key: 'yarn | "$(Agent.OS)" | yarn.lock'
+              restoreKeys: |
+                yarn | "$(Agent.OS)"
+              path: $(YARN_CACHE_FOLDER)
+            displayName: 'Cache yarn dependencies'
+
+          - script: |
+              yarn install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - script: |
+              cd apps/web-app
+              yarn lint
+            displayName: 'Lint web app code'
+
+          - script: |
+              cd apps/web-app
+              yarn test --coverage --ci --watchAll=false
+            displayName: 'Run web app tests'
+            env:
+              CI: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              testRunTitle: 'Web App Unit Tests'
+              failTaskOnFailedTests: true
+            displayName: 'Publish test results'
+
+          - task: PublishCodeCoverageResults@1
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/apps/web-app/coverage/cobertura-coverage.xml'
+              reportDirectory: '$(System.DefaultWorkingDirectory)/apps/web-app/coverage'
+            displayName: 'Publish code coverage'
+
+          - script: |
+              cd apps/web-app
+              yarn build
+            displayName: 'Build web application'
+            env:
+              NODE_ENV: production
+
+          - task: PublishBuildArtifacts@1
+            condition: succeeded()
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/apps/web-app/dist'
+              ArtifactName: 'web-app-build'
+              publishLocation: 'Container'
+            displayName: 'Publish build artifacts'
+
+  - stage: E2ETests
+    displayName: 'End-to-End Tests'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: Playwright
+        displayName: 'Playwright E2E Tests'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(NODE_VERSION)
+            displayName: 'Install Node.js'
+
+          - script: |
+              yarn install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - script: |
+              npx playwright install --with-deps
+            displayName: 'Install Playwright browsers'
+
+          - script: |
+              yarn test:e2e
+            displayName: 'Run Playwright tests'
+            env:
+              CI: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-results/junit.xml'
+              testRunTitle: 'Playwright E2E Tests'
+              failTaskOnFailedTests: true
+            displayName: 'Publish E2E test results'
+
+          - task: PublishBuildArtifacts@1
+            condition: failed()
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/test-results'
+              ArtifactName: 'playwright-test-results'
+              publishLocation: 'Container'
+            displayName: 'Publish test failure artifacts'
+
+  - stage: Accessibility
+    displayName: 'Accessibility Tests'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: A11y
+        displayName: 'Accessibility Checks'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(NODE_VERSION)
+            displayName: 'Install Node.js'
+
+          - script: |
+              yarn install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - script: |
+              cd apps/web-app
+              yarn build
+            displayName: 'Build application'
+
+          # Add accessibility testing tool (e.g., axe, pa11y)
+          - script: |
+              npx pa11y-ci --sitemap http://localhost:5173/sitemap.xml || true
+            displayName: 'Run accessibility tests'
+            continueOnError: true

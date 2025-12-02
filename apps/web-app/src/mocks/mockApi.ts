@@ -82,13 +82,14 @@ export const mockApi = {
           name: matchedProfile?.name || 'New Match',
           photoUrl: matchedProfile?.photos[0] || '',
           isOnline: Math.random() > 0.5,
+          premium_tier: 'free',
         },
         matchedAt: new Date().toISOString(),
-        lastMessage: null,
-        lastMessageAt: null,
+        lastMessage: null as string | null,
+        lastMessageAt: null as string | null,
         hasUnread: false,
       };
-      matches.unshift(newMatch);
+      matches.unshift(newMatch as typeof matches[0]);
     }
 
     return {

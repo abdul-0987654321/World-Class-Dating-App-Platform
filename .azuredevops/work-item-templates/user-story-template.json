@@ -1,0 +1,110 @@
+{
+  "$schema": "https://dev.azure.com/schemas/workItemTemplates/1.0",
+  "name": "User Story Template - Dating Platform",
+  "description": "Standard user story template for the Dating Platform project",
+  "workItemType": "User Story",
+  "fields": {
+    "System.Title": {
+      "value": "As a [user type], I want to [action] so that [benefit]",
+      "required": true,
+      "description": "User story title following the standard format"
+    },
+    "System.Description": {
+      "value": "<div><h3>User Story</h3><p><strong>As a</strong> [type of user]<br/><strong>I want</strong> [some goal or objective]<br/><strong>So that</strong> [some reason or benefit]</p><h3>Context</h3><p>Provide additional context, background, or requirements here.</p></div>",
+      "required": true
+    },
+    "Microsoft.VSTS.Common.AcceptanceCriteria": {
+      "value": "<div><h3>Acceptance Criteria</h3><p><strong>Given</strong> [context or precondition]<br/><strong>When</strong> [action or event]<br/><strong>Then</strong> [expected outcome]</p><h4>Additional Criteria:</h4><ul><li>Criterion 1</li><li>Criterion 2</li><li>Criterion 3</li></ul></div>",
+      "required": true
+    },
+    "System.AreaPath": {
+      "value": "DatingPlatform",
+      "required": true
+    },
+    "System.IterationPath": {
+      "value": "DatingPlatform",
+      "required": false
+    },
+    "Microsoft.VSTS.Common.Priority": {
+      "value": 2,
+      "required": true,
+      "allowedValues": [1, 2, 3, 4]
+    },
+    "Microsoft.VSTS.Common.ValueArea": {
+      "value": "Business",
+      "required": true,
+      "allowedValues": ["Business", "Architectural"]
+    },
+    "Microsoft.VSTS.Scheduling.StoryPoints": {
+      "value": null,
+      "required": false,
+      "description": "Story points estimation (Fibonacci: 1, 2, 3, 5, 8, 13, 21)"
+    },
+    "System.Tags": {
+      "value": "user-story",
+      "required": false
+    },
+    "Custom.TechnicalNotes": {
+      "value": "<div><h3>Technical Notes</h3><ul><li>API endpoints affected</li><li>Database changes required</li><li>Third-party integrations</li><li>Performance considerations</li></ul></div>",
+      "required": false
+    },
+    "Custom.UIUXNotes": {
+      "value": "<div><h3>UI/UX Notes</h3><ul><li>Wireframes/mockups link</li><li>Design system components to use</li><li>Responsive behavior</li><li>Accessibility requirements</li></ul></div>",
+      "required": false
+    },
+    "Custom.TestingNotes": {
+      "value": "<div><h3>Testing Notes</h3><ul><li>Unit test coverage required</li><li>Integration tests needed</li><li>E2E test scenarios</li><li>Performance testing requirements</li></ul></div>",
+      "required": false
+    }
+  },
+  "childWorkItems": [
+    {
+      "workItemType": "Task",
+      "title": "Backend API development",
+      "description": "Implement backend API endpoints and business logic"
+    },
+    {
+      "workItemType": "Task",
+      "title": "Frontend UI development",
+      "description": "Implement user interface components"
+    },
+    {
+      "workItemType": "Task",
+      "title": "Database changes",
+      "description": "Create and execute database migrations"
+    },
+    {
+      "workItemType": "Task",
+      "title": "Unit tests",
+      "description": "Write and execute unit tests"
+    },
+    {
+      "workItemType": "Task",
+      "title": "Integration tests",
+      "description": "Write and execute integration tests"
+    },
+    {
+      "workItemType": "Task",
+      "title": "Documentation",
+      "description": "Update API documentation and user guides"
+    }
+  ],
+  "rules": [
+    {
+      "name": "High priority stories need story points",
+      "conditions": [
+        {
+          "field": "Microsoft.VSTS.Common.Priority",
+          "operator": "equals",
+          "value": 1
+        }
+      ],
+      "actions": [
+        {
+          "field": "Microsoft.VSTS.Scheduling.StoryPoints",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

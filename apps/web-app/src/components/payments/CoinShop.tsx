@@ -146,14 +146,14 @@ export const CoinShop: React.FC = () => {
               {(wallet?.gems || 0) > 0 && (
                 <div className="flex items-center gap-2 ml-4">
                   <span className="text-2xl">💎</span>
-                  <span className="text-2xl font-bold">{wallet.gems}</span>
+                  <span className="text-2xl font-bold">{wallet?.gems || 0}</span>
                   <span className="text-yellow-100">Gems</span>
                 </div>
               )}
             </div>
             {(wallet?.bonusCoins || 0) > 0 && (
               <p className="text-yellow-100 text-sm mt-1">
-                + {wallet.bonusCoins} bonus coins
+                + {wallet?.bonusCoins || 0} bonus coins
               </p>
             )}
           </div>

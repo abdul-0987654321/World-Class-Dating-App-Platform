@@ -1,0 +1,390 @@
+# Complete Alert Rules for Dating App Monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  api-alerts.yml: |
+    groups:
+    - name: api_alerts
+      interval: 30s
+      rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+          /
+          sum(rate(http_requests_total[5m])) by (service)) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected in {{ $labels.service }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.service }}"
+
+      # API Response Time High
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High response time for {{ $labels.service }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.service }}"
+
+      # API Request Rate Spike
+      - alert: RequestRateSpike
+        expr: |
+          rate(http_requests_total[5m]) >
+          (rate(http_requests_total[30m] offset 1h) * 2)
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "Unusual request rate spike detected"
+          description: "Request rate is {{ $value }} req/s, which is 2x higher than usual"
+
+      # Too Many 4xx Errors
+      - alert: HighClientErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"4.."}[5m])) by (service)
+          /
+          sum(rate(http_requests_total[5m])) by (service)) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High client error rate in {{ $labels.service }}"
+          description: "Client error rate is {{ $value | humanizePercentage }}"
+
+  service-alerts.yml: |
+    groups:
+    - name: service_health
+      interval: 30s
+      rules:
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job=~".*-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 2 minutes"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (container_memory_usage_bytes{namespace="dating-app"}
+          /
+          container_spec_memory_limit_bytes{namespace="dating-app"}) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High memory usage in {{ $labels.pod }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} in {{ $labels.pod }}"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (rate(container_cpu_usage_seconds_total{namespace="dating-app"}[5m])
+          /
+          container_spec_cpu_quota{namespace="dating-app"} * 100000) > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High CPU usage in {{ $labels.pod }}"
+          description: "CPU usage is {{ $value }}% in {{ $labels.pod }}"
+
+      # Container Restarts
+      - alert: ContainerRestarts
+        expr: |
+          rate(kube_pod_container_status_restarts_total{namespace="dating-app"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: stability
+        annotations:
+          summary: "Container {{ $labels.container }} is restarting"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} has restarted {{ $value }} times"
+
+      # Pod CrashLooping
+      - alert: PodCrashLooping
+        expr: |
+          rate(kube_pod_container_status_restarts_total{namespace="dating-app"}[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: stability
+        annotations:
+          summary: "Pod {{ $labels.pod }} is crash looping"
+          description: "Pod {{ $labels.pod }} is restarting frequently"
+
+  database-alerts.yml: |
+    groups:
+    - name: database_alerts
+      interval: 30s
+      rules:
+      # PostgreSQL Down
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been down for more than 2 minutes"
+
+      # High Database Connections
+      - alert: HighDatabaseConnections
+        expr: |
+          (sum(pg_stat_activity_count) / sum(pg_settings_max_connections)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High number of database connections"
+          description: "Database connections are at {{ $value | humanizePercentage }} of max"
+
+      # Slow Queries
+      - alert: SlowQueries
+        expr: |
+          rate(pg_stat_statements_mean_time_seconds{query!~".*pg_stat.*"}[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time is {{ $value }}s"
+
+      # Database Replication Lag
+      - alert: DatabaseReplicationLag
+        expr: |
+          pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database replication lag detected"
+          description: "Replication lag is {{ $value }}s"
+
+      # High Database Disk Usage
+      - alert: HighDatabaseDiskUsage
+        expr: |
+          (pg_database_size_bytes / pg_tablespace_size_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database disk usage"
+          description: "Database disk usage is {{ $value | humanizePercentage }}"
+
+  redis-alerts.yml: |
+    groups:
+    - name: redis_alerts
+      interval: 30s
+      rules:
+      # Redis Down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 2 minutes"
+
+      # High Redis Memory Usage
+      - alert: HighRedisMemoryUsage
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      # Redis Connections High
+      - alert: HighRedisConnections
+        expr: |
+          redis_connected_clients > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High number of Redis connections"
+          description: "Redis has {{ $value }} connected clients"
+
+      # High Redis Eviction Rate
+      - alert: HighRedisEvictionRate
+        expr: |
+          rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis key eviction rate"
+          description: "Redis is evicting {{ $value }} keys per second"
+
+      # Redis Keyspace Miss Rate
+      - alert: HighRedisMissRate
+        expr: |
+          (rate(redis_keyspace_misses_total[5m])
+          /
+          (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis cache miss rate"
+          description: "Cache miss rate is {{ $value | humanizePercentage }}"
+
+  websocket-alerts.yml: |
+    groups:
+    - name: websocket_alerts
+      interval: 30s
+      rules:
+      # High WebSocket Connection Count
+      - alert: HighWebSocketConnections
+        expr: |
+          websocket_connections_active > 8000
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+        annotations:
+          summary: "High number of WebSocket connections"
+          description: "Active WebSocket connections: {{ $value }}"
+
+      # WebSocket Connection Errors
+      - alert: WebSocketConnectionErrors
+        expr: |
+          rate(websocket_connection_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+        annotations:
+          summary: "High WebSocket connection error rate"
+          description: "WebSocket errors: {{ $value }} per second"
+
+      # WebSocket Message Queue Backlog
+      - alert: WebSocketMessageBacklog
+        expr: |
+          websocket_message_queue_length > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+        annotations:
+          summary: "WebSocket message queue backlog"
+          description: "Message queue length: {{ $value }}"
+
+  matching-alerts.yml: |
+    groups:
+    - name: matching_alerts
+      interval: 30s
+      rules:
+      # High Matching Queue Length
+      - alert: HighMatchingQueueLength
+        expr: |
+          matching_queue_length > 500
+        for: 10m
+        labels:
+          severity: warning
+          component: matching
+        annotations:
+          summary: "High matching queue length"
+          description: "Matching queue has {{ $value }} pending items"
+
+      # Slow Matching Processing
+      - alert: SlowMatchingProcessing
+        expr: |
+          rate(matching_processing_duration_seconds_sum[5m])
+          /
+          rate(matching_processing_duration_seconds_count[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          component: matching
+        annotations:
+          summary: "Slow matching algorithm processing"
+          description: "Average matching time is {{ $value }}s"
+
+  infrastructure-alerts.yml: |
+    groups:
+    - name: infrastructure_alerts
+      interval: 30s
+      rules:
+      # Node Disk Pressure
+      - alert: NodeDiskPressure
+        expr: |
+          kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Node {{ $labels.node }} has disk pressure"
+          description: "Node is running out of disk space"
+
+      # Node Memory Pressure
+      - alert: NodeMemoryPressure
+        expr: |
+          kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Node {{ $labels.node }} has memory pressure"
+          description: "Node is running low on memory"
+
+      # Persistent Volume Usage
+      - alert: HighPVUsage
+        expr: |
+          (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High persistent volume usage"
+          description: "PV {{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"
+
+      # Certificate Expiring Soon
+      - alert: CertificateExpiringSoon
+        expr: |
+          (ssl_certificate_expiry_seconds - time()) < (30 * 24 * 3600)
+        for: 1h
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "Certificate {{ $labels.domain }} expires in {{ $value | humanizeDuration }}"

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages
 import { LoginPage } from './pages/Auth/LoginPage';
+import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
 import { MatchesPage } from './pages/Matches/MatchesPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
@@ -79,6 +80,12 @@ const App: React.FC = () => {
         {/* Public routes */}
         <Route path="/login" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <LoginPage />
+        } />
+        <Route path="/register" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />
+        } />
+        <Route path="/signup" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />
         } />
 
         {/* Public demo route */}

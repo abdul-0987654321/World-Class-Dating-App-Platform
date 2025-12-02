@@ -64,19 +64,22 @@ class AuthService {
 
   async register(data: RegisterData): Promise<LoginResponse> {
     if (this.isMock) {
-      // Mock registration
-      const mockUser = {
+      // Mock registration - create a complete user object
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const mockUser: User = {
         id: `user-${Date.now()}`,
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
         isVerified: false,
         profileCompletion: 20,
+        subscription: 'free',
+        coinBalance: 50,
       };
       const token = `mock-token-${mockUser.id}`;
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('currentUser', JSON.stringify(mockUser));
-      return { user: mockUser as User, token };
+      const response: LoginResponse = { user: mockUser, token };
+      this.saveSession(response);
+      return response;
     }
 
     // Backend returns { success: true, data: { user, accessToken, refreshToken } }

@@ -117,7 +117,7 @@ const ModerationQueue: React.FC = () => {
             {queueItems.map((item) => (
               <tr key={item.id}>
                 <ContentCell>
-                  {item.contentType === 'image' && item.contentUrl ? (
+                  {item.contentType === 'photo' && item.contentUrl ? (
                     <ContentPreview>
                       <img src={item.contentUrl} alt="Content" />
                       <ContentType>{item.contentType}</ContentType>
@@ -239,7 +239,7 @@ const ReviewModal: React.FC<{
         </ModalHeader>
 
         <ModalBody>
-          {item.contentType === 'image' && item.contentUrl && (
+          {item.contentType === 'photo' && item.contentUrl && (
             <ContentImage src={item.contentUrl} alt="Content to review" />
           )}
 

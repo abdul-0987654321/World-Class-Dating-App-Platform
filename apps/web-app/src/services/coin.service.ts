@@ -6,6 +6,7 @@
 export interface CoinBalance {
   coins: number;
   gems: number;
+  balance?: number; // Alias for coins
   lastUpdated: string;
 }
 
@@ -14,6 +15,8 @@ export interface CoinPackage {
   name: string;
   coins: number;
   bonusCoins: number;
+  amount?: number; // Alias for coins
+  bonus?: number; // Alias for bonusCoins
   price: number;
   currency: string;
   popular?: boolean;

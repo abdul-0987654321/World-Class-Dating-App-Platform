@@ -52,7 +52,7 @@ export const CoinBalance: React.FC = () => {
           <circle cx="12" cy="12" r="7" fill="#FFA500" />
         </svg>
       </div>
-      <span className="balance-amount">{balance?.balance.toLocaleString() || 0}</span>
+      <span className="balance-amount">{(balance?.balance ?? balance?.coins ?? 0).toLocaleString()}</span>
       <svg className="plus-icon" viewBox="0 0 20 20" fill="currentColor">
         <path
           fillRule="evenodd"

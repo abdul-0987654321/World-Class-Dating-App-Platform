@@ -71,7 +71,7 @@ export const MyReports: React.FC = () => {
     );
   };
 
-  const formatDate = (date: Date): string => {
+  const formatDate = (date: Date | string): string => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -140,26 +140,34 @@ export const MyReports: React.FC = () => {
       ) : (
         <>
           <div className="reports-list">
-            {reports.map((report) => (
+            {reports.map((report) => {
+              const user = report.reportedUser;
+              const photoUrl = user?.profilePhoto || user?.photoUrl;
+              const firstName = user?.firstName || user?.name?.split(' ')[0] || 'Unknown';
+              const lastName = user?.lastName || user?.name?.split(' ')[1] || '';
+              const reportType = report.reportType || report.category;
+              const actionTaken = report.actionTaken || report.resolution;
+
+              return (
               <div key={report.id} className="report-card">
                 <div className="report-header-row">
                   <div className="report-user">
                     <div className="user-avatar">
-                      {report.reportedUser.profilePhoto ? (
+                      {photoUrl ? (
                         <img
-                          src={report.reportedUser.profilePhoto}
-                          alt={report.reportedUser.firstName}
+                          src={photoUrl}
+                          alt={firstName}
                         />
                       ) : (
                         <div className="avatar-placeholder">
-                          {report.reportedUser.firstName.charAt(0)}
-                          {report.reportedUser.lastName.charAt(0)}
+                          {firstName.charAt(0)}
+                          {lastName.charAt(0)}
                         </div>
                       )}
                     </div>
                     <div className="user-info">
                       <h4>
-                        {report.reportedUser.firstName} {report.reportedUser.lastName}
+                        {firstName} {lastName}
                       </h4>
                       <span className="report-date">{formatDate(report.createdAt)}</span>
                     </div>
@@ -170,7 +178,7 @@ export const MyReports: React.FC = () => {
                 <div className="report-details">
                   <div className="detail-row">
                     <span className="detail-label">Type:</span>
-                    <span className="detail-value">{formatReportType(report.reportType)}</span>
+                    <span className="detail-value">{formatReportType(reportType)}</span>
                   </div>
 
                   {report.description && (
@@ -180,10 +188,10 @@ export const MyReports: React.FC = () => {
                     </div>
                   )}
 
-                  {report.actionTaken && (
+                  {actionTaken && (
                     <div className="action-taken">
                       <span className="action-label">Action Taken:</span>
-                      <span className="action-value">{report.actionTaken}</span>
+                      <span className="action-value">{actionTaken}</span>
                     </div>
                   )}
 
@@ -195,7 +203,7 @@ export const MyReports: React.FC = () => {
                   )}
                 </div>
               </div>
-            ))}
+            );})}
           </div>
 
           {hasMore && (

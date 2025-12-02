@@ -197,6 +197,26 @@ export class MatchRepository {
   }
 
   /**
+   * Get total match count for a user (for analytics)
+   */
+  async getUserMatchCount(userId: string): Promise<number> {
+    try {
+      const result = await this.db('matches')
+        .where(function() {
+          this.where('user1_id', userId).orWhere('user2_id', userId);
+        })
+        .andWhere('status', MatchStatus.MATCHED)
+        .count('* as count')
+        .first();
+
+      return parseInt(result?.count as string || '0', 10);
+    } catch (error) {
+      logger.error('Failed to get user match count', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database record to Match entity
    */
   private mapToMatch(record: any): Match {

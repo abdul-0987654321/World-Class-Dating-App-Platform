@@ -23,7 +23,7 @@ export const VerificationBadges: React.FC<VerificationBadgesProps> = ({
   layout = 'horizontal',
   showLabels = false,
 }) => {
-  const badges = [];
+  const badges: Array<{ type: string; icon: string; color: string; label: string }> = [];
 
   if (isPhotoVerified) {
     badges.push({

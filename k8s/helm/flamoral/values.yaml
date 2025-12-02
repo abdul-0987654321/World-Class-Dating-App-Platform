@@ -177,7 +177,7 @@ notificationService:
   service:
     type: ClusterIP
     port: 80
-    targetPort: 3006
+    targetPort: 3008
   resources:
     requests:
       cpu: 100m

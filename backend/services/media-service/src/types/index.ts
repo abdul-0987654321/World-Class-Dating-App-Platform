@@ -80,3 +80,67 @@ export interface DeleteResponse {
   success: boolean;
   message: string;
 }
+
+export interface VideoMetadata {
+  id: string;
+  userId: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  duration: number;
+  urls: {
+    original: string;
+    compressed: string;
+    thumbnails: string[];
+  };
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  codec?: string;
+  bitrate?: number;
+  frameRate?: number;
+  moderationStatus: ModerationStatus;
+  moderationResult?: ModerationResult;
+  uploadedAt: Date;
+  updatedAt: Date;
+}
+
+export interface VideoProcessingJob {
+  videoId: string;
+  userId: string;
+  fileName: string;
+  filePath: string;
+}
+
+export interface VideoValidationResult {
+  valid: boolean;
+  error?: string;
+  duration?: number;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface VideoCompressionOptions {
+  format?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  videoBitrate?: string;
+  audioBitrate?: string;
+  resolution?: {
+    width: number;
+    height: number;
+  };
+  frameRate?: number;
+  preset?: string;
+}
+
+export interface ThumbnailGenerationOptions {
+  width: number;
+  height: number;
+  count: number;
+  timestamps?: number[];
+}

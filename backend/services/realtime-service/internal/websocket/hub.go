@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/heartly/realtime-service/internal/metrics"
 	"github.com/heartly/realtime-service/internal/presence"
 	"github.com/heartly/realtime-service/internal/pubsub"
 	"github.com/heartly/realtime-service/internal/typing"
@@ -38,6 +39,9 @@ type Hub struct {
 	// Typing manager
 	typing *typing.Manager
 
+	// Conversation manager
+	conversations *ConversationManager
+
 	// Mutex for thread safety
 	mu sync.RWMutex
 
@@ -65,6 +69,7 @@ func NewHub(redis *pubsub.RedisClient, presenceManager *presence.Manager, typing
 		redis:         redis,
 		presence:      presenceManager,
 		typing:        typingManager,
+		conversations: NewConversationManager(),
 		done:          make(chan struct{}),
 	}
 }
@@ -118,6 +123,10 @@ func (h *Hub) registerClient(client *Client) {
 	}
 	h.clients[client.UserID][client.ID] = client
 
+	// Record metrics
+	metrics.RecordWebSocketConnection("connected")
+	metrics.UpdateOnlineUsers(int64(len(h.clients)))
+
 	log.WithFields(log.Fields{
 		"clientId": client.ID,
 		"userId":   client.UserID,
@@ -146,6 +155,8 @@ func (h *Hub) unregisterClient(client *Client) {
 			delete(h.clients, client.UserID)
 			// Update presence to offline if no more connections
 			h.presence.SetOffline(client.UserID)
+			// Remove from all conversations
+			h.conversations.LeaveAllConversations(client.UserID)
 		}
 	}
 
@@ -159,6 +170,10 @@ func (h *Hub) unregisterClient(client *Client) {
 
 	// Close client
 	close(client.Send)
+
+	// Record metrics
+	metrics.RecordWebSocketConnection("disconnected")
+	metrics.UpdateOnlineUsers(int64(len(h.clients)))
 
 	log.WithFields(log.Fields{
 		"clientId": client.ID,
@@ -240,11 +255,16 @@ func (h *Hub) broadcastMessage(msg *BroadcastMessage) {
 
 // handlePubSubMessage handles messages from Redis pub/sub
 func (h *Hub) handlePubSubMessage(msg *pubsub.PubSubMessage) {
+	// Record metrics
+	metrics.RecordRedisPubSubMessage(string(msg.Type))
+
 	switch msg.Type {
 	case pubsub.TypeNewMessage:
 		h.handleNewMessagePubSub(msg)
 	case pubsub.TypeMessageRead:
 		h.handleMessageReadPubSub(msg)
+	case pubsub.TypeMessageDelivered:
+		h.handleMessageDeliveredPubSub(msg)
 	case pubsub.TypeMessageReaction:
 		h.handleMessageReactionPubSub(msg)
 	case pubsub.TypeNewMatch:
@@ -273,6 +293,14 @@ func (h *Hub) handleNewMessagePubSub(msg *pubsub.PubSubMessage) {
 func (h *Hub) handleMessageReadPubSub(msg *pubsub.PubSubMessage) {
 	h.Broadcast <- &BroadcastMessage{
 		Event:     EventMessageReadReceipt,
+		Data:      msg.Payload,
+		TargetIDs: msg.TargetIDs,
+	}
+}
+
+func (h *Hub) handleMessageDeliveredPubSub(msg *pubsub.PubSubMessage) {
+	h.Broadcast <- &BroadcastMessage{
+		Event:     EventMessageDelivered,
 		Data:      msg.Payload,
 		TargetIDs: msg.TargetIDs,
 	}
@@ -459,6 +487,9 @@ func (h *Hub) HandleMessageReact(client *Client, payload *ReactMessagePayload) {
 func (h *Hub) HandleTypingStart(client *Client, conversationID string) {
 	h.typing.StartTyping(client.UserID, conversationID)
 
+	// Record metrics
+	metrics.RecordTypingIndicator("start")
+
 	h.redis.Publish(pubsub.ChannelTyping, &pubsub.PubSubMessage{
 		Type:   pubsub.TypeTypingStart,
 		UserID: client.UserID,
@@ -473,6 +504,9 @@ func (h *Hub) HandleTypingStart(client *Client, conversationID string) {
 // HandleTypingStop processes typing stop event
 func (h *Hub) HandleTypingStop(client *Client, conversationID string) {
 	h.typing.StopTyping(client.UserID, conversationID)
+
+	// Record metrics
+	metrics.RecordTypingIndicator("stop")
 
 	h.redis.Publish(pubsub.ChannelTyping, &pubsub.PubSubMessage{
 		Type:   pubsub.TypeTypingStop,
@@ -495,6 +529,9 @@ func (h *Hub) HandlePresenceUpdate(client *Client, status string) {
 	case "offline":
 		h.presence.SetOffline(client.UserID)
 	}
+
+	// Record metrics
+	metrics.RecordPresenceUpdate(status)
 
 	h.redis.Publish(pubsub.ChannelPresence, &pubsub.PubSubMessage{
 		Type:   pubsub.TypePresenceUpdate,
@@ -547,4 +584,140 @@ func (h *Hub) HandleUnsubscribe(client *Client, channels []string) {
 func mustMarshal(v interface{}) json.RawMessage {
 	data, _ := json.Marshal(v)
 	return data
+}
+
+// --- Conversation Management Methods ---
+
+// JoinConversation adds a user to a conversation room
+func (h *Hub) JoinConversation(userID, conversationID string) {
+	h.conversations.JoinConversation(conversationID, userID)
+}
+
+// LeaveConversation removes a user from a conversation room
+func (h *Hub) LeaveConversation(userID, conversationID string) {
+	h.conversations.LeaveConversation(conversationID, userID)
+}
+
+// GetConversationParticipants returns all online participants in a conversation
+func (h *Hub) GetConversationParticipants(conversationID string) []string {
+	participants := h.conversations.GetConversationParticipants(conversationID)
+
+	// Filter to only online users
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	onlineParticipants := make([]string, 0)
+	for _, userID := range participants {
+		if _, ok := h.clients[userID]; ok {
+			onlineParticipants = append(onlineParticipants, userID)
+		}
+	}
+
+	return onlineParticipants
+}
+
+// BroadcastToConversation broadcasts a message to all participants in a conversation
+func (h *Hub) BroadcastToConversation(conversationID string, event EventType, data interface{}, excludeUserID string) {
+	participants := h.conversations.GetConversationParticipants(conversationID)
+
+	targetIDs := make([]string, 0)
+	for _, userID := range participants {
+		if userID != excludeUserID {
+			targetIDs = append(targetIDs, userID)
+		}
+	}
+
+	if len(targetIDs) > 0 {
+		h.Broadcast <- &BroadcastMessage{
+			Event:     event,
+			Data:      data,
+			TargetIDs: targetIDs,
+		}
+	}
+}
+
+// --- Enhanced Message Handlers for Messaging Service Integration ---
+
+// HandleNewMessageFromService processes new messages from the messaging service
+func (h *Hub) HandleNewMessageFromService(payload map[string]interface{}) {
+	conversationID, _ := payload["conversationId"].(string)
+	targetUserIDs := []string{}
+
+	// Extract target user IDs (could be from conversation participants)
+	if receiverID, ok := payload["receiverId"].(string); ok {
+		targetUserIDs = append(targetUserIDs, receiverID)
+	}
+
+	// Broadcast to conversation participants
+	h.Broadcast <- &BroadcastMessage{
+		Event:     EventMessageNew,
+		Data:      payload,
+		TargetIDs: targetUserIDs,
+	}
+
+	// Send delivery acknowledgment if user is online
+	senderID, _ := payload["senderId"].(string)
+	messageID, _ := payload["id"].(string)
+
+	for _, userID := range targetUserIDs {
+		if h.IsUserOnline(userID) {
+			// Publish delivery acknowledgment back to messaging service
+			h.redis.Publish(pubsub.ChannelMessages, &pubsub.PubSubMessage{
+				Type:   pubsub.TypeMessageDelivered,
+				UserID: userID,
+				Payload: mustMarshal(map[string]interface{}{
+					"messageId":      messageID,
+					"conversationId": conversationID,
+					"deliveredTo":    userID,
+					"deliveredAt":    time.Now(),
+				}),
+			})
+
+			// Also send delivery event to sender
+			h.SendToUser(senderID, EventMessageDelivered, MessageDeliveredEvent{
+				MessageID: messageID,
+				TempID:    "",
+			})
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"conversationId": conversationID,
+		"messageId":      messageID,
+		"targetUsers":    len(targetUserIDs),
+	}).Debug("New message broadcast from messaging service")
+}
+
+// HandleReadReceiptFromService processes read receipts from the messaging service
+func (h *Hub) HandleReadReceiptFromService(payload map[string]interface{}) {
+	conversationID, _ := payload["conversationId"].(string)
+	readBy, _ := payload["readBy"].(string)
+
+	// Get conversation participants to broadcast read receipt
+	participants := h.conversations.GetConversationParticipants(conversationID)
+
+	targetIDs := make([]string, 0)
+	for _, userID := range participants {
+		if userID != readBy {
+			targetIDs = append(targetIDs, userID)
+		}
+	}
+
+	// Broadcast read receipt to other participants
+	h.Broadcast <- &BroadcastMessage{
+		Event:     EventMessageReadReceipt,
+		Data:      payload,
+		TargetIDs: targetIDs,
+	}
+
+	log.WithFields(log.Fields{
+		"conversationId": conversationID,
+		"readBy":         readBy,
+		"recipients":     len(targetIDs),
+	}).Debug("Read receipt broadcast from messaging service")
+}
+
+// GetConversationManager returns the conversation manager
+func (h *Hub) GetConversationManager() *ConversationManager {
+	return h.conversations
 }

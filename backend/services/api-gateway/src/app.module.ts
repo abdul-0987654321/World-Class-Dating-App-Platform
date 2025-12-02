@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TerminusModule } from '@nestjs/terminus';
 import configuration from './config/configuration';
@@ -10,6 +10,8 @@ import { ProxyModule } from './services/proxy.module';
 import { ControllersModule } from './controllers/controllers.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
+import { TracingMiddleware } from './middleware/tracing.middleware';
 
 @Module({
   imports: [
@@ -47,10 +49,13 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     WebsocketModule,
   ],
   providers: [
-    // Global rate limiting
+    // Tracing middleware
+    TracingMiddleware,
+
+    // Global Redis-based rate limiting
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: RedisThrottlerGuard,
     },
     // Global JWT authentication
     {

@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [recommendation-service, photo-analysis-service]
+        service: [recommendation-service, photo-analysis]
     steps:
       - uses: actions/checkout@v4
 

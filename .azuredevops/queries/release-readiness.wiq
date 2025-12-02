@@ -1,0 +1,176 @@
+{
+  "queryName": "Release Readiness",
+  "description": "Comprehensive release readiness assessment query",
+  "queryType": "hierarchical",
+
+  "queries": [
+    {
+      "name": "All Release Items",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo], [Microsoft.VSTS.Common.Priority], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.IterationPath] = @CurrentIteration AND [System.WorkItemType] IN ('Feature', 'User Story', 'Bug', 'Task') ORDER BY [Microsoft.VSTS.Common.Priority] ASC",
+      "description": "All work items planned for current release"
+    },
+
+    {
+      "name": "Incomplete Work Items",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo], [Microsoft.VSTS.Common.Priority], [Microsoft.VSTS.Scheduling.RemainingWork] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.IterationPath] = @CurrentIteration AND [System.State] NOT IN ('Resolved', 'Closed', 'Removed') ORDER BY [Microsoft.VSTS.Common.Priority] ASC",
+      "description": "Work items not yet completed"
+    },
+
+    {
+      "name": "Release Blockers",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo], [Microsoft.VSTS.Common.Priority] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'release-blocker' AND [System.State] NOT IN ('Resolved', 'Closed') ORDER BY [Microsoft.VSTS.Common.Priority] ASC",
+      "description": "Critical items blocking release"
+    },
+
+    {
+      "name": "Unresolved Critical Bugs",
+      "wiql": "SELECT [System.Id], [System.Title], [Microsoft.VSTS.Common.Severity], [System.State], [System.AssignedTo], [System.CreatedDate] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.WorkItemType] = 'Bug' AND [Microsoft.VSTS.Common.Severity] IN ('1 - Critical', '2 - High') AND [System.State] NOT IN ('Resolved', 'Closed') ORDER BY [Microsoft.VSTS.Common.Severity] ASC",
+      "description": "High severity bugs that must be resolved before release"
+    },
+
+    {
+      "name": "Features Not Deployed to Staging",
+      "wiql": "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [Microsoft.VSTS.Scheduling.TargetDate] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.WorkItemType] = 'Feature' AND [System.State] NOT IN ('Deployed-Staging', 'Closed') AND [System.IterationPath] = @CurrentIteration ORDER BY [Microsoft.VSTS.Scheduling.TargetDate] ASC",
+      "description": "Features not yet deployed to staging"
+    },
+
+    {
+      "name": "Pending Code Reviews",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'pending-review' AND [System.State] = 'Active' AND [System.IterationPath] = @CurrentIteration",
+      "description": "Work items with pending code reviews"
+    },
+
+    {
+      "name": "Items Without Tests",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'needs-tests' AND [System.State] <> 'Closed' AND [System.IterationPath] = @CurrentIteration",
+      "description": "Work items missing test coverage"
+    },
+
+    {
+      "name": "Documentation Incomplete",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'needs-documentation' AND [System.State] <> 'Closed' AND [System.IterationPath] = @CurrentIteration",
+      "description": "Items with incomplete documentation"
+    },
+
+    {
+      "name": "Security Review Pending",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'security-review-pending' AND [System.State] <> 'Closed' AND [System.IterationPath] = @CurrentIteration",
+      "description": "Items awaiting security review"
+    },
+
+    {
+      "name": "Performance Testing Pending",
+      "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.Tags] CONTAINS 'perf-test-pending' AND [System.State] <> 'Closed' AND [System.IterationPath] = @CurrentIteration",
+      "description": "Items awaiting performance testing"
+    }
+  ],
+
+  "releaseGates": [
+    {
+      "name": "All Critical Items Resolved",
+      "condition": "COUNT(Critical Bugs) = 0 AND COUNT(Release Blockers) = 0",
+      "required": true,
+      "severity": "critical"
+    },
+    {
+      "name": "All Features Deployed to Staging",
+      "condition": "COUNT(Features Not Deployed) = 0",
+      "required": true,
+      "severity": "critical"
+    },
+    {
+      "name": "All Code Reviews Completed",
+      "condition": "COUNT(Pending Code Reviews) = 0",
+      "required": true,
+      "severity": "high"
+    },
+    {
+      "name": "Test Coverage Adequate",
+      "condition": "COUNT(Items Without Tests) = 0",
+      "required": true,
+      "severity": "high"
+    },
+    {
+      "name": "Security Review Completed",
+      "condition": "COUNT(Security Review Pending) = 0",
+      "required": true,
+      "severity": "critical"
+    },
+    {
+      "name": "Performance Testing Completed",
+      "condition": "COUNT(Performance Testing Pending) = 0",
+      "required": true,
+      "severity": "high"
+    },
+    {
+      "name": "Documentation Complete",
+      "condition": "COUNT(Documentation Incomplete) = 0",
+      "required": false,
+      "severity": "medium"
+    },
+    {
+      "name": "Work Completion Rate",
+      "condition": "(COUNT(Completed Items) / COUNT(Total Items)) >= 0.95",
+      "required": true,
+      "severity": "high"
+    }
+  ],
+
+  "metrics": [
+    {
+      "name": "Release Progress",
+      "formula": "(Completed Items / Total Items) * 100",
+      "format": "percentage",
+      "target": 100
+    },
+    {
+      "name": "Critical Issues",
+      "formula": "COUNT(Critical Bugs) + COUNT(Release Blockers)",
+      "target": 0
+    },
+    {
+      "name": "Days to Target Release",
+      "formula": "Target Date - Today",
+      "unit": "days"
+    },
+    {
+      "name": "Velocity",
+      "formula": "SUM(Story Points Completed) / Number of Sprints",
+      "unit": "points per sprint"
+    }
+  ],
+
+  "dashboard": {
+    "widgets": [
+      {
+        "type": "progress-bar",
+        "title": "Release Progress",
+        "query": "All Release Items",
+        "metric": "completion-percentage"
+      },
+      {
+        "type": "counter",
+        "title": "Release Blockers",
+        "query": "Release Blockers",
+        "threshold": { "critical": 1 }
+      },
+      {
+        "type": "counter",
+        "title": "Critical Bugs",
+        "query": "Unresolved Critical Bugs",
+        "threshold": { "critical": 1 }
+      },
+      {
+        "type": "chart",
+        "title": "Work Items by State",
+        "query": "All Release Items",
+        "chartType": "donut"
+      },
+      {
+        "type": "checklist",
+        "title": "Release Gates",
+        "items": "releaseGates"
+      }
+    ]
+  }
+}

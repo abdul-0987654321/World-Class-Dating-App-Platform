@@ -109,6 +109,29 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// serviceAuthMiddleware validates service-to-service authentication
+func (s *Server) serviceAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get service token from header
+		serviceToken := r.Header.Get("X-Service-Token")
+		if serviceToken == "" {
+			respondError(w, http.StatusUnauthorized, "Missing service token")
+			return
+		}
+
+		// Validate service token (should match configured service secret)
+		expectedToken := s.config.ServiceToken
+		if expectedToken == "" {
+			log.Warn("Service token not configured, allowing request")
+		} else if serviceToken != expectedToken {
+			respondError(w, http.StatusUnauthorized, "Invalid service token")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // getUserFromContext extracts user context from request context
 func getUserFromContext(ctx context.Context) *auth.UserContext {
 	if user, ok := ctx.Value(contextKeyUser).(*auth.UserContext); ok {

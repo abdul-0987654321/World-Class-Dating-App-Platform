@@ -8,6 +8,7 @@ import { createLogger } from '@flamoral/shared';
 import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
 import apiRoutes from './api/routes';
+import internalRoutes from './api/routes/internal.routes';
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +74,9 @@ app.get('/', (req: Request, res: Response) => {
 
 // Mount API routes
 app.use('/api', apiRoutes);
+
+// Internal API Routes (service-to-service)
+app.use('/api/internal/messages', internalRoutes);
 
 // API endpoint to check user online status
 app.get('/api/users/:userId/status', async (req: Request, res: Response) => {

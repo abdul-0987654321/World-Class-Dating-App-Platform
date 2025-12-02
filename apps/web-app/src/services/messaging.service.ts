@@ -8,9 +8,12 @@ import apiClient from './api.client';
 export interface Message {
   id: string;
   senderId: string;
+  sender_id?: string; // Alias for senderId
   content: string;
   sentAt: string;
+  created_at?: string; // Alias for sentAt
   status: 'sending' | 'sent' | 'delivered' | 'read';
+  is_read?: boolean; // Alias for status === 'read'
   type?: 'text' | 'image' | 'gif' | 'voice';
   mediaUrl?: string;
 }
@@ -19,13 +22,22 @@ export interface Participant {
   id: string;
   name: string;
   photoUrl: string;
+  photo_url?: string; // Alias for photoUrl
   isOnline: boolean;
   lastActive?: string;
+}
+
+export interface OtherUser {
+  id: string;
+  name: string;
+  photo_url?: string;
+  photoUrl?: string;
 }
 
 export interface Conversation {
   id: string;
   participant: Participant;
+  other_user?: OtherUser; // Alias for participant
   lastMessage?: Message;
   unreadCount: number;
   isTyping?: boolean;

@@ -1,0 +1,339 @@
+# Complete Kibana Configuration for Dating App Log Analysis
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config
+  namespace: logging
+data:
+  kibana.yml: |
+    server.name: kibana
+    server.host: "0.0.0.0"
+    server.port: 5601
+
+    elasticsearch.hosts: ["http://elasticsearch:9200"]
+    elasticsearch.username: elastic
+    elasticsearch.password: ${ELASTICSEARCH_PASSWORD}
+
+    monitoring.ui.container.elasticsearch.enabled: true
+
+    xpack.security.enabled: true
+    xpack.encryptedSavedObjects.encryptionKey: ${KIBANA_ENCRYPTION_KEY}
+
+    # Logging
+    logging.dest: stdout
+    logging.silent: false
+    logging.quiet: false
+    logging.verbose: false
+
+    # UI Settings
+    kibana.index: ".kibana"
+    kibana.defaultAppId: "discover"
+
+    # Advanced Settings
+    elasticsearch.requestTimeout: 30000
+    elasticsearch.shardTimeout: 30000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: logging
+  labels:
+    app: kibana
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.10.2
+        ports:
+        - containerPort: 5601
+          name: http
+        env:
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        - name: KIBANA_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kibana-secrets
+              key: encryption-key
+        volumeMounts:
+        - name: config
+          mountPath: /usr/share/kibana/config/kibana.yml
+          subPath: kibana.yml
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 90
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: kibana-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: logging
+  labels:
+    app: kibana
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5601
+    targetPort: 5601
+    name: http
+  selector:
+    app: kibana
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kibana-secrets
+  namespace: logging
+type: Opaque
+stringData:
+  encryption-key: "CHANGE_ME_32_CHARACTER_ENCRYPTION_KEY"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: logging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: kibana-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+spec:
+  tls:
+  - hosts:
+    - kibana.datingapp.com
+    secretName: kibana-tls
+  rules:
+  - host: kibana.datingapp.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kibana
+            port:
+              number: 5601
+
+---
+# Kibana Dashboards Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-dashboards
+  namespace: logging
+data:
+  error-logs-dashboard.ndjson: |
+    {"type":"dashboard","id":"dating-app-errors","attributes":{"title":"Dating App - Error Logs","description":"Dashboard for monitoring application errors","panelsJSON":"[{\"version\":\"8.10.2\",\"gridData\":{\"x\":0,\"y\":0,\"w\":24,\"h\":15,\"i\":\"1\"},\"panelIndex\":\"1\",\"embeddableConfig\":{},\"panelRefName\":\"panel_1\"},{\"version\":\"8.10.2\",\"gridData\":{\"x\":24,\"y\":0,\"w\":24,\"h\":15,\"i\":\"2\"},\"panelIndex\":\"2\",\"embeddableConfig\":{},\"panelRefName\":\"panel_2\"}]","optionsJSON":"{\"useMargins\":true,\"hidePanelTitles\":false}","version":1,"timeRestore":true,"timeTo":"now","timeFrom":"now-24h","refreshInterval":{"pause":false,"value":30000},"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"query\":{\"language\":\"kuery\",\"query\":\"log_level: ERROR OR log_level: FATAL\"},\"filter\":[]}"}}}
+    {"type":"visualization","id":"error-count-by-service","attributes":{"title":"Error Count by Service","visState":"{\"title\":\"Error Count by Service\",\"type\":\"pie\",\"params\":{\"addLegend\":true,\"addTooltip\":true,\"isDonut\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"service.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}","uiStateJSON":"{}","description":"","version":1,"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"index\":\"dating-app-logs-*\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"}}}
+
+  api-performance-dashboard.ndjson: |
+    {"type":"dashboard","id":"dating-app-api-performance","attributes":{"title":"Dating App - API Performance Logs","description":"Dashboard for monitoring API performance through logs","panelsJSON":"[{\"version\":\"8.10.2\",\"gridData\":{\"x\":0,\"y\":0,\"w\":12,\"h\":15,\"i\":\"1\"},\"panelIndex\":\"1\",\"embeddableConfig\":{},\"panelRefName\":\"panel_1\"},{\"version\":\"8.10.2\",\"gridData\":{\"x\":12,\"y\":0,\"w\":12,\"h\":15,\"i\":\"2\"},\"panelIndex\":\"2\",\"embeddableConfig\":{},\"panelRefName\":\"panel_2\"},{\"version\":\"8.10.2\",\"gridData\":{\"x\":0,\"y\":15,\"w\":24,\"h\":15,\"i\":\"3\"},\"panelIndex\":\"3\",\"embeddableConfig\":{},\"panelRefName\":\"panel_3\"}]","optionsJSON":"{\"useMargins\":true,\"hidePanelTitles\":false}","version":1,"timeRestore":true,"timeTo":"now","timeFrom":"now-1h","refreshInterval":{"pause":false,"value":10000}}}
+
+  user-activity-dashboard.ndjson: |
+    {"type":"dashboard","id":"dating-app-user-activity","attributes":{"title":"Dating App - User Activity Logs","description":"Dashboard for monitoring user activity and behavior","panelsJSON":"[{\"version\":\"8.10.2\",\"gridData\":{\"x\":0,\"y\":0,\"w\":24,\"h\":10,\"i\":\"1\"},\"panelIndex\":\"1\",\"embeddableConfig\":{},\"panelRefName\":\"panel_1\"},{\"version\":\"8.10.2\",\"gridData\":{\"x\":0,\"y\":10,\"w\":12,\"h\":10,\"i\":\"2\"},\"panelIndex\":\"2\",\"embeddableConfig\":{},\"panelRefName\":\"panel_2\"},{\"version\":\"8.10.2\",\"gridData\":{\"x\":12,\"y\":10,\"w\":12,\"h\":10,\"i\":\"3\"},\"panelIndex\":\"3\",\"embeddableConfig\":{},\"panelRefName\":\"panel_3\"}]","optionsJSON":"{\"useMargins\":true,\"hidePanelTitles\":false}","version":1,"timeRestore":true,"timeTo":"now","timeFrom":"now-24h","refreshInterval":{"pause":false,"value":60000}}}
+
+---
+# Kibana Saved Searches
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-saved-searches
+  namespace: logging
+data:
+  searches.ndjson: |
+    {"type":"search","id":"all-errors","attributes":{"title":"All Errors","description":"All error level logs","columns":["@timestamp","service","message","error_type"],"sort":[["@timestamp","desc"]],"version":1,"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"index\":\"dating-app-logs-*\",\"query\":{\"query\":\"log_level: (ERROR OR FATAL)\",\"language\":\"kuery\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"}}}
+
+    {"type":"search","id":"slow-requests","attributes":{"title":"Slow API Requests","description":"API requests slower than 1 second","columns":["@timestamp","service","http_method","http_url","duration_ms","response_time_category"],"sort":[["duration_ms","desc"]],"version":1,"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"index\":\"dating-app-logs-*\",\"query\":{\"query\":\"duration_ms > 1000\",\"language\":\"kuery\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"}}}
+
+    {"type":"search","id":"5xx-errors","attributes":{"title":"5xx HTTP Errors","description":"All 5xx server errors","columns":["@timestamp","service","http_method","http_url","http_status","message"],"sort":[["@timestamp","desc"]],"version":1,"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"index\":\"dating-app-logs-*\",\"query\":{\"query\":\"http_status >= 500 AND http_status < 600\",\"language\":\"kuery\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"}}}
+
+    {"type":"search","id":"authentication-failures","attributes":{"title":"Authentication Failures","description":"Failed authentication attempts","columns":["@timestamp","user_id","client_ip","message","geoip.country_name"],"sort":[["@timestamp","desc"]],"version":1,"kibanaSavedObjectMeta":{"searchSourceJSON":"{\"index\":\"dating-app-logs-*\",\"query\":{\"query\":\"message: (\\\"authentication failed\\\" OR \\\"login failed\\\" OR \\\"invalid credentials\\\")\",\"language\":\"kuery\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"}}}
+
+---
+# Index Patterns
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-index-patterns
+  namespace: logging
+data:
+  patterns.ndjson: |
+    {"type":"index-pattern","id":"dating-app-logs-*","attributes":{"title":"dating-app-logs-*","timeFieldName":"@timestamp","fields":"[]","fieldFormatMap":"{}","typeMeta":"{}"}}
+
+    {"type":"index-pattern","id":"dating-app-errors-*","attributes":{"title":"dating-app-errors-*","timeFieldName":"@timestamp","fields":"[]","fieldFormatMap":"{}","typeMeta":"{}"}}
+
+    {"type":"index-pattern","id":"dating-app-audit-*","attributes":{"title":"dating-app-audit-*","timeFieldName":"@timestamp","fields":"[]","fieldFormatMap":"{}","typeMeta":"{}"}}
+
+---
+# Alert Rules (Watcher)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-alert-rules
+  namespace: logging
+data:
+  high-error-rate-alert.json: |
+    {
+      "trigger": {
+        "schedule": {
+          "interval": "5m"
+        }
+      },
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["dating-app-logs-*"],
+            "body": {
+              "query": {
+                "bool": {
+                  "filter": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-5m"
+                        }
+                      }
+                    },
+                    {
+                      "terms": {
+                        "log_level": ["ERROR", "FATAL"]
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "error_count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "compare": {
+          "ctx.payload.aggregations.error_count.value": {
+            "gt": 100
+          }
+        }
+      },
+      "actions": {
+        "send_email": {
+          "email": {
+            "to": "alerts@datingapp.com",
+            "subject": "High Error Rate Alert",
+            "body": "Error count exceeded threshold: {{ctx.payload.aggregations.error_count.value}} errors in the last 5 minutes"
+          }
+        },
+        "log_action": {
+          "logging": {
+            "text": "High error rate detected: {{ctx.payload.aggregations.error_count.value}} errors"
+          }
+        }
+      }
+    }
+
+  slow-query-alert.json: |
+    {
+      "trigger": {
+        "schedule": {
+          "interval": "10m"
+        }
+      },
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["dating-app-logs-*"],
+            "body": {
+              "query": {
+                "bool": {
+                  "filter": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-10m"
+                        }
+                      }
+                    },
+                    {
+                      "range": {
+                        "duration_ms": {
+                          "gte": 5000
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "slow_queries": {
+                  "terms": {
+                    "field": "http_url.keyword",
+                    "size": 10
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "compare": {
+          "ctx.payload.hits.total": {
+            "gt": 50
+          }
+        }
+      },
+      "actions": {
+        "send_email": {
+          "email": {
+            "to": "performance@datingapp.com",
+            "subject": "Slow Query Alert",
+            "body": "{{ctx.payload.hits.total}} slow queries detected in the last 10 minutes"
+          }
+        }
+      }
+    }

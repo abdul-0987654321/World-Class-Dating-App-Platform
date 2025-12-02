@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/heartly/realtime-service/internal/auth"
 	"github.com/heartly/realtime-service/internal/config"
+	"github.com/heartly/realtime-service/internal/metrics"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -132,6 +133,13 @@ func (c *Client) WritePump() {
 
 // handleMessage processes incoming WebSocket messages
 func (c *Client) handleMessage(msg *Message) {
+	// Record metrics
+	metrics.RecordMessageReceived(string(msg.Event))
+	start := time.Now()
+	defer func() {
+		metrics.MessageProcessingDuration.WithLabelValues(string(msg.Event)).Observe(time.Since(start).Seconds())
+	}()
+
 	logger := log.WithFields(log.Fields{
 		"clientId": c.ID,
 		"userId":   c.UserID,
@@ -301,9 +309,12 @@ func (c *Client) SendMessage(event EventType, data interface{}) error {
 
 	select {
 	case c.Send <- msgBytes:
+		metrics.RecordMessageSent(string(event))
+		metrics.RecordClientSendBufferSize(len(c.Send))
 		return nil
 	default:
 		log.WithField("clientId", c.ID).Warn("Client send buffer full")
+		metrics.RecordError("send_buffer_full", string(event))
 		return nil
 	}
 }

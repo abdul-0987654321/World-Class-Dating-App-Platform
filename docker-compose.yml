@@ -280,6 +280,181 @@ services:
     networks:
       - flamoral-network
 
+  # Speed Dating Service
+  speed-dating-service:
+    build:
+      context: ./backend
+      dockerfile: services/speed-dating-service/Dockerfile
+    container_name: flamoral-speed-dating-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3010
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3010:3010"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Community Service
+  community-service:
+    build:
+      context: ./backend
+      dockerfile: services/community-service/Dockerfile
+    container_name: flamoral-community-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3011
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3011:3011"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3011/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Gamification Service
+  gamification-service:
+    build:
+      context: ./backend
+      dockerfile: services/gamification-service/Dockerfile
+    container_name: flamoral-gamification-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3012
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3012:3012"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3012/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # Referral Service
+  referral-service:
+    build:
+      context: ./backend
+      dockerfile: services/referral-service/Dockerfile
+    container_name: flamoral-referral-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3013
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3013:3013"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3013/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
+  # A/B Testing Service
+  ab-testing-service:
+    build:
+      context: ./backend
+      dockerfile: services/ab-testing-service/Dockerfile
+    container_name: flamoral-ab-testing-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3014
+      - JWT_ACCESS_SECRET=your-access-secret-key-min-32-chars
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=flamoral
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_dev_password
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    ports:
+      - "3014:3014"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3014/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - flamoral-network
+
 volumes:
   postgres_data:
   mongodb_data:

@@ -1,9 +1,17 @@
 import Stripe from 'stripe';
 import { db } from '../../infrastructure/database/connection';
 import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
 import logger from '../../utils/logger';
+import {
+  PaymentIntentMetadata,
+  SubscriptionMetadata,
+  CoinPackage,
+  BoostProduct,
+} from '../../types/stripe-events.types';
 
 const userServiceClient = new UserServiceClient();
+const notificationServiceClient = new NotificationServiceClient();
 
 export class WebhookService {
   /**
@@ -55,7 +63,9 @@ export class WebhookService {
   async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
     logger.info(`Processing subscription created: ${subscription.id}`);
 
-    const userId = subscription.metadata?.user_id;
+    const metadata = subscription.metadata as SubscriptionMetadata;
+    const userId = metadata?.user_id;
+
     if (!userId) {
       throw new Error('User ID not found in subscription metadata');
     }
@@ -63,6 +73,8 @@ export class WebhookService {
     const planId = await this.getPlanIdFromStripePriceId(
       subscription.items.data[0]?.price.id
     );
+
+    const planName = await this.getPlanName(planId);
 
     await db('user_subscriptions').insert({
       user_id: userId,
@@ -84,9 +96,14 @@ export class WebhookService {
 
     // Update user's subscription status in user service
     await userServiceClient.updateUserSubscription(userId, {
-      subscription_tier: await this.getPlanName(planId),
+      subscription_tier: planName,
       subscription_status: subscription.status,
     });
+
+    // Send notification to user
+    await notificationServiceClient.notifySubscriptionUpdated(userId, planName, subscription.status);
+
+    logger.info(`Subscription created for user ${userId}: ${planName} (${subscription.status})`);
   }
 
   async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
@@ -104,6 +121,8 @@ export class WebhookService {
     const planId = await this.getPlanIdFromStripePriceId(
       subscription.items.data[0]?.price.id
     );
+
+    const planName = await this.getPlanName(planId);
 
     await db('user_subscriptions')
       .where({ stripe_subscription_id: subscription.id })
@@ -125,9 +144,14 @@ export class WebhookService {
 
     // Update user service
     await userServiceClient.updateUserSubscription(existingSub.user_id, {
-      subscription_tier: await this.getPlanName(planId),
+      subscription_tier: planName,
       subscription_status: subscription.status,
     });
+
+    // Send notification to user
+    await notificationServiceClient.notifySubscriptionUpdated(existingSub.user_id, planName, subscription.status);
+
+    logger.info(`Subscription updated for user ${existingSub.user_id}: ${planName} (${subscription.status})`);
   }
 
   async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
@@ -142,6 +166,9 @@ export class WebhookService {
       return;
     }
 
+    const planName = await this.getPlanName(existingSub.plan_id);
+    const periodEnd = new Date(subscription.current_period_end * 1000);
+
     await db('user_subscriptions')
       .where({ stripe_subscription_id: subscription.id })
       .update({
@@ -155,6 +182,11 @@ export class WebhookService {
       subscription_tier: 'free',
       subscription_status: 'canceled',
     });
+
+    // Notify user about cancellation
+    await notificationServiceClient.notifySubscriptionCanceled(existingSub.user_id, planName, periodEnd);
+
+    logger.info(`Subscription canceled for user ${existingSub.user_id}: ${planName}`);
   }
 
   async handleTrialWillEnd(subscription: Stripe.Subscription): Promise<void> {
@@ -164,13 +196,20 @@ export class WebhookService {
       .where({ stripe_subscription_id: subscription.id })
       .first();
 
-    if (existingSub) {
+    if (existingSub && subscription.trial_end) {
+      const trialEndDate = new Date(subscription.trial_end * 1000);
+      const daysRemaining = Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const planName = await this.getPlanName(existingSub.plan_id);
+
       // Trigger notification to user about trial ending
-      await userServiceClient.sendNotification(existingSub.user_id, {
-        type: 'trial_ending',
-        title: 'Your trial is ending soon',
-        body: 'Your trial will end in 3 days. Upgrade now to keep your premium features!',
-      });
+      await notificationServiceClient.notifyTrialEnding(
+        existingSub.user_id,
+        planName,
+        trialEndDate,
+        daysRemaining
+      );
+
+      logger.info(`Trial ending notification sent to user ${existingSub.user_id} (${daysRemaining} days remaining)`);
     }
   }
 
@@ -189,6 +228,9 @@ export class WebhookService {
       invoice.subscription as string
     );
 
+    const amount = (invoice.amount_paid || 0) / 100;
+    const description = invoice.lines.data[0]?.description || 'Subscription';
+
     await db('transactions').insert({
       user_id: userId,
       subscription_id: subscriptionId,
@@ -196,51 +238,100 @@ export class WebhookService {
       stripe_payment_intent_id: invoice.payment_intent as string,
       type: 'subscription',
       status: 'succeeded',
-      amount: (invoice.amount_paid || 0) / 100,
+      amount,
       currency: invoice.currency.toUpperCase(),
-      description: `Subscription payment - ${invoice.lines.data[0]?.description || 'Premium'}`,
+      description: `Subscription payment - ${description}`,
       processed_at: new Date(),
     });
+
+    // Get subscription details for notification
+    if (subscriptionId) {
+      const subscription = await db('user_subscriptions')
+        .where({ id: subscriptionId })
+        .first();
+
+      if (subscription) {
+        const planName = await this.getPlanName(subscription.plan_id);
+        const nextBillingDate = new Date(subscription.current_period_end);
+
+        // Notify user about successful renewal
+        await notificationServiceClient.notifySubscriptionRenewed(
+          userId,
+          planName,
+          amount,
+          nextBillingDate
+        );
+      }
+    }
+
+    logger.info(`Invoice payment succeeded for user ${userId}: $${amount}`);
   }
 
   async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing invoice payment failed: ${invoice.id}`);
 
     const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
-    if (!userId) return;
+    if (!userId) {
+      logger.warn('User ID not found for failed invoice');
+      return;
+    }
+
+    const amount = (invoice.amount_due || 0) / 100;
 
     await db('transactions').insert({
       user_id: userId,
       stripe_invoice_id: invoice.id,
       type: 'subscription',
       status: 'failed',
-      amount: (invoice.amount_due || 0) / 100,
+      amount,
       currency: invoice.currency.toUpperCase(),
       description: 'Subscription payment failed',
       failure_message: 'Payment method declined',
     });
 
+    // Update subscription status to past_due
+    if (invoice.subscription) {
+      await db('user_subscriptions')
+        .where({ stripe_subscription_id: invoice.subscription as string })
+        .update({ status: 'past_due', updated_at: new Date() });
+
+      // Update user service
+      const subscription = await db('user_subscriptions')
+        .where({ stripe_subscription_id: invoice.subscription as string })
+        .first();
+
+      if (subscription) {
+        await userServiceClient.updateUserSubscription(userId, {
+          subscription_tier: await this.getPlanName(subscription.plan_id),
+          subscription_status: 'past_due',
+        });
+      }
+    }
+
     // Notify user
-    await userServiceClient.sendNotification(userId, {
-      type: 'payment_failed',
-      title: 'Payment Failed',
-      body: 'Your subscription payment failed. Please update your payment method.',
-    });
+    await notificationServiceClient.notifyPaymentFailed(
+      userId,
+      'Your subscription payment failed. Please update your payment method to continue your subscription.'
+    );
+
+    logger.info(`Invoice payment failed for user ${userId}: $${amount}`);
   }
 
   async handleInvoiceUpcoming(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing upcoming invoice: ${invoice.id}`);
 
     const userId = await this.getUserIdFromCustomer(invoice.customer as string);
-    if (userId) {
-      await userServiceClient.sendNotification(userId, {
-        type: 'upcoming_payment',
-        title: 'Upcoming Payment',
-        body: `Your subscription will renew on ${new Date(
-          (invoice.next_payment_attempt || 0) * 1000
-        ).toLocaleDateString()}`,
-      });
+    if (!userId) {
+      logger.warn('User ID not found for upcoming invoice');
+      return;
     }
+
+    const amount = (invoice.amount_due || 0) / 100;
+    const billingDate = new Date((invoice.next_payment_attempt || invoice.period_end || 0) * 1000);
+
+    await notificationServiceClient.notifyUpcomingPayment(userId, amount, billingDate);
+
+    logger.info(`Upcoming payment notification sent to user ${userId}: $${amount} on ${billingDate.toLocaleDateString()}`);
   }
 
   // Payment Intent Handlers
@@ -248,32 +339,73 @@ export class WebhookService {
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent succeeded: ${paymentIntent.id}`);
 
-    const userId = paymentIntent.metadata?.user_id;
-    if (!userId) return;
+    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id;
 
-    // Check if this is a coin purchase
-    if (paymentIntent.metadata?.type === 'coin_purchase') {
-      const packageId = paymentIntent.metadata?.package_id;
-      await this.processCoinPurchase(userId, packageId, paymentIntent);
+    if (!userId) {
+      logger.warn(`Payment intent ${paymentIntent.id} missing user_id in metadata`);
+      return;
+    }
+
+    const purchaseType = metadata?.type || 'one_time';
+
+    try {
+      // Handle different purchase types
+      switch (purchaseType) {
+        case 'coin_purchase':
+          await this.processCoinPurchase(userId, metadata, paymentIntent);
+          break;
+
+        case 'boost_purchase':
+          await this.processBoostPurchase(userId, metadata, paymentIntent);
+          break;
+
+        case 'subscription':
+          // Subscriptions are handled via subscription events
+          logger.info(`Payment for subscription ${paymentIntent.id} - handled by subscription webhook`);
+          break;
+
+        default:
+          logger.info(`One-time payment succeeded: ${paymentIntent.id}`);
+          await this.recordTransaction(userId, paymentIntent, 'one_time', 'succeeded');
+      }
+    } catch (error: any) {
+      logger.error(`Error processing payment intent ${paymentIntent.id}:`, error);
+      throw error;
     }
   }
 
   async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent failed: ${paymentIntent.id}`);
 
-    const userId = paymentIntent.metadata?.user_id;
-    if (!userId) return;
+    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const userId = metadata?.user_id;
 
+    if (!userId) {
+      logger.warn(`Failed payment intent ${paymentIntent.id} missing user_id in metadata`);
+      return;
+    }
+
+    const failureReason = paymentIntent.last_payment_error?.message || 'Payment failed';
+
+    // Record failed transaction
     await db('transactions').insert({
       user_id: userId,
       stripe_payment_intent_id: paymentIntent.id,
-      type: paymentIntent.metadata?.type || 'one_time',
+      type: metadata?.type || 'one_time',
       status: 'failed',
       amount: paymentIntent.amount / 100,
       currency: paymentIntent.currency.toUpperCase(),
+      description: metadata?.product_name || 'Purchase',
       failure_code: paymentIntent.last_payment_error?.code || null,
-      failure_message: paymentIntent.last_payment_error?.message || null,
+      failure_message: failureReason,
+      metadata: JSON.stringify(metadata),
     });
+
+    // Notify user about payment failure
+    await notificationServiceClient.notifyPaymentFailed(userId, failureReason);
+
+    logger.info(`Payment failed for user ${userId}: ${failureReason}`);
   }
 
   // Charge Handlers
@@ -377,17 +509,28 @@ export class WebhookService {
     return sub?.id || null;
   }
 
+  /**
+   * Process coin purchase from payment intent
+   */
   private async processCoinPurchase(
     userId: string,
-    packageId: string,
+    metadata: PaymentIntentMetadata,
     paymentIntent: Stripe.PaymentIntent
   ): Promise<void> {
+    const packageId = metadata.package_id;
+    const productSku = metadata.product_sku || 'UNKNOWN';
+
+    if (!packageId) {
+      throw new Error(`Coin package ID not found in payment intent metadata`);
+    }
+
     const coinPackage = await db('coin_packages').where({ id: packageId }).first();
     if (!coinPackage) {
       throw new Error(`Coin package not found: ${packageId}`);
     }
 
-    const totalCoins = coinPackage.coin_amount + coinPackage.bonus_coins;
+    const totalCoins = coinPackage.coin_amount + (coinPackage.bonus_coins || 0);
+    const amount = paymentIntent.amount / 100;
 
     // Create transaction record
     const [transaction] = await db('transactions')
@@ -396,15 +539,17 @@ export class WebhookService {
         stripe_payment_intent_id: paymentIntent.id,
         type: 'coin_purchase',
         status: 'succeeded',
-        amount: paymentIntent.amount / 100,
+        amount,
         currency: paymentIntent.currency.toUpperCase(),
         description: `Purchased ${coinPackage.name}`,
+        metadata: JSON.stringify(metadata),
         processed_at: new Date(),
       })
       .returning('id');
 
     // Get current balance
     const currentBalance = await this.getUserCoinBalance(userId);
+    const newBalance = currentBalance + totalCoins;
 
     // Create coin transaction
     await db('coin_transactions').insert({
@@ -413,14 +558,102 @@ export class WebhookService {
       package_id: packageId,
       type: 'purchase',
       amount: totalCoins,
-      balance_after: currentBalance + totalCoins,
-      description: `Purchased ${coinPackage.name} (${coinPackage.coin_amount} + ${coinPackage.bonus_coins} bonus)`,
+      balance_after: newBalance,
+      description: `Purchased ${coinPackage.name} (${coinPackage.coin_amount} + ${coinPackage.bonus_coins || 0} bonus)`,
     });
 
-    // Update user's coin balance in user service
-    await userServiceClient.updateCoinBalance(userId, currentBalance + totalCoins);
+    // Add coins to user via user service
+    await userServiceClient.addCoins({
+      userId,
+      amount: totalCoins,
+      transactionType: 'purchase',
+      stripePaymentId: paymentIntent.id,
+      productSku,
+    });
+
+    // Send success notification
+    await notificationServiceClient.notifyPaymentSuccess(userId, amount, coinPackage.name);
+
+    logger.info(`Coin purchase processed for user ${userId}: ${totalCoins} coins (${coinPackage.name})`);
   }
 
+  /**
+   * Process boost purchase from payment intent
+   */
+  private async processBoostPurchase(
+    userId: string,
+    metadata: PaymentIntentMetadata,
+    paymentIntent: Stripe.PaymentIntent
+  ): Promise<void> {
+    const productSku = metadata.product_sku;
+
+    if (!productSku) {
+      throw new Error(`Product SKU not found in payment intent metadata`);
+    }
+
+    // Parse duration from SKU (e.g., BOOST_30MIN, BOOST_1HR, BOOST_3HR)
+    const durationMap: Record<string, number> = {
+      'BOOST_30MIN': 30,
+      'BOOST_1HR': 60,
+      'BOOST_3HR': 180,
+    };
+
+    const durationMinutes = durationMap[productSku] || 60; // Default to 1 hour
+    const amount = paymentIntent.amount / 100;
+    const productName = metadata.product_name || `Boost (${durationMinutes} minutes)`;
+
+    // Create transaction record
+    await db('transactions').insert({
+      user_id: userId,
+      stripe_payment_intent_id: paymentIntent.id,
+      type: 'boost_purchase',
+      status: 'succeeded',
+      amount,
+      currency: paymentIntent.currency.toUpperCase(),
+      description: `Purchased ${productName}`,
+      metadata: JSON.stringify(metadata),
+      processed_at: new Date(),
+    });
+
+    // Activate boost via user service
+    await userServiceClient.activateBoost({
+      userId,
+      productSku,
+      durationMinutes,
+      stripePaymentId: paymentIntent.id,
+    });
+
+    // Send success notification
+    await notificationServiceClient.notifyPaymentSuccess(userId, amount, productName);
+
+    logger.info(`Boost purchase processed for user ${userId}: ${productName} (${durationMinutes} minutes)`);
+  }
+
+  /**
+   * Record a generic transaction
+   */
+  private async recordTransaction(
+    userId: string,
+    paymentIntent: Stripe.PaymentIntent,
+    type: 'subscription' | 'one_time' | 'coin_purchase' | 'boost_purchase' | 'refund',
+    status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | 'refunded'
+  ): Promise<void> {
+    await db('transactions').insert({
+      user_id: userId,
+      stripe_payment_intent_id: paymentIntent.id,
+      type,
+      status,
+      amount: paymentIntent.amount / 100,
+      currency: paymentIntent.currency.toUpperCase(),
+      description: paymentIntent.description || 'Payment',
+      metadata: JSON.stringify(paymentIntent.metadata),
+      processed_at: status === 'succeeded' ? new Date() : null,
+    });
+  }
+
+  /**
+   * Get user's current coin balance
+   */
   private async getUserCoinBalance(userId: string): Promise<number> {
     const lastTransaction = await db('coin_transactions')
       .where({ user_id: userId })

@@ -10,7 +10,7 @@ import {
   FaShieldAlt,
   FaTrophy,
 } from 'react-icons/fa';
-import moderationService from '../../services/moderation.service';
+import moderationService, { ModerationStatistics } from '../../services/moderation.service';
 
 interface ModerationStats {
   overview: {
@@ -48,6 +48,24 @@ interface ModerationStats {
   }>;
 }
 
+// Helper function to transform ModerationStatistics to ModerationStats
+function transformStatistics(data: ModerationStatistics): ModerationStats {
+  return {
+    overview: {
+      totalModerated: data.pendingItems + data.reviewedToday,
+      approved: data.approvedToday,
+      rejected: data.rejectedToday,
+      flagged: data.pendingItems,
+      pending: data.pendingItems,
+      averageRiskScore: 0,
+    },
+    daily: [],
+    violations: [],
+    topViolators: [],
+    moderatorPerformance: [],
+  };
+}
+
 const ModerationStatsPage: React.FC = () => {
   const [stats, setStats] = useState<ModerationStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +99,7 @@ const ModerationStatsPage: React.FC = () => {
         endDate.toISOString()
       );
 
-      setStats(data);
+      setStats(transformStatistics(data));
       setError(null);
     } catch (err) {
       setError('Failed to load moderation statistics');

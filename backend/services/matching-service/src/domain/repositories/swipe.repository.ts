@@ -180,6 +180,58 @@ export class SwipeRepository {
   }
 
   /**
+   * Get the most recent swipe for a user
+   */
+  async getLastSwipe(userId: string): Promise<Swipe | null> {
+    try {
+      const swipe = await this.db('swipes')
+        .where({ user_id: userId })
+        .orderBy('created_at', 'desc')
+        .first();
+
+      return swipe ? this.mapToSwipe(swipe) : null;
+    } catch (error) {
+      logger.error('Failed to get last swipe', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a swipe by ID
+   */
+  async deleteById(swipeId: string): Promise<boolean> {
+    try {
+      const deleted = await this.db('swipes')
+        .where({ id: swipeId })
+        .delete();
+
+      return deleted > 0;
+    } catch (error) {
+      logger.error('Failed to delete swipe', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a swipe by user and target (for undo functionality)
+   */
+  async deleteByUserAndTarget(userId: string, targetUserId: string): Promise<boolean> {
+    try {
+      const deleted = await this.db('swipes')
+        .where({
+          user_id: userId,
+          target_user_id: targetUserId,
+        })
+        .delete();
+
+      return deleted > 0;
+    } catch (error) {
+      logger.error('Failed to delete swipe by user and target', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database record to Swipe entity
    */
   private mapToSwipe(record: any): Swipe {

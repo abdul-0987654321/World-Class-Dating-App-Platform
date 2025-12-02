@@ -11,8 +11,16 @@ export interface Boost {
   boostType: 'standard' | 'super' | 'spotlight';
   multiplier: number;
   isActive: boolean;
+  active?: boolean; // Alias for isActive
   viewsGained?: number;
   matchesGained?: number;
+  // Extended properties for component compatibility
+  startTime?: string;
+  endTime?: string;
+  productSku?: string;
+  visibilityMultiplier?: number;
+  durationMinutes?: number;
+  coinCost?: number;
 }
 
 export interface BoostPackage {
@@ -25,6 +33,11 @@ export interface BoostPackage {
   currency: string;
   coinPrice?: number;
   description: string;
+  // Extended properties for component compatibility
+  popular?: boolean;
+  durationMinutes?: number;
+  visibilityMultiplier?: number;
+  costCoins?: number;
 }
 
 export interface BoostStats {

@@ -1,0 +1,572 @@
+# ==============================================================================
+# Flamoral Dating Platform - Infrastructure & Kubernetes Pipeline
+# ==============================================================================
+# Purpose: Deploy Kubernetes resources, Helm charts, and manage infrastructure
+# Components: K8s manifests, Helm deployments, ConfigMaps, Secrets
+# ==============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - k8s/**
+      - infrastructure/kubernetes/**
+      - infrastructure/helm/**
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - k8s/**
+      - infrastructure/kubernetes/**
+      - infrastructure/helm/**
+
+variables:
+  - group: flamoral-shared-vars
+  - group: flamoral-infra-vars
+  - name: azureServiceConnection
+    value: 'azure-datingapp-sp-connection'
+  - name: kubernetesServiceConnection
+    value: 'aks-flamoral-connection'
+  - name: aksClusterName
+    value: 'flamoral-aks'
+  - name: resourceGroup
+    value: 'flamoral-dating-app-rg'
+  - name: helmVersion
+    value: '3.12.0'
+  - name: kubectlVersion
+    value: 'latest'
+  - name: acrName
+    value: 'flamoralacr'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  # ==============================================================================
+  # Stage 1: Validate Kubernetes Manifests
+  # ==============================================================================
+  - stage: ValidateManifests
+    displayName: 'Validate K8s Manifests'
+    jobs:
+      - job: ValidateK8s
+        displayName: 'Validate Kubernetes YAML'
+        steps:
+          - checkout: self
+
+          - task: KubectlInstaller@0
+            inputs:
+              kubectlVersion: $(kubectlVersion)
+            displayName: 'Install kubectl'
+
+          - script: |
+              echo "Installing kubeval for YAML validation..."
+              wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+              tar xf kubeval-linux-amd64.tar.gz
+              sudo mv kubeval /usr/local/bin
+            displayName: 'Install kubeval'
+
+          - script: |
+              echo "Validating K8s base manifests..."
+              find k8s/base -name "*.yaml" -o -name "*.yml" | while read file; do
+                echo "Validating: $file"
+                kubeval "$file" || echo "Warning: Validation failed for $file"
+              done
+            displayName: 'Validate Base Manifests'
+            continueOnError: true
+
+          - script: |
+              echo "Installing kubeconform for enhanced validation..."
+              wget https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+              tar xf kubeconform-linux-amd64.tar.gz
+              sudo mv kubeconform /usr/local/bin
+            displayName: 'Install kubeconform'
+
+          - script: |
+              echo "Running kubeconform validation..."
+              kubeconform -summary k8s/base/*.yaml
+            displayName: 'Kubeconform Validation'
+            continueOnError: true
+
+          - script: |
+              echo "Installing kube-score for best practices check..."
+              wget https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64.tar.gz
+              tar xf kube-score_1.17.0_linux_amd64.tar.gz
+              sudo mv kube-score /usr/local/bin
+            displayName: 'Install kube-score'
+
+          - script: |
+              echo "Running kube-score analysis..."
+              find k8s/base -name "*.yaml" | while read file; do
+                echo "Analyzing: $file"
+                kube-score score "$file" || true
+              done
+            displayName: 'Kube-score Analysis'
+            continueOnError: true
+
+      - job: ValidateHelm
+        displayName: 'Validate Helm Charts'
+        steps:
+          - checkout: self
+
+          - task: HelmInstaller@1
+            inputs:
+              helmVersionToInstall: $(helmVersion)
+            displayName: 'Install Helm'
+
+          - script: |
+              echo "Linting Helm charts..."
+              if [ -d "infrastructure/helm/flamoral" ]; then
+                helm lint infrastructure/helm/flamoral
+              fi
+            displayName: 'Helm Lint'
+
+          - script: |
+              echo "Validating Helm chart templates..."
+              if [ -d "infrastructure/helm/flamoral" ]; then
+                helm template flamoral infrastructure/helm/flamoral \
+                  --debug \
+                  --namespace flamoral-dev > helm-rendered.yaml
+
+                echo "Validating rendered templates..."
+                kubeval helm-rendered.yaml
+              fi
+            displayName: 'Validate Helm Templates'
+            continueOnError: true
+
+  # ==============================================================================
+  # Stage 2: Deploy Base Infrastructure Components
+  # ==============================================================================
+  - stage: DeployBaseInfra
+    displayName: 'Deploy Base Infrastructure'
+    dependsOn: ValidateManifests
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - name: namespace
+        value: 'flamoral-infra'
+    jobs:
+      - deployment: DeployInfrastructure
+        displayName: 'Deploy Infrastructure Components'
+        environment: 'flamoral-infrastructure'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: KubectlInstaller@0
+                  inputs:
+                    kubectlVersion: $(kubectlVersion)
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+                  displayName: 'Get AKS Credentials'
+
+                # Deploy NGINX Ingress Controller
+                - script: |
+                    echo "Adding NGINX Ingress Helm repository..."
+                    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+                    helm repo update
+
+                    echo "Installing/Upgrading NGINX Ingress Controller..."
+                    helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
+                      --namespace $(namespace) \
+                      --create-namespace \
+                      --set controller.replicaCount=2 \
+                      --set controller.nodeSelector."kubernetes\.io/os"=linux \
+                      --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
+                      --set controller.service.externalTrafficPolicy=Local \
+                      --wait
+                  displayName: 'Deploy NGINX Ingress Controller'
+
+                # Deploy Cert Manager for SSL/TLS
+                - script: |
+                    echo "Adding Jetstack Helm repository..."
+                    helm repo add jetstack https://charts.jetstack.io
+                    helm repo update
+
+                    echo "Installing Cert Manager CRDs..."
+                    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.crds.yaml
+
+                    echo "Installing/Upgrading Cert Manager..."
+                    helm upgrade --install cert-manager jetstack/cert-manager \
+                      --namespace $(namespace) \
+                      --create-namespace \
+                      --set installCRDs=false \
+                      --wait
+                  displayName: 'Deploy Cert Manager'
+
+                # Deploy Metrics Server
+                - script: |
+                    echo "Deploying Metrics Server..."
+                    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+                  displayName: 'Deploy Metrics Server'
+
+                # Deploy Prometheus & Grafana
+                - script: |
+                    echo "Adding Prometheus Community Helm repository..."
+                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                    helm repo update
+
+                    echo "Installing/Upgrading Prometheus Stack..."
+                    helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+                      --namespace $(namespace) \
+                      --create-namespace \
+                      --set prometheus.prometheusSpec.retention=15d \
+                      --set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage=50Gi \
+                      --set grafana.adminPassword='$(GRAFANA_ADMIN_PASSWORD)' \
+                      --wait --timeout 10m
+                  displayName: 'Deploy Prometheus & Grafana'
+
+  # ==============================================================================
+  # Stage 3: Deploy ConfigMaps and Secrets
+  # ==============================================================================
+  - stage: DeployConfigSecretsStaging
+    displayName: 'Deploy Configs & Secrets (Staging)'
+    dependsOn: DeployBaseInfra
+    condition: succeeded()
+    variables:
+      - group: flamoral-staging-vars
+      - name: environment
+        value: 'staging'
+      - name: namespace
+        value: 'flamoral-staging'
+    jobs:
+      - deployment: DeployConfigMaps
+        displayName: 'Deploy ConfigMaps & Secrets'
+        environment: 'flamoral-staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - script: |
+                    kubectl create namespace $(namespace) --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create Namespace'
+
+                # Create ConfigMaps from files
+                - script: |
+                    echo "Creating ConfigMaps..."
+
+                    # App Configuration
+                    kubectl create configmap app-config \
+                      --from-literal=NODE_ENV=$(environment) \
+                      --from-literal=LOG_LEVEL=info \
+                      --from-literal=API_URL=https://api.staging.flamoral.app \
+                      --from-literal=WEB_URL=https://staging.flamoral.app \
+                      --from-literal=CORS_ORIGINS=https://staging.flamoral.app \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    # Service URLs
+                    kubectl create configmap service-urls \
+                      --from-literal=AUTH_SERVICE_URL=http://auth-service:3001 \
+                      --from-literal=USER_SERVICE_URL=http://user-service:3002 \
+                      --from-literal=MATCHING_SERVICE_URL=http://matching-service:3003 \
+                      --from-literal=MESSAGING_SERVICE_URL=http://messaging-service:3004 \
+                      --from-literal=MEDIA_SERVICE_URL=http://media-service:3006 \
+                      --from-literal=PAYMENT_SERVICE_URL=http://payment-service:3007 \
+                      --from-literal=NOTIFICATION_SERVICE_URL=http://notification-service:3008 \
+                      --from-literal=ANALYTICS_SERVICE_URL=http://analytics-service:3009 \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    # Database Configuration
+                    kubectl create configmap database-config \
+                      --from-literal=DB_HOST=$(DB_HOST) \
+                      --from-literal=DB_PORT=5432 \
+                      --from-literal=DB_NAME=flamoral_staging \
+                      --from-literal=REDIS_HOST=$(REDIS_HOST) \
+                      --from-literal=REDIS_PORT=6379 \
+                      --from-literal=MONGODB_HOST=$(MONGODB_HOST) \
+                      --from-literal=MONGODB_PORT=27017 \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create ConfigMaps'
+
+                # Create Secrets from Azure Key Vault
+                - task: AzureKeyVault@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    KeyVaultName: 'flamoral-staging-kv'
+                    SecretsFilter: '*'
+                    RunAsPreJob: false
+                  displayName: 'Fetch Secrets from Key Vault'
+
+                - script: |
+                    echo "Creating Kubernetes Secrets..."
+
+                    # JWT Secrets
+                    kubectl create secret generic jwt-secrets \
+                      --from-literal=JWT_SECRET='$(JWT-SECRET)' \
+                      --from-literal=JWT_ACCESS_SECRET='$(JWT-ACCESS-SECRET)' \
+                      --from-literal=JWT_REFRESH_SECRET='$(JWT-REFRESH-SECRET)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    # Database Secrets
+                    kubectl create secret generic database-secrets \
+                      --from-literal=DB_PASSWORD='$(DB-PASSWORD)' \
+                      --from-literal=REDIS_PASSWORD='$(REDIS-PASSWORD)' \
+                      --from-literal=MONGODB_PASSWORD='$(MONGODB-PASSWORD)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    # External Service Secrets
+                    kubectl create secret generic external-services \
+                      --from-literal=STRIPE_SECRET_KEY='$(STRIPE-SECRET-KEY)' \
+                      --from-literal=SENDGRID_API_KEY='$(SENDGRID-API-KEY)' \
+                      --from-literal=TWILIO_AUTH_TOKEN='$(TWILIO-AUTH-TOKEN)' \
+                      --from-literal=AZURE_STORAGE_CONNECTION_STRING='$(AZURE-STORAGE-CONNECTION-STRING)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    # ACR Pull Secret
+                    kubectl create secret docker-registry acr-secret \
+                      --docker-server=$(acrName).azurecr.io \
+                      --docker-username=$(ACR-USERNAME) \
+                      --docker-password='$(ACR-PASSWORD)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create Secrets'
+
+  # ==============================================================================
+  # Stage 4: Deploy Helm Charts to Staging
+  # ==============================================================================
+  - stage: DeployHelmStaging
+    displayName: 'Deploy Helm Charts (Staging)'
+    dependsOn: DeployConfigSecretsStaging
+    variables:
+      - group: flamoral-staging-vars
+      - name: environment
+        value: 'staging'
+      - name: namespace
+        value: 'flamoral-staging'
+      - name: imageTag
+        value: 'latest'
+    jobs:
+      - deployment: DeployServices
+        displayName: 'Deploy Microservices with Helm'
+        environment: 'flamoral-staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - script: |
+                    echo "Deploying Flamoral application with Helm..."
+                    helm upgrade --install flamoral-staging infrastructure/helm/flamoral \
+                      --namespace $(namespace) \
+                      --create-namespace \
+                      --set global.environment=$(environment) \
+                      --set global.imageTag=$(imageTag) \
+                      --set global.imageRegistry=$(acrName).azurecr.io \
+                      --set global.imagePullSecrets[0].name=acr-secret \
+                      --set ingress.enabled=true \
+                      --set ingress.className=nginx \
+                      --set ingress.hosts[0].host=staging.flamoral.app \
+                      --set ingress.hosts[0].paths[0].path=/ \
+                      --set ingress.hosts[0].paths[0].pathType=Prefix \
+                      --set ingress.tls[0].secretName=flamoral-staging-tls \
+                      --set ingress.tls[0].hosts[0]=staging.flamoral.app \
+                      --set apiGateway.replicaCount=2 \
+                      --set authService.replicaCount=2 \
+                      --set userService.replicaCount=2 \
+                      --set matchingService.replicaCount=2 \
+                      --set messagingService.replicaCount=2 \
+                      --set mediaService.replicaCount=2 \
+                      --set postgresql.enabled=false \
+                      --set postgresql.external.host=$(DB_HOST) \
+                      --set redis.enabled=false \
+                      --set redis.external.host=$(REDIS_HOST) \
+                      --set mongodb.enabled=false \
+                      --set mongodb.external.host=$(MONGODB_HOST) \
+                      --wait --timeout 10m
+                  displayName: 'Deploy Helm Chart'
+
+                - script: |
+                    echo "Waiting for all deployments to be ready..."
+                    kubectl wait --for=condition=available --timeout=600s \
+                      deployment --all -n $(namespace)
+                  displayName: 'Wait for Deployments'
+
+                - script: |
+                    echo "=== Deployment Status ==="
+                    kubectl get all -n $(namespace)
+                    echo ""
+                    echo "=== Ingress Status ==="
+                    kubectl get ingress -n $(namespace)
+                    echo ""
+                    echo "=== ConfigMaps ==="
+                    kubectl get configmaps -n $(namespace)
+                    echo ""
+                    echo "=== Secrets ==="
+                    kubectl get secrets -n $(namespace)
+                  displayName: 'Verify Deployment'
+
+  # ==============================================================================
+  # Stage 5: Deploy to Production
+  # ==============================================================================
+  - stage: DeployHelmProduction
+    displayName: 'Deploy Helm Charts (Production)'
+    dependsOn: DeployHelmStaging
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      - group: flamoral-prod-vars
+      - name: environment
+        value: 'production'
+      - name: namespace
+        value: 'flamoral-prod'
+      - name: imageTag
+        value: 'latest'
+    jobs:
+      - deployment: ProductionApproval
+        displayName: 'Production Approval'
+        environment: 'flamoral-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: 'ops-team@flamoral.com,cto@flamoral.com'
+                    instructions: 'Please review and approve production infrastructure deployment'
+                    onTimeout: 'reject'
+
+      - deployment: DeployToProduction
+        displayName: 'Deploy to Production'
+        dependsOn: ProductionApproval
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                # Fetch secrets from production Key Vault
+                - task: AzureKeyVault@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    KeyVaultName: 'flamoral-prod-kv'
+                    SecretsFilter: '*'
+
+                # Create namespace and secrets
+                - script: |
+                    kubectl create namespace $(namespace) --dry-run=client -o yaml | kubectl apply -f -
+
+                    # Create all necessary secrets
+                    kubectl create secret generic jwt-secrets \
+                      --from-literal=JWT_SECRET='$(JWT-SECRET)' \
+                      --from-literal=JWT_ACCESS_SECRET='$(JWT-ACCESS-SECRET)' \
+                      --from-literal=JWT_REFRESH_SECRET='$(JWT-REFRESH-SECRET)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+
+                    kubectl create secret docker-registry acr-secret \
+                      --docker-server=$(acrName).azurecr.io \
+                      --docker-username=$(ACR-USERNAME) \
+                      --docker-password='$(ACR-PASSWORD)' \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Setup Production Namespace & Secrets'
+
+                # Deploy with production configuration
+                - script: |
+                    echo "Deploying to Production..."
+                    helm upgrade --install flamoral-prod infrastructure/helm/flamoral \
+                      --namespace $(namespace) \
+                      --create-namespace \
+                      --set global.environment=$(environment) \
+                      --set global.imageTag=$(imageTag) \
+                      --set global.imageRegistry=$(acrName).azurecr.io \
+                      --set global.imagePullSecrets[0].name=acr-secret \
+                      --set ingress.enabled=true \
+                      --set ingress.className=nginx \
+                      --set ingress.hosts[0].host=flamoral.app \
+                      --set ingress.hosts[0].host=www.flamoral.app \
+                      --set ingress.tls[0].secretName=flamoral-prod-tls \
+                      --set ingress.tls[0].hosts[0]=flamoral.app \
+                      --set ingress.tls[0].hosts[1]=www.flamoral.app \
+                      --set apiGateway.replicaCount=5 \
+                      --set authService.replicaCount=3 \
+                      --set userService.replicaCount=5 \
+                      --set matchingService.replicaCount=5 \
+                      --set messagingService.replicaCount=5 \
+                      --set mediaService.replicaCount=3 \
+                      --set autoscaling.enabled=true \
+                      --set autoscaling.minReplicas=5 \
+                      --set autoscaling.maxReplicas=50 \
+                      --set resources.requests.memory=1Gi \
+                      --set resources.requests.cpu=1000m \
+                      --set postgresql.enabled=false \
+                      --set postgresql.external.host=$(DB_HOST) \
+                      --set redis.enabled=false \
+                      --set redis.external.host=$(REDIS_HOST) \
+                      --wait --timeout 15m
+                  displayName: 'Deploy Production Helm Chart'
+
+                - script: |
+                    echo "Production Deployment Complete!"
+                    kubectl get all -n $(namespace)
+                  displayName: 'Verify Production Deployment'

@@ -3,7 +3,7 @@ import { ReportCategorySelector } from './ReportCategorySelector';
 import {
   reportService,
   ReportCategory,
-  ReportType,
+  ReportCategoryInfo,
 } from '../../services/report.service';
 
 interface ReportModalProps {
@@ -19,8 +19,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [categories, setCategories] = useState<ReportCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<ReportType | null>(null);
+  const [categories, setCategories] = useState<ReportCategoryInfo[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<ReportCategory | null>(null);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -56,9 +56,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
     try {
       await reportService.createReport({
-        reportedId: userId,
-        reportType: selectedCategory,
-        description: description.trim() || undefined,
+        reportedUserId: userId,
+        category: selectedCategory,
+        description: description.trim() || '',
       });
 
       onSuccess?.();
@@ -108,7 +108,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 <ReportCategorySelector
                   categories={categories}
                   selectedCategory={selectedCategory}
-                  onSelectCategory={(category) => setSelectedCategory(category as ReportType)}
+                  onSelectCategory={(category) => setSelectedCategory(category as ReportCategory)}
                 />
 
                 <div className="description-section">

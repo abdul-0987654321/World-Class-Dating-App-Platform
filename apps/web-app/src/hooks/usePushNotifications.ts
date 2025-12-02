@@ -103,7 +103,7 @@ export const usePushNotifications = () => {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
       });
 
       // Send subscription to server
@@ -151,6 +151,10 @@ export const usePushNotifications = () => {
     requestPermission,
     subscribe,
     unsubscribe,
+    // Aliases for component compatibility
+    isRegistered: state.isSubscribed,
+    registerDevice: subscribe,
+    unregisterDevice: unsubscribe,
   };
 };
 

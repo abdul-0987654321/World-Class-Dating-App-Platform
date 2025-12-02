@@ -8,12 +8,18 @@ export interface ModerationQueueItem {
   id: string;
   userId: string;
   userName: string;
+  userPhoto?: string;
   contentType: 'photo' | 'bio' | 'message' | 'prompt';
   content: string;
+  contentUrl?: string;
+  contentText?: string;
   reason: string;
   reportedAt: string;
+  flaggedAt: string;
   status: 'pending' | 'approved' | 'rejected';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  riskScore: number;
+  violations: string[];
 }
 
 export interface ModerationStatus {
@@ -174,12 +180,18 @@ class ModerationService {
   }
 
   // Admin methods
-  async getModerationQueue(): Promise<ModerationQueueItem[]> {
+  async getModerationQueue(filter?: { status?: string; priority?: string }): Promise<ModerationQueueItem[]> {
     if (this.isMock) {
       return this.getMockModerationQueue();
     }
 
-    const response = await fetch('/api/admin/moderation/queue', {
+    const params = new URLSearchParams();
+    if (filter?.status) params.append('status', filter.status);
+    if (filter?.priority) params.append('priority', filter.priority);
+    const queryString = params.toString();
+    const url = queryString ? `/api/admin/moderation/queue?${queryString}` : '/api/admin/moderation/queue';
+
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json',
@@ -193,19 +205,28 @@ class ModerationService {
     return response.json();
   }
 
-  async reviewContent(itemId: string, decision: 'approve' | 'reject', notes?: string): Promise<void> {
+  async reviewContent(params: {
+    moderationLogId: string;
+    action: 'approve' | 'reject';
+    notes?: string;
+    moderatorId: string;
+  }): Promise<void> {
     if (this.isMock) {
       await new Promise(resolve => setTimeout(resolve, 300));
       return;
     }
 
-    const response = await fetch(`/api/admin/moderation/review/${itemId}`, {
+    const response = await fetch(`/api/admin/moderation/review/${params.moderationLogId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ decision, notes }),
+      body: JSON.stringify({
+        action: params.action,
+        notes: params.notes,
+        moderatorId: params.moderatorId,
+      }),
     });
 
     if (!response.ok) {
@@ -213,12 +234,18 @@ class ModerationService {
     }
   }
 
-  async getStatistics(): Promise<ModerationStatistics> {
+  async getStatistics(startDate?: string, endDate?: string): Promise<ModerationStatistics> {
     if (this.isMock) {
       return this.getMockStatistics();
     }
 
-    const response = await fetch('/api/admin/moderation/statistics', {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    const queryString = params.toString();
+    const url = queryString ? `/api/admin/moderation/statistics?${queryString}` : '/api/admin/moderation/statistics';
+
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json',
@@ -262,12 +289,18 @@ class ModerationService {
         id: 'mq1',
         userId: 'user1',
         userName: 'John Doe',
+        userPhoto: 'https://example.com/avatar1.jpg',
         contentType: 'photo',
         content: 'https://example.com/photo1.jpg',
+        contentUrl: 'https://example.com/photo1.jpg',
+        contentText: undefined,
         reason: 'Automatic flag: potential policy violation',
         reportedAt: new Date().toISOString(),
+        flaggedAt: new Date().toISOString(),
         status: 'pending',
         priority: 'medium',
+        riskScore: 0.75,
+        violations: ['inappropriate_content', 'nudity'],
       },
     ];
   }

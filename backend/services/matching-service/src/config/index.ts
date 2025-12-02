@@ -22,6 +22,8 @@ export default {
 
   services: {
     userServiceUrl: process.env.USER_SERVICE_URL || 'http://localhost:3001',
+    notificationServiceUrl: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
+    analyticsServiceUrl: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3007',
   },
 
   matching: {

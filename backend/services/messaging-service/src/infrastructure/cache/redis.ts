@@ -163,6 +163,60 @@ class RedisClient {
   }
 
   /**
+   * Check if user1 has blocked user2
+   */
+  async isUserBlocked(blockerId: string, blockedId: string): Promise<boolean> {
+    try {
+      const blockKey = `block:${blockerId}:${blockedId}`;
+      const exists = await this.client?.exists(blockKey);
+      return exists === 1;
+    } catch (error) {
+      logger.error('Failed to check block status', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get list of users blocked by a user
+   */
+  async getBlockedUsers(userId: string): Promise<string[]> {
+    try {
+      const members = await this.client?.sMembers(`blocker:${userId}:list`);
+      return members || [];
+    } catch (error) {
+      logger.error('Failed to get blocked users list', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get list of users who have blocked a user
+   */
+  async getBlockedByUsers(userId: string): Promise<string[]> {
+    try {
+      const members = await this.client?.sMembers(`blocked:${userId}:list`);
+      return members || [];
+    } catch (error) {
+      logger.error('Failed to get blocked-by users list', error);
+      return [];
+    }
+  }
+
+  /**
+   * Check if there's a block relationship between two users (either direction)
+   */
+  async hasBlockRelationship(userId1: string, userId2: string): Promise<boolean> {
+    try {
+      const isUser1BlockedByUser2 = await this.isUserBlocked(userId1, userId2);
+      const isUser2BlockedByUser1 = await this.isUserBlocked(userId2, userId1);
+      return isUser1BlockedByUser2 || isUser2BlockedByUser1;
+    } catch (error) {
+      logger.error('Failed to check block relationship', error);
+      return false;
+    }
+  }
+
+  /**
    * Close connection
    */
   async disconnect(): Promise<void> {

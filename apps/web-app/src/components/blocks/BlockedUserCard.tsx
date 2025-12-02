@@ -24,23 +24,30 @@ export const BlockedUserCard: React.FC<BlockedUserCardProps> = ({
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
+  const user = blockedUser.blockedUser;
+  const displayName = user?.firstName || user?.name || 'User';
+  const lastName = user?.lastName || '';
+  const photoUrl = user?.profilePhoto || user?.photoUrl;
+  const blockedDate = blockedUser.createdAt || blockedUser.blockedAt;
+  const unblockedId = blockedUser.blockedId || blockedUser.blockedUserId;
+
   return (
     <div className="blocked-user-card">
       <div className="user-avatar">
-        {blockedUser.blockedUser.profilePhoto ? (
-          <img src={blockedUser.blockedUser.profilePhoto} alt={blockedUser.blockedUser.firstName} />
+        {photoUrl ? (
+          <img src={photoUrl} alt={displayName} />
         ) : (
           <div className="avatar-placeholder">
-            {getInitials(blockedUser.blockedUser.firstName, blockedUser.blockedUser.lastName)}
+            {getInitials(displayName, lastName)}
           </div>
         )}
       </div>
 
       <div className="user-info">
         <h3 className="user-name">
-          {blockedUser.blockedUser.firstName} {blockedUser.blockedUser.lastName}
+          {displayName} {lastName}
         </h3>
-        <p className="blocked-date">Blocked on {formatDate(blockedUser.createdAt)}</p>
+        <p className="blocked-date">Blocked on {formatDate(new Date(blockedDate))}</p>
         {blockedUser.reason && (
           <p className="block-reason">
             <span className="reason-label">Reason:</span> {blockedUser.reason}
@@ -51,7 +58,7 @@ export const BlockedUserCard: React.FC<BlockedUserCardProps> = ({
       <div className="card-actions">
         <button
           className="unblock-button"
-          onClick={() => onUnblock(blockedUser.blockedId)}
+          onClick={() => onUnblock(unblockedId)}
           disabled={loading}
         >
           {loading ? 'Unblocking...' : 'Unblock'}

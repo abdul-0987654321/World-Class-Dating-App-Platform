@@ -38,9 +38,9 @@ SERVICES=(
   "messaging-service:3003"
   "media-service:3004"
   "moderation-service:3005"
-  "notification-service:3006"
+  "notification-service:3008"
   "analytics-service:3007"
-  "payment-service:3008"
+  "payment-service:3009"
   "api-gateway:4000"
 )
 

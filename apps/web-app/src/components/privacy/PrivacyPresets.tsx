@@ -4,7 +4,7 @@ import { PrivacyPreset } from '../../services/privacy.service';
 interface PrivacyPresetsProps {
   presets: PrivacyPreset[];
   currentPreset?: string;
-  onApplyPreset: (presetName: 'open' | 'balanced' | 'private') => void;
+  onApplyPreset: (presetName: string) => void;
   loading?: boolean;
 }
 
@@ -48,13 +48,17 @@ export const PrivacyPresets: React.FC<PrivacyPresetsProps> = ({
       </p>
 
       <div className="presets-grid">
-        {presets.map((preset) => (
+        {presets.map((preset) => {
+          const presetId = preset.id || preset.name;
+          const showDistanceValue = preset.settings.showDistance ?? !preset.settings.hideDistance;
+
+          return (
           <div
-            key={preset.name}
-            className={`preset-card ${currentPreset === preset.name ? 'active' : ''}`}
-            style={{ '--preset-color': getPresetColor(preset.name) } as React.CSSProperties}
+            key={presetId}
+            className={`preset-card ${currentPreset === presetId ? 'active' : ''}`}
+            style={{ '--preset-color': getPresetColor(presetId) } as React.CSSProperties}
           >
-            <div className="preset-icon">{getPresetIcon(preset.name)}</div>
+            <div className="preset-icon">{getPresetIcon(presetId)}</div>
             <h3 className="preset-name">{preset.name}</h3>
             <p className="preset-description">{preset.description}</p>
 
@@ -64,14 +68,14 @@ export const PrivacyPresets: React.FC<PrivacyPresetsProps> = ({
                 {preset.settings.showAge !== undefined && (
                   <li>{preset.settings.showAge ? '✓' : '✗'} Show age</li>
                 )}
-                {preset.settings.showDistance !== undefined && (
-                  <li>{preset.settings.showDistance ? '✓' : '✗'} Show distance</li>
+                {(preset.settings.showDistance !== undefined || preset.settings.hideDistance !== undefined) && (
+                  <li>{showDistanceValue ? '✓' : '✗'} Show distance</li>
                 )}
-                {preset.settings.onlineStatus && (
-                  <li>Online status: {preset.settings.onlineStatus}</li>
+                {preset.settings.hideOnlineStatus !== undefined && (
+                  <li>{preset.settings.hideOnlineStatus ? '✗' : '✓'} Online status visible</li>
                 )}
-                {preset.settings.profileVisibility && (
-                  <li>Profile: {preset.settings.profileVisibility}</li>
+                {preset.settings.hideFromSearch !== undefined && (
+                  <li>{preset.settings.hideFromSearch ? '✗' : '✓'} Visible in search</li>
                 )}
                 {preset.settings.incognitoMode !== undefined && (
                   <li>{preset.settings.incognitoMode ? '✓' : '✗'} Incognito mode</li>
@@ -81,13 +85,13 @@ export const PrivacyPresets: React.FC<PrivacyPresetsProps> = ({
 
             <button
               className="apply-button"
-              onClick={() => onApplyPreset(preset.name)}
-              disabled={loading || currentPreset === preset.name}
+              onClick={() => onApplyPreset(presetId)}
+              disabled={loading || currentPreset === presetId}
             >
-              {currentPreset === preset.name ? 'Active' : 'Apply Preset'}
+              {currentPreset === presetId ? 'Active' : 'Apply Preset'}
             </button>
           </div>
-        ))}
+        );})}
       </div>
 
       <style>{`

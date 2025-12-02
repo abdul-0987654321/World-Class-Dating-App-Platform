@@ -151,14 +151,34 @@ router.get('/users/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
-    // This would fetch user from database
-    // For now, return a placeholder
+    // Import UserRepository inline to avoid circular dependencies
+    const { UserRepository } = await import('../../domain/repositories/user.repository');
+    const userRepository = new UserRepository();
+
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        code: 'USER_NOT_FOUND',
+      });
+    }
+
+    // Return only safe user data (no password hash)
     return res.status(200).json({
       success: true,
       data: {
-        id: userId,
-        email: 'user@example.com',
-        name: 'User Name',
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        dateOfBirth: user.date_of_birth,
+        gender: user.gender,
+        isActive: user.is_active,
+        isVerified: user.is_verified,
+        subscriptionTier: user.subscription_tier,
+        createdAt: user.created_at,
       },
     });
   } catch (error: any) {

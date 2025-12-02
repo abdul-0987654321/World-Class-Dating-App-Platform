@@ -1,0 +1,346 @@
+# CI Pipeline - Test All Services
+# Runs comprehensive tests for all microservices
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+  paths:
+    include:
+      - backend/services/**
+      - tests/**
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+variables:
+  - group: flamoral-test-variables
+  - name: nodeVersion
+    value: '20.x'
+  - name: goVersion
+    value: '1.21'
+  - name: pythonVersion
+    value: '3.11'
+  - name: testResultsDirectory
+    value: '$(Build.ArtifactStagingDirectory)/test-results'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: UnitTests
+    displayName: 'Unit Tests'
+    jobs:
+      - job: NodeUnitTests
+        displayName: 'Node.js Services Unit Tests'
+        strategy:
+          matrix:
+            AuthService:
+              serviceName: 'auth-service'
+              serviceDirectory: 'backend/services/auth-service'
+            UserService:
+              serviceName: 'user-service'
+              serviceDirectory: 'backend/services/user-service'
+            MatchingService:
+              serviceName: 'matching-service'
+              serviceDirectory: 'backend/services/matching-service'
+            MessagingService:
+              serviceName: 'messaging-service'
+              serviceDirectory: 'backend/services/messaging-service'
+            PaymentService:
+              serviceName: 'payment-service'
+              serviceDirectory: 'backend/services/payment-service'
+            NotificationService:
+              serviceName: 'notification-service'
+              serviceDirectory: 'backend/services/notification-service'
+            ModerationService:
+              serviceName: 'moderation-service'
+              serviceDirectory: 'backend/services/moderation-service'
+            AnalyticsService:
+              serviceName: 'analytics-service'
+              serviceDirectory: 'backend/services/analytics-service'
+            MediaService:
+              serviceName: 'media-service'
+              serviceDirectory: 'backend/services/media-service'
+            ApiGateway:
+              serviceName: 'api-gateway'
+              serviceDirectory: 'backend/services/api-gateway'
+            AdvertisingService:
+              serviceName: 'advertising-service'
+              serviceDirectory: 'backend/services/advertising-service'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              cd $(serviceDirectory)
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              cd $(serviceDirectory)
+              npm run test:unit -- --coverage --reporters=default --reporters=jest-junit
+            displayName: 'Run unit tests for $(serviceName)'
+            env:
+              JEST_JUNIT_OUTPUT_DIR: $(testResultsDirectory)/$(serviceName)
+              JEST_JUNIT_OUTPUT_NAME: junit.xml
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(testResultsDirectory)/$(serviceName)/junit.xml'
+              testRunTitle: '$(serviceName) Unit Tests'
+              mergeTestResults: false
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish coverage results'
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(serviceDirectory)/coverage/cobertura-coverage.xml'
+              reportDirectory: '$(serviceDirectory)/coverage'
+              failIfCoverageEmpty: false
+
+      - job: GoUnitTests
+        displayName: 'Go Services Unit Tests'
+        steps:
+          - task: GoTool@0
+            displayName: 'Install Go'
+            inputs:
+              version: $(goVersion)
+
+          - script: |
+              cd backend/services/realtime-service
+              go mod download
+              go test -v -race -coverprofile=coverage.out -covermode=atomic ./... | tee test-output.txt
+              go tool cover -html=coverage.out -o coverage.html
+            displayName: 'Run unit tests for realtime-service'
+
+          - script: |
+              cd backend/services/realtime-service
+              go install github.com/jstemmer/go-junit-report/v2@latest
+              cat test-output.txt | go-junit-report -set-exit-code > junit.xml
+            displayName: 'Convert test output to JUnit format'
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'backend/services/realtime-service/junit.xml'
+              testRunTitle: 'Realtime Service Unit Tests'
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish coverage results'
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: 'backend/services/realtime-service/coverage.out'
+
+      - job: PythonUnitTests
+        displayName: 'Python AI Services Unit Tests'
+        strategy:
+          matrix:
+            NLPService:
+              serviceName: 'nlp-service'
+              serviceDirectory: 'backend/services/ai-services/nlp-service'
+            RecommendationService:
+              serviceName: 'recommendation-service'
+              serviceDirectory: 'backend/services/ai-services/recommendation-service'
+            FraudDetection:
+              serviceName: 'fraud-detection'
+              serviceDirectory: 'backend/services/ai-services/fraud-detection'
+            PhotoAnalysis:
+              serviceName: 'photo-analysis'
+              serviceDirectory: 'backend/services/ai-services/photo-analysis'
+        steps:
+          - task: UsePythonVersion@0
+            displayName: 'Use Python'
+            inputs:
+              versionSpec: $(pythonVersion)
+
+          - script: |
+              python -m pip install --upgrade pip
+              cd $(serviceDirectory)
+              pip install -r requirements.txt
+              pip install pytest pytest-cov pytest-asyncio pytest-mock
+            displayName: 'Install dependencies'
+
+          - script: |
+              cd $(serviceDirectory)
+              pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=junit.xml
+            displayName: 'Run tests for $(serviceName)'
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(serviceDirectory)/junit.xml'
+              testRunTitle: '$(serviceName) Tests'
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish coverage results'
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(serviceDirectory)/coverage.xml'
+              reportDirectory: '$(serviceDirectory)/htmlcov'
+
+  - stage: IntegrationTests
+    displayName: 'Integration Tests'
+    dependsOn: UnitTests
+    jobs:
+      - job: ServiceIntegrationTests
+        displayName: 'Service Integration Tests'
+        services:
+          postgres:
+            image: postgres:16-alpine
+            env:
+              POSTGRES_DB: flamoral_test
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: testpassword
+            ports:
+              - 5432:5432
+          redis:
+            image: redis:7-alpine
+            ports:
+              - 6379:6379
+          mongodb:
+            image: mongo:7
+            env:
+              MONGO_INITDB_ROOT_USERNAME: admin
+              MONGO_INITDB_ROOT_PASSWORD: testpassword
+            ports:
+              - 27017:27017
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              npm ci
+            displayName: 'Install root dependencies'
+
+          - script: |
+              # Wait for services to be ready
+              echo "Waiting for PostgreSQL..."
+              until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done
+
+              echo "Waiting for Redis..."
+              until redis-cli -h localhost -p 6379 ping; do sleep 1; done
+
+              echo "Waiting for MongoDB..."
+              until mongosh --host localhost --port 27017 --eval "db.adminCommand('ping')"; do sleep 1; done
+            displayName: 'Wait for databases'
+
+          - script: |
+              cd backend/services/auth-service
+              npm run test:integration
+            displayName: 'Run auth service integration tests'
+            env:
+              DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/flamoral_test
+              REDIS_URL: redis://localhost:6379
+
+          - script: |
+              cd backend/services/user-service
+              npm run test:integration
+            displayName: 'Run user service integration tests'
+            env:
+              DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/flamoral_test
+              REDIS_URL: redis://localhost:6379
+
+          - task: PublishTestResults@2
+            displayName: 'Publish integration test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/integration-test-results.xml'
+              testRunTitle: 'Integration Tests'
+              mergeTestResults: true
+
+  - stage: E2ETests
+    displayName: 'End-to-End Tests'
+    dependsOn: IntegrationTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    jobs:
+      - job: PlaywrightTests
+        displayName: 'Playwright E2E Tests'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              npm ci
+              npx playwright install --with-deps
+            displayName: 'Install dependencies and browsers'
+
+          - script: |
+              npx playwright test
+            displayName: 'Run Playwright tests'
+            env:
+              CI: true
+
+          - task: PublishTestResults@2
+            displayName: 'Publish E2E test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'test-results/junit.xml'
+              testRunTitle: 'E2E Tests'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish test artifacts'
+            condition: failed()
+            inputs:
+              PathtoPublish: 'test-results'
+              ArtifactName: 'e2e-test-results'
+
+  - stage: TestSummary
+    displayName: 'Test Summary'
+    dependsOn:
+      - UnitTests
+      - IntegrationTests
+      - E2ETests
+    condition: always()
+    jobs:
+      - job: GenerateTestReport
+        displayName: 'Generate Test Summary Report'
+        steps:
+          - task: Bash@3
+            displayName: 'Generate test summary'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "==================================="
+                echo "Test Summary Report"
+                echo "==================================="
+                echo "Build: $(Build.BuildNumber)"
+                echo "Branch: $(Build.SourceBranchName)"
+                echo "Commit: $(Build.SourceVersion)"
+                echo "==================================="
+                echo ""
+                echo "Unit Tests: Completed"
+                echo "Integration Tests: Completed"
+                echo "E2E Tests: Completed"
+                echo ""
+                echo "Check Azure DevOps for detailed results"
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish test summary'
+            inputs:
+              targetPath: '$(Pipeline.Workspace)'
+              artifact: 'test-summary'
+              publishLocation: 'pipeline'

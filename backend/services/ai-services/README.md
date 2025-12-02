@@ -5,7 +5,7 @@ Flamoral AI microservices for intelligent matching, safety, and content analysis
 ## Services
 
 ### 1. Fraud Detection Service
-Location: `fraud-detection-service/`
+Location: `fraud-detection/`
 - Real-time fraud risk assessment
 - Location anomaly detection (impossible travel)
 - Device fingerprinting and trust scoring
@@ -23,7 +23,7 @@ Location: `nlp-service/`
 - Scam detection
 
 ### 3. Photo Analysis Service
-Location: `photo-analysis-service/`
+Location: `photo-analysis/`
 - Face detection and analysis
 - Photo quality assessment
 - NSFW content moderation

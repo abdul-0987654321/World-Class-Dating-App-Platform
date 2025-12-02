@@ -14,12 +14,17 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
   onPurchase,
   loading = false,
 }) => {
-  const bonusPercentage = product.bonus
-    ? Math.round((product.bonus / product.amount) * 100)
+  // Handle property aliases
+  const coinAmount = product.amount || product.coins || 0;
+  const bonusAmount = product.bonus || product.bonusCoins || 0;
+  const isPopular = product.popular || product.bestValue || false;
+
+  const bonusPercentage = bonusAmount > 0
+    ? Math.round((bonusAmount / coinAmount) * 100)
     : 0;
 
   return (
-    <Card className={`coin-shop-card ${product.popular ? 'popular' : ''}`}>
+    <Card className={`coin-shop-card ${isPopular ? 'popular' : ''}`}>
       {product.popular && (
         <div className="badge-popular">
           <span>Best Value</span>
@@ -50,13 +55,13 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
       <h3 className="product-name">{product.name}</h3>
 
       <div className="coin-amount">
-        <span className="amount">{product.amount.toLocaleString()}</span>
+        <span className="amount">{coinAmount.toLocaleString()}</span>
         <span className="label">Coins</span>
       </div>
 
-      {product.bonus && product.bonus > 0 && (
+      {bonusAmount > 0 && (
         <div className="bonus-coins">
-          + {product.bonus.toLocaleString()} Bonus
+          + {bonusAmount.toLocaleString()} Bonus
         </div>
       )}
 
@@ -67,12 +72,12 @@ export const CoinShopCard: React.FC<CoinShopCardProps> = ({
 
       <div className="value-info">
         <span>
-          ${(product.price / (product.amount + (product.bonus || 0)) * 100).toFixed(2)} per 100 coins
+          ${(product.price / (coinAmount + bonusAmount) * 100).toFixed(2)} per 100 coins
         </span>
       </div>
 
       <Button
-        variant={product.popular ? 'primary' : 'outline'}
+        variant={isPopular ? 'primary' : 'outline'}
         onClick={() => onPurchase(product)}
         disabled={loading}
         fullWidth

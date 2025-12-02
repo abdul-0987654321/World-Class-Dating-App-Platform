@@ -3,10 +3,12 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/heartly/realtime-service/internal/auth"
+	"github.com/heartly/realtime-service/internal/pubsub"
 	ws "github.com/heartly/realtime-service/internal/websocket"
 	log "github.com/sirupsen/logrus"
 )
@@ -195,6 +197,195 @@ func (s *Server) getTypingHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// publishMessageHandler handles internal API for publishing messages
+func (s *Server) publishMessageHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ConversationID string                 `json:"conversationId"`
+		MessageID      string                 `json:"messageId"`
+		SenderID       string                 `json:"senderId"`
+		ReceiverID     string                 `json:"receiverId"`
+		Content        string                 `json:"content"`
+		Type           string                 `json:"type"`
+		Metadata       map[string]interface{} `json:"metadata"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Validate required fields
+	if request.ConversationID == "" || request.MessageID == "" || request.SenderID == "" {
+		respondError(w, http.StatusBadRequest, "Missing required fields")
+		return
+	}
+
+	// Publish message to Redis for WebSocket clients
+	err := s.redis.Publish(pubsub.ChannelMessages, &pubsub.PubSubMessage{
+		Type:      pubsub.TypeNewMessage,
+		UserID:    request.SenderID,
+		TargetIDs: []string{request.ReceiverID},
+		Payload: mustMarshalJSON(map[string]interface{}{
+			"id":             request.MessageID,
+			"conversationId": request.ConversationID,
+			"senderId":       request.SenderID,
+			"receiverId":     request.ReceiverID,
+			"content":        request.Content,
+			"type":           request.Type,
+			"metadata":       request.Metadata,
+		}),
+	})
+
+	if err != nil {
+		log.WithError(err).Error("Failed to publish message")
+		respondError(w, http.StatusInternalServerError, "Failed to publish message")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Message published successfully",
+	})
+}
+
+// publishReadReceiptHandler handles internal API for publishing read receipts
+func (s *Server) publishReadReceiptHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ConversationID string   `json:"conversationId"`
+		MessageIDs     []string `json:"messageIds"`
+		ReadBy         string   `json:"readBy"`
+		SenderID       string   `json:"senderId"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Publish read receipt to Redis
+	err := s.redis.Publish(pubsub.ChannelMessages, &pubsub.PubSubMessage{
+		Type:      pubsub.TypeMessageRead,
+		UserID:    request.ReadBy,
+		TargetIDs: []string{request.SenderID},
+		Payload: mustMarshalJSON(map[string]interface{}{
+			"conversationId": request.ConversationID,
+			"messageIds":     request.MessageIDs,
+			"readBy":         request.ReadBy,
+			"readAt":         time.Now(),
+		}),
+	})
+
+	if err != nil {
+		log.WithError(err).Error("Failed to publish read receipt")
+		respondError(w, http.StatusInternalServerError, "Failed to publish read receipt")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Read receipt published successfully",
+	})
+}
+
+// publishTypingHandler handles internal API for publishing typing indicators
+func (s *Server) publishTypingHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ConversationID string `json:"conversationId"`
+		UserID         string `json:"userId"`
+		TargetUserID   string `json:"targetUserId"`
+		IsTyping       bool   `json:"isTyping"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	msgType := pubsub.TypeTypingStart
+	if !request.IsTyping {
+		msgType = pubsub.TypeTypingStop
+	}
+
+	err := s.redis.Publish(pubsub.ChannelTyping, &pubsub.PubSubMessage{
+		Type:      msgType,
+		UserID:    request.UserID,
+		TargetIDs: []string{request.TargetUserID},
+		Payload: mustMarshalJSON(map[string]interface{}{
+			"conversationId": request.ConversationID,
+			"userId":         request.UserID,
+			"isTyping":       request.IsTyping,
+		}),
+	})
+
+	if err != nil {
+		log.WithError(err).Error("Failed to publish typing indicator")
+		respondError(w, http.StatusInternalServerError, "Failed to publish typing indicator")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Typing indicator published successfully",
+	})
+}
+
+// getConversationParticipantsHandler returns online participants in a conversation
+func (s *Server) getConversationParticipantsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	conversationID := vars["conversationId"]
+
+	participants := s.hub.GetConversationParticipants(conversationID)
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"conversationId": conversationID,
+			"participants":   participants,
+			"count":          len(participants),
+		},
+	})
+}
+
+// joinConversationHandler allows a user to join a conversation room
+func (s *Server) joinConversationHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ConversationID string `json:"conversationId"`
+		UserID         string `json:"userId"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	s.hub.JoinConversation(request.UserID, request.ConversationID)
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "User joined conversation successfully",
+	})
+}
+
+// leaveConversationHandler allows a user to leave a conversation room
+func (s *Server) leaveConversationHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ConversationID string `json:"conversationId"`
+		UserID         string `json:"userId"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	s.hub.LeaveConversation(request.UserID, request.ConversationID)
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "User left conversation successfully",
+	})
+}
+
 // Helper functions
 
 func respondJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -210,4 +401,9 @@ func respondError(w http.ResponseWriter, status int, message string) {
 			"message": message,
 		},
 	})
+}
+
+func mustMarshalJSON(v interface{}) json.RawMessage {
+	data, _ := json.Marshal(v)
+	return data
 }

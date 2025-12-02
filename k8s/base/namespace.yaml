@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral
+  labels:
+    name: flamoral
+    environment: production
+    app: dating-platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-staging
+  labels:
+    name: flamoral-staging
+    environment: staging
+    app: dating-platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-monitoring
+  labels:
+    name: flamoral-monitoring
+    purpose: monitoring
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-logging
+  labels:
+    name: flamoral-logging
+    purpose: logging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+  labels:
+    name: istio-system
+    purpose: service-mesh

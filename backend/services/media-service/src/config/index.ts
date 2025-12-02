@@ -26,6 +26,11 @@ export const config = {
     maxPhotosPerUser: parseInt(process.env.MAX_PHOTOS_PER_USER || '9', 10),
     allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
+    // Video limits
+    maxVideoFileSize: parseInt(process.env.MAX_VIDEO_FILE_SIZE || '104857600', 10), // 100MB default
+    maxVideosPerUser: parseInt(process.env.MAX_VIDEOS_PER_USER || '3', 10),
+    allowedVideoMimeTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'],
+    allowedVideoExtensions: ['.mp4', '.mov', '.avi', '.webm'],
   },
 
   // Image processing
@@ -35,6 +40,21 @@ export const config = {
     hd: { width: 1920, height: 1920 },
     quality: 85,
     format: 'jpeg' as const,
+  },
+
+  // Video processing
+  videoProcessing: {
+    maxDuration: parseInt(process.env.MAX_VIDEO_DURATION || '60', 10), // 60 seconds default
+    minDuration: parseInt(process.env.MIN_VIDEO_DURATION || '3', 10), // 3 seconds minimum
+    thumbnail: { width: 640, height: 640, count: 3 }, // Generate 3 thumbnails
+    outputFormat: 'mp4' as const,
+    videoCodec: 'libx264' as const,
+    audioCodec: 'aac' as const,
+    videoBitrate: '1000k',
+    audioBitrate: '128k',
+    frameRate: 30,
+    resolution: { width: 1280, height: 720 }, // 720p
+    compressionPreset: 'medium' as const, // ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
   },
 
   // Redis for Bull queue

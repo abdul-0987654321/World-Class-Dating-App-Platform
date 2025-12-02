@@ -1,0 +1,29 @@
+{
+  "name": "@flamoral/database",
+  "version": "1.0.0",
+  "description": "Database migrations and schema management for Flamoral Dating Platform",
+  "private": true,
+  "scripts": {
+    "migrate:latest": "knex migrate:latest --knexfile knexfile.ts",
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.ts",
+    "migrate:up": "knex migrate:up --knexfile knexfile.ts",
+    "migrate:down": "knex migrate:down --knexfile knexfile.ts",
+    "migrate:list": "knex migrate:list --knexfile knexfile.ts",
+    "migrate:status": "knex migrate:status --knexfile knexfile.ts",
+    "migrate:make": "knex migrate:make --knexfile knexfile.ts",
+    "seed:run": "knex seed:run --knexfile knexfile.ts",
+    "seed:make": "knex seed:make --knexfile knexfile.ts",
+    "db:reset": "npm run migrate:rollback && npm run migrate:latest && npm run seed:run",
+    "db:fresh": "npm run migrate:rollback --all && npm run migrate:latest"
+  },
+  "dependencies": {
+    "knex": "^3.1.0",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "dotenv": "^16.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

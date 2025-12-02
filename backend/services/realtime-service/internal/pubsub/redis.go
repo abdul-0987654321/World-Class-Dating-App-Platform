@@ -25,19 +25,20 @@ const (
 type MessageType string
 
 const (
-	TypeNewMessage      MessageType = "NEW_MESSAGE"
-	TypeMessageRead     MessageType = "MESSAGE_READ"
-	TypeMessageReaction MessageType = "MESSAGE_REACTION"
-	TypeNewMatch        MessageType = "NEW_MATCH"
-	TypeLikeReceived    MessageType = "LIKE_RECEIVED"
-	TypePresenceUpdate  MessageType = "PRESENCE_UPDATE"
-	TypeTypingStart     MessageType = "TYPING_START"
-	TypeTypingStop      MessageType = "TYPING_STOP"
-	TypeCallIncoming    MessageType = "CALL_INCOMING"
-	TypeCallAccepted    MessageType = "CALL_ACCEPTED"
-	TypeCallRejected    MessageType = "CALL_REJECTED"
-	TypeCallEnded       MessageType = "CALL_ENDED"
-	TypeNotification    MessageType = "NOTIFICATION"
+	TypeNewMessage       MessageType = "NEW_MESSAGE"
+	TypeMessageRead      MessageType = "MESSAGE_READ"
+	TypeMessageDelivered MessageType = "MESSAGE_DELIVERED"
+	TypeMessageReaction  MessageType = "MESSAGE_REACTION"
+	TypeNewMatch         MessageType = "NEW_MATCH"
+	TypeLikeReceived     MessageType = "LIKE_RECEIVED"
+	TypePresenceUpdate   MessageType = "PRESENCE_UPDATE"
+	TypeTypingStart      MessageType = "TYPING_START"
+	TypeTypingStop       MessageType = "TYPING_STOP"
+	TypeCallIncoming     MessageType = "CALL_INCOMING"
+	TypeCallAccepted     MessageType = "CALL_ACCEPTED"
+	TypeCallRejected     MessageType = "CALL_REJECTED"
+	TypeCallEnded        MessageType = "CALL_ENDED"
+	TypeNotification     MessageType = "NOTIFICATION"
 )
 
 // PubSubMessage represents a message sent through pub/sub

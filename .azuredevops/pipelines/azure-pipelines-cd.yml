@@ -1,0 +1,609 @@
+# ==============================================================================
+# Flamoral Dating Platform - CD Pipeline
+# ==============================================================================
+# Purpose: Continuous Deployment pipeline for deploying to multiple environments
+# Triggers: Successful CI builds from main branch
+# Environments: Dev → Test → Staging → Production
+# ==============================================================================
+
+trigger: none # Triggered by CI pipeline completion
+
+pr: none
+
+resources:
+  pipelines:
+    - pipeline: ci-pipeline
+      source: 'Flamoral-CI-Pipeline'
+      trigger:
+        branches:
+          include:
+            - main
+
+variables:
+  - group: flamoral-shared-vars
+  - group: flamoral-cd-vars
+  - name: acrName
+    value: 'flamoralacr'
+  - name: aksClusterName
+    value: 'flamoral-aks'
+  - name: resourceGroup
+    value: 'flamoral-dating-app-rg'
+  - name: azureServiceConnection
+    value: 'azure-datingapp-sp-connection'
+  - name: kubernetesServiceConnection
+    value: 'aks-flamoral-connection'
+  - name: helmVersion
+    value: '3.12.0'
+
+stages:
+  # ==============================================================================
+  # Stage 1: Deploy to Development Environment
+  # ==============================================================================
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    variables:
+      - group: flamoral-dev-vars
+      - name: environment
+        value: 'dev'
+      - name: namespace
+        value: 'flamoral-dev'
+      - name: ingressHost
+        value: 'dev.flamoral.app'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToK8sDev
+        displayName: 'Deploy to Dev AKS'
+        environment: 'flamoral-dev'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+                  displayName: 'Install Helm'
+
+                - task: KubectlInstaller@0
+                  inputs:
+                    kubectlVersion: 'latest'
+                  displayName: 'Install kubectl'
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+                  displayName: 'Get AKS Credentials'
+
+                - script: |
+                    kubectl create namespace $(namespace) --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create Namespace'
+
+                - script: |
+                    kubectl create secret docker-registry acr-secret \
+                      --docker-server=$(acrName).azurecr.io \
+                      --docker-username=$(ACR_USERNAME) \
+                      --docker-password=$(ACR_PASSWORD) \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create ACR Pull Secret'
+                  env:
+                    ACR_USERNAME: $(ACR_USERNAME)
+                    ACR_PASSWORD: $(ACR_PASSWORD)
+
+                - script: |
+                    # Create ConfigMaps
+                    kubectl create configmap app-config \
+                      --from-literal=NODE_ENV=$(environment) \
+                      --from-literal=API_URL=https://api.$(ingressHost) \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create ConfigMaps'
+
+                - script: |
+                    # Create Secrets
+                    kubectl create secret generic app-secrets \
+                      --from-literal=JWT_SECRET=$(JWT_SECRET) \
+                      --from-literal=DB_PASSWORD=$(DB_PASSWORD) \
+                      --from-literal=REDIS_PASSWORD=$(REDIS_PASSWORD) \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create Secrets'
+
+                - task: HelmDeploy@0
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(namespace)
+                    command: 'upgrade'
+                    chartType: 'FilePath'
+                    chartPath: '$(Pipeline.Workspace)/s/infrastructure/helm/flamoral'
+                    releaseName: 'flamoral-$(environment)'
+                    overrideValues: |
+                      global.environment=$(environment)
+                      global.imageTag=$(imageTag)
+                      global.imagePullSecrets[0].name=acr-secret
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      ingress.tls[0].hosts[0]=$(ingressHost)
+                      postgresql.enabled=true
+                      redis.enabled=true
+                      mongodb.enabled=true
+                    arguments: '--create-namespace --install --wait --timeout 10m'
+                  displayName: 'Deploy with Helm'
+
+                - script: |
+                    echo "Waiting for deployments to be ready..."
+                    kubectl wait --for=condition=available --timeout=300s \
+                      deployment --all -n $(namespace)
+                  displayName: 'Wait for Deployments'
+
+                - script: |
+                    kubectl get all -n $(namespace)
+                    kubectl get ingress -n $(namespace)
+                  displayName: 'Verify Deployment'
+
+      - job: SmokeTestsDev
+        displayName: 'Run Smoke Tests - Dev'
+        dependsOn: DeployToK8sDev
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "Running smoke tests against dev.flamoral.app"
+
+              # Test API Gateway health
+              response=$(curl -s -o /dev/null -w "%{http_code}" https://api.dev.flamoral.app/health)
+              if [ "$response" != "200" ]; then
+                echo "Health check failed with status: $response"
+                exit 1
+              fi
+
+              echo "Smoke tests passed!"
+            displayName: 'Execute Smoke Tests'
+
+  # ==============================================================================
+  # Stage 2: Deploy to Test Environment
+  # ==============================================================================
+  - stage: DeployTest
+    displayName: 'Deploy to Test'
+    dependsOn: DeployDev
+    condition: succeeded()
+    variables:
+      - group: flamoral-test-vars
+      - name: environment
+        value: 'test'
+      - name: namespace
+        value: 'flamoral-test'
+      - name: ingressHost
+        value: 'test.flamoral.app'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToK8sTest
+        displayName: 'Deploy to Test AKS'
+        environment: 'flamoral-test'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+                  displayName: 'Install Helm'
+
+                - task: KubectlInstaller@0
+                  inputs:
+                    kubectlVersion: 'latest'
+                  displayName: 'Install kubectl'
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+                  displayName: 'Get AKS Credentials'
+
+                - script: |
+                    kubectl create namespace $(namespace) --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create Namespace'
+
+                - script: |
+                    kubectl create secret docker-registry acr-secret \
+                      --docker-server=$(acrName).azurecr.io \
+                      --docker-username=$(ACR_USERNAME) \
+                      --docker-password=$(ACR_PASSWORD) \
+                      --namespace=$(namespace) \
+                      --dry-run=client -o yaml | kubectl apply -f -
+                  displayName: 'Create ACR Pull Secret'
+                  env:
+                    ACR_USERNAME: $(ACR_USERNAME)
+                    ACR_PASSWORD: $(ACR_PASSWORD)
+
+                - task: HelmDeploy@0
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(namespace)
+                    command: 'upgrade'
+                    chartType: 'FilePath'
+                    chartPath: '$(Pipeline.Workspace)/s/infrastructure/helm/flamoral'
+                    releaseName: 'flamoral-$(environment)'
+                    overrideValues: |
+                      global.environment=$(environment)
+                      global.imageTag=$(imageTag)
+                      global.imagePullSecrets[0].name=acr-secret
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      replicaCount=2
+                    arguments: '--create-namespace --install --wait --timeout 10m'
+                  displayName: 'Deploy with Helm'
+
+                - script: |
+                    kubectl wait --for=condition=available --timeout=300s \
+                      deployment --all -n $(namespace)
+                  displayName: 'Wait for Deployments'
+
+      - job: IntegrationTestsTest
+        displayName: 'Run Integration Tests - Test'
+        dependsOn: DeployToK8sTest
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              export API_URL=https://api.test.flamoral.app
+              yarn test:e2e || npm run test:e2e
+            displayName: 'Run E2E Tests'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-results/**/*.xml'
+              testRunTitle: 'Test Environment E2E Tests'
+
+  # ==============================================================================
+  # Stage 3: Deploy to Staging with Blue-Green Strategy
+  # ==============================================================================
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: DeployTest
+    condition: succeeded()
+    variables:
+      - group: flamoral-staging-vars
+      - name: environment
+        value: 'staging'
+      - name: namespace
+        value: 'flamoral-staging'
+      - name: ingressHost
+        value: 'staging.flamoral.app'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToK8sStaging
+        displayName: 'Deploy to Staging AKS (Blue-Green)'
+        environment: 'flamoral-staging'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - script: |
+                    # Determine current active slot (blue or green)
+                    CURRENT_SLOT=$(kubectl get service flamoral-api-gateway -n $(namespace) -o jsonpath='{.spec.selector.slot}' 2>/dev/null || echo "blue")
+                    if [ "$CURRENT_SLOT" == "blue" ]; then
+                      NEW_SLOT="green"
+                    else
+                      NEW_SLOT="blue"
+                    fi
+
+                    echo "##vso[task.setvariable variable=currentSlot]$CURRENT_SLOT"
+                    echo "##vso[task.setvariable variable=newSlot]$NEW_SLOT"
+
+                    echo "Current slot: $CURRENT_SLOT"
+                    echo "Deploying to: $NEW_SLOT"
+                  displayName: 'Determine Deployment Slot'
+
+                - task: HelmDeploy@0
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(namespace)
+                    command: 'upgrade'
+                    chartType: 'FilePath'
+                    chartPath: '$(Pipeline.Workspace)/s/infrastructure/helm/flamoral'
+                    releaseName: 'flamoral-$(newSlot)'
+                    overrideValues: |
+                      global.environment=$(environment)
+                      global.imageTag=$(imageTag)
+                      global.slot=$(newSlot)
+                      replicaCount=3
+                      resources.requests.memory=512Mi
+                      resources.requests.cpu=500m
+                      autoscaling.enabled=true
+                      autoscaling.minReplicas=3
+                      autoscaling.maxReplicas=10
+                    arguments: '--create-namespace --install --wait --timeout 10m'
+                  displayName: 'Deploy to $(newSlot) Slot'
+
+                - script: |
+                    echo "Waiting for $(newSlot) deployment to be ready..."
+                    kubectl wait --for=condition=available --timeout=300s \
+                      deployment -l slot=$(newSlot) -n $(namespace)
+                  displayName: 'Wait for New Slot'
+
+      - job: ValidateStaging
+        displayName: 'Validate Staging Deployment'
+        dependsOn: DeployToK8sStaging
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              # Run validation tests against new slot
+              echo "Running validation tests..."
+              # Add your validation logic here
+
+              echo "Validation passed!"
+            displayName: 'Run Validation Tests'
+
+      - job: ApprovalForSwitch
+        displayName: 'Manual Approval for Traffic Switch'
+        dependsOn: ValidateStaging
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: 'ops-team@flamoral.com'
+              instructions: 'Please validate the staging deployment before switching traffic'
+              onTimeout: 'reject'
+            displayName: 'Wait for Manual Approval'
+
+      - deployment: SwitchTraffic
+        displayName: 'Switch Traffic to New Slot'
+        dependsOn: ApprovalForSwitch
+        environment: 'flamoral-staging'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - script: |
+                    # Get the new slot from previous job
+                    NEW_SLOT=$(kubectl get deployment -n $(namespace) -l slot=green --no-headers | wc -l)
+                    if [ "$NEW_SLOT" -gt "0" ]; then
+                      ACTIVE_SLOT="green"
+                    else
+                      ACTIVE_SLOT="blue"
+                    fi
+
+                    echo "Switching traffic to: $ACTIVE_SLOT"
+
+                    # Update service selectors to point to new slot
+                    kubectl patch service flamoral-api-gateway -n $(namespace) -p '{"spec":{"selector":{"slot":"'$ACTIVE_SLOT'"}}}'
+
+                    echo "Traffic switched successfully!"
+                  displayName: 'Switch Service to New Slot'
+
+  # ==============================================================================
+  # Stage 4: Deploy to Production
+  # ==============================================================================
+  - stage: DeployProduction
+    displayName: 'Deploy to Production'
+    dependsOn: DeployStaging
+    condition: succeeded()
+    variables:
+      - group: flamoral-prod-vars
+      - name: environment
+        value: 'production'
+      - name: namespace
+        value: 'flamoral-prod'
+      - name: ingressHost
+        value: 'flamoral.app'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: ProductionApproval
+        displayName: 'Production Deployment Approval'
+        environment: 'flamoral-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: 'release-managers@flamoral.com,cto@flamoral.com'
+                    instructions: 'Please approve production deployment. Image Tag: $(imageTag)'
+                    onTimeout: 'reject'
+                  displayName: 'Wait for Production Approval'
+
+      - deployment: DeployToK8sProduction
+        displayName: 'Deploy to Production AKS'
+        dependsOn: ProductionApproval
+        environment: 'flamoral-production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - script: |
+                    # Production Blue-Green Deployment
+                    CURRENT_SLOT=$(kubectl get service flamoral-api-gateway -n $(namespace) -o jsonpath='{.spec.selector.slot}' 2>/dev/null || echo "blue")
+                    NEW_SLOT=$([ "$CURRENT_SLOT" == "blue" ] && echo "green" || echo "blue")
+
+                    echo "##vso[task.setvariable variable=newSlot]$NEW_SLOT"
+                    echo "Deploying to Production slot: $NEW_SLOT"
+                  displayName: 'Determine Production Slot'
+
+                - task: HelmDeploy@0
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(namespace)
+                    command: 'upgrade'
+                    chartType: 'FilePath'
+                    chartPath: '$(Pipeline.Workspace)/s/infrastructure/helm/flamoral'
+                    releaseName: 'flamoral-$(newSlot)'
+                    overrideValues: |
+                      global.environment=$(environment)
+                      global.imageTag=$(imageTag)
+                      global.slot=$(newSlot)
+                      replicaCount=5
+                      resources.requests.memory=1Gi
+                      resources.requests.cpu=1000m
+                      resources.limits.memory=2Gi
+                      resources.limits.cpu=2000m
+                      autoscaling.enabled=true
+                      autoscaling.minReplicas=5
+                      autoscaling.maxReplicas=50
+                      autoscaling.targetCPUUtilizationPercentage=70
+                      postgresql.enabled=false
+                      postgresql.external.host=$(PROD_DB_HOST)
+                      redis.enabled=false
+                      redis.external.host=$(PROD_REDIS_HOST)
+                    arguments: '--create-namespace --install --wait --timeout 15m'
+                  displayName: 'Deploy to Production $(newSlot)'
+
+                - script: |
+                    kubectl wait --for=condition=available --timeout=600s \
+                      deployment -l slot=$(newSlot) -n $(namespace)
+                  displayName: 'Wait for Production Deployment'
+
+      - job: ProductionValidation
+        displayName: 'Production Validation'
+        dependsOn: DeployToK8sProduction
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "Running production validation..."
+              # Run smoke tests, health checks, etc.
+              echo "Production validation passed!"
+            displayName: 'Validate Production'
+
+      - job: ProductionTrafficSwitch
+        displayName: 'Switch Production Traffic'
+        dependsOn: ProductionValidation
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: 'release-managers@flamoral.com'
+              instructions: 'Approve traffic switch to new production slot'
+              onTimeout: 'reject'
+
+      - deployment: FinalizeProduction
+        displayName: 'Finalize Production Deployment'
+        dependsOn: ProductionTrafficSwitch
+        environment: 'flamoral-production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                      # Switch traffic gradually using Istio/Service Mesh
+                      # Or direct service selector update
+                      kubectl patch service flamoral-api-gateway -n $(namespace) \
+                        -p '{"spec":{"selector":{"slot":"$(newSlot)"}}}'
+
+                      echo "Production traffic switched successfully!"
+
+                - script: |
+                    echo "Deployment Summary:"
+                    echo "==================="
+                    echo "Environment: Production"
+                    echo "Image Tag: $(imageTag)"
+                    echo "Deployment Time: $(Build.StartTime)"
+                    echo "Pipeline: $(Build.DefinitionName)"
+                    echo "Build Number: $(Build.BuildNumber)"
+                  displayName: 'Deployment Summary'

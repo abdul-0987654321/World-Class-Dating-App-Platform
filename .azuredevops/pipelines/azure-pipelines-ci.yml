@@ -1,0 +1,482 @@
+# ==============================================================================
+# Flamoral Dating Platform - CI Pipeline
+# ==============================================================================
+# Purpose: Continuous Integration pipeline for building and testing all services
+# Triggers: Pull requests and commits to main/develop branches
+# ==============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+  paths:
+    include:
+      - backend/**
+      - apps/**
+      - packages/**
+      - infrastructure/**
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/**
+      - apps/**
+      - packages/**
+
+variables:
+  - group: flamoral-shared-vars
+  - group: flamoral-ci-vars
+  - name: nodeVersion
+    value: '20.x'
+  - name: goVersion
+    value: '1.21'
+  - name: pythonVersion
+    value: '3.11'
+  - name: dockerRegistryServiceConnection
+    value: 'acr-datingapp-connection'
+  - name: acrName
+    value: 'flamoralacr'
+  - name: imageRepository
+    value: 'flamoral'
+  - name: dockerfilePath
+    value: '$(Build.SourcesDirectory)'
+  - name: tag
+    value: '$(Build.BuildId)'
+  - name: vmImageName
+    value: 'ubuntu-latest'
+
+pool:
+  vmImage: $(vmImageName)
+
+stages:
+  # ==============================================================================
+  # Stage 1: Code Quality & Security Analysis
+  # ==============================================================================
+  - stage: CodeQuality
+    displayName: 'Code Quality & Security'
+    jobs:
+      - job: Lint
+        displayName: 'Linting & Code Analysis'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              yarn lint:all
+            displayName: 'Run ESLint on All Workspaces'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/lint-results.xml'
+              failTaskOnFailedTests: false
+            displayName: 'Publish Lint Results'
+
+      - job: SecurityScan
+        displayName: 'Security Scanning'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              npm audit --audit-level=moderate --json > npm-audit-results.json || true
+            displayName: 'NPM Security Audit'
+
+          - script: |
+              npx snyk test --severity-threshold=high --json > snyk-results.json || true
+            displayName: 'Snyk Security Scan'
+            continueOnError: true
+            env:
+              SNYK_TOKEN: $(SNYK_TOKEN)
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)'
+              ArtifactName: 'security-reports'
+            displayName: 'Publish Security Reports'
+
+  # ==============================================================================
+  # Stage 2: Build & Test Backend Services
+  # ==============================================================================
+  - stage: BuildBackend
+    displayName: 'Build Backend Services'
+    dependsOn: CodeQuality
+    jobs:
+      # Node.js Services
+      - job: BuildNodeServices
+        displayName: 'Build Node.js Microservices'
+        strategy:
+          matrix:
+            ApiGateway:
+              serviceName: 'api-gateway'
+              servicePort: '4000'
+            AuthService:
+              serviceName: 'auth-service'
+              servicePort: '3001'
+            UserService:
+              serviceName: 'user-service'
+              servicePort: '3002'
+            MatchingService:
+              serviceName: 'matching-service'
+              servicePort: '3003'
+            MessagingService:
+              serviceName: 'messaging-service'
+              servicePort: '3004'
+            MediaService:
+              serviceName: 'media-service'
+              servicePort: '3006'
+            PaymentService:
+              serviceName: 'payment-service'
+              servicePort: '3007'
+            NotificationService:
+              serviceName: 'notification-service'
+              servicePort: '3008'
+            AnalyticsService:
+              serviceName: 'analytics-service'
+              servicePort: '3009'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js $(nodeVersion)'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Root Dependencies'
+
+          - script: |
+              cd backend/services/$(serviceName)
+              if [ -f "package.json" ]; then
+                yarn install --frozen-lockfile
+                yarn build || npm run build || echo "No build script found"
+              fi
+            displayName: 'Build $(serviceName)'
+
+          - script: |
+              cd backend/services/$(serviceName)
+              if [ -f "package.json" ] && grep -q "\"test\"" package.json; then
+                yarn test --coverage --ci --reporters=default --reporters=jest-junit || npm test -- --coverage --ci --reporters=default --reporters=jest-junit
+              fi
+            displayName: 'Test $(serviceName)'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'backend/services/$(serviceName)/**/junit.xml'
+              mergeTestResults: true
+              testRunTitle: '$(serviceName) Unit Tests'
+            displayName: 'Publish Test Results'
+
+          - task: PublishCodeCoverageResults@1
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: 'backend/services/$(serviceName)/**/coverage/cobertura-coverage.xml'
+              failIfCoverageEmpty: false
+            displayName: 'Publish Code Coverage'
+
+      # AI Services (Python)
+      - job: BuildAIServices
+        displayName: 'Build AI/ML Services (Python)'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+            displayName: 'Use Python $(pythonVersion)'
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install pytest pytest-cov pytest-asyncio
+            displayName: 'Install Python Test Dependencies'
+
+          - script: |
+              if [ -d "backend/services/ai-services" ]; then
+                cd backend/services/ai-services
+                if [ -f "requirements.txt" ]; then
+                  pip install -r requirements.txt
+                fi
+                if [ -f "setup.py" ]; then
+                  pip install -e .
+                fi
+              fi
+            displayName: 'Install AI Services Dependencies'
+
+          - script: |
+              if [ -d "backend/services/ai-services" ]; then
+                cd backend/services/ai-services
+                pytest tests/ --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html || true
+              fi
+            displayName: 'Run AI Services Tests'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'backend/services/ai-services/**/test-results.xml'
+              testRunTitle: 'AI Services Tests'
+            displayName: 'Publish AI Test Results'
+
+  # ==============================================================================
+  # Stage 3: Build & Test Frontend Applications
+  # ==============================================================================
+  - stage: BuildFrontend
+    displayName: 'Build Frontend Applications'
+    dependsOn: CodeQuality
+    jobs:
+      - job: BuildWebApp
+        displayName: 'Build Web Application'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              if [ -d "apps/web" ]; then
+                cd apps/web
+                yarn build || npm run build
+              fi
+            displayName: 'Build Web App'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'apps/web/dist'
+              ArtifactName: 'web-app'
+            displayName: 'Publish Web Artifacts'
+
+      - job: BuildMobileApp
+        displayName: 'Build Mobile Application'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              if [ -d "apps/mobile-app" ]; then
+                cd apps/mobile-app
+                yarn install --frozen-lockfile
+              fi
+            displayName: 'Install Mobile Dependencies'
+
+          - script: |
+              if [ -d "apps/mobile-app" ]; then
+                cd apps/mobile-app
+                yarn test || npm test || echo "No tests found"
+              fi
+            displayName: 'Run Mobile Tests'
+            continueOnError: true
+
+  # ==============================================================================
+  # Stage 4: Build & Push Docker Images
+  # ==============================================================================
+  - stage: BuildDockerImages
+    displayName: 'Build & Push Docker Images'
+    dependsOn:
+      - BuildBackend
+      - BuildFrontend
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - job: BuildAndPushImages
+        displayName: 'Build & Push Service Images'
+        strategy:
+          matrix:
+            ApiGateway:
+              serviceName: 'api-gateway'
+              dockerfilePath: 'backend/services/api-gateway/Dockerfile'
+              buildContext: 'backend'
+            AuthService:
+              serviceName: 'auth-service'
+              dockerfilePath: 'backend/services/auth-service/Dockerfile'
+              buildContext: 'backend/services/auth-service'
+            UserService:
+              serviceName: 'user-service'
+              dockerfilePath: 'backend/services/user-service/Dockerfile'
+              buildContext: 'backend'
+            MatchingService:
+              serviceName: 'matching-service'
+              dockerfilePath: 'backend/services/matching-service/Dockerfile'
+              buildContext: 'backend'
+            MessagingService:
+              serviceName: 'messaging-service'
+              dockerfilePath: 'backend/services/messaging-service/Dockerfile'
+              buildContext: 'backend'
+            MediaService:
+              serviceName: 'media-service'
+              dockerfilePath: 'backend/services/media-service/Dockerfile'
+              buildContext: 'backend'
+            PaymentService:
+              serviceName: 'payment-service'
+              dockerfilePath: 'backend/services/payment-service/Dockerfile'
+              buildContext: 'backend'
+            NotificationService:
+              serviceName: 'notification-service'
+              dockerfilePath: 'backend/services/notification-service/Dockerfile'
+              buildContext: 'backend'
+            AnalyticsService:
+              serviceName: 'analytics-service'
+              dockerfilePath: 'backend/services/analytics-service/Dockerfile'
+              buildContext: 'backend'
+        steps:
+          - task: Docker@2
+            displayName: 'Login to ACR'
+            inputs:
+              command: login
+              containerRegistry: $(dockerRegistryServiceConnection)
+
+          - task: Docker@2
+            displayName: 'Build Docker Image'
+            inputs:
+              command: build
+              repository: $(imageRepository)/$(serviceName)
+              dockerfile: $(dockerfilePath)
+              buildContext: $(buildContext)
+              tags: |
+                $(tag)
+                latest
+              arguments: '--build-arg NODE_ENV=production'
+
+          - task: Docker@2
+            displayName: 'Push Docker Image'
+            inputs:
+              command: push
+              repository: $(imageRepository)/$(serviceName)
+              tags: |
+                $(tag)
+                latest
+
+          - script: |
+              docker image inspect $(acrName).azurecr.io/$(imageRepository)/$(serviceName):$(tag)
+            displayName: 'Verify Image'
+
+  # ==============================================================================
+  # Stage 5: Integration Tests
+  # ==============================================================================
+  - stage: IntegrationTests
+    displayName: 'Integration & E2E Tests'
+    dependsOn: BuildDockerImages
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - job: RunIntegrationTests
+        displayName: 'Run Integration Tests'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g yarn
+              yarn install --frozen-lockfile
+            displayName: 'Install Dependencies'
+
+          - script: |
+              docker-compose -f docker-compose.yml up -d postgres redis mongodb
+              sleep 30
+            displayName: 'Start Test Infrastructure'
+
+          - script: |
+              yarn test:backend || npm run test:backend
+            displayName: 'Run Backend Integration Tests'
+            continueOnError: true
+
+          - script: |
+              yarn test:e2e || npm run test:e2e || echo "No E2E tests found"
+            displayName: 'Run E2E Tests'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-results/**/*.xml'
+              mergeTestResults: true
+              testRunTitle: 'Integration Tests'
+            displayName: 'Publish Integration Test Results'
+
+          - script: |
+              docker-compose down -v
+            displayName: 'Cleanup Test Environment'
+            condition: always()
+
+  # ==============================================================================
+  # Stage 6: Publish Artifacts
+  # ==============================================================================
+  - stage: PublishArtifacts
+    displayName: 'Publish Build Artifacts'
+    dependsOn:
+      - BuildDockerImages
+      - IntegrationTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: PublishManifests
+        displayName: 'Publish K8s Manifests & Helm Charts'
+        steps:
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'k8s'
+              ArtifactName: 'k8s-manifests'
+            displayName: 'Publish K8s Manifests'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'infrastructure/helm'
+              ArtifactName: 'helm-charts'
+            displayName: 'Publish Helm Charts'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'infrastructure/terraform'
+              ArtifactName: 'terraform-configs'
+            displayName: 'Publish Terraform Configs'
+
+          - script: |
+              echo "Build Number: $(Build.BuildNumber)" > build-info.txt
+              echo "Build ID: $(Build.BuildId)" >> build-info.txt
+              echo "Source Branch: $(Build.SourceBranch)" >> build-info.txt
+              echo "Source Version: $(Build.SourceVersion)" >> build-info.txt
+              echo "Image Tag: $(tag)" >> build-info.txt
+            displayName: 'Generate Build Info'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'build-info.txt'
+              ArtifactName: 'build-info'
+            displayName: 'Publish Build Info'

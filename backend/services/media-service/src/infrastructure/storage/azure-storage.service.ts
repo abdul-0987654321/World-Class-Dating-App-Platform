@@ -178,6 +178,90 @@ export class AzureStorageService {
       throw error;
     }
   }
+
+  /**
+   * Upload a blob with custom path
+   */
+  async uploadBlob(buffer: Buffer, blobPath: string, mimeType: string): Promise<string> {
+    try {
+      const blockBlobClient: BlockBlobClient = this.containerClient.getBlockBlobClient(blobPath);
+
+      await blockBlobClient.upload(buffer, buffer.length, {
+        blobHTTPHeaders: {
+          blobContentType: mimeType,
+          blobCacheControl: 'public, max-age=31536000', // 1 year cache for media files
+        },
+      });
+
+      const url = blockBlobClient.url;
+      logger.info(`Blob uploaded successfully: ${blobPath}`);
+
+      return url;
+    } catch (error) {
+      logger.error('Failed to upload blob to Azure Storage', error);
+      throw new Error('Blob upload failed');
+    }
+  }
+
+  /**
+   * Delete a blob by URL
+   */
+  async deleteBlob(url: string): Promise<boolean> {
+    return this.deleteFile(url);
+  }
+
+  /**
+   * Download a blob by URL
+   */
+  async downloadBlob(url: string): Promise<Buffer> {
+    return this.getFile(url);
+  }
+
+  /**
+   * Check if a blob exists
+   */
+  async blobExists(url: string): Promise<boolean> {
+    try {
+      const blobName = url.split(`/${config.azure.containerName}/`)[1];
+      if (!blobName) {
+        return false;
+      }
+
+      const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
+      return await blockBlobClient.exists();
+    } catch (error) {
+      logger.error('Failed to check if blob exists', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get blob metadata
+   */
+  async getBlobMetadata(url: string): Promise<{
+    contentType?: string;
+    contentLength?: number;
+    lastModified?: Date;
+  }> {
+    try {
+      const blobName = url.split(`/${config.azure.containerName}/`)[1];
+      if (!blobName) {
+        throw new Error('Invalid blob URL');
+      }
+
+      const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
+      const properties = await blockBlobClient.getProperties();
+
+      return {
+        contentType: properties.contentType,
+        contentLength: properties.contentLength,
+        lastModified: properties.lastModified,
+      };
+    } catch (error) {
+      logger.error('Failed to get blob metadata', error);
+      throw error;
+    }
+  }
 }
 
 export default new AzureStorageService();

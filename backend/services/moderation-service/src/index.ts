@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import moderationRoutes from './routes/moderation.routes';
+import internalRoutes from './routes/internal.routes';
 import config from './config';
 import { createLogger } from '@flamoral/shared';
 
@@ -55,6 +56,9 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/moderation', moderationRoutes);
+
+// Internal API Routes (service-to-service)
+app.use('/api/internal/moderation', internalRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -100,10 +100,23 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
     }
   };
 
+  // Helper to get message date
+  const getMessageDate = (msg: Message) => msg.created_at || msg.sentAt;
+
+  // Helper to get sender ID
+  const getSenderId = (msg: Message) => msg.sender_id || msg.senderId;
+
+  // Helper to check if message is read
+  const isMessageRead = (msg: Message) => msg.is_read || msg.status === 'read';
+
+  // Get other user (handle both formats)
+  const otherUser = conversation.other_user || conversation.participant;
+  const otherUserPhoto = otherUser?.photo_url || otherUser?.photoUrl;
+
   const shouldShowDateDivider = (currentMsg: Message, previousMsg?: Message) => {
     if (!previousMsg) return true;
-    const currentDate = new Date(currentMsg.created_at).toDateString();
-    const previousDate = new Date(previousMsg.created_at).toDateString();
+    const currentDate = new Date(getMessageDate(currentMsg)).toDateString();
+    const previousDate = new Date(getMessageDate(previousMsg)).toDateString();
     return currentDate !== previousDate;
   };
 
@@ -111,16 +124,16 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
     <Container>
       <Header>
         <Avatar>
-          {conversation.other_user.photo_url ? (
-            <AvatarImage src={conversation.other_user.photo_url} alt={conversation.other_user.name} />
+          {otherUserPhoto ? (
+            <AvatarImage src={otherUserPhoto} alt={otherUser?.name || 'User'} />
           ) : (
             <AvatarPlaceholder>
-              {conversation.other_user.name.charAt(0).toUpperCase()}
+              {(otherUser?.name || 'U').charAt(0).toUpperCase()}
             </AvatarPlaceholder>
           )}
         </Avatar>
         <UserInfo>
-          <UserName>{conversation.other_user.name}</UserName>
+          <UserName>{otherUser?.name || 'User'}</UserName>
         </UserInfo>
       </Header>
 
@@ -133,26 +146,31 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
           </EmptyState>
         ) : (
           <>
-            {messages.map((message, index) => (
+            {messages.map((message, index) => {
+              const msgDate = getMessageDate(message);
+              const msgSenderId = getSenderId(message);
+              const msgIsRead = isMessageRead(message);
+
+              return (
               <React.Fragment key={message.id}>
                 {shouldShowDateDivider(message, messages[index - 1]) && (
                   <DateDivider>
-                    <DateLabel>{formatDate(message.created_at)}</DateLabel>
+                    <DateLabel>{formatDate(new Date(msgDate))}</DateLabel>
                   </DateDivider>
                 )}
-                <MessageBubbleWrapper $isOwn={message.sender_id === currentUserId}>
-                  <MessageBubble $isOwn={message.sender_id === currentUserId}>
+                <MessageBubbleWrapper $isOwn={msgSenderId === currentUserId}>
+                  <MessageBubble $isOwn={msgSenderId === currentUserId}>
                     <MessageContent>{message.content}</MessageContent>
                     <MessageTime>
-                      {formatTime(message.created_at)}
-                      {message.sender_id === currentUserId && message.is_read && (
+                      {formatTime(new Date(msgDate))}
+                      {msgSenderId === currentUserId && msgIsRead && (
                         <ReadIndicator> · Read</ReadIndicator>
                       )}
                     </MessageTime>
                   </MessageBubble>
                 </MessageBubbleWrapper>
               </React.Fragment>
-            ))}
+            );})}
             {isTyping && (
               <MessageBubbleWrapper $isOwn={false}>
                 <TypingIndicator>

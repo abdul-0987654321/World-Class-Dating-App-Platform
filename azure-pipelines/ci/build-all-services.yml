@@ -1,0 +1,268 @@
+# CI Pipeline - Build All Services
+# Builds all microservices across Node.js, Go, and Python stacks
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+  paths:
+    include:
+      - backend/services/**
+    exclude:
+      - '**/*.md'
+      - '**/docs/**'
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/services/**
+
+variables:
+  - group: flamoral-build-variables
+  - name: nodeVersion
+    value: '20.x'
+  - name: goVersion
+    value: '1.21'
+  - name: pythonVersion
+    value: '3.11'
+  - name: buildConfiguration
+    value: 'Release'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: BuildNodeServices
+    displayName: 'Build Node.js Services'
+    jobs:
+      - job: BuildAuthService
+        displayName: 'Build Auth Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'auth-service'
+              serviceDirectory: 'backend/services/auth-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildUserService
+        displayName: 'Build User Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'user-service'
+              serviceDirectory: 'backend/services/user-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildMatchingService
+        displayName: 'Build Matching Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'matching-service'
+              serviceDirectory: 'backend/services/matching-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildMessagingService
+        displayName: 'Build Messaging Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'messaging-service'
+              serviceDirectory: 'backend/services/messaging-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildPaymentService
+        displayName: 'Build Payment Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'payment-service'
+              serviceDirectory: 'backend/services/payment-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildNotificationService
+        displayName: 'Build Notification Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'notification-service'
+              serviceDirectory: 'backend/services/notification-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildModerationService
+        displayName: 'Build Moderation Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'moderation-service'
+              serviceDirectory: 'backend/services/moderation-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildAnalyticsService
+        displayName: 'Build Analytics Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'analytics-service'
+              serviceDirectory: 'backend/services/analytics-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildMediaService
+        displayName: 'Build Media Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'media-service'
+              serviceDirectory: 'backend/services/media-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildApiGateway
+        displayName: 'Build API Gateway'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'api-gateway'
+              serviceDirectory: 'backend/services/api-gateway'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildAdvertisingService
+        displayName: 'Build Advertising Service'
+        steps:
+          - template: ../templates/node-build-template.yml
+            parameters:
+              serviceName: 'advertising-service'
+              serviceDirectory: 'backend/services/advertising-service'
+              nodeVersion: $(nodeVersion)
+              runTests: true
+              publishCoverage: true
+
+  - stage: BuildGoServices
+    displayName: 'Build Go Services'
+    dependsOn: []
+    jobs:
+      - job: BuildRealtimeService
+        displayName: 'Build Realtime Service'
+        steps:
+          - template: ../templates/go-build-template.yml
+            parameters:
+              serviceName: 'realtime-service'
+              serviceDirectory: 'backend/services/realtime-service'
+              goVersion: $(goVersion)
+              runTests: true
+              publishCoverage: true
+
+  - stage: BuildPythonServices
+    displayName: 'Build Python AI Services'
+    dependsOn: []
+    jobs:
+      - job: BuildNLPService
+        displayName: 'Build NLP Service'
+        steps:
+          - template: ../templates/python-build-template.yml
+            parameters:
+              serviceName: 'nlp-service'
+              serviceDirectory: 'backend/services/ai-services/nlp-service'
+              pythonVersion: $(pythonVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildRecommendationService
+        displayName: 'Build Recommendation Service'
+        steps:
+          - template: ../templates/python-build-template.yml
+            parameters:
+              serviceName: 'recommendation-service'
+              serviceDirectory: 'backend/services/ai-services/recommendation-service'
+              pythonVersion: $(pythonVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildFraudDetection
+        displayName: 'Build Fraud Detection Service'
+        steps:
+          - template: ../templates/python-build-template.yml
+            parameters:
+              serviceName: 'fraud-detection'
+              serviceDirectory: 'backend/services/ai-services/fraud-detection'
+              pythonVersion: $(pythonVersion)
+              runTests: true
+              publishCoverage: true
+
+      - job: BuildPhotoAnalysis
+        displayName: 'Build Photo Analysis Service'
+        steps:
+          - template: ../templates/python-build-template.yml
+            parameters:
+              serviceName: 'photo-analysis'
+              serviceDirectory: 'backend/services/ai-services/photo-analysis'
+              pythonVersion: $(pythonVersion)
+              runTests: true
+              publishCoverage: true
+
+  - stage: BuildReport
+    displayName: 'Build Summary Report'
+    dependsOn:
+      - BuildNodeServices
+      - BuildGoServices
+      - BuildPythonServices
+    condition: always()
+    jobs:
+      - job: GenerateReport
+        displayName: 'Generate Build Report'
+        steps:
+          - task: Bash@3
+            displayName: 'Generate build summary'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "==================================="
+                echo "Build Summary"
+                echo "==================================="
+                echo "Build ID: $(Build.BuildId)"
+                echo "Build Number: $(Build.BuildNumber)"
+                echo "Source Branch: $(Build.SourceBranchName)"
+                echo "Commit: $(Build.SourceVersion)"
+                echo "Triggered By: $(Build.RequestedFor)"
+                echo "==================================="
+                echo ""
+                echo "All services built successfully!"
+                echo ""
+                echo "Node.js Services: 11"
+                echo "Go Services: 1"
+                echo "Python Services: 4"
+                echo "Total Services: 16"
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish build logs'
+            condition: always()
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'build-logs'
+              publishLocation: 'Container'

@@ -1,0 +1,232 @@
+---
+# Application ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flamoral-config
+  namespace: flamoral
+data:
+  # Node Environment
+  NODE_ENV: "production"
+
+  # Service URLs
+  AUTH_SERVICE_URL: "http://auth-service:3001"
+  USER_SERVICE_URL: "http://user-service:3002"
+  MATCHING_SERVICE_URL: "http://matching-service:3003"
+  MESSAGING_SERVICE_URL: "http://messaging-service:3004"
+  MEDIA_SERVICE_URL: "http://media-service:3006"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:3008"
+  REALTIME_SERVICE_URL: "http://realtime-service:3007"
+
+  # Database Configuration
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "flamoral"
+
+  # Redis Configuration
+  REDIS_HOST: "redis-master"
+  REDIS_PORT: "6379"
+
+  # RabbitMQ Configuration
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+
+  # CORS Origins
+  CORS_ORIGINS: "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com"
+
+  # Feature Flags
+  ENABLE_MATCHING_ALGORITHM: "true"
+  ENABLE_VIDEO_CHAT: "true"
+  ENABLE_VOICE_CHAT: "true"
+  ENABLE_SPEED_DATING: "true"
+  ENABLE_COMMUNITY_EVENTS: "true"
+  ENABLE_GAMIFICATION: "true"
+
+  # Rate Limiting
+  RATE_LIMIT_WINDOW_MS: "60000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+
+  # Upload Limits
+  MAX_FILE_SIZE: "10485760"
+  MAX_VIDEO_SIZE: "52428800"
+
+  # WebSocket Configuration
+  WS_HEARTBEAT_INTERVAL: "30000"
+  WS_CONNECTION_TIMEOUT: "60000"
+
+---
+# Monitoring ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: flamoral
+data:
+  ENABLE_METRICS: "true"
+  METRICS_PORT: "9090"
+  ENABLE_TRACING: "true"
+  JAEGER_AGENT_HOST: "jaeger-agent.flamoral-monitoring"
+  JAEGER_AGENT_PORT: "6831"
+
+---
+# Logging ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-config
+  namespace: flamoral
+data:
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  ENABLE_REQUEST_LOGGING: "true"
+  ENABLE_ERROR_TRACKING: "true"
+  SENTRY_ENVIRONMENT: "production"
+
+---
+# Cache ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cache-config
+  namespace: flamoral
+data:
+  CACHE_TTL: "3600"
+  SESSION_TTL: "86400"
+  PROFILE_CACHE_TTL: "1800"
+  MATCH_CACHE_TTL: "300"
+
+---
+# Security ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-config
+  namespace: flamoral
+data:
+  JWT_EXPIRATION: "15m"
+  JWT_REFRESH_EXPIRATION: "7d"
+  PASSWORD_MIN_LENGTH: "8"
+  BCRYPT_ROUNDS: "10"
+  ENABLE_2FA: "true"
+  ENABLE_EMAIL_VERIFICATION: "true"
+  ENABLE_PHONE_VERIFICATION: "true"
+
+---
+# Nginx Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: flamoral
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 4096;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        client_max_body_size 50M;
+
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml text/javascript
+                   application/json application/javascript application/xml+rss
+                   application/rss+xml font/truetype font/opentype
+                   application/vnd.ms-fontobject image/svg+xml;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+        include /etc/nginx/conf.d/*.conf;
+    }
+
+---
+# Fluent Bit ConfigMap for Log Collection
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: flamoral
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         5
+        Daemon        off
+        Log_Level     info
+        Parsers_File  parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*.log
+        Parser            docker
+        Tag               kube.*
+        Refresh_Interval  5
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude On
+
+    [OUTPUT]
+        Name            es
+        Match           *
+        Host            elasticsearch.flamoral-logging
+        Port            9200
+        Logstash_Format On
+        Retry_Limit     False
+        Type            _doc
+        Logstash_Prefix flamoral
+
+  parsers.conf: |
+    [PARSER]
+        Name   docker
+        Format json
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep On
+
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key timestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%L

@@ -107,10 +107,18 @@ const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
 }) => {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
+  const endTime = boost.endTime || boost.expiresAt;
+  const startTime = boost.startTime || boost.startedAt;
+  const visibilityMult = boost.visibilityMultiplier || boost.multiplier || 1;
+  const duration = boost.durationMinutes || 30;
+  const cost = boost.coinCost || 0;
+  const isActive = boost.active ?? boost.isActive;
+  const productName = boost.productSku || boost.boostType || 'Boost';
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date().getTime();
-      const end = new Date(boost.endTime).getTime();
+      const end = new Date(endTime).getTime();
       const diff = end - now;
 
       if (diff <= 0) {
@@ -126,12 +134,12 @@ const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [boost.endTime]);
+  }, [endTime]);
 
   const progress = () => {
     const now = new Date().getTime();
-    const start = new Date(boost.startTime).getTime();
-    const end = new Date(boost.endTime).getTime();
+    const start = new Date(startTime).getTime();
+    const end = new Date(endTime).getTime();
     const total = end - start;
     const elapsed = now - start;
     return Math.max(0, Math.min(100, (elapsed / total) * 100));
@@ -142,8 +150,8 @@ const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
       <div className="boost-header">
         <div className="boost-icon">⚡</div>
         <div className="boost-info">
-          <h3>{boost.productSku}</h3>
-          <span className="multiplier">{boost.visibilityMultiplier}x Visibility</span>
+          <h3>{productName}</h3>
+          <span className="multiplier">{visibilityMult}x Visibility</span>
         </div>
       </div>
 
@@ -157,15 +165,15 @@ const ActiveBoostCard: React.FC<ActiveBoostCardProps> = ({
       <div className="boost-stats">
         <div className="stat">
           <span className="stat-label">Duration</span>
-          <span className="stat-value">{boost.durationMinutes} min</span>
+          <span className="stat-value">{duration} min</span>
         </div>
         <div className="stat">
           <span className="stat-label">Cost</span>
-          <span className="stat-value">{boost.coinCost} coins</span>
+          <span className="stat-value">{cost} coins</span>
         </div>
       </div>
 
-      {onCancel && boost.active && (
+      {onCancel && isActive && (
         <button
           className="cancel-button"
           onClick={() => onCancel(boost.id)}

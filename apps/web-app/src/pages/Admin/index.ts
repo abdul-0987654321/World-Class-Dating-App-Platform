@@ -5,3 +5,5 @@ export { AdminReportsPage } from './AdminReportsPage';
 export { AdminAnalyticsPage } from './AdminAnalyticsPage';
 export { AdminModerationPage } from './AdminModerationPage';
 export { AdminSettingsPage } from './AdminSettingsPage';
+export { UserManagementPage } from './UserManagementPage';
+export { UserManagementDashboard } from './UserManagementDashboard';

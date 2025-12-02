@@ -1,0 +1,89 @@
+# Node.js Build Template
+# Reusable template for building Node.js/TypeScript services
+
+parameters:
+  - name: serviceName
+    type: string
+  - name: serviceDirectory
+    type: string
+  - name: nodeVersion
+    type: string
+    default: '20.x'
+  - name: runTests
+    type: boolean
+    default: true
+  - name: publishCoverage
+    type: boolean
+    default: true
+  - name: buildCommand
+    type: string
+    default: 'npm run build'
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+    inputs:
+      versionSpec: '${{ parameters.nodeVersion }}'
+
+  - task: Cache@2
+    displayName: 'Cache npm dependencies'
+    inputs:
+      key: 'npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: $(npm_config_cache)
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      npm ci
+    displayName: 'Install dependencies for ${{ parameters.serviceName }}'
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      npm run lint
+    displayName: 'Lint ${{ parameters.serviceName }}'
+    continueOnError: true
+
+  - ${{ if parameters.runTests }}:
+    - script: |
+        cd ${{ parameters.serviceDirectory }}
+        npm run test:unit
+      displayName: 'Run unit tests for ${{ parameters.serviceName }}'
+      continueOnError: false
+
+    - task: PublishTestResults@2
+      displayName: 'Publish test results for ${{ parameters.serviceName }}'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '${{ parameters.serviceDirectory }}/coverage/junit.xml'
+        testRunTitle: '${{ parameters.serviceName }} Unit Tests'
+        mergeTestResults: true
+
+    - ${{ if parameters.publishCoverage }}:
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage for ${{ parameters.serviceName }}'
+        condition: succeededOrFailed()
+        inputs:
+          codeCoverageTool: 'Cobertura'
+          summaryFileLocation: '${{ parameters.serviceDirectory }}/coverage/cobertura-coverage.xml'
+          reportDirectory: '${{ parameters.serviceDirectory }}/coverage'
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      ${{ parameters.buildCommand }}
+    displayName: 'Build ${{ parameters.serviceName }}'
+
+  - task: CopyFiles@2
+    displayName: 'Copy build artifacts for ${{ parameters.serviceName }}'
+    inputs:
+      SourceFolder: '${{ parameters.serviceDirectory }}/dist'
+      Contents: '**'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/${{ parameters.serviceName }}'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish artifacts for ${{ parameters.serviceName }}'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/${{ parameters.serviceName }}'
+      ArtifactName: '${{ parameters.serviceName }}'
+      publishLocation: 'Container'

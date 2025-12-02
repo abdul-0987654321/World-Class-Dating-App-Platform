@@ -1,0 +1,41 @@
+{
+  "queryName": "Sprint Backlog",
+  "description": "All work items for the current sprint",
+  "queryType": "flat",
+  "wiql": "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.AssignedTo], [System.State], [Microsoft.VSTS.Scheduling.StoryPoints], [Microsoft.VSTS.Common.Priority], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = 'DatingPlatform' AND [System.IterationPath] = @CurrentIteration AND [System.WorkItemType] IN ('User Story', 'Bug', 'Task') AND [System.State] <> 'Removed' ORDER BY [Microsoft.VSTS.Common.Priority] ASC, [Microsoft.VSTS.Scheduling.StoryPoints] DESC",
+
+  "columns": [
+    { "field": "System.Id", "width": 80 },
+    { "field": "System.WorkItemType", "width": 100 },
+    { "field": "System.Title", "width": 400 },
+    { "field": "System.AssignedTo", "width": 150 },
+    { "field": "System.State", "width": 100 },
+    { "field": "Microsoft.VSTS.Scheduling.StoryPoints", "width": 80 },
+    { "field": "Microsoft.VSTS.Common.Priority", "width": 80 },
+    { "field": "System.Tags", "width": 200 }
+  ],
+
+  "filters": {
+    "teamProject": "DatingPlatform",
+    "iterationPath": "@CurrentIteration",
+    "workItemTypes": ["User Story", "Bug", "Task"],
+    "excludeStates": ["Removed"]
+  },
+
+  "sort": [
+    { "field": "Microsoft.VSTS.Common.Priority", "direction": "ASC" },
+    { "field": "Microsoft.VSTS.Scheduling.StoryPoints", "direction": "DESC" }
+  ],
+
+  "visualization": {
+    "type": "Board",
+    "swimlanes": "AssignedTo",
+    "columns": [
+      { "name": "New", "states": ["New"] },
+      { "name": "Active", "states": ["Active", "Committed"] },
+      { "name": "In Review", "states": ["In Review"] },
+      { "name": "Resolved", "states": ["Resolved"] },
+      { "name": "Closed", "states": ["Closed"] }
+    ]
+  }
+}

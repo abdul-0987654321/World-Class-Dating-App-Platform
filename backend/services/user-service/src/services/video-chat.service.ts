@@ -6,11 +6,24 @@ import { logger } from '../utils/logger';
 /**
  * Video Chat Service
  * Handles video/voice call setup, token generation, and call history
+ * Supports premium features: HD quality, call duration limits, recordings
  */
 export class VideoChatService {
   private appId: string;
   private appCertificate: string;
   private tokenExpirationTime: number = 3600; // 1 hour
+
+  // Free tier call duration limits (minutes per day)
+  private readonly FREE_DAILY_VIDEO_LIMIT = 30;
+  private readonly FREE_DAILY_AUDIO_LIMIT = 60;
+
+  // Per-call duration limits for free users (minutes)
+  private readonly FREE_MAX_CALL_DURATION_VIDEO = 15;
+  private readonly FREE_MAX_CALL_DURATION_AUDIO = 30;
+
+  // Cost per minute in coins
+  private readonly VIDEO_COST_PER_MINUTE = 10;
+  private readonly AUDIO_COST_PER_MINUTE = 5;
 
   constructor() {
     this.appId = process.env.AGORA_APP_ID!;
@@ -49,21 +62,93 @@ export class VideoChatService {
   }
 
   /**
+   * Check if user has exceeded daily call duration limits
+   * @param userId - User ID
+   * @param callType - 'video' or 'audio'
+   * @returns Limit check result
+   */
+  private async checkCallDurationLimit(
+    userId: string,
+    callType: 'video' | 'audio',
+    subscriptionTier: string
+  ): Promise<{
+    allowed: boolean;
+    remainingMinutes?: number;
+    error?: string;
+  }> {
+    // Premium users have unlimited calls
+    if (['premium', 'premium_plus', 'mid', 'ultra'].includes(subscriptionTier)) {
+      return { allowed: true };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get or create today's limit record
+    let limitRecord = await db('call_duration_limits')
+      .where({ user_id: userId, limit_date: today })
+      .first();
+
+    if (!limitRecord) {
+      // Create new record for today
+      limitRecord = await db('call_duration_limits')
+        .insert({
+          id: uuidv4(),
+          user_id: userId,
+          limit_date: today,
+          daily_video_minutes_used: 0,
+          daily_audio_minutes_used: 0,
+          daily_video_limit: this.FREE_DAILY_VIDEO_LIMIT,
+          daily_audio_limit: this.FREE_DAILY_AUDIO_LIMIT,
+        })
+        .returning('*')
+        .then(rows => rows[0]);
+    }
+
+    const minutesUsed = callType === 'video'
+      ? limitRecord.daily_video_minutes_used
+      : limitRecord.daily_audio_minutes_used;
+
+    const dailyLimit = callType === 'video'
+      ? limitRecord.daily_video_limit
+      : limitRecord.daily_audio_limit;
+
+    const remainingMinutes = dailyLimit - minutesUsed;
+
+    if (remainingMinutes <= 0) {
+      return {
+        allowed: false,
+        remainingMinutes: 0,
+        error: `Daily ${callType} call limit reached. Upgrade to premium for unlimited calls.`,
+      };
+    }
+
+    return {
+      allowed: true,
+      remainingMinutes,
+    };
+  }
+
+  /**
    * Initiate a video/voice call
    * @param callerId - User initiating the call
    * @param receiverId - User receiving the call
    * @param callType - 'video' or 'audio'
+   * @param hdEnabled - Enable HD quality (premium feature)
    * @returns Call details with token
    */
   async initiateCall(
     callerId: string,
     receiverId: string,
-    callType: 'video' | 'audio'
+    callType: 'video' | 'audio',
+    hdEnabled: boolean = false
   ): Promise<{
     success: boolean;
     callId?: string;
     channelName?: string;
     token?: string;
+    appId?: string;
+    maxDuration?: number;
+    remainingMinutes?: number;
     error?: string;
   }> {
     try {
@@ -95,25 +180,54 @@ export class VideoChatService {
         };
       }
 
-      // Check caller's coin balance (Premium feature)
+      // Get caller details
       const caller = await db('users')
         .where({ id: callerId })
         .select('coin_balance', 'subscription_tier')
         .first();
 
-      // Video calls cost 10 coins per minute, audio calls cost 5 coins per minute
-      const costPerMinute = callType === 'video' ? 10 : 5;
+      const isPremium = ['premium', 'premium_plus', 'mid', 'ultra'].includes(
+        caller.subscription_tier
+      );
 
-      // Free tier or basic: Requires coins
-      // Mid/Ultra: Unlimited calls
-      const requiresCoins = !['mid', 'ultra'].includes(caller.subscription_tier);
+      // Check daily call duration limits for free users
+      const limitCheck = await this.checkCallDurationLimit(
+        callerId,
+        callType,
+        caller.subscription_tier
+      );
 
-      if (requiresCoins && caller.coin_balance < costPerMinute) {
+      if (!limitCheck.allowed) {
+        return {
+          success: false,
+          error: limitCheck.error,
+        };
+      }
+
+      // HD quality is premium-only feature
+      const actualHdEnabled = hdEnabled && isPremium;
+      if (hdEnabled && !isPremium) {
+        logger.info('HD quality requested but user is not premium', { callerId });
+      }
+
+      // Check caller's coin balance (for free users)
+      const costPerMinute = callType === 'video'
+        ? this.VIDEO_COST_PER_MINUTE
+        : this.AUDIO_COST_PER_MINUTE;
+
+      if (!isPremium && caller.coin_balance < costPerMinute) {
         return {
           success: false,
           error: `Insufficient coins. ${callType === 'video' ? 'Video' : 'Audio'} calls cost ${costPerMinute} coins per minute.`,
         };
       }
+
+      // Determine max call duration
+      const maxDuration = isPremium
+        ? undefined // Unlimited for premium
+        : callType === 'video'
+        ? Math.min(this.FREE_MAX_CALL_DURATION_VIDEO, limitCheck.remainingMinutes!)
+        : Math.min(this.FREE_MAX_CALL_DURATION_AUDIO, limitCheck.remainingMinutes!);
 
       // Create call record
       const callId = uuidv4();
@@ -126,6 +240,9 @@ export class VideoChatService {
         call_type: callType,
         channel_name: channelName,
         status: 'initiated',
+        video_quality: actualHdEnabled ? 'hd' : 'sd',
+        hd_enabled: actualHdEnabled,
+        was_premium_call: isPremium,
         initiated_at: new Date(),
       });
 
@@ -137,6 +254,9 @@ export class VideoChatService {
         callerId,
         receiverId,
         channelName,
+        hdEnabled: actualHdEnabled,
+        isPremium,
+        maxDuration,
       });
 
       return {
@@ -144,6 +264,9 @@ export class VideoChatService {
         callId,
         channelName,
         token,
+        appId: this.appId,
+        maxDuration,
+        remainingMinutes: limitCheck.remainingMinutes,
       };
     } catch (error: any) {
       logger.error('Failed to initiate call', {
@@ -237,12 +360,18 @@ export class VideoChatService {
    * @param callId - Call ID
    * @param userId - User ending the call
    * @param reason - 'completed', 'declined', 'cancelled', 'missed'
+   * @param connectionQuality - Connection quality metrics
    * @returns End call result
    */
   async endCall(
     callId: string,
     userId: string,
-    reason: 'completed' | 'declined' | 'cancelled' | 'missed' = 'completed'
+    reason: 'completed' | 'declined' | 'cancelled' | 'missed' = 'completed',
+    connectionQuality?: {
+      avgBitrate?: number;
+      packetLoss?: number;
+      quality?: 'poor' | 'fair' | 'good' | 'excellent';
+    }
   ): Promise<{
     success: boolean;
     duration?: number;
@@ -274,16 +403,35 @@ export class VideoChatService {
         const endedAt = new Date();
         duration = Math.ceil((endedAt.getTime() - new Date(call.started_at).getTime()) / 1000 / 60); // Minutes
 
-        // Charge coins if required
+        // Get caller details
         const caller = await db('users')
           .where({ id: call.caller_id })
           .select('coin_balance', 'subscription_tier')
           .first();
 
-        const requiresCoins = !['mid', 'ultra'].includes(caller.subscription_tier);
+        const isPremium = ['premium', 'premium_plus', 'mid', 'ultra'].includes(
+          caller.subscription_tier
+        );
 
-        if (requiresCoins && duration > 0) {
-          const costPerMinute = call.call_type === 'video' ? 10 : 5;
+        // Update daily usage for free users
+        if (!isPremium && duration > 0) {
+          const today = new Date().toISOString().split('T')[0];
+
+          const updateField = call.call_type === 'video'
+            ? 'daily_video_minutes_used'
+            : 'daily_audio_minutes_used';
+
+          await db('call_duration_limits')
+            .where({ user_id: call.caller_id, limit_date: today })
+            .increment(updateField, duration);
+        }
+
+        // Charge coins for free users
+        if (!isPremium && duration > 0) {
+          const costPerMinute = call.call_type === 'video'
+            ? this.VIDEO_COST_PER_MINUTE
+            : this.AUDIO_COST_PER_MINUTE;
+
           coinsCharged = duration * costPerMinute;
 
           // Deduct coins
@@ -311,6 +459,9 @@ export class VideoChatService {
           status: reason,
           ended_at: new Date(),
           duration_seconds: duration * 60,
+          avg_bitrate: connectionQuality?.avgBitrate,
+          packet_loss_percentage: connectionQuality?.packetLoss,
+          connection_quality: connectionQuality?.quality,
         });
 
       logger.info('Call ended', {
@@ -319,6 +470,7 @@ export class VideoChatService {
         reason,
         duration,
         coinsCharged,
+        connectionQuality,
       });
 
       return {

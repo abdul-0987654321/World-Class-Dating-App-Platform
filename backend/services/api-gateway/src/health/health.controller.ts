@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../decorators/public.decorator';
 import { ProxyService } from '../services/proxy.service';
+import { CircuitBreakerService } from '../services/circuit-breaker.service';
 
 @Controller('health')
 export class HealthController {
@@ -17,6 +18,7 @@ export class HealthController {
     private readonly disk: DiskHealthIndicator,
     private readonly configService: ConfigService,
     private readonly proxyService: ProxyService,
+    private readonly circuitBreaker: CircuitBreakerService,
   ) {}
 
   @Public()
@@ -56,17 +58,42 @@ export class HealthController {
   @Get('services')
   async servicesHealth() {
     const serviceNames = this.proxyService.getServiceNames();
-    const results: Record<string, boolean> = {};
+    const results: Record<string, any> = {};
 
     for (const name of serviceNames) {
-      results[name] = await this.proxyService.healthCheck(name);
+      const isHealthy = await this.proxyService.healthCheck(name);
+      const circuitStatus = this.circuitBreaker.getCircuitStatus(name);
+      const metrics = this.circuitBreaker.getCircuitMetrics(name);
+
+      results[name] = {
+        healthy: isHealthy,
+        circuit: {
+          state: circuitStatus.state,
+          failures: circuitStatus.failures,
+          successes: circuitStatus.successes,
+        },
+        metrics: {
+          totalRequests: metrics.totalRequests,
+          failureRate: metrics.failureRate.toFixed(2) + '%',
+          uptime: metrics.uptime.toFixed(2) + '%',
+        },
+      };
     }
 
-    const allHealthy = Object.values(results).every((status) => status);
+    const allHealthy = Object.values(results).every((service) => service.healthy);
 
     return {
       status: allHealthy ? 'healthy' : 'degraded',
       services: results,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Get('circuits')
+  async circuitsStatus() {
+    return {
+      circuits: this.circuitBreaker.getAllCircuitsStatus(),
       timestamp: new Date().toISOString(),
     };
   }

@@ -50,4 +50,8 @@ export default {
   cors: {
     origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
   },
+
+  // Realtime service configuration
+  realtimeServiceUrl: process.env.REALTIME_SERVICE_URL || 'http://localhost:8081',
+  serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token-change-in-production',
 };

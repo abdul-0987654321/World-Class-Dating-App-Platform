@@ -22,9 +22,15 @@ export const BoostCard: React.FC<BoostCardProps> = ({
     return `${hours} hour${hours > 1 ? 's' : ''}`;
   };
 
+  // Handle property aliases
+  const duration = product.durationMinutes || product.duration || 30;
+  const visibility = product.visibilityMultiplier || product.multiplier || 1;
+  const cost = product.costCoins || product.coinPrice || 0;
+  const isPopular = product.popular || false;
+
   return (
-    <Card className={`boost-card ${product.popular ? 'popular' : ''}`}>
-      {product.popular && (
+    <Card className={`boost-card ${isPopular ? 'popular' : ''}`}>
+      {isPopular && (
         <div className="badge-popular">
           <span>Most Popular</span>
         </div>
@@ -58,11 +64,11 @@ export const BoostCard: React.FC<BoostCardProps> = ({
       <div className="boost-details">
         <div className="detail-item">
           <span className="detail-label">Duration</span>
-          <span className="detail-value">{formatDuration(product.durationMinutes)}</span>
+          <span className="detail-value">{formatDuration(duration)}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">Visibility</span>
-          <span className="detail-value">{product.visibilityMultiplier}x</span>
+          <span className="detail-value">{visibility}x</span>
         </div>
       </div>
 
@@ -73,12 +79,12 @@ export const BoostCard: React.FC<BoostCardProps> = ({
             <circle cx="12" cy="12" r="7" fill="#FFA500" />
           </svg>
         </div>
-        <span className="amount">{product.costCoins.toLocaleString()}</span>
+        <span className="amount">{cost.toLocaleString()}</span>
         <span className="label">Coins</span>
       </div>
 
       <Button
-        variant={product.popular ? 'primary' : 'outline'}
+        variant={isPopular ? 'primary' : 'outline'}
         onClick={() => onPurchase(product)}
         disabled={loading}
         fullWidth

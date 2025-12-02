@@ -75,7 +75,7 @@ cd "C:\Users\Dell\OneDrive\Desktop\World-Class-Dating-App-Platform\World-Class-D
 4. **matching-service** (Port 3002) - Matching Algorithm
 5. **media-service** (Port 3004) - Media Uploads
 6. **payment-service** (Port 3005) - Payment Processing
-7. **notification-service** (Port 3006) - Notifications
+7. **notification-service** (Port 3008) - Notifications
 8. **analytics-service** (Port 3007) - Analytics
 9. **moderation-service** (Port 3008) - Content Moderation
 

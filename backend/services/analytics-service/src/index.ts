@@ -68,22 +68,40 @@ app.get('/', (req: Request, res: Response) => {
         events: 'POST /api/tracking/events',
         session: 'POST /api/tracking/session',
       },
+      events: {
+        swipe: 'POST /api/events/swipe',
+        match: 'POST /api/events/match',
+        message: 'POST /api/events/message',
+        session: 'POST /api/events/session',
+        revenue: 'POST /api/events/revenue',
+      },
       analytics: {
         funnelRates: 'GET /api/analytics/funnel/conversion-rates',
         attribution: 'GET /api/analytics/attribution/summary',
         campaigns: 'GET /api/analytics/campaigns/summary',
       },
+      dashboard: {
+        overview: 'GET /api/dashboard/overview',
+        engagement: 'GET /api/dashboard/engagement',
+        matchSuccess: 'GET /api/dashboard/match-success',
+        revenue: 'GET /api/dashboard/revenue',
+        realTime: 'GET /api/dashboard/real-time',
+      },
     },
   });
 });
 
-// Import routes (we'll create these next)
+// Import routes
 import trackingRoutes from './api/routes/tracking.routes';
 import analyticsRoutes from './api/routes/analytics.routes';
+import dashboardRoutes from './api/routes/dashboard.routes';
+import eventsRoutes from './api/routes/events.routes';
 
 // Register routes
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/events', eventsRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -1,6 +1,7 @@
-import { Injectable, HttpException, Logger } from '@nestjs/common';
+import { Injectable, HttpException, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { CircuitBreakerService } from './circuit-breaker.service';
 
 export interface ServiceConfig {
   name: string;
@@ -14,7 +15,10 @@ export class ProxyService {
   private readonly services: Map<string, AxiosInstance> = new Map();
   private readonly internalServiceKey: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly circuitBreaker: CircuitBreakerService,
+  ) {
     this.internalServiceKey = this.configService.get<string>('internalServiceKey');
     this.initializeServices();
   }
@@ -85,26 +89,40 @@ export class ProxyService {
     data?: any,
     headers?: Record<string, string>,
   ): Promise<T> {
-    const service = this.getService(serviceName);
+    // Use circuit breaker to protect against cascading failures
+    return this.circuitBreaker.execute(
+      serviceName,
+      async () => {
+        const service = this.getService(serviceName);
 
-    const config: AxiosRequestConfig = {
-      method,
-      url: path,
-      data,
-      headers: headers ? { ...headers } : undefined,
-    };
+        const config: AxiosRequestConfig = {
+          method,
+          url: path,
+          data,
+          headers: headers ? { ...headers } : undefined,
+        };
 
-    try {
-      const response: AxiosResponse<T> = await service.request(config);
-      return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status || 500;
-        const message = error.response?.data?.error || error.message;
-        throw new HttpException(message, status);
-      }
-      throw new HttpException('Service communication error', 500);
-    }
+        try {
+          const response: AxiosResponse<T> = await service.request(config);
+          return response.data;
+        } catch (error: any) {
+          if (axios.isAxiosError(error)) {
+            const status = error.response?.status || 500;
+            const message = error.response?.data?.error || error.message;
+            throw new HttpException(message, status);
+          }
+          throw new HttpException('Service communication error', 500);
+        }
+      },
+      // Fallback function
+      async () => {
+        this.logger.error(`Fallback triggered for ${serviceName}`);
+        throw new HttpException(
+          `Service ${serviceName} is temporarily unavailable`,
+          503,
+        );
+      },
+    );
   }
 
   /**

@@ -31,9 +31,9 @@ $Services = @(
     @{Name = "matching-service"; Port = 3002},
     @{Name = "media-service"; Port = 3004},
     @{Name = "payment-service"; Port = 3005},
-    @{Name = "notification-service"; Port = 3006},
+    @{Name = "notification-service"; Port = 3008},
     @{Name = "analytics-service"; Port = 3007},
-    @{Name = "moderation-service"; Port = 3008}
+    @{Name = "moderation-service"; Port = 3009}
 )
 
 # ============================================================================

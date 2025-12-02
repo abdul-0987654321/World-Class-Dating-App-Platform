@@ -4,6 +4,7 @@ import azureContentModeratorService from './azure-content-moderator.service';
 import db from '../infrastructure/database/connection';
 import config from '../config';
 import { createLogger } from '@flamoral/shared';
+import notificationClient from '../infrastructure/clients/notification-service.client';
 import {
   ModerationResult,
   ModerationStatus,
@@ -58,11 +59,20 @@ export class ModerationService {
       // Handle user violations
       if (status === ModerationStatus.REJECTED) {
         await this.handleViolations(request.userId, moderationResult);
+        // Notify user of content rejection
+        await this.notifyContentRejected(
+          request.userId,
+          'image',
+          moderationResult.detectedViolations,
+          moderationResult.recommendations
+        );
       }
 
       // Add to moderation queue if flagged
       if (status === ModerationStatus.FLAGGED) {
         await this.addToModerationQueue(moderationResult, request.imageUrl, null, request.userId);
+        // Notify user of content flagged for review
+        await this.notifyContentFlagged(request.userId, 'image', 'Manual review required');
       }
 
       logger.info(
@@ -112,11 +122,20 @@ export class ModerationService {
       // Handle user violations
       if (status === ModerationStatus.REJECTED) {
         await this.handleViolations(request.userId, moderationResult);
+        // Notify user of content rejection
+        await this.notifyContentRejected(
+          request.userId,
+          'text',
+          moderationResult.detectedViolations,
+          moderationResult.recommendations
+        );
       }
 
       // Add to moderation queue if flagged
       if (status === ModerationStatus.FLAGGED) {
         await this.addToModerationQueue(moderationResult, null, request.text, request.userId);
+        // Notify user of content flagged for review
+        await this.notifyContentFlagged(request.userId, 'text', 'Manual review required');
       }
 
       logger.info(
@@ -318,6 +337,8 @@ export class ModerationService {
 
     if (action === ModerationAction.USER_WARNED) {
       updates.warnings_issued = (record.warnings_issued || 0) + 1;
+      // Send warning notification
+      await this.notifyUserWarned(userId, violations.length);
     }
 
     if (action === ModerationAction.USER_SUSPENDED) {
@@ -325,6 +346,12 @@ export class ModerationService {
       updates.status = UserModerationStatus.SUSPENDED;
       updates.suspension_count = (record.suspension_count || 0) + 1;
       updates.current_suspension_ends_at = new Date(Date.now() + suspensionDays * 24 * 60 * 60 * 1000);
+      // Send suspension notification
+      await this.notifyUserSuspended(
+        userId,
+        new Date(Date.now() + suspensionDays * 24 * 60 * 60 * 1000),
+        `Automatic suspension due to ${violations.length} policy violations`
+      );
     }
 
     if (action === ModerationAction.USER_BANNED) {
@@ -332,6 +359,8 @@ export class ModerationService {
       updates.permanently_banned = true;
       updates.banned_at = new Date();
       updates.banned_reason = `Severe violations: ${severeViolations.length}`;
+      // Send ban notification
+      await this.notifyUserBanned(userId, `Severe violations: ${severeViolations.length}`);
     }
 
     await db('user_moderation_records').where('user_id', userId).update(updates);
@@ -499,7 +528,7 @@ export class ModerationService {
 
     logger.info(`User ${userId} suspended until ${suspensionEndsAt.toISOString()}`);
 
-    // TODO: Send notification to user
+    // Send notification to user
     await this.notifyUserSuspended(userId, suspensionEndsAt, reason);
   }
 
@@ -523,7 +552,7 @@ export class ModerationService {
 
     logger.info(`User ${userId} unsuspended by admin`);
 
-    // TODO: Send notification to user
+    // Send notification to user
     await this.notifyUserUnsuspended(userId);
   }
 
@@ -567,7 +596,7 @@ export class ModerationService {
 
     logger.info(`User ${userId} permanently banned`);
 
-    // TODO: Send notification to user
+    // Send notification to user
     await this.notifyUserBanned(userId, reason);
   }
 
@@ -593,7 +622,7 @@ export class ModerationService {
 
     logger.info(`User ${userId} unbanned by admin`);
 
-    // TODO: Send notification to user
+    // Send notification to user
     await this.notifyUserUnbanned(userId);
   }
 
@@ -615,37 +644,105 @@ export class ModerationService {
     suspensionEndsAt: Date,
     reason: string
   ): Promise<void> {
-    // TODO: Integrate with Notification Service
-    logger.info(`TODO: Send suspension notification to user ${userId}`);
-    // Example integration:
-    // await notificationService.sendEmail(userId, 'account_suspended', {
-    //   suspensionEndsAt,
-    //   reason,
-    // });
+    try {
+      await notificationClient.notifyUserSuspended(userId, suspensionEndsAt, reason);
+      logger.info(`Suspension notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send suspension notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
   }
 
   /**
    * Notification: User unsuspended
    */
   private async notifyUserUnsuspended(userId: string): Promise<void> {
-    // TODO: Integrate with Notification Service
-    logger.info(`TODO: Send unsuspension notification to user ${userId}`);
+    try {
+      await notificationClient.notifyUserUnsuspended(userId);
+      logger.info(`Unsuspension notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send unsuspension notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
   }
 
   /**
    * Notification: User banned
    */
   private async notifyUserBanned(userId: string, reason: string): Promise<void> {
-    // TODO: Integrate with Notification Service
-    logger.info(`TODO: Send ban notification to user ${userId}`);
+    try {
+      await notificationClient.notifyUserBanned(userId, reason);
+      logger.info(`Ban notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send ban notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
   }
 
   /**
    * Notification: User unbanned
    */
   private async notifyUserUnbanned(userId: string): Promise<void> {
-    // TODO: Integrate with Notification Service
-    logger.info(`TODO: Send unban notification to user ${userId}`);
+    try {
+      await notificationClient.notifyUserUnbanned(userId);
+      logger.info(`Unban notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send unban notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
+  }
+
+  /**
+   * Notification: User warned
+   */
+  private async notifyUserWarned(userId: string, violationCount: number): Promise<void> {
+    try {
+      await notificationClient.notifyUserWarning(
+        userId,
+        violationCount,
+        'You have violated our community guidelines. Please review our policies.'
+      );
+      logger.info(`Warning notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send warning notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
+  }
+
+  /**
+   * Notification: Content rejected
+   */
+  private async notifyContentRejected(
+    userId: string,
+    contentType: string,
+    violations: string[],
+    recommendations: string[]
+  ): Promise<void> {
+    try {
+      const reason = violations.join(', ') || 'Policy violation detected';
+      await notificationClient.notifyContentRejected(userId, contentType, reason, violations);
+      logger.info(`Content rejection notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send content rejection notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
+  }
+
+  /**
+   * Notification: Content flagged for review
+   */
+  private async notifyContentFlagged(
+    userId: string,
+    contentType: string,
+    reason: string
+  ): Promise<void> {
+    try {
+      await notificationClient.notifyContentFlagged(userId, contentType, reason);
+      logger.info(`Content flagged notification sent to user ${userId}`);
+    } catch (error: any) {
+      logger.error(`Failed to send content flagged notification to user ${userId}:`, error);
+      // Don't throw - notification failures shouldn't block the moderation action
+    }
   }
 }
 

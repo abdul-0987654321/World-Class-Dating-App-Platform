@@ -8,6 +8,8 @@ import matchRepository from '../repositories/match.repository';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
 import { createLogger } from '@flamoral/shared';
+import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
 
 const logger = createLogger('swipe-service');
 
@@ -83,8 +85,29 @@ export class SwipeService {
       const matchData = Match.createNew(user1Id, user2Id);
       const match = await matchRepository.create(matchData);
 
-      // TODO: Send notifications to both users
-      // TODO: Trigger match event for analytics
+      // Send notifications to both users
+      await notificationServiceClient.notifyBothUsersOfMatch(user1Id, user2Id, match.id);
+
+      // Trigger match event for analytics
+      // Check if this is the first match for either user to track in funnel
+      const user1MatchCount = await matchRepository.getUserMatchCount(user1Id);
+      const user2MatchCount = await matchRepository.getUserMatchCount(user2Id);
+
+      // Track match analytics for both users
+      await Promise.allSettled([
+        analyticsServiceClient.trackMatch({
+          userId: user1Id,
+          matchedUserId: user2Id,
+          matchId: match.id,
+          isFirstMatch: user1MatchCount === 1,
+        }),
+        analyticsServiceClient.trackMatch({
+          userId: user2Id,
+          matchedUserId: user1Id,
+          matchId: match.id,
+          isFirstMatch: user2MatchCount === 1,
+        }),
+      ]);
 
       return match;
     } catch (error) {
@@ -98,12 +121,44 @@ export class SwipeService {
    */
   async undoLastSwipe(userId: string): Promise<boolean> {
     try {
-      // TODO: Implement undo functionality
-      // This would require storing swipe history with timestamps
-      // and allowing deletion of the most recent swipe
-
       logger.info(`Undo swipe requested for user ${userId}`);
-      return false; // Not yet implemented
+
+      // Get the most recent swipe
+      const lastSwipe = await swipeRepository.getLastSwipe(userId);
+
+      if (!lastSwipe) {
+        logger.warn(`No swipes found to undo for user ${userId}`);
+        return false;
+      }
+
+      // Check if the swipe resulted in a match
+      if (lastSwipe.isLike()) {
+        const existingMatch = await matchRepository.findByUsers(userId, lastSwipe.targetUserId);
+
+        if (existingMatch) {
+          // If there's a match, we need to delete it
+          await matchRepository.delete(existingMatch.id);
+          logger.info(`Deleted match ${existingMatch.id} as part of undo operation`);
+        }
+      }
+
+      // Delete the swipe
+      const deleted = await swipeRepository.deleteById(lastSwipe.id);
+
+      if (deleted) {
+        logger.info(`Successfully undid swipe ${lastSwipe.id} for user ${userId} on target ${lastSwipe.targetUserId}`);
+
+        // Track undo event in analytics
+        await analyticsServiceClient.trackUndoSwipe({
+          userId,
+          targetUserId: lastSwipe.targetUserId,
+          previousAction: lastSwipe.action,
+        });
+
+        return true;
+      }
+
+      return false;
     } catch (error) {
       logger.error('Failed to undo swipe', error);
       throw error;

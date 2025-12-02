@@ -1,10 +1,11 @@
-import axios, { AxiosInstance } from 'axios';
+import logger from '../../utils/logger';
+import { ServiceClient } from '../../../shared/clients/service-client';
 
 interface UpdateSubscriptionDto {
   userId: string;
-  tier: 'free' | 'basic' | 'mid' | 'ultra';
+  tier: 'free' | 'premium' | 'premium_plus';
   stripeSubscriptionId?: string;
-  status?: 'active' | 'canceled' | 'past_due' | 'unpaid';
+  status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing';
   currentPeriodEnd?: Date;
 }
 
@@ -16,7 +17,7 @@ interface AddCoinsDto {
   productSku: string;
 }
 
-interface AddBoostDto {
+interface ActivateBoostDto {
   userId: string;
   productSku: string;
   durationMinutes: number;
@@ -24,42 +25,79 @@ interface AddBoostDto {
 }
 
 export class UserServiceClient {
-  private client: AxiosInstance;
+  private client: ServiceClient;
   private baseUrl: string;
 
   constructor() {
     this.baseUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
-    this.client = axios.create({
+    this.client = new ServiceClient({
       baseURL: this.baseUrl,
+      serviceName: 'payment-service',
       timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Service-Key': process.env.SERVICE_API_KEY || 'internal-service-key',
+      maxRetries: 3,
+      retryDelay: 1000,
+      enableLogging: true,
+      logger: {
+        info: (msg, meta) => logger.info(msg, meta),
+        warn: (msg, meta) => logger.warn(msg, meta),
+        error: (msg, meta) => logger.error(msg, meta),
+        debug: (msg, meta) => logger.debug(msg, meta),
       },
     });
   }
 
   /**
    * Update user subscription in user-service
+   * PUT /api/internal/subscriptions/update
    */
   async updateSubscription(data: UpdateSubscriptionDto): Promise<void> {
     try {
-      await this.client.put(`/api/subscriptions/internal/update`, data);
+      await this.client.put('/api/internal/subscriptions/update', data);
+      logger.info(`Updated subscription for user ${data.userId} to ${data.tier}`);
     } catch (error: any) {
-      console.error('Failed to update subscription in user-service:', error.message);
+      logger.error('Failed to update subscription in user-service:', error.message);
       throw new Error(`User service update failed: ${error.message}`);
     }
   }
 
   /**
+   * Update user subscription (legacy compatibility method)
+   */
+  async updateUserSubscription(userId: string, data: { subscription_tier: string; subscription_status: string }): Promise<void> {
+    await this.updateSubscription({
+      userId,
+      tier: this.mapTierName(data.subscription_tier),
+      status: data.subscription_status as any,
+    });
+  }
+
+  /**
    * Add coins to user balance
+   * POST /api/internal/coins/add
    */
   async addCoins(data: AddCoinsDto): Promise<void> {
     try {
-      await this.client.post(`/api/coins/internal/add`, data);
+      await this.client.post('/api/internal/coins/add', data);
+      logger.info(`Added ${data.amount} coins to user ${data.userId}`);
     } catch (error: any) {
-      console.error('Failed to add coins in user-service:', error.message);
+      logger.error('Failed to add coins in user-service:', error.message);
       throw new Error(`User service coin add failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update coin balance directly (for internal use)
+   */
+  async updateCoinBalance(userId: string, newBalance: number): Promise<void> {
+    try {
+      await this.client.put('/api/internal/coins/balance', {
+        userId,
+        balance: newBalance,
+      });
+      logger.info(`Updated coin balance for user ${userId} to ${newBalance}`);
+    } catch (error: any) {
+      logger.error('Failed to update coin balance in user-service:', error.message);
+      throw new Error(`User service coin balance update failed: ${error.message}`);
     }
   }
 
@@ -68,56 +106,58 @@ export class UserServiceClient {
    */
   async subtractCoins(userId: string, amount: number, reason: string): Promise<void> {
     try {
-      await this.client.post(`/api/coins/internal/subtract`, {
+      await this.client.post('/api/internal/coins/subtract', {
         userId,
         amount,
         reason,
       });
+      logger.info(`Subtracted ${amount} coins from user ${userId}: ${reason}`);
     } catch (error: any) {
-      console.error('Failed to subtract coins in user-service:', error.message);
+      logger.error('Failed to subtract coins in user-service:', error.message);
       throw new Error(`User service coin subtract failed: ${error.message}`);
     }
   }
 
   /**
    * Activate boost for user
+   * POST /api/internal/boosts/activate
    */
-  async activateBoost(data: AddBoostDto): Promise<void> {
+  async activateBoost(data: ActivateBoostDto): Promise<void> {
     try {
-      await this.client.post(`/api/boosts/internal/activate`, data);
+      await this.client.post('/api/internal/boosts/activate', data);
+      logger.info(`Activated boost for user ${data.userId}: ${data.productSku} (${data.durationMinutes} minutes)`);
     } catch (error: any) {
-      console.error('Failed to activate boost in user-service:', error.message);
+      logger.error('Failed to activate boost in user-service:', error.message);
       throw new Error(`User service boost activation failed: ${error.message}`);
-    }
-  }
-
-  /**
-   * Send notification to user
-   */
-  async sendNotification(userId: string, type: string, message: string): Promise<void> {
-    try {
-      await this.client.post(`/api/notifications/internal/send`, {
-        userId,
-        type,
-        message,
-      });
-    } catch (error: any) {
-      console.error('Failed to send notification:', error.message);
-      // Don't throw - notifications are non-critical
     }
   }
 
   /**
    * Get user by ID
    */
-  async getUser(userId: string): Promise<{ email: string; name?: string }> {
+  async getUser(userId: string): Promise<{ email: string; name?: string; id: string }> {
     try {
-      const response = await this.client.get(`/api/users/internal/${userId}`);
+      const response = await this.client.get(`/api/internal/users/${userId}`);
       return response.data;
     } catch (error: any) {
-      console.error('Failed to get user from user-service:', error.message);
+      logger.error('Failed to get user from user-service:', error.message);
       throw new Error(`User service get user failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Map tier names for compatibility
+   */
+  private mapTierName(tier: string): 'free' | 'premium' | 'premium_plus' {
+    const tierMap: Record<string, 'free' | 'premium' | 'premium_plus'> = {
+      'free': 'free',
+      'basic': 'premium',
+      'premium': 'premium',
+      'mid': 'premium',
+      'ultra': 'premium_plus',
+      'premium_plus': 'premium_plus',
+    };
+    return tierMap[tier.toLowerCase()] || 'free';
   }
 }
 

@@ -10,7 +10,13 @@ import {
   ScrollView,
   Dimensions,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { messagingService } from '@services/api/MessagingService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -109,21 +115,46 @@ type NewMatch = typeof MOCK_NEW_MATCHES[0];
 type Match = typeof MOCK_MATCHES[0];
 
 const MatchesScreen = () => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation<StackNavigationProp<any>>();
+
   const [newMatches, setNewMatches] = useState(MOCK_NEW_MATCHES);
   const [matches, setMatches] = useState(MOCK_MATCHES);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [filterBy, setFilterBy] = useState<'recent' | 'compatibility'>('recent');
+  const [isStartingChat, setIsStartingChat] = useState(false);
 
   const handleMatchPress = useCallback((match: Match) => {
     setSelectedMatch(match);
   }, []);
 
-  const handleStartChat = useCallback(() => {
-    if (selectedMatch) {
-      setSelectedMatch(null);
-      // Navigate to messages with this match
+  const handleStartChat = useCallback(async () => {
+    if (!selectedMatch) return;
+
+    try {
+      setIsStartingChat(true);
+
+      // Create or get conversation with this match
+      const response = await messagingService.getOrCreateConversation(selectedMatch.id);
+
+      if (response.success && response.data) {
+        const conversation = response.data;
+
+        // Close modal
+        setSelectedMatch(null);
+
+        // Navigate to chat screen
+        navigation.navigate('Chat', { conversationId: conversation.id });
+      } else {
+        Alert.alert('Error', 'Failed to start conversation. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      Alert.alert('Error', 'Failed to start conversation. Please try again.');
+    } finally {
+      setIsStartingChat(false);
     }
-  }, [selectedMatch]);
+  }, [selectedMatch, navigation]);
 
   const handleUnmatch = useCallback(() => {
     if (selectedMatch) {
@@ -333,15 +364,21 @@ const MatchesScreen = () => {
 
                   <View style={styles.modalActions}>
                     <TouchableOpacity
-                      style={styles.chatButton}
+                      style={[styles.chatButton, isStartingChat && styles.chatButtonDisabled]}
                       onPress={handleStartChat}
+                      disabled={isStartingChat}
                     >
-                      <Text style={styles.chatButtonText}>Send Message</Text>
+                      {isStartingChat ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.chatButtonText}>Send Message</Text>
+                      )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       style={styles.unmatchButton}
                       onPress={handleUnmatch}
+                      disabled={isStartingChat}
                     >
                       <Text style={styles.unmatchButtonText}>Unmatch</Text>
                     </TouchableOpacity>
@@ -668,6 +705,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 25,
     alignItems: 'center',
+  },
+  chatButtonDisabled: {
+    backgroundColor: '#F8BBD0',
   },
   chatButtonText: {
     color: '#fff',

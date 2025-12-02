@@ -7,12 +7,17 @@ export interface BlockedUser {
   id: string;
   userId: string;
   blockedUserId: string;
+  blockedId?: string; // Alias for blockedUserId
   blockedAt: string;
+  createdAt?: string; // Alias for blockedAt
   reason?: string;
   blockedUser?: {
     id: string;
     name: string;
+    firstName?: string;
+    lastName?: string;
     photoUrl?: string;
+    profilePhoto?: string; // Alias for photoUrl
   };
 }
 

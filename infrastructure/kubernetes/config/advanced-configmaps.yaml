@@ -1,0 +1,341 @@
+# Advanced ConfigMaps for Environment-Specific Configuration
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dating-app-config-production
+  namespace: dating-app
+  labels:
+    environment: production
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  APP_NAME: "dating-app-platform"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  TZ: "UTC"
+
+  # Database Configuration
+  DB_HOST: "postgres-service.dating-app.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "dating_app_production"
+  DB_MAX_CONNECTIONS: "200"
+  DB_POOL_SIZE: "20"
+  DB_IDLE_TIMEOUT: "30000"
+  DB_CONNECTION_TIMEOUT: "10000"
+  DB_SSL_MODE: "require"
+
+  # Redis Configuration
+  REDIS_HOST: "redis-service.dating-app.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_MAX_RETRIES: "3"
+  REDIS_RETRY_DELAY: "1000"
+  REDIS_CONNECT_TIMEOUT: "10000"
+
+  # Cache Configuration
+  CACHE_TTL: "3600"
+  CACHE_MAX_ITEMS: "10000"
+  SESSION_TTL: "86400"
+
+  # Service URLs (Internal)
+  USER_SERVICE_URL: "http://user-service.dating-app.svc.cluster.local:4001"
+  MATCHING_SERVICE_URL: "http://matching-service.dating-app.svc.cluster.local:4002"
+  MEDIA_SERVICE_URL: "http://media-service.dating-app.svc.cluster.local:4003"
+  MESSAGING_SERVICE_URL: "http://messaging-service.dating-app.svc.cluster.local:4004"
+  NOTIFICATION_SERVICE_URL: "http://notification-service.dating-app.svc.cluster.local:4005"
+  WEBSOCKET_SERVICE_URL: "http://websocket-service.dating-app.svc.cluster.local:8080"
+
+  # API Gateway Configuration
+  API_GATEWAY_PORT: "4000"
+  ENABLE_CORS: "true"
+  CORS_ORIGINS: "https://datingapp.com,https://www.datingapp.com"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  RATE_LIMIT_SKIP_SUCCESS: "false"
+
+  # JWT Configuration
+  JWT_EXPIRY: "1h"
+  JWT_REFRESH_EXPIRY: "7d"
+  JWT_ALGORITHM: "RS256"
+
+  # File Upload Configuration
+  MAX_FILE_SIZE: "52428800"  # 50MB
+  ALLOWED_FILE_TYPES: "image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+
+  # Monitoring & Observability
+  ENABLE_METRICS: "true"
+  METRICS_PORT: "9090"
+  ENABLE_TRACING: "true"
+  JAEGER_AGENT_HOST: "jaeger-agent.monitoring.svc.cluster.local"
+  JAEGER_AGENT_PORT: "6831"
+
+  # Feature Flags
+  ENABLE_VIDEO_CALLS: "true"
+  ENABLE_VOICE_CALLS: "true"
+  ENABLE_STORIES: "true"
+  ENABLE_SUPER_LIKES: "true"
+  ENABLE_BOOST: "true"
+  ENABLE_AI_MATCHING: "true"
+
+  # Matching Algorithm Configuration
+  MATCHING_RADIUS_KM: "50"
+  MAX_MATCHES_PER_DAY: "100"
+  MATCHING_ALGORITHM_VERSION: "v2"
+
+  # WebSocket Configuration
+  WS_PING_INTERVAL: "25000"
+  WS_PING_TIMEOUT: "5000"
+  WS_MAX_CONNECTIONS: "10000"
+
+  # Email Configuration
+  EMAIL_FROM: "noreply@datingapp.com"
+  EMAIL_REPLY_TO: "support@datingapp.com"
+
+  # Security Configuration
+  BCRYPT_ROUNDS: "12"
+  PASSWORD_MIN_LENGTH: "8"
+  PASSWORD_REQUIRE_SPECIAL: "true"
+  MAX_LOGIN_ATTEMPTS: "5"
+  LOCKOUT_DURATION: "900"  # 15 minutes
+
+  # Notification Configuration
+  NOTIFICATION_BATCH_SIZE: "100"
+  NOTIFICATION_RETRY_ATTEMPTS: "3"
+
+  # Media Processing
+  IMAGE_QUALITY: "85"
+  THUMBNAIL_SIZE: "200x200"
+  MAX_VIDEO_DURATION: "60"  # seconds
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: service-discovery-config
+  namespace: dating-app
+data:
+  services.json: |
+    {
+      "services": {
+        "api-gateway": {
+          "port": 4000,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "user-service": {
+          "port": 4001,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "matching-service": {
+          "port": 4002,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "media-service": {
+          "port": 4003,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "messaging-service": {
+          "port": 4004,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "notification-service": {
+          "port": 4005,
+          "health": "/health",
+          "metrics": "/metrics"
+        },
+        "websocket-service": {
+          "port": 8080,
+          "health": "/health",
+          "metrics": "/metrics"
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-config
+  namespace: dating-app
+data:
+  log-config.json: |
+    {
+      "level": "info",
+      "format": "json",
+      "outputs": ["stdout", "file"],
+      "file": {
+        "path": "/var/log/app",
+        "maxSize": "100m",
+        "maxFiles": 10,
+        "compress": true
+      },
+      "fields": {
+        "service": true,
+        "hostname": true,
+        "pid": true,
+        "timestamp": true,
+        "level": true,
+        "message": true,
+        "error": true,
+        "stack": true
+      },
+      "sensitive_fields": [
+        "password",
+        "token",
+        "secret",
+        "api_key",
+        "credit_card"
+      ]
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: feature-flags-config
+  namespace: dating-app
+data:
+  features.yaml: |
+    features:
+      # Core Features
+      user_registration:
+        enabled: true
+        rollout_percentage: 100
+
+      profile_verification:
+        enabled: true
+        rollout_percentage: 100
+
+      # Communication Features
+      instant_messaging:
+        enabled: true
+        rollout_percentage: 100
+
+      video_calls:
+        enabled: true
+        rollout_percentage: 80
+        countries: ["US", "UK", "CA", "AU"]
+
+      voice_calls:
+        enabled: true
+        rollout_percentage: 80
+
+      # Social Features
+      stories:
+        enabled: true
+        rollout_percentage: 50
+        duration_hours: 24
+
+      # Premium Features
+      super_likes:
+        enabled: true
+        free_per_day: 1
+        premium_per_day: 5
+
+      boost:
+        enabled: true
+        duration_minutes: 30
+
+      rewind:
+        enabled: true
+        premium_only: true
+
+      # AI Features
+      ai_matching:
+        enabled: true
+        rollout_percentage: 100
+        model_version: "v2.1"
+
+      smart_photos:
+        enabled: true
+        rollout_percentage: 75
+
+      conversation_starters:
+        enabled: true
+        rollout_percentage: 100
+
+      # Safety Features
+      photo_verification:
+        enabled: true
+        required: false
+
+      safety_center:
+        enabled: true
+        rollout_percentage: 100
+
+      block_report:
+        enabled: true
+        rollout_percentage: 100
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rate-limiting-config
+  namespace: dating-app
+data:
+  rate-limits.yaml: |
+    rate_limits:
+      # Authentication endpoints
+      auth_login:
+        window_ms: 900000  # 15 minutes
+        max_requests: 5
+        message: "Too many login attempts"
+
+      auth_register:
+        window_ms: 3600000  # 1 hour
+        max_requests: 3
+        message: "Too many registration attempts"
+
+      # API endpoints
+      api_general:
+        window_ms: 60000  # 1 minute
+        max_requests: 100
+
+      api_search:
+        window_ms: 60000
+        max_requests: 30
+
+      api_matching:
+        window_ms: 60000
+        max_requests: 50
+
+      # Media endpoints
+      media_upload:
+        window_ms: 3600000  # 1 hour
+        max_requests: 20
+        max_size_mb: 50
+
+      # Messaging
+      message_send:
+        window_ms: 60000
+        max_requests: 60
+
+      # Premium features
+      super_like:
+        window_ms: 86400000  # 24 hours
+        max_requests_free: 1
+        max_requests_premium: 5
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-migration-config
+  namespace: dating-app
+data:
+  flyway.conf: |
+    flyway.url=jdbc:postgresql://postgres-service:5432/dating_app_production
+    flyway.user=${DB_USER}
+    flyway.password=${DB_PASSWORD}
+    flyway.locations=filesystem:/migrations
+    flyway.baselineOnMigrate=true
+    flyway.validateOnMigrate=true
+    flyway.outOfOrder=false
+    flyway.placeholderReplacement=true
+    flyway.cleanDisabled=true

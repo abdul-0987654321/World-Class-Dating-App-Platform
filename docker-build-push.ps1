@@ -39,9 +39,9 @@ $SERVICES = @(
     @{Name="messaging-service"; Port=3003},
     @{Name="media-service"; Port=3004},
     @{Name="moderation-service"; Port=3005},
-    @{Name="notification-service"; Port=3006},
+    @{Name="notification-service"; Port=3008},
     @{Name="analytics-service"; Port=3007},
-    @{Name="payment-service"; Port=3008},
+    @{Name="payment-service"; Port=3009},
     @{Name="api-gateway"; Port=4000}
 )
 

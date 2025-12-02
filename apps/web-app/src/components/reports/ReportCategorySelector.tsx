@@ -1,8 +1,8 @@
 import React from 'react';
-import { ReportCategory } from '../../services/report.service';
+import { ReportCategoryInfo } from '../../services/report.service';
 
 interface ReportCategorySelectorProps {
-  categories: ReportCategory[];
+  categories: ReportCategoryInfo[];
   selectedCategory: string | null;
   onSelectCategory: (category: string) => void;
 }
@@ -51,21 +51,21 @@ export const ReportCategorySelector: React.FC<ReportCategorySelectorProps> = ({
       <div className="categories-grid">
         {categories.map((category) => (
           <button
-            key={category.type}
-            className={`category-card ${selectedCategory === category.type ? 'selected' : ''}`}
-            onClick={() => onSelectCategory(category.type)}
+            key={category.id}
+            className={`category-card ${selectedCategory === category.id ? 'selected' : ''}`}
+            onClick={() => onSelectCategory(category.id)}
             style={
               {
                 '--severity-color': getSeverityColor(category.severity),
               } as React.CSSProperties
             }
           >
-            <div className="category-icon">{getCategoryIcon(category.type)}</div>
+            <div className="category-icon">{getCategoryIcon(category.id)}</div>
             <div className="category-content">
-              <h4 className="category-name">{category.name}</h4>
+              <h4 className="category-name">{category.label}</h4>
               <p className="category-description">{category.description}</p>
             </div>
-            {selectedCategory === category.type && (
+            {selectedCategory === category.id && (
               <div className="selected-indicator">✓</div>
             )}
           </button>

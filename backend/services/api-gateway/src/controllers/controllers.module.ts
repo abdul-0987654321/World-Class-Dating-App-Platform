@@ -1,8 +1,25 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
+import { UserController } from './user.controller';
+import { MatchingController } from './matching.controller';
 import { MessagingController } from './messaging.controller';
+import { PaymentController } from './payment.controller';
+import { MediaController } from './media.controller';
+import { NotificationController } from './notification.controller';
+import { ModerationController } from './moderation.controller';
+import { AnalyticsController } from './analytics.controller';
 
 @Module({
-  controllers: [AuthController, MessagingController],
+  controllers: [
+    AuthController,
+    UserController,
+    MatchingController,
+    MessagingController,
+    PaymentController,
+    MediaController,
+    NotificationController,
+    ModerationController,
+    AnalyticsController,
+  ],
 })
 export class ControllersModule {}

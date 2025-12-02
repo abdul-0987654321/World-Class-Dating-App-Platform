@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services';
 
 export const LoginPage: React.FC = () => {
@@ -122,9 +122,9 @@ export const LoginPage: React.FC = () => {
         <div className="mt-6 text-center">
           <p className="text-sm text-charcoal-500">
             Don't have an account?{' '}
-            <a href="/register" className="text-flame-500 hover:text-flame-600 font-medium">
+            <Link to="/register" className="text-flame-500 hover:text-flame-600 font-medium">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
       </div>

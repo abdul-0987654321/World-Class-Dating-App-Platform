@@ -25,14 +25,19 @@ export interface Report {
     id: string;
     name: string;
     photoUrl?: string;
+    profilePhoto?: string; // Alias for photoUrl
+    firstName?: string; // Alias for name (first part)
+    lastName?: string; // Alias for name (last part)
   };
   category: ReportCategory;
+  reportType?: ReportCategory; // Alias for category
   description: string;
   evidence?: string[];
   status: ReportStatus;
   createdAt: string;
   updatedAt: string;
   resolution?: string;
+  actionTaken?: string; // Alias for resolution
   resolvedAt?: string;
 }
 
@@ -100,26 +105,37 @@ class ReportService {
     return response.json();
   }
 
-  async getMyReports(): Promise<{ reports: Report[]; totalCount: number }> {
+  async getMyReports(options?: { limit?: number; offset?: number; status?: ReportStatus }): Promise<{ reports: Report[]; totalCount: number; total: number }> {
     if (this.isMock) {
-      return {
+      const mockData = {
         reports: [
           {
             id: 'report-1',
             reporterId: 'current-user',
             reportedUserId: 'user-123',
-            reportedUser: { id: 'user-123', name: 'John Doe' },
+            reportedUser: {
+              id: 'user-123',
+              name: 'John Doe',
+              firstName: 'John',
+              lastName: 'Doe',
+              photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+              profilePhoto: 'https://randomuser.me/api/portraits/men/1.jpg',
+            },
             category: 'spam',
+            reportType: 'spam',
             description: 'Sending promotional messages',
             status: 'resolved',
             createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
             updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
             resolution: 'User has been warned',
+            actionTaken: 'User has been warned',
             resolvedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
           },
-        ],
+        ] as Report[],
         totalCount: 1,
+        total: 1,
       };
+      return mockData;
     }
 
     const response = await fetch('/api/reports/my', {

@@ -7,6 +7,7 @@ import swipeRoutes from './api/routes/swipe.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';
 import searchRoutes from './api/routes/search.routes';
+import internalRoutes from './api/routes/internal.routes';
 import config from './config';
 
 // Load environment variables
@@ -54,6 +55,9 @@ app.use('/api/swipes', swipeRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/search', searchRoutes);
+
+// Internal API Routes (service-to-service)
+app.use('/api/internal/matches', internalRoutes);
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: any): void => {

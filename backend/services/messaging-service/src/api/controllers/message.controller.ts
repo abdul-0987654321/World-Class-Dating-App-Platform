@@ -4,6 +4,8 @@ import { createLogger } from '@flamoral/shared';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { messageRepository } from '../../domain/repositories/message.repository';
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageEventsService } from '../../domain/services/message-events.service';
+import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { Message, MessageType, MessageStatus } from '../../types';
 
 const logger = createLogger('message-controller');
@@ -152,6 +154,22 @@ export class MessageController {
 
       // Increment unread count for receiver
       await conversationRepository.incrementUnreadCount(conversation.id, receiverId);
+
+      // Publish to realtime service via HTTP (synchronous) and Redis (async)
+      await Promise.all([
+        // HTTP call for immediate WebSocket delivery
+        realtimeHttpClient.publishMessage({
+          conversationId: conversation.id,
+          messageId: createdMessage.id,
+          senderId: userId,
+          receiverId,
+          content,
+          type: type || MessageType.TEXT,
+          metadata,
+        }),
+        // Redis pub/sub for event propagation
+        messageEventsService.publishNewMessage(createdMessage),
+      ]);
 
       logger.info(`Message sent: ${createdMessage.id} in conversation ${conversation.id}`);
 

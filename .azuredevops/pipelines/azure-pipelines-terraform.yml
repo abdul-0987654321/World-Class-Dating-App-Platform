@@ -1,0 +1,541 @@
+# ==============================================================================
+# Flamoral Dating Platform - Terraform Infrastructure Pipeline
+# ==============================================================================
+# Purpose: Provision and manage Azure infrastructure using Terraform
+# Service Principal: terraform-datingapp-sp (a85e4029-4e37-4399-9390-6e18922b38e7)
+# Subscription: d8afbfb0-0c60-4d11-a1c7-a614235f5eb6
+# ==============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infrastructure/terraform/**
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infrastructure/terraform/**
+
+variables:
+  - group: flamoral-terraform-vars
+  - name: terraformVersion
+    value: '1.6.0'
+  - name: azureServiceConnection
+    value: 'azure-terraform-sp-connection'
+  - name: backendResourceGroup
+    value: 'flamoral-terraform-state-rg'
+  - name: backendStorageAccount
+    value: 'flamoraltfstate'
+  - name: backendContainerName
+    value: 'tfstate'
+  - name: backendKey
+    value: 'flamoral.tfstate'
+  - name: workingDirectory
+    value: '$(System.DefaultWorkingDirectory)/infrastructure/terraform'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  # ==============================================================================
+  # Stage 1: Terraform Validation & Planning
+  # ==============================================================================
+  - stage: TerraformValidate
+    displayName: 'Terraform Validate & Plan'
+    jobs:
+      - job: ValidateAndPlan
+        displayName: 'Validate Terraform Configuration'
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: $(terraformVersion)
+            displayName: 'Install Terraform $(terraformVersion)'
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              inlineScript: |
+                # Export ARM credentials for Terraform
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_CLIENT_SECRET=$servicePrincipalKey
+                export ARM_SUBSCRIPTION_ID=$(AZURE_SUBSCRIPTION_ID)
+                export ARM_TENANT_ID=$tenantId
+
+                # Create backend storage if it doesn't exist
+                echo "Ensuring Terraform backend storage exists..."
+
+                az group create \
+                  --name $(backendResourceGroup) \
+                  --location eastus \
+                  --tags Environment=Shared Purpose=TerraformState
+
+                az storage account create \
+                  --name $(backendStorageAccount) \
+                  --resource-group $(backendResourceGroup) \
+                  --location eastus \
+                  --sku Standard_LRS \
+                  --kind StorageV2 \
+                  --encryption-services blob \
+                  --https-only true \
+                  --min-tls-version TLS1_2 \
+                  --tags Environment=Shared Purpose=TerraformState
+
+                az storage container create \
+                  --name $(backendContainerName) \
+                  --account-name $(backendStorageAccount) \
+                  --auth-mode login
+
+                echo "Backend storage ready!"
+            displayName: 'Setup Terraform Backend'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: $(workingDirectory)
+              backendServiceArm: $(azureServiceConnection)
+              backendAzureRmResourceGroupName: $(backendResourceGroup)
+              backendAzureRmStorageAccountName: $(backendStorageAccount)
+              backendAzureRmContainerName: $(backendContainerName)
+              backendAzureRmKey: $(backendKey)
+            displayName: 'Terraform Init'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: $(workingDirectory)
+            displayName: 'Terraform Validate'
+
+          - script: |
+              cd $(workingDirectory)
+              terraform fmt -check -recursive
+            displayName: 'Terraform Format Check'
+            continueOnError: true
+
+          - script: |
+              # Install tflint
+              curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+              cd $(workingDirectory)
+              tflint --init
+              tflint
+            displayName: 'Run TFLint'
+            continueOnError: true
+
+          - script: |
+              # Install tfsec
+              wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64
+              chmod +x tfsec-linux-amd64
+              sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
+
+              cd $(workingDirectory)
+              tfsec . --format json > tfsec-results.json || true
+              tfsec . --format junit > tfsec-results.xml || true
+            displayName: 'Run TFSec Security Scan'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(workingDirectory)/tfsec-results.xml'
+              testRunTitle: 'TFSec Security Scan'
+            displayName: 'Publish TFSec Results'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: $(workingDirectory)
+              environmentServiceNameAzureRM: $(azureServiceConnection)
+              commandOptions: '-out=$(Build.BuildId).tfplan'
+            displayName: 'Terraform Plan'
+
+          - script: |
+              cd $(workingDirectory)
+              terraform show -json $(Build.BuildId).tfplan > plan.json
+
+              echo "=== Terraform Plan Summary ==="
+              terraform show $(Build.BuildId).tfplan
+            displayName: 'Show Plan Details'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)/$(Build.BuildId).tfplan'
+              artifact: 'terraform-plan'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Terraform Plan'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)/plan.json'
+              artifact: 'terraform-plan-json'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Plan JSON'
+
+  # ==============================================================================
+  # Stage 2: Terraform Apply to Development
+  # ==============================================================================
+  - stage: TerraformApplyDev
+    displayName: 'Apply to Dev'
+    dependsOn: TerraformValidate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      - group: flamoral-terraform-dev-vars
+      - name: environment
+        value: 'dev'
+    jobs:
+      - deployment: ApplyToDev
+        displayName: 'Apply Terraform to Dev'
+        environment: 'terraform-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@0
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+                  displayName: 'Install Terraform'
+
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    artifactName: 'terraform-plan'
+                    downloadPath: $(workingDirectory)
+                  displayName: 'Download Terraform Plan'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'init'
+                    workingDirectory: $(workingDirectory)
+                    backendServiceArm: $(azureServiceConnection)
+                    backendAzureRmResourceGroupName: $(backendResourceGroup)
+                    backendAzureRmStorageAccountName: $(backendStorageAccount)
+                    backendAzureRmContainerName: $(backendContainerName)
+                    backendAzureRmKey: 'dev/$(backendKey)'
+                  displayName: 'Terraform Init'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'apply'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: '$(Build.BuildId).tfplan'
+                  displayName: 'Terraform Apply'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'output'
+                    workingDirectory: $(workingDirectory)
+                  displayName: 'Terraform Output'
+
+                - script: |
+                    cd $(workingDirectory)
+                    terraform output -json > outputs.json
+                  displayName: 'Export Outputs'
+
+                - task: PublishPipelineArtifact@1
+                  inputs:
+                    targetPath: '$(workingDirectory)/outputs.json'
+                    artifact: 'terraform-outputs-dev'
+                    publishLocation: 'pipeline'
+                  displayName: 'Publish Outputs'
+
+  # ==============================================================================
+  # Stage 3: Terraform Apply to Test
+  # ==============================================================================
+  - stage: TerraformApplyTest
+    displayName: 'Apply to Test'
+    dependsOn: TerraformApplyDev
+    condition: succeeded()
+    variables:
+      - group: flamoral-terraform-test-vars
+      - name: environment
+        value: 'test'
+    jobs:
+      - deployment: ApplyToTest
+        displayName: 'Apply Terraform to Test'
+        environment: 'terraform-test'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@0
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'init'
+                    workingDirectory: $(workingDirectory)
+                    backendServiceArm: $(azureServiceConnection)
+                    backendAzureRmResourceGroupName: $(backendResourceGroup)
+                    backendAzureRmStorageAccountName: $(backendStorageAccount)
+                    backendAzureRmContainerName: $(backendContainerName)
+                    backendAzureRmKey: 'test/$(backendKey)'
+                  displayName: 'Terraform Init'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'plan'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: '-var="environment=$(environment)" -out=test.tfplan'
+                  displayName: 'Terraform Plan'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'apply'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: 'test.tfplan'
+                  displayName: 'Terraform Apply'
+
+  # ==============================================================================
+  # Stage 4: Terraform Apply to Staging
+  # ==============================================================================
+  - stage: TerraformApplyStaging
+    displayName: 'Apply to Staging'
+    dependsOn: TerraformApplyTest
+    condition: succeeded()
+    variables:
+      - group: flamoral-terraform-staging-vars
+      - name: environment
+        value: 'staging'
+    jobs:
+      - deployment: ApplyToStaging
+        displayName: 'Apply Terraform to Staging'
+        environment: 'terraform-staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@0
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'init'
+                    workingDirectory: $(workingDirectory)
+                    backendServiceArm: $(azureServiceConnection)
+                    backendAzureRmResourceGroupName: $(backendResourceGroup)
+                    backendAzureRmStorageAccountName: $(backendStorageAccount)
+                    backendAzureRmContainerName: $(backendContainerName)
+                    backendAzureRmKey: 'staging/$(backendKey)'
+                  displayName: 'Terraform Init'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'plan'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: '-var="environment=$(environment)" -out=staging.tfplan'
+                  displayName: 'Terraform Plan'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'apply'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: 'staging.tfplan'
+                  displayName: 'Terraform Apply'
+
+  # ==============================================================================
+  # Stage 5: Terraform Apply to Production
+  # ==============================================================================
+  - stage: TerraformApplyProd
+    displayName: 'Apply to Production'
+    dependsOn: TerraformApplyStaging
+    condition: succeeded()
+    variables:
+      - group: flamoral-terraform-prod-vars
+      - name: environment
+        value: 'production'
+    jobs:
+      - deployment: ProductionApproval
+        displayName: 'Production Approval'
+        environment: 'terraform-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: 'infrastructure-team@flamoral.com,cto@flamoral.com'
+                    instructions: 'Please review and approve production infrastructure changes'
+                    onTimeout: 'reject'
+
+      - deployment: ApplyToProduction
+        displayName: 'Apply Terraform to Production'
+        dependsOn: ProductionApproval
+        environment: 'terraform-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@0
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'init'
+                    workingDirectory: $(workingDirectory)
+                    backendServiceArm: $(azureServiceConnection)
+                    backendAzureRmResourceGroupName: $(backendResourceGroup)
+                    backendAzureRmStorageAccountName: $(backendStorageAccount)
+                    backendAzureRmContainerName: $(backendContainerName)
+                    backendAzureRmKey: 'production/$(backendKey)'
+                  displayName: 'Terraform Init'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'plan'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: '-var="environment=$(environment)" -out=production.tfplan'
+                  displayName: 'Terraform Plan'
+
+                - script: |
+                    cd $(workingDirectory)
+                    echo "=== Production Plan Review ==="
+                    terraform show production.tfplan
+
+                    echo ""
+                    echo "Waiting 30 seconds before applying..."
+                    sleep 30
+                  displayName: 'Review Production Plan'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'apply'
+                    workingDirectory: $(workingDirectory)
+                    environmentServiceNameAzureRM: $(azureServiceConnection)
+                    commandOptions: 'production.tfplan'
+                  displayName: 'Terraform Apply to Production'
+
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'output'
+                    workingDirectory: $(workingDirectory)
+                  displayName: 'Show Production Outputs'
+
+                - script: |
+                    cd $(workingDirectory)
+                    terraform output -json > outputs-production.json
+
+                    echo "=== Infrastructure Deployment Complete ==="
+                    echo "Environment: Production"
+                    echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+                    echo "Pipeline: $(Build.DefinitionName)"
+                    echo "Build: $(Build.BuildNumber)"
+                  displayName: 'Export Production Outputs'
+
+                - task: PublishPipelineArtifact@1
+                  inputs:
+                    targetPath: '$(workingDirectory)/outputs-production.json'
+                    artifact: 'terraform-outputs-production'
+                    publishLocation: 'pipeline'
+                  displayName: 'Publish Production Outputs'
+
+  # ==============================================================================
+  # Stage 6: Drift Detection (Optional - Scheduled)
+  # ==============================================================================
+  - stage: DriftDetection
+    displayName: 'Drift Detection'
+    dependsOn: []
+    condition: eq(variables['Build.Reason'], 'Schedule')
+    jobs:
+      - job: DetectDrift
+        displayName: 'Detect Configuration Drift'
+        strategy:
+          matrix:
+            Dev:
+              environment: 'dev'
+              stateKey: 'dev/$(backendKey)'
+            Test:
+              environment: 'test'
+              stateKey: 'test/$(backendKey)'
+            Staging:
+              environment: 'staging'
+              stateKey: 'staging/$(backendKey)'
+            Production:
+              environment: 'production'
+              stateKey: 'production/$(backendKey)'
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: $(workingDirectory)
+              backendServiceArm: $(azureServiceConnection)
+              backendAzureRmResourceGroupName: $(backendResourceGroup)
+              backendAzureRmStorageAccountName: $(backendStorageAccount)
+              backendAzureRmContainerName: $(backendContainerName)
+              backendAzureRmKey: $(stateKey)
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: $(workingDirectory)
+              environmentServiceNameAzureRM: $(azureServiceConnection)
+              commandOptions: '-detailed-exitcode -var="environment=$(environment)"'
+            displayName: 'Check for Drift in $(environment)'
+            continueOnError: true
+
+          - script: |
+              if [ $? -eq 2 ]; then
+                echo "##vso[task.logissue type=warning]Configuration drift detected in $(environment)!"
+                echo "Drift detected in $(environment)" >> drift-report.txt
+              else
+                echo "No drift detected in $(environment)"
+              fi
+            displayName: 'Report Drift Status'
+            condition: always()
+
+          - task: PublishBuildArtifacts@1
+            condition: always()
+            inputs:
+              PathtoPublish: 'drift-report.txt'
+              ArtifactName: 'drift-reports'

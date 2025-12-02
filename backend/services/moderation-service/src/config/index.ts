@@ -83,6 +83,11 @@ export const config = {
   cors: {
     origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
   },
+
+  // Service URLs
+  services: {
+    notificationServiceUrl: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
+  },
 };
 
 export default config;

@@ -1,0 +1,232 @@
+# Istio Installation Guide
+# This file contains the configuration for installing Istio service mesh
+
+# Install Istio using istioctl:
+# 1. Download istioctl: curl -L https://istio.io/downloadIstio | sh -
+# 2. Install Istio: istioctl install --set profile=production -y
+# 3. Enable automatic sidecar injection: kubectl label namespace flamoral istio-injection=enabled
+
+---
+# Istio Control Plane Configuration
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: flamoral-istio
+spec:
+  profile: production
+
+  # Component Configuration
+  components:
+    pilot:
+      k8s:
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2048Mi
+          limits:
+            cpu: 1000m
+            memory: 4096Mi
+        hpaSpec:
+          minReplicas: 2
+          maxReplicas: 5
+          metrics:
+            - type: Resource
+              resource:
+                name: cpu
+                targetAverageUtilization: 80
+
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+        k8s:
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1024Mi
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
+          hpaSpec:
+            minReplicas: 2
+            maxReplicas: 10
+            metrics:
+              - type: Resource
+                resource:
+                  name: cpu
+                  targetAverageUtilization: 80
+          service:
+            type: LoadBalancer
+            ports:
+              - name: status-port
+                port: 15021
+                targetPort: 15021
+              - name: http2
+                port: 80
+                targetPort: 8080
+              - name: https
+                port: 443
+                targetPort: 8443
+
+    egressGateways:
+      - name: istio-egressgateway
+        enabled: true
+        k8s:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+  # Mesh Configuration
+  meshConfig:
+    # Access logging
+    accessLogFile: /dev/stdout
+    accessLogEncoding: JSON
+
+    # Distributed tracing
+    enableTracing: true
+    defaultConfig:
+      tracing:
+        sampling: 10.0
+        zipkin:
+          address: jaeger-collector.flamoral-monitoring:9411
+
+    # Service discovery
+    defaultServiceExportTo:
+      - "."
+
+    # Outbound traffic policy
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
+
+    # TLS settings
+    enableAutoMtls: true
+
+  # Values configuration
+  values:
+    global:
+      # Proxy configuration
+      proxy:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+        # Tracing
+        tracer: "zipkin"
+
+      # mTLS settings
+      mtls:
+        enabled: true
+        auto: true
+
+    # Telemetry
+    telemetry:
+      enabled: true
+      v2:
+        enabled: true
+        prometheus:
+          enabled: true
+
+---
+# Peer Authentication - Enable mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: flamoral
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Destination Rule - Enable mTLS for all services
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: default
+  namespace: flamoral
+spec:
+  host: "*.flamoral.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+      http:
+        http1MaxPendingRequests: 1000
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 40
+
+---
+# Request Authentication - JWT validation
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: flamoral
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  jwtRules:
+    - issuer: "https://api.flamoral.com"
+      jwksUri: "https://api.flamoral.com/.well-known/jwks.json"
+      audiences:
+        - "flamoral-api"
+
+---
+# Authorization Policy - Enforce authentication
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: require-jwt
+  namespace: flamoral
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]
+    - to:
+        - operation:
+            paths: ["/health", "/api/v1/auth/login", "/api/v1/auth/register"]
+
+---
+# Service Entry - Allow external services
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-services
+  namespace: flamoral
+spec:
+  hosts:
+    - "*.google.com"
+    - "*.googleapis.com"
+    - "*.facebook.com"
+    - "*.twilio.com"
+    - "api.sendgrid.com"
+    - "*.stripe.com"
+    - "*.amazonaws.com"
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS

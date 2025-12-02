@@ -27,6 +27,9 @@ type Config struct {
 	JWTIssuer     string
 	JWTExpiration time.Duration
 
+	// Service-to-service authentication
+	ServiceToken string
+
 	// WebSocket settings
 	WSReadBufferSize    int
 	WSWriteBufferSize   int
@@ -71,6 +74,9 @@ func Load() *Config {
 		JWTSecret:     getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
 		JWTIssuer:     getEnv("JWT_ISSUER", "heartly"),
 		JWTExpiration: getEnvDuration("JWT_EXPIRATION", 15*time.Minute),
+
+		// Service auth
+		ServiceToken: getEnv("SERVICE_TOKEN", "dev-service-token-change-in-production"),
 
 		// WebSocket
 		WSReadBufferSize:   getEnvInt("WS_READ_BUFFER_SIZE", 1024),

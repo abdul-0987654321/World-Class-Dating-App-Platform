@@ -112,7 +112,7 @@ updates:
 
   # AI Services - Python
   - package-ecosystem: "pip"
-    directory: "/apps/ai-services/fraud-detection-service"
+    directory: "/backend/services/ai-services/fraud-detection"
     schedule:
       interval: "weekly"
       day: "wednesday"
@@ -124,7 +124,7 @@ updates:
       prefix: "chore(deps-fraud)"
 
   - package-ecosystem: "pip"
-    directory: "/apps/ai-services/nlp-service"
+    directory: "/backend/services/ai-services/nlp-service"
     schedule:
       interval: "weekly"
       day: "wednesday"
@@ -136,7 +136,7 @@ updates:
       prefix: "chore(deps-nlp)"
 
   - package-ecosystem: "pip"
-    directory: "/apps/ai-services/photo-analysis-service"
+    directory: "/backend/services/ai-services/photo-analysis"
     schedule:
       interval: "weekly"
       day: "wednesday"
@@ -148,7 +148,7 @@ updates:
       prefix: "chore(deps-photo)"
 
   - package-ecosystem: "pip"
-    directory: "/apps/ai-services/recommendation-service"
+    directory: "/backend/services/ai-services/recommendation-service"
     schedule:
       interval: "weekly"
       day: "wednesday"

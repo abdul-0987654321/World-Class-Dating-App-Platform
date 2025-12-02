@@ -89,6 +89,20 @@ func (s *Server) setupRoutes() {
 
 	// Typing endpoints
 	api.HandleFunc("/typing/{conversationId}", s.getTypingHandler).Methods("GET")
+
+	// Internal API endpoints (service-to-service)
+	internal := s.router.PathPrefix("/api/internal").Subrouter()
+	internal.Use(s.serviceAuthMiddleware)
+
+	// Message publishing endpoints
+	internal.HandleFunc("/messages/publish", s.publishMessageHandler).Methods("POST")
+	internal.HandleFunc("/messages/read-receipt", s.publishReadReceiptHandler).Methods("POST")
+	internal.HandleFunc("/messages/typing", s.publishTypingHandler).Methods("POST")
+
+	// Conversation management endpoints
+	internal.HandleFunc("/conversations/{conversationId}/participants", s.getConversationParticipantsHandler).Methods("GET")
+	internal.HandleFunc("/conversations/join", s.joinConversationHandler).Methods("POST")
+	internal.HandleFunc("/conversations/leave", s.leaveConversationHandler).Methods("POST")
 }
 
 // setupMiddleware configures middleware

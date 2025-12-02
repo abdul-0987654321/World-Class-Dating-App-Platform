@@ -1,4 +1,9 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+/**
+ * Messages Screen
+ * Shows list of all conversations with real-time updates
+ */
+
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,106 +13,145 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-// Mock conversation data
-const MOCK_CONVERSATIONS = [
-  {
-    id: '1',
-    matchId: 'm1',
-    otherUser: {
-      id: 'u1',
-      name: 'Emma',
-      photo: 'https://randomuser.me/api/portraits/women/1.jpg',
-      isOnline: true,
-    },
-    lastMessage: {
-      content: 'Hey! How are you doing today?',
-      sentAt: new Date(Date.now() - 5 * 60 * 1000),
-      senderId: 'u1',
-    },
-    unreadCount: 2,
-    messages: [
-      { id: 'm1', content: 'Hi there!', sentAt: new Date(Date.now() - 60 * 60 * 1000), senderId: 'me' },
-      { id: 'm2', content: 'Hey! Nice to match with you!', sentAt: new Date(Date.now() - 55 * 60 * 1000), senderId: 'u1' },
-      { id: 'm3', content: 'Same here! Your photos are amazing', sentAt: new Date(Date.now() - 50 * 60 * 1000), senderId: 'me' },
-      { id: 'm4', content: 'Thanks! I love your bio', sentAt: new Date(Date.now() - 45 * 60 * 1000), senderId: 'u1' },
-      { id: 'm5', content: 'Hey! How are you doing today?', sentAt: new Date(Date.now() - 5 * 60 * 1000), senderId: 'u1' },
-    ],
-  },
-  {
-    id: '2',
-    matchId: 'm2',
-    otherUser: {
-      id: 'u2',
-      name: 'Sophia',
-      photo: 'https://randomuser.me/api/portraits/women/2.jpg',
-      isOnline: false,
-    },
-    lastMessage: {
-      content: 'That sounds like fun! When are you free?',
-      sentAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      senderId: 'me',
-    },
-    unreadCount: 0,
-    messages: [
-      { id: 'm1', content: 'Hi Sophia!', sentAt: new Date(Date.now() - 4 * 60 * 60 * 1000), senderId: 'me' },
-      { id: 'm2', content: 'Hey! How are you?', sentAt: new Date(Date.now() - 3 * 60 * 60 * 1000), senderId: 'u2' },
-      { id: 'm3', content: 'Great! Want to grab coffee sometime?', sentAt: new Date(Date.now() - 2.5 * 60 * 60 * 1000), senderId: 'me' },
-      { id: 'm4', content: 'That sounds like fun! When are you free?', sentAt: new Date(Date.now() - 2 * 60 * 60 * 1000), senderId: 'me' },
-    ],
-  },
-  {
-    id: '3',
-    matchId: 'm3',
-    otherUser: {
-      id: 'u3',
-      name: 'Olivia',
-      photo: 'https://randomuser.me/api/portraits/women/3.jpg',
-      isOnline: true,
-    },
-    lastMessage: {
-      content: 'I love hiking too! Have you been to the national park?',
-      sentAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      senderId: 'u3',
-    },
-    unreadCount: 1,
-    messages: [],
-  },
-  {
-    id: '4',
-    matchId: 'm4',
-    otherUser: {
-      id: 'u4',
-      name: 'Ava',
-      photo: 'https://randomuser.me/api/portraits/women/4.jpg',
-      isOnline: false,
-    },
-    lastMessage: {
-      content: 'Nice to meet you!',
-      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      senderId: 'u4',
-    },
-    unreadCount: 0,
-    messages: [],
-  },
-];
+import { ConversationList } from '@components/messaging/ConversationList';
+import { webSocketService } from '@services/realtime/WebSocketService';
+import {
+  fetchConversations,
+  addMessage,
+  updateConversation,
+  setPresenceStatus,
+  incrementUnreadCount,
+  setConnectionStatus,
+  addConversation,
+} from '@store/slices/messagingSlice';
+import type { RootState } from '@store/store';
+import type { Conversation } from '@services/api/MessagingService';
 
-type Conversation = typeof MOCK_CONVERSATIONS[0];
-type Message = { id: string; content: string; sentAt: Date; senderId: string };
+const MessagesScreen: React.FC = () => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation<StackNavigationProp<any>>();
 
-const MessagesScreen = () => {
-  const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messageText, setMessageText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+  // Redux state
+  const conversations = useSelector((state: RootState) => state.messaging.conversations);
+  const unreadCount = useSelector((state: RootState) => state.messaging.unreadCount);
+  const isLoading = useSelector((state: RootState) => state.messaging.isLoading);
+  const isConnected = useSelector((state: RootState) => state.messaging.isConnected);
+  const currentUserId = useSelector((state: RootState) => state.auth.user?.id);
 
-  const getTimeAgo = (date: Date): string => {
+  // Local state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Connect to WebSocket on mount
+  useEffect(() => {
+    const connectWebSocket = async () => {
+      try {
+        if (!webSocketService.isConnected()) {
+          await webSocketService.connect();
+          dispatch(setConnectionStatus(true));
+        }
+      } catch (error) {
+        console.error('Failed to connect to WebSocket:', error);
+        dispatch(setConnectionStatus(false));
+      }
+    };
+
+    connectWebSocket();
+
+    // Setup WebSocket event listeners
+    const unsubscribeConnection = webSocketService.on('connection', (data: any) => {
+      dispatch(setConnectionStatus(data.status === 'connected'));
+    });
+
+    const unsubscribeNewMessage = webSocketService.on('message:new', (data: any) => {
+      const { conversationId, message } = data;
+
+      // Add message to store
+      dispatch(addMessage({ conversationId, message }));
+
+      // Increment unread count if not in current conversation
+      // (This should be handled by the chat screen when active)
+      dispatch(incrementUnreadCount(conversationId));
+
+      // Update conversation's last message
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        dispatch(updateConversation({
+          ...conversation,
+          lastMessage: {
+            id: message.id,
+            content: message.content,
+            senderId: message.senderId,
+            createdAt: message.createdAt,
+            type: message.type,
+          },
+          updatedAt: message.createdAt,
+        }));
+      }
+    });
+
+    const unsubscribePresence = webSocketService.on('presence:update', (data: any) => {
+      dispatch(setPresenceStatus(data));
+    });
+
+    const unsubscribeNewMatch = webSocketService.on('match:new', (data: any) => {
+      // Handle new match - could create a conversation or show notification
+      console.log('New match:', data);
+    });
+
+    // Cleanup
+    return () => {
+      unsubscribeConnection();
+      unsubscribeNewMessage();
+      unsubscribePresence();
+      unsubscribeNewMatch();
+    };
+  }, [dispatch, conversations]);
+
+  // Fetch conversations when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchConversations({}));
+    }, [dispatch])
+  );
+
+  // Handle refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await dispatch(fetchConversations({})).unwrap();
+    } catch (error) {
+      console.error('Failed to refresh conversations:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch]);
+
+  // Handle conversation press
+  const handleConversationPress = useCallback((conversation: Conversation) => {
+    navigation.navigate('Chat', { conversationId: conversation.id });
+  }, [navigation]);
+
+  // Filter conversations by search query
+  const filteredConversations = searchQuery
+    ? conversations.filter(conv => {
+        const otherUser = conv.participants.find(p => p.id !== currentUserId);
+        return otherUser?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      })
+    : conversations;
+
+  // Get time ago string
+  const getTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+
     if (seconds < 60) return 'Just now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m`;
@@ -117,265 +161,89 @@ const MessagesScreen = () => {
     return `${days}d`;
   };
 
-  const handleSelectConversation = useCallback((conversation: Conversation) => {
-    // Mark as read
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === conversation.id ? { ...c, unreadCount: 0 } : c
-      )
-    );
-    setSelectedConversation(conversation);
-  }, []);
+  // Render conversation item
+  const renderConversation = ({ item }: { item: Conversation }) => {
+    const otherUser = item.participants.find(p => p.id !== currentUserId);
+    if (!otherUser) return null;
 
-  const handleSendMessage = useCallback(() => {
-    if (!messageText.trim() || !selectedConversation) return;
-
-    const newMessage: Message = {
-      id: `m${Date.now()}`,
-      content: messageText.trim(),
-      sentAt: new Date(),
-      senderId: 'me',
-    };
-
-    // Update conversation
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === selectedConversation.id
-          ? {
-              ...c,
-              messages: [...c.messages, newMessage],
-              lastMessage: {
-                content: newMessage.content,
-                sentAt: newMessage.sentAt,
-                senderId: newMessage.senderId,
-              },
-            }
-          : c
-      )
-    );
-
-    setSelectedConversation((prev) =>
-      prev
-        ? {
-            ...prev,
-            messages: [...prev.messages, newMessage],
-            lastMessage: {
-              content: newMessage.content,
-              sentAt: newMessage.sentAt,
-              senderId: newMessage.senderId,
-            },
-          }
-        : null
-    );
-
-    setMessageText('');
-
-    // Simulate typing response
-    setTimeout(() => {
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        // Simulate reply
-        const replyMessage: Message = {
-          id: `m${Date.now()}_reply`,
-          content: getRandomReply(),
-          sentAt: new Date(),
-          senderId: selectedConversation.otherUser.id,
-        };
-
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.id === selectedConversation.id
-              ? {
-                  ...c,
-                  messages: [...c.messages, newMessage, replyMessage],
-                  lastMessage: {
-                    content: replyMessage.content,
-                    sentAt: replyMessage.sentAt,
-                    senderId: replyMessage.senderId,
-                  },
-                }
-              : c
-          )
-        );
-
-        setSelectedConversation((prev) =>
-          prev
-            ? {
-                ...prev,
-                messages: [...prev.messages, replyMessage],
-                lastMessage: {
-                  content: replyMessage.content,
-                  sentAt: replyMessage.sentAt,
-                  senderId: replyMessage.senderId,
-                },
-              }
-            : null
-        );
-      }, 2000);
-    }, 1000);
-  }, [messageText, selectedConversation]);
-
-  const getRandomReply = (): string => {
-    const replies = [
-      "That's so interesting! Tell me more!",
-      "Haha, I totally agree!",
-      "Sounds great! I'd love that",
-      "You're so sweet!",
-      "That made me smile!",
-      "I was just thinking the same thing!",
-      "We should definitely do that sometime!",
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  };
-
-  const renderConversationItem = ({ item }: { item: Conversation }) => (
-    <TouchableOpacity
-      style={styles.conversationItem}
-      onPress={() => handleSelectConversation(item)}
-    >
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: item.otherUser.photo }} style={styles.avatar} />
-        {item.otherUser.isOnline && <View style={styles.onlineDot} />}
-      </View>
-      <View style={styles.conversationInfo}>
-        <View style={styles.topRow}>
-          <Text style={styles.name}>{item.otherUser.name}</Text>
-          <Text style={styles.timestamp}>{getTimeAgo(item.lastMessage.sentAt)}</Text>
-        </View>
-        <View style={styles.bottomRow}>
-          <Text
-            style={[
-              styles.lastMessage,
-              item.unreadCount > 0 && styles.unreadMessage,
-            ]}
-            numberOfLines={1}
-          >
-            {item.lastMessage.senderId === 'me' ? 'You: ' : ''}
-            {item.lastMessage.content}
-          </Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadCount}>{item.unreadCount}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderMessageItem = ({ item }: { item: Message }) => {
-    const isMe = item.senderId === 'me';
     return (
-      <View
-        style={[
-          styles.messageBubble,
-          isMe ? styles.myMessage : styles.theirMessage,
-        ]}
+      <TouchableOpacity
+        style={styles.conversationItem}
+        onPress={() => handleConversationPress(item)}
+        activeOpacity={0.7}
       >
-        <Text style={[styles.messageText, isMe && styles.myMessageText]}>
-          {item.content}
-        </Text>
-        <Text style={[styles.messageTime, isMe && styles.myMessageTime]}>
-          {getTimeAgo(item.sentAt)}
-        </Text>
-      </View>
-    );
-  };
+        <View style={styles.avatarContainer}>
+          <Image source={{ uri: otherUser.photo }} style={styles.avatar} />
+          {otherUser.isOnline && <View style={styles.onlineDot} />}
+        </View>
 
-  // Chat View
-  if (selectedConversation) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.chatContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          {/* Chat Header */}
-          <View style={styles.chatHeader}>
-            <TouchableOpacity
-              onPress={() => setSelectedConversation(null)}
-              style={styles.backButton}
-            >
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-            <Image
-              source={{ uri: selectedConversation.otherUser.photo }}
-              style={styles.chatAvatar}
-            />
-            <View style={styles.chatHeaderInfo}>
-              <Text style={styles.chatName}>
-                {selectedConversation.otherUser.name}
+        <View style={styles.conversationInfo}>
+          <View style={styles.topRow}>
+            <Text style={styles.name}>{otherUser.name}</Text>
+            {item.lastMessage && (
+              <Text style={styles.timestamp}>
+                {getTimeAgo(item.lastMessage.createdAt)}
               </Text>
-              <Text style={styles.chatStatus}>
-                {selectedConversation.otherUser.isOnline ? 'Online' : 'Offline'}
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.moreButton}>
-              <Text style={styles.moreButtonText}>...</Text>
-            </TouchableOpacity>
+            )}
           </View>
 
-          {/* Messages */}
-          <FlatList
-            ref={flatListRef}
-            data={selectedConversation.messages}
-            renderItem={renderMessageItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() =>
-              flatListRef.current?.scrollToEnd({ animated: true })
-            }
-          />
-
-          {/* Typing Indicator */}
-          {isTyping && (
-            <View style={styles.typingContainer}>
-              <Text style={styles.typingText}>
-                {selectedConversation.otherUser.name} is typing...
-              </Text>
-            </View>
-          )}
-
-          {/* Input */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={messageText}
-              onChangeText={setMessageText}
-              placeholder="Type a message..."
-              placeholderTextColor="#999"
-              multiline
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                !messageText.trim() && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSendMessage}
-              disabled={!messageText.trim()}
-            >
+          <View style={styles.bottomRow}>
+            {item.lastMessage ? (
               <Text
                 style={[
-                  styles.sendButtonText,
-                  !messageText.trim() && styles.sendButtonTextDisabled,
+                  styles.lastMessage,
+                  item.unreadCount > 0 && styles.unreadMessage,
                 ]}
+                numberOfLines={1}
               >
-                Send
+                {item.lastMessage.senderId === currentUserId ? 'You: ' : ''}
+                {item.lastMessage.type === 'text'
+                  ? item.lastMessage.content
+                  : item.lastMessage.type === 'image'
+                  ? 'Photo'
+                  : item.lastMessage.type === 'gif'
+                  ? 'GIF'
+                  : 'Voice message'}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
+            ) : (
+              <Text style={styles.lastMessage}>New conversation</Text>
+            )}
 
-  // Conversations List View
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadCount}>
+                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Messages</Text>
+          {unreadCount > 0 && (
+            <View style={styles.headerBadge}>
+              <Text style={styles.headerBadgeText}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Connection Status */}
+        {!isConnected && (
+          <View style={styles.connectionStatus}>
+            <View style={styles.offlineDot} />
+            <Text style={styles.connectionStatusText}>Offline - Reconnecting...</Text>
+          </View>
+        )}
       </View>
 
       {/* Search Bar */}
@@ -384,22 +252,42 @@ const MessagesScreen = () => {
           style={styles.searchInput}
           placeholder="Search conversations..."
           placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
       {/* Conversations List */}
-      {conversations.length > 0 ? (
+      {isLoading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E91E63" />
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      ) : filteredConversations.length > 0 ? (
         <FlatList
-          data={conversations}
-          renderItem={renderConversationItem}
+          data={filteredConversations}
+          renderItem={renderConversation}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#E91E63"
+              colors={['#E91E63']}
+            />
+          }
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No messages yet</Text>
+          <Text style={styles.emptyIcon}>💬</Text>
+          <Text style={styles.emptyTitle}>
+            {searchQuery ? 'No conversations found' : 'No messages yet'}
+          </Text>
           <Text style={styles.emptySubtitle}>
-            Start swiping to find your matches!
+            {searchQuery
+              ? 'Try a different search term'
+              : 'Start swiping to find your matches!'}
           </Text>
         </View>
       )}
@@ -413,14 +301,51 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
+  },
+  headerBadge: {
+    backgroundColor: '#E91E63',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  headerBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  offlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFA726',
+    marginRight: 6,
+  },
+  connectionStatusText: {
+    fontSize: 12,
+    color: '#FFA726',
   },
   searchContainer: {
     padding: 15,
@@ -433,6 +358,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 16,
+    color: '#333',
   },
   listContainer: {
     paddingVertical: 8,
@@ -508,14 +434,28 @@ const styles = StyleSheet.create({
   },
   unreadCount: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
@@ -527,129 +467,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-  },
-  // Chat View Styles
-  chatContainer: {
-    flex: 1,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#E91E63',
-  },
-  chatAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  chatHeaderInfo: {
-    flex: 1,
-  },
-  chatName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  chatStatus: {
-    fontSize: 12,
-    color: '#4CAF50',
-  },
-  moreButton: {
-    padding: 10,
-  },
-  moreButtonText: {
-    fontSize: 20,
-    color: '#666',
-  },
-  messagesList: {
-    padding: 15,
-    paddingBottom: 20,
-  },
-  messageBubble: {
-    maxWidth: '75%',
-    padding: 12,
-    borderRadius: 18,
-    marginBottom: 8,
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#E91E63',
-    borderBottomRightRadius: 4,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#f0f0f0',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  myMessageText: {
-    color: '#fff',
-  },
-  messageTime: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 4,
-    alignSelf: 'flex-end',
-  },
-  myMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  typingContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  typingText: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 16,
-    maxHeight: 100,
-    marginRight: 10,
-  },
-  sendButton: {
-    backgroundColor: '#E91E63',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#f0f0f0',
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sendButtonTextDisabled: {
-    color: '#999',
   },
 });
 
