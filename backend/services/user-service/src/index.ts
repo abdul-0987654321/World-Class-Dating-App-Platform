@@ -24,6 +24,8 @@ import blockRoutes from './api/routes/block.routes';
 import reportRoutes from './api/routes/report.routes';
 import usageLimitRoutes from './api/routes/usage-limit.routes';
 import internalRoutes from './api/routes/internal.routes';
+import achievementsRoutes from './api/routes/achievements.routes';
+import badgeRoutes from './api/routes/interestIntentionBadge.routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
@@ -100,6 +102,8 @@ app.get('/', (_req: Request, res: Response) => {
       reports: '/api/reports',
       usageLimits: '/api/usage-limits',
       internal: '/api/internal',
+      badges: '/api/badges',
+      achievements: '/api/achievements',
     },
   });
 });
@@ -125,6 +129,10 @@ app.use('/api/privacy', privacyRoutes);
 app.use('/api/blocks', blockRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/usage-limits', usageLimitRoutes);
+
+app.use('/api/badges', badgeRoutes);
+// Gamification routes
+app.use('/api/achievements', achievementsRoutes);
 
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/internal', internalRoutes);

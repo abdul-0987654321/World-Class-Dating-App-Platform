@@ -15,6 +15,12 @@ export enum MatchStatus {
   BLOCKED = 'blocked',
 }
 
+export enum UserMode {
+  DATE = 'date',
+  FRIENDS = 'friends',
+  NETWORK = 'network',
+}
+
 export interface UserPreferences {
   ageMin: number;
   ageMax: number;
@@ -44,6 +50,7 @@ export interface SwipeRecord {
   userId: string;
   targetUserId: string;
   action: SwipeAction;
+  mode: UserMode;
   createdAt: Date;
 }
 
@@ -52,9 +59,15 @@ export interface Match {
   user1Id: string;
   user2Id: string;
   status: MatchStatus;
+  mode: UserMode;
   matchedAt: Date;
   lastActivityAt: Date;
   compatibilityScore?: number;
+  expiresAt?: Date;
+  extended?: boolean;
+  extendedAt?: Date;
+  expired?: boolean;
+  firstMessageSent?: boolean;
 }
 
 export interface MatchScore {
@@ -70,6 +83,7 @@ export interface MatchScore {
 
 export interface RecommendationRequest {
   userId: string;
+  mode?: UserMode;
   limit?: number;
   offset?: number;
   filters?: Partial<UserPreferences>;
@@ -79,6 +93,7 @@ export interface SwipeRequest {
   userId: string;
   targetUserId: string;
   action: SwipeAction;
+  mode?: UserMode;
 }
 
 export interface MatchResponse {

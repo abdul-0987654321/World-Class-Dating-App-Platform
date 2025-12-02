@@ -3,6 +3,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { ProfileRepository } from '../repositories/profile.repository';
 import { PhotoRepository } from '../repositories/photo.repository';
 import { PromptRepository } from '../repositories/prompt.repository';
+import { OpeningMoveRepository } from '../repositories/opening-move.repository';
 import { MatchResponse, MatchDetailResponse } from '../entities/Match.entity';
 
 export class MatchService {
@@ -11,19 +12,22 @@ export class MatchService {
   private profileRepository: ProfileRepository;
   private photoRepository: PhotoRepository;
   private promptRepository: PromptRepository;
+  private openingMoveRepository: OpeningMoveRepository;
 
   constructor(
     matchRepository?: MatchRepository,
     userRepository?: UserRepository,
     profileRepository?: ProfileRepository,
     photoRepository?: PhotoRepository,
-    promptRepository?: PromptRepository
+    promptRepository?: PromptRepository,
+    openingMoveRepository?: OpeningMoveRepository
   ) {
     this.matchRepository = matchRepository || new MatchRepository();
     this.userRepository = userRepository || new UserRepository();
     this.profileRepository = profileRepository || new ProfileRepository();
     this.photoRepository = photoRepository || new PhotoRepository();
     this.promptRepository = promptRepository || new PromptRepository();
+    this.openingMoveRepository = openingMoveRepository || new OpeningMoveRepository();
   }
 
   async getUserMatches(userId: string): Promise<MatchResponse[]> {
@@ -82,6 +86,19 @@ export class MatchService {
 
     const age = this.calculateAge(matchedUser.date_of_birth);
 
+    // Fetch opening moves and response data
+    let openingMoves;
+    let openingResponse;
+    let requiresResponse = false;
+
+    // Check if the matched user has opening moves (women's opening moves)
+    const matchedUserGender = matchedUser.gender;
+    if (matchedUserGender === 'female') {
+      openingMoves = await this.openingMoveRepository.findOpeningMovesWithTemplates(matchedUserId);
+      openingResponse = await this.openingMoveRepository.findResponseByMatchId(matchId);
+      requiresResponse = !openingResponse;
+    }
+
     return {
       id: match.id,
       matched_user: {
@@ -101,6 +118,20 @@ export class MatchService {
       },
       matched_at: match.matched_at,
       is_active: match.is_active,
+      opening_moves: openingMoves?.map((om) => ({
+        id: om.id,
+        type: om.type,
+        content: om.content,
+        image_url: om.image_url,
+        template: om.template,
+      })),
+      opening_response: openingResponse ? {
+        id: openingResponse.id,
+        opening_move_id: openingResponse.opening_move_id,
+        response_text: openingResponse.response_text,
+        responded_at: openingResponse.responded_at,
+      } : undefined,
+      requires_response: requiresResponse,
     };
   }
 

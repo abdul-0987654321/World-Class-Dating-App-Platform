@@ -9,6 +9,7 @@ import recommendationRoutes from './api/routes/recommendation.routes';
 import searchRoutes from './api/routes/search.routes';
 import internalRoutes from './api/routes/internal.routes';
 import config from './config';
+import matchExpirationJob from './jobs/match-expiration.job';
 
 // Load environment variables
 dotenv.config();
@@ -74,16 +75,22 @@ app.listen(PORT, () => {
   logger.info(`Matching Service running on port ${PORT}`);
   logger.info(`Environment: ${config.nodeEnv}`);
   logger.info(`Database: ${config.database.host}:${config.database.port}/${config.database.name}`);
+
+  // Start match expiration jobs
+  matchExpirationJob.startAll();
+  logger.info('Match expiration jobs initialized');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM signal received: closing HTTP server');
+  matchExpirationJob.stopAll();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT signal received: closing HTTP server');
+  matchExpirationJob.stopAll();
   process.exit(0);
 });
 

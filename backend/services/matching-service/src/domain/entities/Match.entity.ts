@@ -9,6 +9,15 @@ export class Match {
   matchedAt: Date;
   lastActivityAt: Date;
   unmatchedAt?: Date;
+  firstMessageSentBy?: string;
+  conversationInitiated: boolean;
+  requiresWomenFirst: boolean;
+  womanUserId?: string;
+  expiresAt?: Date;
+  extended: boolean;
+  extendedAt?: Date;
+  expired: boolean;
+  firstMessageSent: boolean;
 
   constructor(data: {
     id: string;
@@ -19,6 +28,15 @@ export class Match {
     matchedAt: Date;
     lastActivityAt: Date;
     unmatchedAt?: Date;
+    firstMessageSentBy?: string;
+    conversationInitiated?: boolean;
+    requiresWomenFirst?: boolean;
+    womanUserId?: string;
+    expiresAt?: Date;
+    extended?: boolean;
+    extendedAt?: Date;
+    expired?: boolean;
+    firstMessageSent?: boolean;
   }) {
     this.id = data.id;
     this.user1Id = data.user1Id;
@@ -28,6 +46,15 @@ export class Match {
     this.matchedAt = data.matchedAt;
     this.lastActivityAt = data.lastActivityAt;
     this.unmatchedAt = data.unmatchedAt;
+    this.firstMessageSentBy = data.firstMessageSentBy;
+    this.conversationInitiated = data.conversationInitiated || false;
+    this.requiresWomenFirst = data.requiresWomenFirst || false;
+    this.womanUserId = data.womanUserId;
+    this.expiresAt = data.expiresAt;
+    this.extended = data.extended || false;
+    this.extendedAt = data.extendedAt;
+    this.expired = data.expired || false;
+    this.firstMessageSent = data.firstMessageSent || false;
   }
 
   isActive(): boolean {
@@ -42,6 +69,10 @@ export class Match {
     // Ensure consistent ordering (alphabetically) to prevent duplicates
     const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
 
+    // Set expiration to 24 hours from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     return {
       user1Id: sortedUser1,
       user2Id: sortedUser2,
@@ -49,6 +80,30 @@ export class Match {
       compatibilityScore: score,
       matchedAt: new Date(),
       lastActivityAt: new Date(),
+      expiresAt,
+      extended: false,
+      expired: false,
+      firstMessageSent: false,
     };
+  }
+
+  isExpired(): boolean {
+    if (this.firstMessageSent || this.expired === false) {
+      return false;
+    }
+    return this.expiresAt ? new Date() > this.expiresAt : false;
+  }
+
+  canExtend(): boolean {
+    return !this.extended && !this.expired && !this.firstMessageSent;
+  }
+
+  getTimeUntilExpiration(): number | null {
+    if (!this.expiresAt || this.firstMessageSent || this.expired) {
+      return null;
+    }
+    const now = new Date().getTime();
+    const expiry = this.expiresAt.getTime();
+    return Math.max(0, expiry - now);
   }
 }

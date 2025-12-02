@@ -166,6 +166,111 @@ router.get('/:matchId', async (req: Request, res: Response) => {
 });
 
 /**
+ * Internal endpoint: Find match between two users
+ * GET /api/internal/matches/find
+ *
+ * Query params:
+ * - user1Id: string
+ * - user2Id: string
+ */
+router.get('/find', async (req: Request, res: Response) => {
+  try {
+    const { user1Id, user2Id } = req.query;
+
+    if (!user1Id || !user2Id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters',
+        code: 'MISSING_REQUIRED_PARAMS',
+        message: 'user1Id and user2Id are required',
+      });
+    }
+
+    const matchRepository = new MatchRepository();
+    const match = await matchRepository.findByUsers(user1Id as string, user2Id as string);
+
+    if (!match) {
+      return res.status(404).json({
+        success: false,
+        error: 'Match not found',
+        code: 'MATCH_NOT_FOUND',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: match,
+    });
+  } catch (error: any) {
+    console.error('[InternalAPI] Find match error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to find match',
+      code: 'FIND_MATCH_FAILED',
+      message: error.message || 'An error occurred while finding match',
+    });
+  }
+});
+
+/**
+ * Internal endpoint: Update match conversation status
+ * PATCH /api/internal/matches/:matchId/conversation
+ *
+ * Request body:
+ * {
+ *   conversationInitiated: boolean;
+ *   firstMessageSentBy?: string;
+ * }
+ */
+router.patch('/:matchId/conversation', async (req: Request, res: Response) => {
+  try {
+    const { matchId } = req.params;
+    const { conversationInitiated, firstMessageSentBy } = req.body;
+
+    if (conversationInitiated === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        code: 'MISSING_REQUIRED_FIELDS',
+        message: 'conversationInitiated is required',
+      });
+    }
+
+    const matchRepository = new MatchRepository();
+    const match = await matchRepository.findById(matchId);
+
+    if (!match) {
+      return res.status(404).json({
+        success: false,
+        error: 'Match not found',
+        code: 'MATCH_NOT_FOUND',
+      });
+    }
+
+    // Update the match with conversation status
+    const updatedMatch = await matchRepository.update(matchId, {
+      conversationInitiated,
+      firstMessageSentBy,
+      firstMessageSent: conversationInitiated,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Match conversation status updated',
+      data: updatedMatch,
+    });
+  } catch (error: any) {
+    console.error('[InternalAPI] Update match conversation error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update match conversation status',
+      code: 'UPDATE_MATCH_CONVERSATION_FAILED',
+      message: error.message || 'An error occurred while updating match conversation status',
+    });
+  }
+});
+
+/**
  * Internal endpoint: Unmatch users
  * POST /api/internal/matches/unmatch
  *

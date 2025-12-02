@@ -14,6 +14,10 @@ export interface Conversation {
   unreadCount?: {
     [userId: string]: number;
   };
+  firstMessageSentBy?: string;
+  conversationInitiated?: boolean;
+  requiresWomenFirst?: boolean;
+  womanUserId?: string;
 }
 
 export class ConversationRepository {

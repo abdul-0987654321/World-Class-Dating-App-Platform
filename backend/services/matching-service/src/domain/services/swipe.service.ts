@@ -10,6 +10,7 @@ import { Match } from '../entities/Match.entity';
 import { createLogger } from '@flamoral/shared';
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
 import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 
 const logger = createLogger('swipe-service');
 
@@ -81,9 +82,32 @@ export class SwipeService {
         return existingMatch;
       }
 
+      // Get user profiles to determine genders and preferences
+      const userProfiles = await userServiceClient.getUserProfiles([user1Id, user2Id]);
+      const user1Profile = userProfiles.get(user1Id);
+      const user2Profile = userProfiles.get(user2Id);
+
+      // Determine if women-first messaging rule applies
+      const { requiresWomenFirst, womanUserId } = this.determineWomenFirstRule(
+        user1Id,
+        user2Id,
+        user1Profile?.gender,
+        user2Profile?.gender
+      );
+
       // Create new match with alphabetically sorted user IDs
       const matchData = Match.createNew(user1Id, user2Id);
-      const match = await matchRepository.create(matchData);
+
+      // Add women-first messaging fields
+      const enhancedMatchData = {
+        ...matchData,
+        requiresWomenFirst,
+        womanUserId,
+        conversationInitiated: false,
+        firstMessageSentBy: undefined,
+      };
+
+      const match = await matchRepository.create(enhancedMatchData);
 
       // Send notifications to both users
       await notificationServiceClient.notifyBothUsersOfMatch(user1Id, user2Id, match.id);
@@ -114,6 +138,46 @@ export class SwipeService {
       logger.error('Failed to create match', error);
       throw error;
     }
+  }
+
+  /**
+   * Determine if women-first messaging rule applies to this match
+   * Rule applies only for heterosexual matches (male-female)
+   */
+  private determineWomenFirstRule(
+    user1Id: string,
+    user2Id: string,
+    user1Gender?: string,
+    user2Gender?: string
+  ): { requiresWomenFirst: boolean; womanUserId?: string } {
+    // If we don't have gender info, default to no restriction
+    if (!user1Gender || !user2Gender) {
+      logger.warn('Missing gender information for match, defaulting to no women-first rule');
+      return { requiresWomenFirst: false };
+    }
+
+    // Check if this is a heterosexual match (one male, one female)
+    const isUser1Male = user1Gender === 'male';
+    const isUser1Female = user1Gender === 'female';
+    const isUser2Male = user2Gender === 'male';
+    const isUser2Female = user2Gender === 'female';
+
+    // Women-first rule applies only to heterosexual matches
+    const isHeterosexualMatch = (isUser1Male && isUser2Female) || (isUser1Female && isUser2Male);
+
+    if (!isHeterosexualMatch) {
+      return { requiresWomenFirst: false };
+    }
+
+    // Identify which user is the woman
+    const womanUserId = isUser1Female ? user1Id : user2Id;
+
+    logger.info(`Women-first messaging enabled for match between ${user1Id} and ${user2Id}, woman: ${womanUserId}`);
+
+    return {
+      requiresWomenFirst: true,
+      womanUserId,
+    };
   }
 
   /**

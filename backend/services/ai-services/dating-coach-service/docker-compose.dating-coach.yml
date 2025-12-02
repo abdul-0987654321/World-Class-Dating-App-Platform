@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Dating Coach Service (Premium Feature)
+  dating-coach-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flamoral-dating-coach-service
+    environment:
+      - SERVICE_NAME=dating-coach-service
+      - VERSION=1.0.0
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8004
+      - AI_PROVIDER=openai
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your_openai_api_key_here}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-your_anthropic_api_key_here}
+      - OPENAI_MODEL=gpt-4-turbo-preview
+      - ANTHROPIC_MODEL=claude-3-opus-20240229
+      - MAX_TOKENS=1000
+      - TEMPERATURE=0.7
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=2
+      - REDIS_PASSWORD=
+      - RATE_LIMIT_FREE=3
+      - RATE_LIMIT_BASIC=3
+      - RATE_LIMIT_PREMIUM=10
+      - RATE_LIMIT_PREMIUM_PLUS=-1
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DB=dating_coach
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=*
+    ports:
+      - "8004:8004"
+    networks:
+      - flamoral-network
+
+networks:
+  flamoral-network:
+    external: true

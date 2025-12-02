@@ -22,4 +22,10 @@ router.get('/:matchId', matchController.getMatch.bind(matchController));
 // DELETE /api/matches/:matchId - Unmatch
 router.delete('/:matchId', matchController.unmatch.bind(matchController));
 
+// POST /api/matches/:matchId/extend - Extend match expiration (Premium)
+router.post('/:matchId/extend', matchController.extendMatch.bind(matchController));
+
+// POST /api/matches/:targetUserId/rematch - Rematch with expired match (Premium)
+router.post('/:targetUserId/rematch', matchController.rematch.bind(matchController));
+
 export default router;

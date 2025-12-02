@@ -41,6 +41,10 @@ interface MessageThreadProps {
   onAttachmentPress?: () => void;
   onVoiceNotePress?: () => void;
   onGifPress?: () => void;
+  canSendMessage?: boolean;
+  waitingForFirstMessage?: boolean;
+  requiresWomenFirst?: boolean;
+  matchExpiresAt?: Date;
 }
 
 export const MessageThread: React.FC<MessageThreadProps> = ({
@@ -55,6 +59,10 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   onAttachmentPress,
   onVoiceNotePress,
   onGifPress,
+  canSendMessage = true,
+  waitingForFirstMessage = false,
+  requiresWomenFirst = false,
+  matchExpiresAt,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -292,6 +300,27 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
     );
   };
 
+  const renderWomenFirstBanner = () => {
+    if (!waitingForFirstMessage || !requiresWomenFirst) return null;
+
+    return (
+      <View style={styles.womenFirstBanner}>
+        <Text style={styles.womenFirstIcon}>💬</Text>
+        <View style={styles.womenFirstTextContainer}>
+          <Text style={styles.womenFirstTitle}>Waiting for her to message first</Text>
+          <Text style={styles.womenFirstSubtitle}>
+            In heterosexual matches, women send the first message
+          </Text>
+          {matchExpiresAt && (
+            <Text style={styles.womenFirstExpiry}>
+              Match expires in {getTimeRemaining(matchExpiresAt)}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -309,44 +338,69 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
         ListFooterComponent={renderTypingIndicator}
       />
 
+      {renderWomenFirstBanner()}
+
       <View style={styles.inputContainer}>
         <TouchableOpacity
-          style={styles.attachmentButton}
+          style={[
+            styles.attachmentButton,
+            !canSendMessage && styles.disabledButton,
+          ]}
           onPress={onAttachmentPress}
+          disabled={!canSendMessage}
         >
           <Text style={styles.attachmentIcon}>+</Text>
         </TouchableOpacity>
 
         <TextInput
-          style={styles.input}
-          placeholder={`Message ${otherUserName}...`}
+          style={[
+            styles.input,
+            !canSendMessage && styles.disabledInput,
+          ]}
+          placeholder={
+            canSendMessage
+              ? `Message ${otherUserName}...`
+              : 'Waiting for her to message first...'
+          }
           placeholderTextColor="#999"
           value={inputText}
           onChangeText={setInputText}
           multiline
           maxLength={1000}
+          editable={canSendMessage}
         />
 
         {inputText.trim().length === 0 ? (
           <View style={styles.mediaButtons}>
             <TouchableOpacity
-              style={styles.mediaButton}
+              style={[
+                styles.mediaButton,
+                !canSendMessage && styles.disabledButton,
+              ]}
               onPress={onVoiceNotePress}
+              disabled={!canSendMessage}
             >
               <Text style={styles.mediaIcon}>🎤</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.mediaButton}
+              style={[
+                styles.mediaButton,
+                !canSendMessage && styles.disabledButton,
+              ]}
               onPress={onGifPress}
+              disabled={!canSendMessage}
             >
               <Text style={styles.mediaIcon}>GIF</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.sendButton}
+            style={[
+              styles.sendButton,
+              (!canSendMessage || isSending) && styles.disabledSendButton,
+            ]}
             onPress={handleSend}
-            disabled={isSending}
+            disabled={!canSendMessage || isSending}
           >
             <Text style={styles.sendButtonText}>Send</Text>
           </TouchableOpacity>
@@ -404,6 +458,21 @@ function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function getTimeRemaining(expiresAt: Date): string {
+  const now = new Date();
+  const diff = expiresAt.getTime() - now.getTime();
+
+  if (diff <= 0) return 'expired';
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
 }
 
 const styles = StyleSheet.create({
@@ -640,5 +709,48 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  disabledInput: {
+    backgroundColor: '#F9F9F9',
+    opacity: 0.7,
+  },
+  disabledSendButton: {
+    backgroundColor: '#CCC',
+    opacity: 0.6,
+  },
+  womenFirstBanner: {
+    backgroundColor: '#FFF5E6',
+    borderTopWidth: 1,
+    borderTopColor: '#FFE0B2',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  womenFirstIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  womenFirstTextContainer: {
+    flex: 1,
+  },
+  womenFirstTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  womenFirstSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 4,
+  },
+  womenFirstExpiry: {
+    fontSize: 12,
+    color: '#E91E63',
+    fontWeight: '500',
   },
 });

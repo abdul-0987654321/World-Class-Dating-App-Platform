@@ -6,6 +6,7 @@ import { messageRepository } from '../../domain/repositories/message.repository'
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
+import { matchingServiceClient } from '../../infrastructure/clients/matching-service.client';
 import { Message, MessageType, MessageStatus } from '../../types';
 
 const logger = createLogger('message-controller');
@@ -92,6 +93,8 @@ export class MessageController {
 
       // Get or create conversation
       let conversation;
+      let matchInfo = null;
+
       if (conversationId) {
         conversation = await conversationRepository.findById(conversationId);
         if (!conversation) {
@@ -103,7 +106,11 @@ export class MessageController {
       } else {
         // Find existing or create new conversation
         conversation = await conversationRepository.findByParticipants(userId, receiverId);
+
         if (!conversation) {
+          // Get match information to check women-first rule
+          matchInfo = await matchingServiceClient.findMatchByUsers(userId, receiverId);
+
           conversation = await conversationRepository.create({
             id: uuidv4(),
             participant1Id: userId,
@@ -113,6 +120,9 @@ export class MessageController {
               [userId]: 0,
               [receiverId]: 0,
             },
+            requiresWomenFirst: matchInfo?.requiresWomenFirst || false,
+            womanUserId: matchInfo?.womanUserId,
+            conversationInitiated: false,
           });
         }
       }
@@ -126,6 +136,23 @@ export class MessageController {
           success: false,
           error: 'Not authorized to send messages in this conversation',
         });
+      }
+
+      // WOMEN-FIRST MESSAGING VALIDATION
+      // Check if this is the first message and women-first rule applies
+      if (!conversation.conversationInitiated && conversation.requiresWomenFirst) {
+        // Only the woman can send the first message
+        if (userId !== conversation.womanUserId) {
+          return res.status(403).json({
+            success: false,
+            error: 'In heterosexual matches, only women can send the first message. Please wait for her to message you first.',
+            code: 'WOMEN_FIRST_MESSAGING_REQUIRED',
+            data: {
+              requiresWomenFirst: true,
+              waitingFor: conversation.womanUserId,
+            },
+          });
+        }
       }
 
       // Create message
@@ -151,6 +178,23 @@ export class MessageController {
         new Date(),
         preview
       );
+
+      // If this is the first message, mark conversation as initiated
+      if (!conversation.conversationInitiated) {
+        await conversationRepository.update(conversation.id, {
+          conversationInitiated: true,
+          firstMessageSentBy: userId,
+        });
+
+        // Update the match status in matching service
+        if (matchInfo) {
+          await matchingServiceClient.updateMatchConversationStatus(
+            matchInfo.id,
+            true,
+            userId
+          );
+        }
+      }
 
       // Increment unread count for receiver
       await conversationRepository.incrementUnreadCount(conversation.id, receiverId);

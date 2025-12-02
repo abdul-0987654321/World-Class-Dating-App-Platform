@@ -26,6 +26,11 @@ export class MatchRepository {
           compatibility_score: match.compatibilityScore,
           matched_at: match.matchedAt || new Date(),
           last_activity_at: match.lastActivityAt || new Date(),
+          expires_at: match.expiresAt,
+          extended: match.extended || false,
+          extended_at: match.extendedAt,
+          expired: match.expired || false,
+          first_message_sent: match.firstMessageSent || false,
         })
         .returning('*');
 
@@ -217,6 +222,165 @@ export class MatchRepository {
   }
 
   /**
+   * Find matches that need to expire
+   */
+  async findMatchesToExpire(): Promise<Match[]> {
+    try {
+      const matches = await this.db('matches')
+        .where('expires_at', '<', new Date())
+        .andWhere('expired', false)
+        .andWhere('first_message_sent', false)
+        .andWhere('status', MatchStatus.MATCHED);
+
+      return matches.map(this.mapToMatch);
+    } catch (error) {
+      logger.error('Failed to find matches to expire', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark match as expired
+   */
+  async markAsExpired(matchId: string): Promise<Match | null> {
+    try {
+      const [updated] = await this.db('matches')
+        .where({ id: matchId })
+        .update({
+          expired: true,
+          status: MatchStatus.MATCHED, // Keep as matched, just mark expired
+        })
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to mark match as expired', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Extend match expiration (Premium feature)
+   */
+  async extendMatch(matchId: string): Promise<Match | null> {
+    try {
+      const match = await this.findById(matchId);
+
+      if (!match) {
+        return null;
+      }
+
+      // Check if match can be extended
+      if (match.extended || match.expired || match.firstMessageSent) {
+        throw new Error('Match cannot be extended');
+      }
+
+      // Extend by 24 hours
+      const newExpiresAt = new Date(match.expiresAt!);
+      newExpiresAt.setHours(newExpiresAt.getHours() + 24);
+
+      const [updated] = await this.db('matches')
+        .where({ id: matchId })
+        .update({
+          expires_at: newExpiresAt,
+          extended: true,
+          extended_at: new Date(),
+        })
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to extend match', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark first message sent
+   */
+  async markFirstMessageSent(matchId: string): Promise<Match | null> {
+    try {
+      const [updated] = await this.db('matches')
+        .where({ id: matchId })
+        .update({
+          first_message_sent: true,
+        })
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to mark first message sent', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Rematch with expired match (Premium feature)
+   */
+  async rematch(user1Id: string, user2Id: string): Promise<Match | null> {
+    try {
+      const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
+
+      // Find the expired match
+      const existingMatch = await this.db('matches')
+        .where({
+          user1_id: sortedUser1,
+          user2_id: sortedUser2,
+        })
+        .andWhere('expired', true)
+        .first();
+
+      if (!existingMatch) {
+        throw new Error('No expired match found');
+      }
+
+      // Reset expiration fields
+      const newExpiresAt = new Date();
+      newExpiresAt.setHours(newExpiresAt.getHours() + 24);
+
+      const [updated] = await this.db('matches')
+        .where({ id: existingMatch.id })
+        .update({
+          expires_at: newExpiresAt,
+          extended: false,
+          extended_at: null,
+          expired: false,
+          first_message_sent: false,
+          status: MatchStatus.MATCHED,
+          matched_at: new Date(),
+        })
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to rematch', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find matches expiring soon (for notifications)
+   */
+  async findMatchesExpiringSoon(hours: number): Promise<Match[]> {
+    try {
+      const expirationThreshold = new Date();
+      expirationThreshold.setHours(expirationThreshold.getHours() + hours);
+
+      const matches = await this.db('matches')
+        .where('expires_at', '<=', expirationThreshold)
+        .andWhere('expires_at', '>', new Date())
+        .andWhere('expired', false)
+        .andWhere('first_message_sent', false)
+        .andWhere('status', MatchStatus.MATCHED);
+
+      return matches.map(this.mapToMatch);
+    } catch (error) {
+      logger.error('Failed to find matches expiring soon', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database record to Match entity
    */
   private mapToMatch(record: any): Match {
@@ -229,6 +393,11 @@ export class MatchRepository {
       matchedAt: new Date(record.matched_at),
       lastActivityAt: new Date(record.last_activity_at),
       unmatchedAt: record.unmatched_at ? new Date(record.unmatched_at) : undefined,
+      expiresAt: record.expires_at ? new Date(record.expires_at) : undefined,
+      extended: record.extended || false,
+      extendedAt: record.extended_at ? new Date(record.extended_at) : undefined,
+      expired: record.expired || false,
+      firstMessageSent: record.first_message_sent || false,
     });
   }
 }

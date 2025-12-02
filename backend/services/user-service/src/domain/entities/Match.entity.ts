@@ -46,4 +46,22 @@ export interface MatchDetailResponse extends MatchResponse {
       answer: string;
     }>;
   };
+  opening_moves?: Array<{
+    id: string;
+    type: string;
+    content?: string;
+    image_url?: string;
+    template?: {
+      id: string;
+      category: string;
+      content: string;
+    };
+  }>;
+  opening_response?: {
+    id: string;
+    opening_move_id: string;
+    response_text: string;
+    responded_at: Date;
+  };
+  requires_response?: boolean;
 }
