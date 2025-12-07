@@ -23,7 +23,7 @@ pr:
       - terraform/**
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default'  # Self-hosted agent pool
 
 variables:
   - group: datingplatform-terraform-common
