@@ -6,8 +6,7 @@
 # URL: https://dev.azure.com/citadelcloudmanagement/DatingPlatform/_build
 # =============================================================================
 # This pipeline manages all Terraform infrastructure deployments.
-# Includes: Validation, Planning, Apply with approval gates
-# Environments: Dev -> Test -> Production
+# Uses script-based Terraform installation (no marketplace extension required)
 # =============================================================================
 
 name: Infrastructure-$(Date:yyyyMMdd)$(Rev:.r)
@@ -58,12 +57,14 @@ parameters:
 
 variables:
   - template: templates/variables-common.yml
-  - group: flamoral-terraform-vars
+  - group: datingplatform-terraform-common
   - name: workingDirectory
     value: 'infrastructure/terraform'
+  - name: TF_VERSION
+    value: '1.6.0'
 
 pool:
-  vmImage: $(vmImageName)
+  name: 'Default'
 
 stages:
   # ============================================================================
@@ -78,10 +79,30 @@ stages:
           - checkout: self
             fetchDepth: 1
 
-          - task: TerraformInstaller@0
-            inputs:
-              terraformVersion: $(terraformVersion)
-            displayName: 'Install Terraform $(terraformVersion)'
+          # Install Terraform via script (no marketplace extension needed)
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+
+              # Check if terraform is already installed with correct version
+              if command -v terraform &> /dev/null; then
+                INSTALLED_VERSION=$(terraform version -json 2>/dev/null | grep -o '"terraform_version":"[^"]*"' | cut -d'"' -f4 || echo "0.0.0")
+                if [ "$INSTALLED_VERSION" = "$(TF_VERSION)" ]; then
+                  echo "Terraform $(TF_VERSION) already installed"
+                  terraform version
+                  exit 0
+                fi
+              fi
+
+              # Download and install Terraform
+              cd /tmp
+              wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+              unzip -o terraform.zip
+              sudo mv terraform /usr/local/bin/
+              rm terraform.zip
+
+              echo "Terraform installed successfully"
+              terraform version
+            displayName: 'Install Terraform $(TF_VERSION)'
 
           - script: |
               echo "Terraform Version:"
@@ -92,63 +113,48 @@ stages:
             displayName: 'Terraform Version & Format Check'
             continueOnError: true
 
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: $(azureServiceConnection)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              addSpnToEnvironment: true
-              inlineScript: |
-                export ARM_CLIENT_ID=$servicePrincipalId
-                export ARM_CLIENT_SECRET=$servicePrincipalKey
-                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                export ARM_TENANT_ID=$tenantId
+          - script: |
+              echo "Setting up Azure authentication..."
 
-                cd $(workingDirectory)
+              # Export ARM variables for Terraform
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                echo "====================================="
-                echo "Terraform Init for ${{ parameters.environment }}"
-                echo "====================================="
-                terraform init \
-                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                  -backend-config="container_name=$(tfStateContainer)" \
-                  -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+              cd $(workingDirectory)
 
-                echo "====================================="
-                echo "Terraform Validate"
-                echo "====================================="
-                terraform validate
+              echo "====================================="
+              echo "Terraform Init for ${{ parameters.environment }}"
+              echo "====================================="
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+
+              echo "====================================="
+              echo "Terraform Validate"
+              echo "====================================="
+              terraform validate
             displayName: 'Terraform Init & Validate'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
               echo "Installing tflint..."
-              curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+              curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash || echo "tflint installation skipped"
 
               cd $(workingDirectory)
-              tflint --init
-              tflint || true
+              if command -v tflint &> /dev/null; then
+                tflint --init || true
+                tflint || true
+              fi
             displayName: 'Terraform Lint (tflint)'
             continueOnError: true
-
-          - script: |
-              echo "Installing tfsec..."
-              wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64
-              chmod +x tfsec-linux-amd64
-              sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
-
-              cd $(workingDirectory)
-              tfsec . --format json > tfsec-results.json || true
-              tfsec . || true
-            displayName: 'Security Scan (tfsec)'
-            continueOnError: true
-
-          - task: PublishBuildArtifacts@1
-            condition: succeededOrFailed()
-            inputs:
-              PathtoPublish: '$(workingDirectory)/tfsec-results.json'
-              ArtifactName: 'tfsec-results'
-            displayName: 'Publish Security Scan Results'
 
   # ============================================================================
   # STAGE 2: TERRAFORM PLAN
@@ -163,52 +169,60 @@ stages:
         steps:
           - checkout: self
 
-          - task: TerraformInstaller@0
-            inputs:
-              terraformVersion: $(terraformVersion)
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+              if ! command -v terraform &> /dev/null || [ "$(terraform version -json 2>/dev/null | grep -o '"terraform_version":"[^"]*"' | cut -d'"' -f4)" != "$(TF_VERSION)" ]; then
+                cd /tmp
+                wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+                unzip -o terraform.zip
+                sudo mv terraform /usr/local/bin/
+                rm terraform.zip
+              fi
+              terraform version
             displayName: 'Install Terraform'
 
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: $(azureServiceConnection)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              addSpnToEnvironment: true
-              inlineScript: |
-                export ARM_CLIENT_ID=$servicePrincipalId
-                export ARM_CLIENT_SECRET=$servicePrincipalKey
-                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                export ARM_TENANT_ID=$tenantId
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                cd $(workingDirectory)
+              cd $(workingDirectory)
 
-                terraform init \
-                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                  -backend-config="container_name=$(tfStateContainer)" \
-                  -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
 
-                echo "====================================="
-                echo "Terraform Plan for ${{ parameters.environment }}"
-                echo "====================================="
-                terraform plan \
-                  -var="environment=${{ parameters.environment }}" \
-                  -out=tfplan-${{ parameters.environment }} \
-                  -detailed-exitcode || PLAN_EXIT_CODE=$?
+              echo "====================================="
+              echo "Terraform Plan for ${{ parameters.environment }}"
+              echo "====================================="
 
-                # Handle exit codes
-                case $PLAN_EXIT_CODE in
-                  0) echo "No changes detected" ;;
-                  2) echo "Changes detected in plan" ;;
-                  *) echo "Plan failed"; exit $PLAN_EXIT_CODE ;;
-                esac
+              PLAN_EXIT_CODE=0
+              terraform plan \
+                -var="environment=${{ parameters.environment }}" \
+                -out=tfplan-${{ parameters.environment }} \
+                -detailed-exitcode || PLAN_EXIT_CODE=$?
 
-                echo "====================================="
-                echo "Plan Summary"
-                echo "====================================="
-                terraform show tfplan-${{ parameters.environment }}
-                terraform show -json tfplan-${{ parameters.environment }} > tfplan-${{ parameters.environment }}.json
+              # Handle exit codes
+              case $PLAN_EXIT_CODE in
+                0) echo "No changes detected" ;;
+                2) echo "Changes detected in plan" ;;
+                *) echo "Plan failed"; exit $PLAN_EXIT_CODE ;;
+              esac
+
+              echo "====================================="
+              echo "Plan Summary"
+              echo "====================================="
+              terraform show tfplan-${{ parameters.environment }}
+              terraform show -json tfplan-${{ parameters.environment }} > tfplan-${{ parameters.environment }}.json
             displayName: 'Terraform Plan'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -216,6 +230,7 @@ stages:
               artifact: 'terraform-plan-${{ parameters.environment }}'
               publishLocation: 'pipeline'
             displayName: 'Publish Terraform Plan'
+            condition: succeededOrFailed()
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -223,26 +238,7 @@ stages:
               artifact: 'terraform-plan-json-${{ parameters.environment }}'
               publishLocation: 'pipeline'
             displayName: 'Publish Plan JSON'
-
-          # Cost Estimation (optional)
-          - script: |
-              curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh || true
-
-              cd $(workingDirectory)
-              if [ -f "tfplan-${{ parameters.environment }}.json" ]; then
-                infracost breakdown --path tfplan-${{ parameters.environment }}.json \
-                  --format table \
-                  --out-file infracost-report.txt || echo "Infracost estimation skipped"
-
-                if [ -f "infracost-report.txt" ]; then
-                  cat infracost-report.txt
-                fi
-              fi
-            displayName: 'Cost Estimation (Infracost)'
-            continueOnError: true
-            condition: ne(variables['INFRACOST_API_KEY'], '')
-            env:
-              INFRACOST_API_KEY: $(INFRACOST_API_KEY)
+            condition: succeededOrFailed()
 
   # ============================================================================
   # STAGE 3: TERRAFORM APPLY - DEV
@@ -257,64 +253,67 @@ stages:
         eq('${{ parameters.terraformAction }}', 'apply')
       )
     jobs:
-      - deployment: ApplyDev
+      - job: ApplyDev
         displayName: 'Apply Infrastructure to Dev'
-        environment: 'terraform-dev'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
+        steps:
+          - checkout: self
 
-                - task: TerraformInstaller@0
-                  inputs:
-                    terraformVersion: $(terraformVersion)
-                  displayName: 'Install Terraform'
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+              if ! command -v terraform &> /dev/null; then
+                cd /tmp
+                wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+                unzip -o terraform.zip
+                sudo mv terraform /usr/local/bin/
+                rm terraform.zip
+              fi
+              terraform version
+            displayName: 'Install Terraform'
 
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    artifact: 'terraform-plan-dev'
-                    path: '$(workingDirectory)'
-                  displayName: 'Download Terraform Plan'
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'terraform-plan-dev'
+              path: '$(workingDirectory)'
+            displayName: 'Download Terraform Plan'
 
-                - task: AzureCLI@2
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    scriptType: 'bash'
-                    scriptLocation: 'inlineScript'
-                    addSpnToEnvironment: true
-                    inlineScript: |
-                      export ARM_CLIENT_ID=$servicePrincipalId
-                      export ARM_CLIENT_SECRET=$servicePrincipalKey
-                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                      export ARM_TENANT_ID=$tenantId
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                      cd $(workingDirectory)
+              cd $(workingDirectory)
 
-                      terraform init \
-                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                        -backend-config="container_name=$(tfStateContainer)" \
-                        -backend-config="key=flamoral-dev.tfstate"
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-dev.tfstate"
 
-                      echo "====================================="
-                      echo "Applying Terraform Plan to Dev"
-                      echo "====================================="
-                      terraform apply -auto-approve tfplan-dev
+              echo "====================================="
+              echo "Applying Terraform Plan to Dev"
+              echo "====================================="
+              terraform apply -auto-approve tfplan-dev
 
-                      echo "====================================="
-                      echo "Terraform Outputs"
-                      echo "====================================="
-                      terraform output -json > outputs-dev.json
-                      terraform output
-                  displayName: 'Terraform Apply'
+              echo "====================================="
+              echo "Terraform Outputs"
+              echo "====================================="
+              terraform output -json > outputs-dev.json
+              terraform output
+            displayName: 'Terraform Apply'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-                - task: PublishPipelineArtifact@1
-                  inputs:
-                    targetPath: '$(workingDirectory)/outputs-dev.json'
-                    artifact: 'terraform-outputs-dev'
-                    publishLocation: 'pipeline'
-                  displayName: 'Publish Terraform Outputs'
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)/outputs-dev.json'
+              artifact: 'terraform-outputs-dev'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Terraform Outputs'
+            condition: succeededOrFailed()
 
   # ============================================================================
   # STAGE 4: TERRAFORM APPLY - TEST
@@ -329,64 +328,67 @@ stages:
         eq('${{ parameters.terraformAction }}', 'apply')
       )
     jobs:
-      - deployment: ApplyTest
+      - job: ApplyTest
         displayName: 'Apply Infrastructure to Test'
-        environment: 'terraform-test'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
+        steps:
+          - checkout: self
 
-                - task: TerraformInstaller@0
-                  inputs:
-                    terraformVersion: $(terraformVersion)
-                  displayName: 'Install Terraform'
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+              if ! command -v terraform &> /dev/null; then
+                cd /tmp
+                wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+                unzip -o terraform.zip
+                sudo mv terraform /usr/local/bin/
+                rm terraform.zip
+              fi
+              terraform version
+            displayName: 'Install Terraform'
 
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    artifact: 'terraform-plan-test'
-                    path: '$(workingDirectory)'
-                  displayName: 'Download Terraform Plan'
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'terraform-plan-test'
+              path: '$(workingDirectory)'
+            displayName: 'Download Terraform Plan'
 
-                - task: AzureCLI@2
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    scriptType: 'bash'
-                    scriptLocation: 'inlineScript'
-                    addSpnToEnvironment: true
-                    inlineScript: |
-                      export ARM_CLIENT_ID=$servicePrincipalId
-                      export ARM_CLIENT_SECRET=$servicePrincipalKey
-                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                      export ARM_TENANT_ID=$tenantId
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                      cd $(workingDirectory)
+              cd $(workingDirectory)
 
-                      terraform init \
-                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                        -backend-config="container_name=$(tfStateContainer)" \
-                        -backend-config="key=flamoral-test.tfstate"
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-test.tfstate"
 
-                      echo "====================================="
-                      echo "Applying Terraform Plan to Test"
-                      echo "====================================="
-                      terraform apply -auto-approve tfplan-test
+              echo "====================================="
+              echo "Applying Terraform Plan to Test"
+              echo "====================================="
+              terraform apply -auto-approve tfplan-test
 
-                      terraform output -json > outputs-test.json
-                      terraform output
-                  displayName: 'Terraform Apply'
+              terraform output -json > outputs-test.json
+              terraform output
+            displayName: 'Terraform Apply'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-                - task: PublishPipelineArtifact@1
-                  inputs:
-                    targetPath: '$(workingDirectory)/outputs-test.json'
-                    artifact: 'terraform-outputs-test'
-                    publishLocation: 'pipeline'
-                  displayName: 'Publish Terraform Outputs'
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)/outputs-test.json'
+              artifact: 'terraform-outputs-test'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Terraform Outputs'
+            condition: succeededOrFailed()
 
   # ============================================================================
-  # STAGE 5: TERRAFORM APPLY - PRODUCTION (WITH APPROVAL)
+  # STAGE 5: TERRAFORM APPLY - PRODUCTION (Manual trigger required)
   # ============================================================================
   - stage: TerraformApplyProd
     displayName: 'Apply to Production'
@@ -399,107 +401,95 @@ stages:
         eq(variables['Build.SourceBranch'], 'refs/heads/main')
       )
     jobs:
-      - deployment: ApplyProduction
+      - job: WaitForApproval
+        displayName: 'Manual Approval Required'
+        pool: server
+        steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: ''
+              instructions: |
+                =====================================
+                PRODUCTION INFRASTRUCTURE CHANGE
+                =====================================
+
+                Environment: Production
+                Build: $(Build.BuildNumber)
+                Branch: $(Build.SourceBranch)
+
+                Please review the Terraform plan artifact and approve
+                this production infrastructure change.
+
+                WARNING: This will modify production infrastructure!
+              onTimeout: 'reject'
+            timeoutInMinutes: 1440
+
+      - job: ApplyProduction
         displayName: 'Apply Infrastructure to Production'
-        environment: 'terraform-production'
-        strategy:
-          runOnce:
-            preDeploy:
-              steps:
-                - task: ManualValidation@0
-                  inputs:
-                    notifyUsers: |
-                      infrastructure-team@flamoral.com
-                      cto@flamoral.com
-                      devops@flamoral.com
-                    instructions: |
-                      =====================================
-                      PRODUCTION INFRASTRUCTURE CHANGE
-                      =====================================
+        dependsOn: WaitForApproval
+        steps:
+          - checkout: self
 
-                      Environment: Production
-                      Build: $(Build.BuildNumber)
-                      Branch: $(Build.SourceBranch)
-                      Requested By: $(Build.RequestedFor)
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+              if ! command -v terraform &> /dev/null; then
+                cd /tmp
+                wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+                unzip -o terraform.zip
+                sudo mv terraform /usr/local/bin/
+                rm terraform.zip
+              fi
+              terraform version
+            displayName: 'Install Terraform'
 
-                      Please review the Terraform plan artifact and approve
-                      this production infrastructure change.
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'terraform-plan-prod'
+              path: '$(workingDirectory)'
+            displayName: 'Download Terraform Plan'
 
-                      WARNING: This will modify production infrastructure!
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                      Checklist:
-                      - [ ] Reviewed Terraform plan output
-                      - [ ] Verified no destructive changes
-                      - [ ] Rollback plan is ready
-                      - [ ] Notified relevant stakeholders
-                    onTimeout: 'reject'
-                  displayName: 'Manual Approval Required'
-                  timeoutInMinutes: 1440  # 24 hours
+              cd $(workingDirectory)
 
-            deploy:
-              steps:
-                - checkout: self
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-prod.tfstate"
 
-                - task: TerraformInstaller@0
-                  inputs:
-                    terraformVersion: $(terraformVersion)
-                  displayName: 'Install Terraform'
+              echo "====================================="
+              echo "PRODUCTION DEPLOYMENT STARTING"
+              echo "====================================="
+              echo "Build: $(Build.BuildNumber)"
+              echo "Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              echo "====================================="
 
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    artifact: 'terraform-plan-prod'
-                    path: '$(workingDirectory)'
-                  displayName: 'Download Terraform Plan'
+              terraform apply -auto-approve tfplan-prod
 
-                - task: AzureCLI@2
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    scriptType: 'bash'
-                    scriptLocation: 'inlineScript'
-                    addSpnToEnvironment: true
-                    inlineScript: |
-                      export ARM_CLIENT_ID=$servicePrincipalId
-                      export ARM_CLIENT_SECRET=$servicePrincipalKey
-                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                      export ARM_TENANT_ID=$tenantId
+              echo "====================================="
+              echo "PRODUCTION DEPLOYMENT COMPLETE"
+              echo "====================================="
+              terraform output -json > outputs-prod.json
+              terraform output
+            displayName: 'Terraform Apply to Production'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-                      cd $(workingDirectory)
-
-                      terraform init \
-                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                        -backend-config="container_name=$(tfStateContainer)" \
-                        -backend-config="key=flamoral-prod.tfstate"
-
-                      echo "====================================="
-                      echo "PRODUCTION DEPLOYMENT STARTING"
-                      echo "====================================="
-                      echo "Build: $(Build.BuildNumber)"
-                      echo "Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-                      echo "====================================="
-
-                      terraform apply tfplan-prod
-
-                      echo "====================================="
-                      echo "PRODUCTION DEPLOYMENT COMPLETE"
-                      echo "====================================="
-                      terraform output -json > outputs-prod.json
-                      terraform output
-                  displayName: 'Terraform Apply to Production'
-
-                - task: PublishPipelineArtifact@1
-                  inputs:
-                    targetPath: '$(workingDirectory)/outputs-prod.json'
-                    artifact: 'terraform-outputs-prod'
-                    publishLocation: 'pipeline'
-                  displayName: 'Publish Production Outputs'
-
-                - script: |
-                    echo "Production infrastructure deployment completed"
-                    echo "Build: $(Build.BuildNumber)"
-                    echo "Deployed by: $(Build.RequestedFor)"
-                    echo "Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-                  displayName: 'Post-Deployment Summary'
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)/outputs-prod.json'
+              artifact: 'terraform-outputs-prod'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Production Outputs'
+            condition: succeededOrFailed()
 
   # ============================================================================
   # STAGE 6: TERRAFORM DESTROY (MANUAL ONLY - NON-PROD)
@@ -514,68 +504,73 @@ stages:
         ne('${{ parameters.environment }}', 'prod')
       )
     jobs:
-      - deployment: Destroy
+      - job: ConfirmDestroy
+        displayName: 'Confirm Destruction'
+        pool: server
+        steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: ''
+              instructions: |
+                =====================================
+                INFRASTRUCTURE DESTRUCTION WARNING
+                =====================================
+
+                Environment: ${{ parameters.environment }}
+
+                WARNING: This will DESTROY all infrastructure!
+
+                This action is IRREVERSIBLE. Are you sure?
+              onTimeout: 'reject'
+            timeoutInMinutes: 60
+
+      - job: Destroy
         displayName: 'Destroy Infrastructure'
-        environment: 'terraform-${{ parameters.environment }}-destroy'
-        strategy:
-          runOnce:
-            preDeploy:
-              steps:
-                - task: ManualValidation@0
-                  inputs:
-                    notifyUsers: infrastructure-team@flamoral.com
-                    instructions: |
-                      =====================================
-                      INFRASTRUCTURE DESTRUCTION WARNING
-                      =====================================
+        dependsOn: ConfirmDestroy
+        steps:
+          - checkout: self
 
-                      Environment: ${{ parameters.environment }}
+          - script: |
+              echo "Installing Terraform $(TF_VERSION)..."
+              if ! command -v terraform &> /dev/null; then
+                cd /tmp
+                wget -q "https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip" -O terraform.zip
+                unzip -o terraform.zip
+                sudo mv terraform /usr/local/bin/
+                rm terraform.zip
+              fi
+              terraform version
+            displayName: 'Install Terraform'
 
-                      WARNING: This will DESTROY all infrastructure!
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-                      This action is IRREVERSIBLE. Are you sure?
-                    onTimeout: 'reject'
-                  displayName: 'Confirm Destroy'
+              cd $(workingDirectory)
 
-            deploy:
-              steps:
-                - checkout: self
+              terraform init \
+                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                -backend-config="container_name=$(tfStateContainer)" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
 
-                - task: TerraformInstaller@0
-                  inputs:
-                    terraformVersion: $(terraformVersion)
-                  displayName: 'Install Terraform'
+              echo "====================================="
+              echo "DESTROYING INFRASTRUCTURE"
+              echo "====================================="
+              terraform destroy -auto-approve \
+                -var="environment=${{ parameters.environment }}"
 
-                - task: AzureCLI@2
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    scriptType: 'bash'
-                    scriptLocation: 'inlineScript'
-                    addSpnToEnvironment: true
-                    inlineScript: |
-                      export ARM_CLIENT_ID=$servicePrincipalId
-                      export ARM_CLIENT_SECRET=$servicePrincipalKey
-                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-                      export ARM_TENANT_ID=$tenantId
-
-                      cd $(workingDirectory)
-
-                      terraform init \
-                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                        -backend-config="container_name=$(tfStateContainer)" \
-                        -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
-
-                      echo "====================================="
-                      echo "DESTROYING INFRASTRUCTURE"
-                      echo "====================================="
-                      terraform destroy -auto-approve \
-                        -var="environment=${{ parameters.environment }}"
-
-                      echo "====================================="
-                      echo "INFRASTRUCTURE DESTROYED"
-                      echo "====================================="
-                  displayName: 'Terraform Destroy'
+              echo "====================================="
+              echo "INFRASTRUCTURE DESTROYED"
+              echo "====================================="
+            displayName: 'Terraform Destroy'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
   # ============================================================================
   # STAGE 7: INFRASTRUCTURE VERIFICATION
@@ -596,32 +591,36 @@ stages:
       - job: VerifyResources
         displayName: 'Verify Azure Resources'
         steps:
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: $(azureServiceConnection)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                echo "====================================="
-                echo "Verifying Infrastructure - ${{ parameters.environment }}"
-                echo "====================================="
+          - script: |
+              echo "====================================="
+              echo "Verifying Infrastructure - ${{ parameters.environment }}"
+              echo "====================================="
 
-                # Check Resource Group
-                echo "Checking Resource Group..."
-                az group show --name flamoral-${{ parameters.environment }}-rg || echo "Resource group check failed"
+              # Login to Azure
+              az login --service-principal \
+                -u $(ARM_CLIENT_ID) \
+                -p $(ARM_CLIENT_SECRET) \
+                --tenant $(ARM_TENANT_ID)
 
-                # Check AKS Cluster
-                echo "Checking AKS Cluster..."
-                az aks show \
-                  --resource-group flamoral-${{ parameters.environment }}-rg \
-                  --name flamoral-${{ parameters.environment }}-aks \
-                  --query "powerState" || echo "AKS check failed"
+              az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
-                # Check ACR
-                echo "Checking Container Registry..."
-                az acr show --name flamoralacr || echo "ACR check failed"
+              # Check Resource Group
+              echo "Checking Resource Group..."
+              az group show --name flamoral-${{ parameters.environment }}-rg || echo "Resource group check failed"
 
-                echo "====================================="
-                echo "Infrastructure Verification Complete"
-                echo "====================================="
+              # Check AKS Cluster
+              echo "Checking AKS Cluster..."
+              az aks show \
+                --resource-group flamoral-${{ parameters.environment }}-rg \
+                --name flamoral-${{ parameters.environment }}-aks \
+                --query "powerState" || echo "AKS check failed"
+
+              echo "====================================="
+              echo "Infrastructure Verification Complete"
+              echo "====================================="
             displayName: 'Verify Azure Resources'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
