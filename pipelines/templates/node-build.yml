@@ -30,18 +30,17 @@ steps:
 
   - task: Cache@2
     inputs:
-      key: 'yarn | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/yarn.lock'
+      key: 'npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/package-lock.json'
       restoreKeys: |
-        yarn | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}
-        yarn | "$(Agent.OS)"
-      path: $(Pipeline.Workspace)/.yarn
-    displayName: 'Cache yarn dependencies'
+        npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}
+        npm | "$(Agent.OS)"
+      path: $(Pipeline.Workspace)/.npm
+    displayName: 'Cache npm dependencies'
+    continueOnError: true
 
   - script: |
       cd ${{ parameters.serviceDirectory }}
-      if [ -f "yarn.lock" ]; then
-        yarn install --frozen-lockfile
-      elif [ -f "package-lock.json" ]; then
+      if [ -f "package-lock.json" ]; then
         npm ci
       else
         npm install
@@ -51,7 +50,7 @@ steps:
   - script: |
       cd ${{ parameters.serviceDirectory }}
       if grep -q '"lint"' package.json 2>/dev/null; then
-        yarn lint || npm run lint
+        npm run lint
       else
         echo "No lint script found, skipping..."
       fi
@@ -61,7 +60,7 @@ steps:
   - script: |
       cd ${{ parameters.serviceDirectory }}
       if grep -q '"build"' package.json 2>/dev/null; then
-        yarn build || npm run build
+        npm run build
       else
         echo "No build script found, skipping..."
       fi
@@ -71,7 +70,6 @@ steps:
     - script: |
         cd ${{ parameters.serviceDirectory }}
         if grep -q '"test"' package.json 2>/dev/null; then
-          yarn test --coverage --ci --reporters=default --reporters=jest-junit || \
           npm test -- --coverage --ci --reporters=default --reporters=jest-junit || \
           echo "Tests completed or not configured"
         else

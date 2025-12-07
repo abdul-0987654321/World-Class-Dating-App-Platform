@@ -32,7 +32,7 @@ variables:
   - group: flamoral-cd-vars
 
 pool:
-  vmImage: $(vmImageName)
+  name: 'Default'  # Self-hosted agent pool
 
 stages:
   # ============================================================================
@@ -143,12 +143,12 @@ stages:
             displayName: 'Install Node.js'
 
           - script: |
-              yarn install --frozen-lockfile || npm install
+              npm ci || npm install
             displayName: 'Install Dependencies'
 
           - script: |
               export API_URL=https://$(apiHost)
-              yarn test:e2e || npm run test:e2e || echo "E2E tests completed"
+              npm run test:e2e || echo "E2E tests completed"
             displayName: 'Run E2E Tests'
             continueOnError: true
 
