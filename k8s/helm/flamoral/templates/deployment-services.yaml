@@ -317,3 +317,206 @@ spec:
     {{- include "flamoral.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: media-service
 {{- end }}
+---
+{{/* Notification Service */}}
+{{- if .Values.notificationService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "flamoral.fullname" . }}-notification-service
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+spec:
+  {{- if not .Values.notificationService.autoscaling.enabled }}
+  replicas: {{ .Values.notificationService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "flamoral.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: notification-service
+  template:
+    metadata:
+      labels:
+        {{- include "flamoral.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: notification-service
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "flamoral.serviceAccountName" . }}
+      containers:
+        - name: notification-service
+          image: "{{ .Values.global.image.registry }}/{{ .Values.notificationService.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.notificationService.service.targetPort }}
+          livenessProbe:
+            {{- toYaml .Values.healthCheck.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.healthCheck.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.notificationService.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "flamoral.fullname" . }}-config
+            - secretRef:
+                name: {{ include "flamoral.fullname" . }}-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.notificationService.service.type }}
+  ports:
+    - port: {{ .Values.notificationService.service.port }}
+      targetPort: {{ .Values.notificationService.service.targetPort }}
+      name: http
+  selector:
+    {{- include "flamoral.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+{{- end }}
+---
+{{/* Realtime Service (WebSocket) */}}
+{{- if .Values.realtimeService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "flamoral.fullname" . }}-realtime-service
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+    app.kubernetes.io/component: realtime-service
+spec:
+  {{- if not .Values.realtimeService.autoscaling.enabled }}
+  replicas: {{ .Values.realtimeService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "flamoral.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: realtime-service
+  template:
+    metadata:
+      labels:
+        {{- include "flamoral.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: realtime-service
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "flamoral.serviceAccountName" . }}
+      containers:
+        - name: realtime-service
+          image: "{{ .Values.global.image.registry }}/{{ .Values.realtimeService.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.realtimeService.service.targetPort }}
+          livenessProbe:
+            {{- toYaml .Values.healthCheck.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.healthCheck.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.realtimeService.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "flamoral.fullname" . }}-config
+            - secretRef:
+                name: {{ include "flamoral.fullname" . }}-secrets
+          {{- with .Values.realtimeService.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime-service
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.realtimeService.service.type }}
+  ports:
+    - port: {{ .Values.realtimeService.service.port }}
+      targetPort: {{ .Values.realtimeService.service.targetPort }}
+      name: http
+  selector:
+    {{- include "flamoral.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: realtime-service
+{{- end }}
+---
+{{/* Web Frontend */}}
+{{- if .Values.web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "flamoral.fullname" . }}-web
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  {{- if not .Values.web.autoscaling.enabled }}
+  replicas: {{ .Values.web.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "flamoral.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "flamoral.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "flamoral.serviceAccountName" . }}
+      containers:
+        - name: web
+          image: "{{ .Values.global.image.registry }}/{{ .Values.web.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.service.targetPort }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.web.service.type }}
+  ports:
+    - port: {{ .Values.web.service.port }}
+      targetPort: {{ .Values.web.service.targetPort }}
+      name: http
+  selector:
+    {{- include "flamoral.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+{{- end }}

@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm install && npm cache clean --force
+RUN npm ci
 
 # Copy source code
 COPY src ./src
@@ -26,7 +26,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN npm install --production && npm cache clean --force
+RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
@@ -37,12 +37,16 @@ RUN chown -R nodejs:nodejs /app
 # Switch to nodejs user
 USER nodejs
 
-# Expose port
-EXPOSE 3003
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3004
+
+# Expose port (updated to 3004 to match api-gateway routing)
+EXPOSE 3004
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3003/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3004/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start application
 CMD ["node", "dist/index.js"]

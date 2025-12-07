@@ -1,0 +1,290 @@
+{{- $fullName := include "flamoral.fullname" . -}}
+{{- $labels := include "flamoral.labels" . -}}
+{{- $selectorLabels := include "flamoral.selectorLabels" . -}}
+
+# =============================================================================
+# API Gateway Service
+# =============================================================================
+{{- if .Values.apiGateway.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-api-gateway
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+spec:
+  type: {{ .Values.apiGateway.service.type }}
+  ports:
+    - port: {{ .Values.apiGateway.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+---
+{{- end }}
+
+# =============================================================================
+# Auth Service
+# =============================================================================
+{{- if .Values.authService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-auth-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: auth-service
+spec:
+  type: {{ .Values.authService.service.type }}
+  ports:
+    - port: {{ .Values.authService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: auth-service
+---
+{{- end }}
+
+# =============================================================================
+# User Service
+# =============================================================================
+{{- if .Values.userService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-user-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: user-service
+spec:
+  type: {{ .Values.userService.service.type }}
+  ports:
+    - port: {{ .Values.userService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: user-service
+---
+{{- end }}
+
+# =============================================================================
+# Matching Service
+# =============================================================================
+{{- if .Values.matchingService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-matching-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: matching-service
+spec:
+  type: {{ .Values.matchingService.service.type }}
+  ports:
+    - port: {{ .Values.matchingService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: matching-service
+---
+{{- end }}
+
+# =============================================================================
+# Messaging Service
+# =============================================================================
+{{- if .Values.messagingService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-messaging-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: messaging-service
+spec:
+  type: {{ .Values.messagingService.service.type }}
+  ports:
+    - port: {{ .Values.messagingService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: messaging-service
+---
+{{- end }}
+
+# =============================================================================
+# Media Service
+# =============================================================================
+{{- if .Values.mediaService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-media-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: media-service
+spec:
+  type: {{ .Values.mediaService.service.type }}
+  ports:
+    - port: {{ .Values.mediaService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: media-service
+---
+{{- end }}
+
+# =============================================================================
+# Payment Service
+# =============================================================================
+{{- if .Values.paymentService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-payment-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: payment-service
+spec:
+  type: {{ .Values.paymentService.service.type }}
+  ports:
+    - port: {{ .Values.paymentService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: payment-service
+---
+{{- end }}
+
+# =============================================================================
+# Notification Service
+# =============================================================================
+{{- if .Values.notificationService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-notification-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+spec:
+  type: {{ .Values.notificationService.service.type }}
+  ports:
+    - port: {{ .Values.notificationService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+---
+{{- end }}
+
+# =============================================================================
+# Analytics Service
+# =============================================================================
+{{- if .Values.analyticsService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-analytics-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: analytics-service
+spec:
+  type: {{ .Values.analyticsService.service.type }}
+  ports:
+    - port: {{ .Values.analyticsService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: analytics-service
+---
+{{- end }}
+
+# =============================================================================
+# Moderation Service
+# =============================================================================
+{{- if .Values.moderationService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-moderation-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: moderation-service
+spec:
+  type: {{ .Values.moderationService.service.type }}
+  ports:
+    - port: {{ .Values.moderationService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: moderation-service
+---
+{{- end }}
+
+# =============================================================================
+# Advertising Service
+# =============================================================================
+{{- if .Values.advertisingService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-advertising-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: advertising-service
+spec:
+  type: {{ .Values.advertisingService.service.type }}
+  ports:
+    - port: {{ .Values.advertisingService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: advertising-service
+---
+{{- end }}
+
+# =============================================================================
+# Realtime Service
+# =============================================================================
+{{- if .Values.realtimeService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-realtime-service
+  labels:
+    {{- $labels | nindent 4 }}
+    app.kubernetes.io/component: realtime-service
+spec:
+  type: {{ .Values.realtimeService.service.type }}
+  ports:
+    - port: {{ .Values.realtimeService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: realtime-service
+{{- end }}
