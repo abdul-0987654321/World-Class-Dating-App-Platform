@@ -40,7 +40,7 @@ variables:
   - template: templates/variables-common.yml
 
 pool:
-  vmImage: $(vmImageName)
+  name: 'Default'  # Self-hosted agent pool
 
 stages:
   # ============================================================================
