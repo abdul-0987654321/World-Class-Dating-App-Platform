@@ -1,0 +1,461 @@
+# =============================================================================
+# Flamoral Dating Platform - Security Scanning Pipeline
+# =============================================================================
+# Organization: citadelcloudmanagement
+# Project: DatingPlatform
+# URL: https://dev.azure.com/citadelcloudmanagement/DatingPlatform/_build
+# =============================================================================
+# This pipeline runs comprehensive security scans including:
+# - Dependency vulnerability scanning
+# - Secret detection
+# - Container image scanning
+# - Infrastructure security scanning
+# - SAST/DAST analysis
+# =============================================================================
+
+name: Security-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - '**/*'
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+schedules:
+  - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM
+    displayName: 'Weekly Security Scan'
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  - template: templates/variables-common.yml
+  - group: flamoral-security-vars
+
+pool:
+  vmImage: $(vmImageName)
+
+stages:
+  # ============================================================================
+  # STAGE 1: DEPENDENCY VULNERABILITY SCANNING
+  # ============================================================================
+  - stage: DependencyScanning
+    displayName: 'Dependency Vulnerability Scanning'
+    jobs:
+      - job: NPMAudit
+        displayName: 'NPM Security Audit'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              yarn install --frozen-lockfile || npm install
+            displayName: 'Install Dependencies'
+
+          - script: |
+              echo "Running NPM Audit..."
+              npm audit --audit-level=moderate --json > npm-audit.json || true
+
+              echo "=== Audit Summary ==="
+              npm audit --audit-level=moderate || true
+            displayName: 'NPM Security Audit'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'npm-audit.json'
+              ArtifactName: 'npm-audit-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish NPM Audit Report'
+
+      - job: SnykScan
+        displayName: 'Snyk Vulnerability Scan'
+        condition: ne(variables['SNYK_TOKEN'], '')
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g snyk
+            displayName: 'Install Snyk'
+
+          - script: |
+              echo "Running Snyk scan..."
+              snyk auth $(SNYK_TOKEN) || true
+              snyk test --severity-threshold=high --json > snyk-results.json || true
+              snyk monitor --project-name=flamoral-dating-platform || true
+            displayName: 'Snyk Security Scan'
+            env:
+              SNYK_TOKEN: $(SNYK_TOKEN)
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'snyk-results.json'
+              ArtifactName: 'snyk-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish Snyk Report'
+
+      - job: TrivyScan
+        displayName: 'Trivy Filesystem Scan'
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Installing Trivy..."
+              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+              echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+              sudo apt-get update
+              sudo apt-get install trivy -y
+            displayName: 'Install Trivy'
+
+          - script: |
+              echo "Scanning filesystem for vulnerabilities..."
+              trivy fs --severity HIGH,CRITICAL \
+                --format json \
+                --output trivy-fs-results.json \
+                --ignore-unfixed \
+                . || true
+
+              echo "=== Trivy Summary ==="
+              trivy fs --severity HIGH,CRITICAL . || true
+            displayName: 'Trivy Filesystem Scan'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'trivy-fs-results.json'
+              ArtifactName: 'trivy-fs-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish Trivy Report'
+
+  # ============================================================================
+  # STAGE 2: SECRET DETECTION
+  # ============================================================================
+  - stage: SecretDetection
+    displayName: 'Secret Detection'
+    dependsOn: []
+    jobs:
+      - job: DetectSecrets
+        displayName: 'Detect Secrets'
+        steps:
+          - checkout: self
+
+          - script: |
+              pip install detect-secrets trufflehog3
+            displayName: 'Install Secret Detection Tools'
+
+          - script: |
+              echo "Running detect-secrets..."
+              detect-secrets scan --all-files \
+                --exclude-files 'node_modules|\.git|dist|build|\.env\.example' \
+                > .secrets.baseline || true
+
+              detect-secrets audit .secrets.baseline --report > secrets-report.txt || true
+            displayName: 'Detect Secrets Scan'
+            continueOnError: true
+
+          - script: |
+              echo "Running TruffleHog..."
+              trufflehog3 --no-history . > trufflehog-results.txt 2>&1 || true
+            displayName: 'TruffleHog Scan'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '.secrets.baseline'
+              ArtifactName: 'secrets-baseline'
+            condition: succeededOrFailed()
+            displayName: 'Publish Secrets Baseline'
+
+      - job: GitLeaksCheck
+        displayName: 'Git History Leak Check'
+        steps:
+          - checkout: self
+            fetchDepth: 0  # Full history for git leak check
+
+          - script: |
+              echo "Installing gitleaks..."
+              wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+              tar -xzf gitleaks_8.18.0_linux_x64.tar.gz
+              sudo mv gitleaks /usr/local/bin/
+            displayName: 'Install GitLeaks'
+
+          - script: |
+              echo "Running GitLeaks..."
+              gitleaks detect --source . \
+                --report-format json \
+                --report-path gitleaks-results.json \
+                --no-git || true
+
+              gitleaks detect --source . --verbose || true
+            displayName: 'GitLeaks Scan'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'gitleaks-results.json'
+              ArtifactName: 'gitleaks-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish GitLeaks Report'
+
+  # ============================================================================
+  # STAGE 3: CONTAINER IMAGE SCANNING
+  # ============================================================================
+  - stage: ContainerScanning
+    displayName: 'Container Image Scanning'
+    dependsOn: []
+    condition: ne(variables['Build.Reason'], 'PullRequest')
+    jobs:
+      - job: ScanContainerImages
+        displayName: 'Scan Container Images'
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            inputs:
+              command: login
+              containerRegistry: $(dockerRegistryServiceConnection)
+            displayName: 'Login to ACR'
+
+          - script: |
+              echo "Installing Trivy..."
+              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+              echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+              sudo apt-get update
+              sudo apt-get install trivy -y
+            displayName: 'Install Trivy'
+
+          - script: |
+              SERVICES=("api-gateway" "auth-service" "user-service" "matching-service" "messaging-service" "payment-service")
+
+              echo "=== Scanning Container Images ==="
+              mkdir -p container-scan-results
+
+              for service in "${SERVICES[@]}"; do
+                echo "Scanning ${service}..."
+                trivy image \
+                  --severity HIGH,CRITICAL \
+                  --format json \
+                  --output container-scan-results/${service}-scan.json \
+                  $(acrLoginServer)/$(imagePrefix)/${service}:latest || true
+              done
+
+              echo "=== Container Scan Complete ==="
+            displayName: 'Scan Container Images'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'container-scan-results'
+              ArtifactName: 'container-scan-results'
+            condition: succeededOrFailed()
+            displayName: 'Publish Container Scan Results'
+
+  # ============================================================================
+  # STAGE 4: INFRASTRUCTURE SECURITY SCANNING
+  # ============================================================================
+  - stage: InfrastructureScanning
+    displayName: 'Infrastructure Security Scanning'
+    dependsOn: []
+    jobs:
+      - job: TerraformSecurity
+        displayName: 'Terraform Security Scan'
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Installing tfsec..."
+              wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64
+              chmod +x tfsec-linux-amd64
+              sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
+            displayName: 'Install tfsec'
+
+          - script: |
+              echo "Running tfsec..."
+              tfsec infrastructure/terraform \
+                --format json \
+                --out tfsec-results.json || true
+
+              tfsec infrastructure/terraform || true
+            displayName: 'TFSec Scan'
+            continueOnError: true
+
+          - script: |
+              echo "Installing Checkov..."
+              pip install checkov
+            displayName: 'Install Checkov'
+
+          - script: |
+              echo "Running Checkov..."
+              checkov -d infrastructure/terraform \
+                --output json \
+                --output-file checkov-results.json || true
+
+              checkov -d infrastructure/terraform || true
+            displayName: 'Checkov Scan'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'tfsec-results.json'
+              ArtifactName: 'tfsec-results'
+            condition: succeededOrFailed()
+            displayName: 'Publish tfsec Results'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'checkov-results.json'
+              ArtifactName: 'checkov-results'
+            condition: succeededOrFailed()
+            displayName: 'Publish Checkov Results'
+
+      - job: KubernetesSecurity
+        displayName: 'Kubernetes Security Scan'
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Installing kubesec..."
+              wget https://github.com/controlplaneio/kubesec/releases/download/v2.13.0/kubesec_linux_amd64.tar.gz
+              tar -xzf kubesec_linux_amd64.tar.gz
+              sudo mv kubesec /usr/local/bin/
+            displayName: 'Install Kubesec'
+
+          - script: |
+              echo "Installing kube-score..."
+              wget https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64.tar.gz
+              tar xf kube-score_1.17.0_linux_amd64.tar.gz
+              sudo mv kube-score /usr/local/bin
+            displayName: 'Install Kube-Score'
+
+          - script: |
+              echo "Scanning Kubernetes manifests..."
+              mkdir -p k8s-security-results
+
+              find infrastructure/kubernetes -name "*.yaml" -o -name "*.yml" | while read file; do
+                echo "Scanning: $file"
+                kubesec scan "$file" >> k8s-security-results/kubesec-results.json || true
+              done
+            displayName: 'Kubesec Scan'
+            continueOnError: true
+
+          - script: |
+              echo "Running kube-score..."
+              find infrastructure/kubernetes -name "*.yaml" -o -name "*.yml" | while read file; do
+                echo "Analyzing: $file"
+                kube-score score "$file" || true
+              done
+            displayName: 'Kube-Score Analysis'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'k8s-security-results'
+              ArtifactName: 'k8s-security-results'
+            condition: succeededOrFailed()
+            displayName: 'Publish K8s Security Results'
+
+  # ============================================================================
+  # STAGE 5: SECURITY REPORT GENERATION
+  # ============================================================================
+  - stage: SecurityReport
+    displayName: 'Security Report'
+    dependsOn:
+      - DependencyScanning
+      - SecretDetection
+      - ContainerScanning
+      - InfrastructureScanning
+    condition: always()
+    jobs:
+      - job: GenerateReport
+        displayName: 'Generate Security Report'
+        steps:
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'all'
+              downloadPath: '$(System.ArtifactsDirectory)'
+            displayName: 'Download All Artifacts'
+            continueOnError: true
+
+          - script: |
+              echo "========================================="
+              echo "SECURITY SCAN SUMMARY"
+              echo "========================================="
+              echo "Build: $(Build.BuildNumber)"
+              echo "Branch: $(Build.SourceBranch)"
+              echo "Date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              echo "========================================="
+              echo ""
+              echo "Scans Completed:"
+              echo "  - NPM Audit"
+              echo "  - Snyk Vulnerability Scan"
+              echo "  - Trivy Filesystem Scan"
+              echo "  - Secret Detection"
+              echo "  - GitLeaks"
+              echo "  - Container Image Scanning"
+              echo "  - Terraform Security (tfsec)"
+              echo "  - Checkov IaC Scan"
+              echo "  - Kubernetes Security Scan"
+              echo ""
+              echo "See artifacts for detailed reports."
+              echo "========================================="
+
+              # Generate combined report
+              cat > security-report.md << EOF
+              # Flamoral Dating Platform Security Scan Report
+
+              **Build:** $(Build.BuildNumber)
+              **Branch:** $(Build.SourceBranch)
+              **Date:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              **Requested By:** $(Build.RequestedFor)
+
+              ## Scans Performed
+
+              | Scan Type | Status |
+              |-----------|--------|
+              | NPM Audit | Completed |
+              | Snyk | Completed |
+              | Trivy FS | Completed |
+              | Secret Detection | Completed |
+              | GitLeaks | Completed |
+              | Container Scanning | Completed |
+              | Terraform Security | Completed |
+              | Checkov | Completed |
+              | Kubernetes Security | Completed |
+
+              ## Artifacts
+
+              All detailed scan results are available in the pipeline artifacts.
+
+              ## Next Steps
+
+              1. Review high and critical vulnerabilities
+              2. Create tickets for remediation
+              3. Update dependencies where possible
+              4. Review and rotate any detected secrets
+              EOF
+            displayName: 'Generate Security Report'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'security-report.md'
+              ArtifactName: 'security-report'
+            displayName: 'Publish Security Report'

@@ -1,0 +1,117 @@
+# =============================================================================
+# Helm Deployment Template
+# =============================================================================
+# Reusable template for deploying services to Kubernetes via Helm
+# =============================================================================
+
+parameters:
+  - name: environment
+    type: string
+  - name: namespace
+    type: string
+  - name: azureServiceConnection
+    type: string
+    default: 'azure-terraform-sp-connection'
+  - name: kubernetesServiceConnection
+    type: string
+    default: 'aks-flamoral-connection'
+  - name: aksClusterName
+    type: string
+    default: 'flamoral-aks'
+  - name: resourceGroup
+    type: string
+    default: 'flamoral-dating-app-rg'
+  - name: helmChartPath
+    type: string
+    default: 'infrastructure/helm/flamoral'
+  - name: releaseName
+    type: string
+  - name: imageTag
+    type: string
+    default: '$(Build.BuildId)'
+  - name: imageRegistry
+    type: string
+    default: 'flamoralacr.azurecr.io'
+  - name: helmVersion
+    type: string
+    default: '3.12.0'
+  - name: additionalValues
+    type: string
+    default: ''
+  - name: timeout
+    type: string
+    default: '10m'
+
+steps:
+  - task: HelmInstaller@1
+    inputs:
+      helmVersionToInstall: ${{ parameters.helmVersion }}
+    displayName: 'Install Helm ${{ parameters.helmVersion }}'
+
+  - task: KubectlInstaller@0
+    inputs:
+      kubectlVersion: 'latest'
+    displayName: 'Install kubectl'
+
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az aks get-credentials \
+          --resource-group ${{ parameters.resourceGroup }} \
+          --name ${{ parameters.aksClusterName }} \
+          --overwrite-existing
+    displayName: 'Get AKS Credentials'
+
+  - script: |
+      kubectl create namespace ${{ parameters.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+    displayName: 'Ensure Namespace Exists'
+
+  - script: |
+      kubectl create secret docker-registry acr-secret \
+        --docker-server=${{ parameters.imageRegistry }} \
+        --docker-username=$(ACR_USERNAME) \
+        --docker-password=$(ACR_PASSWORD) \
+        --namespace=${{ parameters.namespace }} \
+        --dry-run=client -o yaml | kubectl apply -f -
+    displayName: 'Create ACR Pull Secret'
+    env:
+      ACR_USERNAME: $(ACR_USERNAME)
+      ACR_PASSWORD: $(ACR_PASSWORD)
+
+  - task: HelmDeploy@0
+    inputs:
+      connectionType: 'Kubernetes Service Connection'
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+      namespace: ${{ parameters.namespace }}
+      command: 'upgrade'
+      chartType: 'FilePath'
+      chartPath: '${{ parameters.helmChartPath }}'
+      releaseName: '${{ parameters.releaseName }}'
+      overrideValues: |
+        global.environment=${{ parameters.environment }}
+        global.imageTag=${{ parameters.imageTag }}
+        global.imageRegistry=${{ parameters.imageRegistry }}
+        global.imagePullSecrets[0].name=acr-secret
+        ${{ parameters.additionalValues }}
+      arguments: '--create-namespace --install --wait --timeout ${{ parameters.timeout }}'
+    displayName: 'Deploy with Helm - ${{ parameters.releaseName }}'
+
+  - script: |
+      echo "Waiting for all deployments to be ready..."
+      kubectl wait --for=condition=available --timeout=300s \
+        deployment --all -n ${{ parameters.namespace }}
+    displayName: 'Wait for Deployments'
+
+  - script: |
+      echo "=== Deployment Status ==="
+      kubectl get all -n ${{ parameters.namespace }}
+      echo ""
+      echo "=== Ingress Status ==="
+      kubectl get ingress -n ${{ parameters.namespace }}
+      echo ""
+      echo "=== Pod Status ==="
+      kubectl get pods -n ${{ parameters.namespace }} -o wide
+    displayName: 'Verify Deployment'

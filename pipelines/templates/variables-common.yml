@@ -1,0 +1,70 @@
+# =============================================================================
+# Flamoral Dating Platform - Common Variables Template
+# =============================================================================
+# Organization: citadelcloudmanagement
+# Project: DatingPlatform
+# Purpose: Centralized variables for all pipelines
+# =============================================================================
+
+variables:
+  # =============================================================================
+  # Build Tool Versions
+  # =============================================================================
+  - name: nodeVersion
+    value: '20.x'
+  - name: goVersion
+    value: '1.21'
+  - name: pythonVersion
+    value: '3.11'
+  - name: terraformVersion
+    value: '1.6.0'
+  - name: helmVersion
+    value: '3.12.0'
+
+  # =============================================================================
+  # Azure DevOps Settings
+  # =============================================================================
+  - name: vmImageName
+    value: 'ubuntu-latest'
+  - name: azureServiceConnection
+    value: 'azure-terraform-sp-connection'
+  - name: dockerRegistryServiceConnection
+    value: 'acr-datingapp-connection'
+  - name: kubernetesServiceConnection
+    value: 'aks-flamoral-connection'
+
+  # =============================================================================
+  # Container Registry
+  # =============================================================================
+  - name: acrName
+    value: 'flamoralacr8eq5eg'
+  - name: acrLoginServer
+    value: 'flamoralacr8eq5eg.azurecr.io'
+  - name: imagePrefix
+    value: 'flamoral'
+
+  # =============================================================================
+  # Kubernetes / AKS
+  # =============================================================================
+  - name: aksClusterName
+    value: 'datingapp-dev-aks'
+  - name: resourceGroup
+    value: 'datingapp-dev-rg'
+
+  # =============================================================================
+  # Terraform State Backend
+  # =============================================================================
+  - name: tfStateResourceGroup
+    value: 'flamoral-terraform-state-rg'
+  - name: tfStateStorageAccount
+    value: 'flamoraltfstate'
+  - name: tfStateContainer
+    value: 'tfstate'
+
+  # =============================================================================
+  # Build Metadata
+  # =============================================================================
+  - name: imageTag
+    value: '$(Build.BuildId)'
+  - name: shortCommit
+    value: $[format('{0:8}', variables['Build.SourceVersion'])]

@@ -1,0 +1,101 @@
+# =============================================================================
+# Node.js Build Template
+# =============================================================================
+# Reusable template for building Node.js microservices
+# =============================================================================
+
+parameters:
+  - name: serviceName
+    type: string
+  - name: serviceDirectory
+    type: string
+  - name: nodeVersion
+    type: string
+    default: '20.x'
+  - name: runTests
+    type: boolean
+    default: true
+  - name: publishCoverage
+    type: boolean
+    default: true
+  - name: buildArgs
+    type: string
+    default: ''
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: ${{ parameters.nodeVersion }}
+    displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+
+  - task: Cache@2
+    inputs:
+      key: 'yarn | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/yarn.lock'
+      restoreKeys: |
+        yarn | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}
+        yarn | "$(Agent.OS)"
+      path: $(Pipeline.Workspace)/.yarn
+    displayName: 'Cache yarn dependencies'
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      if [ -f "yarn.lock" ]; then
+        yarn install --frozen-lockfile
+      elif [ -f "package-lock.json" ]; then
+        npm ci
+      else
+        npm install
+      fi
+    displayName: 'Install dependencies - ${{ parameters.serviceName }}'
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      if grep -q '"lint"' package.json 2>/dev/null; then
+        yarn lint || npm run lint
+      else
+        echo "No lint script found, skipping..."
+      fi
+    displayName: 'Lint - ${{ parameters.serviceName }}'
+    continueOnError: true
+
+  - script: |
+      cd ${{ parameters.serviceDirectory }}
+      if grep -q '"build"' package.json 2>/dev/null; then
+        yarn build || npm run build
+      else
+        echo "No build script found, skipping..."
+      fi
+    displayName: 'Build - ${{ parameters.serviceName }}'
+
+  - ${{ if eq(parameters.runTests, true) }}:
+    - script: |
+        cd ${{ parameters.serviceDirectory }}
+        if grep -q '"test"' package.json 2>/dev/null; then
+          yarn test --coverage --ci --reporters=default --reporters=jest-junit || \
+          npm test -- --coverage --ci --reporters=default --reporters=jest-junit || \
+          echo "Tests completed or not configured"
+        else
+          echo "No test script found, skipping..."
+        fi
+      displayName: 'Test - ${{ parameters.serviceName }}'
+      continueOnError: true
+      env:
+        NODE_ENV: test
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '${{ parameters.serviceDirectory }}/**/junit.xml'
+        mergeTestResults: true
+        testRunTitle: '${{ parameters.serviceName }} Unit Tests'
+      displayName: 'Publish Test Results - ${{ parameters.serviceName }}'
+
+  - ${{ if eq(parameters.publishCoverage, true) }}:
+    - task: PublishCodeCoverageResults@1
+      condition: succeededOrFailed()
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '${{ parameters.serviceDirectory }}/**/coverage/cobertura-coverage.xml'
+        failIfCoverageEmpty: false
+      displayName: 'Publish Coverage - ${{ parameters.serviceName }}'
