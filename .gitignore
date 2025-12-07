@@ -75,11 +75,24 @@ docker-compose.override.yml
 .terraform/
 .terraform.lock.hcl
 terraform.exe
-terraform
 *.tfplan
 tfplan
 terraform_*.zip
 LICENSE.txt
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+# Keep example tfvars but ignore actual tfvars (may contain secrets)
+*.auto.tfvars
+*.auto.tfvars.json
+# Uncomment if you want to ignore all tfvars (they may contain secrets)
+# *.tfvars
+# *.tfvars.json
+.terraformrc
+terraform.rc
 
 # Kubernetes
 *.kubeconfig

@@ -1,0 +1,305 @@
+# Azure DevOps Pipeline - Infrastructure Destruction
+# DANGER: This pipeline destroys infrastructure resources
+#
+# Safety measures:
+# - Manual trigger only
+# - Explicit confirmation required
+# - Multiple approval gates
+# - State backup before destruction
+
+trigger: none  # No automatic triggers
+pr: none       # No PR triggers
+
+parameters:
+  - name: environment
+    displayName: 'Environment to Destroy'
+    type: string
+    default: 'dev'
+    values:
+      - dev
+      - test
+      - prod
+
+  - name: confirmDestroy
+    displayName: 'Type DESTROY to confirm'
+    type: string
+    default: ''
+
+  - name: targetResources
+    displayName: 'Specific resources to destroy (optional, leave empty for all)'
+    type: string
+    default: ''
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: datingplatform-terraform-common
+  - group: datingplatform-terraform-${{ parameters.environment }}
+  - name: TF_VERSION
+    value: '1.6.6'
+
+stages:
+  # ====================
+  # Pre-Destroy Validation
+  # ====================
+  - stage: ValidateDestruction
+    displayName: 'Validate Destruction Request'
+    jobs:
+      - job: ValidateConfirmation
+        displayName: 'Validate Confirmation'
+        steps:
+          - script: |
+              echo "=========================================="
+              echo "⚠️  INFRASTRUCTURE DESTRUCTION REQUEST  ⚠️"
+              echo "=========================================="
+              echo ""
+              echo "Environment: ${{ parameters.environment }}"
+              echo "Requested by: $(Build.RequestedFor)"
+              echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              echo ""
+
+              if [ "${{ parameters.confirmDestroy }}" != "DESTROY" ]; then
+                echo "##[error]Confirmation failed. You must type 'DESTROY' to confirm."
+                echo "##[error]Received: '${{ parameters.confirmDestroy }}'"
+                exit 1
+              fi
+
+              echo "##[section]Confirmation validated: DESTROY"
+
+              if [ "${{ parameters.environment }}" == "prod" ]; then
+                echo ""
+                echo "##[warning]=========================================="
+                echo "##[warning]  PRODUCTION DESTRUCTION REQUESTED"
+                echo "##[warning]=========================================="
+                echo "##[warning]This will destroy PRODUCTION infrastructure!"
+                echo "##[warning]This action is IRREVERSIBLE!"
+                echo ""
+                sleep 10
+              fi
+            displayName: 'Validate Confirmation'
+
+  # ====================
+  # Backup State
+  # ====================
+  - stage: BackupState
+    displayName: 'Backup Current State'
+    dependsOn: ValidateDestruction
+    jobs:
+      - job: BackupTerraformState
+        displayName: 'Backup State File'
+        steps:
+          - checkout: self
+
+          - script: |
+              curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+              sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+              sudo apt-get update && sudo apt-get install -y terraform=$(TF_VERSION)-1
+            displayName: 'Install Terraform'
+
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+              cd terraform/environments/${{ parameters.environment }}
+
+              echo "##[group]Initializing Terraform"
+              terraform init \
+                -backend-config="resource_group_name=$(TERRAFORM_RESOURCE_GROUP)" \
+                -backend-config="storage_account_name=$(TERRAFORM_STORAGE_ACCOUNT)" \
+                -backend-config="container_name=$(TERRAFORM_CONTAINER_NAME)" \
+                -backend-config="key=${{ parameters.environment }}.terraform.tfstate"
+              echo "##[endgroup]"
+
+              echo "##[group]Creating state backup"
+              # Pull current state
+              terraform state pull > state-backup-$(Build.BuildId).json
+
+              # Create resource list
+              terraform state list > resources-before-destroy.txt
+
+              echo "Resources to be destroyed:"
+              cat resources-before-destroy.txt
+              echo "##[endgroup]"
+            displayName: 'Backup State'
+            workingDirectory: $(Build.SourcesDirectory)
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish State Backup'
+            inputs:
+              targetPath: '$(Build.SourcesDirectory)/terraform/environments/${{ parameters.environment }}/state-backup-$(Build.BuildId).json'
+              artifact: 'state-backup-${{ parameters.environment }}-$(Build.BuildId)'
+              publishLocation: 'pipeline'
+
+  # ====================
+  # Generate Destroy Plan
+  # ====================
+  - stage: PlanDestroy
+    displayName: 'Plan Destruction'
+    dependsOn: BackupState
+    jobs:
+      - job: TerraformDestroyPlan
+        displayName: 'Generate Destroy Plan'
+        steps:
+          - checkout: self
+
+          - script: |
+              curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+              sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+              sudo apt-get update && sudo apt-get install -y terraform=$(TF_VERSION)-1
+            displayName: 'Install Terraform'
+
+          - script: |
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+              cd terraform/environments/${{ parameters.environment }}
+
+              echo "##[group]Initializing Terraform"
+              terraform init \
+                -backend-config="resource_group_name=$(TERRAFORM_RESOURCE_GROUP)" \
+                -backend-config="storage_account_name=$(TERRAFORM_STORAGE_ACCOUNT)" \
+                -backend-config="container_name=$(TERRAFORM_CONTAINER_NAME)" \
+                -backend-config="key=${{ parameters.environment }}.terraform.tfstate"
+              echo "##[endgroup]"
+
+              echo "##[group]Generating destroy plan"
+
+              DESTROY_CMD="terraform plan -destroy -out=destroy.tfplan -input=false"
+
+              # If specific resources are targeted
+              if [ -n "${{ parameters.targetResources }}" ]; then
+                for resource in ${{ parameters.targetResources }}; do
+                  DESTROY_CMD="$DESTROY_CMD -target=$resource"
+                done
+              fi
+
+              eval $DESTROY_CMD
+
+              # Generate human-readable plan
+              terraform show destroy.tfplan > destroy-plan.txt
+
+              echo ""
+              echo "##[warning]=========================================="
+              echo "##[warning]  DESTRUCTION PLAN"
+              echo "##[warning]=========================================="
+              cat destroy-plan.txt
+              echo "##[endgroup]"
+            displayName: 'Generate Destroy Plan'
+            workingDirectory: $(Build.SourcesDirectory)
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Destroy Plan'
+            inputs:
+              targetPath: '$(Build.SourcesDirectory)/terraform/environments/${{ parameters.environment }}/destroy.tfplan'
+              artifact: 'destroy-plan-${{ parameters.environment }}'
+              publishLocation: 'pipeline'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Destroy Plan Text'
+            inputs:
+              targetPath: '$(Build.SourcesDirectory)/terraform/environments/${{ parameters.environment }}/destroy-plan.txt'
+              artifact: 'destroy-plan-txt-${{ parameters.environment }}'
+              publishLocation: 'pipeline'
+
+  # ====================
+  # Execute Destruction
+  # ====================
+  - stage: ExecuteDestroy
+    displayName: 'Execute Destruction'
+    dependsOn: PlanDestroy
+    jobs:
+      - deployment: TerraformDestroy
+        displayName: 'Destroy Infrastructure'
+        environment: 'datingplatform-${{ parameters.environment }}-destroy'  # Separate approval
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: 'Download Destroy Plan'
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'destroy-plan-${{ parameters.environment }}'
+                    targetPath: '$(Build.SourcesDirectory)/terraform/environments/${{ parameters.environment }}'
+
+                - script: |
+                    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+                    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+                    sudo apt-get update && sudo apt-get install -y terraform=$(TF_VERSION)-1
+                  displayName: 'Install Terraform'
+
+                - script: |
+                    export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+                    export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+                    export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+                    export ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+                    cd terraform/environments/${{ parameters.environment }}
+
+                    echo "##[group]Initializing Terraform"
+                    terraform init \
+                      -backend-config="resource_group_name=$(TERRAFORM_RESOURCE_GROUP)" \
+                      -backend-config="storage_account_name=$(TERRAFORM_STORAGE_ACCOUNT)" \
+                      -backend-config="container_name=$(TERRAFORM_CONTAINER_NAME)" \
+                      -backend-config="key=${{ parameters.environment }}.terraform.tfstate"
+                    echo "##[endgroup]"
+
+                    echo ""
+                    echo "##[error]=========================================="
+                    echo "##[error]  EXECUTING DESTRUCTION IN 10 SECONDS"
+                    echo "##[error]=========================================="
+                    sleep 10
+
+                    echo "##[group]Applying destroy plan"
+                    terraform apply -input=false -auto-approve destroy.tfplan
+                    echo "##[endgroup]"
+
+                    echo ""
+                    echo "##[section]Destruction complete"
+
+                    # Verify destruction
+                    echo "##[group]Verifying destruction"
+                    terraform state list || echo "No resources remaining in state"
+                    echo "##[endgroup]"
+                  displayName: 'Execute Destroy'
+                  workingDirectory: $(Build.SourcesDirectory)
+                  env:
+                    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+                    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+                    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+                    ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+                - script: |
+                    echo "=========================================="
+                    echo "DESTRUCTION REPORT"
+                    echo "=========================================="
+                    echo ""
+                    echo "Environment: ${{ parameters.environment }}"
+                    echo "Executed by: $(Build.RequestedFor)"
+                    echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+                    echo "Build ID: $(Build.BuildId)"
+                    echo ""
+                    echo "State backup artifact: state-backup-${{ parameters.environment }}-$(Build.BuildId)"
+                    echo ""
+                    echo "To restore, download the state backup artifact and run:"
+                    echo "  terraform state push <backup-file>"
+                    echo ""
+                    echo "=========================================="
+                  displayName: 'Generate Report'

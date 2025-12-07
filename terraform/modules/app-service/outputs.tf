@@ -1,0 +1,14 @@
+output "id" {
+  description = "The ID of the App Service"
+  value       = azurerm_linux_web_app.this.id
+}
+
+output "default_hostname" {
+  description = "The default hostname of the App Service"
+  value       = azurerm_linux_web_app.this.default_hostname
+}
+
+output "identity_principal_id" {
+  description = "The Principal ID of the managed identity"
+  value       = azurerm_linux_web_app.this.identity[0].principal_id
+}

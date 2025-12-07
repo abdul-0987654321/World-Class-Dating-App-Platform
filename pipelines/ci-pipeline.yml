@@ -353,6 +353,14 @@ stages:
               serviceName: 'moderation-service'
               dockerfilePath: 'backend/services/moderation-service/Dockerfile'
               buildContext: 'backend/services/moderation-service'
+            AdvertisingService:
+              serviceName: 'advertising-service'
+              dockerfilePath: 'backend/services/advertising-service/Dockerfile'
+              buildContext: 'backend/services/advertising-service'
+            RealtimeService:
+              serviceName: 'realtime-service'
+              dockerfilePath: 'backend/services/realtime-service/Dockerfile'
+              buildContext: 'backend/services/realtime-service'
         steps:
           - checkout: self
 
