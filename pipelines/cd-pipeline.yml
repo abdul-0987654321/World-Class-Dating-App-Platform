@@ -309,8 +309,10 @@ stages:
 
                 - task: HelmDeploy@0
                   inputs:
-                    connectionType: 'Kubernetes Service Connection'
-                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscription: $(azureServiceConnection)
+                    azureResourceGroup: $(resourceGroup)
+                    kubernetesCluster: $(aksClusterName)
                     namespace: $(namespace)
                     command: 'upgrade'
                     chartType: 'FilePath'
