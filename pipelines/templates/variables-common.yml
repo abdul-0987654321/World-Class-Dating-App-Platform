@@ -67,4 +67,4 @@ variables:
   - name: imageTag
     value: '$(Build.BuildId)'
   - name: shortCommit
-    value: $[format('{0:8}', variables['Build.SourceVersion'])]
+    value: $[substring(variables['Build.SourceVersion'], 0, 8)]
