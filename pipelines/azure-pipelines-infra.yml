@@ -47,8 +47,13 @@ stages:
           - checkout: self
             fetchDepth: 1
 
+          - script: |
+              mkdir -p $(Pipeline.Workspace)/.terraform.d/plugin-cache
+            displayName: 'Create Terraform cache directory'
+
           - task: Cache@2
             displayName: 'Cache Terraform plugins'
+            continueOnError: true
             inputs:
               key: 'terraform | "$(Agent.OS)" | terraform/**/*.tf'
               path: '$(Pipeline.Workspace)/.terraform.d/plugin-cache'
