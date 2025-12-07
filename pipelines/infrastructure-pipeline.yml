@@ -494,8 +494,6 @@ stages:
                     publishLocation: 'pipeline'
                   displayName: 'Publish Production Outputs'
 
-            postDeploy:
-              steps:
                 - script: |
                     echo "Production infrastructure deployment completed"
                     echo "Build: $(Build.BuildNumber)"
