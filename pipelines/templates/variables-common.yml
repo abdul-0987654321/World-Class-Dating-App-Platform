@@ -15,7 +15,7 @@ variables:
   - name: goVersion
     value: '1.21'
   - name: pythonVersion
-    value: '3.11'
+    value: '3.x'
   - name: terraformVersion
     value: '1.6.0'
   - name: helmVersion
