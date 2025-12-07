@@ -62,24 +62,25 @@ stages:
 
           - task: Cache@2
             inputs:
-              key: 'yarn | "$(Agent.OS)" | yarn.lock'
-              restoreKeys: yarn | "$(Agent.OS)"
-              path: $(Pipeline.Workspace)/.yarn
-            displayName: 'Cache yarn dependencies'
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: npm | "$(Agent.OS)"
+              path: $(Pipeline.Workspace)/.npm
+            displayName: 'Cache npm dependencies'
+            continueOnError: true
 
           - script: |
-              yarn install --frozen-lockfile || npm install
+              npm ci || npm install
             displayName: 'Install Dependencies'
 
           - script: |
               echo "Running ESLint across all workspaces..."
-              yarn lint:all || npm run lint:all || echo "Lint completed"
+              npm run lint:all || echo "Lint completed"
             displayName: 'Run ESLint'
             continueOnError: true
 
           - script: |
               echo "Running TypeScript type checking..."
-              yarn typecheck || npm run typecheck || echo "Type check completed"
+              npm run typecheck || echo "Type check completed"
             displayName: 'TypeScript Check'
             continueOnError: true
 
@@ -94,7 +95,7 @@ stages:
             displayName: 'Install Node.js'
 
           - script: |
-              yarn install --frozen-lockfile || npm install
+              npm ci || npm install
             displayName: 'Install Dependencies'
 
           - script: |
@@ -249,22 +250,23 @@ stages:
 
           - task: Cache@2
             inputs:
-              key: 'yarn | "$(Agent.OS)" | apps/web-app/yarn.lock'
-              restoreKeys: yarn | "$(Agent.OS)"
-              path: $(Pipeline.Workspace)/.yarn
-            displayName: 'Cache yarn dependencies'
+              key: 'npm | "$(Agent.OS)" | apps/web-app/package-lock.json'
+              restoreKeys: npm | "$(Agent.OS)"
+              path: $(Pipeline.Workspace)/.npm
+            displayName: 'Cache npm dependencies'
+            continueOnError: true
 
           - script: |
-              yarn install --frozen-lockfile || npm install
+              npm ci || npm install
             displayName: 'Install Dependencies'
 
           - script: |
               if [ -d "apps/web-app" ]; then
                 cd apps/web-app
-                yarn build || npm run build
+                npm run build
               elif [ -d "apps/web" ]; then
                 cd apps/web
-                yarn build || npm run build
+                npm run build
               fi
             displayName: 'Build Web App'
             env:
@@ -290,8 +292,8 @@ stages:
           - script: |
               if [ -d "apps/mobile-app" ]; then
                 cd apps/mobile-app
-                yarn install --frozen-lockfile || npm install
-                yarn test || npm test || echo "No mobile tests found"
+                npm ci || npm install
+                npm test || echo "No mobile tests found"
               fi
             displayName: 'Build & Test Mobile App'
             continueOnError: true
@@ -383,7 +385,7 @@ stages:
             displayName: 'Install Node.js'
 
           - script: |
-              yarn install --frozen-lockfile || npm install
+              npm ci || npm install
             displayName: 'Install Dependencies'
 
           - script: |
@@ -397,7 +399,7 @@ stages:
             displayName: 'Start Test Infrastructure'
 
           - script: |
-              yarn test:integration || npm run test:integration || echo "No integration tests configured"
+              npm run test:integration || echo "No integration tests configured"
             displayName: 'Run Integration Tests'
             continueOnError: true
 
