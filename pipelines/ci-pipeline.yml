@@ -201,24 +201,45 @@ stages:
         steps:
           - checkout: self
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: $(pythonVersion)
-            displayName: 'Use Python $(pythonVersion)'
+          # Use system Python or install if needed (self-hosted agent compatible)
+          - script: |
+              echo "Checking Python installation..."
+
+              # Check if python3 is available
+              if command -v python3 &> /dev/null; then
+                echo "Python3 found:"
+                python3 --version
+                export PYTHON_CMD=python3
+              elif command -v python &> /dev/null; then
+                echo "Python found:"
+                python --version
+                export PYTHON_CMD=python
+              else
+                echo "Python not found, installing..."
+                sudo apt-get update
+                sudo apt-get install -y python3 python3-pip python3-venv
+                export PYTHON_CMD=python3
+              fi
+
+              # Ensure pip is available
+              $PYTHON_CMD -m pip --version || $PYTHON_CMD -m ensurepip --upgrade
+            displayName: 'Setup Python (Self-hosted Agent Compatible)'
 
           - script: |
-              python -m pip install --upgrade pip
-              pip install pytest pytest-cov pytest-asyncio flake8
+              PYTHON_CMD=$(command -v python3 || command -v python)
+              $PYTHON_CMD -m pip install --upgrade pip
+              $PYTHON_CMD -m pip install pytest pytest-cov pytest-asyncio flake8
             displayName: 'Install Python Dependencies'
 
           - script: |
+              PYTHON_CMD=$(command -v python3 || command -v python)
               if [ -d "backend/services/ai-services" ]; then
                 cd backend/services/ai-services
                 if [ -f "requirements.txt" ]; then
-                  pip install -r requirements.txt
+                  $PYTHON_CMD -m pip install -r requirements.txt
                 fi
-                flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
-                pytest tests/ --junitxml=junit/test-results.xml --cov=. --cov-report=xml || true
+                $PYTHON_CMD -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+                $PYTHON_CMD -m pytest tests/ --junitxml=junit/test-results.xml --cov=. --cov-report=xml || true
               fi
             displayName: 'Build & Test AI Services'
             continueOnError: true

@@ -69,7 +69,7 @@ const BadgeSelector: React.FC<BadgeSelectorProps> = ({
   };
 
   const categories = categorized
-    ? Array.from(new Set(availableBadges.map((b) => b.category).filter(Boolean)))
+    ? Array.from(new Set(availableBadges.map((b) => b.category).filter((c): c is string => Boolean(c))))
     : [];
 
   const formatCategoryName = (category: string) => {

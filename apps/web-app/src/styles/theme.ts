@@ -27,6 +27,11 @@ export const theme = {
     error: '#f44336',
     errorLight: '#ffebee',
     info: '#2196f3',
+    // Additional colors for coach and UI components
+    purple: '#9c27b0',
+    blue: '#2196f3',
+    green: '#4caf50',
+    pink: '#e91e63',
   },
   spacing: {
     xs: '4px',

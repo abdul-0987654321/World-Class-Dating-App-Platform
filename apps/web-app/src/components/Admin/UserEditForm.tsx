@@ -44,14 +44,14 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
     e.preventDefault();
 
     // Only send changed fields
-    const updates: UpdateUserRequest = {};
+    const updates: Partial<UpdateUserRequest> = {};
     (Object.keys(formData) as Array<keyof UpdateUserRequest>).forEach((key) => {
-      const originalValue = user[key];
+      const originalValue = user[key as keyof typeof user];
       const newValue = formData[key];
 
       // Check if value has changed
       if (originalValue !== newValue && newValue !== '' && newValue !== undefined) {
-        updates[key] = newValue;
+        (updates as Record<string, unknown>)[key] = newValue;
       }
     });
 
@@ -62,7 +62,7 @@ export const UserEditForm: React.FC<UserEditFormProps> = ({ user, onSave, onCanc
 
     await updateUserMutation.mutateAsync({
       userId: user.id,
-      data: updates,
+      data: updates as UpdateUserRequest,
     });
 
     setIsEditing(false);
