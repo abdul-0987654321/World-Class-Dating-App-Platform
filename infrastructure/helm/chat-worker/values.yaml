@@ -5,9 +5,32 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
 serviceAccount:
   create: true
   annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+service:
+  type: ClusterIP
+  port: 80
 
 resources:
   limits:
@@ -22,6 +45,12 @@ autoscaling:
   minReplicas: 3
   maxReplicas: 15
   targetCPUUtilizationPercentage: 70
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
 
 env:
   - name: NODE_ENV

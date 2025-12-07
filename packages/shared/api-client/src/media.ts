@@ -17,11 +17,12 @@ export class MediaApi {
     return this.client.delete<void>(`/media/${imageId}`);
   }
 
-  getImageUrl(path: string): string {
+  getImageUrl(path: string, baseUrl?: string): string {
     // Handle both absolute and relative paths
     if (path.startsWith('http')) {
       return path;
     }
-    return `${process.env.REACT_APP_CDN_URL || process.env.API_BASE_URL}${path}`;
+    // Use provided baseUrl or path as-is
+    return baseUrl ? `${baseUrl}${path}` : path;
   }
 }

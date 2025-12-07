@@ -1,6 +1,7 @@
 // API Configuration
-export const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.API_URL || 'http://localhost:3000/api';
-export const WS_BASE_URL = process.env.REACT_APP_WS_URL || process.env.WS_URL || 'http://localhost:3000';
+// Note: These are default values. Override them in your app's config
+export const API_BASE_URL = 'http://localhost:3000/api';
+export const WS_BASE_URL = 'http://localhost:3000';
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // App Configuration
