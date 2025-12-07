@@ -29,7 +29,11 @@
       "@utils/*": ["src/utils/*"],
       "@types/*": ["src/types/*"],
       "@services/*": ["src/services/*"],
-      "@flamoral/types": ["src/types/index.ts"],
+      "@flamoral/types": ["../../packages/shared/types/src/index.ts"],
+      "@flamoral/constants": ["../../packages/shared/constants/src/index.ts"],
+      "@flamoral/utils": ["../../packages/shared/utils/src/index.ts"],
+      "@flamoral/validators": ["../../packages/shared/validators/src/index.ts"],
+      "@flamoral/api-client": ["../../packages/shared/api-client/src/index.ts"],
       "@store/store": ["src/store/index.ts"]
     },
     "types": ["vite/client", "node"]
