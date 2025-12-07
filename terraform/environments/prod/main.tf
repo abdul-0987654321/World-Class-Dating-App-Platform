@@ -76,7 +76,11 @@ module "networking" {
     {
       name             = "snet-app"
       address_prefixes = ["10.2.1.0/24"]
-      delegation       = "Microsoft.Web/serverFarms"
+      delegation = {
+        name         = "appservice-delegation"
+        service_name = "Microsoft.Web/serverFarms"
+        actions      = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      }
     },
     {
       name             = "snet-db"
