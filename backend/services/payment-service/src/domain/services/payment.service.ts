@@ -6,10 +6,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2024-11-20.acacia',
 });
 
+// 6-tier subscription model
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
+export type BillingCycle = 'monthly' | '3_months' | '6_months' | 'yearly';
+
 interface SubscriptionPurchase {
   userId: string;
-  tier: 'basic' | 'mid' | 'ultra';
+  tier: SubscriptionTier;
   priceId: string;
+  billingCycle?: BillingCycle;
   trialDays?: number;
 }
 
@@ -139,6 +144,7 @@ export class PaymentService {
         metadata: {
           userId: purchase.userId,
           tier: purchase.tier,
+          billingCycle: purchase.billingCycle || 'monthly',
         },
         expand: ['latest_invoice.payment_intent'],
       };
@@ -556,7 +562,8 @@ export class PaymentService {
 
     try {
       const userId = subscription.metadata.userId;
-      const tier = subscription.metadata.tier as 'free' | 'basic' | 'mid' | 'ultra';
+      const tier = subscription.metadata.tier as SubscriptionTier;
+      const billingCycle = subscription.metadata.billingCycle as BillingCycle || 'monthly';
 
       if (!userId) {
         console.error('No userId in subscription metadata');
@@ -564,7 +571,7 @@ export class PaymentService {
       }
 
       // Map Stripe subscription status to our status
-      let status: 'active' | 'canceled' | 'past_due' | 'unpaid' = 'active';
+      let status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'grace_period' = 'active';
       if (subscription.status === 'past_due') {
         status = 'past_due';
       } else if (subscription.status === 'unpaid' || subscription.status === 'incomplete') {
@@ -578,13 +585,24 @@ export class PaymentService {
         tier: tier || 'free',
         stripeSubscriptionId: subscription.id,
         status,
+        billingCycle,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       });
+
+      // Get tier display name
+      const tierDisplayNames: Record<SubscriptionTier, string> = {
+        free: 'Free',
+        basic: 'Basic',
+        plus: 'Plus',
+        premium: 'Premium',
+        premium_plus: 'Premium+',
+        elite: 'Elite',
+      };
 
       await this.userServiceClient.sendNotification(
         userId,
         'subscription_updated',
-        `Your subscription has been updated to ${tier} tier.`
+        `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`
       );
     } catch (error: any) {
       console.error('Error handling subscription updated:', error.message);
@@ -674,18 +692,23 @@ export class PaymentService {
         return;
       }
 
-      // Update subscription status to past_due
+      // Enter grace period (3 days) instead of immediate past_due
+      // Grace period allows users to retain features while they fix payment
+      const gracePeriodEnd = new Date();
+      gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3); // 3-day grace period
+
       await this.userServiceClient.updateSubscription({
         userId,
-        tier: subscription.metadata.tier as 'free' | 'basic' | 'mid' | 'ultra',
+        tier: subscription.metadata.tier as SubscriptionTier,
         stripeSubscriptionId: subscription.id,
-        status: 'past_due',
+        status: 'grace_period',
+        gracePeriodEnd,
       });
 
       await this.userServiceClient.sendNotification(
         userId,
         'payment_failed',
-        'Your subscription renewal payment failed. Please update your payment method to continue using premium features.'
+        'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.'
       );
     } catch (error: any) {
       console.error('Error handling invoice payment failed:', error.message);

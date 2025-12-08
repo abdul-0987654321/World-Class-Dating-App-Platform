@@ -5,7 +5,11 @@ import {
   Subscription,
   SubscriptionCreateInput,
   SUBSCRIPTION_TIERS,
-  SUBSCRIPTION_STATUS
+  SUBSCRIPTION_STATUS,
+  TIER_HIERARCHY,
+  GRACE_PERIOD_DAYS,
+  TRIAL_DAYS_BY_TIER,
+  BILLING_CYCLES
 } from '../entities/Subscription.entity';
 import { FeatureAccess, hasFeatureAccess } from '../entities/SubscriptionFeature.entity';
 import { FREE_TIER_LIMITS, RESOURCE_TYPES } from '../entities/UsageLimit.entity';
@@ -270,14 +274,100 @@ export class SubscriptionService {
       byTier: {
         free: 0,
         basic: 0,
-        mid: 0,
-        ultra: 0,
+        plus: 0,
+        premium: 0,
+        premium_plus: 0,
+        elite: 0,
       },
       revenue: {
         monthly: 0,
+        quarterly: 0,
+        semiannual: 0,
         annual: 0,
       },
     };
+  }
+
+  /**
+   * Check if a tier upgrade is valid (can only upgrade to higher tiers)
+   */
+  isValidUpgrade(currentTier: Subscription['tier'], newTier: Subscription['tier']): boolean {
+    return TIER_HIERARCHY[newTier] > TIER_HIERARCHY[currentTier];
+  }
+
+  /**
+   * Check if a tier downgrade is valid (can only downgrade to lower tiers)
+   */
+  isValidDowngrade(currentTier: Subscription['tier'], newTier: Subscription['tier']): boolean {
+    return TIER_HIERARCHY[newTier] < TIER_HIERARCHY[currentTier];
+  }
+
+  /**
+   * Get the trial days for a specific tier
+   */
+  getTrialDays(tier: Subscription['tier']): number {
+    return TRIAL_DAYS_BY_TIER[tier] || 0;
+  }
+
+  /**
+   * Check if subscription is in grace period
+   */
+  async checkGracePeriod(userId: string): Promise<{ inGracePeriod: boolean; daysRemaining: number }> {
+    const subscription = await this.subscriptionRepository.findByUserId(userId);
+    if (!subscription || subscription.status !== SUBSCRIPTION_STATUS.GRACE_PERIOD) {
+      return { inGracePeriod: false, daysRemaining: 0 };
+    }
+
+    if (!subscription.gracePeriodEnd) {
+      return { inGracePeriod: false, daysRemaining: 0 };
+    }
+
+    const now = new Date();
+    const gracePeriodEnd = new Date(subscription.gracePeriodEnd);
+    const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    return {
+      inGracePeriod: daysRemaining > 0,
+      daysRemaining: Math.max(0, daysRemaining),
+    };
+  }
+
+  /**
+   * Enter grace period for failed payment
+   */
+  async enterGracePeriod(userId: string): Promise<Subscription> {
+    const subscription = await this.subscriptionRepository.findByUserId(userId);
+    if (!subscription) {
+      throw new Error('Subscription not found');
+    }
+
+    const gracePeriodEnd = new Date();
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + GRACE_PERIOD_DAYS);
+
+    return await this.subscriptionRepository.update(subscription.id, {
+      status: SUBSCRIPTION_STATUS.GRACE_PERIOD,
+      gracePeriodEnd,
+    });
+  }
+
+  /**
+   * Process subscriptions that have exceeded grace period (to be called by cron job)
+   */
+  async processExpiredGracePeriods(): Promise<number> {
+    const expiredGracePeriods = await this.subscriptionRepository.findExpiredGracePeriods();
+    let processed = 0;
+
+    for (const subscription of expiredGracePeriods) {
+      await this.subscriptionRepository.update(subscription.id, {
+        status: SUBSCRIPTION_STATUS.CANCELED,
+      });
+
+      // Downgrade to free tier
+      await this.updateUsageLimitsForTier(subscription.userId, SUBSCRIPTION_TIERS.FREE);
+      processed++;
+    }
+
+    return processed;
   }
 }
 

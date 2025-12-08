@@ -68,9 +68,11 @@ export class SubscriptionRepository {
 
     if (input.tier !== undefined) updateData.tier = input.tier;
     if (input.status !== undefined) updateData.status = input.status;
+    if (input.billingCycle !== undefined) updateData.billing_cycle = input.billingCycle;
     if (input.cancelAtPeriodEnd !== undefined) updateData.cancel_at_period_end = input.cancelAtPeriodEnd;
     if (input.currentPeriodStart !== undefined) updateData.current_period_start = input.currentPeriodStart;
     if (input.currentPeriodEnd !== undefined) updateData.current_period_end = input.currentPeriodEnd;
+    if (input.gracePeriodEnd !== undefined) updateData.grace_period_end = input.gracePeriodEnd;
 
     const [subscription] = await db(this.tableName)
       .where({ id })
@@ -151,6 +153,15 @@ export class SubscriptionRepository {
     return subscriptions.map(this.mapToEntity);
   }
 
+  async findExpiredGracePeriods(): Promise<Subscription[]> {
+    const subscriptions = await db(this.tableName)
+      .where('status', SUBSCRIPTION_STATUS.GRACE_PERIOD)
+      .where('grace_period_end', '<', new Date())
+      .select('*');
+
+    return subscriptions.map(this.mapToEntity);
+  }
+
   async delete(id: string): Promise<void> {
     await db(this.tableName)
       .where({ id })
@@ -164,11 +175,13 @@ export class SubscriptionRepository {
       userId: row.user_id,
       tier: row.tier,
       status: row.status,
+      billingCycle: row.billing_cycle || 'monthly',
       stripeSubscriptionId: row.stripe_subscription_id,
       stripeCustomerId: row.stripe_customer_id,
       stripePriceId: row.stripe_price_id,
       currentPeriodStart: row.current_period_start,
       currentPeriodEnd: row.current_period_end,
+      gracePeriodEnd: row.grace_period_end,
       cancelAtPeriodEnd: row.cancel_at_period_end,
       canceledAt: row.canceled_at,
       trialStart: row.trial_start,

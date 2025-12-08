@@ -576,7 +576,7 @@ export const SubscriptionPage: React.FC = () => {
             </div>
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">What payment methods do you accept?</h4>
-              <p className="text-gray-600 text-sm">We accept all major credit cards, PayPal, and Apple Pay/Google Pay for mobile payments.</p>
+              <p className="text-gray-600 text-sm">We accept all major credit cards, Apple Pay/Google Pay for mobile payments, and regional options like Paystack and Flutterwave for African markets.</p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">Can I upgrade or downgrade my plan?</h4>

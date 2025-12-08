@@ -453,7 +453,7 @@ describe('Payment Service Integration Tests', () => {
 
   describe('Payment Method Management', () => {
     it('should track different payment methods', async () => {
-      const methods = ['card', 'paypal', 'apple_pay', 'google_pay'];
+      const methods = ['card', 'apple_pay', 'google_pay', 'paystack', 'flutterwave'];
 
       for (const method of methods) {
         await testDb.query(

@@ -303,14 +303,25 @@ export class PaymentController {
   }
 
   /**
-   * PayPal webhook
+   * Paystack webhook
    */
   @Public()
-  @Post('webhooks/paypal')
-  @ApiOperation({ summary: 'Handle PayPal webhook events' })
+  @Post('webhooks/paystack')
+  @ApiOperation({ summary: 'Handle Paystack webhook events' })
   @HttpCode(HttpStatus.OK)
-  async paypalWebhook(@Body() body: any, @Headers() headers: any) {
-    return this.proxyService.post('paymentService', '/api/webhooks/paypal', body, headers);
+  async paystackWebhook(@Body() body: any, @Headers() headers: any) {
+    return this.proxyService.post('paymentService', '/api/webhooks/paystack', body, headers);
+  }
+
+  /**
+   * Flutterwave webhook
+   */
+  @Public()
+  @Post('webhooks/flutterwave')
+  @ApiOperation({ summary: 'Handle Flutterwave webhook events' })
+  @HttpCode(HttpStatus.OK)
+  async flutterwaveWebhook(@Body() body: any, @Headers() headers: any) {
+    return this.proxyService.post('paymentService', '/api/webhooks/flutterwave', body, headers);
   }
 
   // ==================== Promo Code Endpoints ====================

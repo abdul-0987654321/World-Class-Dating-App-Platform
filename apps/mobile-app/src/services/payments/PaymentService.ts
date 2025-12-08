@@ -72,7 +72,7 @@ export interface SubscriptionStatus {
   tier: string;
   expiresAt?: Date;
   willRenew: boolean;
-  provider: 'apple_iap' | 'google_play' | 'stripe' | 'paypal';
+  provider: 'apple_iap' | 'google_play' | 'stripe' | 'paystack' | 'flutterwave';
 }
 
 class MobilePaymentService {
