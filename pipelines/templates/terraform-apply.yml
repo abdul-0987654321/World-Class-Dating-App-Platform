@@ -108,12 +108,35 @@ steps:
       ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
       ARM_TENANT_ID: $(ARM_TENANT_ID)
 
+  - script: |
+      if [ -f "terraform-outputs.json" ]; then
+        echo "terraform-outputs.json found, will publish"
+      else
+        echo "terraform-outputs.json not found, creating empty placeholder"
+        echo '{"error": "terraform apply did not complete successfully"}' > terraform-outputs.json
+      fi
+    displayName: 'Check Terraform Outputs File'
+    workingDirectory: ${{ parameters.workingDirectory }}
+    condition: always()
+
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Terraform Outputs'
     inputs:
       targetPath: '${{ parameters.workingDirectory }}/terraform-outputs.json'
       artifact: 'outputs-${{ parameters.environment }}'
       publishLocation: 'pipeline'
+    condition: always()
+
+  - script: |
+      if [ -f "state-resources.txt" ]; then
+        echo "state-resources.txt found, will publish"
+      else
+        echo "state-resources.txt not found, creating empty placeholder"
+        echo "# No state resources available (terraform apply may not have completed)" > state-resources.txt
+      fi
+    displayName: 'Check State Resource File'
+    workingDirectory: ${{ parameters.workingDirectory }}
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: 'Publish State Resource List'
@@ -121,7 +144,7 @@ steps:
       targetPath: '${{ parameters.workingDirectory }}/state-resources.txt'
       artifact: 'state-${{ parameters.environment }}'
       publishLocation: 'pipeline'
-    condition: succeededOrFailed()
+    condition: always()
 
   - script: |
       echo "=========================================="
