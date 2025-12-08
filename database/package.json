@@ -6,21 +6,30 @@
   "scripts": {
     "migrate:latest": "knex migrate:latest --knexfile knexfile.ts",
     "migrate:rollback": "knex migrate:rollback --knexfile knexfile.ts",
+    "migrate:rollback:all": "knex migrate:rollback --all --knexfile knexfile.ts",
     "migrate:up": "knex migrate:up --knexfile knexfile.ts",
     "migrate:down": "knex migrate:down --knexfile knexfile.ts",
     "migrate:list": "knex migrate:list --knexfile knexfile.ts",
     "migrate:status": "knex migrate:status --knexfile knexfile.ts",
     "migrate:make": "knex migrate:make --knexfile knexfile.ts",
+    "migrate:currentVersion": "knex migrate:currentVersion --knexfile knexfile.ts",
     "seed:run": "knex seed:run --knexfile knexfile.ts",
     "seed:make": "knex seed:make --knexfile knexfile.ts",
-    "db:reset": "npm run migrate:rollback && npm run migrate:latest && npm run seed:run",
-    "db:fresh": "npm run migrate:rollback --all && npm run migrate:latest"
+    "db:setup": "npm run migrate:latest && npm run seed:run",
+    "db:reset": "npm run migrate:rollback:all && npm run migrate:latest && npm run seed:run",
+    "db:fresh": "npm run migrate:rollback:all && npm run migrate:latest",
+    "db:seed:dev": "npm run seed:run",
+    "db:migrate:prod": "NODE_ENV=production npm run migrate:latest",
+    "db:migrate:staging": "NODE_ENV=staging npm run migrate:latest",
+    "db:status": "npm run migrate:status"
   },
   "dependencies": {
     "knex": "^3.1.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "bcrypt": "^5.1.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.10.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.2",

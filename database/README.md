@@ -143,9 +143,40 @@ npm run migrate:list
 npm run migrate:make migration_name
 ```
 
+## Seeding Development Data
+
+### Run Seeds
+```bash
+npm run seed:run
+```
+
+### Create New Seed File
+```bash
+npm run seed:make seed_name
+```
+
+### Database Setup (Migrations + Seeds)
+```bash
+npm run db:setup
+```
+
+This will:
+1. Run all pending migrations
+2. Populate database with development test data
+
 ## Database Reset (Development Only)
 
-To completely reset your database:
+### Full Reset (Migrations + Seeds)
+```bash
+npm run db:reset
+```
+
+This will:
+1. Rollback all migrations
+2. Run all migrations from scratch
+3. Populate with seed data
+
+### Fresh Migrations Only
 ```bash
 npm run db:fresh
 ```
@@ -153,6 +184,7 @@ npm run db:fresh
 This will:
 1. Rollback all migrations
 2. Run all migrations from scratch
+3. NO seed data
 
 ## Migration Order
 
@@ -276,11 +308,67 @@ Track these metrics in production:
 - Index usage and efficiency
 - Query performance
 
+## Documentation
+
+- [GET_STARTED.md](./GET_STARTED.md) - Quick start guide for first-time setup
+- [MIGRATIONS_GUIDE.md](./MIGRATIONS_GUIDE.md) - Comprehensive migration documentation
+- [SEEDS_README.md](./SEEDS_README.md) - Development seed data documentation
+- [SCHEMA.md](./SCHEMA.md) - Complete database schema reference
+- [QUICKSTART.md](./QUICKSTART.md) - Quick reference for common tasks
+
+## Test Data (Development)
+
+The seed files create realistic test data:
+
+### Test Users (Password: Test123!)
+- alice.johnson@example.com - Ultra subscription
+- bob.smith@example.com - Mid subscription
+- carol.williams@example.com - Basic subscription
+- david.brown@example.com - Free tier
+- emily.davis@example.com - Mid subscription
+- frank.miller@example.com - Basic (Trial)
+
+### Includes
+- 6 users with complete profiles
+- 10+ photos across users
+- 18 swipe actions
+- 4 active matches
+- 4 conversations with 20+ messages
+- 5 subscriptions with payment methods
+- 6 transaction records
+
+See [SEEDS_README.md](./SEEDS_README.md) for complete details.
+
+## Quick Command Reference
+
+```bash
+# Setup & Reset
+npm run db:setup              # Initial setup (migrate + seed)
+npm run db:reset              # Full reset (rollback + migrate + seed)
+npm run db:fresh              # Fresh migrations (no seeds)
+
+# Migrations
+npm run migrate:latest        # Run pending migrations
+npm run migrate:rollback      # Rollback last batch
+npm run migrate:rollback:all  # Rollback all migrations
+npm run migrate:status        # Check migration status
+npm run migrate:make <name>   # Create new migration
+
+# Seeds
+npm run seed:run              # Run all seeds
+npm run seed:make <name>      # Create new seed
+
+# Production
+npm run db:migrate:prod       # Run migrations in production
+npm run db:migrate:staging    # Run migrations in staging
+```
+
 ## Support
 
 For issues or questions about the database schema:
 - Check the inline migration comments
 - Review the table structure in each migration file
+- Read the documentation files listed above
 - Consult the application documentation
 
 ## License

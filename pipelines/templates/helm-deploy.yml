@@ -41,8 +41,35 @@ parameters:
   - name: timeout
     type: string
     default: '10m'
+  - name: runMigrations
+    type: boolean
+    default: true
+  - name: runHealthChecks
+    type: boolean
+    default: true
+  - name: apiHost
+    type: string
+    default: 'api.flamoral.app'
 
 steps:
+  # ==========================================================================
+  # PRE-DEPLOYMENT: Database Migrations
+  # ==========================================================================
+  - ${{ if eq(parameters.runMigrations, true) }}:
+    - template: database-migration.yml
+      parameters:
+        environment: ${{ parameters.environment }}
+        namespace: ${{ parameters.namespace }}
+        azureServiceConnection: ${{ parameters.azureServiceConnection }}
+        aksClusterName: ${{ parameters.aksClusterName }}
+        resourceGroup: ${{ parameters.resourceGroup }}
+        imageTag: ${{ parameters.imageTag }}
+        imageRegistry: ${{ parameters.imageRegistry }}
+        dryRun: false
+
+  # ==========================================================================
+  # DEPLOYMENT: Helm Installation
+  # ==========================================================================
   - task: HelmInstaller@1
     inputs:
       helmVersionToInstall: ${{ parameters.helmVersion }}
@@ -117,3 +144,18 @@ steps:
       echo "=== Pod Status ==="
       kubectl get pods -n ${{ parameters.namespace }} -o wide
     displayName: 'Verify Deployment'
+
+  # ==========================================================================
+  # POST-DEPLOYMENT: Health Checks
+  # ==========================================================================
+  - ${{ if eq(parameters.runHealthChecks, true) }}:
+    - template: health-check.yml
+      parameters:
+        environment: ${{ parameters.environment }}
+        apiHost: ${{ parameters.apiHost }}
+        namespace: ${{ parameters.namespace }}
+        azureServiceConnection: ${{ parameters.azureServiceConnection }}
+        aksClusterName: ${{ parameters.aksClusterName }}
+        resourceGroup: ${{ parameters.resourceGroup }}
+        maxRetries: 10
+        retryDelay: 30

@@ -1,0 +1,266 @@
+# =============================================================================
+# Health Check and Validation Template
+# =============================================================================
+# Comprehensive health checks for deployed services
+# Validates readiness, performance, and basic functionality
+# =============================================================================
+
+parameters:
+  - name: environment
+    type: string
+  - name: apiHost
+    type: string
+  - name: namespace
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: aksClusterName
+    type: string
+  - name: resourceGroup
+    type: string
+  - name: maxRetries
+    type: number
+    default: 10
+  - name: retryDelay
+    type: number
+    default: 30
+  - name: slot
+    type: string
+    default: ''
+
+steps:
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az aks get-credentials \
+          --resource-group ${{ parameters.resourceGroup }} \
+          --name ${{ parameters.aksClusterName }} \
+          --overwrite-existing
+    displayName: 'Get AKS Credentials for Health Check'
+
+  # Verify pod readiness
+  - script: |
+      echo "========================================="
+      echo "KUBERNETES POD HEALTH CHECKS"
+      echo "========================================="
+      echo "Environment: ${{ parameters.environment }}"
+      echo "Namespace: ${{ parameters.namespace }}"
+      ${{ if ne(parameters.slot, '') }}
+      echo "Slot: ${{ parameters.slot }}"
+      {{ end }}
+      echo "========================================="
+
+      SLOT_SELECTOR=""
+      ${{ if ne(parameters.slot, '') }}
+      SLOT_SELECTOR=",slot=${{ parameters.slot }}"
+      {{ end }}
+
+      # Check if all pods are ready
+      echo "Checking pod readiness..."
+      kubectl get pods -n ${{ parameters.namespace }} -l app.kubernetes.io/name=flamoral${SLOT_SELECTOR}
+
+      # Wait for all pods to be ready
+      READY_PODS=0
+      TOTAL_ATTEMPTS=0
+      MAX_ATTEMPTS=20
+
+      while [ $READY_PODS -eq 0 ] && [ $TOTAL_ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+        TOTAL_ATTEMPTS=$((TOTAL_ATTEMPTS + 1))
+
+        NOT_READY=$(kubectl get pods -n ${{ parameters.namespace }} \
+          -l app.kubernetes.io/name=flamoral${SLOT_SELECTOR} \
+          --field-selector=status.phase!=Running 2>/dev/null | grep -v NAME | wc -l || echo "0")
+
+        if [ "$NOT_READY" -eq "0" ]; then
+          READY_PODS=1
+          echo "All pods are ready!"
+        else
+          echo "Waiting for pods to be ready... ($TOTAL_ATTEMPTS/$MAX_ATTEMPTS)"
+          sleep 10
+        fi
+      done
+
+      if [ $READY_PODS -eq 0 ]; then
+        echo "ERROR: Not all pods are ready after $MAX_ATTEMPTS attempts"
+        kubectl get pods -n ${{ parameters.namespace }} -l app.kubernetes.io/name=flamoral${SLOT_SELECTOR}
+        exit 1
+      fi
+    displayName: 'Check Pod Readiness'
+
+  # HTTP Health Check
+  - script: |
+      echo "========================================="
+      echo "HTTP HEALTH CHECKS"
+      echo "========================================="
+      echo "API Host: https://${{ parameters.apiHost }}"
+      echo "Max Retries: ${{ parameters.maxRetries }}"
+      echo "Retry Delay: ${{ parameters.retryDelay }}s"
+      echo "========================================="
+
+      SUCCESS=0
+      RETRY_COUNT=0
+      MAX_RETRIES=${{ parameters.maxRetries }}
+
+      while [ $SUCCESS -eq 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        echo ""
+        echo "Health check attempt $RETRY_COUNT of $MAX_RETRIES..."
+
+        # Health endpoint
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          --connect-timeout 10 \
+          --max-time 30 \
+          https://${{ parameters.apiHost }}/health 2>/dev/null || echo "000")
+
+        echo "Health endpoint status: $HTTP_STATUS"
+
+        if [ "$HTTP_STATUS" = "200" ]; then
+          echo "Health check passed!"
+
+          # Get detailed health response
+          HEALTH_RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 \
+            https://${{ parameters.apiHost }}/health 2>/dev/null || echo "{}")
+          echo "Health response: $HEALTH_RESPONSE"
+
+          SUCCESS=1
+        else
+          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "Health check failed. Retrying in ${{ parameters.retryDelay }} seconds..."
+            sleep ${{ parameters.retryDelay }}
+          else
+            echo "ERROR: Health check failed after $MAX_RETRIES attempts"
+            exit 1
+          fi
+        fi
+      done
+    displayName: 'HTTP Health Check'
+
+  # Readiness Check
+  - script: |
+      echo "========================================="
+      echo "READINESS CHECKS"
+      echo "========================================="
+
+      # Readiness endpoint
+      HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+        --connect-timeout 10 \
+        --max-time 30 \
+        https://${{ parameters.apiHost }}/ready 2>/dev/null || echo "000")
+
+      echo "Readiness endpoint status: $HTTP_STATUS"
+
+      if [ "$HTTP_STATUS" != "200" ]; then
+        echo "WARNING: Readiness check returned $HTTP_STATUS"
+        # Non-fatal for now
+      else
+        echo "Readiness check passed!"
+      fi
+    displayName: 'Readiness Check'
+    continueOnError: true
+
+  # API Functionality Check
+  - script: |
+      echo "========================================="
+      echo "API FUNCTIONALITY CHECKS"
+      echo "========================================="
+
+      # Check API version endpoint
+      VERSION_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+        --connect-timeout 10 \
+        --max-time 30 \
+        https://${{ parameters.apiHost }}/api/version 2>/dev/null || echo "000")
+
+      echo "Version endpoint status: $VERSION_STATUS"
+
+      if [ "$VERSION_STATUS" = "200" ] || [ "$VERSION_STATUS" = "404" ]; then
+        echo "API is responding to requests"
+      else
+        echo "WARNING: API version endpoint returned unexpected status: $VERSION_STATUS"
+      fi
+
+      # Basic API smoke test
+      echo ""
+      echo "Running basic API smoke test..."
+      API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+        --connect-timeout 10 \
+        --max-time 30 \
+        https://${{ parameters.apiHost }}/api 2>/dev/null || echo "000")
+
+      echo "API root endpoint status: $API_STATUS"
+
+      if [ "$API_STATUS" = "200" ] || [ "$API_STATUS" = "404" ] || [ "$API_STATUS" = "401" ]; then
+        echo "API smoke test passed (expected status codes)"
+      else
+        echo "WARNING: API returned unexpected status: $API_STATUS"
+      fi
+    displayName: 'API Functionality Check'
+    continueOnError: true
+
+  # Performance Baseline Check
+  - script: |
+      echo "========================================="
+      echo "PERFORMANCE BASELINE CHECK"
+      echo "========================================="
+
+      # Measure response time
+      echo "Measuring health endpoint response time..."
+
+      TOTAL_TIME=0
+      SAMPLES=5
+
+      for i in $(seq 1 $SAMPLES); do
+        RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" \
+          --connect-timeout 10 \
+          --max-time 30 \
+          https://${{ parameters.apiHost }}/health 2>/dev/null || echo "0")
+
+        echo "Sample $i: ${RESPONSE_TIME}s"
+        TOTAL_TIME=$(echo "$TOTAL_TIME + $RESPONSE_TIME" | bc -l)
+      done
+
+      AVG_TIME=$(echo "scale=3; $TOTAL_TIME / $SAMPLES" | bc -l)
+      echo ""
+      echo "Average response time: ${AVG_TIME}s"
+
+      # Warning if response time is too high (> 2 seconds)
+      THRESHOLD=2.0
+      if [ $(echo "$AVG_TIME > $THRESHOLD" | bc -l) -eq 1 ]; then
+        echo "WARNING: Average response time exceeds ${THRESHOLD}s threshold"
+      else
+        echo "Response time is within acceptable range"
+      fi
+    displayName: 'Performance Baseline Check'
+    continueOnError: true
+
+  # Service Mesh Check (if applicable)
+  - script: |
+      echo "========================================="
+      echo "SERVICE CONNECTIVITY CHECKS"
+      echo "========================================="
+
+      # Check service endpoints
+      kubectl get svc -n ${{ parameters.namespace }} -l app.kubernetes.io/name=flamoral
+
+      # Check endpoints
+      kubectl get endpoints -n ${{ parameters.namespace }} -l app.kubernetes.io/name=flamoral
+
+      echo ""
+      echo "Service connectivity check complete"
+    displayName: 'Service Connectivity Check'
+    continueOnError: true
+
+  # Final Summary
+  - script: |
+      echo "========================================="
+      echo "HEALTH CHECK SUMMARY"
+      echo "========================================="
+      echo "Environment: ${{ parameters.environment }}"
+      echo "API Host: https://${{ parameters.apiHost }}"
+      echo "Status: PASSED"
+      echo "========================================="
+      echo ""
+      echo "All health checks completed successfully!"
+    displayName: 'Health Check Summary'

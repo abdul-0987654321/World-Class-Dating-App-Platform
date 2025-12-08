@@ -24,6 +24,9 @@ spec:
       labels:
         {{- $selectorLabels | nindent 8 }}
         app.kubernetes.io/component: api-gateway
+        {{- if .Values.global.slot }}
+        slot: {{ .Values.global.slot }}
+        {{- end }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:

@@ -65,31 +65,14 @@ stages:
                     releaseName: 'flamoral-$(environment)'
                     imageTag: $(imageTag)
                     imageRegistry: $(acrLoginServer)
+                    apiHost: $(apiHost)
+                    runMigrations: true
+                    runHealthChecks: true
                     additionalValues: |
                       ingress.enabled=true
                       ingress.hosts[0].host=$(ingressHost)
                       replicaCount=$(replicaCount)
                       autoscaling.enabled=$(autoscalingEnabled)
-
-      - job: SmokeTestsDev
-        displayName: 'Smoke Tests - Dev'
-        dependsOn: DeployToDevAKS
-        steps:
-          - script: |
-              echo "Running smoke tests against $(apiHost)..."
-
-              # Wait for services to stabilize
-              sleep 30
-
-              # Health check
-              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$(apiHost)/health || echo "000")
-              if [ "$HTTP_STATUS" != "200" ]; then
-                echo "Health check failed with status: $HTTP_STATUS"
-                exit 1
-              fi
-
-              echo "Smoke tests passed!"
-            displayName: 'Execute Smoke Tests'
 
   # ============================================================================
   # STAGE 2: DEPLOY TO TEST ENVIRONMENT
@@ -103,8 +86,40 @@ stages:
       - name: imageTag
         value: '$(resources.pipeline.ci-pipeline.runID)'
     jobs:
+      # ========================================================================
+      # Test Environment Approval Gate
+      # ========================================================================
+      - deployment: TestApproval
+        displayName: 'Test Environment Approval'
+        environment: 'flamoral-test'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: |
+                      qa-team@flamoral.com
+                      devops@flamoral.com
+                    instructions: |
+                      =====================================
+                      TEST ENVIRONMENT DEPLOYMENT APPROVAL
+                      =====================================
+
+                      Build Number: $(Build.BuildNumber)
+                      Image Tag: $(imageTag)
+                      Source Branch: $(Build.SourceBranch)
+
+                      Dev environment deployment completed successfully.
+                      Please approve to proceed with Test environment deployment.
+                    onTimeout: 'reject'
+                  displayName: 'Wait for Test Approval'
+                  timeoutInMinutes: 240  # 4 hours
+
       - deployment: DeployToTestAKS
         displayName: 'Deploy to Test AKS'
+        dependsOn: TestApproval
         environment: 'flamoral-test'
         strategy:
           runOnce:
@@ -123,6 +138,9 @@ stages:
                     releaseName: 'flamoral-$(environment)'
                     imageTag: $(imageTag)
                     imageRegistry: $(acrLoginServer)
+                    apiHost: $(apiHost)
+                    runMigrations: true
+                    runHealthChecks: true
                     additionalValues: |
                       ingress.enabled=true
                       ingress.hosts[0].host=$(ingressHost)
@@ -443,6 +461,43 @@ stages:
                     echo "Deployed By: $(Build.RequestedFor)"
                     echo "========================================="
                   displayName: 'Deployment Summary'
+
+      # ========================================================================
+      # Automated Rollback on Failure
+      # ========================================================================
+      - deployment: RollbackOnFailure
+        displayName: 'Rollback on Failure'
+        dependsOn:
+          - DeployToProdAKS
+          - ProductionValidation
+        condition: failed()
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/rollback-deployment.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-$(newSlot)'
+                    rollbackDatabase: false
+                    imageRegistry: $(acrLoginServer)
+                    imageTag: $(imageTag)
+
+                - script: |
+                    echo "========================================="
+                    echo "AUTOMATIC ROLLBACK COMPLETED"
+                    echo "========================================="
+                    echo "Reason: Deployment or validation failure"
+                    echo "Previous slot restored: $(currentSlot)"
+                    echo "========================================="
+                  displayName: 'Rollback Summary'
 
   # ============================================================================
   # STAGE 4: POST-DEPLOYMENT MONITORING

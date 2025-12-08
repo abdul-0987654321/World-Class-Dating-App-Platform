@@ -1,0 +1,360 @@
+# Azure DevOps Pipeline Template for Integration Tests
+# This template runs integration tests with Docker Compose test dependencies
+
+parameters:
+  - name: environment
+    type: string
+    default: 'test'
+    values:
+      - test
+      - staging
+  - name: runE2ETests
+    type: boolean
+    default: true
+  - name: publishResults
+    type: boolean
+    default: true
+  - name: nodeVersion
+    type: string
+    default: '20.x'
+  - name: playwrightVersion
+    type: string
+    default: '1.40.0'
+
+stages:
+  - stage: IntegrationTests
+    displayName: 'Integration & E2E Tests'
+    dependsOn: Build
+    condition: succeeded()
+
+    jobs:
+      # Backend Integration Tests
+      - job: BackendIntegrationTests
+        displayName: 'Backend Integration Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        variables:
+          - template: variables-${{ parameters.environment }}.yml
+          - name: USE_DOCKER_COMPOSE
+            value: 'true'
+          - name: DOCKER_COMPOSE_FILE
+            value: 'docker-compose.test.yml'
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout Repository'
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.nodeVersion }}
+
+          - task: Cache@2
+            displayName: 'Cache node_modules'
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              path: 'node_modules'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+
+          - script: |
+              npm ci
+            displayName: 'Install Dependencies'
+
+          - task: DockerCompose@0
+            displayName: 'Start Test Dependencies'
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: '$(DOCKER_COMPOSE_FILE)'
+              action: 'Run services'
+              buildImages: false
+              detached: true
+
+          - script: |
+              echo "Waiting for services to be healthy..."
+              sleep 15
+              docker-compose -f $(DOCKER_COMPOSE_FILE) ps
+            displayName: 'Wait for Services'
+
+          - script: |
+              npm run test:integration:coverage
+            displayName: 'Run Integration Tests'
+            env:
+              TEST_DB_HOST: localhost
+              TEST_DB_PORT: 5433
+              TEST_DB_NAME: flamoral_test
+              TEST_DB_USER: postgres
+              TEST_DB_PASSWORD: test_password
+              TEST_REDIS_HOST: localhost
+              TEST_REDIS_PORT: 6380
+              NODE_ENV: test
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Integration Test Results'
+            condition: ${{ parameters.publishResults }}
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)/backend/coverage/integration'
+              mergeTestResults: true
+              testRunTitle: 'Backend Integration Tests'
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish Coverage Results'
+            condition: ${{ parameters.publishResults }}
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/backend/coverage/integration/cobertura-coverage.xml'
+              reportDirectory: '$(System.DefaultWorkingDirectory)/backend/coverage/integration'
+
+          - task: DockerCompose@0
+            displayName: 'Stop Test Dependencies'
+            condition: always()
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: '$(DOCKER_COMPOSE_FILE)'
+              action: 'Run a Docker Compose command'
+              dockerComposeCommand: 'down -v'
+
+      # Backend E2E Tests
+      - job: BackendE2ETests
+        displayName: 'Backend E2E Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn: []
+
+        variables:
+          - template: variables-${{ parameters.environment }}.yml
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout Repository'
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.nodeVersion }}
+
+          - script: |
+              npm ci
+            displayName: 'Install Dependencies'
+
+          - task: DockerCompose@0
+            displayName: 'Start Test Environment'
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run services'
+              detached: true
+
+          - script: |
+              echo "Waiting for all services to be ready..."
+              sleep 30
+              docker-compose -f docker-compose.test.yml ps
+            displayName: 'Wait for Services'
+
+          - script: |
+              npm run test:backend:e2e
+            displayName: 'Run Backend E2E Tests'
+            env:
+              NODE_ENV: test
+
+          - task: PublishTestResults@2
+            displayName: 'Publish E2E Test Results'
+            condition: ${{ parameters.publishResults }}
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)/backend/coverage/e2e'
+              mergeTestResults: true
+              testRunTitle: 'Backend E2E Tests'
+
+          - task: DockerCompose@0
+            displayName: 'Stop Test Environment'
+            condition: always()
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run a Docker Compose command'
+              dockerComposeCommand: 'down -v'
+
+      # Web App E2E Tests with Playwright
+      - job: WebAppE2ETests
+        displayName: 'Web App E2E Tests (Playwright)'
+        pool:
+          vmImage: 'ubuntu-latest'
+        condition: ${{ parameters.runE2ETests }}
+        dependsOn: []
+
+        variables:
+          - template: variables-${{ parameters.environment }}.yml
+          - name: BASE_URL
+            value: 'http://localhost:3000'
+          - name: API_GATEWAY_URL
+            value: 'http://localhost:4000'
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout Repository'
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.nodeVersion }}
+
+          - script: |
+              npm ci
+            displayName: 'Install Dependencies'
+
+          - script: |
+              npx playwright install --with-deps
+            displayName: 'Install Playwright Browsers'
+
+          - task: DockerCompose@0
+            displayName: 'Start Backend Services'
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run services'
+              detached: true
+
+          - script: |
+              echo "Waiting for backend services..."
+              sleep 30
+            displayName: 'Wait for Backend'
+
+          - script: |
+              cd apps/web-app
+              npm run build
+              npm run start &
+              sleep 10
+            displayName: 'Build and Start Web App'
+
+          - script: |
+              npm run test:e2e
+            displayName: 'Run Playwright E2E Tests'
+            env:
+              CI: true
+              BASE_URL: $(BASE_URL)
+              API_GATEWAY_URL: $(API_GATEWAY_URL)
+
+          - task: PublishTestResults@2
+            displayName: 'Publish E2E Test Results'
+            condition: ${{ parameters.publishResults }}
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)/test-results'
+              mergeTestResults: true
+              testRunTitle: 'Web App E2E Tests'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Test Artifacts'
+            condition: failed()
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)/test-results'
+              artifact: 'e2e-test-results'
+              publishLocation: 'pipeline'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Playwright Report'
+            condition: always()
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)/playwright-report'
+              artifact: 'playwright-report'
+              publishLocation: 'pipeline'
+
+          - task: DockerCompose@0
+            displayName: 'Stop Services'
+            condition: always()
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run a Docker Compose command'
+              dockerComposeCommand: 'down -v'
+
+      # WebSocket Integration Tests
+      - job: WebSocketTests
+        displayName: 'WebSocket Integration Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn: []
+
+        variables:
+          - template: variables-${{ parameters.environment }}.yml
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout Repository'
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.nodeVersion }}
+
+          - script: |
+              npm ci
+            displayName: 'Install Dependencies'
+
+          - task: DockerCompose@0
+            displayName: 'Start Test Dependencies'
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run services'
+              detached: true
+
+          - script: |
+              sleep 20
+            displayName: 'Wait for Services'
+
+          - script: |
+              cd backend/tests/integration
+              npm run test -- --testPathPattern=websocket
+            displayName: 'Run WebSocket Tests'
+            env:
+              NODE_ENV: test
+              MESSAGING_SERVICE_URL: http://localhost:3004
+
+          - task: PublishTestResults@2
+            displayName: 'Publish WebSocket Test Results'
+            condition: ${{ parameters.publishResults }}
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              testRunTitle: 'WebSocket Integration Tests'
+
+          - task: DockerCompose@0
+            displayName: 'Stop Test Dependencies'
+            condition: always()
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: 'docker-compose.test.yml'
+              action: 'Run a Docker Compose command'
+              dockerComposeCommand: 'down -v'
+
+      # Test Summary Job
+      - job: TestSummary
+        displayName: 'Test Summary'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn:
+          - BackendIntegrationTests
+          - BackendE2ETests
+          - WebAppE2ETests
+          - WebSocketTests
+        condition: always()
+
+        steps:
+          - script: |
+              echo "======================================"
+              echo "Integration & E2E Test Summary"
+              echo "======================================"
+              echo "Backend Integration Tests: $(Agent.JobStatus.BackendIntegrationTests)"
+              echo "Backend E2E Tests: $(Agent.JobStatus.BackendE2ETests)"
+              echo "Web App E2E Tests: $(Agent.JobStatus.WebAppE2ETests)"
+              echo "WebSocket Tests: $(Agent.JobStatus.WebSocketTests)"
+              echo "======================================"
+            displayName: 'Display Test Summary'

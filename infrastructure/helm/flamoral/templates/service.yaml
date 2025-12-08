@@ -13,6 +13,10 @@ metadata:
   labels:
     {{- $labels | nindent 4 }}
     app.kubernetes.io/component: api-gateway
+  {{- if .Values.global.slot }}
+  annotations:
+    deployment.kubernetes.io/slot: {{ .Values.global.slot | quote }}
+  {{- end }}
 spec:
   type: {{ .Values.apiGateway.service.type }}
   ports:
@@ -23,6 +27,9 @@ spec:
   selector:
     {{- $selectorLabels | nindent 4 }}
     app.kubernetes.io/component: api-gateway
+    {{- if .Values.global.slot }}
+    slot: {{ .Values.global.slot }}
+    {{- end }}
 ---
 {{- end }}
 

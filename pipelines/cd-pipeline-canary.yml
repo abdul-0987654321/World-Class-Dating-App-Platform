@@ -1,0 +1,350 @@
+# =============================================================================
+# Flamoral Dating Platform - Continuous Deployment Pipeline with Canary
+# =============================================================================
+# Organization: citadelcloudmanagement
+# Project: DatingPlatform
+# =============================================================================
+# This is an ALTERNATIVE CD pipeline that uses Canary deployment strategy
+# for production deployments instead of Blue-Green.
+#
+# Use this pipeline when you want progressive rollouts with traffic shifting.
+# =============================================================================
+
+name: CD-Canary-$(Date:yyyyMMdd)$(Rev:.r)
+
+# Triggered by successful CI pipeline completion
+trigger: none
+
+pr: none
+
+resources:
+  pipelines:
+    - pipeline: ci-pipeline
+      source: 'Flamoral-CI-Pipeline'
+      trigger:
+        branches:
+          include:
+            - main
+
+variables:
+  - template: templates/variables-common.yml
+  - group: flamoral-shared-vars
+  - group: flamoral-cd-vars
+
+pool:
+  name: 'Default'  # Self-hosted agent pool
+
+stages:
+  # ============================================================================
+  # STAGE 1: DEPLOY TO DEVELOPMENT ENVIRONMENT
+  # ============================================================================
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    variables:
+      - template: templates/variables-dev.yml
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToDevAKS
+        displayName: 'Deploy to Dev AKS'
+        environment: 'flamoral-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-$(environment)'
+                    imageTag: $(imageTag)
+                    imageRegistry: $(acrLoginServer)
+                    apiHost: $(apiHost)
+                    runMigrations: true
+                    runHealthChecks: true
+                    additionalValues: |
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      replicaCount=$(replicaCount)
+                      autoscaling.enabled=$(autoscalingEnabled)
+
+  # ============================================================================
+  # STAGE 2: DEPLOY TO TEST ENVIRONMENT
+  # ============================================================================
+  - stage: DeployTest
+    displayName: 'Deploy to Test'
+    dependsOn: DeployDev
+    condition: succeeded()
+    variables:
+      - template: templates/variables-test.yml
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: TestApproval
+        displayName: 'Test Environment Approval'
+        environment: 'flamoral-test'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: |
+                      qa-team@flamoral.com
+                      devops@flamoral.com
+                    instructions: |
+                      =====================================
+                      TEST ENVIRONMENT DEPLOYMENT APPROVAL
+                      =====================================
+
+                      Build Number: $(Build.BuildNumber)
+                      Image Tag: $(imageTag)
+
+                      Dev environment deployment completed successfully.
+                      Please approve to proceed with Test environment deployment.
+                    onTimeout: 'reject'
+                  displayName: 'Wait for Test Approval'
+                  timeoutInMinutes: 240  # 4 hours
+
+      - deployment: DeployToTestAKS
+        displayName: 'Deploy to Test AKS'
+        dependsOn: TestApproval
+        environment: 'flamoral-test'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-$(environment)'
+                    imageTag: $(imageTag)
+                    imageRegistry: $(acrLoginServer)
+                    apiHost: $(apiHost)
+                    runMigrations: true
+                    runHealthChecks: true
+                    additionalValues: |
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      replicaCount=$(replicaCount)
+                      autoscaling.enabled=$(autoscalingEnabled)
+                      autoscaling.minReplicas=$(autoscalingMinReplicas)
+                      autoscaling.maxReplicas=$(autoscalingMaxReplicas)
+
+  # ============================================================================
+  # STAGE 3: CANARY DEPLOYMENT TO PRODUCTION
+  # ============================================================================
+  - stage: CanaryProduction
+    displayName: 'Canary Production (10%)'
+    dependsOn: DeployTest
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      - template: templates/variables-prod.yml
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+      - name: canaryPercentage
+        value: 10
+    jobs:
+      - deployment: ProductionCanaryApproval
+        displayName: 'Approve Canary Deployment'
+        environment: 'flamoral-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: |
+                      release-managers@flamoral.com
+                      cto@flamoral.com
+                    instructions: |
+                      =====================================
+                      PRODUCTION CANARY DEPLOYMENT APPROVAL
+                      =====================================
+
+                      Starting Canary deployment with 10% traffic.
+
+                      Build Number: $(Build.BuildNumber)
+                      Image Tag: $(imageTag)
+
+                      Please approve to proceed.
+                    onTimeout: 'reject'
+                  displayName: 'Approve Canary Start'
+                  timeoutInMinutes: 1440  # 24 hours
+
+      - deployment: DeployCanary
+        displayName: 'Deploy Canary (10%)'
+        dependsOn: ProductionCanaryApproval
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/canary-deployment.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-prod'
+                    imageTag: $(imageTag)
+                    imageRegistry: $(acrLoginServer)
+                    canaryPercentage: 10
+                    additionalValues: |
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      autoscaling.enabled=$(autoscalingEnabled)
+
+  # ============================================================================
+  # STAGE 4: PROMOTE TO 50% TRAFFIC
+  # ============================================================================
+  - stage: PromoteTo50
+    displayName: 'Promote to 50% Traffic'
+    dependsOn: CanaryProduction
+    condition: succeeded()
+    variables:
+      - template: templates/variables-prod.yml
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: Promote50Approval
+        displayName: 'Approve 50% Traffic'
+        environment: 'flamoral-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: |
+                      release-managers@flamoral.com
+                    instructions: |
+                      Canary at 10% is healthy.
+                      Approve to increase traffic to 50%.
+                    onTimeout: 'reject'
+                  displayName: 'Approve 50% Traffic'
+                  timeoutInMinutes: 240
+
+      - deployment: UpdateCanary50
+        displayName: 'Update to 50% Traffic'
+        dependsOn: Promote50Approval
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/canary-deployment.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-prod'
+                    imageTag: $(imageTag)
+                    imageRegistry: $(acrLoginServer)
+                    canaryPercentage: 50
+
+  # ============================================================================
+  # STAGE 5: PROMOTE TO 100% (FULL ROLLOUT)
+  # ============================================================================
+  - stage: PromoteTo100
+    displayName: 'Promote to 100% Traffic'
+    dependsOn: PromoteTo50
+    condition: succeeded()
+    variables:
+      - template: templates/variables-prod.yml
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: Promote100Approval
+        displayName: 'Approve Full Rollout'
+        environment: 'flamoral-production'
+        pool: server
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  inputs:
+                    notifyUsers: |
+                      release-managers@flamoral.com
+                    instructions: |
+                      Canary at 50% is healthy.
+                      Approve to promote to 100% (full rollout).
+                    onTimeout: 'reject'
+                  displayName: 'Approve Full Rollout'
+                  timeoutInMinutes: 240
+
+      - deployment: FullRollout
+        displayName: 'Full Rollout (100%)'
+        dependsOn: Promote100Approval
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    environment: $(environment)
+                    namespace: $(namespace)
+                    azureServiceConnection: $(azureServiceConnection)
+                    aksClusterName: $(aksClusterName)
+                    resourceGroup: $(resourceGroup)
+                    releaseName: 'flamoral-prod'
+                    imageTag: $(imageTag)
+                    imageRegistry: $(acrLoginServer)
+                    apiHost: $(apiHost)
+                    runMigrations: false  # Already ran in canary
+                    runHealthChecks: true
+                    additionalValues: |
+                      ingress.enabled=true
+                      ingress.hosts[0].host=$(ingressHost)
+                      global.slot=stable
+                      replicaCount=$(replicaCount)
+                      autoscaling.enabled=$(autoscalingEnabled)
+
+                # Clean up canary deployment
+                - script: |
+                    kubectl delete deployment -l slot=canary -n $(namespace) || true
+                    echo "Canary deployment cleaned up"
+                  displayName: 'Clean Up Canary'
+
+  # ============================================================================
+  # STAGE 6: POST-DEPLOYMENT MONITORING
+  # ============================================================================
+  - stage: PostDeploymentMonitoring
+    displayName: 'Post-Deployment Monitoring'
+    dependsOn: PromoteTo100
+    condition: succeeded()
+    jobs:
+      - job: MonitorDeployment
+        displayName: 'Monitor Deployment Health'
+        steps:
+          - script: |
+              echo "Monitoring production deployment..."
+              # Add monitoring logic here
+            displayName: 'Monitor Health'
