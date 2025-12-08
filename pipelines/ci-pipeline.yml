@@ -40,7 +40,7 @@ variables:
   - template: templates/variables-common.yml
 
 pool:
-  vmImage: 'ubuntu-latest'  # Microsoft-hosted agent (switched from self-hosted due to connectivity issues)
+  name: 'Default'  # Self-hosted agent pool
 
 stages:
   # ============================================================================

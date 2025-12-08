@@ -15,6 +15,15 @@ $failedJobs = $timeline.records | Where-Object { $_.result -eq "failed" -and $_.
 
 foreach ($job in $failedJobs) {
     Write-Host "`n=== Failed Job: $($job.name) ===" -ForegroundColor Red
+    Write-Host "  State: $($job.state)" -ForegroundColor Yellow
+    Write-Host "  Issues:" -ForegroundColor Yellow
+
+    # Show any issues
+    if ($job.issues) {
+        foreach ($issue in $job.issues) {
+            Write-Host "    - $($issue.message)" -ForegroundColor Red
+        }
+    }
 
     # Get log for this job
     if ($job.log) {
@@ -27,7 +36,21 @@ foreach ($job in $failedJobs) {
             $lastLines = $lines | Select-Object -Last 50
             Write-Host ($lastLines -join "`n")
         } catch {
-            Write-Host "Could not fetch log: $_" -ForegroundColor Yellow
+            Write-Host "Could not fetch log: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "  No log available" -ForegroundColor Yellow
+    }
+}
+
+# Also show failed tasks
+Write-Host "`n=== Failed Tasks ===" -ForegroundColor Cyan
+$failedTasks = $timeline.records | Where-Object { $_.result -eq "failed" -and $_.type -eq "Task" }
+foreach ($task in $failedTasks) {
+    Write-Host "Task: $($task.name)" -ForegroundColor Red
+    if ($task.issues) {
+        foreach ($issue in $task.issues) {
+            Write-Host "  - $($issue.message)" -ForegroundColor Yellow
         }
     }
 }

@@ -1,5 +1,5 @@
 param(
-    [int[]]$BuildIds = @(64, 66, 69, 68, 71, 72),
+    [int[]]$BuildIds = @(73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84),
     [string]$PAT = "debreCRPB4KlkNeEoe8GEAlGrR6LWDzwdoZB4o3QdiPamoNp7DAqJQQJ99BLACAAAAAAAAAAAAASAZDO3xAI"
 )
 
