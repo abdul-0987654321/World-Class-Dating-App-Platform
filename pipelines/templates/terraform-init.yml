@@ -42,7 +42,7 @@ steps:
       inlineScript: |
         set -e
 
-        export TF_PLUGIN_CACHE_DIR="$(Pipeline.Workspace)/.terraform.d/plugin-cache"
+        export TF_PLUGIN_CACHE_DIR="$TF_PLUGIN_CACHE"
         mkdir -p $TF_PLUGIN_CACHE_DIR
 
         # Use service principal credentials from Azure CLI task
@@ -59,15 +59,21 @@ steps:
 
         echo "##[group]Initializing Terraform for ${{ parameters.environment }}"
 
+        echo "Backend Config:"
+        echo "  Resource Group: $TF_STATE_RG"
+        echo "  Storage Account: $TF_STATE_SA"
+        echo "  Container: $TF_STATE_CONTAINER"
+        echo "  State Key: ${{ parameters.environment }}.terraform.tfstate"
+
         # Initialize with retry logic
         MAX_RETRIES=3
         RETRY_COUNT=0
 
         while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
           if terraform init \
-            -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-            -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-            -backend-config="container_name=$(tfStateContainer)" \
+            -backend-config="resource_group_name=$TF_STATE_RG" \
+            -backend-config="storage_account_name=$TF_STATE_SA" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
             -backend-config="key=${{ parameters.environment }}.terraform.tfstate" \
             -reconfigure \
             -upgrade; then
@@ -86,3 +92,8 @@ steps:
         done
 
         echo "##[endgroup]"
+    env:
+      TF_STATE_RG: $(tfStateResourceGroup)
+      TF_STATE_SA: $(tfStateStorageAccount)
+      TF_STATE_CONTAINER: $(tfStateContainer)
+      TF_PLUGIN_CACHE: $(Pipeline.Workspace)/.terraform.d/plugin-cache
