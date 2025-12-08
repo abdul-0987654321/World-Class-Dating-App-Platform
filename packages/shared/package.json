@@ -26,10 +26,10 @@
     "test": "yarn workspaces foreach -pt run test"
   },
   "dependencies": {
-    "@flamoral/types": "^1.0.0",
-    "@flamoral/utils": "^1.0.0",
-    "@flamoral/constants": "^1.0.0",
-    "@flamoral/validators": "^1.0.0"
+    "@flamoral/types": "*",
+    "@flamoral/utils": "*",
+    "@flamoral/constants": "*",
+    "@flamoral/validators": "*"
   },
   "devDependencies": {
     "typescript": "^5.3.2"

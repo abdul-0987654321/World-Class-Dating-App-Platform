@@ -25,7 +25,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@flamoral/shared": "^1.0.0",
+    "@flamoral/shared": "*",
     "@azure/storage-blob": "^12.17.0",
     "@sendgrid/mail": "^8.1.0",
     "@types/socket.io": "^3.0.1",
