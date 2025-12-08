@@ -1,5 +1,6 @@
 # Terraform Apply Template
 # Applies the execution plan and captures outputs
+# Uses Azure Service Connection for authentication
 
 parameters:
   - name: environment
@@ -9,6 +10,9 @@ parameters:
   - name: autoApprove
     type: boolean
     default: true
+  - name: azureServiceConnection
+    type: string
+    default: 'azure-terraform-sp-connection'
 
 steps:
   - task: DownloadPipelineArtifact@2
@@ -29,84 +33,88 @@ steps:
     displayName: 'Verify Plan Artifact'
     workingDirectory: ${{ parameters.workingDirectory }}
 
-  - script: |
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
-
-      echo "##[group]Applying Terraform plan for ${{ parameters.environment }}"
-
-      # Apply with retry logic
-      MAX_RETRIES=2
-      RETRY_COUNT=0
-
-      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if terraform apply -input=false -auto-approve tfplan; then
-          echo "##[section]Terraform apply successful"
-          break
-        else
-          RETRY_COUNT=$((RETRY_COUNT + 1))
-          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-            echo "##[warning]Terraform apply failed, retry $RETRY_COUNT of $MAX_RETRIES"
-            sleep 30
-          else
-            echo "##[error]Terraform apply failed after $MAX_RETRIES attempts"
-            exit 1
-          fi
-        fi
-      done
-
-      echo "##[endgroup]"
+  - task: AzureCLI@2
     displayName: 'Terraform Apply - ${{ parameters.environment }}'
-    workingDirectory: ${{ parameters.workingDirectory }}
-    env:
-      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      addSpnToEnvironment: true
+      inlineScript: |
+        # Use service principal credentials from Azure CLI task
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-  - script: |
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
+        echo "##[group]Applying Terraform plan for ${{ parameters.environment }}"
 
-      echo "##[group]Capturing Terraform outputs"
+        # Apply with retry logic
+        MAX_RETRIES=2
+        RETRY_COUNT=0
 
-      # Capture outputs in JSON format
-      terraform output -json > terraform-outputs.json
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          if terraform apply -input=false -auto-approve tfplan; then
+            echo "##[section]Terraform apply successful"
+            break
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "##[warning]Terraform apply failed, retry $RETRY_COUNT of $MAX_RETRIES"
+              sleep 30
+            else
+              echo "##[error]Terraform apply failed after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          fi
+        done
 
-      # Display outputs
-      echo "Terraform Outputs:"
-      terraform output
+        echo "##[endgroup]"
 
-      # List current state resources
-      terraform state list > state-resources.txt
-
-      echo ""
-      echo "Resources in state:"
-      cat state-resources.txt
-
-      echo "##[endgroup]"
-
-      # Set outputs as pipeline variables (for downstream tasks)
-      echo "##[group]Setting pipeline variables from outputs"
-      for key in $(terraform output -json | jq -r 'keys[]'); do
-        value=$(terraform output -raw $key 2>/dev/null || echo "")
-        if [ -n "$value" ]; then
-          # Sanitize for pipeline variable
-          echo "##vso[task.setvariable variable=TF_OUTPUT_$key]$value"
-        fi
-      done
-      echo "##[endgroup]"
+  - task: AzureCLI@2
     displayName: 'Capture Outputs - ${{ parameters.environment }}'
-    workingDirectory: ${{ parameters.workingDirectory }}
-    env:
-      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      addSpnToEnvironment: true
+      inlineScript: |
+        # Use service principal credentials from Azure CLI task
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+        echo "##[group]Capturing Terraform outputs"
+
+        # Capture outputs in JSON format
+        terraform output -json > terraform-outputs.json
+
+        # Display outputs
+        echo "Terraform Outputs:"
+        terraform output
+
+        # List current state resources
+        terraform state list > state-resources.txt
+
+        echo ""
+        echo "Resources in state:"
+        cat state-resources.txt
+
+        echo "##[endgroup]"
+
+        # Set outputs as pipeline variables (for downstream tasks)
+        echo "##[group]Setting pipeline variables from outputs"
+        for key in $(terraform output -json | jq -r 'keys[]'); do
+          value=$(terraform output -raw $key 2>/dev/null || echo "")
+          if [ -n "$value" ]; then
+            # Sanitize for pipeline variable
+            echo "##vso[task.setvariable variable=TF_OUTPUT_$key]$value"
+          fi
+        done
+        echo "##[endgroup]"
 
   - script: |
       if [ -f "terraform-outputs.json" ]; then

@@ -1,0 +1,139 @@
+# Bootstrap Pipeline - Creates Terraform Backend Resources
+# Run this ONCE to create the Azure storage account for Terraform state
+# Uses the azure-terraform-sp-connection service connection
+
+trigger: none  # Manual trigger only
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: resourceGroupName
+    value: 'flamoral-terraform-state-rg'
+  - name: storageAccountName
+    value: 'flamoraltfstate'
+  - name: containerName
+    value: 'tfstate'
+  - name: location
+    value: 'westus2'
+  - name: azureServiceConnection
+    value: 'azure-terraform-sp-connection'
+
+stages:
+  - stage: CreateBackendResources
+    displayName: 'Create Terraform Backend Resources'
+    jobs:
+      - job: CreateResources
+        displayName: 'Create Azure Storage for Terraform State'
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Create Resource Group'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[group]Creating Resource Group"
+                echo "Resource Group: $(resourceGroupName)"
+                echo "Location: $(location)"
+
+                az group create \
+                  --name "$(resourceGroupName)" \
+                  --location "$(location)" \
+                  --tags Purpose=TerraformState Project=Flamoral ManagedBy=Terraform
+
+                echo "##[section]Resource Group created successfully"
+                echo "##[endgroup]"
+
+          - task: AzureCLI@2
+            displayName: 'Create Storage Account'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[group]Creating Storage Account"
+                echo "Storage Account: $(storageAccountName)"
+
+                az storage account create \
+                  --name "$(storageAccountName)" \
+                  --resource-group "$(resourceGroupName)" \
+                  --location "$(location)" \
+                  --sku Standard_GRS \
+                  --kind StorageV2 \
+                  --access-tier Hot \
+                  --https-only true \
+                  --min-tls-version TLS1_2 \
+                  --allow-blob-public-access false \
+                  --tags Purpose=TerraformState Project=Flamoral ManagedBy=Terraform
+
+                echo "##[section]Storage Account created successfully"
+                echo "##[endgroup]"
+
+          - task: AzureCLI@2
+            displayName: 'Create Blob Container'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[group]Creating Blob Container"
+                echo "Container: $(containerName)"
+
+                # Get storage account key
+                STORAGE_KEY=$(az storage account keys list \
+                  --resource-group "$(resourceGroupName)" \
+                  --account-name "$(storageAccountName)" \
+                  --query '[0].value' -o tsv)
+
+                az storage container create \
+                  --name "$(containerName)" \
+                  --account-name "$(storageAccountName)" \
+                  --account-key "$STORAGE_KEY" \
+                  --public-access off
+
+                echo "##[section]Blob Container created successfully"
+                echo "##[endgroup]"
+
+          - task: AzureCLI@2
+            displayName: 'Verify Resources'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[group]Verifying Created Resources"
+
+                echo "=== Resource Group ==="
+                az group show --name "$(resourceGroupName)" --query "{name:name, location:location, provisioningState:properties.provisioningState}" -o table
+
+                echo ""
+                echo "=== Storage Account ==="
+                az storage account show --name "$(storageAccountName)" --resource-group "$(resourceGroupName)" --query "{name:name, location:location, provisioningState:provisioningState, sku:sku.name}" -o table
+
+                echo ""
+                echo "=== Blob Container ==="
+                STORAGE_KEY=$(az storage account keys list \
+                  --resource-group "$(resourceGroupName)" \
+                  --account-name "$(storageAccountName)" \
+                  --query '[0].value' -o tsv)
+
+                az storage container show \
+                  --name "$(containerName)" \
+                  --account-name "$(storageAccountName)" \
+                  --account-key "$STORAGE_KEY" \
+                  --query "{name:name, publicAccess:properties.publicAccess}" -o table
+
+                echo "##[endgroup]"
+
+                echo ""
+                echo "=========================================="
+                echo "Terraform Backend Resources Ready!"
+                echo "=========================================="
+                echo "Resource Group:   $(resourceGroupName)"
+                echo "Storage Account:  $(storageAccountName)"
+                echo "Container:        $(containerName)"
+                echo "Location:         $(location)"
+                echo "=========================================="
+                echo ""
+                echo "You can now run the Infrastructure pipeline!"

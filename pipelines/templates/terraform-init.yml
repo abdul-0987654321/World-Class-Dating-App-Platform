@@ -1,11 +1,15 @@
 # Terraform Init Template
 # Initializes Terraform with Azure backend configuration
+# Uses Azure Service Connection for authentication
 
 parameters:
   - name: environment
     type: string
   - name: workingDirectory
     type: string
+  - name: azureServiceConnection
+    type: string
+    default: 'azure-terraform-sp-connection'
 
 steps:
   - task: Cache@2
@@ -27,78 +31,58 @@ steps:
     displayName: 'Ensure Terraform $(TF_VERSION)'
     workingDirectory: ${{ parameters.workingDirectory }}
 
-  - script: |
-      export TF_PLUGIN_CACHE_DIR="$(Pipeline.Workspace)/.terraform.d/plugin-cache"
-      mkdir -p $TF_PLUGIN_CACHE_DIR
-
-      # Configure backend dynamically using environment variables for Terraform
-      export ARM_CLIENT_ID="$(ARM_CLIENT_ID)"
-      export ARM_CLIENT_SECRET="$(ARM_CLIENT_SECRET)"
-      export ARM_SUBSCRIPTION_ID="$(ARM_SUBSCRIPTION_ID)"
-      export ARM_TENANT_ID="$(ARM_TENANT_ID)"
-
-      # Validate required environment variables
-      echo "##[group]Validating Azure Credentials"
-      if [ -z "$ARM_CLIENT_ID" ]; then
-        echo "##[error]ARM_CLIENT_ID is not set. Please check variable group 'datingplatform-terraform-common'"
-        exit 1
-      fi
-      if [ -z "$ARM_CLIENT_SECRET" ]; then
-        echo "##[error]ARM_CLIENT_SECRET is not set. Please update the secret value in variable group 'datingplatform-terraform-common'"
-        echo "##[error]Go to Azure DevOps > Pipelines > Library > datingplatform-terraform-common > ARM_CLIENT_SECRET"
-        exit 1
-      fi
-      if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-        echo "##[error]ARM_SUBSCRIPTION_ID is not set"
-        exit 1
-      fi
-      if [ -z "$ARM_TENANT_ID" ]; then
-        echo "##[error]ARM_TENANT_ID is not set"
-        exit 1
-      fi
-      echo "All required Azure credentials are set"
-      echo "##[endgroup]"
-
-      # Login to Azure CLI for backend operations
-      echo "##[group]Azure CLI Login"
-      az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
-      az account set --subscription "$ARM_SUBSCRIPTION_ID"
-      echo "Logged in to Azure CLI as service principal"
-      echo "##[endgroup]"
-
-      echo "##[group]Initializing Terraform for ${{ parameters.environment }}"
-
-      # Initialize with retry logic
-      MAX_RETRIES=3
-      RETRY_COUNT=0
-
-      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if terraform init \
-          -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
-          -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
-          -backend-config="container_name=$(TF_STATE_CONTAINER)" \
-          -backend-config="key=${{ parameters.environment }}.terraform.tfstate" \
-          -reconfigure \
-          -upgrade; then
-          echo "Terraform init successful"
-          break
-        else
-          RETRY_COUNT=$((RETRY_COUNT + 1))
-          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-            echo "##[warning]Terraform init failed, retry $RETRY_COUNT of $MAX_RETRIES"
-            sleep 10
-          else
-            echo "##[error]Terraform init failed after $MAX_RETRIES attempts"
-            exit 1
-          fi
-        fi
-      done
-
-      echo "##[endgroup]"
+  - task: AzureCLI@2
     displayName: 'Terraform Init - ${{ parameters.environment }}'
-    workingDirectory: ${{ parameters.workingDirectory }}
-    env:
-      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -e
+
+        export TF_PLUGIN_CACHE_DIR="$(Pipeline.Workspace)/.terraform.d/plugin-cache"
+        mkdir -p $TF_PLUGIN_CACHE_DIR
+
+        # Use service principal credentials from Azure CLI task
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+        echo "##[group]Azure Authentication"
+        echo "Using Service Connection: ${{ parameters.azureServiceConnection }}"
+        echo "Subscription: $ARM_SUBSCRIPTION_ID"
+        echo "Tenant: $ARM_TENANT_ID"
+        echo "##[endgroup]"
+
+        echo "##[group]Initializing Terraform for ${{ parameters.environment }}"
+
+        # Initialize with retry logic
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          if terraform init \
+            -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+            -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+            -backend-config="container_name=$(tfStateContainer)" \
+            -backend-config="key=${{ parameters.environment }}.terraform.tfstate" \
+            -reconfigure \
+            -upgrade; then
+            echo "Terraform init successful"
+            break
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "##[warning]Terraform init failed, retry $RETRY_COUNT of $MAX_RETRIES"
+              sleep 10
+            else
+              echo "##[error]Terraform init failed after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          fi
+        done
+
+        echo "##[endgroup]"

@@ -1,5 +1,6 @@
 # Terraform Plan Template
 # Creates execution plan and publishes artifacts
+# Uses Azure Service Connection for authentication
 
 parameters:
   - name: environment
@@ -9,78 +10,83 @@ parameters:
   - name: varFile
     type: string
     default: ''
+  - name: azureServiceConnection
+    type: string
+    default: 'azure-terraform-sp-connection'
 
 steps:
-  - script: |
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
-
-      echo "##[group]Creating Terraform plan for ${{ parameters.environment }}"
-
-      # Build plan command
-      PLAN_CMD="terraform plan -out=tfplan -input=false -detailed-exitcode"
-
-      # Add var file if specified
-      if [ -n "${{ parameters.varFile }}" ]; then
-        PLAN_CMD="$PLAN_CMD -var-file=${{ parameters.varFile }}"
-      fi
-
-      # Execute plan with retry logic
-      MAX_RETRIES=3
-      RETRY_COUNT=0
-      PLAN_EXIT_CODE=0
-
-      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        set +e
-        eval $PLAN_CMD
-        PLAN_EXIT_CODE=$?
-        set -e
-
-        # Exit codes: 0 = no changes, 1 = error, 2 = changes
-        if [ $PLAN_EXIT_CODE -eq 0 ] || [ $PLAN_EXIT_CODE -eq 2 ]; then
-          break
-        elif [ $PLAN_EXIT_CODE -eq 1 ]; then
-          RETRY_COUNT=$((RETRY_COUNT + 1))
-          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-            echo "##[warning]Terraform plan failed, retry $RETRY_COUNT of $MAX_RETRIES"
-            sleep 10
-          else
-            echo "##[error]Terraform plan failed after $MAX_RETRIES attempts"
-            exit 1
-          fi
-        fi
-      done
-
-      # Set pipeline variable for plan changes
-      if [ $PLAN_EXIT_CODE -eq 2 ]; then
-        echo "##vso[task.setvariable variable=TerraformPlanHasChanges;isOutput=true]true"
-        echo "##[section]Terraform plan shows changes"
-      else
-        echo "##vso[task.setvariable variable=TerraformPlanHasChanges;isOutput=true]false"
-        echo "##[section]No infrastructure changes detected"
-      fi
-
-      echo "##[endgroup]"
-
-      # Generate JSON plan for analysis
-      terraform show -json tfplan > tfplan.json
-
-      # Generate human-readable plan
-      terraform show tfplan > tfplan.txt
-
-      echo "##[group]Plan Summary"
-      cat tfplan.txt
-      echo "##[endgroup]"
+  - task: AzureCLI@2
     displayName: 'Terraform Plan - ${{ parameters.environment }}'
-    workingDirectory: ${{ parameters.workingDirectory }}
     name: TerraformPlan
-    env:
-      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      addSpnToEnvironment: true
+      inlineScript: |
+        # Use service principal credentials from Azure CLI task
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+        echo "##[group]Creating Terraform plan for ${{ parameters.environment }}"
+
+        # Build plan command
+        PLAN_CMD="terraform plan -out=tfplan -input=false -detailed-exitcode"
+
+        # Add var file if specified
+        if [ -n "${{ parameters.varFile }}" ]; then
+          PLAN_CMD="$PLAN_CMD -var-file=${{ parameters.varFile }}"
+        fi
+
+        # Execute plan with retry logic
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        PLAN_EXIT_CODE=0
+
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          set +e
+          eval $PLAN_CMD
+          PLAN_EXIT_CODE=$?
+          set -e
+
+          # Exit codes: 0 = no changes, 1 = error, 2 = changes
+          if [ $PLAN_EXIT_CODE -eq 0 ] || [ $PLAN_EXIT_CODE -eq 2 ]; then
+            break
+          elif [ $PLAN_EXIT_CODE -eq 1 ]; then
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "##[warning]Terraform plan failed, retry $RETRY_COUNT of $MAX_RETRIES"
+              sleep 10
+            else
+              echo "##[error]Terraform plan failed after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          fi
+        done
+
+        # Set pipeline variable for plan changes
+        if [ $PLAN_EXIT_CODE -eq 2 ]; then
+          echo "##vso[task.setvariable variable=TerraformPlanHasChanges;isOutput=true]true"
+          echo "##[section]Terraform plan shows changes"
+        else
+          echo "##vso[task.setvariable variable=TerraformPlanHasChanges;isOutput=true]false"
+          echo "##[section]No infrastructure changes detected"
+        fi
+
+        echo "##[endgroup]"
+
+        # Generate JSON plan for analysis
+        terraform show -json tfplan > tfplan.json
+
+        # Generate human-readable plan
+        terraform show tfplan > tfplan.txt
+
+        echo "##[group]Plan Summary"
+        cat tfplan.txt
+        echo "##[endgroup]"
 
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Terraform Plan'
