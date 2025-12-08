@@ -12,9 +12,6 @@ parameters:
   - name: azureServiceConnection
     type: string
     default: 'azure-terraform-sp-connection'
-  - name: kubernetesServiceConnection
-    type: string
-    default: 'aks-flamoral-connection'
   - name: aksClusterName
     type: string
     default: 'flamoral-aks'

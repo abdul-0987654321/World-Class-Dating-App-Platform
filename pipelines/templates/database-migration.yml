@@ -97,13 +97,15 @@ steps:
                     - -c
                     - |
                       echo "Starting database migration..."
-                      ${{ if eq(parameters.dryRun, true) }}
-                      npm run migrate:dry-run
-                      {{ else }}
-                      npm run migrate:latest
-                      {{ end }}
+                      if [ "$DRY_RUN" = "true" ]; then
+                        npm run migrate:dry-run
+                      else
+                        npm run migrate:latest
+                      fi
                       echo "Migration completed successfully!"
                   env:
+                    - name: DRY_RUN
+                      value: "${{ parameters.dryRun }}"
                     - name: NODE_ENV
                       value: "${{ parameters.environment }}"
                     - name: DB_HOST

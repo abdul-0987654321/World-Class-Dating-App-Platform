@@ -1,20 +1,26 @@
 # Terraform Backend Configuration
 # This file configures remote state storage in Azure Storage Account
+#
+# IMPORTANT: Run bootstrap-backend.sh before first terraform init to create
+# the storage account and container for remote state.
+#
+# The backend config is partially configured here, with the 'key' parameter
+# passed via -backend-config during terraform init to support multiple environments.
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "datingapp-tfstate-rg"
-    storage_account_name = "datingapptfstate"
+    resource_group_name  = "flamoral-terraform-state-rg"
+    storage_account_name = "flamoraltfstate"
     container_name       = "tfstate"
-    key                  = "terraform.tfstate"
-
-    # Use OIDC authentication from GitHub Actions
-    use_oidc = true
+    # key is set via -backend-config during init: key="flamoral-{env}.tfstate"
   }
 }
 
-# Note: Before using this backend, create the storage account:
+# Bootstrap instructions:
+# 1. Run the bootstrap script to create backend resources:
+#    cd infrastructure/terraform
+#    chmod +x bootstrap-backend.sh
+#    ./bootstrap-backend.sh dev
 #
-# az group create --name datingapp-tfstate-rg --location eastus
-# az storage account create --name datingapptfstate --resource-group datingapp-tfstate-rg --location eastus --sku Standard_LRS
-# az storage container create --name tfstate --account-name datingapptfstate
+# 2. Then initialize terraform with environment-specific state file:
+#    terraform init -backend-config="key=flamoral-dev.tfstate"

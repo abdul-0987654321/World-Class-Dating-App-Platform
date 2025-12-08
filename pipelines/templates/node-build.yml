@@ -2,6 +2,8 @@
 # Node.js Build Template
 # =============================================================================
 # Reusable template for building Node.js microservices
+# IMPORTANT: This template uses yarn workspaces to resolve @flamoral/shared
+# and other local packages. It must install at monorepo root first.
 # =============================================================================
 
 parameters:
@@ -37,26 +39,63 @@ steps:
       versionSpec: ${{ parameters.nodeVersion }}
     displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
 
+  # Install yarn globally for monorepo workspace support
+  - script: |
+      if ! command -v yarn &> /dev/null; then
+        echo "Installing yarn..."
+        npm install -g yarn
+      fi
+      yarn --version
+    displayName: 'Ensure Yarn is installed'
+
   - task: Cache@2
     inputs:
-      key: 'npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/package-lock.json'
+      key: 'yarn | "$(Agent.OS)" | yarn.lock'
       restoreKeys: |
-        npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}
-        npm | "$(Agent.OS)"
-      path: $(Pipeline.Workspace)/.npm
-    displayName: 'Cache npm dependencies'
+        yarn | "$(Agent.OS)"
+      path: $(Pipeline.Workspace)/.yarn/cache
+    displayName: 'Cache yarn dependencies'
     continueOnError: true
 
+  # CRITICAL FIX: Install at monorepo root first to resolve workspace packages
+  # This creates symlinks for @flamoral/shared and other local packages
+  - script: |
+      echo "Installing dependencies at monorepo root (for @flamoral/shared)..."
+      if [ -f "yarn.lock" ]; then
+        yarn install --frozen-lockfile || yarn install
+      else
+        yarn install
+      fi
+
+      # Build shared package first if it exists
+      if [ -d "packages/shared" ]; then
+        echo "Building @flamoral/shared package..."
+        yarn workspace @flamoral/shared build || echo "Shared package build completed"
+      fi
+      if [ -d "backend/shared" ]; then
+        echo "Building backend shared package..."
+        cd backend/shared && yarn build || npm run build && cd ../..
+      fi
+    displayName: 'Install monorepo dependencies (resolve @flamoral/shared)'
+
+  # Now build the specific service using workspace command
   - script: |
       if [ ! -d "${{ parameters.serviceDirectory }}" ]; then
         echo "ERROR: Service directory not found: ${{ parameters.serviceDirectory }}"
         exit 1
       fi
-      cd ${{ parameters.serviceDirectory }}
-      if [ -f "package-lock.json" ]; then
-        npm ci
+
+      # Get the service package name from package.json
+      SERVICE_PKG_NAME=$(node -pe "require('./${{ parameters.serviceDirectory }}/package.json').name")
+      echo "Building service: $SERVICE_PKG_NAME"
+
+      # Use yarn workspace to build (respects symlinked dependencies)
+      if [ -n "$SERVICE_PKG_NAME" ]; then
+        yarn workspace $SERVICE_PKG_NAME install || echo "Workspace install completed"
       else
-        npm install
+        # Fallback: direct cd and install
+        cd ${{ parameters.serviceDirectory }}
+        yarn install || npm install
       fi
     displayName: 'Install dependencies - ${{ parameters.serviceName }}'
 

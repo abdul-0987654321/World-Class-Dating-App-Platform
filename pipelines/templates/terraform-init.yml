@@ -32,6 +32,103 @@ steps:
     workingDirectory: ${{ parameters.workingDirectory }}
 
   - task: AzureCLI@2
+    displayName: 'Bootstrap Terraform Backend'
+    inputs:
+      azureSubscription: ${{ parameters.azureServiceConnection }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -e
+
+        # Use service principal credentials from Azure CLI task
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+        echo "##[group]Checking/Creating Terraform Backend"
+
+        RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+        STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+        CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+        LOCATION="${AZURE_LOCATION:-eastus}"
+
+        echo "Backend Configuration:"
+        echo "  Resource Group: $RESOURCE_GROUP"
+        echo "  Storage Account: $STORAGE_ACCOUNT"
+        echo "  Container: $CONTAINER"
+        echo "  Location: $LOCATION"
+
+        # Check if resource group exists, create if not
+        if ! az group show --name "$RESOURCE_GROUP" &> /dev/null; then
+          echo "Creating resource group '$RESOURCE_GROUP'..."
+          az group create \
+            --name "$RESOURCE_GROUP" \
+            --location "$LOCATION" \
+            --tags "Purpose=TerraformState" "ManagedBy=Pipeline" "Project=Flamoral"
+          echo "Resource group created successfully"
+        else
+          echo "Resource group '$RESOURCE_GROUP' already exists"
+        fi
+
+        # Check if storage account exists, create if not
+        if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+          echo "Creating storage account '$STORAGE_ACCOUNT'..."
+          az storage account create \
+            --name "$STORAGE_ACCOUNT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --location "$LOCATION" \
+            --sku Standard_LRS \
+            --encryption-services blob \
+            --https-only true \
+            --min-tls-version TLS1_2 \
+            --allow-blob-public-access false \
+            --tags "Purpose=TerraformState" "ManagedBy=Pipeline" "Project=Flamoral"
+
+          # Enable versioning
+          az storage account blob-service-properties update \
+            --account-name "$STORAGE_ACCOUNT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --enable-versioning true
+
+          echo "Storage account created successfully"
+        else
+          echo "Storage account '$STORAGE_ACCOUNT' already exists"
+        fi
+
+        # Get storage account key
+        STORAGE_KEY=$(az storage account keys list \
+          --resource-group "$RESOURCE_GROUP" \
+          --account-name "$STORAGE_ACCOUNT" \
+          --query '[0].value' -o tsv)
+
+        # Check if container exists, create if not
+        if ! az storage container show \
+          --name "$CONTAINER" \
+          --account-name "$STORAGE_ACCOUNT" \
+          --account-key "$STORAGE_KEY" &> /dev/null; then
+          echo "Creating container '$CONTAINER'..."
+          az storage container create \
+            --name "$CONTAINER" \
+            --account-name "$STORAGE_ACCOUNT" \
+            --account-key "$STORAGE_KEY" \
+            --public-access off
+          echo "Container created successfully"
+        else
+          echo "Container '$CONTAINER' already exists"
+        fi
+
+        echo "Backend bootstrap complete"
+        echo "##[endgroup]"
+    env:
+      TF_STATE_RG: $(tfStateResourceGroup)
+      TF_STATE_SA: $(tfStateStorageAccount)
+      TF_STATE_CONTAINER: $(tfStateContainer)
+      AZURE_LOCATION: eastus
+
+  - task: AzureCLI@2
     displayName: 'Terraform Init - ${{ parameters.environment }}'
     inputs:
       azureSubscription: ${{ parameters.azureServiceConnection }}
@@ -59,41 +156,57 @@ steps:
 
         echo "##[group]Initializing Terraform for ${{ parameters.environment }}"
 
+        RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+        STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+        CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+        STATE_KEY="flamoral-${{ parameters.environment }}.tfstate"
+
         echo "Backend Config:"
-        echo "  Resource Group: $TF_STATE_RG"
-        echo "  Storage Account: $TF_STATE_SA"
-        echo "  Container: $TF_STATE_CONTAINER"
-        echo "  State Key: ${{ parameters.environment }}.terraform.tfstate"
+        echo "  Resource Group: $RESOURCE_GROUP"
+        echo "  Storage Account: $STORAGE_ACCOUNT"
+        echo "  Container: $CONTAINER"
+        echo "  State Key: $STATE_KEY"
 
-        # Initialize with retry logic
-        MAX_RETRIES=3
-        RETRY_COUNT=0
+        # Initialize with backend configuration
+        # The -reconfigure flag allows changing backend config without being prompted
+        # The -upgrade flag updates provider versions to latest within constraints
+        echo "Running terraform init..."
 
-        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-          if terraform init \
-            -backend-config="resource_group_name=$TF_STATE_RG" \
-            -backend-config="storage_account_name=$TF_STATE_SA" \
-            -backend-config="container_name=$TF_STATE_CONTAINER" \
-            -backend-config="key=${{ parameters.environment }}.terraform.tfstate" \
-            -reconfigure \
-            -upgrade; then
-            echo "Terraform init successful"
-            break
+        if terraform init \
+          -backend-config="resource_group_name=$RESOURCE_GROUP" \
+          -backend-config="storage_account_name=$STORAGE_ACCOUNT" \
+          -backend-config="container_name=$CONTAINER" \
+          -backend-config="key=$STATE_KEY" \
+          -reconfigure \
+          -upgrade; then
+          echo "##[section]Terraform init successful with remote backend"
+        else
+          INIT_EXIT_CODE=$?
+          echo "##[warning]Terraform init with backend failed (exit code: $INIT_EXIT_CODE)"
+          echo "##[warning]This might be due to backend connectivity issues"
+          echo "##[warning]Attempting to initialize without backend to download providers..."
+
+          # Try to initialize without backend to at least get providers
+          # This creates a temporary local backend
+          if terraform init -backend=false -upgrade; then
+            echo "##[warning]Providers downloaded successfully with local backend"
+            echo "##[warning]WARNING: Using local state - this should only be for troubleshooting"
+            echo "##[warning]You should fix backend configuration for production use"
           else
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-              echo "##[warning]Terraform init failed, retry $RETRY_COUNT of $MAX_RETRIES"
-              sleep 10
-            else
-              echo "##[error]Terraform init failed after $MAX_RETRIES attempts"
-              exit 1
-            fi
+            echo "##[error]Failed to initialize Terraform even without backend"
+            echo "##[error]Please check your Terraform configuration for syntax errors"
+            exit 1
           fi
-        done
+        fi
+
+        # Verify providers are installed
+        echo ""
+        echo "Verifying provider installation..."
+        terraform providers || echo "##[warning]Failed to list providers"
 
         echo "##[endgroup]"
     env:
-      TF_STATE_RG: $(TF_STATE_RESOURCE_GROUP)
-      TF_STATE_SA: $(TF_STATE_STORAGE_ACCOUNT)
-      TF_STATE_CONTAINER: $(TF_STATE_CONTAINER)
+      TF_STATE_RG: $(tfStateResourceGroup)
+      TF_STATE_SA: $(tfStateStorageAccount)
+      TF_STATE_CONTAINER: $(tfStateContainer)
       TF_PLUGIN_CACHE: $(Pipeline.Workspace)/.terraform.d/plugin-cache

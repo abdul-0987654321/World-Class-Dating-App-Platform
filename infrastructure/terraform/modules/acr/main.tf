@@ -53,15 +53,21 @@ resource "azurerm_container_registry" "main" {
     }
   }
 
-  # Retention policy for untagged manifests
-  retention_policy {
-    days    = var.retention_days
-    enabled = var.retention_enabled
+  # Retention policy for untagged manifests (Premium SKU only)
+  dynamic "retention_policy" {
+    for_each = var.acr_sku == "Premium" ? [1] : []
+    content {
+      days    = var.retention_days
+      enabled = var.retention_enabled
+    }
   }
 
-  # Trust policy for signed images
-  trust_policy {
-    enabled = var.trust_policy_enabled
+  # Trust policy for signed images (Premium SKU only)
+  dynamic "trust_policy" {
+    for_each = var.acr_sku == "Premium" ? [1] : []
+    content {
+      enabled = var.trust_policy_enabled
+    }
   }
 
   tags = var.tags

@@ -78,17 +78,61 @@ stages:
               export TF_PLUGIN_CACHE_DIR="$(Pipeline.Workspace)/.terraform.d/plugin-cache"
               mkdir -p $TF_PLUGIN_CACHE_DIR
 
+              export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+              export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+              export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+              export ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+              RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+              STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+              CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+              LOCATION="eastus"
+
+              echo "Checking backend resources..."
+              # Ensure backend exists before validation
+              if ! az group show --name "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Creating backend resource group..."
+                az group create --name "$RESOURCE_GROUP" --location "$LOCATION" \
+                  --tags "Purpose=TerraformState" "ManagedBy=Pipeline"
+              fi
+
+              if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Creating backend storage account..."
+                az storage account create --name "$STORAGE_ACCOUNT" \
+                  --resource-group "$RESOURCE_GROUP" --location "$LOCATION" \
+                  --sku Standard_LRS --https-only true
+              fi
+
+              STORAGE_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" \
+                --account-name "$STORAGE_ACCOUNT" --query '[0].value' -o tsv)
+
+              if ! az storage container show --name "$CONTAINER" \
+                --account-name "$STORAGE_ACCOUNT" --account-key "$STORAGE_KEY" &> /dev/null; then
+                echo "Creating backend container..."
+                az storage container create --name "$CONTAINER" \
+                  --account-name "$STORAGE_ACCOUNT" --account-key "$STORAGE_KEY"
+              fi
+
               for env in dev test prod; do
                 echo "##[group]Validating $env environment"
                 cd $(Build.SourcesDirectory)/terraform/environments/$env
 
                 # Initialize with backend config to download all required providers
-                terraform init \
-                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                  -backend-config="container_name=$(tfStateContainer)" \
-                  -backend-config="key=$env.terraform.tfstate" \
-                  -upgrade
+                if terraform init \
+                  -backend-config="resource_group_name=$RESOURCE_GROUP" \
+                  -backend-config="storage_account_name=$STORAGE_ACCOUNT" \
+                  -backend-config="container_name=$CONTAINER" \
+                  -backend-config="key=flamoral-$env.tfstate" \
+                  -reconfigure \
+                  -upgrade; then
+                  echo "Terraform init successful for $env"
+                else
+                  echo "Backend init failed, trying without backend..."
+                  terraform init -backend=false -upgrade || {
+                    echo "Failed to initialize Terraform for $env"
+                    exit 1
+                  }
+                fi
 
                 terraform validate
                 echo "##[endgroup]"
@@ -99,6 +143,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - script: |
               curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash

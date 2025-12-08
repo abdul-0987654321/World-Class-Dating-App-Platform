@@ -19,17 +19,17 @@ steps:
     displayName: 'Download Terraform Plan'
     inputs:
       buildType: 'current'
-      artifactName: 'tfplan-${{ parameters.environment }}'
+      artifactName: 'terraform-plan-${{ parameters.environment }}'
       targetPath: '${{ parameters.workingDirectory }}'
 
   - script: |
       # Verify plan file exists
-      if [ ! -f "tfplan" ]; then
+      if [ ! -f "tfplan-${{ parameters.environment }}" ]; then
         echo "##[error]Plan file not found. Cannot apply."
         exit 1
       fi
 
-      echo "Plan file found, size: $(ls -lh tfplan | awk '{print $5}')"
+      echo "Plan file found, size: $(ls -lh tfplan-${{ parameters.environment }} | awk '{print $5}')"
     displayName: 'Verify Plan Artifact'
     workingDirectory: ${{ parameters.workingDirectory }}
 
@@ -55,7 +55,7 @@ steps:
         RETRY_COUNT=0
 
         while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-          if terraform apply -input=false -auto-approve tfplan; then
+          if terraform apply -input=false -auto-approve tfplan-${{ parameters.environment }}; then
             echo "##[section]Terraform apply successful"
             break
           else

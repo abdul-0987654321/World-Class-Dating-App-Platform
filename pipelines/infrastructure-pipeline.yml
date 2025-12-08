@@ -122,27 +122,92 @@ stages:
               export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
               export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
+              echo "====================================="
+              echo "Bootstrapping Terraform Backend"
+              echo "====================================="
+
+              RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+              STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+              CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+              LOCATION="eastus"
+
+              echo "Backend Configuration:"
+              echo "  Resource Group: $RESOURCE_GROUP"
+              echo "  Storage Account: $STORAGE_ACCOUNT"
+              echo "  Container: $CONTAINER"
+
+              # Check and create resource group
+              if ! az group show --name "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Creating resource group..."
+                az group create --name "$RESOURCE_GROUP" --location "$LOCATION" \
+                  --tags "Purpose=TerraformState" "ManagedBy=Pipeline" "Project=Flamoral"
+              else
+                echo "Resource group exists"
+              fi
+
+              # Check and create storage account
+              if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Creating storage account..."
+                az storage account create \
+                  --name "$STORAGE_ACCOUNT" \
+                  --resource-group "$RESOURCE_GROUP" \
+                  --location "$LOCATION" \
+                  --sku Standard_LRS \
+                  --https-only true \
+                  --min-tls-version TLS1_2 \
+                  --allow-blob-public-access false
+              else
+                echo "Storage account exists"
+              fi
+
+              # Get storage key and create container
+              STORAGE_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" \
+                --account-name "$STORAGE_ACCOUNT" --query '[0].value' -o tsv)
+
+              if ! az storage container show --name "$CONTAINER" \
+                --account-name "$STORAGE_ACCOUNT" --account-key "$STORAGE_KEY" &> /dev/null; then
+                echo "Creating container..."
+                az storage container create --name "$CONTAINER" \
+                  --account-name "$STORAGE_ACCOUNT" --account-key "$STORAGE_KEY"
+              else
+                echo "Container exists"
+              fi
+
               cd $(workingDirectory)
 
               echo "====================================="
               echo "Terraform Init for ${{ parameters.environment }}"
               echo "====================================="
-              terraform init \
-                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                -backend-config="container_name=$(tfStateContainer)" \
-                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+
+              if terraform init \
+                -backend-config="resource_group_name=$RESOURCE_GROUP" \
+                -backend-config="storage_account_name=$STORAGE_ACCOUNT" \
+                -backend-config="container_name=$CONTAINER" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate" \
+                -reconfigure \
+                -upgrade; then
+                echo "Terraform init successful with remote backend"
+              else
+                echo "Backend init failed, trying without backend to download providers..."
+                terraform init -backend=false -upgrade || {
+                  echo "Failed to initialize Terraform"
+                  exit 1
+                }
+              fi
 
               echo "====================================="
               echo "Terraform Validate"
               echo "====================================="
               terraform validate
-            displayName: 'Terraform Init & Validate'
+            displayName: 'Bootstrap Backend & Terraform Init'
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - script: |
               echo "Installing tflint..."
@@ -189,11 +254,16 @@ stages:
 
               cd $(workingDirectory)
 
+              RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+              STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+              CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+
               terraform init \
-                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                -backend-config="container_name=$(tfStateContainer)" \
-                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+                -backend-config="resource_group_name=$RESOURCE_GROUP" \
+                -backend-config="storage_account_name=$STORAGE_ACCOUNT" \
+                -backend-config="container_name=$CONTAINER" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate" \
+                -reconfigure
 
               echo "====================================="
               echo "Terraform Plan for ${{ parameters.environment }}"
@@ -223,6 +293,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -306,6 +379,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -378,6 +454,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -482,6 +561,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -550,11 +632,16 @@ stages:
 
               cd $(workingDirectory)
 
+              RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
+              STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
+              CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+
               terraform init \
-                -backend-config="resource_group_name=$(tfStateResourceGroup)" \
-                -backend-config="storage_account_name=$(tfStateStorageAccount)" \
-                -backend-config="container_name=$(tfStateContainer)" \
-                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate"
+                -backend-config="resource_group_name=$RESOURCE_GROUP" \
+                -backend-config="storage_account_name=$STORAGE_ACCOUNT" \
+                -backend-config="container_name=$CONTAINER" \
+                -backend-config="key=flamoral-${{ parameters.environment }}.tfstate" \
+                -reconfigure
 
               echo "====================================="
               echo "DESTROYING INFRASTRUCTURE"
@@ -571,6 +658,9 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_STATE_RG: $(tfStateResourceGroup)
+              TF_STATE_SA: $(tfStateStorageAccount)
+              TF_STATE_CONTAINER: $(tfStateContainer)
 
   # ============================================================================
   # STAGE 7: INFRASTRUCTURE VERIFICATION
