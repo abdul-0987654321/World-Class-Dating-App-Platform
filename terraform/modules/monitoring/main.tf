@@ -5,10 +5,13 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
   retention_in_days   = var.retention_days
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }
 
 resource "azurerm_application_insights" "this" {
@@ -18,8 +21,11 @@ resource "azurerm_application_insights" "this" {
   workspace_id        = azurerm_log_analytics_workspace.this.id
   application_type    = "web"
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }

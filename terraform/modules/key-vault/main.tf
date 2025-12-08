@@ -16,8 +16,11 @@ resource "azurerm_key_vault" "this" {
     default_action = var.environment == "prod" ? "Deny" : "Allow"
   }
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }

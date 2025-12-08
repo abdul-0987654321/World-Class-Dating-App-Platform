@@ -62,3 +62,9 @@ variable "storage_account_access_key" {
   sensitive   = true
   default     = ""
 }
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

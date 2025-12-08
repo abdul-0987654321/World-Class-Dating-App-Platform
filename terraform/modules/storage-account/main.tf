@@ -21,8 +21,11 @@ resource "azurerm_storage_account" "this" {
     }
   }
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }

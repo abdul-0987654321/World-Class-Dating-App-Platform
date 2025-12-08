@@ -43,3 +43,9 @@ variable "soft_delete_retention_days" {
     error_message = "Soft delete retention days must be between 1 and 365."
   }
 }
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

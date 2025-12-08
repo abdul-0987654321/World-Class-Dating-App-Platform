@@ -8,10 +8,13 @@ resource "azurerm_mssql_server" "this" {
 
   minimum_tls_version = "1.2"
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }
 
 resource "azurerm_mssql_database" "this" {
@@ -22,10 +25,13 @@ resource "azurerm_mssql_database" "this" {
   sku_name       = var.sku_name
   zone_redundant = var.environment == "prod" ? true : false
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }
 
 # Enable threat detection for test and prod environments

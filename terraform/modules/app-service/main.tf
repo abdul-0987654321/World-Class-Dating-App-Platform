@@ -5,10 +5,13 @@ resource "azurerm_service_plan" "this" {
   os_type             = "Linux"
   sku_name            = var.sku_name
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }
 
 resource "azurerm_linux_web_app" "this" {
@@ -37,8 +40,11 @@ resource "azurerm_linux_web_app" "this" {
     type = "SystemAssigned"
   }
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    },
+    var.tags
+  )
 }
