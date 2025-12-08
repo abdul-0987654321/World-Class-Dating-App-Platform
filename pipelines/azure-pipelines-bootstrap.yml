@@ -5,7 +5,7 @@
 trigger: none  # Manual trigger only
 
 pool:
-  name: 'Default'  # Self-hosted agent pool (same as infra pipeline)
+  vmImage: 'ubuntu-latest'  # Microsoft-hosted agent
 
 variables:
   - name: resourceGroupName

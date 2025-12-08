@@ -43,7 +43,7 @@ variables:
   - group: flamoral-security-vars
 
 pool:
-  name: 'Default'  # Self-hosted agent pool
+  vmImage: 'ubuntu-latest'  # Microsoft-hosted agent (was 'Default' self-hosted)
 
 stages:
   # ============================================================================
