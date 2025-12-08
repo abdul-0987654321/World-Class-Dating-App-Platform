@@ -112,3 +112,9 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "aks_ingress_ip" {
+  description = "Public IP address of AKS ingress load balancer for DNS records"
+  type        = string
+  default     = ""
+}

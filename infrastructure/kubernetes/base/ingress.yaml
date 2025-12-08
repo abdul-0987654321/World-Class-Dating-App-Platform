@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dating-app-ingress
-  namespace: dating-app
+  name: flamoral-ingress
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -10,43 +10,59 @@ metadata:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rate-limit: "100"
     nginx.ingress.kubernetes.io/limit-rps: "10"
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "90"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "90"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://datingapp.com"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://flamoral.com,https://www.flamoral.com"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/websocket-services: "api-gateway,realtime-service"
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
-    - datingapp.com
-    - www.datingapp.com
-    - api.datingapp.com
-    secretName: dating-app-tls
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+    secretName: flamoral-tls
   rules:
-  - host: datingapp.com
+  - host: flamoral.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend
+            name: web
             port:
-              number: 3000
-  - host: www.datingapp.com
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 80
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: realtime-service
+            port:
+              number: 80
+  - host: www.flamoral.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend
+            name: web
             port:
-              number: 3000
-  - host: api.datingapp.com
+              number: 80
+  - host: api.flamoral.com
     http:
       paths:
       - path: /
@@ -55,4 +71,4 @@ spec:
           service:
             name: api-gateway
             port:
-              number: 4000
+              number: 80

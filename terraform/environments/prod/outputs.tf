@@ -146,3 +146,18 @@ output "disaster_recovery_info" {
     db_geo_replication  = var.enable_geo_replication
   }
 }
+
+output "dns_zone_name_servers" {
+  description = "DNS Zone name servers - configure these at your domain registrar"
+  value       = module.dns_zone.name_servers
+}
+
+output "dns_zone_info" {
+  description = "DNS Zone information for flamoral.com"
+  value = {
+    domain           = "flamoral.com"
+    zone_id          = module.dns_zone.dns_zone_id
+    name_servers     = module.dns_zone.name_servers
+    resource_group   = module.dns_zone.dns_zone_resource_group
+  }
+}

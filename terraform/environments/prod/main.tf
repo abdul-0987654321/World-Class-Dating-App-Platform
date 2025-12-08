@@ -219,6 +219,28 @@ module "monitoring" {
 }
 
 # ====================
+# DNS Zone (flamoral.com)
+# ====================
+module "dns_zone" {
+  source = "../../modules/dns-zone"
+
+  domain_name         = "flamoral.com"
+  resource_group_name = module.resource_group.name
+
+  # AKS public IP will be populated after AKS deployment
+  aks_public_ip = var.aks_ingress_ip
+
+  create_environment_records = true
+  dev_cname_target          = "flamoral-dev.azurewebsites.net"
+  test_cname_target         = "flamoral-test.azurewebsites.net"
+  staging_cname_target      = "flamoral-staging.azurewebsites.net"
+
+  enable_email_records = true
+
+  tags = local.common_tags
+}
+
+# ====================
 # Lifecycle Protection
 # ====================
 # Prevent accidental destruction of critical resources
