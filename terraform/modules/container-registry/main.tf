@@ -5,15 +5,21 @@ resource "azurerm_container_registry" "this" {
   sku                 = var.sku
   admin_enabled       = var.admin_enabled
 
-  # Enable content trust for production environments
-  trust_policy {
-    enabled = var.environment == "prod" ? true : false
+  # Enable content trust for Premium SKU only
+  dynamic "trust_policy" {
+    for_each = var.sku == "Premium" ? [1] : []
+    content {
+      enabled = var.environment == "prod" ? true : false
+    }
   }
 
-  # Enable retention policy for production
-  retention_policy {
-    days    = var.environment == "prod" ? 30 : 7
-    enabled = true
+  # Enable retention policy for Premium SKU only
+  dynamic "retention_policy" {
+    for_each = var.sku == "Premium" ? [1] : []
+    content {
+      days    = var.environment == "prod" ? 30 : 7
+      enabled = true
+    }
   }
 
   tags = merge(
