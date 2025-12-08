@@ -1,82 +1,158 @@
-# Quick Fix Guide - Azure DevOps Pipeline Errors
+# Quick Fix Guide - Flamoral Dating Platform
 
-## TL;DR
+## Current Status: 2 Critical Issues Blocking All Pipelines
 
-**Problem**: advertising-service and realtime-service failing in Azure DevOps CI pipeline
+**Last Updated:** December 8, 2025
 
-**Quick Fix**:
+---
+
+## Issue #1: CI Pipeline - @flamoral/shared Package Not Found
+
+### The Problem
+All 11 Node.js microservices are failing with:
+```
+npm error 404 Not Found - GET https://registry.npmjs.org/@flamoral%2fshared - Not found
+```
+
+### Root Cause
+Services depend on `@flamoral/shared` which is a **local workspace package**, not published to npm.
+
+### FIX APPLIED
+Updated `pipelines/templates/node-build.yml` to:
+1. Build `backend/shared` first
+2. Copy it to service's `node_modules/@flamoral/shared`
+3. Then run npm install
+
+**Action Required:** Commit and push the changes, then re-run CI pipeline.
+
+---
+
+## Issue #2: Infrastructure Pipeline - Terraform Backend Missing
+
+### The Problem
+Terraform init fails with:
+```
+Error: Resource group 'flamoral-terraform-state-rg' could not be found.
+```
+
+### Root Cause
+The Azure resources for Terraform state storage don't exist yet.
+
+### FIX: Run Bootstrap (Choose One Method)
+
+#### Option A: Run Bootstrap Pipeline in Azure DevOps
+1. Go to: https://dev.azure.com/citadelcloudmanagement/DatingPlatform/_build
+2. Find: `Bootstrap - Create Terraform Backend`
+3. Click "Run pipeline"
+4. Wait for completion
+
+#### Option B: Run PowerShell Script Locally
+```powershell
+cd DatingPlatform/scripts
+.\bootstrap-terraform-backend.ps1
+```
+
+#### Option C: Run Bash Script Locally
 ```bash
+cd DatingPlatform/scripts
+chmod +x bootstrap-terraform-backend.sh
+./bootstrap-terraform-backend.sh
+```
+
+#### Option D: Manual Azure CLI Commands
+```bash
+# Login to Azure
+az login
+
+# Create resource group
+az group create --name flamoral-terraform-state-rg --location eastus
+
+# Create storage account
+az storage account create \
+  --name flamoraltfstate \
+  --resource-group flamoral-terraform-state-rg \
+  --location eastus \
+  --sku Standard_LRS \
+  --https-only true \
+  --allow-blob-public-access false
+
+# Create container
+STORAGE_KEY=$(az storage account keys list \
+  --resource-group flamoral-terraform-state-rg \
+  --account-name flamoraltfstate \
+  --query '[0].value' -o tsv)
+
+az storage container create \
+  --name tfstate \
+  --account-name flamoraltfstate \
+  --account-key $STORAGE_KEY
+```
+
+---
+
+## Quick Start - Apply All Fixes
+
+```bash
+# 1. Commit the pipeline fix
 cd DatingPlatform
-chmod +x apply-pipeline-fixes.sh
-./apply-pipeline-fixes.sh
-git add backend/services/advertising-service/package.json pipelines/ci-pipeline.yml
-git commit -m "Fix CI pipeline errors for backend services"
+git add pipelines/templates/node-build.yml scripts/bootstrap-terraform-backend.sh scripts/bootstrap-terraform-backend.ps1
+git commit -m "fix(pipelines): Fix @flamoral/shared resolution and add bootstrap scripts"
 git push
+
+# 2. Bootstrap Terraform backend (run one of these)
+# Option A: Via Azure CLI
+az login
+./scripts/bootstrap-terraform-backend.sh
+
+# Option B: Via PowerShell
+.\scripts\bootstrap-terraform-backend.ps1
+
+# 3. Trigger pipelines in Azure DevOps
+# Go to: https://dev.azure.com/citadelcloudmanagement/DatingPlatform/_build
+# Run CI pipeline first, then Infrastructure pipeline
 ```
 
 ---
 
-## What's Wrong?
+## After Applying Fixes
 
-| Service | Error | Why |
-|---------|-------|-----|
-| advertising-service | `eslint: command not found` | Missing ESLint in package.json devDependencies |
-| realtime-service | `npm: command not found` | Go service being built as Node.js service |
+### Expected Pipeline Order
+1. **Bootstrap Pipeline** → Creates Terraform backend storage (one-time)
+2. **CI Pipeline** → Builds all services (should now pass)
+3. **Security Pipeline** → Already passing
+4. **Infrastructure Pipeline** → Deploys Azure resources (after bootstrap)
+5. **CD Pipeline** → Deploys to AKS (after CI passes)
 
----
-
-## The Fixes
-
-### Fix #1: Add ESLint to advertising-service
-
-**File**: `backend/services/advertising-service/package.json`
-
-Add to devDependencies:
-```json
-"@types/jest": "^29.5.11",
-"@typescript-eslint/eslint-plugin": "^6.15.0",
-"@typescript-eslint/parser": "^6.15.0",
-"eslint": "^8.56.0"
-```
-
-### Fix #2: Create Go build job for realtime-service
-
-**File**: `pipelines/ci-pipeline.yml`
-
-1. Remove `RealtimeService` from `BuildNodeServices` matrix (lines 185-187)
-2. Add new `BuildGoServices` job (before `BuildAIServices`)
+### Verification Steps
+1. Check CI builds are green
+2. Check Infrastructure pipeline can run terraform init
+3. Verify AKS cluster is created
+4. Verify services deploy successfully
 
 ---
 
-## Test Before Pushing
+## Files Changed/Created
 
-```bash
-# Test advertising-service
-cd backend/services/advertising-service
-npm install
-npm run lint && npm run build
-
-# Test realtime-service
-cd ../realtime-service
-go build -v ./... && go test -v ./...
-```
-
----
-
-## Files Created
-
-1. **PIPELINE_FIX_SUMMARY.md** - Complete overview
-2. **PIPELINE_FIXES.md** - Detailed technical analysis
-3. **MANUAL_FIX_INSTRUCTIONS.md** - Step-by-step manual guide
-4. **apply-pipeline-fixes.sh** - Automated fix script
-5. **fix-advertising-service.sh** - Package.json fix script
-6. **QUICK_FIX_GUIDE.md** - This file
+| File | Status | Description |
+|------|--------|-------------|
+| `pipelines/templates/node-build.yml` | Modified | Fixed @flamoral/shared resolution |
+| `scripts/bootstrap-terraform-backend.ps1` | Created | Bootstrap script (PowerShell) |
+| `scripts/bootstrap-terraform-backend.sh` | Created | Bootstrap script (Bash) |
+| `PLATFORM_SCAN_REPORT.md` | Created | Full analysis report |
+| `QUICK_FIX_GUIDE.md` | Modified | This guide |
 
 ---
 
 ## Need Help?
 
-- **Automated fix**: Use `apply-pipeline-fixes.sh`
-- **Manual fix**: See `MANUAL_FIX_INSTRUCTIONS.md`
-- **Technical details**: See `PIPELINE_FIXES.md`
-- **Overview**: See `PIPELINE_FIX_SUMMARY.md`
+1. Check detailed report: `PLATFORM_SCAN_REPORT.md`
+2. Review pipeline logs in Azure DevOps
+3. Verify Azure service connection has correct permissions
+4. Ensure Variable Group `datingplatform-terraform-common` exists with:
+   - `tfStateResourceGroup`
+   - `tfStateStorageAccount`
+   - `tfStateContainer`
+   - `ARM_CLIENT_ID`
+   - `ARM_CLIENT_SECRET`
+   - `ARM_SUBSCRIPTION_ID`
+   - `ARM_TENANT_ID`

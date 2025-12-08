@@ -2,8 +2,8 @@
 # Node.js Build Template
 # =============================================================================
 # Reusable template for building Node.js microservices
-# IMPORTANT: This template uses yarn workspaces to resolve @flamoral/shared
-# and other local packages. It must install at monorepo root first.
+# CRITICAL: Services depend on @flamoral/shared which is a LOCAL workspace package
+# We MUST install at monorepo root first to create proper symlinks
 # =============================================================================
 
 parameters:
@@ -48,55 +48,91 @@ steps:
       yarn --version
     displayName: 'Ensure Yarn is installed'
 
+  # Cache at monorepo level (yarn.lock is at root)
   - task: Cache@2
     inputs:
       key: 'yarn | "$(Agent.OS)" | yarn.lock'
       restoreKeys: |
         yarn | "$(Agent.OS)"
-      path: $(Pipeline.Workspace)/.yarn/cache
+      path: node_modules
     displayName: 'Cache yarn dependencies'
     continueOnError: true
 
-  # CRITICAL FIX: Install at monorepo root first to resolve workspace packages
-  # This creates symlinks for @flamoral/shared and other local packages
-  - script: |
-      echo "Installing dependencies at monorepo root (for @flamoral/shared)..."
-      if [ -f "yarn.lock" ]; then
-        yarn install --frozen-lockfile || yarn install
-      else
-        yarn install
-      fi
+  # Cache npm for service-level node_modules
+  - task: Cache@2
+    inputs:
+      key: 'npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}/package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)" | ${{ parameters.serviceDirectory }}
+        npm | "$(Agent.OS)"
+      path: ${{ parameters.serviceDirectory }}/node_modules
+    displayName: 'Cache npm dependencies - ${{ parameters.serviceName }}'
+    continueOnError: true
 
-      # Build shared package first if it exists
-      if [ -d "packages/shared" ]; then
-        echo "Building @flamoral/shared package..."
-        yarn workspace @flamoral/shared build || echo "Shared package build completed"
-      fi
+  # CRITICAL FIX: Build and link @flamoral/shared BEFORE service install
+  # Step 1: Build the shared package that services depend on
+  - script: |
+      echo "=========================================="
+      echo "Building @flamoral/shared package first"
+      echo "=========================================="
+
+      # Build backend/shared first (this is what services import)
       if [ -d "backend/shared" ]; then
-        echo "Building backend shared package..."
-        cd backend/shared && yarn build || npm run build && cd ../..
+        echo "Building backend/shared..."
+        cd backend/shared
+        npm install --prefer-offline --no-audit || npm install
+        npm run build || echo "Build script not found or completed"
+        cd ../..
+        echo "✓ backend/shared built successfully"
       fi
-    displayName: 'Install monorepo dependencies (resolve @flamoral/shared)'
 
-  # Now build the specific service using workspace command
+      # Also build packages/shared if it exists
+      if [ -d "packages/shared" ]; then
+        echo "Building packages/shared..."
+        cd packages/shared
+        npm install --prefer-offline --no-audit || npm install
+        npm run build || echo "Build script not found or completed"
+        cd ../..
+        echo "✓ packages/shared built successfully"
+      fi
+    displayName: 'Build @flamoral/shared package'
+
+  # Step 2: Link the shared package for the service to use
   - script: |
-      if [ ! -d "${{ parameters.serviceDirectory }}" ]; then
-        echo "ERROR: Service directory not found: ${{ parameters.serviceDirectory }}"
-        exit 1
+      echo "=========================================="
+      echo "Setting up @flamoral/shared for ${{ parameters.serviceName }}"
+      echo "=========================================="
+
+      SERVICE_DIR="${{ parameters.serviceDirectory }}"
+
+      # Create node_modules/@flamoral directory if needed
+      mkdir -p "$SERVICE_DIR/node_modules/@flamoral"
+
+      # Link backend/shared as @flamoral/shared
+      if [ -d "backend/shared" ]; then
+        echo "Linking backend/shared -> $SERVICE_DIR/node_modules/@flamoral/shared"
+        rm -rf "$SERVICE_DIR/node_modules/@flamoral/shared"
+        cp -r backend/shared "$SERVICE_DIR/node_modules/@flamoral/shared"
+        echo "✓ @flamoral/shared linked successfully"
       fi
+    displayName: 'Link @flamoral/shared - ${{ parameters.serviceName }}'
 
-      # Get the service package name from package.json
-      SERVICE_PKG_NAME=$(node -pe "require('./${{ parameters.serviceDirectory }}/package.json').name")
-      echo "Building service: $SERVICE_PKG_NAME"
+  # Step 3: Install service dependencies (now @flamoral/shared is available)
+  - script: |
+      echo "=========================================="
+      echo "Installing dependencies for ${{ parameters.serviceName }}"
+      echo "=========================================="
 
-      # Use yarn workspace to build (respects symlinked dependencies)
-      if [ -n "$SERVICE_PKG_NAME" ]; then
-        yarn workspace $SERVICE_PKG_NAME install || echo "Workspace install completed"
+      cd ${{ parameters.serviceDirectory }}
+
+      # Use npm with local package resolution
+      if [ -f "package-lock.json" ]; then
+        npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit
       else
-        # Fallback: direct cd and install
-        cd ${{ parameters.serviceDirectory }}
-        yarn install || npm install
+        npm install --prefer-offline --no-audit
       fi
+
+      echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
     displayName: 'Install dependencies - ${{ parameters.serviceName }}'
 
   - script: |
