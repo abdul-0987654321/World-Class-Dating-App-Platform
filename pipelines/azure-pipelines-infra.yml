@@ -75,14 +75,30 @@ stages:
             continueOnError: false
 
           - script: |
+              export TF_PLUGIN_CACHE_DIR="$(Pipeline.Workspace)/.terraform.d/plugin-cache"
+              mkdir -p $TF_PLUGIN_CACHE_DIR
+
               for env in dev test prod; do
                 echo "##[group]Validating $env environment"
                 cd $(Build.SourcesDirectory)/terraform/environments/$env
-                terraform init -backend=false
+
+                # Initialize with backend config to download all required providers
+                terraform init \
+                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                  -backend-config="container_name=$(tfStateContainer)" \
+                  -backend-config="key=$env.terraform.tfstate" \
+                  -upgrade
+
                 terraform validate
                 echo "##[endgroup]"
               done
             displayName: 'Terraform Validate (all environments)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
               curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
