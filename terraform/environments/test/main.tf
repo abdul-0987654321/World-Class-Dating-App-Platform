@@ -20,6 +20,8 @@ terraform {
 }
 
 provider "azurerm" {
+  skip_provider_registration = true  # Service principal doesn't need to register providers
+
   features {
     key_vault {
       purge_soft_delete_on_destroy    = false
