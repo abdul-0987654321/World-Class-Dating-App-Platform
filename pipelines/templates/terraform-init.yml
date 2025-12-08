@@ -93,7 +93,7 @@ steps:
 
         echo "##[endgroup]"
     env:
-      TF_STATE_RG: $(tfStateResourceGroup)
-      TF_STATE_SA: $(tfStateStorageAccount)
-      TF_STATE_CONTAINER: $(tfStateContainer)
+      TF_STATE_RG: $(TF_STATE_RESOURCE_GROUP)
+      TF_STATE_SA: $(TF_STATE_STORAGE_ACCOUNT)
+      TF_STATE_CONTAINER: $(TF_STATE_CONTAINER)
       TF_PLUGIN_CACHE: $(Pipeline.Workspace)/.terraform.d/plugin-cache
