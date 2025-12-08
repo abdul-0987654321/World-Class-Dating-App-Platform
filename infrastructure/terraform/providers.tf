@@ -1,42 +1,5 @@
-terraform {
-  required_version = ">= 1.4"
-
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.80"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.23"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.11"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.5"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = true
-      recover_soft_deleted_key_vaults = true
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-
-  # Authentication via OIDC (GitHub Actions) or Service Principal
-  # Set via environment variables or workload identity
-  subscription_id = var.subscription_id
-  tenant_id       = var.tenant_id
-}
+# Additional Provider Configurations
+# Note: terraform block and azurerm provider are defined in main.tf
 
 provider "kubernetes" {
   host                   = try(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.host, null)
