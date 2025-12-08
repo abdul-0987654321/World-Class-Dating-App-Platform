@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Shared packages for Flamoral (types, utils, constants, validators)",
   "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "workspaces": [
     "types",
     "utils",
@@ -10,9 +12,26 @@
     "validators",
     "api-client"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "yarn workspaces foreach -pt run build",
+    "build": "tsc && yarn workspaces foreach -pt run build",
+    "dev": "tsc --watch",
     "lint": "yarn workspaces foreach -pt run lint",
     "test": "yarn workspaces foreach -pt run test"
+  },
+  "dependencies": {
+    "@flamoral/types": "^1.0.0",
+    "@flamoral/utils": "^1.0.0",
+    "@flamoral/constants": "^1.0.0",
+    "@flamoral/validators": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2"
   }
 }

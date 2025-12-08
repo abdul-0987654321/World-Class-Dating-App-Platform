@@ -20,6 +20,8 @@
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "@/*": ["./src/*"],
       "@api/*": ["./src/api/*"],
@@ -28,7 +30,12 @@
       "@middleware/*": ["./src/middleware/*"],
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"]
+      "@types/*": ["./src/types/*"],
+      "@flamoral/shared": ["../packages/shared/src"],
+      "@flamoral/types": ["../packages/shared/types/src"],
+      "@flamoral/utils": ["../packages/shared/utils/src"],
+      "@flamoral/constants": ["../packages/shared/constants/src"],
+      "@flamoral/validators": ["../packages/shared/validators/src"]
     }
   },
   "include": ["src/**/*"],

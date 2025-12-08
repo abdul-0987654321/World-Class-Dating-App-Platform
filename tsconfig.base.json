@@ -17,6 +17,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@flamoral/shared": ["packages/shared/src"],
       "@flamoral/api-client": ["packages/shared/api-client/src"],
       "@flamoral/react-api-client": ["packages/api-client/src"],
       "@flamoral/types": ["packages/shared/types/src"],

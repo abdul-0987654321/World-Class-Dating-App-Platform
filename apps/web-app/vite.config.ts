@@ -30,7 +30,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          redux: ['@reduxjs/toolkit', 'react-redux'],
+          redux: ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
           query: ['@tanstack/react-query'],
         },
       },

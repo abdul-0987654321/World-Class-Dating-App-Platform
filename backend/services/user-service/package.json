@@ -25,6 +25,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@flamoral/shared": "^1.0.0",
     "@azure/storage-blob": "^12.17.0",
     "@sendgrid/mail": "^8.1.0",
     "@types/socket.io": "^3.0.1",
@@ -46,7 +47,8 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "axios": "^1.6.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
