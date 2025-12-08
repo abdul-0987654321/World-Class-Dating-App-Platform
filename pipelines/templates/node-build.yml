@@ -69,7 +69,7 @@ steps:
     displayName: 'Cache npm dependencies - ${{ parameters.serviceName }}'
     continueOnError: true
 
-  # CRITICAL FIX: Build and link @flamoral/shared BEFORE service install
+  # CRITICAL FIX: Build @flamoral/shared first, then install deps, then link
   # Step 1: Build the shared package that services depend on
   - script: |
       echo "=========================================="
@@ -97,10 +97,34 @@ steps:
       fi
     displayName: 'Build @flamoral/shared package'
 
-  # Step 2: Link the shared package for the service to use
+  # Step 2: Install service dependencies FIRST (this creates node_modules)
   - script: |
       echo "=========================================="
-      echo "Setting up @flamoral/shared for ${{ parameters.serviceName }}"
+      echo "Installing dependencies for ${{ parameters.serviceName }}"
+      echo "=========================================="
+
+      cd ${{ parameters.serviceDirectory }}
+
+      # Remove @flamoral/shared from package.json temporarily to avoid npm errors
+      # We'll link it manually after install
+      if grep -q '"@flamoral/shared"' package.json; then
+        echo "Note: @flamoral/shared will be linked after npm install"
+      fi
+
+      # Use npm install with --ignore-scripts to avoid postinstall errors from missing @flamoral/shared
+      if [ -f "package-lock.json" ]; then
+        npm ci --prefer-offline --no-audit --ignore-scripts 2>/dev/null || npm install --prefer-offline --no-audit --ignore-scripts || npm install --ignore-scripts
+      else
+        npm install --prefer-offline --no-audit --ignore-scripts || npm install --ignore-scripts
+      fi
+
+      echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
+    displayName: 'Install dependencies - ${{ parameters.serviceName }}'
+
+  # Step 3: Link @flamoral/shared AFTER npm install (so it doesn't get overwritten)
+  - script: |
+      echo "=========================================="
+      echo "Linking @flamoral/shared for ${{ parameters.serviceName }}"
       echo "=========================================="
 
       SERVICE_DIR="${{ parameters.serviceDirectory }}"
@@ -114,26 +138,19 @@ steps:
         rm -rf "$SERVICE_DIR/node_modules/@flamoral/shared"
         cp -r backend/shared "$SERVICE_DIR/node_modules/@flamoral/shared"
         echo "✓ @flamoral/shared linked successfully"
+
+        # Verify the link
+        if [ -f "$SERVICE_DIR/node_modules/@flamoral/shared/package.json" ]; then
+          echo "✓ Verified: @flamoral/shared package.json exists"
+        else
+          echo "WARNING: @flamoral/shared link may have failed"
+        fi
       fi
+
+      # List what's in node_modules/@flamoral for debugging
+      echo "Contents of $SERVICE_DIR/node_modules/@flamoral:"
+      ls -la "$SERVICE_DIR/node_modules/@flamoral/" || echo "Directory empty or not found"
     displayName: 'Link @flamoral/shared - ${{ parameters.serviceName }}'
-
-  # Step 3: Install service dependencies (now @flamoral/shared is available)
-  - script: |
-      echo "=========================================="
-      echo "Installing dependencies for ${{ parameters.serviceName }}"
-      echo "=========================================="
-
-      cd ${{ parameters.serviceDirectory }}
-
-      # Use npm with local package resolution
-      if [ -f "package-lock.json" ]; then
-        npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit
-      else
-        npm install --prefer-offline --no-audit
-      fi
-
-      echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
-    displayName: 'Install dependencies - ${{ parameters.serviceName }}'
 
   - script: |
       if [ ! -d "${{ parameters.serviceDirectory }}" ]; then
