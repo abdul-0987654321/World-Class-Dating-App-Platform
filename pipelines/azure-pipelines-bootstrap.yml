@@ -26,6 +26,19 @@ stages:
       - job: CreateResources
         displayName: 'Create Azure Storage for Terraform State'
         steps:
+          # Install Azure CLI if not present on self-hosted agent
+          - script: |
+              echo "##[group]Checking/Installing Azure CLI"
+              if ! command -v az &> /dev/null; then
+                echo "Azure CLI not found, installing..."
+                curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              else
+                echo "Azure CLI already installed: $(az version --output tsv 2>/dev/null | head -1)"
+              fi
+              az version
+              echo "##[endgroup]"
+            displayName: 'Ensure Azure CLI Installed'
+
           - task: AzureCLI@2
             displayName: 'Create Resource Group'
             inputs:
