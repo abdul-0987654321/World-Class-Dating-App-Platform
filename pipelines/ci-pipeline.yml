@@ -44,10 +44,30 @@ pool:
 
 stages:
   # ============================================================================
+  # STAGE 0: VALIDATION
+  # ============================================================================
+  - stage: Validation
+    displayName: 'Pre-Build Validation'
+    jobs:
+      - job: VerifyPaths
+        displayName: 'Verify Service Paths'
+        steps:
+          - checkout: self
+            fetchDepth: 1
+
+          - script: |
+              echo "Verifying all service directories exist before building..."
+              chmod +x pipelines/scripts/verify-services.sh
+              bash pipelines/scripts/verify-services.sh
+            displayName: 'Verify Service Directories'
+
+  # ============================================================================
   # STAGE 1: CODE QUALITY & SECURITY ANALYSIS
   # ============================================================================
   - stage: CodeQuality
     displayName: 'Code Quality & Security'
+    dependsOn: Validation
+    condition: succeeded()
     jobs:
       - job: Linting
         displayName: 'Lint & Type Check'
@@ -299,25 +319,36 @@ stages:
               versionSpec: $(nodeVersion)
             displayName: 'Install Node.js'
 
+          - script: |
+              # Install yarn if not present
+              if ! command -v yarn &> /dev/null; then
+                npm install -g yarn
+              fi
+              yarn --version
+            displayName: 'Install Yarn'
+
           - task: Cache@2
             inputs:
-              key: 'npm | "$(Agent.OS)" | package-lock.json'
-              restoreKeys: npm | "$(Agent.OS)"
-              path: $(Pipeline.Workspace)/.npm
-            displayName: 'Cache npm dependencies'
+              key: 'yarn | "$(Agent.OS)" | yarn.lock'
+              restoreKeys: yarn | "$(Agent.OS)"
+              path: $(Pipeline.Workspace)/.yarn/cache
+            displayName: 'Cache yarn dependencies'
             continueOnError: true
 
           - script: |
-              npm ci || npm install
-            displayName: 'Install Dependencies'
+              yarn install --frozen-lockfile || yarn install
+            displayName: 'Install Dependencies (Yarn)'
 
           - script: |
               if [ -d "apps/web-app" ]; then
-                cd apps/web-app
-                npm run build
+                echo "Building web app using yarn workspace..."
+                yarn workspace @flamoral/web build
               elif [ -d "apps/web" ]; then
+                echo "Building web app (legacy path)..."
                 cd apps/web
-                npm run build
+                yarn build
+              else
+                echo "Web app directory not found, skipping..."
               fi
             displayName: 'Build Web App'
             env:
@@ -341,10 +372,17 @@ stages:
             displayName: 'Install Node.js'
 
           - script: |
+              # Install yarn if not present
+              if ! command -v yarn &> /dev/null; then
+                npm install -g yarn
+              fi
+            displayName: 'Install Yarn'
+
+          - script: |
               if [ -d "apps/mobile-app" ]; then
-                cd apps/mobile-app
-                npm ci || npm install
-                npm test || echo "No mobile tests found"
+                echo "Building mobile app..."
+                yarn install --frozen-lockfile || yarn install
+                yarn workspace @flamoral/mobile test || echo "No mobile tests found"
               fi
             displayName: 'Build & Test Mobile App'
             continueOnError: true
