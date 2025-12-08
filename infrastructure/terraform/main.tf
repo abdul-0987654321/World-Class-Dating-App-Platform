@@ -210,8 +210,7 @@ module "frontdoor" {
   prefix              = var.prefix
   env                 = var.env
 
-  backend_address = module.aks.aks_fqdn
-  enable_waf      = var.enable_waf
+  aks_ingress_hostname = module.aks.aks_fqdn
 
   tags = var.tags
 
