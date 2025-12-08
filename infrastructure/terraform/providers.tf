@@ -61,28 +61,8 @@ data "azurerm_kubernetes_cluster" "aks" {
   resource_group_name = "${var.prefix}-${var.env}-rg"
 }
 
-variable "subscription_id" {
-  description = "Azure Subscription ID"
-  type        = string
-  default     = "ba233460-2dbe-4603-a594-68f93ec9deb3"
-}
-
-variable "tenant_id" {
-  description = "Azure Tenant ID"
-  type        = string
-  default     = "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0"
-}
-
-variable "prefix" {
-  description = "Resource naming prefix"
-  type        = string
-  default     = "datingapp"
-}
-
-variable "env" {
-  description = "Environment (dev/staging/prod)"
-  type        = string
-}
+# Note: Variables subscription_id, tenant_id, prefix, env are defined in variables.tf
+# to avoid duplicate declarations
 
 variable "enable_aks" {
   description = "Whether AKS is enabled (for kubernetes/helm providers)"

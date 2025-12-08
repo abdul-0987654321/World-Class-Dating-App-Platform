@@ -66,9 +66,10 @@ variable "sql_admin_username" {
 }
 
 variable "sql_admin_password" {
-  description = "SQL Server administrator password"
+  description = "SQL Server administrator password (set via TF_VAR_sql_admin_password env var)"
   type        = string
   sensitive   = true
+  default     = ""  # Must be set via environment variable or pipeline secret
 }
 
 variable "acr_sku" {
