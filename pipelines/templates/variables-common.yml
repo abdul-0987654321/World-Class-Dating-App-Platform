@@ -57,7 +57,7 @@ variables:
   - name: tfStateResourceGroup
     value: 'flamoral-terraform-state-rg'
   - name: tfStateStorageAccount
-    value: 'flamoraltfstate'
+    value: 'flamoraltfst2025'
   - name: tfStateContainer
     value: 'tfstate'
 
