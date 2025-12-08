@@ -5,6 +5,11 @@
   "description": "Flamoral - Where Passion Meets Connection (Web & Mobile Dating Platform)",
   "workspaces": [
     "packages/*",
+    "packages/shared/types",
+    "packages/shared/utils",
+    "packages/shared/constants",
+    "packages/shared/validators",
+    "packages/shared/api-client",
     "apps/*",
     "backend"
   ],
