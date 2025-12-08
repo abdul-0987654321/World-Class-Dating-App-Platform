@@ -37,3 +37,9 @@ variable "environment" {
     error_message = "Environment must be dev, test, or prod."
   }
 }
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
