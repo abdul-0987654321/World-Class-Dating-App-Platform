@@ -32,7 +32,7 @@ variables:
   - group: flamoral-cd-vars
 
 pool:
-  name: 'Default'  # Self-hosted agent pool
+  vmImage: 'ubuntu-latest'  # Microsoft-hosted agent (switched from self-hosted due to connectivity issues)
 
 stages:
   # ============================================================================

@@ -64,7 +64,7 @@ variables:
     value: '1.6.0'
 
 pool:
-  name: 'Default'
+  vmImage: 'ubuntu-latest'  # Microsoft-hosted agent (switched from self-hosted due to connectivity issues)
 
 stages:
   # ============================================================================
