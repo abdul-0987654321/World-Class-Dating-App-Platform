@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth.middleware';
 import { videoChatService } from '../../services/video-chat.service';
-import { logger } from '../../utils/logger';
+import logger from '../../utils/logger';
 
 const router = express.Router();
 

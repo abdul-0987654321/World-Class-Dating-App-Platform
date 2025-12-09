@@ -3,6 +3,13 @@ import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
 
+// Extend Express Request type to include session
+declare module 'express-serve-static-core' {
+  interface Request {
+    session?: any;
+  }
+}
+
 interface SecuritySession {
   id: string;
   user_id: string;

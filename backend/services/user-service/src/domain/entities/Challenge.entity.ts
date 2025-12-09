@@ -40,7 +40,10 @@ export type ChallengeType =
   | 'swipe_count'
   | 'login_days'
   | 'conversation_starters'
-  | 'photo_uploads';
+  | 'photo_uploads'
+  | 'daily'
+  | 'weekly'
+  | 'monthly';
 
 export interface UpdateChallengeProgressDto {
   user_id: string;

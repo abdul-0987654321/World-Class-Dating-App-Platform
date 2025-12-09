@@ -1,9 +1,9 @@
-import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
-import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
-import { db } from '../database';
+import type { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
+import type { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
+import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
-import { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
-import { logger } from '../utils/logger';
+import type { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
+import logger from '../utils/logger';
 
 /**
  * Photo Verification Service

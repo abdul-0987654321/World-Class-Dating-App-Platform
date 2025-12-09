@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import { photoVerificationService } from '../../services/photo-verification.service';
-import { logger } from '../../utils/logger';
+import logger from '../../utils/logger';
 
 const router = express.Router();
 

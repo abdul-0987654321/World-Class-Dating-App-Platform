@@ -6,7 +6,7 @@
 import express, { Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth.middleware';
 import { settingsService } from '../../services/settings.service';
-import { logger } from '../../utils/logger';
+import logger from '../../utils/logger';
 
 const router = express.Router();
 

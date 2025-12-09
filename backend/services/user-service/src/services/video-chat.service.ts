@@ -1,7 +1,7 @@
-import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
-import { db } from '../database';
+import type { RtcTokenBuilder, RtcRole } from 'agora-access-token';
+import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 /**
  * Video Chat Service

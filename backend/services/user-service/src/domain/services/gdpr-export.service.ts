@@ -1,7 +1,7 @@
 import logger from '../../utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
-import archiver from 'archiver';
+import type archiver from 'archiver';
 
 export interface GDPRExportRequest {
   userId: string;

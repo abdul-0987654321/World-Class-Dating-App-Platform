@@ -52,5 +52,9 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "jest": {
+    "preset": "react-native",
+    "passWithNoTests": true
   }
 }

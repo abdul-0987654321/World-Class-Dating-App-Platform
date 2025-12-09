@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from '../../infrastructure/database/connection';
+import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 
 /**

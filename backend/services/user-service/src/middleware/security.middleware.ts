@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import logger from '../utils/logger';
 
+// Extend Express Request type to include session
+declare module 'express-serve-static-core' {
+  interface Request {
+    session?: {
+      csrfToken?: string;
+    } & Record<string, any>;
+  }
+}
+
 /**
  * Input Sanitization Middleware
  * Prevents XSS, SQL injection, and other injection attacks
@@ -100,7 +109,7 @@ export class SecurityMiddleware {
   /**
    * CSRF Protection Middleware
    */
-  static csrfProtection(req: Request, res: Response, next: NextFunction): void {
+  static csrfProtection(req: Request, res: Response, next: NextFunction): void | Response {
     // Skip CSRF for GET, HEAD, OPTIONS
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return next();
@@ -142,7 +151,7 @@ export class SecurityMiddleware {
   /**
    * Validate file upload security
    */
-  static validateFileUpload(req: Request, res: Response, next: NextFunction): void {
+  static validateFileUpload(req: Request, res: Response, next: NextFunction): void | Response {
     if (!req.file && !req.files) {
       return next();
     }
@@ -245,7 +254,7 @@ export class SecurityMiddleware {
    * Validate request origin (CORS bypass prevention)
    */
   static validateOrigin(allowedOrigins: string[]) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       const origin = req.headers.origin || req.headers.referer;
 
       if (!origin) {
@@ -273,7 +282,7 @@ export class SecurityMiddleware {
   /**
    * Detect and block common attack patterns
    */
-  static detectAttackPatterns(req: Request, res: Response, next: NextFunction): void {
+  static detectAttackPatterns(req: Request, res: Response, next: NextFunction): void | Response {
     const suspiciousPatterns = [
       // SQL Injection
       /(\%27)|(\')|(\-\-)|(\%23)|(#)/i,
@@ -313,7 +322,7 @@ export class SecurityMiddleware {
   /**
    * Prevent parameter pollution
    */
-  static preventParameterPollution(req: Request, res: Response, next: NextFunction): void {
+  static preventParameterPollution(req: Request, res: Response, next: NextFunction): void | Response {
     // Check for duplicate parameters
     const params = { ...req.query, ...req.body };
 
@@ -334,7 +343,7 @@ export class SecurityMiddleware {
    * Request size limiter
    */
   static limitRequestSize(maxSize: number = 10 * 1024 * 1024) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       const contentLength = parseInt(req.headers['content-length'] || '0');
 
       if (contentLength > maxSize) {
@@ -352,7 +361,7 @@ export class SecurityMiddleware {
   /**
    * Validate user agent
    */
-  static validateUserAgent(req: Request, res: Response, next: NextFunction): void {
+  static validateUserAgent(req: Request, res: Response, next: NextFunction): void | Response {
     const userAgent = req.headers['user-agent'];
 
     if (!userAgent) {
@@ -384,7 +393,7 @@ export class SecurityMiddleware {
    * IP blacklist checking
    */
   static checkIPBlacklist(blacklistedIPs: Set<string>) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       const clientIP = req.ip || req.socket.remoteAddress;
 
       if (clientIP && blacklistedIPs.has(clientIP)) {

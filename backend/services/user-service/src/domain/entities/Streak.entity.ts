@@ -28,7 +28,7 @@ export interface StreakHistoryEntity {
   created_at: Date;
 }
 
-export type StreakType = 'login' | 'conversation' | 'match';
+export type StreakType = 'login' | 'conversation' | 'match' | 'activity';
 export type StreakAction = 'increased' | 'broken' | 'frozen';
 
 export interface UpdateStreakDto {
@@ -64,20 +64,26 @@ export interface UserStreakResponse {
 }
 
 export interface StreakMilestone {
+  id: string;
   days: number;
+  daysRequired: number;
+  title: string;
   reward_coins: number;
   reward_xp: number;
+  coinReward: number;
+  boostReward: number;
+  superLikeReward: number;
   badge_slug?: string;
 }
 
 export const STREAK_MILESTONES: StreakMilestone[] = [
-  { days: 3, reward_coins: 5, reward_xp: 50 },
-  { days: 7, reward_coins: 15, reward_xp: 150, badge_slug: 'week_warrior' },
-  { days: 14, reward_coins: 30, reward_xp: 300 },
-  { days: 30, reward_coins: 75, reward_xp: 750, badge_slug: 'month_master' },
-  { days: 60, reward_coins: 150, reward_xp: 1500 },
-  { days: 100, reward_coins: 300, reward_xp: 3000 },
-  { days: 365, reward_coins: 1000, reward_xp: 10000 },
+  { id: 'streak_3', days: 3, daysRequired: 3, title: '3-Day Streak', reward_coins: 5, reward_xp: 50, coinReward: 5, boostReward: 0, superLikeReward: 0 },
+  { id: 'streak_7', days: 7, daysRequired: 7, title: 'Week Warrior', reward_coins: 15, reward_xp: 150, coinReward: 15, boostReward: 0, superLikeReward: 0, badge_slug: 'week_warrior' },
+  { id: 'streak_14', days: 14, daysRequired: 14, title: '2-Week Streak', reward_coins: 30, reward_xp: 300, coinReward: 30, boostReward: 1, superLikeReward: 0 },
+  { id: 'streak_30', days: 30, daysRequired: 30, title: 'Month Master', reward_coins: 75, reward_xp: 750, coinReward: 75, boostReward: 1, superLikeReward: 1, badge_slug: 'month_master' },
+  { id: 'streak_60', days: 60, daysRequired: 60, title: '60-Day Streak', reward_coins: 150, reward_xp: 1500, coinReward: 150, boostReward: 2, superLikeReward: 2 },
+  { id: 'streak_100', days: 100, daysRequired: 100, title: '100-Day Champion', reward_coins: 300, reward_xp: 3000, coinReward: 300, boostReward: 3, superLikeReward: 3 },
+  { id: 'streak_365', days: 365, daysRequired: 365, title: 'Year Legend', reward_coins: 1000, reward_xp: 10000, coinReward: 1000, boostReward: 10, superLikeReward: 10 },
 ];
 
 // Type aliases for backwards compatibility

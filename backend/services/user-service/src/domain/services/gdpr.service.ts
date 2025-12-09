@@ -1,6 +1,6 @@
-import { db } from '../../infrastructure/database/connection';
+import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
-import archiver from 'archiver';
+import type archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';

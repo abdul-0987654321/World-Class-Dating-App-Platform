@@ -3,9 +3,9 @@
  * Handles all user settings management
  */
 
-import { db } from '../database';
+import db from '../database';
 import bcrypt from 'bcrypt';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AccountUpdates {
