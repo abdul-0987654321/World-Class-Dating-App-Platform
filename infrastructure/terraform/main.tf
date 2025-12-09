@@ -146,9 +146,7 @@ module "keyvault" {
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
   env                 = var.env
-  tenant_id           = var.tenant_id
-
-  aks_identity_principal_id = module.aks.kubelet_identity_object_id
+  aks_kubelet_identity_object_id = module.aks.kubelet_identity_object_id
 
   tags = var.tags
 
