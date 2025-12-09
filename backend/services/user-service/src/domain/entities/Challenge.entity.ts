@@ -81,3 +81,20 @@ export interface UserChallengeResponse {
     super_like_reward: number;
   };
 }
+
+// Type aliases for backwards compatibility
+export type ChallengeDefinition = WeeklyChallengeEntity;
+export type UserChallenge = UserChallengeProgressEntity;
+export type ChallengeProgress = UserChallengeProgressEntity;
+export type ChallengeStatus = 'active' | 'completed' | 'expired' | 'claimed';
+export type ChallengeProgressUpdate = UpdateChallengeProgressDto;
+export type ChallengeCompletionResult = {
+  challenge: WeeklyChallengeEntity;
+  completed: boolean;
+  rewards?: {
+    xp_reward: number;
+    coin_reward: number;
+    boost_reward: number;
+    super_like_reward: number;
+  };
+};

@@ -27,7 +27,7 @@ export function initializeSnapchatPixel(pixelId: string): void {
   // Snapchat Pixel base code
   (function(e: any, t: any, n: any) {
     if (e.snaptr) return;
-    const a = (e.snaptr = function() {
+    const a: any = (e.snaptr = function() {
       a.handleRequest ? a.handleRequest.apply(a, arguments) : a.queue.push(arguments);
     });
     a.queue = [];

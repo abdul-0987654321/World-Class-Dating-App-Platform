@@ -61,6 +61,10 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('permanently_banned').notNullable().defaultTo(false).index();
     table.timestamp('banned_at');
     table.text('banned_reason');
+    table.string('last_admin_action', 100);
+    table.uuid('last_admin_action_by');
+    table.timestamp('last_admin_action_at');
+    table.text('last_admin_action_reason');
     table.timestamps(true, true);
 
     // Indexes

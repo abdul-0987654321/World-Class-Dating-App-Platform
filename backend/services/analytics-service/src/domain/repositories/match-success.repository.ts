@@ -328,7 +328,7 @@ export class MatchSuccessRepository {
       SET status = $1
     `;
 
-    const params = [status];
+    const params: any[] = [status];
 
     if (timestampField) {
       query += `, ${timestampField} = NOW()`;

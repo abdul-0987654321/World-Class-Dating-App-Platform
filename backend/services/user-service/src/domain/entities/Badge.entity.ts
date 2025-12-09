@@ -86,3 +86,18 @@ export interface BadgeProgressResponse {
   completion_percentage: number;
   is_earned: boolean;
 }
+
+// Type aliases for backwards compatibility
+export type ProfileBadge = BadgeEntity;
+export type UserProfileBadge = UserBadgeEntity;
+export type BadgeType = BadgeCategory;
+export type BadgeCollection = {
+  user_id: string;
+  badges: BadgeEntity[];
+  total_count: number;
+};
+export type UserBadgeCollection = {
+  user_id: string;
+  badges: UserBadgeEntity[];
+  total_count: number;
+};

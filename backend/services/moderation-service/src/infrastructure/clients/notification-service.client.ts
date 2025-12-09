@@ -1,5 +1,4 @@
-import { createLogger } from '@flamoral/shared';
-import { ServiceClient } from '../../../../shared/clients/service-client';
+import { createLogger, ServiceClient } from '@flamoral/shared';
 
 const logger = createLogger('notification-client');
 
@@ -19,18 +18,9 @@ export class NotificationServiceClient {
   constructor() {
     this.baseUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008';
     this.client = new ServiceClient({
-      baseURL: this.baseUrl,
+      baseUrl: this.baseUrl,
       serviceName: 'moderation-service',
       timeout: 5000,
-      maxRetries: 2,
-      retryDelay: 500,
-      enableLogging: true,
-      logger: {
-        info: (msg, meta) => logger.info(msg, meta),
-        warn: (msg, meta) => logger.warn(msg, meta),
-        error: (msg, meta) => logger.error(msg, meta),
-        debug: (msg, meta) => logger.debug(msg, meta),
-      },
     });
   }
 

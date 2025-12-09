@@ -1,9 +1,10 @@
 import Stripe from 'stripe';
 import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
 
 // Initialize Stripe with API key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2023-10-16',
 });
 
 // 6-tier subscription model
@@ -33,10 +34,12 @@ interface BoostPurchase {
 export class PaymentService {
   private stripe: Stripe;
   private userServiceClient: UserServiceClient;
+  private notificationServiceClient: NotificationServiceClient;
 
-  constructor(userServiceClient?: UserServiceClient) {
+  constructor(userServiceClient?: UserServiceClient, notificationServiceClient?: NotificationServiceClient) {
     this.stripe = stripe;
     this.userServiceClient = userServiceClient || new UserServiceClient();
+    this.notificationServiceClient = notificationServiceClient || new NotificationServiceClient();
   }
 
   /**
@@ -476,11 +479,12 @@ export class PaymentService {
             productSku,
           });
 
-          await this.userServiceClient.sendNotification(
+          await this.notificationServiceClient.sendNotification({
             userId,
-            'payment_success',
-            `Successfully purchased ${coinAmount} coins!`
-          );
+            type: 'payment_success',
+            title: 'Payment Successful',
+            body: `Successfully purchased ${coinAmount} coins!`
+          });
           break;
 
         case 'boost_purchase':
@@ -494,11 +498,12 @@ export class PaymentService {
             stripePaymentId: paymentIntent.id,
           });
 
-          await this.userServiceClient.sendNotification(
+          await this.notificationServiceClient.sendNotification({
             userId,
-            'payment_success',
-            `Boost activated for ${durationMinutes} minutes!`
-          );
+            type: 'payment_success',
+            title: 'Payment Successful',
+            body: `Boost activated for ${durationMinutes} minutes!`
+          });
           break;
 
         default:
@@ -543,11 +548,12 @@ export class PaymentService {
     try {
       const userId = paymentIntent.metadata.userId;
       if (userId) {
-        await this.userServiceClient.sendNotification(
+        await this.notificationServiceClient.sendNotification({
           userId,
-          'payment_failed',
-          'Your payment failed. Please check your payment method and try again.'
-        );
+          type: 'payment_failed',
+          title: 'Payment Failed',
+          body: 'Your payment failed. Please check your payment method and try again.'
+        });
       }
     } catch (error: any) {
       console.error('Error handling payment intent failed:', error.message);
@@ -582,10 +588,9 @@ export class PaymentService {
 
       await this.userServiceClient.updateSubscription({
         userId,
-        tier: tier || 'free',
+        tier: this.userServiceClient.mapTierName(tier || 'free'),
         stripeSubscriptionId: subscription.id,
         status,
-        billingCycle,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       });
 
@@ -599,11 +604,12 @@ export class PaymentService {
         elite: 'Elite',
       };
 
-      await this.userServiceClient.sendNotification(
+      await this.notificationServiceClient.sendNotification({
         userId,
-        'subscription_updated',
-        `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`
-      );
+        type: 'subscription_updated',
+        title: 'Subscription Updated',
+        body: `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`
+      });
     } catch (error: any) {
       console.error('Error handling subscription updated:', error.message);
     }
@@ -631,11 +637,12 @@ export class PaymentService {
         status: 'canceled',
       });
 
-      await this.userServiceClient.sendNotification(
+      await this.notificationServiceClient.sendNotification({
         userId,
-        'subscription_canceled',
-        'Your subscription has been canceled. You have been downgraded to the free tier.'
-      );
+        type: 'subscription_canceled',
+        title: 'Subscription Canceled',
+        body: 'Your subscription has been canceled. You have been downgraded to the free tier.'
+      });
     } catch (error: any) {
       console.error('Error handling subscription deleted:', error.message);
     }
@@ -660,11 +667,12 @@ export class PaymentService {
 
       if (userId && invoice.billing_reason === 'subscription_cycle') {
         // This is a renewal payment
-        await this.userServiceClient.sendNotification(
+        await this.notificationServiceClient.sendNotification({
           userId,
-          'subscription_renewed',
-          'Your subscription has been successfully renewed.'
-        );
+          type: 'subscription_renewed',
+          title: 'Subscription Renewed',
+          body: 'Your subscription has been successfully renewed.'
+        });
       }
     } catch (error: any) {
       console.error('Error handling invoice payment succeeded:', error.message);
@@ -699,17 +707,18 @@ export class PaymentService {
 
       await this.userServiceClient.updateSubscription({
         userId,
-        tier: subscription.metadata.tier as SubscriptionTier,
+        tier: this.userServiceClient.mapTierName(subscription.metadata.tier as string || 'free'),
         stripeSubscriptionId: subscription.id,
         status: 'grace_period',
         gracePeriodEnd,
       });
 
-      await this.userServiceClient.sendNotification(
+      await this.notificationServiceClient.sendNotification({
         userId,
-        'payment_failed',
-        'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.'
-      );
+        type: 'payment_failed',
+        title: 'Payment Failed',
+        body: 'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.'
+      });
     } catch (error: any) {
       console.error('Error handling invoice payment failed:', error.message);
     }

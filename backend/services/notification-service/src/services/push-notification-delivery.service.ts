@@ -4,7 +4,7 @@
  */
 
 import admin from 'firebase-admin';
-import apn from 'node-apn';
+import apn from '@parse/node-apn';
 import { db } from '../config/database';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -122,7 +122,7 @@ export const initializeAPNs = (): void => {
   }
 };
 
-class PushNotificationDeliveryService {
+export class PushNotificationDeliveryService {
   constructor() {
     initializeFirebase();
     initializeAPNs();

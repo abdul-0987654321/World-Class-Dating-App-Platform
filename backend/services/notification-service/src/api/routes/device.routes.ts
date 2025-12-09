@@ -5,12 +5,12 @@
 
 import { Router } from 'express';
 import { deviceController } from '../controllers/device.controller';
-import { authenticate } from '../../middleware/auth';
+import { requireAuth } from '../../middleware/auth';
 
 const router = Router();
 
 // All routes require authentication
-router.use(authenticate);
+router.use(requireAuth);
 
 // Device registration and management
 router.post('/register', deviceController.registerDevice.bind(deviceController));

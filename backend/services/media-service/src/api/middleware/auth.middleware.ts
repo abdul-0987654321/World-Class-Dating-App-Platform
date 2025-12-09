@@ -8,6 +8,9 @@ export interface AuthRequest extends Request {
   };
 }
 
+// Export authenticate as both named export and requireAuth alias
+export { authenticate as requireAuth };
+
 /**
  * Authentication middleware
  * Verifies JWT token and attaches user info to request

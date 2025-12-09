@@ -79,7 +79,7 @@ interface NotificationHistory {
   created_at: Date;
 }
 
-class PushNotificationService {
+export class PushNotificationService {
   /**
    * Register FCM token for a user device
    */

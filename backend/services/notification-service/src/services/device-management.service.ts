@@ -39,7 +39,7 @@ export interface DeviceInfo {
   updatedAt: Date;
 }
 
-class DeviceManagementService {
+export class DeviceManagementService {
   /**
    * Register a new device or update existing one
    */

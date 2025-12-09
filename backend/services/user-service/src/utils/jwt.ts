@@ -2,6 +2,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
 
 export interface JwtPayload {
+  id: string;
   userId: string;
   email: string;
 }

@@ -79,3 +79,27 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
   { days: 100, reward_coins: 300, reward_xp: 3000 },
   { days: 365, reward_coins: 1000, reward_xp: 10000 },
 ];
+
+// Type aliases for backwards compatibility
+export type UserStreak = UserStreakEntity;
+export type UserStreakMilestone = {
+  id: string;
+  user_id: string;
+  streak_type: StreakType;
+  milestone_level: number;
+  days_required: number;
+  reached_at: Date;
+  title: string;
+  coin_reward?: number;
+  boost_reward?: number;
+  super_like_reward?: number;
+};
+export type StreakUpdateResult = {
+  streak: UserStreakEntity;
+  milestone_reached?: UserStreakMilestone;
+  rewards?: {
+    coins?: number;
+    xp?: number;
+    badge?: string;
+  };
+};

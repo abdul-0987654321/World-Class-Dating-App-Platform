@@ -244,7 +244,7 @@ export class EngagementRepository {
    * Get stickiness ratio (DAU/MAU)
    */
   async getStickinessRatio(date: Date): Promise<number> {
-    const dau = await this.getDau(date);
+    const dau = await this.getDAU(date);
     const mau = await this.getMAU(date);
 
     return mau > 0 ? (dau / mau) * 100 : 0;

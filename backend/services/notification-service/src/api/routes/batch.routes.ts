@@ -5,13 +5,13 @@
 
 import { Router } from 'express';
 import { batchController } from '../controllers/batch.controller';
-import { authenticate } from '../../middleware/auth';
-import { serviceAuth } from '../../middleware/service-auth.middleware';
+import { requireAuth } from '../../middleware/auth';
+import { authenticateService } from '../../middleware/service-auth.middleware';
 
 const router = Router();
 
 // All routes require service authentication (internal service-to-service calls)
-router.use(serviceAuth);
+router.use(authenticateService);
 
 // Batch notification endpoints
 router.post('/send', batchController.sendBatch.bind(batchController));

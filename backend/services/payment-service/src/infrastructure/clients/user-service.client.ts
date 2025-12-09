@@ -1,12 +1,13 @@
 import logger from '../../utils/logger';
-import { ServiceClient } from '../../../shared/clients/service-client';
+import { ServiceClient } from '@flamoral/shared';
 
 interface UpdateSubscriptionDto {
   userId: string;
   tier: 'free' | 'premium' | 'premium_plus';
   stripeSubscriptionId?: string;
-  status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing';
+  status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing' | 'grace_period';
   currentPeriodEnd?: Date;
+  gracePeriodEnd?: Date;
 }
 
 interface AddCoinsDto {
@@ -31,18 +32,9 @@ export class UserServiceClient {
   constructor() {
     this.baseUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
     this.client = new ServiceClient({
-      baseURL: this.baseUrl,
+      baseUrl: this.baseUrl,
       serviceName: 'payment-service',
       timeout: 10000,
-      maxRetries: 3,
-      retryDelay: 1000,
-      enableLogging: true,
-      logger: {
-        info: (msg, meta) => logger.info(msg, meta),
-        warn: (msg, meta) => logger.warn(msg, meta),
-        error: (msg, meta) => logger.error(msg, meta),
-        debug: (msg, meta) => logger.debug(msg, meta),
-      },
     });
   }
 
@@ -148,13 +140,15 @@ export class UserServiceClient {
   /**
    * Map tier names for compatibility
    */
-  private mapTierName(tier: string): 'free' | 'premium' | 'premium_plus' {
+  mapTierName(tier: string): 'free' | 'premium' | 'premium_plus' {
     const tierMap: Record<string, 'free' | 'premium' | 'premium_plus'> = {
       'free': 'free',
       'basic': 'premium',
+      'plus': 'premium',
       'premium': 'premium',
       'mid': 'premium',
       'ultra': 'premium_plus',
+      'elite': 'premium_plus',
       'premium_plus': 'premium_plus',
     };
     return tierMap[tier.toLowerCase()] || 'free';

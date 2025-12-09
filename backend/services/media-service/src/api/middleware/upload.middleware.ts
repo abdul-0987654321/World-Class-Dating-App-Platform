@@ -33,3 +33,44 @@ export const uploadMultiple = multer({
     files: config.upload.maxPhotosPerUser,
   },
 });
+
+// Video file filter
+const videoFileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Check mime type for video
+  if (config.upload.allowedVideoMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid video file type. Allowed: ${config.upload.allowedVideoMimeTypes.join(', ')}`));
+  }
+};
+
+// Video upload middleware
+export const uploadVideo = multer({
+  storage,
+  fileFilter: videoFileFilter,
+  limits: {
+    fileSize: config.upload.maxVideoFileSize,
+    files: 1,
+  },
+});
+
+// Audio file filter
+const audioFileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Check mime type for audio (voice notes)
+  const allowedAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/x-m4a'];
+  if (allowedAudioTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid audio file type. Allowed: ${allowedAudioTypes.join(', ')}`));
+  }
+};
+
+// Audio upload middleware (for voice notes)
+export const uploadAudio = multer({
+  storage,
+  fileFilter: audioFileFilter,
+  limits: {
+    fileSize: config.upload.maxFileSize, // 10MB for voice notes
+    files: 1,
+  },
+});

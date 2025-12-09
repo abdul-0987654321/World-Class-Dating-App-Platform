@@ -63,7 +63,7 @@ export class WebhookService {
   async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
     logger.info(`Processing subscription created: ${subscription.id}`);
 
-    const metadata = subscription.metadata as SubscriptionMetadata;
+    const metadata = subscription.metadata as unknown as SubscriptionMetadata;
     const userId = metadata?.user_id;
 
     if (!userId) {
@@ -444,7 +444,7 @@ export class WebhookService {
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent succeeded: ${paymentIntent.id}`);
 
-    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const metadata = paymentIntent.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id;
 
     if (!userId) {
@@ -483,7 +483,7 @@ export class WebhookService {
   async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent failed: ${paymentIntent.id}`);
 
-    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const metadata = paymentIntent.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id;
 
     if (!userId) {
@@ -516,7 +516,7 @@ export class WebhookService {
   async handlePaymentIntentCanceled(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent canceled: ${paymentIntent.id}`);
 
-    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const metadata = paymentIntent.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id;
 
     if (!userId) {
@@ -542,7 +542,7 @@ export class WebhookService {
   async handlePaymentIntentRequiresAction(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     logger.info(`Processing payment intent requires action: ${paymentIntent.id}`);
 
-    const metadata = paymentIntent.metadata as PaymentIntentMetadata;
+    const metadata = paymentIntent.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id;
 
     if (!userId) {
@@ -570,7 +570,7 @@ export class WebhookService {
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
     logger.info(`Processing checkout session completed: ${session.id}`);
 
-    const metadata = session.metadata as PaymentIntentMetadata;
+    const metadata = session.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id || session.client_reference_id;
 
     if (!userId) {
@@ -598,7 +598,7 @@ export class WebhookService {
   async handleCheckoutSessionExpired(session: Stripe.Checkout.Session): Promise<void> {
     logger.info(`Processing checkout session expired: ${session.id}`);
 
-    const metadata = session.metadata as PaymentIntentMetadata;
+    const metadata = session.metadata as unknown as PaymentIntentMetadata;
     const userId = metadata?.user_id || session.client_reference_id;
 
     if (userId) {

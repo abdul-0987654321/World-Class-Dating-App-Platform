@@ -120,7 +120,7 @@ export class TikTokEventsAPI {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const result: any = await response.json();
 
       if (!response.ok || result.code !== 0) {
         console.error('TikTok Events API error:', result);

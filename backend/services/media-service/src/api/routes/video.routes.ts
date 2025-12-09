@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import videoController from '../controllers/video.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { upload } from '../middleware/upload.middleware';
+import { uploadVideo } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -42,7 +42,7 @@ const router = Router();
 router.post(
   '/upload',
   authenticate,
-  upload.single('video'),
+  uploadVideo.single('video'),
   videoController.uploadVideo.bind(videoController)
 );
 

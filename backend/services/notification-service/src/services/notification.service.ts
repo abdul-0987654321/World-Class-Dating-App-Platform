@@ -513,6 +513,73 @@ export class NotificationService {
       priority: 'high',
     });
   }
+
+  /**
+   * Send push notification (for internal API)
+   */
+  async sendPushNotification(payload: {
+    userId: string;
+    title: string;
+    body: string;
+    data?: Record<string, any>;
+  }): Promise<void> {
+    await this.sendNotification({
+      userId: payload.userId,
+      type: NotificationType.REMINDER,
+      channels: [NotificationChannel.PUSH],
+      title: payload.title,
+      body: payload.body,
+      data: payload.data,
+      priority: 'normal',
+    });
+  }
+
+  /**
+   * Send email notification (for internal API)
+   */
+  async sendEmailNotification(payload: {
+    userId: string;
+    subject: string;
+    body: string;
+    data?: Record<string, any>;
+  }): Promise<void> {
+    await this.sendNotification({
+      userId: payload.userId,
+      type: NotificationType.REMINDER,
+      channels: [NotificationChannel.EMAIL],
+      title: payload.subject,
+      body: payload.body,
+      data: payload.data,
+      priority: 'normal',
+    });
+  }
+
+  /**
+   * Send SMS notification (for internal API)
+   */
+  async sendSMSNotification(payload: {
+    userId: string;
+    message: string;
+    data?: Record<string, any>;
+  }): Promise<void> {
+    await this.sendNotification({
+      userId: payload.userId,
+      type: NotificationType.SECURITY_ALERT,
+      channels: [NotificationChannel.SMS],
+      title: 'Alert',
+      body: payload.message,
+      data: payload.data,
+      priority: 'high',
+    });
+  }
+
+  /**
+   * Get user preferences (for internal API)
+   */
+  async getUserPreferences(userId: string): Promise<NotificationPreferences | null> {
+    const result = await this.getPreferences(userId);
+    return result.success ? result.preferences || null : null;
+  }
 }
 
 export const notificationService = new NotificationService();

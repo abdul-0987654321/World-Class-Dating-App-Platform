@@ -11,6 +11,7 @@ export interface UserEntity {
   is_email_verified: boolean;
   is_phone_verified: boolean;
   is_active: boolean;
+  subscription_tier?: string;
   last_login_at?: Date;
   created_at: Date;
   updated_at: Date;

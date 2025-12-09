@@ -40,3 +40,6 @@ export const validate = (schema: Joi.ObjectSchema, type: ValidationType = 'body'
     return next();
   };
 };
+
+// Alias for validate - commonly used with express-validator style
+export const validateRequest = validate;

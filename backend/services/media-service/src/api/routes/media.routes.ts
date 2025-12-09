@@ -2,6 +2,9 @@ import { Router } from 'express';
 import uploadController from '../controllers/upload.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
+import videoRoutes from './video.routes';
+import voiceNoteRoutes from './voice-note.routes';
+import verificationRoutes from './verification.routes';
 
 const router = Router();
 
@@ -165,5 +168,10 @@ router.delete('/photos/:id', authenticate, uploadController.deletePhoto.bind(upl
  *         description: Photo not found
  */
 router.put('/photos/:id/profile', authenticate, uploadController.setAsProfilePhoto.bind(uploadController));
+
+// Mount sub-routes
+router.use('/videos', videoRoutes);
+router.use('/voice-notes', voiceNoteRoutes);
+router.use('/verification', verificationRoutes);
 
 export default router;

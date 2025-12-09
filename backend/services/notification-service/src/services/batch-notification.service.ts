@@ -53,7 +53,7 @@ export interface SegmentedNotificationRequest {
   payload: Omit<BatchNotificationRequest, 'userIds'>;
 }
 
-class BatchNotificationService {
+export class BatchNotificationService {
   private activeBatches: Map<string, BatchJob> = new Map();
 
   /**

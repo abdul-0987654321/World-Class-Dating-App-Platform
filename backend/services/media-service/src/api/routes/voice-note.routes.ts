@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import voiceNoteController from '../controllers/voice-note.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { upload } from '../middleware/upload.middleware';
+import { uploadAudio } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -48,7 +48,7 @@ const router = Router();
 router.post(
   '/upload',
   authenticate,
-  upload.single('audio'),
+  uploadAudio.single('audio'),
   voiceNoteController.uploadVoiceNote.bind(voiceNoteController)
 );
 

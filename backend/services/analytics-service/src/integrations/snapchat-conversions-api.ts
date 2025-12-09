@@ -164,7 +164,7 @@ export class SnapchatConversionsAPI {
         body: JSON.stringify(requestBody),
       });
 
-      const result = await response.json();
+      const result: any = await response.json();
 
       if (!response.ok) {
         console.error('Snapchat CAPI error:', result);

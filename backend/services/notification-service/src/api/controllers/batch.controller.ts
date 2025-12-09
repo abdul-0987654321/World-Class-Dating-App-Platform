@@ -5,7 +5,7 @@
 
 import { Request, Response } from 'express';
 import { batchNotificationService } from '../../services/batch-notification.service';
-import { NotificationType } from '../../services/push-notification-delivery.service';
+import { NotificationType } from '../../types';
 import logger from '../../utils/logger';
 
 export class BatchController {

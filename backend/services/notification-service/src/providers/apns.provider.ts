@@ -3,7 +3,7 @@
  * Handles push notifications for iOS devices using JWT authentication
  */
 
-import apn from 'node-apn';
+import apn from '@parse/node-apn';
 import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';

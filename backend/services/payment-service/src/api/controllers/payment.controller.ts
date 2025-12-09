@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../../domain/services/payment.service';
-import logger from '../../../user-service/src/utils/logger';
+import logger from '../../utils/logger';
 
 export class PaymentController {
   private paymentService: PaymentService;

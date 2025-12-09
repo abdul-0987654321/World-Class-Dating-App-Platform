@@ -62,19 +62,19 @@ export class GA4MeasurementProtocol {
   }> {
     try {
       const payload: GA4MeasurementRequest = {
-        client_id: clientId,
+        clientId: clientId,
         events: events,
       };
 
       // Add optional fields
       if (options?.userId) {
-        payload.user_id = options.userId;
+        payload.userId = options.userId;
       }
 
       if (options?.userProperties) {
-        payload.user_properties = {};
+        payload.userProperties = {};
         Object.keys(options.userProperties).forEach((key) => {
-          payload.user_properties![key] = {
+          payload.userProperties![key] = {
             value: options.userProperties![key],
           };
         });

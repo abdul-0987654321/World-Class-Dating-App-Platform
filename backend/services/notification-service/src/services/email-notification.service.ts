@@ -1,5 +1,5 @@
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
-import { db } from '../infrastructure/database/connection';
+import { db } from '../config/database';
 import logger from '../utils/logger';
 
 // Initialize SendGrid

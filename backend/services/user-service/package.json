@@ -25,10 +25,15 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@flamoral/shared": "*",
+    "@flamoral/shared": "file:../../shared",
+    "@azure/cognitiveservices-computervision": "^7.2.0",
+    "@azure/ms-rest-azure-js": "^2.1.0",
     "@azure/storage-blob": "^12.17.0",
     "@sendgrid/mail": "^8.1.0",
     "@types/socket.io": "^3.0.1",
+    "agora-access-token": "^2.0.4",
+    "archiver": "^6.0.1",
+    "express-validator": "^7.0.1",
     "twilio": "^5.0.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
