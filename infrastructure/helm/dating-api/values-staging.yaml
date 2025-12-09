@@ -18,14 +18,14 @@ autoscaling:
 
 ingress:
   hosts:
-    - host: api-staging.datingapp.com
+    - host: api-staging.flamoral.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: api-staging-tls
       hosts:
-        - api-staging.datingapp.com
+        - api-staging.flamoral.com
 
 env:
   - name: NODE_ENV

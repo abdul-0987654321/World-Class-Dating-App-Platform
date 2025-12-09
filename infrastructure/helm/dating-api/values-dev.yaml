@@ -16,14 +16,14 @@ autoscaling:
 
 ingress:
   hosts:
-    - host: api-dev.datingapp.com
+    - host: api-dev.flamoral.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: api-dev-tls
       hosts:
-        - api-dev.datingapp.com
+        - api-dev.flamoral.com
 
 env:
   - name: NODE_ENV

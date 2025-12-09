@@ -164,7 +164,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@datingapp.com
+    email: admin@flamoral.com
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
@@ -303,7 +303,7 @@ The following dashboards are pre-configured:
 - **Database Dashboard**: PostgreSQL metrics, query performance
 - **Redis & WebSocket Dashboard**: Cache hit rates, WebSocket connections
 
-Access them at: https://grafana.datingapp.com
+Access them at: https://grafana.flamoral.com
 
 ### Key Metrics to Monitor
 
@@ -370,7 +370,7 @@ Port-forward:
 kubectl port-forward svc/kibana 5601:5601 -n logging
 ```
 
-Access: https://kibana.datingapp.com
+Access: https://kibana.flamoral.com
 
 #### 3. Configure Index Patterns
 
@@ -486,7 +486,7 @@ kubectl set image deployment/api-gateway-green \
 kubectl rollout status deployment/api-gateway-green -n dating-app
 
 # Run smoke tests
-./tests/smoke-tests.sh https://green.api.datingapp.com
+./tests/smoke-tests.sh https://green.api.flamoral.com
 ```
 
 #### Switch Traffic
@@ -715,9 +715,9 @@ kubectl rollout undo deployment/api-gateway -n dating-app
 ## Support
 
 For issues or questions:
-- **DevOps Team**: devops@datingapp.com
+- **DevOps Team**: devops@flamoral.com
 - **On-call**: Use PagerDuty
-- **Documentation**: https://docs.datingapp.com
+- **Documentation**: https://docs.flamoral.com
 - **Runbooks**: infrastructure/runbooks/
 
 ---

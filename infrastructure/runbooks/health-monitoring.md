@@ -12,8 +12,8 @@ kubectl get nodes
 kubectl get pods --all-namespaces | grep -v Running
 
 # 2. Verify service health endpoints
-curl -f https://api.datingapp.com/health
-curl -f https://api-staging.datingapp.com/health
+curl -f https://api.flamoral.com/health
+curl -f https://api-staging.flamoral.com/health
 
 # 3. Check Application Insights dashboard
 # - Error rate < 1%
@@ -309,7 +309,7 @@ kubectl get pods -n datingapp -o json | \
 | P3 - Low | Next business day | Email + ticket |
 
 ## Contacts
-- On-call Engineer: oncall@datingapp.com
-- Operations Team: ops-team@datingapp.com
-- Database Admin: dba@datingapp.com
+- On-call Engineer: oncall@flamoral.com
+- Operations Team: ops-team@flamoral.com
+- Database Admin: dba@flamoral.com
 - PagerDuty: 1-844-700-DUTY

@@ -252,8 +252,8 @@ EOF
 - Update this runbook
 
 ## Emergency Contacts
-- Security Team: security@datingapp.com
-- Incident Commander: commander@datingapp.com
-- Legal: legal@datingapp.com
-- Communications: pr@datingapp.com
+- Security Team: security@flamoral.com
+- Incident Commander: commander@flamoral.com
+- Legal: legal@flamoral.com
+- Communications: pr@flamoral.com
 - Azure Support: +1-800-867-1389

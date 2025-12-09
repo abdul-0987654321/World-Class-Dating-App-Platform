@@ -8,9 +8,9 @@ keywords:
   - dating-app
   - microservices
   - nodejs
-home: https://datingapp.com
+home: https://flamoral.com
 sources:
   - https://github.com/dating-app/platform
 maintainers:
   - name: Platform Team
-    email: platform@datingapp.com
+    email: platform@flamoral.com

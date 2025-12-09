@@ -8,7 +8,7 @@ metadata:
 data:
   grafana.ini: |
     [server]
-    root_url = https://grafana.datingapp.com
+    root_url = https://grafana.flamoral.com
     serve_from_sub_path = false
 
     [security]
@@ -59,7 +59,7 @@ data:
     host = ${SMTP_HOST}:${SMTP_PORT}
     user = ${SMTP_USER}
     password = ${SMTP_PASSWORD}
-    from_address = grafana@datingapp.com
+    from_address = grafana@flamoral.com
     from_name = Grafana Dating App
 
     [alerting]
@@ -282,10 +282,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - grafana.datingapp.com
+    - grafana.flamoral.com
     secretName: grafana-tls
   rules:
-  - host: grafana.datingapp.com
+  - host: grafana.flamoral.com
     http:
       paths:
       - path: /

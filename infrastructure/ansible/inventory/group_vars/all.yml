@@ -3,7 +3,7 @@
 
 # Application configuration
 app_name: dating-app-platform
-app_domain: datingapp.com
+app_domain: flamoral.com
 app_port: 3000
 api_port: 4000
 
@@ -44,4 +44,4 @@ backup_schedule: "0 2 * * *"
 # SSL/TLS
 ssl_enabled: true
 ssl_provider: letsencrypt
-certbot_email: admin@datingapp.com
+certbot_email: admin@flamoral.com

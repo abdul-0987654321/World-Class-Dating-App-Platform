@@ -168,7 +168,7 @@ az postgres flexible-server restore \
 | P3 | <2% | <500ms | Monitor, fix forward |
 
 ## Emergency Contacts
-- On-call Engineer: oncall@datingapp.com
-- Database Admin: dba@datingapp.com
-- Infrastructure Team: infra@datingapp.com
-- Incident Commander: commander@datingapp.com
+- On-call Engineer: oncall@flamoral.com
+- Database Admin: dba@flamoral.com
+- Infrastructure Team: infra@flamoral.com
+- Incident Commander: commander@flamoral.com

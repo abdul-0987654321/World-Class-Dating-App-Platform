@@ -4,7 +4,7 @@
 
 global:
   environment: production
-  domain: datingapp.com
+  domain: flamoral.com
   imagePullSecrets: []
   registry: docker.io
 
@@ -52,14 +52,14 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    - host: api.datingapp.com
+    - host: api.flamoral.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: dating-app-tls
       hosts:
-        - api.datingapp.com
+        - api.flamoral.com
 
 resources:
   limits:

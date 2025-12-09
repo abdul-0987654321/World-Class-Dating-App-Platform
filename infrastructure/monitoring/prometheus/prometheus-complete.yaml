@@ -251,9 +251,9 @@ data:
           module: [http_2xx]
         static_configs:
           - targets:
-            - https://datingapp.com
-            - https://api.datingapp.com
-            - https://www.datingapp.com
+            - https://flamoral.com
+            - https://api.flamoral.com
+            - https://www.flamoral.com
         relabel_configs:
           - source_labels: [__address__]
             target_label: __param_target

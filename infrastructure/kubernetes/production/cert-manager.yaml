@@ -12,7 +12,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: ssl-admin@datingapp.com
+    email: ssl-admin@flamoral.com
     privateKeySecretRef:
       name: letsencrypt-production-private-key
     solvers:
@@ -28,7 +28,7 @@ spec:
           subscriptionID: "${AZURE_SUBSCRIPTION_ID}"
           tenantID: "${AZURE_TENANT_ID}"
           resourceGroupName: "production-dating-app-rg"
-          hostedZoneName: datingapp.com
+          hostedZoneName: flamoral.com
           environment: AzurePublicCloud
 ---
 # Let's Encrypt Staging Issuer (for testing)
@@ -39,7 +39,7 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: ssl-admin@datingapp.com
+    email: ssl-admin@flamoral.com
     privateKeySecretRef:
       name: letsencrypt-staging-private-key
     solvers:
@@ -47,7 +47,7 @@ spec:
         ingress:
           class: nginx
 ---
-# Wildcard Certificate for *.datingapp.com
+# Wildcard Certificate for *.flamoral.com
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -58,10 +58,10 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: "*.datingapp.com"
+  commonName: "*.flamoral.com"
   dnsNames:
-  - "*.datingapp.com"
-  - datingapp.com
+  - "*.flamoral.com"
+  - flamoral.com
   duration: 2160h # 90 days
   renewBefore: 360h # 15 days before expiry
   privateKey:
@@ -85,9 +85,9 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: api.datingapp.com
+  commonName: api.flamoral.com
   dnsNames:
-  - api.datingapp.com
+  - api.flamoral.com
   duration: 2160h # 90 days
   renewBefore: 360h # 15 days before expiry
   privateKey:
@@ -109,10 +109,10 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: www.datingapp.com
+  commonName: www.flamoral.com
   dnsNames:
-  - www.datingapp.com
-  - datingapp.com
+  - www.flamoral.com
+  - flamoral.com
   duration: 2160h # 90 days
   renewBefore: 360h # 15 days before expiry
   privateKey:

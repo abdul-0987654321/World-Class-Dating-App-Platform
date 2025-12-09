@@ -188,8 +188,8 @@ az security regulatory-compliance-control show \
 
 ## Security Contacts
 
-- **Security Team**: security@datingapp.com
-- **Incident Response**: incident@datingapp.com
+- **Security Team**: security@flamoral.com
+- **Incident Response**: incident@flamoral.com
 - **On-Call**: +1-555-SECURITY
 - **Azure Support**: support.azure.com
 

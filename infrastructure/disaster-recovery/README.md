@@ -61,6 +61,6 @@ See `failover-playbook.md` for detailed steps.
 ## Contacts
 
 ### On-Call Rotation
-- Primary: oncall@datingapp.com
-- Escalation: sre@datingapp.com
-- Management: cto@datingapp.com
+- Primary: oncall@flamoral.com
+- Escalation: sre@flamoral.com
+- Management: cto@flamoral.com

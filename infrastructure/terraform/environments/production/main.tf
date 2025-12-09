@@ -381,8 +381,8 @@ resource "azurerm_frontdoor" "main" {
   backend_pool {
     name = "BackendPool"
     backend {
-      host_header = "api.datingapp.com"
-      address     = "api.datingapp.com"
+      host_header = "api.flamoral.com"
+      address     = "api.flamoral.com"
       http_port   = 80
       https_port  = 443
     }

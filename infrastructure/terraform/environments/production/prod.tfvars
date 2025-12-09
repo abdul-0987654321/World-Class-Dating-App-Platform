@@ -58,11 +58,11 @@ enable_alerts             = true
 alert_email_receivers = [
   {
     name  = "OpsTeam"
-    email = "ops-team@datingapp.com"
+    email = "ops-team@flamoral.com"
   },
   {
     name  = "OnCallEngineer"
-    email = "oncall@datingapp.com"
+    email = "oncall@flamoral.com"
   }
 ]
 

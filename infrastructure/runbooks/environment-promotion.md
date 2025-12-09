@@ -99,8 +99,8 @@ npm run test:smoke:prod
 # - Monitor AKS node health
 
 # Step 11: Post-deployment verification
-curl -f https://api.datingapp.com/health
-curl -f https://api.datingapp.com/metrics
+curl -f https://api.flamoral.com/health
+curl -f https://api.flamoral.com/metrics
 
 # Step 12: Update status page
 # Post deployment success notification
@@ -125,6 +125,6 @@ See [rollback-procedure.md](./rollback-procedure.md)
 - [ ] Update runbook if needed
 
 ## Contacts
-- On-call Engineer: oncall@datingapp.com
-- Tech Lead: tech-lead@datingapp.com
-- Operations: ops-team@datingapp.com
+- On-call Engineer: oncall@flamoral.com
+- Tech Lead: tech-lead@flamoral.com
+- Operations: ops-team@flamoral.com

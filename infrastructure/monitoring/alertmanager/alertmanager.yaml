@@ -1,7 +1,7 @@
 # Alertmanager Configuration
 global:
   smtp_smarthost: 'smtp.sendgrid.net:587'
-  smtp_from: 'alerts@datingapp.com'
+  smtp_from: 'alerts@flamoral.com'
   smtp_auth_username: 'apikey'
   smtp_auth_password: '${SENDGRID_API_KEY}'
   slack_api_url: '${SLACK_WEBHOOK_URL}'
@@ -111,7 +111,7 @@ receivers:
       - service_key: '${PAGERDUTY_SERVICE_KEY}'
         severity: critical
     email_configs:
-      - to: 'oncall@datingapp.com'
+      - to: 'oncall@flamoral.com'
         send_resolved: true
 
   - name: 'security-team'
@@ -121,7 +121,7 @@ receivers:
         color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
         title: '🔒 Security Alert: {{ .CommonAnnotations.summary }}'
     email_configs:
-      - to: 'security@datingapp.com'
+      - to: 'security@flamoral.com'
         send_resolved: true
 
   - name: 'payments-team'

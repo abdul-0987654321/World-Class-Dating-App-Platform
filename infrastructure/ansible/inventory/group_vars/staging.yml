@@ -7,7 +7,7 @@ environment_tier: staging
 # Application
 app_debug: false
 app_log_level: info
-api_base_url: https://api-staging.datingapp.com
+api_base_url: https://api-staging.flamoral.com
 
 # Database
 db_host: staging-db-01

@@ -7,7 +7,7 @@ environment_tier: prod
 # Application
 app_debug: false
 app_log_level: warn
-api_base_url: https://api.datingapp.com
+api_base_url: https://api.flamoral.com
 
 # Database
 db_host: prod-db-01

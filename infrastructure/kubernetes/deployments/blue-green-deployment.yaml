@@ -197,10 +197,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - blue.api.datingapp.com
+    - blue.api.flamoral.com
     secretName: api-blue-tls
   rules:
-  - host: blue.api.datingapp.com
+  - host: blue.api.flamoral.com
     http:
       paths:
       - path: /
@@ -224,10 +224,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - green.api.datingapp.com
+    - green.api.flamoral.com
     secretName: api-green-tls
   rules:
-  - host: green.api.datingapp.com
+  - host: green.api.flamoral.com
     http:
       paths:
       - path: /

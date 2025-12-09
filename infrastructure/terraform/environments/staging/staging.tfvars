@@ -53,7 +53,7 @@ enable_alerts             = true
 alert_email_receivers = [
   {
     name  = "DevTeam"
-    email = "dev-team@datingapp.com"
+    email = "dev-team@flamoral.com"
   }
 ]
 

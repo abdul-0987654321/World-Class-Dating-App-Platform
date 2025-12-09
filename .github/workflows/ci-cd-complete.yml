@@ -295,7 +295,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     environment:
       name: staging
-      url: https://staging.datingapp.com
+      url: https://staging.flamoral.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -324,7 +324,7 @@ jobs:
       - name: Run smoke tests on Green
         run: |
           chmod +x ./tests/smoke-tests.sh
-          ./tests/smoke-tests.sh https://green.staging.datingapp.com
+          ./tests/smoke-tests.sh https://green.staging.flamoral.com
 
       - name: Switch traffic to Green
         run: |
@@ -357,7 +357,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://datingapp.com
+      url: https://flamoral.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -464,8 +464,8 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Deployment Failed - Dating App"
-          to: devops@datingapp.com
-          from: ci-cd@datingapp.com
+          to: devops@flamoral.com
+          from: ci-cd@flamoral.com
           body: |
             Deployment failed for commit ${{ github.sha }}
             Branch: ${{ github.ref }}

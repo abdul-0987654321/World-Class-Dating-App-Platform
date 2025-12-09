@@ -4,6 +4,10 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
 
+// Import routes
+import paymentRoutes from './api/routes/payment.routes';
+import webhookRoutes from './api/routes/webhook.routes';
+
 // Load environment variables
 dotenv.config();
 
@@ -17,8 +21,17 @@ const PORT = process.env.PORT || 3006;  // Changed from 3005 to avoid conflict w
 // Middleware
 app.use(helmet());
 app.use(cors());
+
+// Note: Webhook routes must be mounted BEFORE express.json() middleware
+// because they need access to the raw body for signature verification
+app.use('/api/webhooks', webhookRoutes);
+
+// JSON parsing for all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Mount payment routes
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

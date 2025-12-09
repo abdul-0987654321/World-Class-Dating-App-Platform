@@ -140,7 +140,7 @@ kubectl get pods -n dating-app-production -w
 # Update A record to point to secondary region
 az network dns record-set a update \
   --resource-group production-dating-app-rg \
-  --zone-name datingapp.com \
+  --zone-name flamoral.com \
   --name @ \
   --set aRecords[0].ipv4Address=<SECONDARY_INGRESS_IP>
 ```
@@ -150,10 +150,10 @@ az network dns record-set a update \
 ### 5.1 Health Checks
 ```bash
 # Test API endpoint
-curl -I https://api.datingapp.com/health
+curl -I https://api.flamoral.com/health
 
 # Test web application
-curl -I https://www.datingapp.com
+curl -I https://www.flamoral.com
 
 # Check database connectivity
 psql -h production-dating-app-postgres-replica.postgres.database.azure.com \
@@ -240,12 +240,12 @@ az postgres flexible-server replica create \
 - **Primary On-Call**: +1-555-0001
 - **Secondary On-Call**: +1-555-0002
 - **Azure Support**: +1-800-642-7676
-- **Database DBA**: dba@datingapp.com
-- **Infrastructure Lead**: infrastructure@datingapp.com
-- **CTO**: cto@datingapp.com
+- **Database DBA**: dba@flamoral.com
+- **Infrastructure Lead**: infrastructure@flamoral.com
+- **CTO**: cto@flamoral.com
 
 ## Reference Documents
 
 - Azure Service Health: https://status.azure.com
-- Internal Wiki: https://wiki.datingapp.com/dr
-- Incident Management: https://incidents.datingapp.com
+- Internal Wiki: https://wiki.flamoral.com/dr
+- Incident Management: https://incidents.flamoral.com

@@ -7,7 +7,7 @@ environment_tier: dev
 # Application
 app_debug: true
 app_log_level: debug
-api_base_url: https://api-dev.datingapp.com
+api_base_url: https://api-dev.flamoral.com
 
 # Database
 db_host: dev-db-01

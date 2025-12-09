@@ -92,9 +92,9 @@ infrastructure/
 
 | Environment | Purpose | Cost/month | URL |
 |------------|---------|-----------|-----|
-| **Dev** | Development & testing | ~$150 | api-dev.datingapp.com |
-| **Staging** | Pre-production QA | ~$445 | api-staging.datingapp.com |
-| **Production** | Live traffic | $2,425-3,025 | api.datingapp.com |
+| **Dev** | Development & testing | ~$150 | api-dev.flamoral.com |
+| **Staging** | Pre-production QA | ~$445 | api-staging.flamoral.com |
+| **Production** | Live traffic | $2,425-3,025 | api.flamoral.com |
 
 ## Deployment
 
@@ -146,6 +146,6 @@ gh workflow run terraform-apply.yml \
 
 ## Support
 
-- Email: ops-team@datingapp.com
+- Email: ops-team@flamoral.com
 - Slack: #dating-app-ops
-- On-call: oncall@datingapp.com
+- On-call: oncall@flamoral.com

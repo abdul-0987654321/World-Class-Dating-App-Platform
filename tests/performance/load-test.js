@@ -26,7 +26,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.API_BASE_URL || 'https://api.datingapp.com';
+const BASE_URL = __ENV.API_BASE_URL || 'https://api.flamoral.com';
 
 // Test data
 const testUsers = [

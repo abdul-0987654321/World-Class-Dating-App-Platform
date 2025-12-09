@@ -214,10 +214,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - api.datingapp.com
+    - api.flamoral.com
     secretName: dating-app-tls
   rules:
-  - host: api.datingapp.com
+  - host: api.flamoral.com
     http:
       paths:
       - path: /
@@ -241,10 +241,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - api.datingapp.com
+    - api.flamoral.com
     secretName: dating-app-tls
   rules:
-  - host: api.datingapp.com
+  - host: api.flamoral.com
     http:
       paths:
       - path: /

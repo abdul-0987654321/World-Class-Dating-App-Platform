@@ -148,7 +148,7 @@ spec:
       annotations:
         summary: "API Availability SLO Violation"
         description: "API availability is {{ $value }}%, below SLO of 99.95%"
-        runbook_url: "https://wiki.datingapp.com/runbooks/api-availability"
+        runbook_url: "https://wiki.flamoral.com/runbooks/api-availability"
 
     # API Latency SLO
     - alert: APILatencySLOViolation
@@ -164,7 +164,7 @@ spec:
       annotations:
         summary: "API Latency SLO Violation"
         description: "P99 latency is {{ $value }}s, above SLO of 500ms"
-        runbook_url: "https://wiki.datingapp.com/runbooks/api-latency"
+        runbook_url: "https://wiki.flamoral.com/runbooks/api-latency"
 
     # API Success Rate SLO
     - alert: APISuccessRateSLOViolation
@@ -181,7 +181,7 @@ spec:
       annotations:
         summary: "API Success Rate SLO Violation"
         description: "API success rate is {{ $value | humanizePercentage }}, below SLO of 99.9%"
-        runbook_url: "https://wiki.datingapp.com/runbooks/api-errors"
+        runbook_url: "https://wiki.flamoral.com/runbooks/api-errors"
 
     # Database Availability SLO
     - alert: DatabaseAvailabilitySLOViolation
@@ -194,7 +194,7 @@ spec:
       annotations:
         summary: "Database Availability SLO Violation"
         description: "Database is unavailable"
-        runbook_url: "https://wiki.datingapp.com/runbooks/database-down"
+        runbook_url: "https://wiki.flamoral.com/runbooks/database-down"
 
     # Error Budget Burn Rate
     - alert: ErrorBudgetBurnRateHigh
@@ -211,7 +211,7 @@ spec:
       annotations:
         summary: "Error Budget Burning Too Fast"
         description: "Error budget is being consumed at {{ $value }}x the sustainable rate"
-        runbook_url: "https://wiki.datingapp.com/runbooks/error-budget"
+        runbook_url: "https://wiki.flamoral.com/runbooks/error-budget"
 
     # Message Delivery SLO
     - alert: MessageDeliverySLOViolation
@@ -228,7 +228,7 @@ spec:
       annotations:
         summary: "Message Delivery SLO Violation"
         description: "Message delivery rate is {{ $value | humanizePercentage }}, below SLO of 99.99%"
-        runbook_url: "https://wiki.datingapp.com/runbooks/message-delivery"
+        runbook_url: "https://wiki.flamoral.com/runbooks/message-delivery"
 
 ---
 # Recording Rules for SLI Metrics

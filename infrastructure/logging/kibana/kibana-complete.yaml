@@ -140,10 +140,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - kibana.datingapp.com
+    - kibana.flamoral.com
     secretName: kibana-tls
   rules:
-  - host: kibana.datingapp.com
+  - host: kibana.flamoral.com
     http:
       paths:
       - path: /
@@ -263,7 +263,7 @@ data:
       "actions": {
         "send_email": {
           "email": {
-            "to": "alerts@datingapp.com",
+            "to": "alerts@flamoral.com",
             "subject": "High Error Rate Alert",
             "body": "Error count exceeded threshold: {{ctx.payload.aggregations.error_count.value}} errors in the last 5 minutes"
           }
@@ -330,7 +330,7 @@ data:
       "actions": {
         "send_email": {
           "email": {
-            "to": "performance@datingapp.com",
+            "to": "performance@flamoral.com",
             "subject": "Slow Query Alert",
             "body": "{{ctx.payload.hits.total}} slow queries detected in the last 10 minutes"
           }

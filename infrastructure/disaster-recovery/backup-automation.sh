@@ -259,7 +259,7 @@ log "Backup automation completed successfully"
 # Email report (optional)
 if command -v mail &> /dev/null; then
     mail -s "Dating App Backup Report - ${TIMESTAMP}" \
-        devops@datingapp.com < "${LOG_FILE}"
+        devops@flamoral.com < "${LOG_FILE}"
 fi
 
 exit 0
