@@ -126,11 +126,36 @@ steps:
 
       cd ${{ parameters.serviceDirectory }}
 
-      # Install all dependencies normally (including devDependencies)
+      # Remove partial cached node_modules if it exists but is incomplete
+      # This ensures devDependencies like @types/node get installed
+      if [ -d "node_modules" ] && [ ! -d "node_modules/@types/node" ]; then
+        echo "Cached node_modules appears incomplete (missing @types/node), removing..."
+        rm -rf node_modules
+      fi
+
+      # Install all dependencies including devDependencies
+      # Use npm ci for reproducible builds, fallback to npm install if lock file is out of sync
       if [ -f "package-lock.json" ]; then
-        npm ci --prefer-offline --no-audit 2>/dev/null || npm install --prefer-offline --no-audit || npm install
+        echo "Running npm ci..."
+        npm ci --prefer-offline --no-audit || {
+          echo "npm ci failed, trying npm install..."
+          rm -rf node_modules
+          npm install --prefer-offline --no-audit || npm install
+        }
       else
+        echo "No package-lock.json, running npm install..."
         npm install --prefer-offline --no-audit || npm install
+      fi
+
+      # Verify critical devDependencies are installed
+      echo "Verifying dependencies..."
+      if [ ! -d "node_modules/@types/node" ]; then
+        echo "WARNING: @types/node not found, installing explicitly..."
+        npm install --save-dev @types/node
+      fi
+      if [ ! -f "node_modules/.bin/tsc" ] && [ ! -f "node_modules/typescript/bin/tsc" ]; then
+        echo "WARNING: typescript not found, installing explicitly..."
+        npm install --save-dev typescript
       fi
 
       echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
