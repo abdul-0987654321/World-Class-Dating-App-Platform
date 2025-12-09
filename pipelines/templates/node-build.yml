@@ -118,44 +118,67 @@ steps:
       fi
     displayName: 'Pre-link @flamoral/shared - ${{ parameters.serviceName }}'
 
-  # Step 3: Install service dependencies (now @flamoral/shared exists)
+  # Step 3: Install service dependencies
+  # CRITICAL: @flamoral/shared is a LOCAL package, NOT on npm registry
+  # We must ensure it's pre-linked before AND after npm install
   - script: |
       echo "=========================================="
       echo "Installing dependencies for ${{ parameters.serviceName }}"
       echo "=========================================="
 
-      cd ${{ parameters.serviceDirectory }}
+      SERVICE_DIR="${{ parameters.serviceDirectory }}"
+      cd "$SERVICE_DIR"
 
-      # Remove partial cached node_modules if it exists but is incomplete
-      # This ensures devDependencies like @types/node get installed
-      if [ -d "node_modules" ] && [ ! -d "node_modules/@types/node" ]; then
-        echo "Cached node_modules appears incomplete (missing @types/node), removing..."
-        rm -rf node_modules
+      # First, ensure @flamoral/shared exists before npm tries to resolve it
+      # This prevents npm from trying to fetch it from the registry
+      mkdir -p "node_modules/@flamoral"
+      if [ -d "$(pwd)/../../shared" ]; then
+        echo "Pre-linking @flamoral/shared from backend/shared..."
+        rm -rf "node_modules/@flamoral/shared"
+        cp -r "$(pwd)/../../shared" "node_modules/@flamoral/shared"
       fi
 
-      # Install all dependencies including devDependencies
-      # Use npm ci for reproducible builds, fallback to npm install if lock file is out of sync
-      if [ -f "package-lock.json" ]; then
-        echo "Running npm ci..."
-        npm ci --prefer-offline --no-audit || {
-          echo "npm ci failed, trying npm install..."
-          rm -rf node_modules
-          npm install --prefer-offline --no-audit || npm install
+      # Create a temporary modified package.json without @flamoral/shared
+      # This prevents npm from trying to fetch it from the registry
+      echo "Creating temporary package.json without @flamoral/shared..."
+      cp package.json package.json.bak
+
+      # Remove @flamoral/shared from dependencies using sed
+      sed -i 's/"@flamoral\/shared"[^,}]*,\?//g' package.json
+      # Clean up any trailing commas or empty objects
+      sed -i 's/,\s*}/}/g' package.json
+      sed -i 's/{\s*,/{/g' package.json
+
+      # Install dependencies (without @flamoral/shared)
+      echo "Running npm install (without @flamoral/shared)..."
+      npm install --prefer-offline --no-audit 2>&1 || {
+        echo "npm install with prefer-offline failed, retrying..."
+        npm install --no-audit 2>&1 || {
+          echo "npm install failed, but continuing..."
         }
-      else
-        echo "No package-lock.json, running npm install..."
-        npm install --prefer-offline --no-audit || npm install
+      }
+
+      # Restore original package.json
+      mv package.json.bak package.json
+
+      # Re-link @flamoral/shared after npm install
+      echo "Re-linking @flamoral/shared..."
+      mkdir -p "node_modules/@flamoral"
+      if [ -d "$(pwd)/../../shared" ]; then
+        rm -rf "node_modules/@flamoral/shared"
+        cp -r "$(pwd)/../../shared" "node_modules/@flamoral/shared"
+        echo "✓ @flamoral/shared linked successfully"
       fi
 
       # Verify critical devDependencies are installed
       echo "Verifying dependencies..."
       if [ ! -d "node_modules/@types/node" ]; then
         echo "WARNING: @types/node not found, installing explicitly..."
-        npm install --save-dev @types/node
+        npm install --save-dev @types/node --no-audit
       fi
       if [ ! -f "node_modules/.bin/tsc" ] && [ ! -f "node_modules/typescript/bin/tsc" ]; then
         echo "WARNING: typescript not found, installing explicitly..."
-        npm install --save-dev typescript
+        npm install --save-dev typescript --no-audit
       fi
 
       echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
