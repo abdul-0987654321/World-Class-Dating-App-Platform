@@ -1,5 +1,5 @@
 export default {
-  port: parseInt(process.env.PORT || '3002', 10),
+  port: parseInt(process.env.PORT || '3009', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   database: {

@@ -56,7 +56,7 @@ output "cosmosdb_endpoint" {
 
 output "frontdoor_endpoint" {
   description = "Front Door endpoint URL"
-  value       = module.frontdoor.frontdoor_endpoint
+  value       = module.frontdoor.endpoint_url
 }
 
 output "log_analytics_workspace_id" {
@@ -66,7 +66,7 @@ output "log_analytics_workspace_id" {
 
 output "application_insights_key" {
   description = "Application Insights instrumentation key"
-  value       = module.monitor.application_insights_key
+  value       = module.monitor.appinsights_instrumentation_key
   sensitive   = true
 }
 
@@ -85,18 +85,18 @@ output "redis_connection_string" {
 
 output "signalr_connection_string" {
   description = "SignalR connection string"
-  value       = module.signalr.connection_string
+  value       = module.signalr.signalr_primary_connection_string
   sensitive   = true
 }
 
 output "cosmosdb_connection_string" {
   description = "CosmosDB connection string"
-  value       = module.cosmosdb.connection_string
+  value       = module.cosmosdb.cosmosdb_connection_strings
   sensitive   = true
 }
 
 output "storage_connection_string" {
   description = "Storage account connection string"
-  value       = module.storage.connection_string
+  value       = module.storage.primary_connection_string
   sensitive   = true
 }

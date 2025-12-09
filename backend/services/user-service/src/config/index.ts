@@ -5,7 +5,7 @@ dotenv.config();
 export default {
   service: {
     name: process.env.SERVICE_NAME || 'user-service',
-    port: parseInt(process.env.PORT || '3001', 10),
+    port: parseInt(process.env.PORT || '3002', 10),
     env: process.env.NODE_ENV || 'development',
   },
 
