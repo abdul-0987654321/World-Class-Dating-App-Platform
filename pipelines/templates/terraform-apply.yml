@@ -19,7 +19,7 @@ steps:
     displayName: 'Download Terraform Plan'
     inputs:
       buildType: 'current'
-      artifactName: 'terraform-plan-${{ parameters.environment }}'
+      artifactName: 'tfplan-${{ parameters.environment }}'
       targetPath: '${{ parameters.workingDirectory }}'
 
   - script: |

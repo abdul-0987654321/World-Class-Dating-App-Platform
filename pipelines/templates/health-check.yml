@@ -48,15 +48,13 @@ steps:
       echo "========================================="
       echo "Environment: ${{ parameters.environment }}"
       echo "Namespace: ${{ parameters.namespace }}"
-      ${{ if ne(parameters.slot, '') }}
       echo "Slot: ${{ parameters.slot }}"
-      {{ end }}
       echo "========================================="
 
       SLOT_SELECTOR=""
-      ${{ if ne(parameters.slot, '') }}
-      SLOT_SELECTOR=",slot=${{ parameters.slot }}"
-      {{ end }}
+      if [ -n "${{ parameters.slot }}" ]; then
+        SLOT_SELECTOR=",slot=${{ parameters.slot }}"
+      fi
 
       # Check if all pods are ready
       echo "Checking pod readiness..."

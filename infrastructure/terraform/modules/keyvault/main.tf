@@ -25,63 +25,20 @@ resource "azurerm_key_vault" "main" {
   tags = var.tags
 }
 
-# Access policy for AKS managed identity
-resource "azurerm_key_vault_access_policy" "aks" {
-  count        = var.aks_kubelet_identity_object_id != "" ? 1 : 0
-  key_vault_id = azurerm_key_vault.main.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = var.aks_kubelet_identity_object_id
-
-  secret_permissions = [
-    "Get",
-    "List"
-  ]
-
-  certificate_permissions = [
-    "Get",
-    "List"
-  ]
-
-  key_permissions = [
-    "Get",
-    "List"
-  ]
+# RBAC Role Assignment for AKS managed identity (replaces access policies)
+# When enable_rbac_authorization = true, access policies are ignored
+resource "azurerm_role_assignment" "aks_secrets_user" {
+  count                = var.aks_kubelet_identity_object_id != "" ? 1 : 0
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = var.aks_kubelet_identity_object_id
 }
 
-# Access policy for current user/service principal (for Terraform)
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.main.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Delete",
-    "Purge",
-    "Recover"
-  ]
-
-  certificate_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Update",
-    "Delete",
-    "Purge",
-    "Recover"
-  ]
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Update",
-    "Delete",
-    "Purge",
-    "Recover"
-  ]
+# RBAC Role Assignment for Terraform/deployment service principal
+resource "azurerm_role_assignment" "terraform_admin" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 # Store secrets
@@ -91,7 +48,7 @@ resource "azurerm_key_vault_secret" "postgres_connection_string" {
   value        = var.postgres_connection_string
   key_vault_id = azurerm_key_vault.main.id
 
-  depends_on = [azurerm_key_vault_access_policy.terraform]
+  depends_on = [azurerm_role_assignment.terraform_admin]
 }
 
 resource "azurerm_key_vault_secret" "redis_connection_string" {
@@ -100,7 +57,7 @@ resource "azurerm_key_vault_secret" "redis_connection_string" {
   value        = var.redis_connection_string
   key_vault_id = azurerm_key_vault.main.id
 
-  depends_on = [azurerm_key_vault_access_policy.terraform]
+  depends_on = [azurerm_role_assignment.terraform_admin]
 }
 
 resource "azurerm_key_vault_secret" "storage_connection_string" {
@@ -109,7 +66,7 @@ resource "azurerm_key_vault_secret" "storage_connection_string" {
   value        = var.storage_connection_string
   key_vault_id = azurerm_key_vault.main.id
 
-  depends_on = [azurerm_key_vault_access_policy.terraform]
+  depends_on = [azurerm_role_assignment.terraform_admin]
 }
 
 resource "azurerm_key_vault_secret" "jwt_secret" {
@@ -117,7 +74,7 @@ resource "azurerm_key_vault_secret" "jwt_secret" {
   value        = var.jwt_secret != "" ? var.jwt_secret : random_password.jwt_secret.result
   key_vault_id = azurerm_key_vault.main.id
 
-  depends_on = [azurerm_key_vault_access_policy.terraform]
+  depends_on = [azurerm_role_assignment.terraform_admin]
 }
 
 resource "random_password" "jwt_secret" {

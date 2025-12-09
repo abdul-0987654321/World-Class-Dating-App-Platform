@@ -10,7 +10,8 @@ resource "azurerm_redis_cache" "main" {
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  subnet_id = var.subnet_id
+  # subnet_id is only supported for Premium SKU (VNet injection)
+  subnet_id = var.sku_name == "Premium" ? var.subnet_id : null
 
   redis_configuration {
     enable_authentication           = true

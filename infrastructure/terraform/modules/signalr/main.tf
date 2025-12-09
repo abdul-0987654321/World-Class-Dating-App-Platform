@@ -21,11 +21,15 @@ resource "azurerm_signalr_service" "main" {
     allowed_origins = var.cors_allowed_origins
   }
 
-  upstream_endpoint {
-    category_pattern = ["connections", "messages"]
-    event_pattern    = ["*"]
-    hub_pattern      = ["*"]
-    url_template     = var.upstream_url_template
+  # Upstream endpoints are ONLY valid in Serverless mode
+  dynamic "upstream_endpoint" {
+    for_each = var.service_mode == "Serverless" && var.upstream_url_template != "" ? [1] : []
+    content {
+      category_pattern = ["connections", "messages"]
+      event_pattern    = ["*"]
+      hub_pattern      = ["*"]
+      url_template     = var.upstream_url_template
+    }
   }
 
   tags = var.tags

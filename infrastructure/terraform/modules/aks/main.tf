@@ -39,8 +39,13 @@ resource "azurerm_kubernetes_cluster" "main" {
     azure_rbac_enabled = true
   }
 
-  oms_agent {
-    log_analytics_workspace_id = var.log_analytics_workspace_id
+  # OMS Agent for Log Analytics monitoring
+  # Only configure if log_analytics_workspace_id is provided
+  dynamic "oms_agent" {
+    for_each = var.log_analytics_workspace_id != "" ? [1] : []
+    content {
+      log_analytics_workspace_id = var.log_analytics_workspace_id
+    }
   }
 
   key_vault_secrets_provider {

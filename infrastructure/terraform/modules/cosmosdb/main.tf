@@ -13,29 +13,24 @@ resource "azurerm_cosmosdb_account" "main" {
     max_staleness_prefix    = var.consistency_level == "BoundedStaleness" ? 100000 : null
   }
 
-  # Primary region
+  # Primary region only - Serverless mode does not support multiple regions
   geo_location {
     location          = var.location
     failover_priority = 0
-    zone_redundant    = var.env == "prod" ? true : false
+    zone_redundant    = false  # Serverless doesn't support zone redundancy
   }
 
-  # Secondary region for production
-  dynamic "geo_location" {
-    for_each = var.env == "prod" && var.secondary_location != "" ? [1] : []
-    content {
-      location          = var.secondary_location
-      failover_priority = 1
-      zone_redundant    = true
-    }
-  }
+  # Note: Secondary region geo_location is NOT supported in Serverless mode
+  # For multi-region support, switch to provisioned throughput mode
 
   capabilities {
     name = "EnableServerless"
   }
 
-  automatic_failover_enabled = var.env == "prod" ? true : false
-  multiple_write_locations_enabled = var.env == "prod" ? true : false
+  # Note: Serverless mode does NOT support multi-region writes or automatic failover
+  # These features require provisioned throughput mode
+  automatic_failover_enabled       = false
+  multiple_write_locations_enabled = false
 
   public_network_access_enabled     = var.enable_public_access
   is_virtual_network_filter_enabled = true
