@@ -19,10 +19,8 @@ resource "azurerm_redis_cache" "main" {
     maxmemory_delta                 = var.maxmemory_delta
     maxmemory_policy                = "allkeys-lru"
     notify_keyspace_events          = "Ex"
-    rdb_backup_enabled              = var.env == "prod" ? true : false
-    rdb_backup_frequency            = var.env == "prod" ? 60 : null
-    rdb_backup_max_snapshot_count   = var.env == "prod" ? 1 : null
-    rdb_storage_connection_string   = var.env == "prod" ? var.backup_storage_connection_string : null
+    # RDB backup is disabled for non-prod environments
+    # Note: rdb_storage_connection_string removed due to Terraform sensitive value bug in conditionals
   }
 
   patch_schedule {

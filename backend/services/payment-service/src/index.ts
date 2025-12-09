@@ -12,7 +12,7 @@ const logger = createLogger('payment-service');
 
 // Create Express app
 const app: Application = express();
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 3006;  // Changed from 3005 to avoid conflict with moderation-service
 
 // Middleware
 app.use(helmet());

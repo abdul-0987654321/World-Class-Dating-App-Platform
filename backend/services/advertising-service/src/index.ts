@@ -26,7 +26,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3009;
+const PORT = process.env.PORT || 3010;  // Changed from 3009 to avoid conflict with matching-service
 
 // Health check
 app.get('/health', (req, res) => {

@@ -11,18 +11,19 @@ export default () => ({
     refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '30d',
   },
 
-  // Service URLs
+  // Service URLs - Updated with correct port allocations
   services: {
     authService: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
     userService: process.env.USER_SERVICE_URL || 'http://localhost:3002',
     profileService: process.env.PROFILE_SERVICE_URL || 'http://localhost:3002', // Same as user service
-    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3003',
-    messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3004',
+    messagingService: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3003',
+    mediaService: process.env.MEDIA_SERVICE_URL || 'http://localhost:3004',
+    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3005',
+    paymentService: process.env.PAYMENT_SERVICE_URL || 'http://localhost:3006',
+    analyticsService: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3007',
     notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
-    mediaService: process.env.MEDIA_SERVICE_URL || 'http://localhost:3006',
-    paymentService: process.env.PAYMENT_SERVICE_URL || 'http://localhost:3007',
-    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3009',
-    analyticsService: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3010',
+    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3009',
+    advertisingService: process.env.ADVERTISING_SERVICE_URL || 'http://localhost:3010',
     aiService: process.env.AI_SERVICE_URL || 'http://localhost:8000',
   },
 
