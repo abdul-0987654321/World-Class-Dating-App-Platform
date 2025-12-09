@@ -9,8 +9,8 @@
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "flamoral-terraform-state-rg"
-    storage_account_name = "flamoraltfst2025"
+    resource_group_name  = "flamoral-rg"
+    storage_account_name = "flamoralstate"
     container_name       = "tfstate"
     # key is set via -backend-config during init: key="flamoral-{env}.tfstate"
   }

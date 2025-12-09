@@ -3,7 +3,7 @@
 variable "subscription_id" {
   description = "Azure Subscription ID"
   type        = string
-  default     = "ba233460-2dbe-4603-a594-68f93ec9deb3"
+  default     = "ebd1613e-fea0-4b6d-8918-7e4de6a71c44"
 }
 
 variable "tenant_id" {
@@ -15,7 +15,7 @@ variable "tenant_id" {
 variable "prefix" {
   description = "Resource naming prefix"
   type        = string
-  default     = "datingapp"
+  default     = "flamoral"
 }
 
 variable "env" {
@@ -45,9 +45,9 @@ variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
   default = {
-    Project     = "Dating App Platform"
+    Project     = "Flamoral Dating Platform"
     ManagedBy   = "Terraform"
-    Repository  = "World-Class-Dating-App-Platform"
+    Repository  = "Flamoral"
   }
 }
 
