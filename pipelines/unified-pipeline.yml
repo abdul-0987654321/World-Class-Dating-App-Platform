@@ -393,12 +393,13 @@ stages:
             displayName: 'Publish API Reports'
 
   # ============================================================================
-  # STAGE 8: BUILD DOCKER IMAGES
+  # STAGE 8: BUILD DOCKER IMAGES (Requires ACR Service Connection)
   # ============================================================================
   - stage: DockerBuild
     displayName: '8. Build Docker Images'
     dependsOn: APIAccuracy
-    condition: and(succeeded(), or(eq(variables.isMain, true), eq(variables.isDevelop, true)))
+    # Skip Docker builds until ACR service connection is configured
+    condition: and(succeeded(), eq(variables['DOCKER_ENABLED'], 'true'), or(eq(variables.isMain, true), eq(variables.isDevelop, true)))
     jobs:
       - job: BuildImages
         displayName: 'Build & Push Docker Images'
@@ -406,15 +407,8 @@ stages:
           - checkout: self
             fetchDepth: 1
 
-          - task: Docker@2
-            displayName: 'Login to ACR'
-            inputs:
-              command: login
-              containerRegistry: 'FlamoralACR'
-            continueOnError: true
-
           - script: |
-              echo "Building Docker images..."
+              echo "Building Docker images locally (no ACR push)..."
               SERVICES="auth-service user-service matching-service messaging-service media-service notification-service payment-service"
               for service in $SERVICES; do
                 if [ -f "backend/services/$service/Dockerfile" ]; then
@@ -431,7 +425,7 @@ stages:
   - stage: PublishArtifacts
     displayName: '9. Publish Artifacts'
     dependsOn:
-      - DockerBuild
+      - APIAccuracy
     condition: succeeded()
     jobs:
       - job: PublishAll
