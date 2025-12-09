@@ -3,8 +3,8 @@
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-terraform-state-westus2"
-    storage_account_name = "sttfstatedatingplatform"
+    resource_group_name  = "flamoral-rg"
+    storage_account_name = "flamoralstate"
     container_name       = "tfstate"
     key                  = "prod.terraform.tfstate"
 
