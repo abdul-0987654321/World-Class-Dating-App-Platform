@@ -54,9 +54,26 @@ steps:
 
         echo "##[group]Checking/Creating Terraform Backend"
 
-        RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
-        STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
-        CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+        # Handle case where Azure DevOps variables are not resolved (still contain $())
+        # If variable contains '$(' it wasn't resolved - use default
+        if [[ "$TF_STATE_RG" == *'$('* ]] || [[ -z "$TF_STATE_RG" ]]; then
+          RESOURCE_GROUP="flamoral-rg"
+        else
+          RESOURCE_GROUP="$TF_STATE_RG"
+        fi
+
+        if [[ "$TF_STATE_SA" == *'$('* ]] || [[ -z "$TF_STATE_SA" ]]; then
+          STORAGE_ACCOUNT="flamoralstate"
+        else
+          STORAGE_ACCOUNT="$TF_STATE_SA"
+        fi
+
+        if [[ "$TF_STATE_CONTAINER" == *'$('* ]] || [[ -z "$TF_STATE_CONTAINER" ]]; then
+          CONTAINER="tfstate"
+        else
+          CONTAINER="$TF_STATE_CONTAINER"
+        fi
+
         LOCATION="${AZURE_LOCATION:-eastus}"
 
         echo "Backend Configuration:"
@@ -160,9 +177,25 @@ steps:
 
         echo "##[group]Initializing Terraform for ${{ parameters.environment }}"
 
-        RESOURCE_GROUP="${TF_STATE_RG:-flamoral-terraform-state-rg}"
-        STORAGE_ACCOUNT="${TF_STATE_SA:-flamoraltfstate}"
-        CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+        # Handle case where Azure DevOps variables are not resolved (still contain $())
+        if [[ "$TF_STATE_RG" == *'$('* ]] || [[ -z "$TF_STATE_RG" ]]; then
+          RESOURCE_GROUP="flamoral-rg"
+        else
+          RESOURCE_GROUP="$TF_STATE_RG"
+        fi
+
+        if [[ "$TF_STATE_SA" == *'$('* ]] || [[ -z "$TF_STATE_SA" ]]; then
+          STORAGE_ACCOUNT="flamoralstate"
+        else
+          STORAGE_ACCOUNT="$TF_STATE_SA"
+        fi
+
+        if [[ "$TF_STATE_CONTAINER" == *'$('* ]] || [[ -z "$TF_STATE_CONTAINER" ]]; then
+          CONTAINER="tfstate"
+        else
+          CONTAINER="$TF_STATE_CONTAINER"
+        fi
+
         STATE_KEY="flamoral-${{ parameters.environment }}.tfstate"
 
         echo "Backend Config:"

@@ -83,9 +83,25 @@ stages:
               export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
               export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-              RESOURCE_GROUP="${TF_STATE_RG:-flamoral-rg}"
-              STORAGE_ACCOUNT="${TF_STATE_SA:-flamoralstate}"
-              CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+              # Handle case where Azure DevOps variables are not resolved (still contain $())
+              if [[ "$TF_STATE_RG" == *'$('* ]] || [[ -z "$TF_STATE_RG" ]]; then
+                RESOURCE_GROUP="flamoral-rg"
+              else
+                RESOURCE_GROUP="$TF_STATE_RG"
+              fi
+
+              if [[ "$TF_STATE_SA" == *'$('* ]] || [[ -z "$TF_STATE_SA" ]]; then
+                STORAGE_ACCOUNT="flamoralstate"
+              else
+                STORAGE_ACCOUNT="$TF_STATE_SA"
+              fi
+
+              if [[ "$TF_STATE_CONTAINER" == *'$('* ]] || [[ -z "$TF_STATE_CONTAINER" ]]; then
+                CONTAINER="tfstate"
+              else
+                CONTAINER="$TF_STATE_CONTAINER"
+              fi
+
               LOCATION="eastus"
 
               echo "Checking backend resources..."
