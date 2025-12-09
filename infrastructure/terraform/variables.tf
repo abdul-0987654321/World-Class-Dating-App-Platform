@@ -28,6 +28,13 @@ variable "env" {
   }
 }
 
+# Alias for env - used by CI/CD pipeline
+variable "environment" {
+  description = "Environment alias (maps to env)"
+  type        = string
+  default     = ""
+}
+
 variable "location" {
   description = "Azure region for resources"
   type        = string

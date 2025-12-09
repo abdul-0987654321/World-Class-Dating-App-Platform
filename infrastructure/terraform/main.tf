@@ -1,5 +1,11 @@
 # Main Terraform Configuration for Dating App Platform
 
+# Local values to handle environment variable aliasing
+locals {
+  # Use 'environment' if provided, otherwise fall back to 'env'
+  effective_env = var.environment != "" ? var.environment : var.env
+}
+
 terraform {
   required_version = ">= 1.4"
 
@@ -40,11 +46,11 @@ provider "azurerm" {
 
 # Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = "${var.prefix}-${var.env}-rg"
+  name     = "${var.prefix}-${local.effective_env}-rg"
   location = var.location
 
   tags = merge(var.tags, {
-    Environment = var.env
+    Environment = local.effective_env
   })
 }
 
@@ -55,7 +61,7 @@ module "network" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   vnet_address_space      = var.vnet_address_space
   aks_subnet_prefix       = var.aks_subnet_prefix
@@ -73,7 +79,7 @@ module "aks" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   vnet_subnet_id      = module.network.aks_subnet_id
   node_count          = var.aks_node_count
@@ -92,7 +98,7 @@ module "postgres" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   sku_name               = var.postgres_sku
   storage_mb             = var.postgres_storage_mb
@@ -112,7 +118,7 @@ module "redis" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   sku_name  = var.redis_sku
   family    = var.redis_family
@@ -131,7 +137,7 @@ module "storage" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   enable_cdn = true
 
@@ -145,7 +151,7 @@ module "keyvault" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
   aks_kubelet_identity_object_id = module.aks.kubelet_identity_object_id
 
   tags = var.tags
@@ -160,7 +166,7 @@ module "signalr" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   sku_name  = var.signalr_sku
   capacity  = var.signalr_capacity
@@ -175,7 +181,7 @@ module "cosmosdb" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   consistency_level = var.cosmosdb_consistency_level
   aks_subnet_id     = module.network.aks_subnet_id
@@ -192,7 +198,7 @@ module "monitor" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   log_retention_days  = var.log_retention_days
 
@@ -207,7 +213,7 @@ module "frontdoor" {
 
   resource_group_name = azurerm_resource_group.main.name
   prefix              = var.prefix
-  env                 = var.env
+  env                 = local.effective_env
 
   aks_ingress_hostname = module.aks.aks_fqdn
 
