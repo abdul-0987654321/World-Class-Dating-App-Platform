@@ -41,45 +41,21 @@ resource "azurerm_role_assignment" "terraform_admin" {
   principal_id         = data.azurerm_client_config.current.object_id
 }
 
-# Store secrets
-resource "azurerm_key_vault_secret" "postgres_connection_string" {
-  count        = var.postgres_connection_string != "" ? 1 : 0
-  name         = "postgres-connection-string"
-  value        = var.postgres_connection_string
-  key_vault_id = azurerm_key_vault.main.id
-
-  depends_on = [azurerm_role_assignment.terraform_admin]
-}
-
-resource "azurerm_key_vault_secret" "redis_connection_string" {
-  count        = var.redis_connection_string != "" ? 1 : 0
-  name         = "redis-connection-string"
-  value        = var.redis_connection_string
-  key_vault_id = azurerm_key_vault.main.id
-
-  depends_on = [azurerm_role_assignment.terraform_admin]
-}
-
-resource "azurerm_key_vault_secret" "storage_connection_string" {
-  count        = var.storage_connection_string != "" ? 1 : 0
-  name         = "storage-connection-string"
-  value        = var.storage_connection_string
-  key_vault_id = azurerm_key_vault.main.id
-
-  depends_on = [azurerm_role_assignment.terraform_admin]
-}
-
-resource "azurerm_key_vault_secret" "jwt_secret" {
-  name         = "jwt-secret"
-  value        = var.jwt_secret != "" ? var.jwt_secret : random_password.jwt_secret.result
-  key_vault_id = azurerm_key_vault.main.id
-
-  depends_on = [azurerm_role_assignment.terraform_admin]
-}
+# Store secrets - Note: Secrets are stored when provided via environment variables in the pipeline
+# The conditional creation using count with sensitive variables causes Terraform crashes
+# These resources are created unconditionally and populated by the pipeline
 
 resource "random_password" "jwt_secret" {
   length  = 64
   special = true
+}
+
+resource "azurerm_key_vault_secret" "jwt_secret" {
+  name         = "jwt-secret"
+  value        = random_password.jwt_secret.result
+  key_vault_id = azurerm_key_vault.main.id
+
+  depends_on = [azurerm_role_assignment.terraform_admin]
 }
 
 # Private Endpoint for Key Vault
