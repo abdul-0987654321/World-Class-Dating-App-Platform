@@ -97,7 +97,28 @@ steps:
       fi
     displayName: 'Build @flamoral/shared package'
 
-  # Step 2: Install service dependencies FIRST (this creates node_modules)
+  # Step 2: Pre-link @flamoral/shared BEFORE npm install
+  # This ensures the package exists when npm tries to resolve it
+  - script: |
+      echo "=========================================="
+      echo "Pre-linking @flamoral/shared for ${{ parameters.serviceName }}"
+      echo "=========================================="
+
+      SERVICE_DIR="${{ parameters.serviceDirectory }}"
+
+      # Create node_modules/@flamoral directory
+      mkdir -p "$SERVICE_DIR/node_modules/@flamoral"
+
+      # Link backend/shared as @flamoral/shared BEFORE npm install
+      if [ -d "backend/shared" ]; then
+        echo "Linking backend/shared -> $SERVICE_DIR/node_modules/@flamoral/shared"
+        rm -rf "$SERVICE_DIR/node_modules/@flamoral/shared"
+        cp -r backend/shared "$SERVICE_DIR/node_modules/@flamoral/shared"
+        echo "✓ @flamoral/shared pre-linked successfully"
+      fi
+    displayName: 'Pre-link @flamoral/shared - ${{ parameters.serviceName }}'
+
+  # Step 3: Install service dependencies (now @flamoral/shared exists)
   - script: |
       echo "=========================================="
       echo "Installing dependencies for ${{ parameters.serviceName }}"
@@ -105,39 +126,30 @@ steps:
 
       cd ${{ parameters.serviceDirectory }}
 
-      # Remove @flamoral/shared from package.json temporarily to avoid npm errors
-      # We'll link it manually after install
-      if grep -q '"@flamoral/shared"' package.json; then
-        echo "Note: @flamoral/shared will be linked after npm install"
-      fi
-
-      # Use npm install with --ignore-scripts to avoid postinstall errors from missing @flamoral/shared
+      # Install all dependencies normally (including devDependencies)
       if [ -f "package-lock.json" ]; then
-        npm ci --prefer-offline --no-audit --ignore-scripts 2>/dev/null || npm install --prefer-offline --no-audit --ignore-scripts || npm install --ignore-scripts
+        npm ci --prefer-offline --no-audit 2>/dev/null || npm install --prefer-offline --no-audit || npm install
       else
-        npm install --prefer-offline --no-audit --ignore-scripts || npm install --ignore-scripts
+        npm install --prefer-offline --no-audit || npm install
       fi
 
       echo "✓ Dependencies installed for ${{ parameters.serviceName }}"
     displayName: 'Install dependencies - ${{ parameters.serviceName }}'
 
-  # Step 3: Link @flamoral/shared AFTER npm install (so it doesn't get overwritten)
+  # Step 4: Re-link @flamoral/shared AFTER npm install (in case it was overwritten)
   - script: |
       echo "=========================================="
-      echo "Linking @flamoral/shared for ${{ parameters.serviceName }}"
+      echo "Re-linking @flamoral/shared for ${{ parameters.serviceName }}"
       echo "=========================================="
 
       SERVICE_DIR="${{ parameters.serviceDirectory }}"
 
-      # Create node_modules/@flamoral directory if needed
-      mkdir -p "$SERVICE_DIR/node_modules/@flamoral"
-
-      # Link backend/shared as @flamoral/shared
+      # Ensure @flamoral/shared is still properly linked after npm install
       if [ -d "backend/shared" ]; then
-        echo "Linking backend/shared -> $SERVICE_DIR/node_modules/@flamoral/shared"
+        echo "Re-linking backend/shared -> $SERVICE_DIR/node_modules/@flamoral/shared"
         rm -rf "$SERVICE_DIR/node_modules/@flamoral/shared"
         cp -r backend/shared "$SERVICE_DIR/node_modules/@flamoral/shared"
-        echo "✓ @flamoral/shared linked successfully"
+        echo "✓ @flamoral/shared re-linked successfully"
 
         # Verify the link
         if [ -f "$SERVICE_DIR/node_modules/@flamoral/shared/package.json" ]; then
@@ -150,7 +162,7 @@ steps:
       # List what's in node_modules/@flamoral for debugging
       echo "Contents of $SERVICE_DIR/node_modules/@flamoral:"
       ls -la "$SERVICE_DIR/node_modules/@flamoral/" || echo "Directory empty or not found"
-    displayName: 'Link @flamoral/shared - ${{ parameters.serviceName }}'
+    displayName: 'Re-link @flamoral/shared - ${{ parameters.serviceName }}'
 
   - script: |
       if [ ! -d "${{ parameters.serviceDirectory }}" ]; then
