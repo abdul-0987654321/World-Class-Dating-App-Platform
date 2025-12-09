@@ -191,7 +191,8 @@ stages:
     dependsOn: Validate
     condition: succeeded()
     variables:
-      - group: datingplatform-terraform-common  # Required for tfState* variables
+      - group: datingplatform-terraform-common  # Required for ARM_* credentials
+      - group: flamoral-terraform-vars           # Required for tfState* variables
       - group: datingplatform-terraform-dev
     jobs:
       - deployment: TerraformDeployDev
@@ -226,7 +227,8 @@ stages:
     dependsOn: DeployDev
     condition: succeeded()
     variables:
-      - group: datingplatform-terraform-common  # Required for tfState* variables
+      - group: datingplatform-terraform-common  # Required for ARM_* credentials
+      - group: flamoral-terraform-vars           # Required for tfState* variables
       - group: datingplatform-terraform-test
     jobs:
       - deployment: TerraformDeployTest
@@ -261,7 +263,8 @@ stages:
     dependsOn: DeployTest
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     variables:
-      - group: datingplatform-terraform-common  # Required for tfState* variables
+      - group: datingplatform-terraform-common  # Required for ARM_* credentials
+      - group: flamoral-terraform-vars           # Required for tfState* variables
       - group: datingplatform-terraform-prod
     jobs:
       - deployment: TerraformDeployProd
