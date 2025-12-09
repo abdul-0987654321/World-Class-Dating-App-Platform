@@ -1,0 +1,164 @@
+{
+  "generated_at": "2025-12-09T17:30:00.000Z",
+  "platform": "Flamoral Dating Platform",
+  "version": "1.0.0",
+  "services": [
+    {
+      "name": "auth-service",
+      "base_path": "/api/auth",
+      "port": 3001,
+      "endpoints": [
+        {"path": "/register", "method": "POST", "documented": true, "implemented": true, "has_tests": true, "auth_required": false},
+        {"path": "/login", "method": "POST", "documented": true, "implemented": true, "has_tests": true, "auth_required": false},
+        {"path": "/logout", "method": "POST", "documented": true, "implemented": true, "has_tests": true, "auth_required": true},
+        {"path": "/refresh-token", "method": "POST", "documented": true, "implemented": true, "has_tests": true, "auth_required": false},
+        {"path": "/verify-email", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": false},
+        {"path": "/resend-verification", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": false},
+        {"path": "/forgot-password", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": false},
+        {"path": "/reset-password", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": false},
+        {"path": "/me", "method": "GET", "documented": true, "implemented": true, "has_tests": true, "auth_required": true},
+        {"path": "/validate-token", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    },
+    {
+      "name": "user-service",
+      "base_path": "/api",
+      "port": 3002,
+      "endpoints": [
+        {"path": "/profile", "method": "GET", "documented": true, "implemented": true, "has_tests": true, "auth_required": true},
+        {"path": "/profile", "method": "PUT", "documented": true, "implemented": true, "has_tests": true, "auth_required": true},
+        {"path": "/photos", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/photos", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/photos/:id", "method": "DELETE", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/photos/:id/primary", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/photos/reorder", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/current", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/features", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/features/:key/access", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/tier", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/cancel", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/subscriptions/reactivate", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/balance", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/transactions", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/transactions/summary", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/products", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/purchase", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/spend", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/coins/daily-reward", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/boosts/products", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/boosts/active", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/boosts/history", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/boosts/activate-with-coins", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/privacy/settings", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/privacy/settings", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/blocks", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/blocks", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/blocks/:userId", "method": "DELETE", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/reports/categories", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/reports", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    },
+    {
+      "name": "matching-service",
+      "base_path": "/api",
+      "port": 3003,
+      "endpoints": [
+        {"path": "/discovery", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/discovery/preferences", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/discovery/preferences", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/swipes", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/swipes/stats", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/recent", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/count", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/:matchId", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/:matchId", "method": "DELETE", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/:matchId/extend", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/matches/:targetUserId/rematch", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    },
+    {
+      "name": "messaging-service",
+      "base_path": "/api",
+      "port": 3004,
+      "endpoints": [
+        {"path": "/conversations", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/conversations/:id", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/conversations/:id/messages", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/conversations/:id/read", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/conversations/:id/archive", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages/unread-count", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages/:messageId", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages/:messageId", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages/:messageId", "method": "DELETE", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/messages/:messageId/status", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    },
+    {
+      "name": "notification-service",
+      "base_path": "/api/notifications",
+      "port": 3006,
+      "endpoints": [
+        {"path": "/", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/unread-count", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/:id/read", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/read-all", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/preferences", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/preferences", "method": "PUT", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/devices", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    },
+    {
+      "name": "payment-service",
+      "base_path": "/api/payments",
+      "port": 3007,
+      "endpoints": [
+        {"path": "/create-intent", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/history", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/methods", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/webhook", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": false}
+      ]
+    },
+    {
+      "name": "media-service",
+      "base_path": "/api/media",
+      "port": 3005,
+      "endpoints": [
+        {"path": "/upload", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/presigned-url", "method": "GET", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/video", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true},
+        {"path": "/voice-note", "method": "POST", "documented": true, "implemented": true, "has_tests": false, "auth_required": true}
+      ]
+    }
+  ],
+  "summary": {
+    "total_endpoints": 86,
+    "documented": 86,
+    "implemented": 86,
+    "tested": 8,
+    "documentation_coverage": 100.0,
+    "test_coverage": 9.3,
+    "accuracy_score": 54.65
+  },
+  "issues": [
+    {
+      "severity": "high",
+      "type": "low_test_coverage",
+      "message": "Only 9.3% of endpoints have tests - critical gap",
+      "recommendation": "Add Jest/Supertest tests for all API endpoints"
+    },
+    {
+      "severity": "medium",
+      "type": "missing_integration_tests",
+      "message": "No integration tests between services",
+      "recommendation": "Add end-to-end flow tests"
+    }
+  ],
+  "recommendations": [
+    "Prioritize auth and user profile test coverage",
+    "Add schema validation tests for all endpoints",
+    "Implement contract testing between services",
+    "Set up continuous API accuracy monitoring"
+  ]
+}

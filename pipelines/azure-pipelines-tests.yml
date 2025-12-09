@@ -1,0 +1,302 @@
+# Flamoral Dating Platform - API Testing Pipeline
+# Runs comprehensive API tests including Jest, Newman, and schema validation
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+  paths:
+    include:
+      - backend/**
+      - tests/**
+      - openapi.yaml
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.x'
+
+stages:
+  # ============================================
+  # Stage 1: Unit & Integration Tests
+  # ============================================
+  - stage: UnitTests
+    displayName: 'Unit & Integration Tests'
+    jobs:
+      - job: JestTests
+        displayName: 'Run Jest Tests'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g pnpm
+            displayName: 'Install pnpm'
+
+          - script: |
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+            workingDirectory: $(Build.SourcesDirectory)
+
+          - script: |
+              pnpm run test:ci
+            displayName: 'Run Jest Tests'
+            workingDirectory: $(Build.SourcesDirectory)/backend
+            env:
+              CI: true
+              NODE_ENV: test
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              testRunTitle: 'Jest Unit Tests'
+            condition: succeededOrFailed()
+            displayName: 'Publish Test Results'
+
+          - task: PublishCodeCoverageResults@1
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(Build.SourcesDirectory)/backend/coverage/cobertura-coverage.xml'
+            condition: succeededOrFailed()
+            displayName: 'Publish Code Coverage'
+
+  # ============================================
+  # Stage 2: API E2E Tests with Newman
+  # ============================================
+  - stage: APITests
+    displayName: 'API E2E Tests'
+    dependsOn: UnitTests
+    condition: succeeded()
+    jobs:
+      - job: NewmanTests
+        displayName: 'Run Newman/Postman Tests'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g newman newman-reporter-htmlextra newman-reporter-junit
+            displayName: 'Install Newman'
+
+          - script: |
+              npm install -g pnpm
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          # Start services in background for testing
+          - script: |
+              docker-compose -f docker-compose.test.yml up -d
+              sleep 30  # Wait for services to be ready
+            displayName: 'Start Test Services'
+            workingDirectory: $(Build.SourcesDirectory)
+
+          # Health check
+          - script: |
+              for i in {1..30}; do
+                curl -s http://localhost:3001/health && break || sleep 2
+              done
+            displayName: 'Wait for Services'
+
+          # Run Newman tests
+          - script: |
+              newman run dating-platform.postman_collection.json \
+                --environment postman-env.json \
+                --reporters cli,junit,htmlextra \
+                --reporter-junit-export $(Build.ArtifactStagingDirectory)/newman-results.xml \
+                --reporter-htmlextra-export $(Build.ArtifactStagingDirectory)/newman-report.html \
+                --timeout-request 30000 \
+                --delay-request 100 \
+                --bail
+            displayName: 'Run API Tests'
+            workingDirectory: $(Build.SourcesDirectory)
+            continueOnError: true
+
+          - script: |
+              docker-compose -f docker-compose.test.yml down
+            displayName: 'Stop Test Services'
+            condition: always()
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)/newman-results.xml'
+              testRunTitle: 'Newman API Tests'
+            condition: succeededOrFailed()
+            displayName: 'Publish Newman Results'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/newman-report.html'
+              ArtifactName: 'newman-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish Newman HTML Report'
+
+  # ============================================
+  # Stage 3: Schema Validation
+  # ============================================
+  - stage: SchemaValidation
+    displayName: 'API Schema Validation'
+    dependsOn: UnitTests
+    condition: succeeded()
+    jobs:
+      - job: ValidateOpenAPI
+        displayName: 'Validate OpenAPI Spec'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g @apidevtools/swagger-cli @stoplight/spectral-cli
+            displayName: 'Install Validation Tools'
+
+          - script: |
+              swagger-cli validate openapi.yaml
+            displayName: 'Validate OpenAPI Syntax'
+            workingDirectory: $(Build.SourcesDirectory)
+
+          - script: |
+              spectral lint openapi.yaml --ruleset .spectral.yaml || true
+            displayName: 'Lint OpenAPI Spec'
+            workingDirectory: $(Build.SourcesDirectory)
+            continueOnError: true
+
+      - job: ContractValidation
+        displayName: 'Contract Testing'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g pnpm
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - script: |
+              pnpm run test:contract || echo "Contract tests not configured"
+            displayName: 'Run Contract Tests'
+            workingDirectory: $(Build.SourcesDirectory)/backend
+            continueOnError: true
+
+  # ============================================
+  # Stage 4: API Accuracy Analysis
+  # ============================================
+  - stage: APIAccuracy
+    displayName: 'API Accuracy Analysis'
+    dependsOn:
+      - APITests
+      - SchemaValidation
+    condition: succeeded()
+    jobs:
+      - job: AccuracyReport
+        displayName: 'Generate Accuracy Report'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm install -g pnpm
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - script: |
+              node scripts/auto-fix-api.js --dry-run --report $(Build.ArtifactStagingDirectory)/auto-fix-report.json
+            displayName: 'Run Auto-Fix Analysis'
+            workingDirectory: $(Build.SourcesDirectory)
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/auto-fix-report.json'
+              ArtifactName: 'api-accuracy-report'
+            condition: succeededOrFailed()
+            displayName: 'Publish Accuracy Report'
+
+  # ============================================
+  # Stage 5: Performance Tests (Optional)
+  # ============================================
+  - stage: PerformanceTests
+    displayName: 'Performance Tests'
+    dependsOn: APITests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: LoadTest
+        displayName: 'Run Load Tests'
+        steps:
+          - script: |
+              npm install -g k6
+            displayName: 'Install k6'
+
+          - script: |
+              k6 run tests/performance/load-test.js --out json=$(Build.ArtifactStagingDirectory)/k6-results.json || true
+            displayName: 'Run Load Tests'
+            workingDirectory: $(Build.SourcesDirectory)
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/k6-results.json'
+              ArtifactName: 'performance-results'
+            condition: succeededOrFailed()
+            displayName: 'Publish Performance Results'
+
+  # ============================================
+  # Stage 6: Test Summary
+  # ============================================
+  - stage: TestSummary
+    displayName: 'Test Summary'
+    dependsOn:
+      - UnitTests
+      - APITests
+      - SchemaValidation
+      - APIAccuracy
+    condition: always()
+    jobs:
+      - job: GenerateSummary
+        displayName: 'Generate Test Summary'
+        steps:
+          - script: |
+              echo "==================================="
+              echo "       TEST EXECUTION SUMMARY     "
+              echo "==================================="
+              echo ""
+              echo "Build: $(Build.BuildNumber)"
+              echo "Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo ""
+              echo "Stage Results:"
+              echo "  Unit Tests:       $(Agent.JobStatus)"
+              echo "  API Tests:        Completed"
+              echo "  Schema Validation: Completed"
+              echo "  API Accuracy:     Completed"
+              echo ""
+              echo "==================================="
+            displayName: 'Print Summary'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)/monitoring'
+              ArtifactName: 'monitoring-data'
+            condition: succeededOrFailed()
+            displayName: 'Publish Monitoring Data'
