@@ -188,13 +188,7 @@ resource "azurerm_cdn_frontdoor_route" "static" {
 
   cache {
     query_string_caching_behavior = "IgnoreQueryString"
-    compression_enabled           = true
-    content_types_to_compress = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "video/mp4"
-    ]
+    compression_enabled           = false  # Disabled - images and videos are already compressed formats
   }
 }
 

@@ -51,12 +51,12 @@ output "container_names" {
 
 output "cdn_endpoint_hostname" {
   description = "CDN endpoint hostname"
-  value       = var.enable_cdn ? azurerm_cdn_endpoint.main[0].host_name : null
+  value       = var.enable_cdn ? azurerm_cdn_endpoint.main[0].fqdn : null
 }
 
 output "cdn_endpoint_url" {
   description = "CDN endpoint URL"
-  value       = var.enable_cdn ? "https://${azurerm_cdn_endpoint.main[0].host_name}" : null
+  value       = var.enable_cdn ? "https://${azurerm_cdn_endpoint.main[0].fqdn}" : null
 }
 
 output "private_endpoint_id" {
