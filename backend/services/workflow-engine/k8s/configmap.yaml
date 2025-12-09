@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-engine-config
+  namespace: flamoral
+  labels:
+    app: workflow-engine
+data:
+  # Database Configuration
+  db.host: "flamoral-postgres.postgres.svc.cluster.local"
+  db.port: "5432"
+  db.name: "workflow_engine"
+
+  # Redis Configuration
+  redis.host: "flamoral-redis-master.redis.svc.cluster.local"
+  redis.port: "6379"
+  redis.db: "3"
+
+  # RabbitMQ Configuration
+  rabbitmq.host: "flamoral-rabbitmq.messaging.svc.cluster.local"
+  rabbitmq.port: "5672"
+  rabbitmq.queue: "workflow.events"
+  rabbitmq.exchange: "flamoral.workflows"
+
+  # Service URLs
+  services.userService: "http://user-service.flamoral.svc.cluster.local:3001"
+  services.notificationService: "http://notification-service.flamoral.svc.cluster.local:3005"
+  services.matchingService: "http://matching-service.flamoral.svc.cluster.local:3003"
+  services.paymentService: "http://payment-service.flamoral.svc.cluster.local:3007"
+
+  # Retry Configuration
+  retry.maxAttempts: "3"
+  retry.initialDelay: "1000"
+  retry.maxDelay: "30000"
+  retry.backoffFactor: "2"
+
+  # Logging
+  log.level: "info"

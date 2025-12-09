@@ -1,0 +1,302 @@
+---
+# NLP Service Enhanced
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlp-service-enhanced
+  namespace: flamoral
+  labels:
+    app: nlp-service-enhanced
+    version: v2.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nlp-service-enhanced
+  template:
+    metadata:
+      labels:
+        app: nlp-service-enhanced
+        version: v2.0
+    spec:
+      containers:
+      - name: nlp-service
+        image: flamoral/nlp-service:v2.0
+        ports:
+        - containerPort: 8085
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-services-secrets
+              key: openai-api-key
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: postgres-url
+        - name: MONGODB_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mongodb-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: cache-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8085
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8085
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nlp-service-enhanced
+  namespace: flamoral
+spec:
+  selector:
+    app: nlp-service-enhanced
+  ports:
+  - protocol: TCP
+    port: 8085
+    targetPort: 8085
+  type: ClusterIP
+---
+# Photo Analysis Service Enhanced
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photo-analysis-enhanced
+  namespace: flamoral
+  labels:
+    app: photo-analysis-enhanced
+    version: v2.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: photo-analysis-enhanced
+  template:
+    metadata:
+      labels:
+        app: photo-analysis-enhanced
+        version: v2.0
+    spec:
+      containers:
+      - name: photo-analysis
+        image: flamoral/photo-analysis:v2.0
+        ports:
+        - containerPort: 8003
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        resources:
+          requests:
+            memory: "3Gi"
+            cpu: "1500m"
+          limits:
+            memory: "6Gi"
+            cpu: "3000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 90
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 60
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photo-analysis-enhanced
+  namespace: flamoral
+spec:
+  selector:
+    app: photo-analysis-enhanced
+  ports:
+  - protocol: TCP
+    port: 8003
+    targetPort: 8003
+  type: ClusterIP
+---
+# Content Generator Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: content-generator
+  namespace: flamoral
+  labels:
+    app: content-generator
+    version: v1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: content-generator
+  template:
+    metadata:
+      labels:
+        app: content-generator
+        version: v1.0
+    spec:
+      containers:
+      - name: content-generator
+        image: flamoral/content-generator:v1.0
+        ports:
+        - containerPort: 8087
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-services-secrets
+              key: openai-api-key
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8087
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8087
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: content-generator
+  namespace: flamoral
+spec:
+  selector:
+    app: content-generator
+  ports:
+  - protocol: TCP
+    port: 8087
+    targetPort: 8087
+  type: ClusterIP
+---
+# HorizontalPodAutoscaler for NLP Service
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nlp-service-enhanced-hpa
+  namespace: flamoral
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nlp-service-enhanced
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+# HorizontalPodAutoscaler for Photo Analysis
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: photo-analysis-enhanced-hpa
+  namespace: flamoral
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: photo-analysis-enhanced
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85
+---
+# HorizontalPodAutoscaler for Content Generator
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: content-generator-hpa
+  namespace: flamoral
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: content-generator
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+# Secrets (Base64 encoded values needed)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-services-secrets
+  namespace: flamoral
+type: Opaque
+data:
+  openai-api-key: <BASE64_ENCODED_KEY>
+  # Add translation API keys as needed
+  google-translate-key: <BASE64_ENCODED_KEY>
+  deepl-api-key: <BASE64_ENCODED_KEY>

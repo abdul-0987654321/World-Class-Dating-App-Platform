@@ -1,0 +1,87 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: workflow-engine-network-policy
+  namespace: flamoral
+spec:
+  podSelector:
+    matchLabels:
+      app: workflow-engine
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow traffic from API Gateway
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: flamoral
+      podSelector:
+        matchLabels:
+          app: api-gateway
+    ports:
+    - protocol: TCP
+      port: 3011
+  # Allow traffic from other internal services
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: flamoral
+    ports:
+    - protocol: TCP
+      port: 3011
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow PostgreSQL
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow Redis
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow RabbitMQ
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: messaging
+    ports:
+    - protocol: TCP
+      port: 5672
+    - protocol: TCP
+      port: 15672
+  # Allow communication with other Flamoral services
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: flamoral
+    ports:
+    - protocol: TCP
+      port: 3001
+    - protocol: TCP
+      port: 3003
+    - protocol: TCP
+      port: 3005
+    - protocol: TCP
+      port: 3007
+  # Allow HTTPS for external APIs
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443

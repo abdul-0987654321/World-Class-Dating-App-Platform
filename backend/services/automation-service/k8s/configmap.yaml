@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: automation-service-config
+  namespace: flamoral
+  labels:
+    app: automation-service
+data:
+  # Database Configuration
+  db-host: "postgres-service.flamoral.svc.cluster.local"
+  db-port: "5432"
+  db-name: "flamoral_automation"
+
+  # Redis Configuration
+  redis-host: "redis-service.flamoral.svc.cluster.local"
+  redis-port: "6379"
+  redis-db: "7"
+
+  # RabbitMQ Configuration
+  rabbitmq-host: "rabbitmq-service.flamoral.svc.cluster.local"
+  rabbitmq-exchange: "flamoral_events"
+
+  # Service Discovery
+  messaging-service-url: "http://messaging-service.flamoral.svc.cluster.local:3003"
+  notification-service-url: "http://notification-service.flamoral.svc.cluster.local:3008"
+  user-service-url: "http://user-service.flamoral.svc.cluster.local:3001"
+  matching-service-url: "http://matching-service.flamoral.svc.cluster.local:3002"
+  ai-service-url: "http://nlp-service.flamoral.svc.cluster.local:8000"
+  analytics-service-url: "http://analytics-service.flamoral.svc.cluster.local:3007"
+
+  # Feature Flags
+  enable-auto-dm-flows: "true"
+  enable-icebreaker-suggestions: "true"
+  enable-ghosting-detection: "true"
+  enable-scheduled-messages: "true"
+  enable-ai-reply-assistant: "true"
+
+  # Automation Configuration
+  icebreaker-cache-ttl-hours: "24"
+  ghosting-threshold-hours: "48"
+  max-concurrent-workflows: "50"
+
+  # Rate Limiting
+  automation-rate-limit-per-user-daily: "10"
+  scheduled-message-rate-limit-per-user-daily: "5"
+  ai-request-rate-limit-per-user-hourly: "20"
+
+  # Logging
+  log-level: "info"

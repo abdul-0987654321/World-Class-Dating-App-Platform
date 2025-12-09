@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: automation-service
+  namespace: flamoral
+  labels:
+    app: automation-service
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: automation-service
+  ports:
+    - name: http
+      port: 3013
+      targetPort: http
+      protocol: TCP
+    - name: websocket
+      port: 3013
+      targetPort: websocket
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
