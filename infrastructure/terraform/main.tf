@@ -194,7 +194,6 @@ module "monitor" {
   prefix              = var.prefix
   env                 = var.env
 
-  aks_id              = module.aks.aks_id
   log_retention_days  = var.log_retention_days
 
   tags = var.tags
