@@ -34,10 +34,10 @@ param(
     [string]$Location = "westus2",
 
     [Parameter()]
-    [string]$ResourceGroupName = "rg-terraform-state-westus2",
+    [string]$ResourceGroupName = "flamoral-terraform-state-rg",
 
     [Parameter()]
-    [string]$StorageAccountName = "sttfstatedatingplatform",
+    [string]$StorageAccountName = "flamoraltfstate",
 
     [Parameter()]
     [string]$ContainerName = "tfstate"

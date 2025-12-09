@@ -41,7 +41,7 @@ variable "subscription_id" {
 variable "tenant_id" {
   description = "Azure AD Tenant ID"
   type        = string
-  default     = ""  # Set via environment variable or tfvars
+  default     = "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0"  # Set via environment variable or tfvars
 }
 
 # ====================

@@ -9,6 +9,7 @@ environment          = "dev"
 location             = "westus2"
 resource_name_prefix = "datingplatform"
 subscription_id      = "ebd1613e-fea0-4b6d-8918-7e4de6a71c44"
+tenant_id            = "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0"
 
 # App Service - Cost optimized for development
 app_service_sku = "B1"

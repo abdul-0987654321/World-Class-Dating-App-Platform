@@ -33,6 +33,7 @@
     "utils/**/*",
     "constants/**/*",
     "config/**/*",
+    "src/**/*",
     "index.ts"
   ],
   "exclude": [
