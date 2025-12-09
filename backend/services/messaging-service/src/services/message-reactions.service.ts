@@ -1,4 +1,6 @@
-import logger from '../utils/logger';
+import { createLogger } from '@flamoral/shared';
+
+const logger = createLogger('message-reactions-service');
 
 export interface MessageReaction {
   id: string;

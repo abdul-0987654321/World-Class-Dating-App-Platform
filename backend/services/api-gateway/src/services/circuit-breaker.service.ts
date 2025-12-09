@@ -14,7 +14,7 @@ export interface CircuitBreakerConfig {
   resetTimeout: number; // Time in ms to wait before resetting failure count
 }
 
-interface CircuitStats {
+export interface CircuitStats {
   state: CircuitState;
   failures: number;
   successes: number;

@@ -186,6 +186,27 @@ export class ConversationRepository {
   }
 
   /**
+   * Decrement unread count for a user
+   */
+  async decrementUnreadCount(conversationId: string, userId: string): Promise<void> {
+    try {
+      const conversation = await this.findById(conversationId);
+      if (!conversation) {
+        throw new Error(`Conversation ${conversationId} not found`);
+      }
+
+      const unreadCount = conversation.unreadCount || {};
+      const currentCount = unreadCount[userId] || 0;
+      unreadCount[userId] = Math.max(0, currentCount - 1);
+
+      await this.update(conversationId, { unreadCount });
+    } catch (error: any) {
+      logger.error('Failed to decrement unread count:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get other participant ID from conversation
    */
   getOtherParticipant(conversation: Conversation, currentUserId: string): string {

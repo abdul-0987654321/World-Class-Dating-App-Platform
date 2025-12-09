@@ -55,13 +55,6 @@ export interface Message {
     authTag?: string; // Authentication tag for AES-GCM
     version?: number; // Encryption protocol version (for future updates)
   };
-  // End-to-end encryption metadata
-  encryption?: {
-    isEncrypted: boolean;
-    iv?: string; // Initialization vector for AES-GCM
-    authTag?: string; // Authentication tag for AES-GCM
-    version?: number; // Encryption protocol version (for future updates)
-  };
 }
 
 export interface Conversation {

@@ -1,27 +1,34 @@
-import { Injectable, ExecutionContext, Logger } from '@nestjs/common';
-import { ThrottlerGuard, ThrottlerException } from '@nestjs/throttler';
+import { Injectable, ExecutionContext, Logger, CanActivate } from '@nestjs/common';
+import { ThrottlerException } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisThrottlerGuard extends ThrottlerGuard {
+export class RedisThrottlerGuard implements CanActivate {
   private readonly logger = new Logger(RedisThrottlerGuard.name);
   private readonly redis: Redis;
+  private readonly limit: number;
+  private readonly ttl: number;
 
   constructor(private readonly configService: ConfigService) {
-    super();
-
     // Initialize Redis connection
     this.redis = new Redis({
-      host: this.configService.get<string>('redis.host'),
-      port: this.configService.get<number>('redis.port'),
+      host: this.configService.get<string>('redis.host') || 'localhost',
+      port: this.configService.get<number>('redis.port') || 6379,
       password: this.configService.get<string>('redis.password'),
-      db: this.configService.get<number>('redis.db'),
+      db: this.configService.get<number>('redis.db') || 0,
     });
+
+    this.limit = this.configService.get<number>('THROTTLE_LIMIT') || 100;
+    this.ttl = this.configService.get<number>('THROTTLE_TTL') || 60000;
 
     this.redis.on('error', (error) => {
       this.logger.error('Redis connection error:', error);
     });
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    return this.handleRequest(context, this.limit, this.ttl);
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {

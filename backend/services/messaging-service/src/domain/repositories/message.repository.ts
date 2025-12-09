@@ -210,6 +210,31 @@ export class MessageRepository {
   }
 
   /**
+   * Get unread messages for a user in a conversation
+   */
+  async getUnreadMessages(conversationId: string, userId: string): Promise<Message[]> {
+    try {
+      const querySpec = {
+        query: `SELECT * FROM c
+                WHERE c.conversationId = @conversationId
+                AND c.receiverId = @userId
+                AND c.status != @readStatus`,
+        parameters: [
+          { name: '@conversationId', value: conversationId },
+          { name: '@userId', value: userId },
+          { name: '@readStatus', value: MessageStatus.READ },
+        ],
+      };
+
+      const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
+      return resources;
+    } catch (error: any) {
+      logger.error('Failed to get unread messages:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get unread message count for a user in a conversation
    */
   async getUnreadCount(conversationId: string, userId: string): Promise<number> {

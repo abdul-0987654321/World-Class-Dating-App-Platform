@@ -151,6 +151,119 @@ class RedisCache {
       logger.error('Failed to remove verification token', error);
     }
   }
+
+  /**
+   * Generic get method
+   */
+  async get(key: string): Promise<string | null> {
+    if (!this.client || !this.isConnected) return null;
+
+    try {
+      return await this.client.get(key);
+    } catch (error) {
+      logger.error('Failed to get key from Redis', error);
+      return null;
+    }
+  }
+
+  /**
+   * Generic set method
+   */
+  async set(key: string, value: string, expiresInSeconds?: number): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      if (expiresInSeconds) {
+        await this.client.setEx(key, expiresInSeconds, value);
+      } else {
+        await this.client.set(key, value);
+      }
+    } catch (error) {
+      logger.error('Failed to set key in Redis', error);
+    }
+  }
+
+  /**
+   * Generic delete method
+   */
+  async del(key: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.del(key);
+    } catch (error) {
+      logger.error('Failed to delete key from Redis', error);
+    }
+  }
+
+  /**
+   * Get a list from Redis
+   */
+  async getList(key: string): Promise<string[]> {
+    if (!this.client || !this.isConnected) return [];
+
+    try {
+      return await this.client.lRange(key, 0, -1);
+    } catch (error) {
+      logger.error('Failed to get list from Redis', error);
+      return [];
+    }
+  }
+
+  /**
+   * Add item to a list
+   */
+  async addToList(key: string, value: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.rPush(key, value);
+    } catch (error) {
+      logger.error('Failed to add to list in Redis', error);
+    }
+  }
+
+  /**
+   * Remove item from a list
+   */
+  async removeFromList(key: string, value: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.lRem(key, 0, value);
+    } catch (error) {
+      logger.error('Failed to remove from list in Redis', error);
+    }
+  }
+
+  /**
+   * Set an entire list (replaces existing)
+   */
+  async setList(key: string, values: string[]): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.del(key);
+      if (values.length > 0) {
+        await this.client.rPush(key, values);
+      }
+    } catch (error) {
+      logger.error('Failed to set list in Redis', error);
+    }
+  }
+
+  /**
+   * Set expiration on a key
+   */
+  async expire(key: string, seconds: number): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      await this.client.expire(key, seconds);
+    } catch (error) {
+      logger.error('Failed to set expiration in Redis', error);
+    }
+  }
 }
 
 export const redisCache = new RedisCache();
