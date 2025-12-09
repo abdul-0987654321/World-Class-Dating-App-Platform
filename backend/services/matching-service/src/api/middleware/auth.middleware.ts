@@ -11,6 +11,10 @@ interface AuthRequest extends Request {
   };
 }
 
+export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  authenticate(req, res, next);
+};
+
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;

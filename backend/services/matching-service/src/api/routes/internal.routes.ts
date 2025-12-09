@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticateService } from '../middleware/service-auth.middleware';
 import { MatchRepository } from '../../domain/repositories/match.repository';
 import { SwipeRepository } from '../../domain/repositories/swipe.repository';
+import { MatchStatus } from '../../types';
 
 const router = Router();
 
@@ -58,10 +59,10 @@ router.post('/create', async (req: Request, res: Response) => {
 
     // Create the match
     const match = await matchRepository.create({
-      user_id_1: userId1,
-      user_id_2: userId2,
-      match_score: matchScore,
-      matched_at: new Date(),
+      user1Id: userId1,
+      user2Id: userId2,
+      compatibilityScore: matchScore,
+      matchedAt: new Date(),
     });
 
     return res.status(201).json({
@@ -99,14 +100,16 @@ router.get('/users/:userId/matches', async (req: Request, res: Response) => {
     const matchRepository = new MatchRepository();
 
     // Get user's matches
-    const matches = await matchRepository.findByUserId(userId, {
-      limit,
-      offset,
-      status,
-    });
+    const matches = await matchRepository.findByUserId(
+      userId,
+      status === 'active' ? MatchStatus.MATCHED : (status === 'unmatched' ? MatchStatus.UNMATCHED : undefined)
+    );
 
     // Get total count for pagination
-    const total = await matchRepository.countByUserId(userId, status);
+    const total = await matchRepository.countByUserId(
+      userId,
+      status === 'active' ? MatchStatus.MATCHED : (status === 'unmatched' ? MatchStatus.UNMATCHED : undefined)
+    );
 
     return res.status(200).json({
       success: true,
@@ -361,10 +364,9 @@ router.post('/swipes/record', async (req: Request, res: Response) => {
 
     // Record the swipe
     const swipe = await swipeRepository.create({
-      swiper_id: swiperId,
-      swiped_id: swipedId,
-      direction,
-      swiped_at: new Date(),
+      userId: swiperId,
+      targetUserId: swipedId,
+      action: direction,
     });
 
     return res.status(201).json({

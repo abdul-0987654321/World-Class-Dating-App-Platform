@@ -180,6 +180,54 @@ export class SwipeRepository {
   }
 
   /**
+   * Find swipes by swiper ID with pagination
+   */
+  async findBySwiperId(userId: string, options?: { limit?: number; offset?: number; direction?: string }): Promise<Swipe[]> {
+    try {
+      let query = this.db('swipes')
+        .where({ user_id: userId });
+
+      if (options?.direction) {
+        query = query.andWhere('action', options.direction);
+      }
+
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options?.offset) {
+        query = query.offset(options.offset);
+      }
+
+      const swipes = await query.orderBy('created_at', 'desc');
+      return swipes.map(this.mapToSwipe);
+    } catch (error) {
+      logger.error('Failed to find swipes by swiper ID', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Count swipes by swiper ID
+   */
+  async countBySwiperId(userId: string, direction?: string): Promise<number> {
+    try {
+      let query = this.db('swipes')
+        .where({ user_id: userId });
+
+      if (direction) {
+        query = query.andWhere('action', direction);
+      }
+
+      const result = await query.count('* as count').first();
+      return parseInt(result?.count as string || '0', 10);
+    } catch (error) {
+      logger.error('Failed to count swipes by swiper ID', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get the most recent swipe for a user
    */
   async getLastSwipe(userId: string): Promise<Swipe | null> {

@@ -124,6 +124,49 @@ export class MatchRepository {
   }
 
   /**
+   * Update a match with partial data
+   */
+  async update(matchId: string, data: Partial<Match>): Promise<Match | null> {
+    try {
+      const updateData: any = {};
+      if (data.conversationInitiated !== undefined) updateData.conversation_initiated = data.conversationInitiated;
+      if (data.firstMessageSentBy !== undefined) updateData.first_message_sent_by = data.firstMessageSentBy;
+      if (data.firstMessageSent !== undefined) updateData.first_message_sent = data.firstMessageSent;
+      if (data.status !== undefined) updateData.status = data.status;
+
+      const [updated] = await this.db('matches')
+        .where({ id: matchId })
+        .update(updateData)
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to update match', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Unmatch users
+   */
+  async unmatch(matchId: string, reason?: string): Promise<Match | null> {
+    try {
+      const [updated] = await this.db('matches')
+        .where({ id: matchId })
+        .update({
+          status: MatchStatus.UNMATCHED,
+          unmatched_at: new Date(),
+        })
+        .returning('*');
+
+      return updated ? this.mapToMatch(updated) : null;
+    } catch (error) {
+      logger.error('Failed to unmatch', error);
+      throw error;
+    }
+  }
+
+  /**
    * Delete a match
    */
   async delete(matchId: string): Promise<boolean> {

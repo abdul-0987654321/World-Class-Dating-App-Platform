@@ -2,6 +2,19 @@
  * Type definitions for Matching Service
  */
 
+// Extend Express Request to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        userId: string;
+        email: string;
+      };
+    }
+  }
+}
+
 export enum SwipeAction {
   LIKE = 'like',
   PASS = 'pass',
