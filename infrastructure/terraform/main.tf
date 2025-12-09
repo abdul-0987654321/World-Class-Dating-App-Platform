@@ -178,9 +178,11 @@ module "cosmosdb" {
   env                 = var.env
 
   consistency_level = var.cosmosdb_consistency_level
-  throughput        = var.cosmosdb_throughput
+  aks_subnet_id     = module.network.aks_subnet_id
 
   tags = var.tags
+
+  depends_on = [module.network]
 }
 
 # Monitoring Module
