@@ -13,8 +13,8 @@ class CosmosDBClient {
 
   constructor() {
     this.client = new CosmosClient({
-      endpoint: config.cosmosDB.endpoint,
-      key: config.cosmosDB.key,
+      endpoint: config.cosmos.endpoint,
+      key: config.cosmos.key,
     });
   }
 
@@ -31,14 +31,14 @@ class CosmosDBClient {
 
       // Get or create database
       const { database } = await this.client.databases.createIfNotExists({
-        id: config.cosmosDB.databaseId,
+        id: config.cosmos.databaseId,
       });
       this.database = database;
-      logger.info(`Database "${config.cosmosDB.databaseId}" ready`);
+      logger.info(`Database "${config.cosmos.databaseId}" ready`);
 
       // Get or create Messages container
       const { container: messagesContainer } = await database.containers.createIfNotExists({
-        id: config.cosmosDB.containers.messages,
+        id: config.cosmos.containers.messages,
         partitionKey: '/conversationId',
         indexingPolicy: {
           automatic: true,
@@ -48,11 +48,11 @@ class CosmosDBClient {
         },
       });
       this.messagesContainer = messagesContainer;
-      logger.info(`Container "${config.cosmosDB.containers.messages}" ready`);
+      logger.info(`Container "${config.cosmos.containers.messages}" ready`);
 
       // Get or create Conversations container
       const { container: conversationsContainer } = await database.containers.createIfNotExists({
-        id: config.cosmosDB.containers.conversations,
+        id: config.cosmos.containers.conversations,
         partitionKey: '/id',
         indexingPolicy: {
           automatic: true,
@@ -62,7 +62,7 @@ class CosmosDBClient {
         },
       });
       this.conversationsContainer = conversationsContainer;
-      logger.info(`Container "${config.cosmosDB.containers.conversations}" ready`);
+      logger.info(`Container "${config.cosmos.containers.conversations}" ready`);
 
       this.initialized = true;
       logger.info('Cosmos DB initialization complete');

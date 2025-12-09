@@ -25,18 +25,9 @@ export class NotificationServiceClient {
   constructor() {
     this.baseUrl = config.services.notificationServiceUrl;
     this.client = new ServiceClient({
-      baseURL: this.baseUrl,
+      baseUrl: this.baseUrl,
       serviceName: 'matching-service',
       timeout: 5000,
-      maxRetries: 2,
-      retryDelay: 500,
-      enableLogging: true,
-      logger: {
-        info: (msg, meta) => logger.info(msg, meta),
-        warn: (msg, meta) => logger.warn(msg, meta),
-        error: (msg, meta) => logger.error(msg, meta),
-        debug: (msg, meta) => logger.debug(msg, meta),
-      },
     });
   }
 
