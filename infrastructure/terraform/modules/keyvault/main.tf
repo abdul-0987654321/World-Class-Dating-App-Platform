@@ -27,8 +27,9 @@ resource "azurerm_key_vault" "main" {
 
 # RBAC Role Assignment for AKS managed identity (replaces access policies)
 # When enable_rbac_authorization = true, access policies are ignored
+# Note: This is created separately after AKS is fully provisioned to avoid circular dependencies
 resource "azurerm_role_assignment" "aks_secrets_user" {
-  count                = var.aks_kubelet_identity_object_id != "" ? 1 : 0
+  count                = var.create_aks_role_assignment ? 1 : 0
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = var.aks_kubelet_identity_object_id

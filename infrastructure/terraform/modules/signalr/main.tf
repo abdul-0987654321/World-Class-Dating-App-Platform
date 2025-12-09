@@ -64,13 +64,14 @@ resource "azurerm_signalr_service_custom_domain" "main" {
 }
 
 # Network ACLs
+# Note: allowed_request_types and denied_request_types are mutually exclusive
 resource "azurerm_signalr_service_network_acl" "main" {
   signalr_service_id = azurerm_signalr_service.main.id
   default_action     = var.default_network_action
 
   public_network {
+    # Use allowed_request_types only (denied_request_types conflicts with allowed)
     allowed_request_types = var.public_allowed_request_types
-    denied_request_types  = var.public_denied_request_types
   }
 
   dynamic "private_endpoint" {

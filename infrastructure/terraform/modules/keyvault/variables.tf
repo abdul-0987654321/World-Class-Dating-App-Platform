@@ -48,6 +48,12 @@ variable "aks_kubelet_identity_object_id" {
   default     = ""
 }
 
+variable "create_aks_role_assignment" {
+  description = "Whether to create the AKS role assignment (set to false to avoid count depends on unknown value)"
+  type        = bool
+  default     = false
+}
+
 variable "postgres_connection_string" {
   description = "PostgreSQL connection string to store in Key Vault"
   type        = string

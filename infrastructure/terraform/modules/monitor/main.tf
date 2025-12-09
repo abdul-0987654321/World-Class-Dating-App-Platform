@@ -58,7 +58,7 @@ resource "azurerm_monitor_action_group" "main" {
 
 # Metric Alert - High CPU
 resource "azurerm_monitor_metric_alert" "high_cpu" {
-  count               = var.enable_alerts ? 1 : 0
+  count               = var.enable_alerts && length(var.alert_resource_scopes) > 0 ? 1 : 0
   name                = "${var.prefix}-${var.env}-high-cpu-alert"
   resource_group_name = var.resource_group_name
   scopes              = var.alert_resource_scopes
@@ -84,7 +84,7 @@ resource "azurerm_monitor_metric_alert" "high_cpu" {
 
 # Metric Alert - High Memory
 resource "azurerm_monitor_metric_alert" "high_memory" {
-  count               = var.enable_alerts ? 1 : 0
+  count               = var.enable_alerts && length(var.alert_resource_scopes) > 0 ? 1 : 0
   name                = "${var.prefix}-${var.env}-high-memory-alert"
   resource_group_name = var.resource_group_name
   scopes              = var.alert_resource_scopes
@@ -185,9 +185,12 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "slow_response" {
   tags = var.tags
 }
 
+# Random UUID for workbook name (Azure requires UUID format)
+resource "random_uuid" "workbook_id" {}
+
 # Workbook for Monitoring Dashboard
 resource "azurerm_application_insights_workbook" "main" {
-  name                = "${var.prefix}-${var.env}-workbook"
+  name                = random_uuid.workbook_id.result
   resource_group_name = var.resource_group_name
   location            = var.location
   display_name        = "${var.prefix} ${var.env} Monitoring Dashboard"
