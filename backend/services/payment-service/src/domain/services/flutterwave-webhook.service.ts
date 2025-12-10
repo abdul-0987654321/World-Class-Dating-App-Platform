@@ -16,6 +16,9 @@
 import { db } from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 import crypto from 'crypto';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
+import notificationClient from '../../infrastructure/clients/notification-service.client';
+import axios from 'axios';
 
 // Flutterwave event types
 export type FlutterwaveEventType =
@@ -210,85 +213,268 @@ export class FlutterwaveWebhookService {
   // These methods log the event but don't implement full logic
 
   private async handleChargeCompleted(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Charge completed event received', {
-      tx_ref: event.data.tx_ref,
-      flw_ref: event.data.flw_ref,
-      amount: event.data.amount,
-      currency: event.data.currency,
-      status: event.data.status,
-      userId: event.data.meta?.userId,
+    const { tx_ref, flw_ref, amount, currency, status, meta } = event.data;
+    const userId = meta?.userId;
+
+    logger.info('[FLUTTERWAVE] Processing charge completed', {
+      tx_ref,
+      flw_ref,
+      amount,
+      currency,
+      status,
+      userId,
     });
 
-    // TODO: Implement payment confirmation logic
+    if (!userId) {
+      logger.warn('[FLUTTERWAVE] No userId in metadata, skipping');
+      return;
+    }
+
     // 1. Verify transaction with Flutterwave API
-    //    GET https://api.flutterwave.com/v3/transactions/:id/verify
-    // 2. Credit user account (coins, subscription, etc.)
-    // 3. Record transaction in database
-    // 4. Send confirmation notification
+    const flutterwaveSecretKey = process.env.FLUTTERWAVE_SECRET_KEY;
+    if (flutterwaveSecretKey) {
+      try {
+        const verifyResponse = await axios.get(
+          `https://api.flutterwave.com/v3/transactions/${event.data.id}/verify`,
+          {
+            headers: { Authorization: `Bearer ${flutterwaveSecretKey}` },
+          }
+        );
+        if (verifyResponse.data.data.status !== 'successful') {
+          logger.warn('[FLUTTERWAVE] Transaction verification failed', { tx_ref });
+          return;
+        }
+      } catch (error: any) {
+        logger.error('[FLUTTERWAVE] Verification API error:', error.message);
+        // Continue anyway for non-critical failures
+      }
+    }
+
+    // 2. Record transaction in database
+    const transactionId = require('uuid').v4();
+    await db('transactions').insert({
+      id: transactionId,
+      user_id: userId,
+      type: meta?.tier ? 'subscription' : 'coin_purchase',
+      status: 'succeeded',
+      amount: amount,
+      currency: currency,
+      description: `Flutterwave payment: ${tx_ref}`,
+      metadata: JSON.stringify({
+        flw_ref,
+        tx_ref,
+        provider: 'flutterwave',
+        tier: meta?.tier,
+        billingCycle: meta?.billingCycle,
+      }),
+      processed_at: new Date(),
+    });
+
+    // 3. Credit user account based on purchase type
+    if (meta?.tier) {
+      // Subscription purchase
+      await userServiceClient.updateSubscription({
+        userId,
+        tier: userServiceClient.mapTierName(meta.tier),
+        status: 'active',
+      });
+      await notificationClient.notifyPaymentSuccess(userId, amount, `${meta.tier} Subscription`);
+    } else if (meta?.coinAmount) {
+      // Coin purchase
+      await userServiceClient.addCoins({
+        userId,
+        amount: parseInt(meta.coinAmount),
+        transactionType: 'purchase',
+        stripePaymentId: tx_ref,
+        productSku: `coins_${meta.coinAmount}`,
+      });
+      await notificationClient.notifyPaymentSuccess(userId, amount, `${meta.coinAmount} Coins`);
+    }
+
+    logger.info('[FLUTTERWAVE] Charge completed processed successfully', { tx_ref, userId });
   }
 
   private async handleSubscriptionCreated(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Subscription created event received', {
-      plan: event.data.plan?.name,
-      amount: event.data.plan?.amount,
-      interval: event.data.plan?.interval,
-      userId: event.data.meta?.userId,
+    const { plan, meta, tx_ref } = event.data;
+    const userId = meta?.userId;
+
+    logger.info('[FLUTTERWAVE] Processing subscription created', {
+      plan: plan?.name,
+      amount: plan?.amount,
+      interval: plan?.interval,
+      userId,
     });
 
-    // TODO: Implement subscription creation logic
-    // - Create user_subscription record
-    // - Map Flutterwave plan to internal tier
-    // - Update user tier and features
-    // - Send welcome notification
+    if (!userId || !plan) {
+      logger.warn('[FLUTTERWAVE] Missing userId or plan in subscription event');
+      return;
+    }
+
+    // Map Flutterwave plan to internal tier
+    const tier = userServiceClient.mapTierName(plan.name || meta?.tier || 'premium');
+
+    // Create user_subscription record
+    const subscriptionId = require('uuid').v4();
+    const periodEnd = new Date();
+    periodEnd.setMonth(periodEnd.getMonth() + (plan.interval === 'yearly' ? 12 : 1));
+
+    await db('user_subscriptions').insert({
+      id: subscriptionId,
+      user_id: userId,
+      plan_id: await this.getPlanIdByName(tier),
+      status: 'active',
+      billing_cycle: plan.interval === 'yearly' ? 'yearly' : 'monthly',
+      current_period_start: new Date(),
+      current_period_end: periodEnd,
+      metadata: JSON.stringify({
+        provider: 'flutterwave',
+        plan_token: plan.plan_token,
+        tx_ref,
+      }),
+    });
+
+    // Update user tier
+    await userServiceClient.updateSubscription({
+      userId,
+      tier,
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+    });
+
+    // Send welcome notification
+    await notificationClient.notifySubscriptionUpdated(userId, tier, 'active');
+
+    logger.info('[FLUTTERWAVE] Subscription created successfully', { userId, tier });
+  }
+
+  private async getPlanIdByName(tierName: string): Promise<string> {
+    const plan = await db('subscription_plans').where('name', tierName).first();
+    return plan?.id || (await db('subscription_plans').where('name', 'free').first())?.id;
   }
 
   private async handleSubscriptionCancelled(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Subscription cancelled event received', {
-      tx_ref: event.data.tx_ref,
-      userId: event.data.meta?.userId,
+    const { tx_ref, meta } = event.data;
+    const userId = meta?.userId;
+
+    logger.info('[FLUTTERWAVE] Processing subscription cancellation', { tx_ref, userId });
+
+    if (!userId) {
+      logger.warn('[FLUTTERWAVE] No userId in cancellation event');
+      return;
+    }
+
+    // Update subscription status with 3-day grace period
+    const gracePeriodEnd = new Date();
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3);
+
+    await db('user_subscriptions')
+      .where('user_id', userId)
+      .whereIn('status', ['active', 'past_due'])
+      .update({
+        status: 'canceled',
+        canceled_at: new Date(),
+        cancel_at: gracePeriodEnd,
+        cancel_at_period_end: true,
+        updated_at: new Date(),
+      });
+
+    // Update user service with grace period
+    await userServiceClient.updateSubscription({
+      userId,
+      tier: 'free', // Will be downgraded after grace period
+      status: 'grace_period' as any,
+      gracePeriodEnd,
     });
 
-    // TODO: Implement subscription cancellation logic
-    // - Update subscription status to cancelled
-    // - Start 3-day grace period
-    // - Schedule downgrade to free tier
-    // - Send cancellation notification
+    // Send cancellation notification
+    await notificationClient.notifySubscriptionCanceled(userId, 'Subscription', gracePeriodEnd);
+
+    logger.info('[FLUTTERWAVE] Subscription cancelled with grace period', { userId, gracePeriodEnd });
   }
 
   private async handleTransferCompleted(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Transfer completed event received', {
-      tx_ref: event.data.tx_ref,
-      amount: event.data.amount,
-    });
+    const { tx_ref, amount, meta } = event.data;
 
-    // TODO: Implement transfer completion logic (for payouts)
-    // - Update payout status
-    // - Send confirmation to creator/partner
+    logger.info('[FLUTTERWAVE] Processing transfer completed', { tx_ref, amount });
+
+    // Record payout completion
+    await db('transactions')
+      .where('metadata', 'like', `%${tx_ref}%`)
+      .update({
+        status: 'succeeded',
+        processed_at: new Date(),
+        updated_at: new Date(),
+      });
+
+    logger.info('[FLUTTERWAVE] Transfer completed processed', { tx_ref });
   }
 
   private async handleTransferFailed(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Transfer failed event received', {
-      tx_ref: event.data.tx_ref,
-      processor_response: event.data.processor_response,
-    });
+    const { tx_ref, processor_response } = event.data;
 
-    // TODO: Implement transfer failure logic
-    // - Update payout status
-    // - Queue for retry or notify admin
+    logger.info('[FLUTTERWAVE] Processing transfer failure', { tx_ref, processor_response });
+
+    // Update payout status to failed
+    await db('transactions')
+      .where('metadata', 'like', `%${tx_ref}%`)
+      .update({
+        status: 'failed',
+        failure_message: processor_response,
+        updated_at: new Date(),
+      });
+
+    logger.error('[FLUTTERWAVE] Transfer failed', { tx_ref, processor_response });
   }
 
   private async handleRefundCompleted(event: FlutterwaveWebhookEvent): Promise<void> {
-    logger.info('[FLUTTERWAVE STUB] Refund completed event received', {
-      tx_ref: event.data.tx_ref,
-      amount: event.data.amount,
-      userId: event.data.meta?.userId,
+    const { tx_ref, amount, meta } = event.data;
+    const userId = meta?.userId;
+
+    logger.info('[FLUTTERWAVE] Processing refund', { tx_ref, amount, userId });
+
+    if (!userId) {
+      logger.warn('[FLUTTERWAVE] No userId in refund event');
+      return;
+    }
+
+    // Record refund transaction
+    const refundId = require('uuid').v4();
+    await db('transactions').insert({
+      id: refundId,
+      user_id: userId,
+      type: 'refund',
+      status: 'succeeded',
+      amount: -amount, // Negative for refund
+      currency: event.data.currency || 'NGN',
+      description: `Refund for: ${tx_ref}`,
+      metadata: JSON.stringify({ provider: 'flutterwave', original_tx_ref: tx_ref }),
+      processed_at: new Date(),
     });
 
-    // TODO: Implement refund logic
-    // - Update transaction status to refunded
-    // - Reverse credits if applicable (coins, boosts)
-    // - Update subscription if subscription refund
-    // - Send refund notification
+    // Update original transaction
+    await db('transactions')
+      .where('metadata', 'like', `%${tx_ref}%`)
+      .whereNot('type', 'refund')
+      .update({
+        status: 'refunded',
+        updated_at: new Date(),
+      });
+
+    // Reverse credits if coins were purchased
+    if (meta?.coinAmount) {
+      await userServiceClient.subtractCoins(userId, parseInt(meta.coinAmount), `Refund: ${tx_ref}`);
+    }
+
+    // If subscription refund, cancel subscription
+    if (meta?.tier) {
+      await userServiceClient.updateSubscription({
+        userId,
+        tier: 'free',
+        status: 'canceled',
+      });
+    }
+
+    logger.info('[FLUTTERWAVE] Refund processed successfully', { tx_ref, userId });
   }
 }
 

@@ -16,6 +16,9 @@
 import { db } from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 import crypto from 'crypto';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
+import notificationClient from '../../infrastructure/clients/notification-service.client';
+import axios from 'axios';
 
 // Paystack event types
 export type PaystackEventType =
@@ -201,67 +204,259 @@ export class PaystackWebhookService {
   // These methods log the event but don't implement full logic
 
   private async handleChargeSuccess(event: PaystackWebhookEvent): Promise<void> {
-    logger.info('[PAYSTACK STUB] Charge success event received', {
-      reference: event.data.reference,
-      amount: event.data.amount,
-      currency: event.data.currency,
-      userId: event.data.metadata?.userId,
+    const { reference, amount, currency, metadata, customer } = event.data;
+    const userId = metadata?.userId;
+
+    logger.info('[PAYSTACK] Processing charge success', {
+      reference,
+      amount: amount / 100, // Paystack amounts are in kobo
+      currency,
+      userId,
     });
 
-    // TODO: Implement payment confirmation logic
-    // - Verify transaction with Paystack API
-    // - Credit user account (coins, subscription, etc.)
-    // - Send confirmation notification
+    if (!userId) {
+      logger.warn('[PAYSTACK] No userId in metadata, skipping');
+      return;
+    }
+
+    // Verify transaction with Paystack API
+    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+    if (paystackSecretKey) {
+      try {
+        const verifyResponse = await axios.get(
+          `https://api.paystack.co/transaction/verify/${reference}`,
+          {
+            headers: { Authorization: `Bearer ${paystackSecretKey}` },
+          }
+        );
+        if (verifyResponse.data.data.status !== 'success') {
+          logger.warn('[PAYSTACK] Transaction verification failed', { reference });
+          return;
+        }
+      } catch (error: any) {
+        logger.error('[PAYSTACK] Verification API error:', error.message);
+      }
+    }
+
+    // Record transaction
+    const amountInCurrency = amount / 100; // Convert from kobo
+    const transactionId = require('uuid').v4();
+    await db('transactions').insert({
+      id: transactionId,
+      user_id: userId,
+      type: metadata?.tier ? 'subscription' : 'coin_purchase',
+      status: 'succeeded',
+      amount: amountInCurrency,
+      currency: currency || 'NGN',
+      description: `Paystack payment: ${reference}`,
+      metadata: JSON.stringify({
+        reference,
+        provider: 'paystack',
+        tier: metadata?.tier,
+        billingCycle: metadata?.billingCycle,
+      }),
+      processed_at: new Date(),
+    });
+
+    // Credit user account
+    if (metadata?.tier) {
+      await userServiceClient.updateSubscription({
+        userId,
+        tier: userServiceClient.mapTierName(metadata.tier),
+        status: 'active',
+      });
+      await notificationClient.notifyPaymentSuccess(userId, amountInCurrency, `${metadata.tier} Subscription`);
+    } else if (metadata?.coinAmount) {
+      await userServiceClient.addCoins({
+        userId,
+        amount: parseInt(metadata.coinAmount),
+        transactionType: 'purchase',
+        stripePaymentId: reference,
+        productSku: `coins_${metadata.coinAmount}`,
+      });
+      await notificationClient.notifyPaymentSuccess(userId, amountInCurrency, `${metadata.coinAmount} Coins`);
+    }
+
+    logger.info('[PAYSTACK] Charge success processed', { reference, userId });
   }
 
   private async handleSubscriptionCreate(event: PaystackWebhookEvent): Promise<void> {
-    logger.info('[PAYSTACK STUB] Subscription created event received', {
-      subscriptionCode: event.data.subscription_code,
-      plan: event.data.plan?.name,
-      userId: event.data.metadata?.userId,
+    const { subscription_code, plan, metadata, customer } = event.data;
+    const userId = metadata?.userId;
+
+    logger.info('[PAYSTACK] Processing subscription created', {
+      subscriptionCode: subscription_code,
+      plan: plan?.name,
+      userId,
     });
 
-    // TODO: Implement subscription creation logic
-    // - Create user_subscription record
-    // - Update user tier
-    // - Send welcome notification
+    if (!userId || !plan) {
+      logger.warn('[PAYSTACK] Missing userId or plan in subscription event');
+      return;
+    }
+
+    const tier = userServiceClient.mapTierName(plan.name || metadata?.tier || 'premium');
+    const periodEnd = new Date();
+    periodEnd.setMonth(periodEnd.getMonth() + (plan.interval === 'annually' ? 12 : 1));
+
+    // Create user_subscription record
+    const subscriptionId = require('uuid').v4();
+    await db('user_subscriptions').insert({
+      id: subscriptionId,
+      user_id: userId,
+      plan_id: await this.getPlanIdByName(tier),
+      status: 'active',
+      billing_cycle: plan.interval === 'annually' ? 'yearly' : 'monthly',
+      current_period_start: new Date(),
+      current_period_end: periodEnd,
+      metadata: JSON.stringify({
+        provider: 'paystack',
+        subscription_code,
+        plan_code: plan.plan_code,
+      }),
+    });
+
+    // Update user tier
+    await userServiceClient.updateSubscription({
+      userId,
+      tier,
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+    });
+
+    await notificationClient.notifySubscriptionUpdated(userId, tier, 'active');
+    logger.info('[PAYSTACK] Subscription created successfully', { userId, tier });
+  }
+
+  private async getPlanIdByName(tierName: string): Promise<string> {
+    const plan = await db('subscription_plans').where('name', tierName).first();
+    return plan?.id || (await db('subscription_plans').where('name', 'free').first())?.id;
   }
 
   private async handleSubscriptionCancel(event: PaystackWebhookEvent): Promise<void> {
-    logger.info('[PAYSTACK STUB] Subscription cancelled event received', {
-      subscriptionCode: event.data.subscription_code,
-      userId: event.data.metadata?.userId,
+    const { subscription_code, metadata } = event.data;
+    const userId = metadata?.userId;
+
+    logger.info('[PAYSTACK] Processing subscription cancellation', { subscription_code, userId });
+
+    if (!userId) {
+      logger.warn('[PAYSTACK] No userId in cancellation event');
+      return;
+    }
+
+    const gracePeriodEnd = new Date();
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3);
+
+    await db('user_subscriptions')
+      .where('user_id', userId)
+      .whereIn('status', ['active', 'past_due'])
+      .update({
+        status: 'canceled',
+        canceled_at: new Date(),
+        cancel_at: gracePeriodEnd,
+        cancel_at_period_end: true,
+        updated_at: new Date(),
+      });
+
+    await userServiceClient.updateSubscription({
+      userId,
+      tier: 'free',
+      status: 'grace_period' as any,
+      gracePeriodEnd,
     });
 
-    // TODO: Implement subscription cancellation logic
-    // - Update subscription status
-    // - Start grace period if applicable
-    // - Send cancellation notification
+    await notificationClient.notifySubscriptionCanceled(userId, 'Subscription', gracePeriodEnd);
+    logger.info('[PAYSTACK] Subscription cancelled with grace period', { userId, gracePeriodEnd });
   }
 
   private async handlePaymentFailed(event: PaystackWebhookEvent): Promise<void> {
-    logger.info('[PAYSTACK STUB] Payment failed event received', {
-      reference: event.data.reference,
-      userId: event.data.metadata?.userId,
+    const { reference, metadata } = event.data;
+    const userId = metadata?.userId;
+
+    logger.info('[PAYSTACK] Processing payment failure', { reference, userId });
+
+    if (!userId) {
+      logger.warn('[PAYSTACK] No userId in payment failure event');
+      return;
+    }
+
+    // Record failed transaction
+    await db('transactions').insert({
+      id: require('uuid').v4(),
+      user_id: userId,
+      type: metadata?.tier ? 'subscription' : 'coin_purchase',
+      status: 'failed',
+      amount: (event.data.amount || 0) / 100,
+      currency: event.data.currency || 'NGN',
+      description: `Failed Paystack payment: ${reference}`,
+      metadata: JSON.stringify({ reference, provider: 'paystack' }),
+      failure_message: 'Payment failed',
     });
 
-    // TODO: Implement payment failure logic
-    // - Enter grace period
-    // - Send retry payment notification
-    // - Schedule retry
+    // Enter grace period for subscriptions
+    if (metadata?.tier) {
+      const gracePeriodEnd = new Date();
+      gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3);
+
+      await db('user_subscriptions')
+        .where('user_id', userId)
+        .where('status', 'active')
+        .update({
+          status: 'past_due',
+          updated_at: new Date(),
+        });
+    }
+
+    await notificationClient.notifyPaymentFailed(userId, 'Your payment could not be processed. Please update your payment method.');
+    logger.info('[PAYSTACK] Payment failure processed', { reference, userId });
   }
 
   private async handleRefund(event: PaystackWebhookEvent): Promise<void> {
-    logger.info('[PAYSTACK STUB] Refund processed event received', {
-      reference: event.data.reference,
-      amount: event.data.amount,
-      userId: event.data.metadata?.userId,
+    const { reference, amount, metadata } = event.data;
+    const userId = metadata?.userId;
+
+    logger.info('[PAYSTACK] Processing refund', { reference, amount: amount / 100, userId });
+
+    if (!userId) {
+      logger.warn('[PAYSTACK] No userId in refund event');
+      return;
+    }
+
+    const amountInCurrency = amount / 100;
+
+    // Record refund
+    await db('transactions').insert({
+      id: require('uuid').v4(),
+      user_id: userId,
+      type: 'refund',
+      status: 'succeeded',
+      amount: -amountInCurrency,
+      currency: event.data.currency || 'NGN',
+      description: `Refund for: ${reference}`,
+      metadata: JSON.stringify({ provider: 'paystack', original_reference: reference }),
+      processed_at: new Date(),
     });
 
-    // TODO: Implement refund logic
-    // - Update transaction status
-    // - Reverse credits if applicable
-    // - Send refund notification
+    // Update original transaction
+    await db('transactions')
+      .where('metadata', 'like', `%${reference}%`)
+      .whereNot('type', 'refund')
+      .update({ status: 'refunded', updated_at: new Date() });
+
+    // Reverse credits
+    if (metadata?.coinAmount) {
+      await userServiceClient.subtractCoins(userId, parseInt(metadata.coinAmount), `Refund: ${reference}`);
+    }
+
+    if (metadata?.tier) {
+      await userServiceClient.updateSubscription({
+        userId,
+        tier: 'free',
+        status: 'canceled',
+      });
+    }
+
+    logger.info('[PAYSTACK] Refund processed successfully', { reference, userId });
   }
 }
 

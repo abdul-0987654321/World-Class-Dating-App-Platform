@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticateService } from '../middleware/service-auth.middleware';
+import moderationService from '../services/moderation.service';
+import db from '../infrastructure/database/connection';
 
 const router = Router();
 
@@ -44,23 +46,44 @@ router.post('/moderate', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement moderation logic
-    // For now, return mock response
-    const moderationResult = {
-      contentId,
-      contentType,
-      userId,
-      status: 'approved', // or 'rejected', 'pending_review'
-      flags: [],
-      score: 0.95, // Safety score 0-1
-      moderatedAt: new Date(),
-      moderator: 'ai-moderator',
-    };
+    // Route to appropriate moderation method based on content type
+    let moderationResult;
+
+    if (contentType === 'photo') {
+      // Image moderation
+      const imageUrl = typeof content === 'object' ? content.url : content;
+      moderationResult = await moderationService.moderateImage({
+        contentId,
+        contentType: 'image',
+        userId,
+        imageUrl,
+      });
+    } else {
+      // Text moderation (profile, message, bio)
+      const text = typeof content === 'string' ? content : JSON.stringify(content);
+      moderationResult = await moderationService.moderateText({
+        contentId,
+        contentType: contentType as any,
+        userId,
+        text,
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: 'Content moderated successfully',
-      data: moderationResult,
+      data: {
+        contentId: moderationResult.contentId,
+        contentType: moderationResult.contentType,
+        userId: moderationResult.userId,
+        status: moderationResult.status,
+        flags: moderationResult.detectedViolations || [],
+        score: 1 - (moderationResult.overallRiskScore || 0), // Convert risk to safety score
+        moderatedAt: moderationResult.moderatedAt,
+        moderator: 'ai-moderator',
+        action: moderationResult.action,
+        recommendations: moderationResult.recommendations,
+      },
     });
   } catch (error: any) {
     console.error('[InternalAPI] Moderate content error:', error);
@@ -81,15 +104,34 @@ router.get('/status/:contentId', async (req: Request, res: Response) => {
   try {
     const { contentId } = req.params;
 
-    // TODO: Implement status retrieval logic
-    // For now, return mock response
+    // Get moderation status from database
+    const moderationLog = await db('moderation_logs')
+      .where('content_id', contentId)
+      .orderBy('created_at', 'desc')
+      .first();
+
+    if (!moderationLog) {
+      return res.status(404).json({
+        success: false,
+        error: 'Moderation record not found',
+        code: 'NOT_FOUND',
+        message: `No moderation record found for content ${contentId}`,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: {
-        contentId,
-        status: 'approved',
-        moderatedAt: new Date(),
-        moderator: 'ai-moderator',
+        contentId: moderationLog.content_id,
+        status: moderationLog.status,
+        action: moderationLog.action,
+        riskScore: moderationLog.risk_score,
+        violations: moderationLog.violations || [],
+        moderatedAt: moderationLog.moderated_at,
+        moderator: moderationLog.moderated_by || 'ai-moderator',
+        reviewedAt: moderationLog.reviewed_at,
+        reviewedBy: moderationLog.reviewed_by,
+        reviewNotes: moderationLog.review_notes,
       },
     });
   } catch (error: any) {
@@ -130,12 +172,48 @@ router.post('/flag', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement flagging logic
-    // For now, return success response
+    // Add to moderation queue for manual review
+    const { v4: uuidv4 } = await import('uuid');
+    const flagId = uuidv4();
+
+    await db('moderation_queue').insert({
+      id: flagId,
+      content_id: contentId,
+      content_type: contentType,
+      user_id: userId,
+      risk_score: 0.5, // Default risk score for flagged content
+      violations: [reason],
+      status: 'flagged',
+      priority: 'medium',
+      flagged_at: new Date(),
+      created_at: new Date(),
+      updated_at: new Date(),
+    }).onConflict('content_id').merge({
+      violations: db.raw("array_append(violations, ?)", [reason]),
+      updated_at: new Date(),
+    });
+
+    // Also log the flag report
+    await db('moderation_logs').insert({
+      id: uuidv4(),
+      content_id: contentId,
+      content_type: contentType,
+      user_id: userId,
+      status: 'flagged',
+      action: 'user_reported',
+      risk_score: 0.5,
+      violations: [reason],
+      recommendations: [],
+      moderated_at: new Date(),
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Content flagged for review',
       data: {
+        flagId,
         contentId,
         contentType,
         userId,
@@ -183,19 +261,59 @@ router.post('/moderate-bulk', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement bulk moderation logic
-    // For now, return mock response
-    const results = items.map((item) => ({
-      contentId: item.contentId,
-      status: 'approved',
-      moderatedAt: new Date(),
-    }));
+    // Process each item through moderation service
+    const results = await Promise.all(
+      items.map(async (item: any) => {
+        try {
+          let moderationResult;
+
+          if (item.contentType === 'photo') {
+            const imageUrl = typeof item.content === 'object' ? item.content.url : item.content;
+            moderationResult = await moderationService.moderateImage({
+              contentId: item.contentId,
+              contentType: 'image',
+              userId: item.userId,
+              imageUrl,
+            });
+          } else {
+            const text = typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
+            moderationResult = await moderationService.moderateText({
+              contentId: item.contentId,
+              contentType: item.contentType,
+              userId: item.userId,
+              text,
+            });
+          }
+
+          return {
+            contentId: item.contentId,
+            status: moderationResult.status,
+            action: moderationResult.action,
+            riskScore: moderationResult.overallRiskScore,
+            moderatedAt: moderationResult.moderatedAt,
+            success: true,
+          };
+        } catch (error: any) {
+          return {
+            contentId: item.contentId,
+            status: 'error',
+            error: error.message,
+            success: false,
+          };
+        }
+      })
+    );
+
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
 
     return res.status(200).json({
       success: true,
-      message: `Moderated ${items.length} items`,
+      message: `Moderated ${successful} items successfully, ${failed} failed`,
       data: {
         total: items.length,
+        successful,
+        failed,
         results,
       },
     });
@@ -224,18 +342,39 @@ router.get('/users/:userId/history', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // TODO: Implement history retrieval logic
-    // For now, return mock response
+    // Get user's moderation history from database
+    const history = await db('moderation_logs')
+      .where('user_id', userId)
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
+
+    const totalResult = await db('moderation_logs')
+      .where('user_id', userId)
+      .count('id as count')
+      .first();
+    const total = parseInt(totalResult?.count as string) || 0;
+
     return res.status(200).json({
       success: true,
       data: {
         userId,
-        history: [],
+        history: history.map((log: any) => ({
+          id: log.id,
+          contentId: log.content_id,
+          contentType: log.content_type,
+          status: log.status,
+          action: log.action,
+          riskScore: log.risk_score,
+          violations: log.violations || [],
+          moderatedAt: log.moderated_at,
+          createdAt: log.created_at,
+        })),
         pagination: {
-          total: 0,
+          total,
           limit,
           offset,
-          hasMore: false,
+          hasMore: offset + limit < total,
         },
       },
     });
@@ -258,16 +397,35 @@ router.get('/users/:userId/restrictions', async (req: Request, res: Response) =>
   try {
     const { userId } = req.params;
 
-    // TODO: Implement restrictions check logic
-    // For now, return mock response
+    // Check user restrictions using moderation service
+    const restrictionStatus = await moderationService.isUserRestricted(userId);
+    const moderationRecord = await moderationService.getUserModerationStatus(userId);
+
+    // Get active violations
+    const violations = await db('user_violations')
+      .where('user_id', userId)
+      .orderBy('created_at', 'desc')
+      .limit(10);
+
     return res.status(200).json({
       success: true,
       data: {
         userId,
-        isBanned: false,
-        isRestricted: false,
-        restrictions: [],
-        bannedUntil: null,
+        isBanned: moderationRecord?.permanently_banned || false,
+        isRestricted: restrictionStatus.restricted,
+        restrictionReason: restrictionStatus.reason,
+        restrictionEndsAt: restrictionStatus.endsAt || null,
+        status: moderationRecord?.status || 'active',
+        totalViolations: moderationRecord?.total_violations || 0,
+        severeViolations: moderationRecord?.severe_violations || 0,
+        warningsIssued: moderationRecord?.warnings_issued || 0,
+        suspensionCount: moderationRecord?.suspension_count || 0,
+        recentViolations: violations.map((v: any) => ({
+          type: v.violation_type,
+          severity: v.severity,
+          contentType: v.content_type,
+          createdAt: v.created_at,
+        })),
       },
     });
   } catch (error: any) {
