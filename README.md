@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](package.json)
 [![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](DOCUMENTATION/)
+[![CI](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/unified-ci.yml/badge.svg)](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/unified-ci.yml)
 
 ---
 
