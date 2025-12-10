@@ -106,7 +106,7 @@ stages:
       - job: ValidateConfiguration
         displayName: 'Validate Pipeline Configuration'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'
         steps:
           - checkout: self
             fetchDepth: 0
@@ -169,7 +169,7 @@ stages:
         - job: TerraformPlan
           displayName: 'Terraform Plan'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -212,7 +212,7 @@ stages:
           displayName: 'Terraform Apply'
           dependsOn: TerraformPlan
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -268,7 +268,7 @@ stages:
         - job: BuildBackend
           displayName: 'Build Backend Services'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -296,7 +296,7 @@ stages:
         - job: BuildFrontend
           displayName: 'Build Frontend'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -332,7 +332,7 @@ stages:
         - job: UnitTests
           displayName: 'Unit Tests'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -368,7 +368,7 @@ stages:
             displayName: 'Integration Tests'
             dependsOn: UnitTests
             pool:
-              vmImage: 'ubuntu-latest'
+              name: 'Default'
             steps:
               - checkout: self
 
@@ -394,7 +394,7 @@ stages:
         - job: BasicSecurity
           displayName: 'Basic Security Scan'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -424,7 +424,7 @@ stages:
             displayName: 'Full Security Scan'
             dependsOn: BasicSecurity
             pool:
-              vmImage: 'ubuntu-latest'
+              name: 'Default'
             steps:
               - checkout: self
 
@@ -482,7 +482,7 @@ stages:
         - job: BuildImages
           displayName: 'Build Docker Images'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - checkout: self
 
@@ -590,7 +590,7 @@ stages:
         - deployment: DeployToAKS
           displayName: 'Deploy to AKS'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           environment: 'flamoral-${{ parameters.environment }}'
           strategy:
             runOnce:
@@ -623,7 +623,7 @@ stages:
         - job: RunSmokeTests
           displayName: 'Run Smoke Tests'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - script: |
                 echo "##[section]Running Smoke Tests for ${{ parameters.environment }}"
@@ -677,7 +677,7 @@ stages:
         - job: RunComplianceChecks
           displayName: 'Run Compliance Checks'
           pool:
-            vmImage: 'ubuntu-latest'
+            name: 'Default'
           steps:
             - script: |
                 echo "##[section]Running Compliance Checks"
