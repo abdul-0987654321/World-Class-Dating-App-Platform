@@ -27,7 +27,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: flamoral-common-vars
+  - group: flamoral-shared-vars
   - group: flamoral-terraform-vars
 
   # Self-healing configuration
