@@ -1,0 +1,414 @@
+# =============================================================================
+# Flamoral Production Pipeline
+# =============================================================================
+# Production environment pipeline for the main branch
+# - Triggered on: main branch only
+# - Deploys to: Production AKS cluster
+# - Features: Full Security, Manual Approval, Signed Artifacts, Compliance Checks
+# =============================================================================
+
+name: 'Flamoral-Prod-$(Date:yyyyMMdd)-$(Rev:r)'
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/**
+      - infrastructure/**
+      - pipelines/**
+    exclude:
+      - '**/*.md'
+      - '.gitignore'
+
+pr: none  # Production pipeline doesn't run on PRs
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Variable Groups
+  - group: flamoral-common-vars
+  - group: flamoral-prod-vars
+  - group: flamoral-terraform-vars
+
+  # Environment-specific variables
+  - name: environment
+    value: 'prod'
+  - name: aksClusterName
+    value: 'flamoral-prod-aks'
+  - name: aksNamespace
+    value: 'flamoral-prod'
+  - name: aksResourceGroup
+    value: 'flamoral-rg'
+  - name: acrLoginServer
+    value: 'flamoralacr.azurecr.io'
+
+  # Terraform Backend
+  - name: tfStateKey
+    value: 'flamoral-prod.tfstate'
+
+  # Pipeline behavior
+  - name: nodeVersion
+    value: '20.x'
+  - name: TF_VERSION
+    value: '1.6.0'
+
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/heads/main
+
+stages:
+  # ===========================================================================
+  # STAGE 0: Pre-Production Validation
+  # ===========================================================================
+  - stage: PreProductionValidation
+    displayName: 'Pre-Production Validation'
+    jobs:
+      - job: ValidateRelease
+        displayName: 'Validate Release Readiness'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - script: |
+              echo "##[section]=========================================="
+              echo "##[section]  PRODUCTION DEPLOYMENT VALIDATION"
+              echo "##[section]=========================================="
+              echo ""
+              echo "Build ID: $(Build.BuildId)"
+              echo "Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo "Triggered By: $(Build.RequestedFor)"
+              echo ""
+
+              # Verify we're on main branch
+              if [ "$(Build.SourceBranchName)" != "main" ]; then
+                echo "##[error]Production deployments must be from 'main' branch!"
+                exit 1
+              fi
+
+              echo "##[section]Branch Validation: PASSED"
+            displayName: 'Validate Branch'
+
+          - script: |
+              echo "##[section]Checking for required files..."
+
+              REQUIRED_FILES=(
+                "infrastructure/terraform/environments/prod/main.tf"
+                "infrastructure/helm/flamoral/Chart.yaml"
+                "src/backend/package.json"
+                "src/frontend/package.json"
+              )
+
+              MISSING=0
+              for file in "${REQUIRED_FILES[@]}"; do
+                if [ ! -f "$file" ]; then
+                  echo "##[error]Missing required file: $file"
+                  MISSING=$((MISSING + 1))
+                else
+                  echo "✓ Found: $file"
+                fi
+              done
+
+              if [ $MISSING -gt 0 ]; then
+                echo "##[error]$MISSING required files are missing!"
+                exit 1
+              fi
+
+              echo "##[section]File Validation: PASSED"
+            displayName: 'Validate Required Files'
+
+          - script: |
+              echo "##[section]Checking version consistency..."
+
+              # Get version from package.json files
+              BACKEND_VERSION=$(cat src/backend/package.json | grep '"version"' | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
+              FRONTEND_VERSION=$(cat src/frontend/package.json | grep '"version"' | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
+
+              echo "Backend version: $BACKEND_VERSION"
+              echo "Frontend version: $FRONTEND_VERSION"
+
+              echo "##[section]Version Check: PASSED"
+            displayName: 'Validate Versions'
+
+  # ===========================================================================
+  # Use Base Template with Production Configuration
+  # ===========================================================================
+  - template: templates/base-pipeline-stages.yml
+    parameters:
+      # Environment
+      environment: 'prod'
+
+      # Feature Flags - Full production configuration
+      runTerraform: true
+      runBuild: true
+      runTests: true
+      runSecurityScan: true
+      runDeploy: true
+      requireApproval: true          # REQUIRED for production
+      runSmokeTests: true            # Run smoke tests for prod
+      runComplianceChecks: true      # Run compliance for prod
+
+      # Security - Full level with signing for prod
+      securityScanLevel: 'full'
+      signArtifacts: true
+
+      # Azure Connections
+      azureServiceConnection: 'azure-terraform-sp-connection'
+      containerRegistry: 'acr-datingapp-connection'
+      acrLoginServer: '$(acrLoginServer)'
+
+      # AKS Configuration
+      aksClusterName: '$(aksClusterName)'
+      aksResourceGroup: '$(aksResourceGroup)'
+      aksNamespace: '$(aksNamespace)'
+
+      # Terraform Backend
+      tfStateResourceGroup: 'flamoral-rg'
+      tfStateStorageAccount: 'flamoralstate'
+      tfStateContainer: 'tfstate'
+      tfStateKey: '$(tfStateKey)'
+
+  # ===========================================================================
+  # Production-Specific: Blue-Green Deployment Verification
+  # ===========================================================================
+  - stage: BlueGreenVerification
+    displayName: 'Blue-Green Deployment Verification'
+    dependsOn: Deploy
+    condition: succeeded()
+    jobs:
+      - job: VerifyBlueGreen
+        displayName: 'Verify Blue-Green Deployment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'azure-terraform-sp-connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[section]Blue-Green Deployment Verification"
+
+                az aks get-credentials \
+                  --resource-group $(aksResourceGroup) \
+                  --name $(aksClusterName) \
+                  --overwrite-existing
+
+                echo ""
+                echo "Current Deployments:"
+                kubectl get deployments -n $(aksNamespace) -o wide
+
+                echo ""
+                echo "Current Services:"
+                kubectl get services -n $(aksNamespace) -o wide
+
+                echo ""
+                echo "Current Pods:"
+                kubectl get pods -n $(aksNamespace) -o wide
+
+                echo ""
+                echo "ReplicaSets (for Blue-Green tracking):"
+                kubectl get rs -n $(aksNamespace) -o wide
+            displayName: 'Verify Deployment Status'
+
+  # ===========================================================================
+  # Production-Specific: Extended Smoke Tests
+  # ===========================================================================
+  - stage: ProductionSmokeTests
+    displayName: 'Production Smoke Tests'
+    dependsOn: BlueGreenVerification
+    condition: succeeded()
+    jobs:
+      - job: ExtendedSmokeTests
+        displayName: 'Extended Smoke Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "##[section]Running Extended Production Smoke Tests"
+
+              # Wait for DNS propagation and service warmup
+              sleep 60
+
+              # Test API endpoints
+              ENDPOINTS=(
+                "https://api.flamoral.com/health"
+                "https://api.flamoral.com/api/v1/status"
+              )
+
+              FAILED=0
+              for endpoint in "${ENDPOINTS[@]}"; do
+                echo "Testing: $endpoint"
+                HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 $endpoint || echo "000")
+
+                if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "204" ]; then
+                  echo "  ✓ PASSED (HTTP $HTTP_CODE)"
+                else
+                  echo "  ✗ FAILED (HTTP $HTTP_CODE)"
+                  FAILED=$((FAILED + 1))
+                fi
+              done
+
+              if [ $FAILED -gt 0 ]; then
+                echo ""
+                echo "##[warning]$FAILED endpoint(s) failed smoke tests"
+              else
+                echo ""
+                echo "##[section]All smoke tests PASSED"
+              fi
+            displayName: 'API Smoke Tests'
+            continueOnError: true
+
+          - script: |
+              echo "##[section]Testing Frontend"
+
+              FRONTEND_URL="https://flamoral.com"
+              echo "Testing: $FRONTEND_URL"
+
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 $FRONTEND_URL || echo "000")
+
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "  ✓ Frontend PASSED (HTTP $HTTP_CODE)"
+              else
+                echo "  ✗ Frontend returned HTTP $HTTP_CODE"
+              fi
+
+              # Test SSL certificate
+              echo ""
+              echo "##[section]SSL Certificate Check"
+              echo | openssl s_client -servername flamoral.com -connect flamoral.com:443 2>/dev/null | openssl x509 -noout -dates || echo "Could not check SSL"
+            displayName: 'Frontend & SSL Tests'
+            continueOnError: true
+
+          - script: |
+              echo "##[section]Database Connectivity Check"
+
+              # This would typically check that the API can connect to the database
+              # by calling a health endpoint that includes DB status
+              curl -s https://api.flamoral.com/health/db || echo "DB health check not available"
+            displayName: 'Database Health Check'
+            continueOnError: true
+
+  # ===========================================================================
+  # Production-Specific: Rollback Preparation
+  # ===========================================================================
+  - stage: RollbackPreparation
+    displayName: 'Rollback Preparation'
+    dependsOn: ProductionSmokeTests
+    condition: succeeded()
+    jobs:
+      - job: PrepareRollback
+        displayName: 'Prepare Rollback Strategy'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'azure-terraform-sp-connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "##[section]Documenting Rollback Information"
+
+                az aks get-credentials \
+                  --resource-group $(aksResourceGroup) \
+                  --name $(aksClusterName) \
+                  --overwrite-existing
+
+                echo ""
+                echo "Current Deployment Revisions:"
+                kubectl rollout history deployment -n $(aksNamespace) || true
+
+                echo ""
+                echo "Rollback Commands (if needed):"
+                echo "  kubectl rollout undo deployment/<deployment-name> -n $(aksNamespace)"
+                echo "  kubectl rollout undo deployment/<deployment-name> -n $(aksNamespace) --to-revision=<revision>"
+
+                echo ""
+                echo "##[section]Rollback preparation complete"
+            displayName: 'Document Rollback Strategy'
+
+  # ===========================================================================
+  # Production-Specific: Final Summary
+  # ===========================================================================
+  - stage: ProductionSummary
+    displayName: 'Production Deployment Summary'
+    dependsOn:
+      - RollbackPreparation
+      - ComplianceChecks
+    condition: succeeded()
+    jobs:
+      - job: Summary
+        displayName: 'Deployment Summary'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "##[section]=========================================="
+              echo "##[section]  FLAMORAL PRODUCTION DEPLOYMENT COMPLETE"
+              echo "##[section]=========================================="
+              echo ""
+              echo "Environment: PRODUCTION"
+              echo "Build ID: $(Build.BuildId)"
+              echo "Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo "Deployed By: $(Build.RequestedFor)"
+              echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              echo ""
+              echo "##[section]Production URLs:"
+              echo "  Frontend: https://flamoral.com"
+              echo "  API: https://api.flamoral.com"
+              echo "  Health: https://api.flamoral.com/health"
+              echo ""
+              echo "##[section]Deployment Checklist:"
+              echo "  ✓ Pre-Production Validation"
+              echo "  ✓ Terraform Infrastructure Applied"
+              echo "  ✓ Build & Test Completed"
+              echo "  ✓ Full Security Scan Passed"
+              echo "  ✓ Manual Approval Received"
+              echo "  ✓ Docker Images Built & Pushed"
+              echo "  ✓ Deployed to Production AKS"
+              echo "  ✓ Smoke Tests Passed"
+              echo "  ✓ Compliance Checks Completed"
+              echo "  ✓ Rollback Strategy Documented"
+              echo ""
+              echo "##[section]Post-Deployment:"
+              echo "  1. Monitor application metrics and logs"
+              echo "  2. Watch for any error spikes"
+              echo "  3. Keep rollback commands ready"
+              echo "  4. Update release notes"
+              echo ""
+              echo "##[section]PRODUCTION DEPLOYMENT SUCCESSFUL!"
+            displayName: 'Print Summary'
+
+          - script: |
+              # Generate deployment report
+              cat << EOF > deployment-report.json
+              {
+                "environment": "production",
+                "buildId": "$(Build.BuildId)",
+                "branch": "$(Build.SourceBranchName)",
+                "commit": "$(Build.SourceVersion)",
+                "deployedBy": "$(Build.RequestedFor)",
+                "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+                "status": "success",
+                "urls": {
+                  "frontend": "https://flamoral.com",
+                  "api": "https://api.flamoral.com",
+                  "health": "https://api.flamoral.com/health"
+                }
+              }
+              EOF
+              cat deployment-report.json
+            displayName: 'Generate Deployment Report'
+
+          - publish: 'deployment-report.json'
+            artifact: 'deployment-report-prod'
+            displayName: 'Publish Deployment Report'

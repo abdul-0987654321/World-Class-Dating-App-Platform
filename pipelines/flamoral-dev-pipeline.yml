@@ -1,0 +1,146 @@
+# =============================================================================
+# Flamoral Dev Pipeline
+# =============================================================================
+# Development environment pipeline for feature branches
+# - Triggered on: feature/*, bugfix/*, hotfix/* branches
+# - Deploys to: Dev AKS cluster
+# - Features: Build, Test, Lint, Basic Security, Deploy to Dev
+# =============================================================================
+
+name: 'Flamoral-Dev-$(Date:yyyyMMdd)-$(Rev:r)'
+
+trigger:
+  branches:
+    include:
+      - feature/*
+      - bugfix/*
+      - hotfix/*
+  paths:
+    include:
+      - src/**
+      - infrastructure/**
+      - pipelines/**
+    exclude:
+      - '**/*.md'
+      - '.gitignore'
+
+pr:
+  branches:
+    include:
+      - develop
+      - main
+  paths:
+    include:
+      - src/**
+      - infrastructure/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Variable Groups
+  - group: flamoral-common-vars
+  - group: flamoral-dev-vars
+  - group: flamoral-terraform-vars
+
+  # Environment-specific variables
+  - name: environment
+    value: 'dev'
+  - name: aksClusterName
+    value: 'flamoral-dev-aks'
+  - name: aksNamespace
+    value: 'flamoral-dev'
+  - name: aksResourceGroup
+    value: 'flamoral-rg'
+  - name: acrLoginServer
+    value: 'flamoralacr.azurecr.io'
+
+  # Terraform Backend
+  - name: tfStateKey
+    value: 'flamoral-dev.tfstate'
+
+  # Pipeline behavior
+  - name: nodeVersion
+    value: '20.x'
+  - name: TF_VERSION
+    value: '1.6.0'
+
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/heads/develop
+
+stages:
+  # ===========================================================================
+  # Use Base Template with Dev Configuration
+  # ===========================================================================
+  - template: templates/base-pipeline-stages.yml
+    parameters:
+      # Environment
+      environment: 'dev'
+
+      # Feature Flags - Dev gets basic functionality
+      runTerraform: true
+      runBuild: true
+      runTests: true
+      runSecurityScan: true
+      runDeploy: true
+      requireApproval: false        # No approval for dev
+      runSmokeTests: false          # Skip smoke tests for dev
+      runComplianceChecks: false    # Skip compliance for dev
+
+      # Security - Basic level for dev
+      securityScanLevel: 'basic'
+      signArtifacts: false
+
+      # Azure Connections
+      azureServiceConnection: 'azure-terraform-sp-connection'
+      containerRegistry: 'acr-datingapp-connection'
+      acrLoginServer: '$(acrLoginServer)'
+
+      # AKS Configuration
+      aksClusterName: '$(aksClusterName)'
+      aksResourceGroup: '$(aksResourceGroup)'
+      aksNamespace: '$(aksNamespace)'
+
+      # Terraform Backend
+      tfStateResourceGroup: 'flamoral-rg'
+      tfStateStorageAccount: 'flamoralstate'
+      tfStateContainer: 'tfstate'
+      tfStateKey: '$(tfStateKey)'
+
+  # ===========================================================================
+  # Dev-Specific: Development Summary
+  # ===========================================================================
+  - stage: DevSummary
+    displayName: 'Dev Deployment Summary'
+    dependsOn: Deploy
+    condition: succeeded()
+    jobs:
+      - job: Summary
+        displayName: 'Deployment Summary'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "##[section]=========================================="
+              echo "##[section]  FLAMORAL DEV DEPLOYMENT COMPLETE"
+              echo "##[section]=========================================="
+              echo ""
+              echo "Environment: Development"
+              echo "Build ID: $(Build.BuildId)"
+              echo "Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo ""
+              echo "##[section]Access URLs:"
+              echo "  Frontend: https://dev.flamoral.com"
+              echo "  API: https://api-dev.flamoral.com"
+              echo "  Health: https://api-dev.flamoral.com/health"
+              echo ""
+              echo "##[section]Next Steps:"
+              echo "  1. Test your changes in the dev environment"
+              echo "  2. Create a PR to 'develop' branch when ready"
+              echo "  3. Dev pipeline will run on PR for validation"
+              echo ""
+            displayName: 'Print Summary'
