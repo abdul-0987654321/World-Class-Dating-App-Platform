@@ -38,10 +38,13 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  # Variable Groups
-  - group: flamoral-common-vars
-  - group: flamoral-dev-vars
+  # Variable Groups (using existing groups)
+  - group: flamoral-shared-vars
+  - group: flamoral-ci-vars
+  - group: flamoral-cd-vars
   - group: flamoral-terraform-vars
+  - group: datingplatform-terraform-dev
+  - group: datingplatform-terraform-common
 
   # Environment-specific variables
   - name: environment
