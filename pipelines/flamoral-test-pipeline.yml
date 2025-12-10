@@ -128,7 +128,7 @@ stages:
               echo "Target: https://api-test.flamoral.com"
 
               # Install test dependencies
-              cd src/backend
+              cd backend
               npm ci --prefer-offline
 
               # Run integration tests
@@ -156,7 +156,7 @@ stages:
               echo "##[section]Running E2E Tests"
               echo "Target: https://test.flamoral.com"
 
-              cd src/frontend
+              cd apps/web-app
               npm ci --prefer-offline
 
               # Install Playwright

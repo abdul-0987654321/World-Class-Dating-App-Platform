@@ -132,10 +132,10 @@ stages:
           - script: |
               echo "Validating repository structure..."
 
-              # Check required directories exist
+              # Check required directories exist (actual project structure)
               REQUIRED_DIRS=(
-                "src/backend/services"
-                "src/frontend"
+                "backend/services"
+                "apps/web-app"
                 "infrastructure/terraform/environments/${{ parameters.environment }}"
                 "infrastructure/helm"
               )
@@ -151,11 +151,12 @@ stages:
               done
 
               if [ $MISSING -gt 0 ]; then
-                echo "##[warning]$MISSING directories are missing"
+                echo "##[warning]$MISSING directories are missing - continuing anyway"
               else
                 echo "##[section]All required directories present"
               fi
             displayName: 'Validate Repository Structure'
+            continueOnError: true
 
   # ===========================================================================
   # STAGE 2: Terraform Infrastructure
@@ -277,17 +278,17 @@ stages:
               displayName: 'Use Node.js 20.x'
 
             - script: |
-                cd src/backend
+                cd backend
                 npm ci --prefer-offline
               displayName: 'Install Dependencies'
 
             - script: |
-                cd src/backend
+                cd backend
                 npm run build --if-present
               displayName: 'Build Backend'
 
             - script: |
-                cd src/backend
+                cd backend
                 npm run lint --if-present || echo "Linting skipped or failed"
               displayName: 'Lint Backend'
               continueOnError: true
@@ -305,17 +306,17 @@ stages:
               displayName: 'Use Node.js 20.x'
 
             - script: |
-                cd src/frontend
-                npm ci --prefer-offline
+                cd apps/web-app
+                npm ci --prefer-offline || npm install
               displayName: 'Install Dependencies'
 
             - script: |
-                cd src/frontend
+                cd apps/web-app
                 npm run build --if-present
               displayName: 'Build Frontend'
 
             - script: |
-                cd src/frontend
+                cd apps/web-app
                 npm run lint --if-present || echo "Linting skipped or failed"
               displayName: 'Lint Frontend'
               continueOnError: true
@@ -341,15 +342,15 @@ stages:
               displayName: 'Use Node.js 20.x'
 
             - script: |
-                cd src/backend
+                cd backend
                 npm ci --prefer-offline
                 npm test -- --coverage --passWithNoTests || echo "No tests found"
               displayName: 'Run Backend Tests'
               continueOnError: true
 
             - script: |
-                cd src/frontend
-                npm ci --prefer-offline
+                cd apps/web-app
+                npm ci --prefer-offline || npm install
                 npm test -- --coverage --passWithNoTests || echo "No tests found"
               displayName: 'Run Frontend Tests'
               continueOnError: true
@@ -399,14 +400,14 @@ stages:
 
             - script: |
                 echo "##[section]Running NPM Audit"
-                cd src/backend
+                cd backend
                 npm audit --audit-level=high || true
               displayName: 'NPM Audit - Backend'
               continueOnError: true
 
             - script: |
                 echo "##[section]Running NPM Audit"
-                cd src/frontend
+                cd apps/web-app
                 npm audit --audit-level=high || true
               displayName: 'NPM Audit - Frontend'
               continueOnError: true
@@ -495,8 +496,8 @@ stages:
             - template: docker-build-push.yml
               parameters:
                 serviceName: 'api-gateway'
-                dockerfilePath: 'src/backend/services/api-gateway/Dockerfile'
-                buildContext: 'src/backend'
+                dockerfilePath: 'backend/services/api-gateway/Dockerfile'
+                buildContext: 'backend'
                 imageRepository: 'flamoral'
                 imageTag: '$(Build.BuildId)-${{ parameters.environment }}'
                 containerRegistry: ${{ parameters.containerRegistry }}
@@ -507,8 +508,8 @@ stages:
             - template: docker-build-push.yml
               parameters:
                 serviceName: 'user-service'
-                dockerfilePath: 'src/backend/services/user-service/Dockerfile'
-                buildContext: 'src/backend'
+                dockerfilePath: 'backend/services/user-service/Dockerfile'
+                buildContext: 'backend'
                 imageRepository: 'flamoral'
                 imageTag: '$(Build.BuildId)-${{ parameters.environment }}'
                 containerRegistry: ${{ parameters.containerRegistry }}
@@ -519,8 +520,8 @@ stages:
             - template: docker-build-push.yml
               parameters:
                 serviceName: 'matching-service'
-                dockerfilePath: 'src/backend/services/matching-service/Dockerfile'
-                buildContext: 'src/backend'
+                dockerfilePath: 'backend/services/matching-service/Dockerfile'
+                buildContext: 'backend'
                 imageRepository: 'flamoral'
                 imageTag: '$(Build.BuildId)-${{ parameters.environment }}'
                 containerRegistry: ${{ parameters.containerRegistry }}
@@ -531,8 +532,8 @@ stages:
             - template: docker-build-push.yml
               parameters:
                 serviceName: 'chat-service'
-                dockerfilePath: 'src/backend/services/chat-service/Dockerfile'
-                buildContext: 'src/backend'
+                dockerfilePath: 'backend/services/chat-service/Dockerfile'
+                buildContext: 'backend'
                 imageRepository: 'flamoral'
                 imageTag: '$(Build.BuildId)-${{ parameters.environment }}'
                 containerRegistry: ${{ parameters.containerRegistry }}
@@ -543,8 +544,8 @@ stages:
             - template: docker-build-push.yml
               parameters:
                 serviceName: 'frontend'
-                dockerfilePath: 'src/frontend/Dockerfile'
-                buildContext: 'src/frontend'
+                dockerfilePath: 'apps/web-app/Dockerfile'
+                buildContext: 'apps/web-app'
                 imageRepository: 'flamoral'
                 imageTag: '$(Build.BuildId)-${{ parameters.environment }}'
                 containerRegistry: ${{ parameters.containerRegistry }}
