@@ -9,8 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Simple Test
+        run: echo "Hello World"
+
+      - name: Check Secrets Available
+        run: |
+          echo "Checking if secrets exist..."
+          if [ -n "${{ secrets.AZURE_CREDENTIALS }}" ]; then
+            echo "AZURE_CREDENTIALS is set"
+          else
+            echo "AZURE_CREDENTIALS is NOT set"
+          fi
 
       - name: Azure Login
         uses: azure/login@v2
