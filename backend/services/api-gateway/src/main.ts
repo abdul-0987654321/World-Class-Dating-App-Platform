@@ -13,7 +13,7 @@ import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { TracingMiddleware } from './middleware/tracing.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
