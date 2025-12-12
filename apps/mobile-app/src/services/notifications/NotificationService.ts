@@ -7,7 +7,7 @@ import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messag
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import { Platform, Alert, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiClient } from '../api/apiClient';
+import { httpClient } from '../api/httpClient';
 import { navigationRef } from '../../navigation/NavigationService';
 
 export interface NotificationPayload {
@@ -146,7 +146,7 @@ class NotificationService {
         appVersion: '1.0.0', // Get from app config
       };
 
-      await apiClient.post('/notifications/devices/register', deviceInfo);
+      await httpClient.post('/notifications/devices/register', deviceInfo);
 
       console.log('Device token registered with backend');
     } catch (error) {
@@ -440,7 +440,7 @@ class NotificationService {
    */
   async updateBadgeCount(): Promise<void> {
     try {
-      const response = await apiClient.get('/notifications/unread-count');
+      const response = await httpClient.get('/notifications/unread-count');
       const count = response.data.count || 0;
 
       if (Platform.OS === 'ios') {
@@ -456,7 +456,7 @@ class NotificationService {
    */
   async markNotificationAsRead(notificationId: string): Promise<void> {
     try {
-      await apiClient.put(`/notifications/${notificationId}/read`);
+      await httpClient.put(`/notifications/${notificationId}/read`);
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -476,7 +476,7 @@ class NotificationService {
   async unsubscribe(): Promise<void> {
     if (this.fcmToken) {
       try {
-        await apiClient.delete('/notifications/devices/unregister', {
+        await httpClient.delete('/notifications/devices/unregister', {
           data: { deviceToken: this.fcmToken },
         });
       } catch (error) {

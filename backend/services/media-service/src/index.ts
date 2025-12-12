@@ -19,8 +19,14 @@ const app: Application = express();
 const PORT = config.port;
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -53,7 +59,7 @@ app.use((err: any, _req: Request, res: Response, _next: any): void => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({
       success: false,
-      error: `File size exceeds limit of ${config.upload.maxFileSize / 1024 / 1024}MB`,
+      error: \`File size exceeds limit of \${config.upload.maxFileSize / 1024 / 1024}MB\`,
     });
     return;
   }
@@ -92,8 +98,8 @@ try {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Media Service running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(\`Media Service running on port \${PORT}\`);
+  logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
 });
 
 // Graceful shutdown

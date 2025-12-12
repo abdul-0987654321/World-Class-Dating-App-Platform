@@ -38,3 +38,7 @@ export { videoCallService, VideoCallService } from './videoCallService';
 
 // Mode Service
 export { modeService } from './mode.service';
+
+// Safety Service
+export { safetyService } from './safety.service';
+export type { SecuritySettings, VerificationStatus, ReportUserParams } from './safety.service';

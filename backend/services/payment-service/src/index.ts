@@ -16,11 +16,17 @@ const logger = createLogger('payment-service');
 
 // Create Express app
 const app: Application = express();
-const PORT = process.env.PORT || 3006;  // Changed from 3005 to avoid conflict with moderation-service
+const PORT = process.env.PORT || 3006;
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Note: Webhook routes must be mounted BEFORE express.json() middleware
 // because they need access to the raw body for signature verification
@@ -53,8 +59,8 @@ app.get('/', (req: Request, res: Response) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Payment Service running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(\`Payment Service running on port \${PORT}\`);
+  logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
 });
 
 // Graceful shutdown

@@ -22,8 +22,14 @@ const app: Application = express();
 const PORT = config.port;
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -72,9 +78,9 @@ app.use((err: any, _req: Request, res: Response, _next: any): void => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Matching Service running on port ${PORT}`);
-  logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info(`Database: ${config.database.host}:${config.database.port}/${config.database.name}`);
+  logger.info(\`Matching Service running on port \${PORT}\`);
+  logger.info(\`Environment: \${config.nodeEnv}\`);
+  logger.info(\`Database: \${config.database.host}:\${config.database.port}/\${config.database.name}\`);
 
   // Start match expiration jobs
   matchExpirationJob.startAll();

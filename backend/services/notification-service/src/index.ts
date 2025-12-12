@@ -5,6 +5,7 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import helmet from 'helmet';
 import logger from './utils/logger';
 import { config } from './config';
 import { testConnection } from './config/database';
@@ -23,13 +24,20 @@ dotenv.config();
 const app: Application = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+app.use(helmet());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {
-  logger.debug(`${req.method} ${req.path}`, {
+  logger.debug(\`\${req.method} \${req.path}\`, {
     query: req.query,
     ip: req.ip,
   });
@@ -180,14 +188,14 @@ async function start() {
     await initializeServices();
 
     const server = app.listen(config.port, () => {
-      logger.info(`Notification Service running on port ${config.port}`);
-      logger.info(`Environment: ${config.nodeEnv}`);
-      logger.info(`Queue workers active`);
+      logger.info(\`Notification Service running on port \${config.port}\`);
+      logger.info(\`Environment: \${config.nodeEnv}\`);
+      logger.info(\`Queue workers active\`);
     });
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
-      logger.info(`${signal} signal received: closing server`);
+      logger.info(\`\${signal} signal received: closing server\`);
 
       // Close HTTP server
       server.close(async () => {

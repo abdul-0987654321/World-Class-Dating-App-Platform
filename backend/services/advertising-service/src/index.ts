@@ -22,11 +22,17 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
-const PORT = process.env.PORT || 3010;  // Changed from 3009 to avoid conflict with matching-service
+const PORT = process.env.PORT || 3010;
 
 // Health check
 app.get('/health', (req, res) => {
@@ -71,7 +77,7 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`
+  logger.info(\`
   ╔════════════════════════════════════════════════════════════════════╗
   ║         Flamoral Advertising Service                               ║
   ║         AI-Powered Dating App Advertising Platform                 ║
@@ -82,9 +88,9 @@ app.listen(PORT, () => {
   ║  - Optimization & Performance: 10 features                         ║
   ║  - Dating-Specific Ad Innovations: 10 features                     ║
   ╠════════════════════════════════════════════════════════════════════╣
-  ║  Server running on port ${PORT}                                      ║
+  ║  Server running on port \${PORT}                                      ║
   ╚════════════════════════════════════════════════════════════════════╝
-  `);
+  \`);
 });
 
 export default app;

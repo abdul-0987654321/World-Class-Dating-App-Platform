@@ -69,7 +69,7 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
       await new Promise((resolve) => {
         window.fbAsyncInit = function () {
           window.FB.init({
-            appId: process.env.REACT_APP_FACEBOOK_APP_ID || '',
+            appId: import.meta.env.VITE_FACEBOOK_APP_ID || '',
             cookie: true,
             xfbml: true,
             version: 'v18.0',
@@ -163,9 +163,9 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
         {/* Apple Button */}
         <AppleSignin
           authOptions={{
-            clientId: process.env.REACT_APP_APPLE_CLIENT_ID || '',
+            clientId: import.meta.env.VITE_APPLE_CLIENT_ID || '',
             scope: 'email name',
-            redirectURI: process.env.REACT_APP_APPLE_REDIRECT_URI || '',
+            redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URI || '',
             state: 'state',
             nonce: 'nonce',
             usePopup: true,
@@ -217,7 +217,7 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
 
 const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = (props) => {
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
       <SocialLoginButtonsContent {...props} />
     </GoogleOAuthProvider>
   );

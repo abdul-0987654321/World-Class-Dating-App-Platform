@@ -24,9 +24,10 @@ const PORT = process.env.PORT || 3003;
 const httpServer = createServer(app);
 
 // Initialize Socket.IO
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGINS?.split(',') || '*',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -39,8 +40,10 @@ logger.info('Socket Manager initialized');
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || '*',
+  origin: allowedOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -67,7 +70,7 @@ app.get('/', (req: Request, res: Response) => {
       api: '/api',
       conversations: '/api/conversations',
       messages: '/api/messages',
-      websocket: `ws://localhost:${PORT}`,
+      websocket: \`ws://localhost:\${PORT}\`,
     },
   });
 });
@@ -105,9 +108,9 @@ async function startServer() {
 
     // Start HTTP server
     httpServer.listen(PORT, () => {
-      logger.info(`Messaging Service running on port ${PORT}`);
-      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`WebSocket endpoint: ws://localhost:${PORT}`);
+      logger.info(\`Messaging Service running on port \${PORT}\`);
+      logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
+      logger.info(\`WebSocket endpoint: ws://localhost:\${PORT}\`);
     });
   } catch (error: any) {
     logger.error('Failed to start server:', error);
