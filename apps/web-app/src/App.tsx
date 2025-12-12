@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages
+import LandingPage from './pages/Landing/LandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
@@ -77,6 +78,11 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing page - public */}
+        <Route path="/" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
+        } />
+
         {/* Public routes */}
         <Route path="/login" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <LoginPage />
@@ -176,7 +182,7 @@ const App: React.FC = () => {
 
         {/* Default redirect */}
         <Route path="*" element={
-          <Navigate to={isAuthenticated ? "/discover" : "/login"} replace />
+          <Navigate to={isAuthenticated ? "/discover" : "/"} replace />
         } />
       </Routes>
     </BrowserRouter>
