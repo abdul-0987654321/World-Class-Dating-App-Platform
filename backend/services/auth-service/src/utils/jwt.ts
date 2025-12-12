@@ -20,8 +20,8 @@ export interface TokenPair {
 class JwtUtils {
   private accessTokenSecret: string;
   private refreshTokenSecret: string;
-  private accessTokenExpiresIn: string;
-  private refreshTokenExpiresIn: string;
+  private accessTokenExpiresIn: string | number;
+  private refreshTokenExpiresIn: string | number;
   private algorithm: 'HS256';
   private issuer: string;
   private audience: string;
@@ -41,7 +41,7 @@ class JwtUtils {
    */
   generateAccessToken(payload: JwtPayload): string {
     const signOptions: SignOptions = {
-      expiresIn: this.accessTokenExpiresIn,
+      expiresIn: this.accessTokenExpiresIn as jwt.SignOptions['expiresIn'],
       algorithm: this.algorithm,
       issuer: this.issuer,
       audience: this.audience,
@@ -61,7 +61,7 @@ class JwtUtils {
     };
 
     const signOptions: SignOptions = {
-      expiresIn: this.refreshTokenExpiresIn,
+      expiresIn: this.refreshTokenExpiresIn as jwt.SignOptions['expiresIn'],
       algorithm: this.algorithm,
       issuer: this.issuer,
       audience: this.audience,

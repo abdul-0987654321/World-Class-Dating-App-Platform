@@ -319,6 +319,48 @@ class RedisCache {
       logger.error('Failed to set expiration in Redis', error);
     }
   }
+
+  /**
+   * Increment a key's value
+   */
+  async increment(key: string): Promise<number> {
+    if (!this.client || !this.isConnected) return 0;
+
+    try {
+      return await this.client.incr(key);
+    } catch (error) {
+      logger.error('Failed to increment key in Redis', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Decrement a key's value
+   */
+  async decrement(key: string): Promise<number> {
+    if (!this.client || !this.isConnected) return 0;
+
+    try {
+      return await this.client.decr(key);
+    } catch (error) {
+      logger.error('Failed to decrement key in Redis', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get TTL (time to live) of a key in seconds
+   */
+  async getTTL(key: string): Promise<number> {
+    if (!this.client || !this.isConnected) return 0;
+
+    try {
+      return await this.client.ttl(key);
+    } catch (error) {
+      logger.error('Failed to get TTL in Redis', error);
+      return 0;
+    }
+  }
 }
 
 export const redisCache = new RedisCache();
