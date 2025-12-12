@@ -7,16 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      react({
-        babel: isProduction
-          ? {
-              plugins: [
-                // Remove console.log in production
-                ['transform-remove-console', { exclude: ['error', 'warn'] }],
-              ],
-            }
-          : undefined,
-      }),
+      react(),
     ],
     resolve: {
       alias: {
@@ -41,22 +32,8 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       // Disable source maps in production for security
       sourcemap: !isProduction,
-      // Minify in production
-      minify: isProduction ? 'terser' : false,
-      terserOptions: isProduction
-        ? {
-            compress: {
-              // Remove console statements
-              drop_console: true,
-              drop_debugger: true,
-              pure_funcs: ['console.log', 'console.info', 'console.debug'],
-            },
-            format: {
-              // Remove comments
-              comments: false,
-            },
-          }
-        : undefined,
+      // Use esbuild for minification (built-in, no extra deps)
+      minify: isProduction ? 'esbuild' : false,
       rollupOptions: {
         output: {
           // Code splitting for better caching
