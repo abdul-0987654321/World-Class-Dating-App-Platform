@@ -41,8 +41,22 @@ export class EncryptionService {
 
   constructor() {
     // Master key for encrypting private keys at rest
-    // In production, this should come from a secure key management service (AWS KMS, Azure Key Vault, etc.)
-    this.MASTER_KEY = Buffer.from(process.env.ENCRYPTION_MASTER_KEY || crypto.randomBytes(32).toString('hex'), 'hex');
+    // SECURITY: In production, this MUST come from Azure Key Vault / AWS KMS
+    const masterKeyHex = process.env.ENCRYPTION_MASTER_KEY;
+
+    if (!masterKeyHex) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use Azure Key Vault or AWS KMS.');
+      }
+      // Development only: generate a consistent dev key (NOT random, so messages persist across restarts)
+      console.warn('WARNING: Using development encryption key. DO NOT use in production!');
+      this.MASTER_KEY = Buffer.from('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', 'hex');
+    } else {
+      if (masterKeyHex.length !== 64) {
+        throw new Error('ENCRYPTION_MASTER_KEY must be 64 hex characters (32 bytes)');
+      }
+      this.MASTER_KEY = Buffer.from(masterKeyHex, 'hex');
+    }
   }
 
   /**

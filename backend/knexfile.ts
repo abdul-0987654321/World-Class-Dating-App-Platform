@@ -18,6 +18,16 @@ console.log('DB Config:', {
   password: process.env.DB_PASSWORD ? '***set***' : '***not set***',
 });
 
+// Security: Require DB_PASSWORD in production
+const getDbPassword = (): string => {
+  const password = process.env.DB_PASSWORD;
+  if (password) return password;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CRITICAL: DB_PASSWORD is required in production');
+  }
+  return 'postgres_dev_password';
+};
+
 const config: { [key: string]: Knex.Config } = {
   development: {
     client: 'pg',
@@ -26,7 +36,7 @@ const config: { [key: string]: Knex.Config } = {
       port: Number(process.env.DB_PORT) || 5432,
       database: process.env.DB_NAME || 'flamoral',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres_dev_password',
+      password: getDbPassword(),
     },
     pool: {
       min: 2,

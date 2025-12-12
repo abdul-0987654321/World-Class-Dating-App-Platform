@@ -2,6 +2,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Security: Validate required secrets in production
+const isProduction = process.env.NODE_ENV === 'production';
+
+const getRequiredSecret = (key: string, devDefault: string): string => {
+  const value = process.env[key];
+  if (value) return value;
+  if (isProduction) {
+    throw new Error(`CRITICAL: ${key} is required in production`);
+  }
+  return devDefault;
+};
+
 export default {
   service: {
     name: process.env.SERVICE_NAME || 'user-service',
@@ -14,8 +26,8 @@ export default {
     port: parseInt(process.env.DB_PORT || '5432', 10),
     name: process.env.DB_NAME || 'flamoral_users',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    ssl: process.env.DB_SSL === 'true',
+    password: getRequiredSecret('DB_PASSWORD', 'postgres_dev_password'),
+    ssl: isProduction ? true : process.env.DB_SSL === 'true',
     poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
     poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
   },
@@ -28,10 +40,10 @@ export default {
   },
 
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'your-secret-key',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-    accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    accessSecret: getRequiredSecret('JWT_ACCESS_SECRET', 'dev-access-secret-min-32-chars!!'),
+    refreshSecret: getRequiredSecret('JWT_REFRESH_SECRET', 'dev-refresh-secret-min-32-chars!'),
+    accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
 
   twilio: {
