@@ -171,7 +171,7 @@ export const SmartReplySuggestions: React.FC<SmartReplySuggestionsProps> = ({
     replies.push(
       {
         id: 'generic_1',
-        text: 'Haha that's interesting! Tell me more',
+        text: 'Haha that\'s interesting! Tell me more',
         tone: 'casual',
         confidence: 0.7,
       },

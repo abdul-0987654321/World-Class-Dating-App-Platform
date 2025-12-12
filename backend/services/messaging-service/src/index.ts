@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from './utils/logger';
 import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
 import apiRoutes from './api/routes';
@@ -70,7 +70,7 @@ app.get('/', (req: Request, res: Response) => {
       api: '/api',
       conversations: '/api/conversations',
       messages: '/api/messages',
-      websocket: \`ws://localhost:\${PORT}\`,
+      websocket: `ws://localhost:${PORT}`,
     },
   });
 });
@@ -108,9 +108,9 @@ async function startServer() {
 
     // Start HTTP server
     httpServer.listen(PORT, () => {
-      logger.info(\`Messaging Service running on port \${PORT}\`);
-      logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
-      logger.info(\`WebSocket endpoint: ws://localhost:\${PORT}\`);
+      logger.info(`Messaging Service running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`WebSocket endpoint: ws://localhost:${PORT}`);
     });
   } catch (error: any) {
     logger.error('Failed to start server:', error);

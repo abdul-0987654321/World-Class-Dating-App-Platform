@@ -1,5 +1,5 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 
 const logger = createLogger('conversation-repository');

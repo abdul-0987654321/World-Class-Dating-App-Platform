@@ -7,8 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
+# Install dependencies (including devDependencies for TypeScript build)
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY src ./src
@@ -24,7 +24,7 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Copy package files and install production dependencies
+# Copy package files and install production dependencies only
 COPY package*.json ./
 RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
 
@@ -36,6 +36,10 @@ RUN chown -R nodejs:nodejs /app
 
 # Switch to nodejs user
 USER nodejs
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3005
 
 # Expose port
 EXPOSE 3005

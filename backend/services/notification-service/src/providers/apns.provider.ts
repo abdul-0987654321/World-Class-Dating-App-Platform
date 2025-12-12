@@ -131,7 +131,10 @@ export class APNsProvider {
 
       // Category for actionable notifications
       if (message.category) {
-        notification.category = message.category;
+        if (!notification.aps) {
+          notification.aps = {};
+        }
+        notification.aps.category = message.category;
       }
 
       // Thread ID for grouping notifications

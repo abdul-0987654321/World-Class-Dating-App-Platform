@@ -9,6 +9,7 @@ import {
   NotificationPayload,
   NotificationChannel,
   NotificationType,
+  NotificationPriority,
   NotificationPreferences,
   Notification,
   UpdatePreferencesRequest,
@@ -47,7 +48,7 @@ export class NotificationService {
       // Add to queue for async processing
       await addNotificationJob({
         ...payload,
-        priority: payload.priority || 'normal',
+        priority: payload.priority || NotificationPriority.NORMAL,
       });
 
       logger.info('Notification queued successfully', {
@@ -422,7 +423,7 @@ export class NotificationService {
       imageUrl: matchUserPhoto,
       actionUrl: `/chat/${matchUserId}`,
       data: { matchUserId, matchUserName },
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 
@@ -442,7 +443,7 @@ export class NotificationService {
       imageUrl: senderPhoto,
       actionUrl: `/chat/${senderId}`,
       data: { senderId, senderName },
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 
@@ -453,7 +454,7 @@ export class NotificationService {
       channels: [NotificationChannel.PUSH, NotificationChannel.IN_APP],
       title: 'Someone likes you!',
       body: 'You have a new like. Upgrade to see who!',
-      priority: 'normal',
+      priority: NotificationPriority.NORMAL,
     });
   }
 
@@ -469,7 +470,7 @@ export class NotificationService {
       title: 'Payment Successful',
       body: `Your payment of $${amount} for ${plan} has been processed successfully.`,
       data: { amount, plan },
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 
@@ -484,7 +485,7 @@ export class NotificationService {
       title: 'Payment Failed',
       body: `Your payment could not be processed: ${reason}`,
       data: { reason },
-      priority: 'urgent',
+      priority: NotificationPriority.URGENT,
     });
   }
 
@@ -499,7 +500,7 @@ export class NotificationService {
       title: 'Profile Boost Active!',
       body: `Your profile is boosted for the next ${durationMinutes} minutes!`,
       data: { durationMinutes },
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 
@@ -510,7 +511,7 @@ export class NotificationService {
       channels: [NotificationChannel.PUSH, NotificationChannel.EMAIL, NotificationChannel.IN_APP],
       title: 'Profile Verified!',
       body: 'Your profile has been successfully verified.',
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 
@@ -530,7 +531,7 @@ export class NotificationService {
       title: payload.title,
       body: payload.body,
       data: payload.data,
-      priority: 'normal',
+      priority: NotificationPriority.NORMAL,
     });
   }
 
@@ -550,7 +551,7 @@ export class NotificationService {
       title: payload.subject,
       body: payload.body,
       data: payload.data,
-      priority: 'normal',
+      priority: NotificationPriority.NORMAL,
     });
   }
 
@@ -569,7 +570,7 @@ export class NotificationService {
       title: 'Alert',
       body: payload.message,
       data: payload.data,
-      priority: 'high',
+      priority: NotificationPriority.HIGH,
     });
   }
 

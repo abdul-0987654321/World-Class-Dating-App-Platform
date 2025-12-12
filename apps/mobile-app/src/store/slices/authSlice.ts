@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { User } from '@flamoral/types';
+import type { User } from '../../types';
 
 interface AuthState {
   user: User | null;

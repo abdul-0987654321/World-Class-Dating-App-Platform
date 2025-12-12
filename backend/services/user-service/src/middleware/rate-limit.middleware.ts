@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Redis } from 'redis';
+import { createClient } from 'redis';
 import logger from '../utils/logger';
 
 // Redis client for rate limiting

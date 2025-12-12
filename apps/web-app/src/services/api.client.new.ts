@@ -58,7 +58,11 @@ class ApiClient {
   private async fetchCsrfToken(): Promise<string> {
     // Prevent multiple simultaneous token fetches
     if (this.csrfTokenPromise) {
-      return this.csrfTokenPromise;
+      const result = await this.csrfTokenPromise;
+    if (!result) {
+      throw new Error('Failed to fetch CSRF token');
+    }
+    return result;
     }
 
     this.csrfTokenPromise = (async () => {
@@ -74,6 +78,9 @@ class ApiClient {
 
         const data = await response.json();
         this.csrfToken = data.csrfToken;
+        if (!this.csrfToken) {
+          throw new Error('CSRF token not found in response');
+        }
         return this.csrfToken;
       } catch (error) {
         console.error('Error fetching CSRF token:', error);

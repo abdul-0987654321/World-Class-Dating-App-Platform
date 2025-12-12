@@ -1,6 +1,6 @@
 import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { messageRepository } from '../domain/repositories/message.repository';
 import { realtimeHttpClient } from '../infrastructure/clients/realtime-http.client';

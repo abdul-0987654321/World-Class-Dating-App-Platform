@@ -6,12 +6,12 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import csamDetectionService from '../services/csam-detection.service';
 import csamQuarantineService from '../services/csam-quarantine.service';
 import ncmecReportingService from '../services/ncmec-reporting.service';
 import csamAuditService from '../services/csam-audit.service';
-import { serviceAuthMiddleware } from '../middleware/service-auth.middleware';
+import { authenticateService as serviceAuthMiddleware } from '../middleware/service-auth.middleware';
 
 const logger = createLogger('csam-routes');
 const router = Router();

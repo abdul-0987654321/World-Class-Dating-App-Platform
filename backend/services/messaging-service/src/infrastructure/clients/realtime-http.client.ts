@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import config from '../../config';
 
 const logger = createLogger('realtime-http-client');
@@ -215,6 +215,63 @@ export class RealtimeHttpClient {
     } catch (error: any) {
       logger.error('Failed to get online count:', error.message);
       return 0;
+    }
+  }
+
+  /**
+   * Publish reaction update to WebSocket clients
+   */
+  async publishReactionUpdate(data: {
+    conversationId: string;
+    messageId: string;
+    userId?: string;
+    emoji?: string;
+    reaction?: any;
+    action: 'add' | 'remove' | 'added' | 'removed' | 'updated';
+  }): Promise<boolean> {
+    try {
+      await this.client.post('/messages/reaction', data);
+      logger.debug(`Reaction update published: ${data.action} ${data.emoji}`);
+      return true;
+    } catch (error: any) {
+      logger.error('Failed to publish reaction update:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Publish message pinned event
+   */
+  async publishMessagePinned(data: {
+    conversationId: string;
+    messageId: string;
+    pinnedBy: string;
+  }): Promise<boolean> {
+    try {
+      await this.client.post('/messages/pinned', data);
+      logger.debug(`Message pinned event published: ${data.messageId}`);
+      return true;
+    } catch (error: any) {
+      logger.error('Failed to publish message pinned:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Publish message unpinned event
+   */
+  async publishMessageUnpinned(data: {
+    conversationId: string;
+    messageId: string;
+    unpinnedBy: string;
+  }): Promise<boolean> {
+    try {
+      await this.client.post('/messages/unpinned', data);
+      logger.debug(`Message unpinned event published: ${data.messageId}`);
+      return true;
+    } catch (error: any) {
+      logger.error('Failed to publish message unpinned:', error.message);
+      return false;
     }
   }
 }

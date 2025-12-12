@@ -3,7 +3,7 @@ import awsRekognitionService from './aws-rekognition.service';
 import azureContentModeratorService from './azure-content-moderator.service';
 import db from '../infrastructure/database/connection';
 import config from '../config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import notificationClient from '../infrastructure/clients/notification-service.client';
 import {
   ModerationResult,
@@ -220,8 +220,6 @@ export class ModerationService {
       textModerationData: result.textModerationResult,
       recommendations: result.recommendations,
       moderatedAt: result.moderatedAt,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     await db('moderation_logs').insert(log);
@@ -399,9 +397,6 @@ export class ModerationService {
       violations: result.detectedViolations,
       status: ModerationStatus.FLAGGED,
       priority,
-      flaggedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     await db('moderation_queue').insert(queueItem);
@@ -442,7 +437,7 @@ export class ModerationService {
       return { restricted: false };
     }
 
-    if (record.permanently_banned) {
+    if (record.permanentlyBanned) {
       return {
         restricted: true,
         reason: 'Your account has been permanently banned due to severe violations.',
@@ -451,21 +446,21 @@ export class ModerationService {
 
     if (
       record.status === UserModerationStatus.SUSPENDED &&
-      record.current_suspension_ends_at &&
-      new Date(record.current_suspension_ends_at) > new Date()
+      record.currentSuspensionEndsAt &&
+      new Date(record.currentSuspensionEndsAt) > new Date()
     ) {
       return {
         restricted: true,
         reason: 'Your account is temporarily suspended.',
-        endsAt: new Date(record.current_suspension_ends_at),
+        endsAt: new Date(record.currentSuspensionEndsAt),
       };
     }
 
     // Clear suspension if expired
     if (
       record.status === UserModerationStatus.SUSPENDED &&
-      record.current_suspension_ends_at &&
-      new Date(record.current_suspension_ends_at) <= new Date()
+      record.currentSuspensionEndsAt &&
+      new Date(record.currentSuspensionEndsAt) <= new Date()
     ) {
       await db('user_moderation_records')
         .where('user_id', userId)

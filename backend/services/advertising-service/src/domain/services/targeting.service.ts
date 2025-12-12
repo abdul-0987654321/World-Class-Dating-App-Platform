@@ -69,7 +69,7 @@ export class TargetingService {
       intent: 'serious_relationship',
       signals: [
         { signal_type: 'profile_completeness', weight: 0.3, source: 'profile' },
-        { signal_type: 'response_rate', weight: 0.25, source: 'behavioral' },
+        { signal_type: 'response_rate', weight: 0.25, source: 'behavior' },
         { signal_type: 'stated_goal', weight: 0.45, source: 'stated' },
       ],
       confidence_score: 0.85,

@@ -7,6 +7,7 @@ import {
   UpdateScheduledMessageDto,
   ScheduledMessageResponseDto,
   MatchWarmupSequenceDto,
+  ScheduleType,
 } from '../dtos';
 import config from '../config';
 import { ServiceClient } from './service-client';
@@ -150,7 +151,7 @@ export class ScheduledMessageService {
    */
   private async scheduleJob(message: ScheduledMessage): Promise<void> {
     try {
-      if (message.schedule_type === 'ONCE') {
+      if (message.schedule_type === ScheduleType.ONCE) {
         // Schedule one-time message
         const delay = new Date(message.scheduled_for).getTime() - Date.now();
         if (delay > 0) {
@@ -224,7 +225,7 @@ export class ScheduledMessageService {
       };
 
       // Calculate next send time for recurring messages
-      if (message.schedule_type !== 'ONCE' && message.cron_expression) {
+      if (message.schedule_type !== ScheduleType.ONCE && message.cron_expression) {
         updates.next_send_at = this.calculateNextSendTime(message.cron_expression);
       } else {
         updates.is_active = false;

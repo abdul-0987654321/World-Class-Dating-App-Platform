@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import config from '../../config';
 
 const logger = createLogger('realtime-client');

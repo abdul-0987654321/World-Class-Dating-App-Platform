@@ -103,6 +103,28 @@ export interface CreateAchievementDTO {
   is_hidden?: boolean;
   display_order?: number;
   is_active?: boolean;
+  // Legacy camelCase aliases
+  key?: string;
+  points?: number;
+  coinReward?: number;
+  requirements?: any;
+  targetValue?: number;
+  badgeColor?: string;
+  isSecret?: boolean;
+  isRepeatable?: boolean;
+  rewardCoins?: number;
+  rewardSuperLikes?: number;
+  rewardBoosts?: number;
+  iconName?: string;
+  iconColor?: string;
+  badgeImageUrl?: string;
+  tier?: number;
+  isHidden?: boolean;
+  isActive?: boolean;
+  displayOrder?: number;
+  category?: string;
+  requirementType?: RequirementType;
+  requirementValue?: number;
 }
 
 export interface UpdateAchievementDTO {
@@ -119,6 +141,25 @@ export interface UpdateAchievementDTO {
   is_hidden?: boolean;
   display_order?: number;
   is_active?: boolean;
+  // Legacy camelCase aliases
+  category?: string;
+  points?: number;
+  coinReward?: number;
+  requirements?: any;
+  targetValue?: number;
+  badgeColor?: string;
+  isSecret?: boolean;
+  isRepeatable?: boolean;
+  rewardCoins?: number;
+  rewardSuperLikes?: number;
+  rewardBoosts?: number;
+  iconName?: string;
+  iconColor?: string;
+  badgeImageUrl?: string;
+  tier?: number;
+  isHidden?: boolean;
+  isActive?: boolean;
+  displayOrder?: number;
 }
 
 export interface AchievementFilters {
@@ -126,6 +167,11 @@ export interface AchievementFilters {
   is_active?: boolean;
   is_hidden?: boolean;
   is_progressive?: boolean;
+  // Legacy camelCase aliases
+  category?: string;
+  tier?: number;
+  isHidden?: boolean;
+  isActive?: boolean;
 }
 
 export type RequirementType =
@@ -157,6 +203,8 @@ export type UserAchievementStats = {
 };
 export type UserAchievementWithDefinition = UserAchievementEntity & {
   definition: AchievementEntity;
+  isUnlocked?: boolean;
+  is_unlocked?: boolean;
 };
 export type CreateAchievementDefinitionInput = CreateAchievementDTO;
 export type UpdateAchievementDefinitionInput = UpdateAchievementDTO;

@@ -1,8 +1,8 @@
-import type { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
-import type { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
+import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
+import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
 import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
-import type { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
+import { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
 import logger from '../utils/logger';
 
 /**
@@ -514,10 +514,10 @@ export class PhotoVerificationService {
         success: true,
         verifications,
         pagination: {
-          total: totalCount?.count || 0,
+          total: Number(totalCount?.count || 0),
           limit,
           offset,
-          hasMore: (totalCount?.count || 0) > offset + limit,
+          hasMore: Number(totalCount?.count || 0) > offset + limit,
         },
       };
     } catch (error: any) {

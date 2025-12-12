@@ -389,10 +389,10 @@ class Logger {
    * Create a timer for performance measurements
    */
   public startTimer(label: string): () => void {
-    const startTime = performance.now();
+    const startTime = window.performance.now();
 
     return () => {
-      const duration = performance.now() - startTime;
+      const duration = window.performance.now() - startTime;
       this.performance(label, duration);
     };
   }

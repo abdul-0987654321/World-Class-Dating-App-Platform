@@ -5,7 +5,17 @@
 
 import { Server, Socket } from 'socket.io';
 import { VideoCallService } from '../services/video-call.service';
-import { logger } from '../infrastructure/logger';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('call-signaling');
+
+// WebRTC types (defined locally for Node.js environment)
+interface RTCIceCandidateInit {
+  candidate?: string;
+  sdpMLineIndex?: number | null;
+  sdpMid?: string | null;
+  usernameFragment?: string | null;
+}
 
 export interface CallSignalingEvents {
   'initiate-call': (data: InitiateCallData, callback: (response: any) => void) => void;

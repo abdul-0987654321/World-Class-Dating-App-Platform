@@ -1,4 +1,4 @@
-import amqp, { Channel, Connection, ConsumeMessage } from 'amqplib';
+import amqp, { Channel, ConsumeMessage } from 'amqplib';
 import config from '../config';
 
 /**
@@ -6,7 +6,7 @@ import config from '../config';
  * Manages RabbitMQ connections, exchanges, and queues
  */
 export class RabbitMQClient {
-  private connection: Connection | null = null;
+  private connection: Awaited<ReturnType<typeof amqp.connect>> | null = null;
   private channel: Channel | null = null;
   private exchange: string;
 

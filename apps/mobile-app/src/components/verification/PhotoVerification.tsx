@@ -114,7 +114,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
     }
 
     Alert.alert(
-      'Time's Up',
+      "Time's Up",
       'You ran out of time. Please try again.',
       [
         {

@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { AuthRequest, AdminRole, Permission, ROLE_PERMISSIONS } from '../types';
 import { logger } from '../utils/logger';
 import { db } from '../infrastructure/database';
@@ -166,6 +166,11 @@ export const canAccessUserData = async (
  * Generate admin JWT token
  */
 export const generateAdminToken = (admin: { id: string; email: string; role: AdminRole }): string => {
+  const expiresIn = (process.env.ADMIN_SESSION_DURATION || '12h') as SignOptions['expiresIn'];
+  const options: SignOptions = {
+    expiresIn
+  };
+
   return jwt.sign(
     {
       adminId: admin.id,
@@ -173,6 +178,6 @@ export const generateAdminToken = (admin: { id: string; email: string; role: Adm
       role: admin.role,
     },
     JWT_ADMIN_SECRET,
-    { expiresIn: process.env.ADMIN_SESSION_DURATION || '12h' }
+    options
   );
 };

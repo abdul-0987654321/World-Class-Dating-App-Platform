@@ -12,7 +12,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import db from '../infrastructure/database/connection';
 import config from '../config';
 import {

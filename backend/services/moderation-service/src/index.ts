@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import moderationRoutes from './routes/moderation.routes';
 import internalRoutes from './routes/internal.routes';
 import config from './config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from './utils/logger';
 
 // Load environment variables
 dotenv.config();

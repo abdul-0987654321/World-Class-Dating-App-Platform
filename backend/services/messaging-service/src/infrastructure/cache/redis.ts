@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import config from '../../config';
 
 const logger = createLogger('redis');
@@ -226,8 +226,59 @@ class RedisClient {
       logger.info('Disconnected from Redis');
     }
   }
+
+  /**
+   * Generic set with expiry
+   */
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    try {
+      if (ttlSeconds) {
+        await this.client?.setEx(key, ttlSeconds, value);
+      } else {
+        await this.client?.set(key, value);
+      }
+    } catch (error) {
+      logger.error('Failed to set value:', error);
+    }
+  }
+
+  /**
+   * Generic get
+   */
+  async get(key: string): Promise<string | null> {
+    try {
+      return await this.client?.get(key) || null;
+    } catch (error) {
+      logger.error('Failed to get value:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get keys matching pattern
+   */
+  async keys(pattern: string): Promise<string[]> {
+    try {
+      return await this.client?.keys(pattern) || [];
+    } catch (error) {
+      logger.error('Failed to get keys:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete a key
+   */
+  async del(key: string): Promise<void> {
+    try {
+      await this.client?.del(key);
+    } catch (error) {
+      logger.error('Failed to delete key:', error);
+    }
+  }
 }
 
 // Export singleton instance
 export const redisClient = new RedisClient();
+export { RedisClient };
 export default redisClient;

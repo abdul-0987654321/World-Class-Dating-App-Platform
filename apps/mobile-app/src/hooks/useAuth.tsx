@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthApi, createApiClient } from '@flamoral/api-client';
-import type { LoginRequest, RegisterRequest } from '@flamoral/types';
+import { AuthApi, createApiClient } from '../api/client';
+import type { LoginRequest, RegisterRequest } from '../types';
 
 interface AuthContextType {
   isAuthenticated: boolean;

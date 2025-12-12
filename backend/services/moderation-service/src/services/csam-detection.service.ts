@@ -20,7 +20,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import db from '../infrastructure/database/connection';
 import config from '../config';
 import ncmecReportingService from './ncmec-reporting.service';
@@ -507,7 +507,7 @@ export class CSAMDetectionService {
       await this.addToInternalDatabase(detectionResult);
 
       // Step 3: MANDATORY NCMEC REPORTING
-      if (detectionResult.confidenceScore >= config.csam.ncmecReportingThreshold) {
+      if (detectionResult.confidenceScore >= config.csam.thresholds.ncmecReportingThreshold) {
         await ncmecReportingService.createReport({
           detectionResult,
           contentId,

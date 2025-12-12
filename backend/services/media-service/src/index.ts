@@ -59,7 +59,7 @@ app.use((err: any, _req: Request, res: Response, _next: any): void => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({
       success: false,
-      error: \`File size exceeds limit of \${config.upload.maxFileSize / 1024 / 1024}MB\`,
+      error: `File size exceeds limit of ${config.upload.maxFileSize / 1024 / 1024}MB`,
     });
     return;
   }
@@ -98,8 +98,8 @@ try {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(\`Media Service running on port \${PORT}\`);
-  logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
+  logger.info(`Media Service running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Graceful shutdown

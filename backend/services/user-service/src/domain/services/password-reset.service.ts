@@ -4,7 +4,7 @@ import { hashPassword } from '../../utils/encryption';
 import jwtUtils from '../../utils/jwt';
 import emailService from '../../infrastructure/email/email.service';
 import logger from '../../utils/logger';
-import { isValidPassword } from '@flamoral/shared/utils/validation';
+import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validation';
 
 export class PasswordResetService {
   private userRepository: UserRepository;

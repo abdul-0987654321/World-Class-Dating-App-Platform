@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import { GifMetadata } from '../types/enhanced-types';
 
 const logger = createLogger('gif-integration-service');

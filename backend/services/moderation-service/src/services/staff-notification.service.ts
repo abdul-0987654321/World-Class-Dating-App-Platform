@@ -12,7 +12,7 @@
 
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import db from '../infrastructure/database/connection';
 import config from '../config';
 import {
@@ -511,13 +511,14 @@ export class StaffNotificationService {
           db.raw('AVG(confidence_score) as avg_confidence')
         )
         .first();
+      const statsData: any = stats;
 
       const message = {
         title: 'Daily CSAM Detection Summary',
         body: `CSAM Detection Report for ${yesterday.toLocaleDateString()}\n\n` +
-          `Total Scans: ${stats.total_scans}\n` +
-          `CSAM Detections: ${stats.detections}\n` +
-          `Average Confidence: ${(stats.avg_confidence * 100).toFixed(1)}%\n\n` +
+          `Total Scans: ${statsData?.total_scans || 0}\n` +
+          `CSAM Detections: ${statsData?.detections || 0}\n` +
+          `Average Confidence: ${(statsData?.avg_confidence || 0 * 100).toFixed(1)}%\n\n` +
           `Review full report: ${config.appUrl}/admin/csam/reports/daily`,
         severity: CSAMSeverityLevel.LOW,
       };

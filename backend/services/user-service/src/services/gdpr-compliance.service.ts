@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import type archiver from 'archiver';
+import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';

@@ -1,0 +1,314 @@
+/**
+ * Virtual Gifts Service
+ * WeChat-style virtual gifts for in-chat monetization
+ */
+
+import { createLogger } from '../utils/logger';
+import axios from 'axios';
+
+const logger = createLogger('virtual-gifts-service');
+
+// Payment service URL for coin transactions
+const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3004';
+
+// In-memory transaction store (production would use Cosmos DB)
+const transactionStore: GiftTransaction[] = [];
+
+export interface VirtualGift {
+  id: string;
+  name: string;
+  emoji: string;
+  price: number;
+  category: 'basic' | 'premium' | 'luxury';
+  description: string;
+  animation?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface GiftTransaction {
+  id: string;
+  giftId: string;
+  senderId: string;
+  receiverId: string;
+  conversationId: string;
+  messageId: string;
+  price: number;
+  createdAt: Date;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+}
+
+export interface GiftMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  type: 'gift';
+  gift: VirtualGift;
+  transactionId: string;
+  sentAt: Date;
+}
+
+// Predefined gift catalog
+const GIFT_CATALOG: VirtualGift[] = [
+  // Basic gifts (5-15 coins)
+  { id: 'rose', name: 'Rose', emoji: '🌹', price: 5, category: 'basic', description: 'A classic romantic gesture', isActive: true, sortOrder: 1 },
+  { id: 'heart', name: 'Heart', emoji: '❤️', price: 5, category: 'basic', description: 'Show your love', isActive: true, sortOrder: 2 },
+  { id: 'kiss', name: 'Kiss', emoji: '💋', price: 10, category: 'basic', description: 'Blow them a kiss', isActive: true, sortOrder: 3 },
+  { id: 'hug', name: 'Hug', emoji: '🤗', price: 10, category: 'basic', description: 'Virtual warm hug', isActive: true, sortOrder: 4 },
+  { id: 'flowers', name: 'Flowers', emoji: '💐', price: 15, category: 'basic', description: 'A beautiful bouquet', isActive: true, sortOrder: 5 },
+  { id: 'chocolate', name: 'Chocolate', emoji: '🍫', price: 15, category: 'basic', description: 'Sweet treat', isActive: true, sortOrder: 6 },
+
+  // Premium gifts (50-200 coins)
+  { id: 'teddy', name: 'Teddy Bear', emoji: '🧸', price: 50, category: 'premium', description: 'Cute and cuddly', isActive: true, sortOrder: 10 },
+  { id: 'perfume', name: 'Perfume', emoji: '🧴', price: 75, category: 'premium', description: 'Fragrant luxury', isActive: true, sortOrder: 11 },
+  { id: 'wine', name: 'Wine', emoji: '🍷', price: 100, category: 'premium', description: 'Cheers to us!', isActive: true, sortOrder: 12 },
+  { id: 'ring', name: 'Ring', emoji: '💍', price: 150, category: 'premium', description: 'A promise of commitment', isActive: true, sortOrder: 13 },
+  { id: 'fireworks', name: 'Fireworks', emoji: '🎆', price: 200, category: 'premium', description: 'Celebrate your connection', isActive: true, sortOrder: 14 },
+
+  // Luxury gifts (500-2000 coins)
+  { id: 'crown', name: 'Crown', emoji: '👑', price: 500, category: 'luxury', description: 'For royalty', isActive: true, sortOrder: 20 },
+  { id: 'diamond', name: 'Diamond', emoji: '💎', price: 750, category: 'luxury', description: 'Rare and precious', isActive: true, sortOrder: 21 },
+  { id: 'castle', name: 'Castle', emoji: '🏰', price: 1000, category: 'luxury', description: 'A fairy tale gift', isActive: true, sortOrder: 22 },
+  { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 1500, category: 'luxury', description: 'Out of this world!', isActive: true, sortOrder: 23 },
+  { id: 'yacht', name: 'Yacht', emoji: '🛥️', price: 2000, category: 'luxury', description: 'Ultimate luxury', isActive: true, sortOrder: 24 },
+];
+
+class VirtualGiftsService {
+  async initialize(): Promise<void> {
+    logger.info('Virtual Gifts Service initialized');
+  }
+
+  /**
+   * Get all available gifts
+   */
+  getGiftCatalog(): VirtualGift[] {
+    return GIFT_CATALOG.filter(g => g.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  /**
+   * Get gifts by category
+   */
+  getGiftsByCategory(category: 'basic' | 'premium' | 'luxury'): VirtualGift[] {
+    return this.getGiftCatalog().filter(g => g.category === category);
+  }
+
+  /**
+   * Get a specific gift by ID
+   */
+  getGiftById(giftId: string): VirtualGift | undefined {
+    return GIFT_CATALOG.find(g => g.id === giftId);
+  }
+
+  /**
+   * Send a virtual gift
+   */
+  async sendGift(
+    senderId: string,
+    receiverId: string,
+    conversationId: string,
+    giftId: string
+  ): Promise<{ success: boolean; message?: GiftMessage; error?: string }> {
+    const gift = this.getGiftById(giftId);
+
+    if (!gift) {
+      return { success: false, error: 'Gift not found' };
+    }
+
+    if (!gift.isActive) {
+      return { success: false, error: 'This gift is no longer available' };
+    }
+
+    try {
+      // 1. Deduct coins from sender's balance via payment service
+      const deductResponse = await this.deductCoins(senderId, gift.price, giftId, receiverId);
+
+      if (!deductResponse.success) {
+        return { success: false, error: deductResponse.error || 'Insufficient coins' };
+      }
+
+      // 2. Create gift transaction record
+      const transactionId = `gift-txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const transaction: GiftTransaction = {
+        id: transactionId,
+        giftId: gift.id,
+        senderId,
+        receiverId,
+        conversationId,
+        messageId: '', // Will be updated after message creation
+        price: gift.price,
+        createdAt: new Date(),
+        status: 'completed',
+      };
+
+      // Store transaction (in-memory for now)
+      transactionStore.push(transaction);
+
+      // 3. Credit a portion to receiver (gift economy - 70% to receiver)
+      const receiverShare = Math.floor(gift.price * 0.7);
+      if (receiverShare > 0) {
+        await this.creditCoins(receiverId, receiverShare, giftId, senderId);
+      }
+
+      // 4. Create gift message
+      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const giftMessage: GiftMessage = {
+        id: messageId,
+        conversationId,
+        senderId,
+        receiverId,
+        type: 'gift',
+        gift,
+        transactionId,
+        sentAt: new Date(),
+      };
+
+      logger.info(`Gift sent: ${gift.name} from ${senderId} to ${receiverId} for ${gift.price} coins`);
+
+      return { success: true, message: giftMessage };
+    } catch (error: any) {
+      logger.error('Failed to send gift:', error);
+      return { success: false, error: 'Failed to send gift. Please try again.' };
+    }
+  }
+
+  /**
+   * Deduct coins from user's balance
+   */
+  private async deductCoins(
+    userId: string,
+    amount: number,
+    giftId: string,
+    recipientId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await axios.post(
+        `${PAYMENT_SERVICE_URL}/api/coins/spend`,
+        {
+          userId,
+          amount,
+          itemType: 'virtual_gift',
+          itemId: giftId,
+          metadata: {
+            recipientId,
+            description: `Sent virtual gift: ${giftId}`,
+          },
+        },
+        {
+          timeout: 10000,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+          },
+        }
+      );
+
+      return { success: response.data.success };
+    } catch (error: any) {
+      logger.error('Failed to deduct coins:', error.message);
+
+      if (error.response?.status === 400) {
+        return { success: false, error: 'Insufficient coins balance' };
+      }
+
+      return { success: false, error: 'Payment service unavailable' };
+    }
+  }
+
+  /**
+   * Credit coins to user's balance (gift receiver gets a portion)
+   */
+  private async creditCoins(
+    userId: string,
+    amount: number,
+    giftId: string,
+    senderId: string
+  ): Promise<{ success: boolean }> {
+    try {
+      await axios.post(
+        `${PAYMENT_SERVICE_URL}/api/coins/credit`,
+        {
+          userId,
+          amount,
+          type: 'gift_received',
+          metadata: {
+            giftId,
+            senderId,
+            description: `Received virtual gift: ${giftId}`,
+          },
+        },
+        {
+          timeout: 10000,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+          },
+        }
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      logger.error('Failed to credit coins to receiver:', error.message);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Get gift transaction history for a user
+   */
+  async getUserGiftHistory(
+    userId: string,
+    type: 'sent' | 'received' | 'all' = 'all',
+    limit: number = 50
+  ): Promise<GiftTransaction[]> {
+    try {
+      let filtered = transactionStore;
+
+      if (type === 'sent') {
+        filtered = transactionStore.filter(t => t.senderId === userId);
+      } else if (type === 'received') {
+        filtered = transactionStore.filter(t => t.receiverId === userId);
+      } else {
+        filtered = transactionStore.filter(t => t.senderId === userId || t.receiverId === userId);
+      }
+
+      return filtered
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, limit);
+    } catch (error: any) {
+      logger.error('Failed to get gift history:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get gift statistics for a user
+   */
+  async getUserGiftStats(userId: string): Promise<{
+    totalSent: number;
+    totalReceived: number;
+    coinsSpent: number;
+    coinsEarned: number;
+  }> {
+    try {
+      const sent = transactionStore.filter(t => t.senderId === userId);
+      const received = transactionStore.filter(t => t.receiverId === userId);
+
+      const coinsSpent = sent.reduce((sum, t) => sum + t.price, 0);
+      const coinsReceived = received.reduce((sum, t) => sum + t.price, 0);
+
+      return {
+        totalSent: sent.length,
+        totalReceived: received.length,
+        coinsSpent,
+        coinsEarned: Math.floor(coinsReceived * 0.7),
+      };
+    } catch (error: any) {
+      logger.error('Failed to get gift stats:', error);
+      return { totalSent: 0, totalReceived: 0, coinsSpent: 0, coinsEarned: 0 };
+    }
+  }
+}
+
+export const virtualGiftsService = new VirtualGiftsService();
+export default virtualGiftsService;

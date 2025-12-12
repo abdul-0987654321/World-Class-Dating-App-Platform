@@ -182,9 +182,14 @@ export class ABTestingService {
 
     for (const variant of variants) {
       const variantWorkflow = this.workflowRepository.create({
-        ...baseWorkflow,
-        id: undefined, // Generate new ID
         name: `${baseWorkflow.name} - ${variant.variant}`,
+        description: baseWorkflow.description,
+        trigger: baseWorkflow.trigger,
+        conditions: baseWorkflow.conditions,
+        actions: baseWorkflow.actions,
+        priority: baseWorkflow.priority,
+        tags: baseWorkflow.tags,
+        createdBy: baseWorkflow.createdBy,
         abTestGroup: testGroup,
         abTestVariant: variant.variant,
         abTestPercentage: variant.percentage,
@@ -193,7 +198,7 @@ export class ABTestingService {
         executionCount: 0,
         successCount: 0,
         failureCount: 0,
-      });
+      }) as unknown as Workflow;
 
       const savedVariant = await this.workflowRepository.save(variantWorkflow);
       createdVariants.push(savedVariant);

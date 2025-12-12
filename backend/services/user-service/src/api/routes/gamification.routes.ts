@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { GamificationController } from '../controllers/gamification.controller';
+import { GamificationController } from '../controllers/Gamification.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();

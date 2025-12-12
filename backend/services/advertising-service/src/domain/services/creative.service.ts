@@ -167,7 +167,7 @@ export class CreativeService {
           template_id: storyTemplate,
           story_arc: {
             structure: ['intro', 'challenge', 'discovery', 'connection', 'outcome'],
-            emotional_journey: ['curiosity', 'hope', 'excitement', 'love'],
+            emotional_journey: ['curiosity', 'hope', 'excitement', 'romance'],
             duration_seconds: 30,
           },
           variable_slots: [
@@ -439,7 +439,7 @@ export class CreativeService {
           content: {
             quote: 'I never thought I would find someone who shares my passion for adventure. Thanks to Flamoral!',
             story_length: 'medium',
-            emotional_tone: ['excitement', 'love'],
+            emotional_tone: ['excitement', 'romance'],
             topics_mentioned: ['travel', 'adventure', 'connection'],
             photo_available: true,
           },

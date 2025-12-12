@@ -1,5 +1,5 @@
 import { CosmosClient, Database } from '@azure/cosmos';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import {
   ENCRYPTION_CONTAINERS,
   ENCRYPTION_INDEXING_POLICIES,

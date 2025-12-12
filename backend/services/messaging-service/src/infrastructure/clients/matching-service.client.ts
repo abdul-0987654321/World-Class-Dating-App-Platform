@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('matching-service-client');
 

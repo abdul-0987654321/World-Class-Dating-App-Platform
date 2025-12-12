@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { DailyRewardController } from '../controllers/dailyReward.controller';
+import { DailyRewardController } from '../controllers/DailyReward.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();

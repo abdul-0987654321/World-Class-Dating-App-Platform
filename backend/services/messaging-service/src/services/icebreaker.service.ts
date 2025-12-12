@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import { Icebreaker, IcebreakerSuggestion } from '../types/enhanced-types';
 
 const logger = createLogger('icebreaker-service');
@@ -26,7 +26,7 @@ export class IcebreakerService {
       {
         id: '2',
         category: 'Fun',
-        text: 'What's your go-to karaoke song?',
+        text: "What's your go-to karaoke song?",
         popularity: 88,
         tags: ['music', 'fun', 'casual'],
       },
@@ -40,7 +40,7 @@ export class IcebreakerService {
       {
         id: '4',
         category: 'Fun',
-        text: 'What's the best trip you've ever taken?',
+        text: "What's the best trip you've ever taken?",
         popularity: 90,
         tags: ['travel', 'experiences'],
       },
@@ -70,7 +70,7 @@ export class IcebreakerService {
       {
         id: '8',
         category: 'Hobbies',
-        text: 'What's your favorite way to stay active?',
+        text: "What's your favorite way to stay active?",
         popularity: 85,
         tags: ['fitness', 'hobbies'],
       },
@@ -84,7 +84,7 @@ export class IcebreakerService {
       {
         id: '10',
         category: 'Hobbies',
-        text: 'What's your favorite cuisine?',
+        text: "What's your favorite cuisine?",
         popularity: 91,
         tags: ['food', 'lifestyle'],
       },
@@ -93,14 +93,14 @@ export class IcebreakerService {
       {
         id: '11',
         category: 'Deep',
-        text: 'What's something you're passionate about?',
+        text: "What's something you're passionate about?",
         popularity: 86,
         tags: ['deep', 'values'],
       },
       {
         id: '12',
         category: 'Deep',
-        text: 'What's your biggest goal for this year?',
+        text: "What's your biggest goal for this year?",
         popularity: 84,
         tags: ['goals', 'future'],
       },
@@ -114,7 +114,7 @@ export class IcebreakerService {
       {
         id: '14',
         category: 'Deep',
-        text: 'What's the best advice you've ever received?',
+        text: "What's the best advice you've ever received?",
         popularity: 83,
         tags: ['wisdom', 'deep'],
       },
@@ -130,7 +130,7 @@ export class IcebreakerService {
       {
         id: '16',
         category: 'Quirky',
-        text: 'What's the weirdest food combination you actually enjoy?',
+        text: "What's the weirdest food combination you actually enjoy?",
         popularity: 85,
         tags: ['food', 'quirky'],
       },
@@ -146,7 +146,7 @@ export class IcebreakerService {
       {
         id: '18',
         category: 'Entertainment',
-        text: 'What's the last concert you went to?',
+        text: "What's the last concert you went to?",
         popularity: 87,
         tags: ['music', 'events'],
       },
@@ -160,7 +160,7 @@ export class IcebreakerService {
       {
         id: '20',
         category: 'Entertainment',
-        text: 'What's your all-time favorite movie?',
+        text: "What's your all-time favorite movie?",
         popularity: 89,
         tags: ['movies', 'entertainment'],
       },
@@ -199,14 +199,14 @@ export class IcebreakerService {
       {
         id: '25',
         category: 'Dating',
-        text: 'What's your idea of a perfect first date?',
+        text: "What's your idea of a perfect first date?",
         popularity: 96,
         tags: ['dating', 'romance'],
       },
       {
         id: '26',
         category: 'Dating',
-        text: 'What's the most romantic thing you've ever done?',
+        text: "What's the most romantic thing you've ever done?",
         popularity: 87,
         tags: ['romance', 'experiences'],
       },
@@ -220,7 +220,7 @@ export class IcebreakerService {
       {
         id: '28',
         category: 'Dating',
-        text: 'What's your love language?',
+        text: "What's your love language?",
         popularity: 88,
         tags: ['romance', 'compatibility'],
       },

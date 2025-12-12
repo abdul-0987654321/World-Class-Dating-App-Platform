@@ -1,5 +1,5 @@
-import { CosmosClient, Database, Container, IndexingPolicy, ContainerDefinition } from '@azure/cosmos';
-import { createLogger } from '@flamoral/shared';
+import { CosmosClient, Database, Container, IndexingPolicy, ContainerDefinition, PartitionKeyKind } from '@azure/cosmos';
+import { createLogger } from '../../utils/logger';
 import config from '../../config';
 
 const logger = createLogger('cosmos-db-optimized');
@@ -188,7 +188,7 @@ class CosmosDBOptimizedClient {
       id: config.cosmos.containers.messages,
       partitionKey: {
         paths: ['/conversationId'],
-        kind: 'Hash',
+        kind: PartitionKeyKind.Hash,
       },
       indexingPolicy: this.getMessagesIndexingPolicy(),
       defaultTtl: -1, // No auto-deletion, handle manually
@@ -215,7 +215,7 @@ class CosmosDBOptimizedClient {
       id: config.cosmos.containers.conversations,
       partitionKey: {
         paths: ['/matchId'],
-        kind: 'Hash',
+        kind: PartitionKeyKind.Hash,
       },
       indexingPolicy: this.getConversationsIndexingPolicy(),
       defaultTtl: -1, // No auto-deletion

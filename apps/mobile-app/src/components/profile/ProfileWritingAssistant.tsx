@@ -291,7 +291,7 @@ const ProfileWritingAssistant: React.FC<ProfileWritingAssistantProps> = ({
     suggestions.push({
       id: '2',
       category: 'opener',
-      text: 'Life's too short for bad coffee and boring conversations',
+      text: "Life's too short for bad coffee and boring conversations",
       tone: 'witty',
       appealScore: 85,
       why: 'Sets a fun, engaging tone and shows you value quality interactions',

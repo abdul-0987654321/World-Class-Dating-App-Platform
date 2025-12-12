@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { Message } from '../../types';
 import { domainEncryptionService } from './encryption.service';
 

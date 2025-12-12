@@ -7,6 +7,7 @@ const MODERATION_SERVICE_URL = process.env.MODERATION_SERVICE_URL || 'http://loc
 
 export interface AuthenticatedRequest extends Request {
   user?: {
+    id: string;
     userId: string;
     email: string;
     [key: string]: any;

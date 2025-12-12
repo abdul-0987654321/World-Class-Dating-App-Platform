@@ -13,7 +13,7 @@
 
 import sharp from 'sharp';
 import crypto from 'crypto';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('perceptual-hash-service');
 

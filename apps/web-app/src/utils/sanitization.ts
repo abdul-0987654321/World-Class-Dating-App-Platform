@@ -150,7 +150,7 @@ class SanitizationUtil {
 
     for (const key in sanitized) {
       if (typeof sanitized[key] === 'string') {
-        sanitized[key] = this.sanitizeText(sanitized[key]);
+        sanitized[key] = this.sanitizeText(sanitized[key]) as T[Extract<keyof T, string>];
       } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
         sanitized[key] = this.sanitizeObject(sanitized[key]);
       }
@@ -185,7 +185,7 @@ class SanitizationUtil {
     // Add custom hook to prevent data exfiltration
     DOMPurify.addHook('afterSanitizeAttributes', (node) => {
       // Remove data attributes
-      if (node.hasAttribute) {
+      if (typeof node.hasAttribute === 'function') {
         const attributes = node.attributes;
         for (let i = attributes.length - 1; i >= 0; i--) {
           const attr = attributes[i];

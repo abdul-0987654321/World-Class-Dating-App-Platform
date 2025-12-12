@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { messageRepository } from '../../domain/repositories/message.repository';
 import { conversationRepository } from '../../domain/repositories/conversation.repository';

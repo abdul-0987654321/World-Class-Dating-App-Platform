@@ -1,5 +1,6 @@
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
+import type { StringValue } from 'ms';
 
 export interface JwtPayload {
   id: string;
@@ -20,8 +21,8 @@ export interface TokenPair {
 export class JwtUtils {
   private accessTokenSecret: string;
   private refreshTokenSecret: string;
-  private accessTokenExpiresIn: string;
-  private refreshTokenExpiresIn: string;
+  private accessTokenExpiresIn: StringValue | number;
+  private refreshTokenExpiresIn: StringValue | number;
   private algorithm: 'HS256';
   private issuer: string;
   private audience: string;
@@ -45,8 +46,8 @@ export class JwtUtils {
 
     this.accessTokenSecret = process.env.JWT_ACCESS_SECRET;
     this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET;
-    this.accessTokenExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || '15m'; // Reduced from 24h to 15m
-    this.refreshTokenExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d'; // Reduced from 30d to 7d
+    this.accessTokenExpiresIn = (process.env.JWT_ACCESS_EXPIRES_IN || '15m') as StringValue; // Reduced from 24h to 15m
+    this.refreshTokenExpiresIn = (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as StringValue; // Reduced from 30d to 7d
     this.algorithm = 'HS256'; // Explicit algorithm specification
     this.issuer = process.env.JWT_ISSUER || 'flamoral-user-service';
     this.audience = process.env.JWT_AUDIENCE || 'flamoral-platform';

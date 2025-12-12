@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';

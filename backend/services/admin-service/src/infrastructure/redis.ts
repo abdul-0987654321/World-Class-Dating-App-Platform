@@ -13,7 +13,7 @@ class RedisClient {
       password: process.env.REDIS_PASSWORD || undefined,
     });
 
-    this.client.on('error', (err) => {
+    this.client.on('error', (err: Error) => {
       logger.error('Redis error:', err);
     });
 

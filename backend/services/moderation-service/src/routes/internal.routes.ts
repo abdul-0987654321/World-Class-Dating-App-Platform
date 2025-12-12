@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticateService } from '../middleware/service-auth.middleware';
 import moderationService from '../services/moderation.service';
 import db from '../infrastructure/database/connection';
+import { ContentType } from '../types';
 
 const router = Router();
 
@@ -54,7 +55,7 @@ router.post('/moderate', async (req: Request, res: Response) => {
       const imageUrl = typeof content === 'object' ? content.url : content;
       moderationResult = await moderationService.moderateImage({
         contentId,
-        contentType: 'image',
+        contentType: ContentType.IMAGE,
         userId,
         imageUrl,
       });
@@ -271,7 +272,7 @@ router.post('/moderate-bulk', async (req: Request, res: Response) => {
             const imageUrl = typeof item.content === 'object' ? item.content.url : item.content;
             moderationResult = await moderationService.moderateImage({
               contentId: item.contentId,
-              contentType: 'image',
+              contentType: ContentType.IMAGE,
               userId: item.userId,
               imageUrl,
             });
@@ -411,15 +412,15 @@ router.get('/users/:userId/restrictions', async (req: Request, res: Response) =>
       success: true,
       data: {
         userId,
-        isBanned: moderationRecord?.permanently_banned || false,
+        isBanned: moderationRecord?.permanentlyBanned || false,
         isRestricted: restrictionStatus.restricted,
         restrictionReason: restrictionStatus.reason,
         restrictionEndsAt: restrictionStatus.endsAt || null,
         status: moderationRecord?.status || 'active',
-        totalViolations: moderationRecord?.total_violations || 0,
-        severeViolations: moderationRecord?.severe_violations || 0,
-        warningsIssued: moderationRecord?.warnings_issued || 0,
-        suspensionCount: moderationRecord?.suspension_count || 0,
+        totalViolations: moderationRecord?.totalViolations || 0,
+        severeViolations: moderationRecord?.severeViolations || 0,
+        warningsIssued: moderationRecord?.warningsIssued || 0,
+        suspensionCount: moderationRecord?.suspensionCount || 0,
         recentViolations: violations.map((v: any) => ({
           type: v.violation_type,
           severity: v.severity,

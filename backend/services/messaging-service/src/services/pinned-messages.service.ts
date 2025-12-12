@@ -1,6 +1,6 @@
 import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { messageRepository } from '../domain/repositories/message.repository';
 import { conversationRepository } from '../domain/repositories/conversation.repository';
@@ -128,6 +128,7 @@ export class PinnedMessagesService {
       await realtimeHttpClient.publishMessageUnpinned({
         messageId,
         conversationId,
+        unpinnedBy: userId,
       });
     } catch (error: any) {
       logger.error('Failed to unpin message:', error);

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import phoneVerificationService from '../../domain/services/phone-verification.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('phone-verification-controller');
 

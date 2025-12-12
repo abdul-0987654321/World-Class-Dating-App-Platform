@@ -7,7 +7,7 @@ import { TriggerType } from '../interfaces/workflow.interface';
 @Injectable()
 export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RabbitMQService.name);
-  private connection: amqp.Connection;
+  private connection: amqp.ChannelModel;
   private channel: amqp.Channel;
   private readonly queuePrefix: string;
   private readonly exchanges: Record<string, string>;

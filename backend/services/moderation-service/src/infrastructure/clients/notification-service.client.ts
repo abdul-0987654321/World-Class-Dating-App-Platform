@@ -1,4 +1,5 @@
-import { createLogger, ServiceClient } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
+import { ServiceClient } from '../../utils/service-client';
 
 const logger = createLogger('notification-client');
 

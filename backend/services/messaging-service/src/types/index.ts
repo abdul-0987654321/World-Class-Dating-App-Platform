@@ -7,8 +7,10 @@ export enum MessageType {
   IMAGE = 'image',
   VIDEO = 'video',
   AUDIO = 'audio',
+  VOICE = 'voice',
   FILE = 'file',
   GIF = 'gif',
+  GIFT = 'gift',
 }
 
 export enum MessageStatus {
@@ -43,11 +45,17 @@ export interface Message {
     fileSize?: number;
     fileName?: string;
     mimeType?: string;
+    gift?: any; // For gift messages
+    transactionId?: string;
   };
   replyTo?: string; // Message ID being replied to
   deleted?: boolean;
   deletedAt?: Date;
   deletedFor?: string[]; // User IDs who have deleted this message (soft delete)
+  // Pinned message support
+  isPinned?: boolean;
+  pinnedBy?: string;
+  pinnedAt?: Date;
   // End-to-end encryption metadata
   encryption?: {
     isEncrypted: boolean;

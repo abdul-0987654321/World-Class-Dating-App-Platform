@@ -336,17 +336,18 @@ export class AgoraService extends EventEmitter {
       }
 
       // Publish screen track
-      await this.client.publish([screenTrack]);
+      const tracksToPublish = Array.isArray(screenTrack) ? screenTrack : [screenTrack];
+      await this.client.publish(tracksToPublish);
 
       // Store original video track
       const originalVideoTrack = this.localVideoTrack;
-      this.localVideoTrack = screenTrack as any;
+      this.localVideoTrack = (Array.isArray(screenTrack) ? screenTrack[0] : screenTrack) as any;
 
       this.emit('screen-share-started', screenTrack);
 
       // Handle screen share stop event
-      screenTrack.on('track-ended', async () => {
-        await this.stopScreenShare(originalVideoTrack);
+      (Array.isArray(screenTrack) ? screenTrack[0] : screenTrack).on('track-ended', async () => {
+        await this.stopScreenShare(originalVideoTrack ?? undefined);
       });
     } catch (error) {
       console.error('Failed to start screen share:', error);

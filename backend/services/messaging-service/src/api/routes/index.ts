@@ -2,6 +2,8 @@ import { Router } from 'express';
 import conversationRoutes from './conversation.routes';
 import messageRoutes from './message.routes';
 import encryptionKeysRoutes from './encryption-keys.routes';
+import giftsRoutes from './gifts.routes';
+import moderationRoutes from './moderation.routes';
 import { messageController } from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -15,6 +17,12 @@ router.use('/messages', messageRoutes);
 
 // Mount encryption keys routes
 router.use('/keys', encryptionKeysRoutes);
+
+// Mount virtual gifts routes (WeChat-style monetization)
+router.use('/gifts', giftsRoutes);
+
+// Mount moderation routes (safety features)
+router.use('/moderation', moderationRoutes);
 
 // Add conversation messages route (REST convention: /conversations/:id/messages)
 router.get(

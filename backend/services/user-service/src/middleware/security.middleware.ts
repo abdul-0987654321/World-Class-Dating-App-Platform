@@ -2,14 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import logger from '../utils/logger';
 
-// Extend Express Request type to include session
-declare module 'express-serve-static-core' {
-  interface Request {
-    session?: {
-      csrfToken?: string;
-    } & Record<string, any>;
-  }
-}
+// // Extend Express Request type to include session
+// declare module 'express-serve-static-core' {
+//   interface Request {
+//     session?: {
+//       csrfToken?: string;
+//     } & Record<string, any>;
+//   }
+// }
 
 /**
  * Input Sanitization Middleware

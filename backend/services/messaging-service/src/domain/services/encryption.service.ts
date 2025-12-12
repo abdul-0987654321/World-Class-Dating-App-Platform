@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { promisify } from 'util';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 
 const randomBytes = promisify(crypto.randomBytes);
 const pbkdf2 = promisify(crypto.pbkdf2);

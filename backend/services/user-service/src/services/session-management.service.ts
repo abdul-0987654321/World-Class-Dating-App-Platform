@@ -335,11 +335,12 @@ export class SessionManagementService {
    */
   async cleanupExpiredSessions(): Promise<void> {
     try {
+      const inactivityCutoff = new Date(Date.now() - this.INACTIVITY_TIMEOUT_MINUTES * 60 * 1000);
       const count = await this.db('security_sessions')
         .where('expires_at', '<', new Date())
         .orWhere(function() {
           this.where('is_active', true)
-            .where('last_activity_at', '<', new Date(Date.now() - this.INACTIVITY_TIMEOUT_MINUTES * 60 * 1000));
+            .where('last_activity_at', '<', inactivityCutoff);
         })
         .update({
           is_active: false,

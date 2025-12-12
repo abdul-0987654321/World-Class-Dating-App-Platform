@@ -170,6 +170,7 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
             nonce: 'nonce',
             usePopup: true,
           }}
+          uiType="dark"
           onSuccess={handleAppleLogin}
           onError={(error: any) => {
             console.error('Apple login error:', error);

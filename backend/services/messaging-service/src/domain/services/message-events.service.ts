@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { realtimeClient } from '../../infrastructure/clients/realtime.client';
 import { Message, MessageStatus } from '../../types';
 

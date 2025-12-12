@@ -954,6 +954,7 @@ export class SocialAuthService {
 
   private generateTokens(user: any): { accessToken: string; refreshToken: string } {
     const payload = {
+      id: user.id,
       userId: user.id,
       email: user.email,
     };

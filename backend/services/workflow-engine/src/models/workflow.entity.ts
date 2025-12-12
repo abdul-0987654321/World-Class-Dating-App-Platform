@@ -66,6 +66,15 @@ export class Workflow {
   @Column({ type: 'timestamp', nullable: true })
   lastExecutedAt: Date;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  abTestGroup: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  abTestVariant: string;
+
+  @Column({ type: 'int', nullable: true })
+  abTestPercentage: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

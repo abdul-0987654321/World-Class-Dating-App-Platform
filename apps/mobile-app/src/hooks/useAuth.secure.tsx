@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthApi, createApiClient } from '@flamoral/api-client';
-import type { LoginRequest, RegisterRequest } from '@flamoral/types';
+import { AuthApi, createApiClient } from '../api/client';
+import type { LoginRequest, RegisterRequest } from '../types';
 import { secureTokenStorage } from '../services/storage';
 
 interface AuthContextType {

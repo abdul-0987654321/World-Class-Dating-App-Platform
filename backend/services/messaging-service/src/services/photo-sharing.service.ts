@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import axios from 'axios';
 import { PhotoMetadata } from '../types/enhanced-types';
 

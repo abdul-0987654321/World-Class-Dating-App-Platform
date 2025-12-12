@@ -5,8 +5,10 @@
 
 import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
 import { v4 as uuidv4 } from 'uuid';
-import { RedisClient } from '../infrastructure/redis.client';
-import { logger } from '../infrastructure/logger';
+import { RedisClient } from '../infrastructure/cache/redis';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('video-call-service');
 
 export interface CallSession {
   callId: string;

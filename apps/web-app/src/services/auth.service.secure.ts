@@ -129,6 +129,9 @@ class AuthService {
     const sessionUser = sessionStorage.getItem('currentUser');
     if (sessionUser) {
       this.cachedUser = JSON.parse(sessionUser);
+      if (!this.cachedUser) {
+        throw new Error('Invalid cached user data');
+      }
       return this.cachedUser;
     }
 

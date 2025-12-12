@@ -59,8 +59,8 @@ app.get('/', (req: Request, res: Response) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(\`Payment Service running on port \${PORT}\`);
-  logger.info(\`Environment: \${process.env.NODE_ENV || 'development'}\`);
+  logger.info(`Payment Service running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Graceful shutdown

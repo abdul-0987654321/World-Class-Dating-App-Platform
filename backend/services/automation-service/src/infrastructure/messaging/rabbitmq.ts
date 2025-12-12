@@ -1,4 +1,4 @@
-import amqp, { Connection, Channel, ConsumeMessage } from 'amqplib';
+import amqp, { Channel, ConsumeMessage } from 'amqplib';
 import config from '../../config';
 import { createLogger } from '@flamoral/shared';
 
@@ -8,7 +8,7 @@ const logger = createLogger('automation-service:rabbitmq');
  * RabbitMQ Connection Manager
  */
 export class RabbitMQManager {
-  private connection: Connection | null = null;
+  private connection: Awaited<ReturnType<typeof amqp.connect>> | null = null;
   private channel: Channel | null = null;
   private reconnectInterval: NodeJS.Timeout | null = null;
   private isConnecting: boolean = false;

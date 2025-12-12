@@ -38,6 +38,9 @@ class CsrfService {
 
       const data = await response.json();
       this.token = data.csrfToken;
+      if (!this.token) {
+        throw new Error('CSRF token not found in response');
+      }
       return this.token;
     } catch (error) {
       console.error('Error fetching CSRF token:', error);

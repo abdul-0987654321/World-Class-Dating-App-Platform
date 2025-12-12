@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('message-reactions-service');
 

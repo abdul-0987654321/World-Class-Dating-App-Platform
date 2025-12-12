@@ -1,4 +1,4 @@
-import type { RtcTokenBuilder, RtcRole } from 'agora-access-token';
+import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
 import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
@@ -44,7 +44,7 @@ export class VideoChatService {
   generateToken(
     channelName: string,
     uid: number = 0,
-    role: RtcRole = RtcRole.PUBLISHER
+    role: number = RtcRole.PUBLISHER
   ): string {
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + this.tokenExpirationTime;
@@ -537,10 +537,10 @@ export class VideoChatService {
           },
         })),
         pagination: {
-          total: totalCount?.count || 0,
+          total: Number(totalCount?.count || 0),
           limit,
           offset,
-          hasMore: (totalCount?.count || 0) > offset + limit,
+          hasMore: Number(totalCount?.count || 0) > offset + limit,
         },
       };
     } catch (error: any) {

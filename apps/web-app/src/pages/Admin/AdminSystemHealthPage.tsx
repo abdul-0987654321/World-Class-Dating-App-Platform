@@ -203,11 +203,11 @@ export const AdminSystemHealthPage: React.FC = () => {
             <div className="mb-2">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-500">Load</span>
-                <span className="font-semibold">{health?.metrics.cpu.toFixed(1)}%</span>
+                <span className="font-semibold">{(health?.metrics.cpu ?? 0).toFixed(1)}%</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full ${health?.metrics.cpu > 80 ? 'bg-red-500' : health?.metrics.cpu > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                  className={`h-full ${(health?.metrics.cpu ?? 0) > 80 ? 'bg-red-500' : (health?.metrics.cpu ?? 0) > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
                   style={{ width: `${health?.metrics.cpu}%` }}
                 />
               </div>
@@ -222,11 +222,11 @@ export const AdminSystemHealthPage: React.FC = () => {
             <div className="mb-2">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-500">Usage</span>
-                <span className="font-semibold">{health?.metrics.memory.toFixed(1)}%</span>
+                <span className="font-semibold">{(health?.metrics.memory ?? 0).toFixed(1)}%</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full ${health?.metrics.memory > 85 ? 'bg-red-500' : health?.metrics.memory > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                  className={`h-full ${(health?.metrics.memory ?? 0) > 85 ? 'bg-red-500' : (health?.metrics.memory ?? 0) > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
                   style={{ width: `${health?.metrics.memory}%` }}
                 />
               </div>
@@ -241,11 +241,11 @@ export const AdminSystemHealthPage: React.FC = () => {
             <div className="mb-2">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-500">Usage</span>
-                <span className="font-semibold">{health?.metrics.disk.toFixed(1)}%</span>
+                <span className="font-semibold">{(health?.metrics.disk ?? 0).toFixed(1)}%</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full ${health?.metrics.disk > 90 ? 'bg-red-500' : health?.metrics.disk > 75 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                  className={`h-full ${(health?.metrics.disk ?? 0) > 90 ? 'bg-red-500' : (health?.metrics.disk ?? 0) > 75 ? 'bg-yellow-500' : 'bg-green-500'}`}
                   style={{ width: `${health?.metrics.disk}%` }}
                 />
               </div>

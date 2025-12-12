@@ -77,7 +77,7 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(\`
+  logger.info(`
   ╔════════════════════════════════════════════════════════════════════╗
   ║         Flamoral Advertising Service                               ║
   ║         AI-Powered Dating App Advertising Platform                 ║
@@ -88,9 +88,9 @@ app.listen(PORT, () => {
   ║  - Optimization & Performance: 10 features                         ║
   ║  - Dating-Specific Ad Innovations: 10 features                     ║
   ╠════════════════════════════════════════════════════════════════════╣
-  ║  Server running on port \${PORT}                                      ║
+  ║  Server running on port ${PORT}                                      ║
   ╚════════════════════════════════════════════════════════════════════╝
-  \`);
+  `);
 });
 
 export default app;

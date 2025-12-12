@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 import encryptionService from '../../services/encryption.service';
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';

@@ -1,5 +1,5 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { conversationRepository } from '../domain/repositories/conversation.repository';
 import { MessageSearchQuery, MessageSearchResult } from '../types/enhanced-types';

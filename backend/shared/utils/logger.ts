@@ -127,12 +127,12 @@ const sanitizeFormat = winston.format((info) => {
   // Sanitize the message itself if it contains sensitive data patterns
   if (typeof sanitizedInfo.message === 'string') {
     // Remove potential tokens from message
-    sanitizedInfo.message = sanitizedInfo.message.replace(
+    sanitizedInfo.message = (sanitizedInfo.message as string).replace(
       /\b[A-Za-z0-9_-]{32,}\b/g,
       '[REDACTED_TOKEN]'
     );
     // Remove potential emails
-    sanitizedInfo.message = sanitizedInfo.message.replace(
+    sanitizedInfo.message = (sanitizedInfo.message as string).replace(
       /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/g,
       '[REDACTED_EMAIL]'
     );

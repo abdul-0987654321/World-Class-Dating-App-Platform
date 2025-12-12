@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 import encryptionService from './encryption.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('key-management-service');
 

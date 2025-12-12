@@ -4,7 +4,9 @@
  */
 
 import axios from 'axios';
-import { logger } from '../infrastructure/logger';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('call-recording-service');
 import { VideoCallService } from './video-call.service';
 
 export interface RecordingConfig {

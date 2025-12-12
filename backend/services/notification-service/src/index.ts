@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {
-  logger.debug(\`\${req.method} \${req.path}\`, {
+  logger.debug(`${req.method} ${req.path}`, {
     query: req.query,
     ip: req.ip,
   });
@@ -188,14 +188,14 @@ async function start() {
     await initializeServices();
 
     const server = app.listen(config.port, () => {
-      logger.info(\`Notification Service running on port \${config.port}\`);
-      logger.info(\`Environment: \${config.nodeEnv}\`);
-      logger.info(\`Queue workers active\`);
+      logger.info(`Notification Service running on port ${config.port}`);
+      logger.info(`Environment: ${config.nodeEnv}`);
+      logger.info(`Queue workers active`);
     });
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
-      logger.info(\`\${signal} signal received: closing server\`);
+      logger.info(`${signal} signal received: closing server`);
 
       // Close HTTP server
       server.close(async () => {

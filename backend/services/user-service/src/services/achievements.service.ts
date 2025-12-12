@@ -141,7 +141,7 @@ export class AchievementsService {
   /**
    * Update achievement (admin only)
    */
-  async updateAchievement(achievementId: string, updates: UpdateAchievementDTO): Promise<Achievement | null> {
+  async updateAchievement(achievementId: string, updates: Record<string, any>): Promise<Achievement | null> {
     const setClauses: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -224,9 +224,9 @@ export class AchievementsService {
       paramIndex++;
     }
 
-    if (updates.displayOrder !== undefined) {
+    if (updates.display_order !== undefined) {
       setClauses.push(`display_order = $${paramIndex}`);
-      params.push(updates.displayOrder);
+      params.push(updates.display_order);
       paramIndex++;
     }
 
@@ -258,7 +258,7 @@ export class AchievementsService {
    */
   async initializeUserAchievements(userId: string): Promise<void> {
     // Get all active achievements
-    const achievements = await this.getAllAchievements({ isActive: true });
+    const achievements = await this.getAllAchievements({ is_active: true });
 
     // Create user achievement records
     for (const achievement of achievements) {
@@ -266,7 +266,7 @@ export class AchievementsService {
         userId,
         achievementId: achievement.id,
         currentProgress: 0,
-        requiredProgress: achievement.requirementValue,
+        requiredProgress: achievement.target_value,
       });
     }
   }
@@ -446,12 +446,12 @@ export class AchievementsService {
           userId: update.userId,
           achievementId: achievement.id,
           currentProgress: newProgress,
-          requiredProgress: achievement.requirementValue,
+          requiredProgress: achievement.target_value,
         });
       }
 
       // Check if achievement is now unlocked
-      if (newProgress >= achievement.requirementValue && !row.is_unlocked) {
+      if (newProgress >= achievement.target_value && !row.is_unlocked) {
         const unlockResult = await this.unlockAchievement(update.userId, achievement.id);
         unlockResults.push(unlockResult);
       }
@@ -485,9 +485,9 @@ export class AchievementsService {
 
     // Grant rewards
     const rewards = {
-      coins: achievement.rewardCoins,
-      superLikes: achievement.rewardSuperLikes,
-      boosts: achievement.rewardBoosts,
+      coins: achievement.coin_reward,
+      superLikes: achievement.xp_reward,
+      boosts: 0,
     };
 
     if (rewards.coins > 0) {
@@ -669,21 +669,19 @@ export class AchievementsService {
       name: row.name,
       slug: row.slug,
       description: row.description,
-      category: row.category,
-      requirementType: row.requirement_type,
-      requirementValue: row.requirement_value,
-      rewardCoins: row.reward_coins,
-      rewardSuperLikes: row.reward_super_likes,
-      rewardBoosts: row.reward_boosts,
-      iconName: row.icon_name,
-      iconColor: row.icon_color,
-      badgeImageUrl: row.badge_image_url,
-      tier: row.tier,
-      isHidden: row.is_hidden,
-      isActive: row.is_active,
-      displayOrder: row.display_order,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      icon_url: row.icon_url,
+      type: row.type,
+      is_progressive: row.is_progressive,
+      target_value: row.target_value,
+      current_tier: row.current_tier,
+      xp_reward: row.xp_reward,
+      coin_reward: row.coin_reward,
+      badge_reward_id: row.badge_reward_id,
+      is_hidden: row.is_hidden,
+      display_order: row.display_order,
+      is_active: row.is_active,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
     };
   }
 
@@ -727,21 +725,19 @@ export class AchievementsService {
         name: row.name,
         slug: row.slug,
         description: row.description,
-        category: row.category,
-        requirementType: row.requirement_type,
-        requirementValue: row.requirement_value,
-        rewardCoins: row.reward_coins,
-        rewardSuperLikes: row.reward_super_likes,
-        rewardBoosts: row.reward_boosts,
-        iconName: row.icon_name,
-        iconColor: row.icon_color,
-        badgeImageUrl: row.badge_image_url,
-        tier: row.tier,
-        isHidden: row.is_hidden,
-        isActive: row.is_active,
-        displayOrder: row.display_order,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        icon_url: row.icon_url,
+        type: row.type,
+        is_progressive: row.is_progressive,
+        target_value: row.target_value,
+        current_tier: row.current_tier,
+        xp_reward: row.xp_reward,
+        coin_reward: row.coin_reward,
+        badge_reward_id: row.badge_reward_id,
+        is_hidden: row.is_hidden,
+        display_order: row.display_order,
+        is_active: row.is_active,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
       },
     };
   }
