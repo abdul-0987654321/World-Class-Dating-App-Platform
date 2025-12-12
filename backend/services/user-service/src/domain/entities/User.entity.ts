@@ -7,6 +7,7 @@ export interface UserEntity {
   date_of_birth: Date;
   gender: 'male' | 'female' | 'non-binary' | 'other' | 'prefer_not_to_say';
   phone_number?: string;
+  role: 'user' | 'admin' | 'moderator';
   is_verified: boolean;
   is_email_verified: boolean;
   is_phone_verified: boolean;

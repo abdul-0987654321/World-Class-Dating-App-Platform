@@ -11,6 +11,9 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { TracingMiddleware } from './middleware/tracing.middleware';
+import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
+import { CsrfMiddleware } from './middleware/csrf.middleware';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,13 +22,28 @@ async function bootstrap() {
   // WebSocket adapter
   app.useWebSocketAdapter(new IoAdapter(app));
 
-  // Security - Helmet
+  // Cookie parser - Required for CSRF protection
+  app.use(cookieParser());
+
+  // Security Headers Middleware - Comprehensive CSP and security headers
+  const securityHeadersMiddleware = app.get(SecurityHeadersMiddleware);
+  app.use(securityHeadersMiddleware.use.bind(securityHeadersMiddleware));
+
+  // Security - Helmet (disabled CSP as we handle it in SecurityHeadersMiddleware)
   const enableHelmet = configService.get<boolean>('ENABLE_HELMET') !== false;
   if (enableHelmet) {
     app.use(
       helmet({
-        contentSecurityPolicy: process.env.NODE_ENV === 'production',
+        contentSecurityPolicy: false, // Handled by SecurityHeadersMiddleware
         crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false, // Handled by SecurityHeadersMiddleware
+        crossOriginResourcePolicy: false, // Handled by SecurityHeadersMiddleware
+        hsts: false, // Handled by SecurityHeadersMiddleware with better config
+        frameguard: false, // Handled by SecurityHeadersMiddleware
+        noSniff: false, // Handled by SecurityHeadersMiddleware
+        xssFilter: false, // Handled by SecurityHeadersMiddleware
+        referrerPolicy: false, // Handled by SecurityHeadersMiddleware
+        permittedCrossDomainPolicies: false, // Handled by SecurityHeadersMiddleware
       }),
     );
   }
@@ -36,20 +54,32 @@ async function bootstrap() {
     app.use(compression());
   }
 
-  // CORS
-  const corsOrigins = configService.get<string[]>('cors.origins') || ['*'];
+  // CORS - Enhanced configuration for CSRF protection
+  const corsOrigins = configService.get<string[]>('cors.origins') || ['http://localhost:5173', 'http://localhost:3000'];
   const corsCredentials = configService.get<boolean>('cors.credentials') || true;
 
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is allowed
+      if (corsOrigins.includes('*') || corsOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
-    credentials: corsCredentials,
+    credentials: corsCredentials, // Required for cookies
     allowedHeaders: [
       'Content-Type',
       'Authorization',
       'X-Requested-With',
       'X-Request-ID',
       'X-Correlation-ID',
+      'X-CSRF-Token', // Allow CSRF token header
+      'x-csrf-token',
     ],
     exposedHeaders: [
       'X-Request-ID',
@@ -58,12 +88,18 @@ async function bootstrap() {
       'X-RateLimit-Remaining',
       'X-RateLimit-Reset',
       'X-Response-Time',
+      'X-CSRF-Token', // Expose CSRF token to client
     ],
+    maxAge: 86400, // 24 hours
   });
 
   // Apply tracing middleware globally
   const tracingMiddleware = app.get(TracingMiddleware);
   app.use(tracingMiddleware.use.bind(tracingMiddleware));
+
+  // CSRF Protection Middleware
+  const csrfMiddleware = app.get(CsrfMiddleware);
+  app.use(csrfMiddleware.use.bind(csrfMiddleware));
 
   // Global prefix
   app.setGlobalPrefix('api/v1');

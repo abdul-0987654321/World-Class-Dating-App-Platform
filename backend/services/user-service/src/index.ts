@@ -30,9 +30,19 @@ import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
 import { initializeSocket } from './infrastructure/websocket/socket.config';
+import { initializeEncryptionKey } from './utils/encryption';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize encryption key for TOTP/2FA
+try {
+  initializeEncryptionKey();
+  logger.info('TOTP encryption key initialized');
+} catch (error) {
+  logger.error('Failed to initialize TOTP encryption key:', error);
+  logger.error('TOTP/2FA functionality will not work. Please set TOTP_ENCRYPTION_MASTER_KEY and TOTP_ENCRYPTION_KEY_SALT in environment variables.');
+}
 
 // Create Express app
 const app: Application = express();

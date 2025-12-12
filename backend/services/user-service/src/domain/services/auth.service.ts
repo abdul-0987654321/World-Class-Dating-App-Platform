@@ -96,7 +96,7 @@ export class AuthService {
 
     logger.info(`User logged in: ${user.email}`);
 
-    // Generate tokens
+    // Generate tokens with rotation support
     const tokens = this.generateTokens(user);
 
     return {
@@ -107,7 +107,7 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      // Verify refresh token
+      // Verify refresh token with enhanced validation
       const payload = jwtUtils.verifyRefreshToken(refreshToken);
 
       // Find user
@@ -116,11 +116,25 @@ export class AuthService {
         throw new Error('Invalid token');
       }
 
-      // Generate new tokens
-      return this.generateTokens(user);
+      // Generate new tokens (implements rotation)
+      const tokens = this.generateTokens(user);
+
+      logger.info(`Refresh token rotated for user ${user.id}`);
+
+      return tokens;
     } catch (error) {
+      if (error instanceof Error) {
+        // Re-throw specific error messages from JWT verification
+        throw error;
+      }
       throw new Error('Invalid or expired refresh token');
     }
+  }
+
+  async logout(userId: string): Promise<void> {
+    // Note: Token blacklisting should be implemented with Redis in production
+    // For now, rely on short-lived access tokens (15 minutes)
+    logger.info(`User logged out: ${userId}`);
   }
 
   async verifyEmail(userId: string): Promise<void> {
@@ -182,7 +196,10 @@ export class AuthService {
     // Mark token as used
     await this.tokenRepository.markAsUsed(resetToken.id);
 
-    logger.info(`Password reset successfully for user: ${resetToken.user_id}`);
+    // Note: In production, invalidate all refresh tokens and sessions
+    // This would require Redis or database-based token tracking
+
+    logger.info(`Password reset successfully for user: ${resetToken.user_id}. All sessions should be invalidated.`);
   }
 
   private validateRegistrationData(userData: CreateUserDto): void {

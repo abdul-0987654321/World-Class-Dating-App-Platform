@@ -1,57 +1,101 @@
-# Development Environment Configuration
+# =============================================================================
+# Flamoral Dating Platform - Development Environment Configuration
+# =============================================================================
+# This file contains environment-specific values for the dev environment
+# Use with: terraform apply -var-file="dev.tfvars"
+# =============================================================================
 
-env      = "dev"
-location = "eastus"
-prefix   = "datingapp"
-
-# Subscription and Tenant IDs
+# =============================================================================
+# Azure Subscription & Authentication
+# =============================================================================
 subscription_id = "ba233460-2dbe-4603-a594-68f93ec9deb3"
 tenant_id       = "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0"
 
-# Network Configuration
-vnet_address_space = ["10.1.0.0/16"]
-aks_subnet_prefix  = "10.1.1.0/24"
-db_subnet_prefix   = "10.1.2.0/24"
-redis_subnet_prefix = "10.1.3.0/24"
+# =============================================================================
+# Resource Configuration
+# =============================================================================
+resource_group_name = "Dating-dev-rg"
+location            = "westus2"
 
-# AKS Configuration
-aks_node_count    = 1
-aks_node_vm_size  = "Standard_D2s_v3"
+# Service Principal
+terraform_sp_name      = "terraform-datingapp-sp"
+terraform_sp_client_id = "a85e4029-4e37-4399-9390-6e18922b38e7"
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+vnet_address_space              = ["10.10.0.0/16"]
+aks_subnet_prefix               = "10.10.1.0/24"
+db_subnet_prefix                = "10.10.2.0/24"
+redis_subnet_prefix             = "10.10.3.0/24"
+private_endpoints_subnet_prefix = "10.10.4.0/24"
+
+# =============================================================================
+# AKS Configuration - Development (Cost-Optimized)
+# =============================================================================
 kubernetes_version = "1.28.3"
 
-# PostgreSQL Configuration
-postgres_sku_name    = "B_Standard_B1ms"
-postgres_storage_mb  = 32768
-postgres_version     = "14"
+# System Node Pool
+system_node_size      = "Standard_B4ms"
+system_node_count     = 1
+system_node_min_count = 1
+system_node_max_count = 2
+system_node_disk_size = 64
 
-# Redis Configuration
-redis_sku_name  = "Basic"
-redis_family    = "C"
-redis_capacity  = 0
+# User Node Pool
+user_node_size      = "Standard_D4s_v3"
+user_node_count     = 1
+user_node_min_count = 1
+user_node_max_count = 3
+user_node_disk_size = 128
 
-# Storage Configuration
-storage_account_tier = "Standard"
-storage_replication  = "LRS"
-enable_cdn           = false
+# =============================================================================
+# PostgreSQL Configuration - Development
+# =============================================================================
+postgres_version               = "15"
+postgres_sku_name              = "B_Standard_B1ms"
+postgres_storage_mb            = 32768 # 32 GB
+postgres_backup_retention_days = 7
+postgres_geo_redundant_backup  = false
 
-# Front Door Configuration
-frontdoor_sku = "Standard_AzureFrontDoor"
-waf_mode      = "Detection"
+# =============================================================================
+# Redis Configuration - Development
+# =============================================================================
+redis_sku_name = "Basic"
+redis_family   = "C"
+redis_capacity = 0
 
-# CosmosDB Configuration
-cosmos_consistency_level = "Session"
-cosmos_enable_serverless = true
+# =============================================================================
+# Storage Configuration - Development
+# =============================================================================
+storage_replication_type = "LRS"
 
-# Monitoring Configuration
-log_retention_days        = 30
-appinsights_retention_days = 30
-appinsights_daily_cap_gb  = 5
-enable_alerts             = false
+# =============================================================================
+# Container Registry
+# =============================================================================
+acr_sku = "Basic"
 
+# =============================================================================
+# Monitoring Configuration - Development
+# =============================================================================
+log_analytics_retention_days = 30
+
+# =============================================================================
+# SignalR Configuration - Development
+# =============================================================================
+signalr_sku      = "Free_F1"
+signalr_capacity = 1
+
+# =============================================================================
 # Tags
+# =============================================================================
 tags = {
-  Environment = "Development"
-  ManagedBy   = "Terraform"
-  Project     = "DatingApp"
-  CostCenter  = "Engineering"
+  Project       = "Flamoral"
+  Environment   = "dev-environment"
+  ManagedBy     = "Terraform"
+  Owner         = "Engineering"
+  Application   = "Dating Platform"
+  Domain        = "flamoral.com"
+  CostCenter    = "Development"
+  ResourceGroup = "Dating-dev-rg"
 }

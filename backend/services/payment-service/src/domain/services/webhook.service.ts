@@ -689,6 +689,135 @@ export class WebhookService {
     logger.info(`Charge refunded: ${charge.id} - Amount: $${refundAmount}`);
   }
 
+  /**
+   * Handle refund.created event
+   */
+  async handleRefundCreated(refund: Stripe.Refund): Promise<void> {
+    logger.info(`Processing refund created: ${refund.id}`);
+
+    try {
+      // Find the original transaction by payment intent or charge
+      const transaction = await db('transactions')
+        .where({ stripe_payment_intent_id: refund.payment_intent as string })
+        .orWhere({ stripe_charge_id: refund.charge as string })
+        .first();
+
+      if (!transaction) {
+        logger.warn(`Transaction not found for refund: ${refund.id}`);
+        return;
+      }
+
+      const refundAmount = refund.amount / 100;
+      const totalAmount = transaction.amount;
+      const isPartialRefund = refund.amount < (totalAmount * 100);
+
+      // Log refund details
+      logger.info(`Refund created for transaction ${transaction.id}: $${refundAmount} (${isPartialRefund ? 'partial' : 'full'})`);
+
+      // Update original transaction if not already updated by charge.refunded
+      const currentTransaction = await db('transactions')
+        .where({ id: transaction.id })
+        .first();
+
+      if (currentTransaction.status !== 'refunded' && currentTransaction.status !== 'partially_refunded') {
+        await db('transactions')
+          .where({ id: transaction.id })
+          .update({
+            status: isPartialRefund ? 'partially_refunded' : 'refunded',
+            updated_at: new Date(),
+          });
+      }
+
+      // Check if refund record already exists
+      const existingRefund = await db('transactions')
+        .where({
+          user_id: transaction.user_id,
+          type: 'refund',
+          stripe_charge_id: refund.charge as string,
+        })
+        .first();
+
+      if (!existingRefund) {
+        // Create refund transaction record
+        await db('transactions').insert({
+          user_id: transaction.user_id,
+          stripe_charge_id: refund.charge as string,
+          stripe_payment_intent_id: refund.payment_intent as string,
+          type: 'refund',
+          status: refund.status === 'succeeded' ? 'succeeded' : 'pending',
+          amount: -refundAmount,
+          currency: refund.currency.toUpperCase(),
+          description: `Refund: ${transaction.description || 'purchase'}`,
+          metadata: JSON.stringify({
+            original_transaction_id: transaction.id,
+            refund_id: refund.id,
+            reason: refund.reason,
+          }),
+          processed_at: refund.status === 'succeeded' ? new Date() : null,
+        });
+      }
+
+      // Process refund logic only if refund succeeded
+      if (refund.status === 'succeeded') {
+        await this.processRefundLogic(transaction, refundAmount, isPartialRefund);
+      }
+
+      logger.info(`Refund processed: ${refund.id} - Status: ${refund.status}`);
+    } catch (error: any) {
+      logger.error(`Error processing refund.created for ${refund.id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle refund.updated event
+   */
+  async handleRefundUpdated(refund: Stripe.Refund): Promise<void> {
+    logger.info(`Processing refund updated: ${refund.id}`);
+
+    try {
+      // Find the refund transaction
+      const refundTransaction = await db('transactions')
+        .where({ type: 'refund' })
+        .andWhere('metadata', 'like', `%"refund_id":"${refund.id}"%`)
+        .first();
+
+      if (!refundTransaction) {
+        logger.warn(`Refund transaction not found for: ${refund.id}`);
+        return;
+      }
+
+      // Update refund transaction status
+      await db('transactions')
+        .where({ id: refundTransaction.id })
+        .update({
+          status: refund.status === 'succeeded' ? 'succeeded' : refund.status === 'failed' ? 'failed' : 'pending',
+          failure_message: refund.failure_reason || null,
+          processed_at: refund.status === 'succeeded' ? new Date() : null,
+          updated_at: new Date(),
+        });
+
+      // If refund just succeeded, process refund logic
+      if (refund.status === 'succeeded' && refundTransaction.status !== 'succeeded') {
+        const metadata = JSON.parse(refundTransaction.metadata || '{}');
+        const originalTransaction = await db('transactions')
+          .where({ id: metadata.original_transaction_id })
+          .first();
+
+        if (originalTransaction) {
+          const refundAmount = Math.abs(refundTransaction.amount);
+          const isPartialRefund = refundAmount < originalTransaction.amount;
+          await this.processRefundLogic(originalTransaction, refundAmount, isPartialRefund);
+        }
+      }
+
+      logger.info(`Refund updated: ${refund.id} - Status: ${refund.status}`);
+    } catch (error: any) {
+      logger.error(`Error processing refund.updated for ${refund.id}:`, error);
+      throw error;
+    }
+  }
+
   async handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
     logger.error(`Dispute created: ${dispute.id} for charge: ${dispute.charge}`);
 

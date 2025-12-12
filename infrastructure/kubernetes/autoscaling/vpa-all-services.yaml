@@ -1,0 +1,458 @@
+# Vertical Pod Autoscaler (VPA) for All Flamoral Services
+# Automatically adjusts CPU and memory requests/limits based on usage
+
+---
+# API Gateway
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: api-gateway-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api-gateway
+      minAllowed:
+        cpu: 250m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 4000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Auth Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: auth-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: auth-service
+      minAllowed:
+        cpu: 250m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# User Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: user-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: user-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: user-service
+      minAllowed:
+        cpu: 125m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1500m
+        memory: 1.5Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Matching Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: matching-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matching-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: matching-service
+      minAllowed:
+        cpu: 500m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 3000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Messaging Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: messaging-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: messaging-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: messaging-service
+      minAllowed:
+        cpu: 250m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Realtime Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: realtime-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: realtime-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: realtime-service
+      minAllowed:
+        cpu: 500m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 3000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Media Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: media-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: media-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: media-service
+      minAllowed:
+        cpu: 500m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 3000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Payment Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: payment-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payment-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: payment-service
+      minAllowed:
+        cpu: 250m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Notification Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: notification-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: notification-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: notification-service
+      minAllowed:
+        cpu: 125m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1500m
+        memory: 1.5Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Analytics Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: analytics-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: analytics-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: analytics-service
+      minAllowed:
+        cpu: 500m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 3000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Moderation Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: moderation-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: moderation-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: moderation-service
+      minAllowed:
+        cpu: 250m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Admin Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: admin-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: admin-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: admin-service
+      minAllowed:
+        cpu: 125m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1500m
+        memory: 1.5Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Advertising Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: advertising-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: advertising-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: advertising-service
+      minAllowed:
+        cpu: 125m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1500m
+        memory: 1.5Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Automation Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: automation-service-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: automation-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: automation-service
+      minAllowed:
+        cpu: 125m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1500m
+        memory: 1.5Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Workflow Engine
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: workflow-engine-vpa
+  namespace: flamoral-dating
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: workflow-engine
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: workflow-engine
+      minAllowed:
+        cpu: 250m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# ============================================================================
+# AI Services VPAs (in flamoral-ai namespace)
+# ============================================================================
+
+# AI Recommendation Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: ai-recommendation-vpa
+  namespace: flamoral-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-recommendation-service
+  updatePolicy:
+    updateMode: "Initial"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: ai-recommendation
+      minAllowed:
+        cpu: 1000m
+        memory: 2Gi
+      maxAllowed:
+        cpu: 8000m
+        memory: 16Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+# Dating Coach Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dating-coach-vpa
+  namespace: flamoral-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dating-coach-service
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: dating-coach
+      minAllowed:
+        cpu: 500m
+        memory: 1Gi
+      maxAllowed:
+        cpu: 4000m
+        memory: 8Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# AI Moderation Service
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: ai-moderation-vpa
+  namespace: flamoral-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-moderation-service
+  updatePolicy:
+    updateMode: "Initial"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: ai-moderation
+      minAllowed:
+        cpu: 1000m
+        memory: 2Gi
+      maxAllowed:
+        cpu: 6000m
+        memory: 8Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits

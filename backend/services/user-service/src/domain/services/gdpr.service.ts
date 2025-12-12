@@ -1,5 +1,6 @@
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
+import emailService from '../../infrastructure/email/email.service';
 import type archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
@@ -197,7 +198,16 @@ export class GDPRService {
           completed_at: new Date(),
         });
 
-      // TODO: Send email notification to user with download link
+      // Send email notification to user with download link
+      try {
+        const user = await db('users').where({ id: userId }).first();
+        if (user) {
+          await this.sendDataExportEmail(user, exportUrl, expiresAt);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send data export email:', emailError);
+        // Don't fail the export if email fails
+      }
 
       logger.info(`Data export completed for request ${requestId}`);
     } catch (error) {
@@ -424,7 +434,16 @@ Export generated: ${new Date().toISOString()}
         })
         .returning('*');
 
-      // TODO: Send email with cancellation link
+      // Send email with cancellation link
+      try {
+        const user = await db('users').where({ id: request.userId }).first();
+        if (user) {
+          await this.sendDeletionScheduledEmail(user, cancellationToken, scheduledFor);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send deletion scheduled email:', emailError);
+        // Don't fail the deletion request if email fails
+      }
 
       logger.info(`Deletion requested for user ${request.userId}, scheduled for ${scheduledFor}`);
       return deletionRequest.id;
@@ -610,5 +629,187 @@ Export generated: ${new Date().toISOString()}
       logger.error('Error getting data access history:', error);
       throw new Error('Failed to get data access history');
     }
+  }
+
+  /**
+   * Send data export email notification
+   */
+  private async sendDataExportEmail(user: any, exportUrl: string, expiresAt: Date): Promise<void> {
+    const firstName = user.first_name || 'User';
+    const expiresAtFormatted = expiresAt.toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Your Data Export is Ready</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <p>Your personal data export has been completed and is ready for download.</p>
+              <p>Click the button below to download your data:</p>
+              <div style="text-align: center;">
+                <a href="${exportUrl}" class="button">Download My Data</a>
+              </div>
+              <div class="warning">
+                <strong>Important:</strong>
+                <ul>
+                  <li>This download link will expire on ${expiresAtFormatted}</li>
+                  <li>Your data export contains sensitive personal information</li>
+                  <li>Please store it securely</li>
+                </ul>
+              </div>
+              <p>The export includes all data we have collected about you, including your profile, matches, and activity history.</p>
+              <p>If you have any questions, please contact our privacy team at privacy@flamoral.com</p>
+              <p>Best regards,<br>The Flamoral Team</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
+              <p>This is an automated message, please do not reply to this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      Your Data Export is Ready
+
+      Hi ${firstName},
+
+      Your personal data export has been completed and is ready for download.
+
+      Download link: ${exportUrl}
+
+      IMPORTANT:
+      - This link will expire on ${expiresAtFormatted}
+      - Your data export contains sensitive personal information
+      - Please store it securely
+
+      If you have any questions, contact privacy@flamoral.com
+
+      Best regards,
+      The Flamoral Team
+    `;
+
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Your Flamoral Data Export is Ready',
+      html,
+      text,
+    });
+  }
+
+  /**
+   * Send deletion scheduled email notification
+   */
+  private async sendDeletionScheduledEmail(user: any, cancellationToken: string, scheduledFor: Date): Promise<void> {
+    const firstName = user.first_name || 'User';
+    const scheduledForFormatted = scheduledFor.toLocaleString('en-US', {
+      dateStyle: 'full',
+      timeStyle: 'short'
+    });
+    const cancellationUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/cancel-deletion?token=${cancellationToken}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #dc3545; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .warning { background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Account Deletion Scheduled</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <p>We've received your request to delete your Flamoral account.</p>
+              <div class="warning">
+                <strong>Your account will be permanently deleted on:</strong><br>
+                <strong style="font-size: 18px;">${scheduledForFormatted}</strong>
+              </div>
+              <p>After this date, all your data will be permanently removed from our systems, including:</p>
+              <ul>
+                <li>Profile information and photos</li>
+                <li>Match history and conversations</li>
+                <li>Account settings and preferences</li>
+                <li>All other associated data</li>
+              </ul>
+              <h3>Changed your mind?</h3>
+              <p>If you want to keep your account, you can cancel the deletion request:</p>
+              <div style="text-align: center;">
+                <a href="${cancellationUrl}" class="button">Cancel Account Deletion</a>
+              </div>
+              <p>If you don't take any action, your account will be automatically deleted on the scheduled date.</p>
+              <p>If you have any questions, please contact support@flamoral.com</p>
+              <p>We're sorry to see you go!</p>
+              <p>Best regards,<br>The Flamoral Team</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
+              <p>This is an automated message, please do not reply to this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      Account Deletion Scheduled
+
+      Hi ${firstName},
+
+      We've received your request to delete your Flamoral account.
+
+      Your account will be permanently deleted on: ${scheduledForFormatted}
+
+      After this date, all your data will be permanently removed, including:
+      - Profile information and photos
+      - Match history and conversations
+      - Account settings and preferences
+      - All other associated data
+
+      CHANGED YOUR MIND?
+      You can cancel the deletion by visiting: ${cancellationUrl}
+
+      If you don't take any action, your account will be automatically deleted on the scheduled date.
+
+      Questions? Contact support@flamoral.com
+
+      Best regards,
+      The Flamoral Team
+    `;
+
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Your Flamoral Account Deletion is Scheduled',
+      html,
+      text,
+    });
   }
 }

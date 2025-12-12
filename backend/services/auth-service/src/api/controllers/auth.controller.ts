@@ -28,11 +28,23 @@ class AuthController {
 
   /**
    * POST /api/auth/login
-   * Login user
+   * Login user with enhanced security
    */
   async login(req: Request, res: Response): Promise<Response> {
     try {
-      const result = await authService.login(req.body);
+      // Extract IP and user agent from request
+      const ip = this.getClientIp(req);
+      const userAgent = req.headers['user-agent'] || 'unknown';
+
+      // Extract device data from request body if provided
+      const { deviceData, ...loginData } = req.body;
+
+      const result = await authService.login({
+        ...loginData,
+        ip,
+        userAgent,
+        deviceData,
+      });
 
       return res.status(200).json({
         success: true,
@@ -41,6 +53,14 @@ class AuthController {
       });
     } catch (error: any) {
       logger.error('Login failed', error);
+
+      // Return specific error messages for lockout scenarios
+      if (error.message.includes('locked') || error.message.includes('attempts remaining')) {
+        return res.status(401).json({
+          success: false,
+          error: error.message,
+        });
+      }
 
       // Use generic message for security
       const message = error.message === 'Account is deactivated'
@@ -294,6 +314,25 @@ class AuthController {
         error: 'Token validation failed',
       });
     }
+  }
+
+  /**
+   * Helper method to extract client IP
+   */
+  private getClientIp(req: Request): string {
+    const forwarded = req.headers['x-forwarded-for'];
+
+    if (forwarded) {
+      const ips = (forwarded as string).split(',');
+      return ips[0].trim();
+    }
+
+    const realIp = req.headers['x-real-ip'];
+    if (realIp) {
+      return realIp as string;
+    }
+
+    return req.ip || req.socket.remoteAddress || 'unknown';
   }
 }
 

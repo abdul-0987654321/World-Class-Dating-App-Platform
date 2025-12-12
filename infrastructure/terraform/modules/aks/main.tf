@@ -17,6 +17,9 @@ resource "azurerm_kubernetes_cluster" "main" {
     max_count           = var.node_count * 3
     max_pods            = 110
 
+    # Enable encryption at host for node disk encryption
+    enable_host_encryption = var.enable_disk_encryption
+
     upgrade_settings {
       max_surge = "10%"
     }
@@ -37,6 +40,14 @@ resource "azurerm_kubernetes_cluster" "main" {
   azure_active_directory_role_based_access_control {
     managed            = true
     azure_rbac_enabled = true
+  }
+
+  # API Server Access Restrictions
+  dynamic "api_server_access_profile" {
+    for_each = length(var.authorized_ip_ranges) > 0 ? [1] : []
+    content {
+      authorized_ip_ranges = var.authorized_ip_ranges
+    }
   }
 
   # OMS Agent for Log Analytics monitoring
@@ -84,6 +95,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "worker" {
   max_count           = var.node_count * 4
 
   vnet_subnet_id = var.vnet_subnet_id
+
+  # Enable encryption at host for node disk encryption
+  enable_host_encryption = var.enable_disk_encryption
 
   upgrade_settings {
     max_surge = "10%"

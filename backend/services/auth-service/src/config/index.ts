@@ -2,17 +2,55 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Validate required environment variables
+const validateRequiredEnvVars = () => {
+  const required = [
+    'JWT_ACCESS_SECRET',
+    'JWT_REFRESH_SECRET',
+  ];
+
+  const missing = required.filter(key => !process.env[key]);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}\n` +
+      'JWT secrets must be explicitly set for security. Never use default values in production.'
+    );
+  }
+
+  // Validate secret strength (minimum 32 characters)
+  if (process.env.JWT_ACCESS_SECRET && process.env.JWT_ACCESS_SECRET.length < 32) {
+    throw new Error('JWT_ACCESS_SECRET must be at least 32 characters long');
+  }
+
+  if (process.env.JWT_REFRESH_SECRET && process.env.JWT_REFRESH_SECRET.length < 32) {
+    throw new Error('JWT_REFRESH_SECRET must be at least 32 characters long');
+  }
+};
+
+// Only validate in production or if explicitly enabled
+if (process.env.NODE_ENV === 'production' || process.env.VALIDATE_JWT_SECRETS === 'true') {
+  validateRequiredEnvVars();
+}
+
 export const config = {
   // Server
   port: parseInt(process.env.PORT || '3001', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  // JWT
+  // JWT - Secure configuration with mandatory secrets
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'your-access-secret-key',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
-    accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    accessSecret: process.env.JWT_ACCESS_SECRET || (() => {
+      throw new Error('JWT_ACCESS_SECRET is required. Set it in environment variables.');
+    })(),
+    refreshSecret: process.env.JWT_REFRESH_SECRET || (() => {
+      throw new Error('JWT_REFRESH_SECRET is required. Set it in environment variables.');
+    })(),
+    accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m', // Reduced from 24h to 15m
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d', // Reduced from 30d to 7d
+    algorithm: 'HS256' as const, // Explicit algorithm specification
+    issuer: process.env.JWT_ISSUER || 'flamoral-auth-service',
+    audience: process.env.JWT_AUDIENCE || 'flamoral-platform',
   },
 
   // Database

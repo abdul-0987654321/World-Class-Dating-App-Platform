@@ -53,6 +53,8 @@ const webhookController = new WebhookController();
  * - charge.failed
  * - charge.refunded
  * - charge.dispute.created
+ * - refund.created
+ * - refund.updated
  * - payment_method.attached
  * - payment_method.detached
  */

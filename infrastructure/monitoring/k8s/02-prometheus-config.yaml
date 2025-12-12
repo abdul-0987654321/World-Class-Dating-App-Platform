@@ -1,0 +1,308 @@
+---
+# ConfigMap for Prometheus configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: flamoral-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'flamoral-production'
+        environment: 'production'
+        region: 'us-east-1'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - alertmanager:9093
+          timeout: 10s
+          api_version: v2
+
+    rule_files:
+      - '/etc/prometheus/rules/*.yml'
+
+    scrape_configs:
+      # Prometheus self-monitoring
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+            labels:
+              component: 'prometheus'
+
+      # Kubernetes API server
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      # Kubernetes nodes
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics
+
+      # Kubernetes pods
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+                - flamoral-ai
+                - monitoring
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            action: replace
+            target_label: kubernetes_node
+
+      # API Gateway
+      - job_name: 'api-gateway'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: api-gateway
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+
+      # Auth Service
+      - job_name: 'auth-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: auth-service
+
+      # User Service
+      - job_name: 'user-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: user-service
+
+      # Matching Service
+      - job_name: 'matching-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: matching-service
+
+      # Messaging Service
+      - job_name: 'messaging-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: messaging-service
+
+      # Media Service
+      - job_name: 'media-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: media-service
+
+      # Payment Service
+      - job_name: 'payment-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: payment-service
+
+      # Notification Service
+      - job_name: 'notification-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: notification-service
+
+      # Analytics Service
+      - job_name: 'analytics-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: analytics-service
+
+      # Moderation Service
+      - job_name: 'moderation-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: moderation-service
+
+      # Realtime Service
+      - job_name: 'realtime-service'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - flamoral-dating
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: realtime-service
+
+      # PostgreSQL Exporter
+      - job_name: 'postgres-exporter'
+        static_configs:
+          - targets: ['postgres-exporter:9187']
+            labels:
+              component: 'database'
+              database_type: 'postgresql'
+
+      # Redis Exporter
+      - job_name: 'redis-exporter'
+        static_configs:
+          - targets: ['redis-exporter:9121']
+            labels:
+              component: 'cache'
+              cache_type: 'redis'
+
+      # MongoDB Exporter
+      - job_name: 'mongodb-exporter'
+        static_configs:
+          - targets: ['mongodb-exporter:9216']
+            labels:
+              component: 'database'
+              database_type: 'mongodb'
+
+      # Node Exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: node-exporter
+
+      # cAdvisor (container metrics)
+      - job_name: 'cadvisor'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+    # Remote write for long-term storage
+    remote_write:
+      - url: "https://prometheus-long-term-storage.flamoral.com/api/v1/write"
+        queue_config:
+          capacity: 10000
+          max_shards: 50
+          min_shards: 1
+          max_samples_per_send: 5000
+          batch_send_deadline: 5s
+          min_backoff: 30ms
+          max_backoff: 100ms
+        write_relabel_configs:
+          - source_labels: [__name__]
+            regex: 'up|.*_error_.*|.*_duration_.*|.*_requests_.*|.*_success_.*'
+            action: keep

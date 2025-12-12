@@ -21,7 +21,14 @@
     "db:seed:dev": "npm run seed:run",
     "db:migrate:prod": "NODE_ENV=production npm run migrate:latest",
     "db:migrate:staging": "NODE_ENV=staging npm run migrate:latest",
-    "db:status": "npm run migrate:status"
+    "db:status": "npm run migrate:status",
+    "db:vacuum": "ts-node scripts/maintenance/vacuum-analyze.ts",
+    "db:vacuum:full": "ts-node scripts/maintenance/vacuum-analyze.ts --full",
+    "db:vacuum:table": "ts-node scripts/maintenance/vacuum-analyze.ts --table",
+    "db:rebuild-indexes": "ts-node scripts/maintenance/rebuild-indexes.ts",
+    "db:rebuild-indexes:concurrent": "ts-node scripts/maintenance/rebuild-indexes.ts --concurrent",
+    "db:update-stats": "ts-node scripts/maintenance/update-statistics.ts",
+    "db:update-stats:schedule": "ts-node scripts/maintenance/update-statistics.ts --schedule"
   },
   "dependencies": {
     "knex": "^3.1.0",
@@ -31,7 +38,9 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
     "dotenv": "^16.3.1",
+    "node-cron": "^3.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }

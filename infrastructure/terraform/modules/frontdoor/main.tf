@@ -191,26 +191,22 @@ resource "azurerm_cdn_frontdoor_route" "static" {
   }
 }
 
-# Security Policy (link WAF to endpoints)
-# Note: Security policies can only be associated with custom domains, not endpoints directly.
-# When custom domains are configured, this resource should be enabled.
-# For now, the WAF policy is created but not associated until custom domains are added.
+# Security Policy - Link WAF to Front Door Endpoint
+# Associates the WAF policy with the Front Door endpoint for protection
+resource "azurerm_cdn_frontdoor_security_policy" "main" {
+  name                     = "${var.prefix}-${var.env}-security-policy"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
 
-# To enable security policy with custom domains, uncomment and configure:
-# resource "azurerm_cdn_frontdoor_security_policy" "main" {
-#   name                     = "security-policy"
-#   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
-#
-#   security_policies {
-#     firewall {
-#       cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.main.id
-#
-#       association {
-#         domain {
-#           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.main.id
-#         }
-#         patterns_to_match = ["/*"]
-#       }
-#     }
-#   }
-# }
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.main.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.main.id
+        }
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}

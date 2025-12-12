@@ -1,0 +1,478 @@
+# Azure DevOps CI Pipeline for Flamoral Dating Platform
+# Main build, test, and container image creation pipeline
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+  paths:
+    exclude:
+      - README.md
+      - docs/**
+      - '*.md'
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - docs/**
+      - '*.md'
+
+variables:
+  - group: flamoral-common-vars
+  - name: vmImageName
+    value: 'ubuntu-latest'
+  - name: nodeVersion
+    value: '20.x'
+  - name: acrName
+    value: 'flamoralprodacr'
+  - name: acrLoginServer
+    value: 'flamoralprodacr.azurecr.io'
+  - name: imageTag
+    value: '$(Build.BuildId)'
+  - name: latestTag
+    value: 'latest'
+
+stages:
+  # ================================
+  # Stage 1: Build and Test
+  # ================================
+  - stage: BuildAndTest
+    displayName: 'Build and Test'
+    jobs:
+      # Job 1: Install Dependencies
+      - job: InstallDependencies
+        displayName: 'Install Dependencies'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: Cache@2
+            displayName: 'Cache node_modules'
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              path: node_modules
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+
+          - script: |
+              npm ci
+            displayName: 'Install npm dependencies'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish node_modules artifact'
+            inputs:
+              targetPath: node_modules
+              artifact: 'node_modules'
+              publishLocation: 'pipeline'
+
+      # Job 2: Lint Code
+      - job: Lint
+        displayName: 'Run Linting'
+        dependsOn: InstallDependencies
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download node_modules'
+            inputs:
+              artifact: 'node_modules'
+              path: node_modules
+
+          - script: |
+              npm run lint:all
+            displayName: 'Run ESLint on all packages'
+
+          - script: |
+              npm run prettier --check "**/*.{ts,tsx,js,jsx,json,yml,yaml}"
+            displayName: 'Check code formatting with Prettier'
+            continueOnError: true
+
+      # Job 3: Unit Tests
+      - job: UnitTests
+        displayName: 'Run Unit Tests'
+        dependsOn: InstallDependencies
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download node_modules'
+            inputs:
+              artifact: 'node_modules'
+              path: node_modules
+
+          - script: |
+              npm run test:backend:coverage
+            displayName: 'Run backend unit tests with coverage'
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish code coverage'
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+              reportDirectory: '**/coverage'
+
+      # Job 4: Integration Tests
+      - job: IntegrationTests
+        displayName: 'Run Integration Tests'
+        dependsOn: InstallDependencies
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download node_modules'
+            inputs:
+              artifact: 'node_modules'
+              path: node_modules
+
+          - script: |
+              docker-compose -f docker-compose.test.yml up -d --wait
+            displayName: 'Start test infrastructure'
+
+          - script: |
+              npm run test:integration:coverage
+            displayName: 'Run integration tests'
+
+          - script: |
+              docker-compose -f docker-compose.test.yml down -v
+            displayName: 'Stop test infrastructure'
+            condition: always()
+
+          - task: PublishTestResults@2
+            displayName: 'Publish integration test results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/integration-junit.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+      # Job 5: Build Backend Services
+      - job: BuildBackend
+        displayName: 'Build Backend Services'
+        dependsOn:
+          - Lint
+          - UnitTests
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download node_modules'
+            inputs:
+              artifact: 'node_modules'
+              path: node_modules
+
+          - script: |
+              npm run build:backend
+            displayName: 'Build backend TypeScript services'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish backend build artifacts'
+            inputs:
+              targetPath: backend/dist
+              artifact: 'backend-dist'
+              publishLocation: 'pipeline'
+
+  # ================================
+  # Stage 2: Build Docker Images
+  # ================================
+  - stage: BuildDockerImages
+    displayName: 'Build Docker Images'
+    dependsOn: BuildAndTest
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop')))
+    jobs:
+      # Build Core Services
+      - job: BuildCoreServices
+        displayName: 'Build Core Service Images'
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          matrix:
+            auth-service:
+              serviceName: 'auth-service'
+              dockerfile: 'backend/services/auth-service/Dockerfile'
+            user-service:
+              serviceName: 'user-service'
+              dockerfile: 'backend/services/user-service/Dockerfile'
+            matching-service:
+              serviceName: 'matching-service'
+              dockerfile: 'backend/services/matching-service/Dockerfile'
+            messaging-service:
+              serviceName: 'messaging-service'
+              dockerfile: 'backend/services/messaging-service/Dockerfile'
+            media-service:
+              serviceName: 'media-service'
+              dockerfile: 'backend/services/media-service/Dockerfile'
+            payment-service:
+              serviceName: 'payment-service'
+              dockerfile: 'backend/services/payment-service/Dockerfile'
+            notification-service:
+              serviceName: 'notification-service'
+              dockerfile: 'backend/services/notification-service/Dockerfile'
+        steps:
+          - template: templates/docker-build.yml
+            parameters:
+              serviceName: $(serviceName)
+              dockerfile: $(dockerfile)
+              acrLoginServer: $(acrLoginServer)
+              imageTag: $(imageTag)
+
+      # Build AI Services
+      - job: BuildAIServices
+        displayName: 'Build AI Service Images'
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          matrix:
+            recommendation-service:
+              serviceName: 'recommendation-service'
+              dockerfile: 'backend/services/ai-services/recommendation-service/Dockerfile'
+            nlp-service:
+              serviceName: 'nlp-service'
+              dockerfile: 'backend/services/ai-services/nlp-service/Dockerfile'
+            photo-analysis:
+              serviceName: 'photo-analysis'
+              dockerfile: 'backend/services/ai-services/photo-analysis/Dockerfile'
+            fraud-detection:
+              serviceName: 'fraud-detection'
+              dockerfile: 'backend/services/ai-services/fraud-detection/Dockerfile'
+            dating-coach-service:
+              serviceName: 'dating-coach-service'
+              dockerfile: 'backend/services/ai-services/dating-coach-service/Dockerfile'
+            content-generator:
+              serviceName: 'content-generator'
+              dockerfile: 'backend/services/ai-services/content-generator/Dockerfile'
+        steps:
+          - template: templates/docker-build.yml
+            parameters:
+              serviceName: $(serviceName)
+              dockerfile: $(dockerfile)
+              acrLoginServer: $(acrLoginServer)
+              imageTag: $(imageTag)
+
+      # Build Support Services
+      - job: BuildSupportServices
+        displayName: 'Build Support Service Images'
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          matrix:
+            api-gateway:
+              serviceName: 'api-gateway'
+              dockerfile: 'backend/services/api-gateway/Dockerfile'
+            realtime-service:
+              serviceName: 'realtime-service'
+              dockerfile: 'backend/services/realtime-service/Dockerfile'
+            moderation-service:
+              serviceName: 'moderation-service'
+              dockerfile: 'backend/services/moderation-service/Dockerfile'
+            analytics-service:
+              serviceName: 'analytics-service'
+              dockerfile: 'backend/services/analytics-service/Dockerfile'
+            advertising-service:
+              serviceName: 'advertising-service'
+              dockerfile: 'backend/services/advertising-service/Dockerfile'
+            automation-service:
+              serviceName: 'automation-service'
+              dockerfile: 'backend/services/automation-service/Dockerfile'
+            workflow-engine:
+              serviceName: 'workflow-engine'
+              dockerfile: 'backend/services/workflow-engine/Dockerfile'
+        steps:
+          - template: templates/docker-build.yml
+            parameters:
+              serviceName: $(serviceName)
+              dockerfile: $(dockerfile)
+              acrLoginServer: $(acrLoginServer)
+              imageTag: $(imageTag)
+
+  # ================================
+  # Stage 3: Security Scanning
+  # ================================
+  - stage: SecurityScanning
+    displayName: 'Security Scanning'
+    dependsOn: BuildDockerImages
+    condition: succeeded()
+    jobs:
+      - job: ContainerScan
+        displayName: 'Scan Container Images'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Scan images with Trivy'
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Install Trivy
+                wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+                echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                sudo apt-get update
+                sudo apt-get install trivy -y
+
+                # Login to ACR
+                az acr login --name $(acrName)
+
+                # Scan critical services
+                services=(
+                  "auth-service"
+                  "user-service"
+                  "payment-service"
+                  "api-gateway"
+                )
+
+                for service in "${services[@]}"; do
+                  echo "Scanning $service..."
+                  trivy image --severity HIGH,CRITICAL \
+                    --exit-code 0 \
+                    --format json \
+                    --output trivy-$service.json \
+                    $(acrLoginServer)/$service:$(imageTag)
+                done
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish security scan results'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)'
+              artifact: 'security-scans'
+              publishLocation: 'pipeline'
+              artifactName: 'trivy-results'
+
+      - job: DependencyCheck
+        displayName: 'Dependency Security Check'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              npm audit --production --audit-level=moderate
+            displayName: 'Run npm audit'
+            continueOnError: true
+
+          - script: |
+              npx snyk test --severity-threshold=high
+            displayName: 'Run Snyk security scan'
+            continueOnError: true
+            env:
+              SNYK_TOKEN: $(SNYK_TOKEN)
+
+  # ================================
+  # Stage 4: Publish Artifacts
+  # ================================
+  - stage: PublishArtifacts
+    displayName: 'Publish Release Artifacts'
+    dependsOn: SecurityScanning
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: PublishHelm
+        displayName: 'Publish Helm Charts'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: HelmInstaller@1
+            displayName: 'Install Helm'
+            inputs:
+              helmVersionToInstall: '3.12.0'
+
+          - script: |
+              # Package Helm charts
+              helm package infrastructure/helm/flamoral --version $(imageTag) --app-version $(imageTag)
+              helm package infrastructure/helm/dating-api --version $(imageTag) --app-version $(imageTag)
+              helm package infrastructure/helm/dating-app --version $(imageTag) --app-version $(imageTag)
+            displayName: 'Package Helm charts'
+
+          - task: AzureCLI@2
+            displayName: 'Push Helm charts to ACR'
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az acr login --name $(acrName)
+
+                # Push charts to ACR
+                for chart in *.tgz; do
+                  az acr helm push -n $(acrName) $chart
+                done
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Helm chart artifacts'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)/*.tgz'
+              artifact: 'helm-charts'
+              publishLocation: 'pipeline'
+
+      - job: GenerateReleaseNotes
+        displayName: 'Generate Release Notes'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - script: |
+              cat > release-notes.md << EOF
+              # Flamoral Dating Platform Release $(imageTag)
+
+              **Build Date:** $(date)
+              **Branch:** $(Build.SourceBranchName)
+              **Commit:** $(Build.SourceVersion)
+
+              ## Changes in this release
+              $(git log --pretty=format:"- %s (%an)" $(git describe --tags --abbrev=0)..HEAD)
+
+              ## Docker Images
+              All images are tagged with: $(imageTag)
+              Available at: $(acrLoginServer)
+
+              ## Deployment
+              Use the provided Helm charts for deployment to AKS.
+              EOF
+            displayName: 'Generate release notes'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish release notes'
+            inputs:
+              targetPath: 'release-notes.md'
+              artifact: 'release-notes'
+              publishLocation: 'pipeline'

@@ -137,6 +137,15 @@ export class WebhookController {
           await webhookService.handleDisputeCreated(event.data.object as Stripe.Dispute);
           break;
 
+        // Refund events
+        case 'refund.created':
+          await webhookService.handleRefundCreated(event.data.object as Stripe.Refund);
+          break;
+
+        case 'refund.updated':
+          await webhookService.handleRefundUpdated(event.data.object as Stripe.Refund);
+          break;
+
         // Customer events
         case 'customer.created':
           await webhookService.handleCustomerCreated(event.data.object as Stripe.Customer);

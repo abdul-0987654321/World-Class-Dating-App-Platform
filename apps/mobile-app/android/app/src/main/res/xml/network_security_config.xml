@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration for Flamoral Mobile App
+
+  This configuration:
+  1. Disables cleartext (HTTP) traffic for production domains
+  2. Implements certificate pinning via public key pins (SPKI)
+  3. Allows localhost for development
+  4. Enforces TLS 1.2 minimum
+
+  IMPORTANT: Update the pin-set hashes with your actual certificate pins
+  See: SSL_PINNING_SETUP.md for instructions on generating pins
+-->
+<network-security-config>
+    <!-- Base configuration for all domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system certificate authorities -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Production API domain with certificate pinning -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">api.flamoral.com</domain>
+        <pin-set expiration="2026-12-31">
+            <!-- Primary certificate pin - REPLACE WITH YOUR ACTUAL PIN -->
+            <!-- Format: sha256/Base64EncodedHash -->
+            <pin digest="sha256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <!-- Backup pin for certificate rotation - REPLACE WITH YOUR ACTUAL BACKUP PIN -->
+            <pin digest="sha256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- AI Services domain with certificate pinning -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">ai.flamoral.com</domain>
+        <pin-set expiration="2026-12-31">
+            <!-- Primary AI services certificate pin - REPLACE WITH YOUR ACTUAL PIN -->
+            <pin digest="sha256">CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC=</pin>
+            <!-- Backup pin for certificate rotation - REPLACE WITH YOUR ACTUAL BACKUP PIN -->
+            <pin digest="sha256">DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD=</pin>
+        </pin-set>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- WebSocket domain with certificate pinning -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">ws.flamoral.com</domain>
+        <pin-set expiration="2026-12-31">
+            <!-- Primary WebSocket certificate pin - REPLACE WITH YOUR ACTUAL PIN -->
+            <pin digest="sha256">EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE=</pin>
+            <!-- Backup pin for certificate rotation - REPLACE WITH YOUR ACTUAL BACKUP PIN -->
+            <pin digest="sha256">FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF=</pin>
+        </pin-set>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Development configuration - allows localhost and local IPs -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain> <!-- Android emulator -->
+        <domain includeSubdomains="false">10.0.3.2</domain> <!-- Genymotion emulator -->
+    </domain-config>
+
+    <!--
+    Certificate Pinning Best Practices:
+
+    1. Pin to public keys (SPKI), not certificates
+       - Allows certificate renewal without app updates
+       - Use the subjectPublicKeyInfo hash
+
+    2. Always include backup pins
+       - Minimum 2 pins per domain
+       - Keep backup private key in secure offline storage
+
+    3. Set reasonable expiration dates
+       - Update pins at least 60 days before expiration
+       - Plan certificate rotation schedule
+
+    4. Test thoroughly before production
+       - Verify pins are correct
+       - Test certificate rotation procedure
+       - Have emergency update plan
+
+    5. Monitor pin validation failures
+       - Log failed pin validations
+       - Alert on unexpected failures
+       - May indicate MITM attacks
+
+    HOW TO GENERATE PINS:
+    See SSL_PINNING_SETUP.md for detailed instructions
+
+    Quick reference:
+    openssl s_client -servername api.flamoral.com -connect api.flamoral.com:443 | \
+      openssl x509 -pubkey -noout | \
+      openssl pkey -pubin -outform der | \
+      openssl dgst -sha256 -binary | \
+      openssl enc -base64
+    -->
+</network-security-config>

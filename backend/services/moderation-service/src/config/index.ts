@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -88,6 +89,67 @@ export const config = {
   services: {
     notificationServiceUrl: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
   },
+
+  // CSAM Detection Configuration (CRITICAL LEGAL COMPLIANCE)
+  csam: {
+    // Enable/disable CSAM detection (should always be true in production)
+    detectionEnabled: process.env.CSAM_DETECTION_ENABLED !== 'false', // Default: true
+
+    // Microsoft PhotoDNA Configuration
+    photoDNA: {
+      endpoint: process.env.PHOTODNA_ENDPOINT || '',
+      apiKey: process.env.PHOTODNA_API_KEY || '',
+    },
+
+    // NCMEC CyberTipline Configuration
+    ncmec: {
+      endpoint: process.env.NCMEC_ENDPOINT || 'https://report.cybertip.org/api',
+      apiKey: process.env.NCMEC_API_KEY || '',
+      espId: process.env.NCMEC_ESP_ID || '', // Electronic Service Provider ID
+      espName: process.env.NCMEC_ESP_NAME || 'Flamoral Dating Platform',
+      contactEmail: process.env.NCMEC_CONTACT_EMAIL || '',
+      contactPhone: process.env.NCMEC_CONTACT_PHONE || '',
+      reportingEnabled: process.env.NCMEC_REPORTING_ENABLED !== 'false', // Default: true
+    },
+
+    // Content Quarantine Configuration
+    quarantine: {
+      storagePath: process.env.CSAM_QUARANTINE_STORAGE_PATH || '/secure/csam-quarantine',
+      encryptionKey: process.env.CSAM_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex'), // Generate in production
+    },
+
+    // Staff Notification Configuration
+    notifications: {
+      emailEnabled: process.env.CSAM_EMAIL_NOTIFICATIONS_ENABLED !== 'false',
+      smsEnabled: process.env.CSAM_SMS_NOTIFICATIONS_ENABLED === 'true',
+      slackEnabled: process.env.CSAM_SLACK_NOTIFICATIONS_ENABLED === 'true',
+      pagerDutyEnabled: process.env.CSAM_PAGERDUTY_ENABLED === 'true',
+      slackWebhook: process.env.CSAM_SLACK_WEBHOOK_URL || '',
+      pagerDutyKey: process.env.CSAM_PAGERDUTY_KEY || '',
+      emergencyEmails: process.env.CSAM_EMERGENCY_EMAILS?.split(',') || [
+        'safety@flamoral.com',
+        'legal@flamoral.com',
+        'ceo@flamoral.com',
+      ],
+      emergencyPhones: process.env.CSAM_EMERGENCY_PHONES?.split(',') || [],
+    },
+
+    // Detection Thresholds
+    thresholds: {
+      // Confidence score threshold for automatic quarantine (0.0 - 1.0)
+      autoQuarantineThreshold: parseFloat(process.env.CSAM_AUTO_QUARANTINE_THRESHOLD || '0.70'),
+      // Confidence score threshold for NCMEC reporting (0.0 - 1.0)
+      ncmecReportingThreshold: parseFloat(process.env.CSAM_NCMEC_REPORTING_THRESHOLD || '0.85'),
+      // Perceptual hash similarity threshold (Hamming distance)
+      perceptualHashSimilarityThreshold: parseInt(process.env.CSAM_PHASH_SIMILARITY_THRESHOLD || '10'),
+    },
+
+    // Law Enforcement Portal URL
+    lawEnforcementPortalUrl: process.env.LAW_ENFORCEMENT_PORTAL_URL || 'https://le-portal.flamoral.com',
+  },
+
+  // App URL for notifications
+  appUrl: process.env.APP_URL || 'http://localhost:3000',
 };
 
 export default config;

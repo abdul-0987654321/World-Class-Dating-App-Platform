@@ -42,3 +42,21 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "authorized_ip_ranges" {
+  type        = list(string)
+  description = "List of authorized IP ranges that can access the AKS API server"
+  default     = []
+}
+
+variable "enable_disk_encryption" {
+  type        = bool
+  description = "Enable encryption at host for AKS nodes"
+  default     = true
+}
+
+variable "disk_encryption_set_id" {
+  type        = string
+  description = "ID of the disk encryption set for AKS node disk encryption"
+  default     = ""
+}

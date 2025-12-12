@@ -8,6 +8,7 @@ import { MediaController } from './media.controller';
 import { NotificationController } from './notification.controller';
 import { ModerationController } from './moderation.controller';
 import { AnalyticsController } from './analytics.controller';
+import { CsrfController } from './csrf.controller';
 
 @Module({
   controllers: [
@@ -20,6 +21,7 @@ import { AnalyticsController } from './analytics.controller';
     NotificationController,
     ModerationController,
     AnalyticsController,
+    CsrfController,
   ],
 })
 export class ControllersModule {}

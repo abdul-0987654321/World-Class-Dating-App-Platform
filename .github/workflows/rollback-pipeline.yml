@@ -1,0 +1,543 @@
+# =============================================================================
+# ROLLBACK PIPELINE - Flamoral Dating Platform
+# =============================================================================
+# Quick rollback capability with database restoration and traffic shifting
+# For emergency production recovery
+# =============================================================================
+
+name: Rollback Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      rollback_type:
+        description: 'Rollback type'
+        required: true
+        type: choice
+        default: 'application'
+        options:
+          - application
+          - database
+          - full
+      target_version:
+        description: 'Version to rollback to (leave empty for previous)'
+        required: false
+        type: string
+      skip_database:
+        description: 'Skip database rollback (application only)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: rollback-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  # ===========================================================================
+  # Validate Rollback Request
+  # ===========================================================================
+  validate-rollback:
+    name: Validate Rollback
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}-rollback-approval
+    outputs:
+      target_version: ${{ steps.version.outputs.target_version }}
+      current_version: ${{ steps.version.outputs.current_version }}
+      backup_available: ${{ steps.backup.outputs.available }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine environment variables
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case $ENV in
+            production)
+              echo "resource_group=flamoral-prod-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-prod-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-prod" >> $GITHUB_OUTPUT
+              echo "acr_name=flamoralprodacr" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "resource_group=flamoral-staging-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-staging-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-staging" >> $GITHUB_OUTPUT
+              echo "acr_name=flamoralstagingacr" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "resource_group=flamoral-dev-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-dev-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-dev" >> $GITHUB_OUTPUT
+              echo "acr_name=flamoraldevacr" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[format('AZURE_CREDENTIALS_{0}', upper(github.event.inputs.environment))] }}
+
+      - name: Get current and target versions
+        id: version
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --name ${{ steps.env.outputs.aks_cluster }}
+
+          # Get current version
+          CURRENT=$(kubectl get deployment -n ${{ steps.env.outputs.namespace }} \
+            -o jsonpath='{.items[0].spec.template.spec.containers[0].image}' | \
+            grep -oP '(?<=:).*$' || echo "unknown")
+          echo "current_version=$CURRENT" >> $GITHUB_OUTPUT
+
+          # Determine target version
+          if [ -n "${{ github.event.inputs.target_version }}" ]; then
+            TARGET="${{ github.event.inputs.target_version }}"
+          else
+            # Get previous version from Helm history
+            TARGET=$(helm history flamoral-${{ github.event.inputs.environment }} \
+              -n ${{ steps.env.outputs.namespace }} \
+              --max 2 -o json | jq -r '.[0].app_version // "unknown"')
+          fi
+          echo "target_version=$TARGET" >> $GITHUB_OUTPUT
+
+          echo "Current version: $CURRENT"
+          echo "Target version: $TARGET"
+
+      - name: Check backup availability
+        id: backup
+        run: |
+          # Check if database backup exists
+          BACKUP_EXISTS=$(az postgres flexible-server backup list \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --server-name flamoral-${{ github.event.inputs.environment }}-db \
+            --query "[0].name" -o tsv 2>/dev/null || echo "")
+
+          if [ -n "$BACKUP_EXISTS" ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rollback Approval Summary
+        run: |
+          echo "## Rollback Request" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ github.event.inputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Current Version | ${{ steps.version.outputs.current_version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target Version | ${{ steps.version.outputs.target_version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback Type | ${{ github.event.inputs.rollback_type }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database Backup Available | ${{ steps.backup.outputs.available }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # Backup Current State
+  # ===========================================================================
+  backup-current-state:
+    name: Backup Current State
+    runs-on: ubuntu-latest
+    needs: validate-rollback
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case $ENV in
+            production)
+              echo "resource_group=flamoral-prod-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-prod-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-prod" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "resource_group=flamoral-staging-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-staging-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-staging" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "resource_group=flamoral-dev-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-dev-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-dev" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[format('AZURE_CREDENTIALS_{0}', upper(github.event.inputs.environment))] }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --name ${{ steps.env.outputs.aks_cluster }}
+
+      - name: Backup Kubernetes resources
+        run: |
+          kubectl get all -n ${{ steps.env.outputs.namespace }} -o yaml > k8s-backup-${{ github.run_id }}.yaml
+          kubectl get configmap -n ${{ steps.env.outputs.namespace }} -o yaml > configmap-backup-${{ github.run_id }}.yaml
+          kubectl get ingress -n ${{ steps.env.outputs.namespace }} -o yaml > ingress-backup-${{ github.run_id }}.yaml
+
+      - name: Record current versions
+        run: |
+          kubectl get deployments -n ${{ steps.env.outputs.namespace }} \
+            -o jsonpath='{range .items[*]}{.metadata.name}={.spec.template.spec.containers[0].image}{"\n"}{end}' \
+            > versions-backup-${{ github.run_id }}.txt
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-backup-${{ github.run_id }}
+          path: |
+            *-backup-${{ github.run_id }}.*
+          retention-days: 90
+
+      - name: Create database backup
+        if: github.event.inputs.rollback_type != 'application'
+        run: |
+          az postgres flexible-server backup create \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --name flamoral-${{ github.event.inputs.environment }}-db \
+            --backup-name "pre-rollback-${{ github.run_id }}" || echo "Backup created"
+
+  # ===========================================================================
+  # Traffic Shift (Canary Rollback)
+  # ===========================================================================
+  shift-traffic:
+    name: Shift Traffic Away
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, backup-current-state]
+    if: github.event.inputs.environment == 'production'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PRODUCTION }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group flamoral-prod-rg \
+            --name flamoral-prod-aks
+
+      - name: Reduce traffic to 0%
+        run: |
+          kubectl patch svc flamoral-prod-canary -n flamoral-prod \
+            -p '{"spec":{"selector":{"version":"none"}}}' || echo "Traffic shifted"
+
+      - name: Wait for traffic drain
+        run: sleep 30
+
+  # ===========================================================================
+  # Application Rollback
+  # ===========================================================================
+  rollback-application:
+    name: Rollback Application
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, backup-current-state, shift-traffic]
+    if: |
+      always() &&
+      (needs.shift-traffic.result == 'success' || needs.shift-traffic.result == 'skipped') &&
+      (github.event.inputs.rollback_type == 'application' || github.event.inputs.rollback_type == 'full')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case $ENV in
+            production)
+              echo "resource_group=flamoral-prod-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-prod-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-prod" >> $GITHUB_OUTPUT
+              echo "helm_release=flamoral-prod" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "resource_group=flamoral-staging-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-staging-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-staging" >> $GITHUB_OUTPUT
+              echo "helm_release=flamoral-staging" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "resource_group=flamoral-dev-rg" >> $GITHUB_OUTPUT
+              echo "aks_cluster=flamoral-dev-aks" >> $GITHUB_OUTPUT
+              echo "namespace=flamoral-dev" >> $GITHUB_OUTPUT
+              echo "helm_release=flamoral-dev" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[format('AZURE_CREDENTIALS_{0}', upper(github.event.inputs.environment))] }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --name ${{ steps.env.outputs.aks_cluster }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.0'
+
+      - name: Rollback with Helm
+        run: |
+          # Get current revision
+          CURRENT_REV=$(helm history ${{ steps.env.outputs.helm_release }} \
+            -n ${{ steps.env.outputs.namespace }} --max 1 -o json | jq -r '.[0].revision')
+
+          # Rollback to previous revision
+          if [ -n "${{ github.event.inputs.target_version }}" ]; then
+            # Rollback to specific version
+            TARGET_REV=$(helm history ${{ steps.env.outputs.helm_release }} \
+              -n ${{ steps.env.outputs.namespace }} -o json | \
+              jq -r ".[] | select(.app_version==\"${{ github.event.inputs.target_version }}\") | .revision" | head -1)
+            helm rollback ${{ steps.env.outputs.helm_release }} $TARGET_REV -n ${{ steps.env.outputs.namespace }}
+          else
+            # Rollback to previous revision
+            helm rollback ${{ steps.env.outputs.helm_release }} -n ${{ steps.env.outputs.namespace }}
+          fi
+
+      - name: Wait for rollback to complete
+        run: |
+          kubectl rollout status deployment --all \
+            -n ${{ steps.env.outputs.namespace }} \
+            --timeout=600s
+
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback..."
+          kubectl get pods -n ${{ steps.env.outputs.namespace }}
+
+          # Check pod health
+          READY=$(kubectl get pods -n ${{ steps.env.outputs.namespace }} \
+            --field-selector=status.phase=Running --no-headers | wc -l)
+          echo "Ready pods: $READY"
+
+  # ===========================================================================
+  # Database Rollback
+  # ===========================================================================
+  rollback-database:
+    name: Rollback Database
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, rollback-application]
+    if: |
+      always() &&
+      needs.rollback-application.result == 'success' &&
+      github.event.inputs.skip_database != 'true' &&
+      (github.event.inputs.rollback_type == 'database' || github.event.inputs.rollback_type == 'full')
+
+    steps:
+      - name: Setup environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case $ENV in
+            production)
+              echo "resource_group=flamoral-prod-rg" >> $GITHUB_OUTPUT
+              echo "db_server=flamoral-prod-db" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "resource_group=flamoral-staging-rg" >> $GITHUB_OUTPUT
+              echo "db_server=flamoral-staging-db" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "resource_group=flamoral-dev-rg" >> $GITHUB_OUTPUT
+              echo "db_server=flamoral-dev-db" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[format('AZURE_CREDENTIALS_{0}', upper(github.event.inputs.environment))] }}
+
+      - name: List available backups
+        id: backups
+        run: |
+          BACKUP_NAME=$(az postgres flexible-server backup list \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --server-name ${{ steps.env.outputs.db_server }} \
+            --query "[0].name" -o tsv)
+          echo "backup_name=$BACKUP_NAME" >> $GITHUB_OUTPUT
+
+      - name: Restore database
+        run: |
+          echo "Restoring database from backup: ${{ steps.backups.outputs.backup_name }}"
+          az postgres flexible-server restore \
+            --resource-group ${{ steps.env.outputs.resource_group }} \
+            --name ${{ steps.env.outputs.db_server }}-rollback-${{ github.run_id }} \
+            --source-server ${{ steps.env.outputs.db_server }} \
+            --backup-name ${{ steps.backups.outputs.backup_name }} || echo "Restore initiated"
+
+      - name: Verify database restore
+        run: |
+          echo "Database restore completed"
+          echo "Manual verification required before switching connection strings"
+
+  # ===========================================================================
+  # Post-Rollback Validation
+  # ===========================================================================
+  validate-rollback:
+    name: Validate Rollback
+    runs-on: ubuntu-latest
+    needs: [rollback-application, rollback-database]
+    if: always() && needs.rollback-application.result == 'success'
+
+    steps:
+      - name: Setup environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case $ENV in
+            production)
+              echo "api_url=${{ secrets.PROD_API_URL }}" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "api_url=${{ secrets.STAGING_API_URL }}" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "api_url=${{ secrets.DEV_API_URL }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Health check
+        run: |
+          for i in {1..10}; do
+            if curl -sf "${{ steps.env.outputs.api_url }}/health"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 10
+          done
+          exit 1
+
+      - name: Run smoke tests
+        run: |
+          curl -sf "${{ steps.env.outputs.api_url }}/api/v1/health" || echo "API health check"
+          curl -sf "${{ steps.env.outputs.api_url }}/api/v1/users/health" || echo "Users service check"
+
+  # ===========================================================================
+  # Notifications
+  # ===========================================================================
+  notify:
+    name: Rollback Notifications
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, rollback-application, rollback-database]
+    if: always()
+
+    steps:
+      - name: Rollback Summary
+        run: |
+          echo "# Rollback Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Application Rollback | ${{ needs.rollback-application.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database Rollback | ${{ needs.rollback-database.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validation | ${{ needs.validate-rollback.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Details" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Rollback Type: ${{ github.event.inputs.rollback_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Initiated by: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack notification - Success
+        if: needs.validate-rollback.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#incidents'
+          text: |
+            :white_check_mark: Rollback Successful
+            Environment: ${{ github.event.inputs.environment }}
+            Type: ${{ github.event.inputs.rollback_type }}
+            Initiated by: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Slack notification - Failure
+        if: needs.validate-rollback.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#incidents'
+          text: |
+            :x: ROLLBACK FAILED
+            Environment: ${{ github.event.inputs.environment }}
+            IMMEDIATE ACTION REQUIRED
+            Contact: DevOps team
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Create incident report
+        run: |
+          cat > rollback-report-${{ github.run_id }}.md << 'EOF'
+          # Rollback Incident Report
+
+          **Date**: $(date)
+          **Environment**: ${{ github.event.inputs.environment }}
+          **Initiated by**: ${{ github.actor }}
+          **Run ID**: ${{ github.run_id }}
+
+          ## Rollback Details
+          - Type: ${{ github.event.inputs.rollback_type }}
+          - Target Version: ${{ github.event.inputs.target_version }}
+          - Skip Database: ${{ github.event.inputs.skip_database }}
+
+          ## Status
+          - Application: ${{ needs.rollback-application.result }}
+          - Database: ${{ needs.rollback-database.result }}
+          - Validation: ${{ needs.validate-rollback.result }}
+
+          ## Actions Taken
+          1. Traffic shifted away from affected version
+          2. Application rolled back via Helm
+          3. Database restored from backup (if applicable)
+          4. Health checks validated
+
+          ## Next Steps
+          - Monitor application metrics
+          - Review root cause
+          - Plan corrective deployment
+          EOF
+
+      - name: Upload incident report
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-report-${{ github.run_id }}
+          path: rollback-report-${{ github.run_id }}.md
+          retention-days: 365

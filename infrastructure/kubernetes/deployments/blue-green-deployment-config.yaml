@@ -1,0 +1,402 @@
+# Blue-Green Deployment Configuration for Flamoral Services
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue-green-config
+  namespace: flamoral-dating
+data:
+  active-version: "blue"
+  traffic-split: "100"  # Percentage to active version
+
+---
+# Example: API Gateway Blue-Green Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-blue
+  namespace: flamoral-dating
+  labels:
+    app: api-gateway
+    version: blue
+    deployment-type: blue-green
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: blue
+        deployment-type: blue-green
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+      - name: api-gateway
+        image: flamoral/api-gateway:v1.0.0  # Current stable version
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: api-gateway-config
+        - secretRef:
+            name: api-gateway-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-green
+  namespace: flamoral-dating
+  labels:
+    app: api-gateway
+    version: green
+    deployment-type: blue-green
+spec:
+  replicas: 0  # Start with 0, scale up when ready to switch
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: green
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: green
+        deployment-type: blue-green
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+      - name: api-gateway
+        image: flamoral/api-gateway:v1.1.0  # New version
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: api-gateway-config
+        - secretRef:
+            name: api-gateway-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+---
+# Blue Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-blue
+  namespace: flamoral-dating
+  labels:
+    app: api-gateway
+    version: blue
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+  selector:
+    app: api-gateway
+    version: blue
+
+---
+# Green Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-green
+  namespace: flamoral-dating
+  labels:
+    app: api-gateway
+    version: green
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+  selector:
+    app: api-gateway
+    version: green
+
+---
+# Main Service (routes to active version)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: flamoral-dating
+  labels:
+    app: api-gateway
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+    name: http
+  - port: 443
+    targetPort: 3000
+    name: https
+  selector:
+    app: api-gateway
+    version: blue  # Update this to "green" when switching
+
+---
+# Ingress with traffic splitting capability
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-blue-green
+  namespace: flamoral-dating
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "false"
+    nginx.ingress.kubernetes.io/canary-weight: "0"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-blue
+            port:
+              number: 3000
+
+---
+# Canary Ingress for gradual rollout
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-canary
+  namespace: flamoral-dating
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "0"  # Increase gradually (0-100)
+    nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
+    nginx.ingress.kubernetes.io/canary-by-header-value: "enabled"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-green
+            port:
+              number: 3000
+
+---
+# ServiceMonitor for Blue version
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway-blue
+  namespace: flamoral-dating
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: blue
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# ServiceMonitor for Green version
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway-green
+  namespace: flamoral-dating
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: green
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# PrometheusRule for automated rollback
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: blue-green-automated-rollback
+  namespace: flamoral-dating
+spec:
+  groups:
+  - name: blue-green-deployment
+    interval: 30s
+    rules:
+    - alert: GreenVersionHighErrorRate
+      expr: |
+        rate(http_requests_total{version="green",status=~"5.."}[2m]) /
+        rate(http_requests_total{version="green"}[2m]) > 0.05
+      for: 2m
+      labels:
+        severity: critical
+        action: rollback
+      annotations:
+        summary: "Green version has high error rate"
+        description: "Error rate is {{ $value | humanizePercentage }} - consider rollback"
+
+    - alert: GreenVersionHighLatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{version="green"}[5m])) >
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{version="blue"}[5m])) * 1.5
+      for: 5m
+      labels:
+        severity: warning
+        action: rollback
+      annotations:
+        summary: "Green version latency significantly higher than blue"
+        description: "Green p95 latency is 50% higher than blue"
+
+---
+# Script ConfigMap for automated deployment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue-green-scripts
+  namespace: flamoral-dating
+data:
+  switch-to-green.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Starting blue-green switch to green version..."
+
+    # Scale up green deployment
+    echo "Scaling up green deployment..."
+    kubectl scale deployment api-gateway-green -n flamoral-dating --replicas=5
+
+    # Wait for green pods to be ready
+    echo "Waiting for green pods to be ready..."
+    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-green -n flamoral-dating
+
+    # Run smoke tests
+    echo "Running smoke tests on green version..."
+    # Add smoke test commands here
+
+    # Gradual traffic shift
+    echo "Starting gradual traffic shift..."
+    for weight in 10 25 50 75 100; do
+      echo "Shifting ${weight}% traffic to green..."
+      kubectl annotate ingress api-gateway-canary -n flamoral-dating \
+        nginx.ingress.kubernetes.io/canary-weight="${weight}" --overwrite
+
+      echo "Waiting 5 minutes for metrics..."
+      sleep 300
+
+      # Check error rate
+      echo "Checking error rate..."
+      # Add monitoring check here
+    done
+
+    # Update main service to point to green
+    echo "Switching main service to green..."
+    kubectl patch service api-gateway -n flamoral-dating -p '{"spec":{"selector":{"version":"green"}}}'
+
+    # Scale down blue deployment
+    echo "Scaling down blue deployment..."
+    kubectl scale deployment api-gateway-blue -n flamoral-dating --replicas=0
+
+    # Update active version
+    kubectl patch configmap blue-green-config -n flamoral-dating \
+      --type merge -p '{"data":{"active-version":"green"}}'
+
+    echo "Blue-green deployment completed successfully!"
+
+  rollback-to-blue.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Rolling back to blue version..."
+
+    # Ensure blue deployment is running
+    echo "Scaling up blue deployment..."
+    kubectl scale deployment api-gateway-blue -n flamoral-dating --replicas=5
+    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-blue -n flamoral-dating
+
+    # Switch traffic back to blue
+    echo "Switching traffic to blue..."
+    kubectl patch service api-gateway -n flamoral-dating -p '{"spec":{"selector":{"version":"blue"}}}'
+    kubectl annotate ingress api-gateway-canary -n flamoral-dating \
+      nginx.ingress.kubernetes.io/canary-weight="0" --overwrite
+
+    # Scale down green deployment
+    echo "Scaling down green deployment..."
+    kubectl scale deployment api-gateway-green -n flamoral-dating --replicas=0
+
+    # Update active version
+    kubectl patch configmap blue-green-config -n flamoral-dating \
+      --type merge -p '{"data":{"active-version":"blue"}}'
+
+    echo "Rollback completed successfully!"

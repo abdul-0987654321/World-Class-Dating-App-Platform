@@ -1,0 +1,140 @@
+# Staging Environment Values
+
+global:
+  environment: staging
+  domain: staging.flamoral.com
+  imagePullPolicy: Always
+
+services:
+  apiGateway:
+    replicaCount: 3
+    autoscaling:
+      minReplicas: 3
+      maxReplicas: 20
+
+  authService:
+    replicaCount: 3
+    autoscaling:
+      minReplicas: 3
+      maxReplicas: 15
+
+  userService:
+    replicaCount: 2
+    autoscaling:
+      minReplicas: 2
+      maxReplicas: 10
+
+  matchingService:
+    replicaCount: 2
+    autoscaling:
+      minReplicas: 2
+      maxReplicas: 12
+
+  messagingService:
+    replicaCount: 3
+    autoscaling:
+      minReplicas: 3
+      maxReplicas: 20
+
+  mediaService:
+    replicaCount: 2
+    env:
+      S3_BUCKET: "flamoral-media-staging"
+
+  paymentService:
+    replicaCount: 2
+    env:
+      STRIPE_MODE: "test"
+
+  notificationService:
+    replicaCount: 2
+
+  analyticsService:
+    replicaCount: 2
+
+  moderationService:
+    replicaCount: 2
+
+  realtimeService:
+    replicaCount: 3
+    autoscaling:
+      minReplicas: 3
+      maxReplicas: 15
+
+  adminService:
+    replicaCount: 2
+
+  advertisingService:
+    replicaCount: 1
+
+  automationService:
+    replicaCount: 2
+
+  workflowEngine:
+    replicaCount: 2
+
+aiServices:
+  recommendationService:
+    replicaCount: 2
+    resources:
+      requests:
+        memory: "3Gi"
+        cpu: "1500m"
+
+  datingCoachService:
+    replicaCount: 2
+
+  moderationAIService:
+    replicaCount: 2
+
+postgresql:
+  primary:
+    persistence:
+      size: 50Gi
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+  readReplicas:
+    replicaCount: 1
+
+redis:
+  replica:
+    replicaCount: 2
+  master:
+    persistence:
+      size: 10Gi
+
+mongodb:
+  replicaCount: 2
+  persistence:
+    size: 30Gi
+
+kafka:
+  replicaCount: 2
+  persistence:
+    size: 30Gi
+  zookeeper:
+    replicaCount: 2
+
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      retention: 15d
+      persistentVolume:
+        size: 50Gi
+
+  grafana:
+    enabled: true
+
+tracing:
+  jaeger:
+    enabled: true
+
+logging:
+  loki:
+    enabled: true
+    loki:
+      persistence:
+        size: 30Gi

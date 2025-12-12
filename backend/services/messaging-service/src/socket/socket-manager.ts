@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/shared';
+import axios from 'axios';
 import {
   SendMessageRequest,
   SendMessageResponse,
@@ -17,6 +18,9 @@ import messageRepository from '../domain/repositories/message.repository';
 import conversationRepository from '../domain/repositories/conversation.repository';
 
 const logger = createLogger('socket-manager');
+
+// User service URL - should be configured via environment variable
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://user-service:3001';
 
 export class SocketManager {
   private io: Server;
@@ -355,8 +359,8 @@ export class SocketManager {
    */
   private async broadcastOnlineStatus(userId: string, online: boolean): Promise<void> {
     try {
-      // TODO: Get user's contacts/matched users from database
-      // const contacts = await getUserContacts(userId);
+      // Get user's matched contacts from user service
+      const contactUserIds = await this.getUserContacts(userId);
 
       const status: OnlineStatus = {
         userId,
@@ -364,12 +368,58 @@ export class SocketManager {
         lastSeen: online ? undefined : new Date(),
       };
 
-      // For now, broadcast to all connected clients (will be optimized later)
-      this.io.emit(online ? 'user:online' : 'user:offline', status);
-
-      logger.info(`Broadcasted ${online ? 'online' : 'offline'} status for user ${userId}`);
+      // Broadcast to all matched users who are online
+      if (contactUserIds.length > 0) {
+        for (const contactId of contactUserIds) {
+          const contactSocketId = this.userSocketMap[contactId];
+          if (contactSocketId) {
+            this.io.to(contactSocketId).emit(online ? 'user:online' : 'user:offline', status);
+          }
+        }
+        logger.info(`Broadcasted ${online ? 'online' : 'offline'} status for user ${userId} to ${contactUserIds.length} contacts`);
+      } else {
+        logger.debug(`No contacts found for user ${userId}, skipping broadcast`);
+      }
     } catch (error: any) {
       logger.error('Failed to broadcast online status:', error);
+      // Fallback: broadcast to all connected clients
+      const status: OnlineStatus = {
+        userId,
+        online,
+        lastSeen: online ? undefined : new Date(),
+      };
+      this.io.emit(online ? 'user:online' : 'user:offline', status);
+    }
+  }
+
+  /**
+   * Get user's matched contacts from user service
+   */
+  private async getUserContacts(userId: string): Promise<string[]> {
+    try {
+      const response = await axios.get(
+        `${USER_SERVICE_URL}/api/matches/${userId}/matched-user-ids`,
+        {
+          timeout: 5000,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      if (response.status === 200 && response.data.success) {
+        return response.data.data || [];
+      }
+
+      logger.warn(`Failed to get contacts for user ${userId}: ${response.status}`);
+      return [];
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+        logger.error(`User service unavailable when fetching contacts for ${userId}`);
+      } else {
+        logger.error(`Error fetching contacts for user ${userId}:`, error.message);
+      }
+      return [];
     }
   }
 

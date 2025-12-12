@@ -29,9 +29,6 @@ resource "azurerm_postgresql_flexible_server_database" "dating" {
   charset   = "utf8"
 }
 
-resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure" {
-  name             = "AllowAzureServices"
-  server_id        = azurerm_postgresql_flexible_server.main.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
+# Firewall rules removed - PostgreSQL is deployed in VNet with delegated subnet
+# Access is controlled via VNet integration and private DNS, not public firewall rules
+# If specific IP access is needed, use authorized_network_ids or service endpoints

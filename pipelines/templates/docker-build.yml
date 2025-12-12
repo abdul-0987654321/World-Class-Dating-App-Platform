@@ -1,0 +1,217 @@
+# Reusable template for building and pushing Docker images to ACR
+# Parameters:
+#   - serviceName: Name of the service/image
+#   - dockerfile: Path to Dockerfile
+#   - buildContext: Build context directory (default: .)
+#   - acrLoginServer: ACR login server URL
+#   - imageTag: Image tag to use
+#   - additionalTags: Additional tags to apply (optional)
+#   - buildArgs: Build arguments for Docker build (optional)
+#   - enableBuildKit: Enable Docker BuildKit (default: true)
+#   - pushImage: Whether to push image to registry (default: true)
+
+parameters:
+  - name: serviceName
+    type: string
+    displayName: 'Service name'
+
+  - name: dockerfile
+    type: string
+    displayName: 'Path to Dockerfile'
+
+  - name: buildContext
+    type: string
+    displayName: 'Build context directory'
+    default: '.'
+
+  - name: acrLoginServer
+    type: string
+    displayName: 'ACR login server'
+
+  - name: imageTag
+    type: string
+    displayName: 'Image tag'
+
+  - name: additionalTags
+    type: object
+    displayName: 'Additional tags'
+    default: ['latest']
+
+  - name: buildArgs
+    type: string
+    displayName: 'Build arguments'
+    default: ''
+
+  - name: enableBuildKit
+    type: boolean
+    displayName: 'Enable BuildKit'
+    default: true
+
+  - name: pushImage
+    type: boolean
+    displayName: 'Push image to registry'
+    default: true
+
+  - name: scanImage
+    type: boolean
+    displayName: 'Scan image for vulnerabilities'
+    default: false
+
+  - name: platform
+    type: string
+    displayName: 'Target platform'
+    default: 'linux/amd64'
+
+steps:
+  # Step 1: Display build information
+  - script: |
+      echo "========================================="
+      echo "Building Docker Image: ${{ parameters.serviceName }}"
+      echo "========================================="
+      echo "Dockerfile: ${{ parameters.dockerfile }}"
+      echo "Build Context: ${{ parameters.buildContext }}"
+      echo "Image Tag: ${{ parameters.imageTag }}"
+      echo "ACR Server: ${{ parameters.acrLoginServer }}"
+      echo "Platform: ${{ parameters.platform }}"
+      echo "========================================="
+    displayName: 'Display build info for ${{ parameters.serviceName }}'
+
+  # Step 2: Login to Azure Container Registry
+  - task: Docker@2
+    displayName: 'Login to ACR'
+    inputs:
+      command: 'login'
+      containerRegistry: 'flamoral-acr-connection'
+
+  # Step 3: Build Docker image
+  - task: Docker@2
+    displayName: 'Build Docker image: ${{ parameters.serviceName }}'
+    inputs:
+      command: 'build'
+      repository: '${{ parameters.serviceName }}'
+      dockerfile: '${{ parameters.dockerfile }}'
+      buildContext: '${{ parameters.buildContext }}'
+      tags: |
+        ${{ parameters.imageTag }}
+        latest
+      arguments: |
+        --platform=${{ parameters.platform }}
+        ${{ parameters.buildArgs }}
+        --label "build.id=$(Build.BuildId)"
+        --label "build.number=$(Build.BuildNumber)"
+        --label "build.sourceVersion=$(Build.SourceVersion)"
+        --label "build.sourceBranch=$(Build.SourceBranchName)"
+        --label "build.date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        --label "service.name=${{ parameters.serviceName }}"
+    env:
+      DOCKER_BUILDKIT: ${{ parameters.enableBuildKit }}
+
+  # Step 4: Tag image with ACR repository
+  - script: |
+      docker tag ${{ parameters.serviceName }}:${{ parameters.imageTag }} \
+        ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}:${{ parameters.imageTag }}
+
+      docker tag ${{ parameters.serviceName }}:${{ parameters.imageTag }} \
+        ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}:latest
+
+      # Tag with branch name if not main
+      if [ "$(Build.SourceBranchName)" != "main" ]; then
+        docker tag ${{ parameters.serviceName }}:${{ parameters.imageTag }} \
+          ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}:$(Build.SourceBranchName)-${{ parameters.imageTag }}
+      fi
+    displayName: 'Tag image for ${{ parameters.serviceName }}'
+
+  # Step 5: Scan image for vulnerabilities (if enabled)
+  - ${{ if eq(parameters.scanImage, true) }}:
+    - script: |
+        # Install Trivy
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy -y
+
+        # Scan image
+        trivy image \
+          --severity HIGH,CRITICAL \
+          --exit-code 0 \
+          --format json \
+          --output trivy-${{ parameters.serviceName }}.json \
+          ${{ parameters.serviceName }}:${{ parameters.imageTag }}
+
+        # Display results
+        trivy image \
+          --severity HIGH,CRITICAL \
+          ${{ parameters.serviceName }}:${{ parameters.imageTag }}
+      displayName: 'Scan image: ${{ parameters.serviceName }}'
+      continueOnError: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish scan results for ${{ parameters.serviceName }}'
+      inputs:
+        targetPath: 'trivy-${{ parameters.serviceName }}.json'
+        artifact: 'trivy-${{ parameters.serviceName }}'
+        publishLocation: 'pipeline'
+      condition: always()
+
+  # Step 6: Push image to ACR (if enabled)
+  - ${{ if eq(parameters.pushImage, true) }}:
+    - task: Docker@2
+      displayName: 'Push image to ACR: ${{ parameters.serviceName }}:${{ parameters.imageTag }}'
+      inputs:
+        command: 'push'
+        containerRegistry: 'flamoral-acr-connection'
+        repository: '${{ parameters.serviceName }}'
+        tags: |
+          ${{ parameters.imageTag }}
+
+    - task: Docker@2
+      displayName: 'Push image to ACR: ${{ parameters.serviceName }}:latest'
+      inputs:
+        command: 'push'
+        containerRegistry: 'flamoral-acr-connection'
+        repository: '${{ parameters.serviceName }}'
+        tags: |
+          latest
+
+    # Push branch-specific tag if not main
+    - script: |
+        if [ "$(Build.SourceBranchName)" != "main" ]; then
+          docker push ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}:$(Build.SourceBranchName)-${{ parameters.imageTag }}
+        fi
+      displayName: 'Push branch tag for ${{ parameters.serviceName }}'
+      condition: ne(variables['Build.SourceBranchName'], 'main')
+
+  # Step 7: Get image digest
+  - script: |
+      DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+        ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}:${{ parameters.imageTag }} 2>/dev/null || echo "N/A")
+      SIZE=$(docker inspect --format='{{.Size}}' \
+        ${{ parameters.serviceName }}:${{ parameters.imageTag }} | awk '{print int($1/1024/1024) " MB"}')
+
+      echo "========================================="
+      echo "Image Built Successfully"
+      echo "========================================="
+      echo "Service: ${{ parameters.serviceName }}"
+      echo "Tag: ${{ parameters.imageTag }}"
+      echo "Size: $SIZE"
+      echo "Digest: $DIGEST"
+      echo "Repository: ${{ parameters.acrLoginServer }}/${{ parameters.serviceName }}"
+      echo "========================================="
+
+      # Write to pipeline variable for later use
+      echo "##vso[task.setvariable variable=imageDigest;isOutput=true]$DIGEST"
+      echo "##vso[task.setvariable variable=imageSize;isOutput=true]$SIZE"
+    displayName: 'Get image metadata for ${{ parameters.serviceName }}'
+    name: imageMetadata
+
+  # Step 8: Cleanup local images to save space
+  - script: |
+      # Remove untagged images
+      docker images -f "dangling=true" -q | xargs -r docker rmi || true
+
+      # Remove build cache
+      docker builder prune -f || true
+
+      echo "Docker cleanup completed"
+    displayName: 'Cleanup Docker resources'
+    condition: always()

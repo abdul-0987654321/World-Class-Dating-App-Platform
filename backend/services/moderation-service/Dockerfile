@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
 
 # Copy source code
 COPY src ./src
@@ -29,7 +29,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist

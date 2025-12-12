@@ -36,13 +36,20 @@ class RedisCache {
   }
 
   /**
-   * Store a refresh token for a user
+   * Store a refresh token for a user with token family tracking
+   * Used for refresh token rotation with reuse detection
    */
-  async setRefreshToken(userId: string, token: string, expiresInSeconds: number): Promise<void> {
+  async setRefreshToken(userId: string, token: string, expiresInSeconds: number, tokenId?: string): Promise<void> {
     if (!this.client || !this.isConnected) return;
 
     try {
+      // Store the refresh token
       await this.client.setEx(`refresh_token:${userId}`, expiresInSeconds, token);
+
+      // If tokenId is provided, store it in the token family for rotation detection
+      if (tokenId) {
+        await this.client.setEx(`refresh_token_family:${tokenId}`, expiresInSeconds, userId);
+      }
     } catch (error) {
       logger.error('Failed to store refresh token', error);
     }
@@ -63,13 +70,61 @@ class RedisCache {
   }
 
   /**
+   * Check if a refresh token has been used before (rotation reuse detection)
+   */
+  async isRefreshTokenReused(tokenId: string): Promise<boolean> {
+    if (!this.client || !this.isConnected) return false;
+
+    try {
+      const userId = await this.client.get(`refresh_token_family:${tokenId}`);
+      // If token ID exists in family but is different from current, it's been reused
+      return userId !== null;
+    } catch (error) {
+      logger.error('Failed to check token reuse', error);
+      return false;
+    }
+  }
+
+  /**
+   * Invalidate all refresh tokens for a user (on security breach detection)
+   */
+  async invalidateAllUserTokens(userId: string): Promise<void> {
+    if (!this.client || !this.isConnected) return;
+
+    try {
+      // Remove the current refresh token
+      await this.client.del(`refresh_token:${userId}`);
+
+      // Find and remove all tokens in the family
+      const pattern = `refresh_token_family:*`;
+      const keys = await this.client.keys(pattern);
+
+      for (const key of keys) {
+        const storedUserId = await this.client.get(key);
+        if (storedUserId === userId) {
+          await this.client.del(key);
+        }
+      }
+
+      logger.warn(`Invalidated all tokens for user ${userId} due to security breach`);
+    } catch (error) {
+      logger.error('Failed to invalidate all user tokens', error);
+    }
+  }
+
+  /**
    * Remove a user's refresh token (logout)
    */
-  async removeRefreshToken(userId: string): Promise<void> {
+  async removeRefreshToken(userId: string, tokenId?: string): Promise<void> {
     if (!this.client || !this.isConnected) return;
 
     try {
       await this.client.del(`refresh_token:${userId}`);
+
+      // Also remove from token family if tokenId provided
+      if (tokenId) {
+        await this.client.del(`refresh_token_family:${tokenId}`);
+      }
     } catch (error) {
       logger.error('Failed to remove refresh token', error);
     }

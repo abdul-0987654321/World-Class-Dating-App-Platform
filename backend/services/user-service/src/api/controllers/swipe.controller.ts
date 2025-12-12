@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { SwipeService } from '../../domain/services/swipe.service';
+import subscriptionService from '../../domain/services/subscription.service';
 import logger from '../../utils/logger';
 
 export class SwipeController {
@@ -14,7 +15,9 @@ export class SwipeController {
     try {
       const userId = req.user!.userId;
       const { target_user_id } = req.body;
-      const isPremium = false; // TODO: Implement premium subscription check
+
+      // Check if user has premium subscription
+      const isPremium = await this.checkPremiumStatus(userId);
 
       if (!target_user_id) {
         return res.status(400).json({
@@ -150,6 +153,31 @@ export class SwipeController {
         success: false,
         message: error.message || 'Failed to retrieve swipe stats',
       });
+    }
+  }
+
+  /**
+   * Check if user has premium subscription
+   */
+  private async checkPremiumStatus(userId: string): Promise<boolean> {
+    try {
+      const subscription = await subscriptionService.getUserSubscription(userId);
+
+      if (!subscription) {
+        return false; // No subscription means free tier
+      }
+
+      // Check if subscription is active
+      if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+        return false;
+      }
+
+      // Premium tiers: basic, plus, premium, premium_plus, elite
+      const premiumTiers = ['basic', 'plus', 'premium', 'premium_plus', 'elite'];
+      return premiumTiers.includes(subscription.tier);
+    } catch (error) {
+      logger.error('Error checking premium status:', error);
+      return false; // Default to non-premium on error
     }
   }
 }

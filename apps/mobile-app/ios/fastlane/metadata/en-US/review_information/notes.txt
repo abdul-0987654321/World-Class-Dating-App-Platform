@@ -1,0 +1,38 @@
+Thank you for reviewing Flamoral!
+
+DEMO ACCOUNT:
+Email: reviewer@flamoral.com
+Password: ReviewPass2025!
+
+TESTING INSTRUCTIONS:
+1. Log in with the demo account provided above
+2. Browse potential matches by swiping left (pass) or right (like)
+3. Like profiles to create matches
+4. Access the Matches screen to see your matches
+5. Send messages to matches in real-time
+6. Test video call feature with another account (optional)
+7. View Premium features (subscription not required for review)
+
+IMPORTANT NOTES:
+• This is a dating app for users 18 years and older
+• Photo verification uses AI but is optional for users
+• Video calls use Agora SDK (approved third-party service)
+• In-app purchases are for Premium and Premium+ subscriptions
+• Push notifications are for matches and messages (users can disable)
+• Location is used only for matching nearby users, not continuously tracked
+• No third-party advertising or user tracking
+
+THIRD-PARTY SERVICES:
+• Firebase: Authentication and push notifications
+• Agora: Video calling functionality
+• Apple In-App Purchase: Payment processing
+
+SAFETY FEATURES:
+• All messages are end-to-end encrypted
+• AI content moderation for photos and messages
+• Users can report and block others
+• Photo verification available for authenticity
+
+If you have any questions during review, please contact support@flamoral.com
+
+Thank you!

@@ -6,6 +6,11 @@ import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validatio
 import emailService from '../../infrastructure/email/email.service';
 import redisCache from '../../infrastructure/cache/redis';
 import logger from '../../utils/logger';
+import accountLockoutService from './account-lockout.service';
+import sessionManagementService from './session-management.service';
+import deviceFingerprintService, { DeviceFingerprintData } from './device-fingerprint.service';
+import suspiciousLoginDetectorService, { LoginAttempt } from './suspicious-login-detector.service';
+import passwordBreachCheckerService from './password-breach-checker.service';
 
 export interface RegisterDto {
   email: string;
@@ -20,6 +25,10 @@ export interface RegisterDto {
 export interface LoginDto {
   email: string;
   password: string;
+  ip?: string;
+  userAgent?: string;
+  deviceFingerprint?: string;
+  deviceData?: Partial<DeviceFingerprintData>;
 }
 
 export interface UserResponse {
@@ -44,7 +53,7 @@ export interface AuthResponse {
 
 class AuthService {
   /**
-   * Register a new user
+   * Register a new user with password breach checking
    */
   async register(data: RegisterDto): Promise<AuthResponse> {
     // Validate input
@@ -54,6 +63,16 @@ class AuthService {
     const existingUser = await userRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('User with this email already exists');
+    }
+
+    // Check if password has been breached
+    const breachCheck = await passwordBreachCheckerService.checkPasswordBreach(data.password);
+    if (breachCheck.isBreached) {
+      logger.warn('User attempted to register with breached password', {
+        email: data.email,
+        breachCount: breachCheck.breachCount,
+      });
+      throw new Error(breachCheck.message);
     }
 
     // Hash password
@@ -86,13 +105,31 @@ class AuthService {
   }
 
   /**
-   * Login user
+   * Login user with enhanced security checks
    */
   async login(data: LoginDto): Promise<AuthResponse> {
+    const ip = data.ip || 'unknown';
+    const userAgent = data.userAgent || 'unknown';
+
     // Find user
     const user = await userRepository.findByEmail(data.email);
     if (!user) {
+      // Record failed attempt even if user doesn't exist (generic tracking)
+      logger.warn(`Login attempt for non-existent email: ${data.email} from IP: ${ip}`);
       throw new Error('Invalid credentials');
+    }
+
+    // Check if account is permanently locked
+    const isPermanentlyLocked = await accountLockoutService.isPermanentlyLocked(user.id);
+    if (isPermanentlyLocked) {
+      throw new Error('Account has been permanently locked. Please contact support.');
+    }
+
+    // Check if account is temporarily locked
+    const isLocked = await accountLockoutService.isAccountLocked(user.id);
+    if (isLocked) {
+      const remainingTime = await accountLockoutService.getRemainingLockoutTime(user.id);
+      throw new Error(`Account is temporarily locked. Please try again in ${Math.ceil(remainingTime / 60)} minutes.`);
     }
 
     // Check if user is active
@@ -103,19 +140,110 @@ class AuthService {
     // Verify password
     const isPasswordValid = await comparePassword(data.password, user.password_hash);
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      // Record failed login attempt
+      const lockoutInfo = await accountLockoutService.recordFailedAttempt(user.id, ip);
+
+      // Record failed attempt for suspicious login detection
+      const loginAttempt: LoginAttempt = {
+        userId: user.id,
+        ip,
+        userAgent,
+        timestamp: new Date(),
+        success: false,
+        deviceFingerprint: data.deviceFingerprint,
+      };
+      await suspiciousLoginDetectorService.analyzeLoginAttempt(loginAttempt);
+
+      // Provide feedback about remaining attempts
+      const remainingAttempts = 5 - lockoutInfo.failedAttempts;
+      if (remainingAttempts > 0) {
+        throw new Error(`Invalid credentials. ${remainingAttempts} attempts remaining before lockout.`);
+      } else {
+        throw new Error('Invalid credentials. Account has been temporarily locked.');
+      }
     }
+
+    // Password is valid - reset failed attempts
+    await accountLockoutService.recordSuccessfulLogin(user.id);
+
+    // Generate or get device fingerprint
+    let deviceFingerprint = data.deviceFingerprint;
+    if (!deviceFingerprint && data.deviceData) {
+      deviceFingerprint = deviceFingerprintService.generateFingerprint(
+        { headers: { 'user-agent': userAgent }, ip } as any,
+        data.deviceData
+      );
+    }
+
+    // Record device
+    let isNewDevice = false;
+    if (deviceFingerprint) {
+      const isRecognized = await deviceFingerprintService.isDeviceRecognized(user.id, deviceFingerprint);
+      isNewDevice = !isRecognized;
+
+      await deviceFingerprintService.recordDevice(user.id, deviceFingerprint, {
+        userAgent,
+        ip,
+        acceptLanguage: data.deviceData?.acceptLanguage || 'en',
+        timezone: data.deviceData?.timezone,
+        screenResolution: data.deviceData?.screenResolution,
+        platform: data.deviceData?.platform,
+      });
+    }
+
+    // Analyze login for suspicious activity
+    const loginAttempt: LoginAttempt = {
+      userId: user.id,
+      ip,
+      userAgent,
+      timestamp: new Date(),
+      success: true,
+      deviceFingerprint,
+    };
+    const suspicionIndicators = await suspiciousLoginDetectorService.analyzeLoginAttempt(loginAttempt);
+
+    // Send notification for new device or suspicious login
+    if (isNewDevice || suspicionIndicators.score >= 50) {
+      this.sendLoginNotification(user, {
+        ip,
+        userAgent,
+        deviceFingerprint: deviceFingerprint || 'unknown',
+        isNewDevice,
+        suspicionScore: suspicionIndicators.score,
+        timestamp: new Date(),
+      }).catch(error => logger.error('Failed to send login notification', error));
+    }
+
+    // Create session with device tracking
+    const session = await sessionManagementService.createSession({
+      userId: user.id,
+      deviceFingerprint,
+      ip,
+      userAgent,
+    });
 
     // Update last login
     await userRepository.updateLastLogin(user.id);
 
-    logger.info(`User logged in: ${user.email}`);
+    logger.info(`User logged in: ${user.email} from IP: ${ip}`, {
+      sessionId: session.id,
+      isNewDevice,
+      suspicionScore: suspicionIndicators.score,
+    });
 
     // Generate tokens
     const tokens = this.generateTokens(user);
 
-    // Store refresh token in Redis
-    await redisCache.setRefreshToken(user.id, tokens.refreshToken, 30 * 24 * 60 * 60); // 30 days
+    // Decode token to get jti for rotation tracking
+    const decoded = jwtUtils.decodeToken(tokens.refreshToken);
+
+    // Store refresh token in Redis with token ID for rotation detection
+    await redisCache.setRefreshToken(
+      user.id,
+      tokens.refreshToken,
+      7 * 24 * 60 * 60, // 7 days (reduced from 30)
+      decoded?.jti
+    );
 
     return {
       user: this.sanitizeUser(user),
@@ -124,12 +252,32 @@ class AuthService {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token with rotation and reuse detection
    */
   async refreshToken(refreshToken: string): Promise<TokenPair> {
     try {
       // Verify refresh token
       const payload = jwtUtils.verifyRefreshToken(refreshToken);
+
+      // Check for token reuse (potential security breach)
+      if (payload.jti) {
+        const isReused = await redisCache.isRefreshTokenReused(payload.jti);
+        if (isReused) {
+          // Token reuse detected - invalidate all tokens for this user
+          await redisCache.invalidateAllUserTokens(payload.userId);
+          logger.error(`Refresh token reuse detected for user ${payload.userId}. All tokens invalidated.`);
+          throw new Error('Token reuse detected. All sessions have been invalidated for security.');
+        }
+      }
+
+      // Verify the token matches the stored token for this user
+      const storedToken = await redisCache.getRefreshToken(payload.userId);
+      if (storedToken !== refreshToken) {
+        // Token doesn't match - possible token theft
+        await redisCache.invalidateAllUserTokens(payload.userId);
+        logger.error(`Refresh token mismatch for user ${payload.userId}. Possible token theft.`);
+        throw new Error('Invalid refresh token. All sessions have been invalidated for security.');
+      }
 
       // Find user
       const user = await userRepository.findById(payload.userId);
@@ -137,24 +285,53 @@ class AuthService {
         throw new Error('Invalid token');
       }
 
-      // Generate new tokens
+      // Remove old refresh token from family
+      if (payload.jti) {
+        await redisCache.removeRefreshToken(payload.userId, payload.jti);
+      }
+
+      // Generate new tokens (rotation)
       const tokens = this.generateTokens(user);
 
-      // Update stored refresh token
-      await redisCache.setRefreshToken(user.id, tokens.refreshToken, 30 * 24 * 60 * 60);
+      // Decode new token to get jti
+      const decoded = jwtUtils.decodeToken(tokens.refreshToken);
+
+      // Store new refresh token with token ID for rotation detection
+      await redisCache.setRefreshToken(
+        user.id,
+        tokens.refreshToken,
+        7 * 24 * 60 * 60, // 7 days
+        decoded?.jti
+      );
+
+      logger.info(`Refresh token rotated for user ${user.id}`);
 
       return tokens;
     } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Invalid or expired refresh token');
     }
   }
 
   /**
-   * Logout user
+   * Logout user with token blacklisting
    */
-  async logout(userId: string, accessToken: string): Promise<void> {
-    // Remove refresh token from Redis
-    await redisCache.removeRefreshToken(userId);
+  async logout(userId: string, accessToken: string, refreshToken?: string): Promise<void> {
+    // Decode refresh token to get jti if provided
+    let tokenId: string | undefined;
+    if (refreshToken) {
+      try {
+        const decoded = jwtUtils.decodeToken(refreshToken);
+        tokenId = decoded?.jti;
+      } catch (error) {
+        // Token might be invalid, but continue with logout
+      }
+    }
+
+    // Remove refresh token from Redis with token ID
+    await redisCache.removeRefreshToken(userId, tokenId);
 
     // Blacklist current access token
     // Calculate remaining time until token expiry
@@ -228,7 +405,7 @@ class AuthService {
   }
 
   /**
-   * Reset password with token
+   * Reset password with token and breach checking
    */
   async resetPassword(token: string, newPassword: string): Promise<void> {
     const resetToken = await tokenRepository.findByToken(token, 'password_reset');
@@ -244,6 +421,16 @@ class AuthService {
       );
     }
 
+    // Check if password has been breached
+    const breachCheck = await passwordBreachCheckerService.checkPasswordBreach(newPassword);
+    if (breachCheck.isBreached) {
+      logger.warn('User attempted to reset password with breached password', {
+        userId: resetToken.user_id,
+        breachCount: breachCheck.breachCount,
+      });
+      throw new Error(breachCheck.message);
+    }
+
     // Hash new password
     const passwordHash = await hashPassword(newPassword);
 
@@ -253,10 +440,13 @@ class AuthService {
     // Mark token as used
     await tokenRepository.markAsUsed(resetToken.id);
 
-    // Invalidate all existing sessions by removing refresh tokens
-    await redisCache.removeRefreshToken(resetToken.user_id);
+    // Invalidate all existing sessions and tokens (security measure on password change)
+    await redisCache.invalidateAllUserTokens(resetToken.user_id);
 
-    logger.info(`Password reset for user: ${resetToken.user_id}`);
+    // Revoke all active sessions
+    await sessionManagementService.revokeAllUserSessions(resetToken.user_id);
+
+    logger.info(`Password reset for user: ${resetToken.user_id}. All tokens and sessions invalidated.`);
   }
 
   /**
@@ -381,6 +571,36 @@ class AuthService {
 
     // Send email
     await emailService.sendVerificationEmail(user.email, user.first_name, token);
+  }
+
+  private async sendLoginNotification(
+    user: User,
+    loginInfo: {
+      ip: string;
+      userAgent: string;
+      deviceFingerprint: string;
+      isNewDevice: boolean;
+      suspicionScore: number;
+      timestamp: Date;
+    }
+  ): Promise<void> {
+    try {
+      logger.info('Sending login notification', {
+        userId: user.id,
+        email: user.email,
+        isNewDevice: loginInfo.isNewDevice,
+        suspicionScore: loginInfo.suspicionScore,
+      });
+
+      // In production, send actual email notification
+      // await emailService.sendLoginNotification(
+      //   user.email,
+      //   user.first_name,
+      //   loginInfo
+      // );
+    } catch (error) {
+      logger.error('Failed to send login notification', error);
+    }
   }
 }
 

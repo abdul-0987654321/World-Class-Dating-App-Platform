@@ -1,10 +1,15 @@
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
 import { config } from '../config';
 
 export interface JwtPayload {
   userId: string;
   email: string;
+  iat?: number;
+  exp?: number;
+  iss?: string;
+  aud?: string;
+  jti?: string; // JWT ID for token rotation
 }
 
 export interface TokenPair {
@@ -17,30 +22,52 @@ class JwtUtils {
   private refreshTokenSecret: string;
   private accessTokenExpiresIn: string;
   private refreshTokenExpiresIn: string;
+  private algorithm: 'HS256';
+  private issuer: string;
+  private audience: string;
 
   constructor() {
     this.accessTokenSecret = config.jwt.accessSecret;
     this.refreshTokenSecret = config.jwt.refreshSecret;
     this.accessTokenExpiresIn = config.jwt.accessExpiresIn;
     this.refreshTokenExpiresIn = config.jwt.refreshExpiresIn;
+    this.algorithm = config.jwt.algorithm;
+    this.issuer = config.jwt.issuer;
+    this.audience = config.jwt.audience;
   }
 
   /**
-   * Generate an access token
+   * Generate an access token with security best practices
    */
   generateAccessToken(payload: JwtPayload): string {
-    return jwt.sign(payload, this.accessTokenSecret, {
+    const signOptions: SignOptions = {
       expiresIn: this.accessTokenExpiresIn,
-    } as SignOptions);
+      algorithm: this.algorithm,
+      issuer: this.issuer,
+      audience: this.audience,
+    };
+
+    return jwt.sign(payload, this.accessTokenSecret, signOptions);
   }
 
   /**
-   * Generate a refresh token
+   * Generate a refresh token with unique identifier for rotation detection
    */
   generateRefreshToken(payload: JwtPayload): string {
-    return jwt.sign(payload, this.refreshTokenSecret, {
+    // Add a unique token ID for refresh token rotation detection
+    const tokenPayload = {
+      ...payload,
+      jti: this.generateRandomToken(16), // JWT ID for token rotation
+    };
+
+    const signOptions: SignOptions = {
       expiresIn: this.refreshTokenExpiresIn,
-    } as SignOptions);
+      algorithm: this.algorithm,
+      issuer: this.issuer,
+      audience: this.audience,
+    };
+
+    return jwt.sign(tokenPayload, this.refreshTokenSecret, signOptions);
   }
 
   /**
@@ -54,17 +81,51 @@ class JwtUtils {
   }
 
   /**
-   * Verify an access token
+   * Verify an access token with algorithm validation
    */
   verifyAccessToken(token: string): JwtPayload {
-    return jwt.verify(token, this.accessTokenSecret) as JwtPayload;
+    try {
+      const verifyOptions: VerifyOptions = {
+        algorithms: [this.algorithm], // Prevent algorithm confusion attacks
+        issuer: this.issuer,
+        audience: this.audience,
+      };
+
+      return jwt.verify(token, this.accessTokenSecret, verifyOptions) as JwtPayload;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error('Access token has expired');
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error('Invalid access token');
+      } else if (error instanceof jwt.NotBeforeError) {
+        throw new Error('Access token not yet valid');
+      }
+      throw new Error('Token verification failed');
+    }
   }
 
   /**
-   * Verify a refresh token
+   * Verify a refresh token with algorithm validation
    */
   verifyRefreshToken(token: string): JwtPayload {
-    return jwt.verify(token, this.refreshTokenSecret) as JwtPayload;
+    try {
+      const verifyOptions: VerifyOptions = {
+        algorithms: [this.algorithm], // Prevent algorithm confusion attacks
+        issuer: this.issuer,
+        audience: this.audience,
+      };
+
+      return jwt.verify(token, this.refreshTokenSecret, verifyOptions) as JwtPayload;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error('Refresh token has expired');
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error('Invalid refresh token');
+      } else if (error instanceof jwt.NotBeforeError) {
+        throw new Error('Refresh token not yet valid');
+      }
+      throw new Error('Token verification failed');
+    }
   }
 
   /**

@@ -1,0 +1,251 @@
+# Alertmanager Configuration for Flamoral Dating Platform
+# Integrates with PagerDuty and Slack for incident management
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: 'https://hooks.slack.com/services/YOUR_WEBHOOK_URL'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree for alert distribution
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  routes:
+    # Critical alerts go to PagerDuty immediately
+    - match:
+        severity: critical
+      receiver: 'pagerduty-critical'
+      group_wait: 0s
+      repeat_interval: 5m
+      continue: true
+
+    # Critical alerts also go to Slack
+    - match:
+        severity: critical
+      receiver: 'slack-critical'
+      group_wait: 0s
+      repeat_interval: 15m
+
+    # High severity alerts
+    - match:
+        severity: high
+      receiver: 'pagerduty-high'
+      group_wait: 30s
+      repeat_interval: 30m
+      continue: true
+
+    - match:
+        severity: high
+      receiver: 'slack-alerts'
+      repeat_interval: 1h
+
+    # Warning alerts go to Slack only
+    - match:
+        severity: warning
+      receiver: 'slack-warnings'
+      repeat_interval: 4h
+
+    # Service-specific routing
+    - match:
+        service: payment-service
+      receiver: 'pagerduty-payments'
+      routes:
+        - match:
+            severity: critical
+          receiver: 'pagerduty-payments-critical'
+          group_wait: 0s
+
+    - match:
+        service: auth-service
+      receiver: 'pagerduty-auth'
+      routes:
+        - match:
+            severity: critical
+          receiver: 'pagerduty-auth-critical'
+          group_wait: 0s
+
+    # Database alerts
+    - match_re:
+        alertname: '(Postgres|Redis|MongoDB).*'
+      receiver: 'pagerduty-database'
+      group_wait: 1m
+      repeat_interval: 15m
+
+    # Infrastructure alerts
+    - match_re:
+        alertname: '(Node|Pod|Container).*'
+      receiver: 'slack-infrastructure'
+      repeat_interval: 2h
+
+# Inhibition rules to reduce alert noise
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service', 'instance']
+
+  # Inhibit pod alerts if node is down
+  - source_match:
+      alertname: 'NodeDown'
+    target_match_re:
+      alertname: 'Pod.*'
+    equal: ['node']
+
+  # Inhibit service alerts if database is down
+  - source_match_re:
+      alertname: '(Postgres|Redis|MongoDB)Down'
+    target_match_re:
+      alertname: '.*ServiceDown'
+    equal: ['namespace']
+
+# Receiver definitions
+receivers:
+  # Default receiver
+  - name: 'default'
+    slack_configs:
+      - channel: '#flamoral-alerts-default'
+        title: 'Flamoral Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # PagerDuty - Critical alerts
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_CRITICAL_KEY'
+        severity: 'critical'
+        description: '{{ .GroupLabels.alertname }}: {{ .GroupLabels.service }}'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          resolved: '{{ .Alerts.Resolved | len }}'
+          summary: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+          description: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        client: 'Flamoral Prometheus'
+        client_url: 'https://prometheus.flamoral.com'
+
+  # PagerDuty - High severity
+  - name: 'pagerduty-high'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_HIGH_KEY'
+        severity: 'error'
+        description: '{{ .GroupLabels.alertname }}: {{ .GroupLabels.service }}'
+
+  # PagerDuty - Payment service specific
+  - name: 'pagerduty-payments'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_PAYMENTS_KEY'
+        severity: 'error'
+        description: 'Payment Service Alert: {{ .GroupLabels.alertname }}'
+
+  - name: 'pagerduty-payments-critical'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_PAYMENTS_CRITICAL_KEY'
+        severity: 'critical'
+        description: 'CRITICAL Payment Service: {{ .GroupLabels.alertname }}'
+
+  # PagerDuty - Auth service specific
+  - name: 'pagerduty-auth'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_AUTH_KEY'
+        severity: 'error'
+        description: 'Auth Service Alert: {{ .GroupLabels.alertname }}'
+
+  - name: 'pagerduty-auth-critical'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_AUTH_CRITICAL_KEY'
+        severity: 'critical'
+        description: 'CRITICAL Auth Service: {{ .GroupLabels.alertname }}'
+
+  # PagerDuty - Database alerts
+  - name: 'pagerduty-database'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_DATABASE_KEY'
+        severity: 'error'
+        description: 'Database Alert: {{ .GroupLabels.alertname }}'
+
+  # Slack - Critical channel
+  - name: 'slack-critical'
+    slack_configs:
+      - channel: '#flamoral-critical'
+        username: 'Flamoral Alert Bot'
+        icon_emoji: ':rotating_light:'
+        title: ':rotating_light: CRITICAL ALERT :rotating_light:'
+        title_link: 'https://prometheus.flamoral.com/alerts'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Service:* {{ .GroupLabels.service }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Summary:* {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          *Description:* {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+          *Firing:* {{ .Alerts.Firing | len }}
+          *Resolved:* {{ .Alerts.Resolved | len }}
+        color: 'danger'
+        send_resolved: true
+        actions:
+          - type: button
+            text: 'View in Prometheus'
+            url: 'https://prometheus.flamoral.com/alerts'
+          - type: button
+            text: 'View in Grafana'
+            url: 'https://grafana.flamoral.com'
+          - type: button
+            text: 'Runbook'
+            url: 'https://runbooks.flamoral.com/{{ .GroupLabels.alertname }}'
+
+  # Slack - Alerts channel
+  - name: 'slack-alerts'
+    slack_configs:
+      - channel: '#flamoral-alerts'
+        username: 'Flamoral Alert Bot'
+        icon_emoji: ':warning:'
+        title: 'High Priority Alert'
+        title_link: 'https://prometheus.flamoral.com/alerts'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Service:* {{ .GroupLabels.service }}
+          *Severity:* {{ .CommonLabels.severity }}
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+  # Slack - Warnings channel
+  - name: 'slack-warnings'
+    slack_configs:
+      - channel: '#flamoral-warnings'
+        username: 'Flamoral Alert Bot'
+        icon_emoji: ':information_source:'
+        title: 'Warning Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Service:* {{ .GroupLabels.service }}
+          {{ range .Alerts }}
+          {{ .Annotations.description }}
+          {{ end }}
+        color: '#FFA500'
+        send_resolved: true
+
+  # Slack - Infrastructure channel
+  - name: 'slack-infrastructure'
+    slack_configs:
+      - channel: '#flamoral-infrastructure'
+        username: 'Infrastructure Bot'
+        icon_emoji: ':construction:'
+        title: 'Infrastructure Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          {{ range .Alerts }}
+          {{ .Annotations.description }}
+          {{ end }}
+        color: '#36a64f'
+        send_resolved: true

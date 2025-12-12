@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@navigation/AuthNavigator';
 import { useAuth } from '@hooks/useAuth';
+import SocialLoginButtons from '@components/auth/SocialLoginButtons';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -69,6 +70,18 @@ const LoginScreen = ({ navigation }: Props) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <SocialLoginButtons
+        onSuccess={(isNewUser, needsProfileSetup) => {
+          if (needsProfileSetup) {
+            // Navigate to profile setup
+            Alert.alert('Welcome!', 'Please complete your profile to continue');
+          }
+        }}
+        onError={(error) => {
+          console.error('Social login error:', error);
+        }}
+      />
     </View>
   );
 };

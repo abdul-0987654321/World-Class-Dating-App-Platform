@@ -326,16 +326,209 @@ class ModelTrainer:
         """
         logger.info("Evaluating models...")
 
-        metrics = {}
+        metrics = {
+            'collaborative_filter': {},
+            'content_filter': {},
+            'hybrid_recommender': {},
+            'behavioral_learner': {}
+        }
 
-        # TODO: Implement comprehensive evaluation
-        # - Precision@K
-        # - Recall@K
-        # - NDCG
-        # - Coverage
-        # - Diversity
+        profiles = test_data.get('profiles', [])
+        interactions = test_data.get('interactions', [])
+        user_interactions = test_data.get('user_interactions', {})
+
+        if not profiles or not interactions:
+            logger.warning("Insufficient test data for evaluation")
+            return metrics
+
+        # Create profile lookup
+        profiles_dict = {p['user_id']: p for p in profiles}
+
+        # Split interactions into test pairs
+        test_pairs = [(i['user_id'], i['target_user_id'], i.get('action', 'like'))
+                      for i in interactions[:1000]]  # Limit to 1000 for performance
+
+        # Evaluation parameters
+        k_values = [5, 10, 20]
+
+        try:
+            # Evaluate Collaborative Filter
+            if hasattr(self.collaborative_filter, 'user_id_to_index'):
+                cf_metrics = self._evaluate_recommender(
+                    self.collaborative_filter,
+                    test_pairs,
+                    profiles_dict,
+                    k_values,
+                    'collaborative'
+                )
+                metrics['collaborative_filter'] = cf_metrics
+
+            # Evaluate Content-Based Filter
+            cb_metrics = self._evaluate_recommender(
+                self.content_filter,
+                test_pairs,
+                profiles_dict,
+                k_values,
+                'content'
+            )
+            metrics['content_filter'] = cb_metrics
+
+            # Evaluate Hybrid Recommender
+            hybrid_metrics = self._evaluate_recommender(
+                self.hybrid_recommender,
+                test_pairs,
+                profiles_dict,
+                k_values,
+                'hybrid'
+            )
+            metrics['hybrid_recommender'] = hybrid_metrics
+
+            # Calculate coverage and diversity
+            metrics['overall'] = {
+                'total_test_interactions': len(test_pairs),
+                'unique_users_tested': len(set(p[0] for p in test_pairs)),
+                'unique_targets_tested': len(set(p[1] for p in test_pairs))
+            }
+
+        except Exception as e:
+            logger.error(f"Error during evaluation: {e}", exc_info=True)
 
         logger.info("Model evaluation completed")
+        return metrics
+
+    def _evaluate_recommender(
+        self,
+        recommender: any,
+        test_pairs: List,
+        profiles_dict: Dict,
+        k_values: List[int],
+        model_type: str
+    ) -> Dict:
+        """
+        Evaluate a specific recommender model.
+
+        Args:
+            recommender: The recommender model to evaluate
+            test_pairs: List of (user_id, target_id, action) tuples
+            profiles_dict: Dictionary of user profiles
+            k_values: List of K values for Precision@K and Recall@K
+            model_type: Type of model being evaluated
+
+        Returns:
+            Dictionary of evaluation metrics
+        """
+        metrics = {}
+
+        # Initialize metric accumulators
+        precision_at_k = {k: [] for k in k_values}
+        recall_at_k = {k: [] for k in k_values}
+        ndcg_at_k = {k: [] for k in k_values}
+        recommended_items = set()
+
+        # Group test pairs by user
+        user_test_data = {}
+        for user_id, target_id, action in test_pairs:
+            if user_id not in user_test_data:
+                user_test_data[user_id] = []
+            # Only consider positive interactions (likes, matches)
+            if action in ['like', 'super_like', 'match']:
+                user_test_data[user_id].append(target_id)
+
+        # Evaluate for each user
+        evaluated_users = 0
+        for user_id, relevant_items in user_test_data.items():
+            if not relevant_items:
+                continue
+
+            try:
+                # Get candidate profiles (all profiles except the user)
+                candidate_profiles = [p for p in profiles_dict.values()
+                                     if p['user_id'] != user_id]
+
+                if not candidate_profiles:
+                    continue
+
+                # Get recommendations
+                if model_type == 'collaborative':
+                    recommendations = recommender.recommend(
+                        user_id=user_id,
+                        k=max(k_values),
+                        exclude_seen=True
+                    )
+                elif model_type == 'content':
+                    user_profile = profiles_dict.get(user_id, {})
+                    recommendations = recommender.recommend(
+                        user_id=user_id,
+                        user_profile=user_profile,
+                        candidate_profiles=candidate_profiles[:100],  # Limit candidates
+                        k=max(k_values)
+                    )
+                elif model_type == 'hybrid':
+                    user_profile = profiles_dict.get(user_id, {})
+                    recommendations = recommender.recommend(
+                        user_id=user_id,
+                        user_profile=user_profile,
+                        candidate_profiles=candidate_profiles[:100],
+                        k=max(k_values)
+                    )
+                else:
+                    continue
+
+                # Extract recommended user IDs
+                if isinstance(recommendations, list) and len(recommendations) > 0:
+                    if isinstance(recommendations[0], dict):
+                        recommended_ids = [r.get('user_id') for r in recommendations]
+                    else:
+                        recommended_ids = recommendations
+                else:
+                    recommended_ids = []
+
+                # Calculate metrics for each K
+                for k in k_values:
+                    top_k_recs = recommended_ids[:k]
+
+                    # Precision@K: proportion of recommended items that are relevant
+                    if top_k_recs:
+                        hits = len(set(top_k_recs) & set(relevant_items))
+                        precision = hits / len(top_k_recs)
+                        precision_at_k[k].append(precision)
+
+                        # Recall@K: proportion of relevant items that are recommended
+                        recall = hits / len(relevant_items) if relevant_items else 0
+                        recall_at_k[k].append(recall)
+
+                        # NDCG@K: Normalized Discounted Cumulative Gain
+                        dcg = sum([1 / np.log2(i + 2) if rec in relevant_items else 0
+                                  for i, rec in enumerate(top_k_recs)])
+                        idcg = sum([1 / np.log2(i + 2)
+                                   for i in range(min(len(relevant_items), k))])
+                        ndcg = dcg / idcg if idcg > 0 else 0
+                        ndcg_at_k[k].append(ndcg)
+
+                # Track coverage
+                recommended_items.update(recommended_ids)
+                evaluated_users += 1
+
+            except Exception as e:
+                logger.warning(f"Error evaluating user {user_id}: {e}")
+                continue
+
+        # Calculate average metrics
+        for k in k_values:
+            metrics[f'precision@{k}'] = np.mean(precision_at_k[k]) if precision_at_k[k] else 0
+            metrics[f'recall@{k}'] = np.mean(recall_at_k[k]) if recall_at_k[k] else 0
+            metrics[f'ndcg@{k}'] = np.mean(ndcg_at_k[k]) if ndcg_at_k[k] else 0
+
+        # Calculate coverage (percentage of items that were recommended at least once)
+        total_items = len(profiles_dict)
+        metrics['coverage'] = len(recommended_items) / total_items if total_items > 0 else 0
+
+        # Calculate diversity (average pairwise distance between recommendations)
+        # Simplified diversity measure based on unique recommendations
+        metrics['diversity'] = len(recommended_items) / (evaluated_users * max(k_values)) if evaluated_users > 0 else 0
+
+        metrics['evaluated_users'] = evaluated_users
+
         return metrics
 
     def save_metadata(self):

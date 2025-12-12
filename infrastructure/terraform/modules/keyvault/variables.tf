@@ -105,3 +105,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_purge_protection" {
+  description = "Enable purge protection for Key Vault (recommended for production)"
+  type        = bool
+  default     = false
+}

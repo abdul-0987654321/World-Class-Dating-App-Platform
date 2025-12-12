@@ -1,5 +1,6 @@
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
+import emailService from '../../infrastructure/email/email.service';
 import crypto from 'crypto';
 
 export interface LoginAttempt {
@@ -109,7 +110,16 @@ export class SecurityService {
             ip_address: ipAddress,
           });
 
-          // TODO: Send email with unlock link
+          // Send email with unlock link
+          try {
+            const user = await db('users').where({ id: userId }).first();
+            if (user) {
+              await this.sendAccountLockedEmail(user, unlockToken, unlockAt);
+            }
+          } catch (emailError) {
+            logger.error('Failed to send account locked email:', emailError);
+            // Don't fail the lockout if email fails
+          }
 
           logger.warn(`Account locked for user ${userId} due to ${failedCount} failed login attempts`);
         }
@@ -509,5 +519,114 @@ export class SecurityService {
       logger.error('Error unlocking account:', error);
       throw new Error('Failed to unlock account');
     }
+  }
+
+  /**
+   * Send account locked email notification with unlock link
+   */
+  private async sendAccountLockedEmail(user: any, unlockToken: string, unlockAt: Date): Promise<void> {
+    const firstName = user.first_name || 'User';
+    const unlockAtFormatted = unlockAt.toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+    const unlockUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/unlock-account?token=${unlockToken}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .warning { background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+            .info { background: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Account Temporarily Locked</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <div class="warning">
+                <strong>Your account has been temporarily locked due to multiple failed login attempts.</strong>
+              </div>
+              <p>For your security, we've temporarily locked your Flamoral account after detecting several unsuccessful login attempts.</p>
+
+              <h3>What happens now?</h3>
+              <div class="info">
+                <p><strong>Automatic unlock:</strong> Your account will be automatically unlocked on ${unlockAtFormatted}</p>
+              </div>
+
+              <h3>Want to unlock now?</h3>
+              <p>If this was you trying to log in, you can unlock your account immediately by clicking the button below:</p>
+              <div style="text-align: center;">
+                <a href="${unlockUrl}" class="button">Unlock My Account</a>
+              </div>
+              <p>Or copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; color: #667eea;">${unlockUrl}</p>
+
+              <h3>Didn't attempt to log in?</h3>
+              <p>If you didn't try to access your account, someone else may be trying to gain unauthorized access. We recommend:</p>
+              <ul>
+                <li>Changing your password immediately after unlocking</li>
+                <li>Enabling two-factor authentication</li>
+                <li>Reviewing your recent account activity</li>
+                <li>Contacting our support team if you need assistance</li>
+              </ul>
+
+              <p>If you have any questions or concerns, please contact our security team at security@flamoral.com</p>
+              <p>Best regards,<br>The Flamoral Security Team</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2025 Flamoral. All rights reserved.</p>
+              <p>This is an automated security message, please do not reply to this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      Account Temporarily Locked
+
+      Hi ${firstName},
+
+      Your account has been temporarily locked due to multiple failed login attempts.
+
+      For your security, we've temporarily locked your Flamoral account after detecting several unsuccessful login attempts.
+
+      AUTOMATIC UNLOCK:
+      Your account will be automatically unlocked on ${unlockAtFormatted}
+
+      UNLOCK NOW:
+      If this was you trying to log in, you can unlock your account immediately by visiting:
+      ${unlockUrl}
+
+      DIDN'T ATTEMPT TO LOG IN?
+      If you didn't try to access your account, someone else may be trying to gain unauthorized access. We recommend:
+      - Changing your password immediately after unlocking
+      - Enabling two-factor authentication
+      - Reviewing your recent account activity
+      - Contacting our support team if you need assistance
+
+      Questions? Contact security@flamoral.com
+
+      Best regards,
+      The Flamoral Security Team
+    `;
+
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Your Flamoral Account Has Been Locked',
+      html,
+      text,
+    });
   }
 }

@@ -1,0 +1,53 @@
+# Docker Infrastructure - Git Ignore
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+.env.dev
+.env.staging
+.env.prod
+
+# Backup files
+backups/
+*.sql
+*.dump
+*.backup
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker volumes (if mounted locally)
+volumes/
+data/
+
+# Test output
+test-results/
+coverage/
+
+# Build artifacts
+*.tar
+*.tar.gz
+*.zip
+
+# Local scripts (for testing)
+test-*.sh
+debug-*.sh
+local-*.sh

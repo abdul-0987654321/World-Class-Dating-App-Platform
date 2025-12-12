@@ -1,0 +1,859 @@
+# Flamoral Dating Platform - Complete Helm Values
+# Override these values for different environments (dev, staging, production)
+
+global:
+  environment: production
+  namespace: flamoral-dating
+  imageRegistry: docker.io/flamoral
+  imagePullPolicy: Always
+  storageClass: fast-ssd
+  domain: flamoral.com
+
+  # Global secrets (use external-secrets in production)
+  secrets:
+    jwtSecret: "CHANGE_ME_IN_PRODUCTION"
+    encryptionKey: "CHANGE_ME_IN_PRODUCTION"
+    databasePassword: "CHANGE_ME_IN_PRODUCTION"
+    redisPassword: "CHANGE_ME_IN_PRODUCTION"
+
+# ============================================================================
+# SERVICES CONFIGURATION
+# ============================================================================
+
+services:
+  # API Gateway
+  apiGateway:
+    enabled: true
+    name: api-gateway
+    replicaCount: 5
+    image:
+      repository: flamoral/api-gateway
+      tag: latest
+    service:
+      type: LoadBalancer
+      port: 80
+      targetPort: 3000
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 5
+      maxReplicas: 50
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+    env:
+      PORT: "3000"
+      NODE_ENV: "production"
+      RATE_LIMIT_WINDOW: "900000"
+      RATE_LIMIT_MAX_REQUESTS: "100"
+
+  # Auth Service
+  authService:
+    enabled: true
+    name: auth-service
+    replicaCount: 5
+    image:
+      repository: flamoral/auth-service
+      tag: latest
+    service:
+      port: 3002
+      targetPort: 3002
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 5
+      maxReplicas: 30
+      targetCPUUtilizationPercentage: 65
+    database:
+      name: flamoral_auth
+    env:
+      PORT: "3002"
+      TOKEN_EXPIRY: "3600"
+      REFRESH_TOKEN_EXPIRY: "604800"
+      MAX_LOGIN_ATTEMPTS: "5"
+
+  # User Service
+  userService:
+    enabled: true
+    name: user-service
+    replicaCount: 3
+    image:
+      repository: flamoral/user-service
+      tag: latest
+    service:
+      port: 3001
+      targetPort: 3001
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_users
+    env:
+      PORT: "3001"
+
+  # Matching Service
+  matchingService:
+    enabled: true
+    name: matching-service
+    replicaCount: 4
+    image:
+      repository: flamoral/matching-service
+      tag: latest
+    service:
+      port: 3003
+      targetPort: 3003
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 4
+      maxReplicas: 25
+      targetCPUUtilizationPercentage: 75
+    database:
+      name: flamoral_matching
+    env:
+      PORT: "3003"
+      ML_MODEL_ENDPOINT: "http://ai-recommendation-service.flamoral-ai:5000"
+      MAX_DAILY_MATCHES: "50"
+
+  # Messaging Service
+  messagingService:
+    enabled: true
+    name: messaging-service
+    replicaCount: 5
+    image:
+      repository: flamoral/messaging-service
+      tag: latest
+    service:
+      port: 3004
+      targetPort: 3004
+    resources:
+      requests:
+        memory: "768Mi"
+        cpu: "500m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 5
+      maxReplicas: 40
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_messaging
+    mongodb:
+      enabled: true
+      database: flamoral_messages
+    env:
+      PORT: "3004"
+      MAX_MESSAGE_LENGTH: "2000"
+      MESSAGE_RETENTION_DAYS: "90"
+
+  # Media Service
+  mediaService:
+    enabled: true
+    name: media-service
+    replicaCount: 4
+    image:
+      repository: flamoral/media-service
+      tag: latest
+    service:
+      port: 3005
+      targetPort: 3005
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 4
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 75
+    database:
+      name: flamoral_media
+    env:
+      PORT: "3005"
+      S3_BUCKET: "flamoral-media-production"
+      S3_REGION: "us-east-1"
+      CDN_URL: "https://cdn.flamoral.com"
+      MAX_FILE_SIZE: "10485760"
+
+  # Payment Service
+  paymentService:
+    enabled: true
+    name: payment-service
+    replicaCount: 3
+    image:
+      repository: flamoral/payment-service
+      tag: latest
+    service:
+      port: 3006
+      targetPort: 3006
+    resources:
+      requests:
+        memory: "768Mi"
+        cpu: "500m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 15
+      targetCPUUtilizationPercentage: 60
+    database:
+      name: flamoral_payments
+    env:
+      PORT: "3006"
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+
+  # Notification Service
+  notificationService:
+    enabled: true
+    name: notification-service
+    replicaCount: 3
+    image:
+      repository: flamoral/notification-service
+      tag: latest
+    service:
+      port: 3007
+      targetPort: 3007
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_notifications
+    env:
+      PORT: "3007"
+      FCM_ENABLED: "true"
+      APNS_ENABLED: "true"
+      EMAIL_ENABLED: "true"
+
+  # Analytics Service
+  analyticsService:
+    enabled: true
+    name: analytics-service
+    replicaCount: 2
+    image:
+      repository: flamoral/analytics-service
+      tag: latest
+    service:
+      port: 3008
+      targetPort: 3008
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 75
+    database:
+      name: flamoral_analytics
+    env:
+      PORT: "3008"
+
+  # Moderation Service
+  moderationService:
+    enabled: true
+    name: moderation-service
+    replicaCount: 3
+    image:
+      repository: flamoral/moderation-service
+      tag: latest
+    service:
+      port: 3009
+      targetPort: 3009
+    resources:
+      requests:
+        memory: "768Mi"
+        cpu: "500m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 15
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_moderation
+    env:
+      PORT: "3009"
+      AUTO_BAN_THRESHOLD: "0.95"
+      MANUAL_REVIEW_THRESHOLD: "0.75"
+
+  # Realtime Service
+  realtimeService:
+    enabled: true
+    name: realtime-service
+    replicaCount: 4
+    image:
+      repository: flamoral/realtime-service
+      tag: latest
+    service:
+      type: LoadBalancer
+      port: 8080
+      targetPort: 8080
+      sessionAffinity: ClientIP
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 4
+      maxReplicas: 30
+      targetCPUUtilizationPercentage: 65
+    env:
+      PORT: "3010"
+      WS_PORT: "8080"
+      MAX_CONNECTIONS_PER_POD: "10000"
+
+  # Admin Service
+  adminService:
+    enabled: true
+    name: admin-service
+    replicaCount: 2
+    image:
+      repository: flamoral/admin-service
+      tag: latest
+    service:
+      port: 3011
+      targetPort: 3011
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_admin
+    env:
+      PORT: "3011"
+
+  # Advertising Service
+  advertisingService:
+    enabled: true
+    name: advertising-service
+    replicaCount: 2
+    image:
+      repository: flamoral/advertising-service
+      tag: latest
+    service:
+      port: 3012
+      targetPort: 3012
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+    database:
+      name: flamoral_advertising
+    env:
+      PORT: "3012"
+
+  # Automation Service
+  automationService:
+    enabled: true
+    name: automation-service
+    replicaCount: 2
+    image:
+      repository: flamoral/automation-service
+      tag: latest
+    service:
+      port: 3013
+      targetPort: 3013
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+    database:
+      name: flamoral_automation
+    env:
+      PORT: "3013"
+
+  # Workflow Engine
+  workflowEngine:
+    enabled: true
+    name: workflow-engine
+    replicaCount: 3
+    image:
+      repository: flamoral/workflow-engine
+      tag: latest
+    service:
+      port: 3014
+      targetPort: 3014
+    resources:
+      requests:
+        memory: "768Mi"
+        cpu: "500m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 12
+      targetCPUUtilizationPercentage: 70
+    database:
+      name: flamoral_workflows
+    env:
+      PORT: "3014"
+
+# ============================================================================
+# AI SERVICES
+# ============================================================================
+
+aiServices:
+  namespace: flamoral-ai
+
+  # AI Recommendation Service
+  recommendationService:
+    enabled: true
+    name: ai-recommendation-service
+    replicaCount: 3
+    image:
+      repository: flamoral/ai-recommendation-service
+      tag: latest
+    service:
+      port: 5000
+      targetPort: 5000
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2000m"
+        nvidia.com/gpu: 1
+      limits:
+        memory: "8Gi"
+        cpu: "4000m"
+        nvidia.com/gpu: 1
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 80
+    nodeSelector:
+      workload-type: ml
+    env:
+      PORT: "5000"
+      MODEL_VERSION: "v2.3.0"
+      ENABLE_GPU: "true"
+
+  # Dating Coach Service
+  datingCoachService:
+    enabled: true
+    name: dating-coach-service
+    replicaCount: 3
+    image:
+      repository: flamoral/dating-coach-service
+      tag: latest
+    service:
+      port: 5001
+      targetPort: 5001
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 15
+      targetCPUUtilizationPercentage: 75
+    env:
+      PORT: "5001"
+      OPENAI_MODEL: "gpt-4-turbo"
+
+  # AI Moderation Service
+  moderationAIService:
+    enabled: true
+    name: ai-moderation-service
+    replicaCount: 2
+    image:
+      repository: flamoral/ai-moderation-service
+      tag: latest
+    service:
+      port: 5002
+      targetPort: 5002
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+        nvidia.com/gpu: 1
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+        nvidia.com/gpu: 1
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 80
+    nodeSelector:
+      workload-type: ml
+    env:
+      PORT: "5002"
+
+# ============================================================================
+# DATABASE DEPENDENCIES
+# ============================================================================
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "CHANGE_ME"
+    username: "flamoral"
+    password: "CHANGE_ME"
+    database: "flamoral"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: fast-ssd
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: 2000m
+      limits:
+        memory: 8Gi
+        cpu: 4000m
+  readReplicas:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: 2000m
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+redis:
+  enabled: true
+  architecture: replication
+  auth:
+    enabled: true
+    password: "CHANGE_ME"
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: fast-ssd
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+  replica:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+mongodb:
+  enabled: true
+  architecture: replicaset
+  replicaCount: 3
+  auth:
+    enabled: true
+    rootPassword: "CHANGE_ME"
+    username: "flamoral"
+    password: "CHANGE_ME"
+    database: "flamoral_messages"
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: fast-ssd
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+kafka:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: fast-ssd
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  metrics:
+    kafka:
+      enabled: true
+    jmx:
+      enabled: true
+  zookeeper:
+    enabled: true
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      retention: 30d
+      persistentVolume:
+        enabled: true
+        size: 100Gi
+        storageClass: fast-ssd
+      resources:
+        requests:
+          memory: 4Gi
+          cpu: 2000m
+        limits:
+          memory: 8Gi
+          cpu: 4000m
+    alertmanager:
+      enabled: true
+      persistentVolume:
+        enabled: true
+        size: 10Gi
+    nodeExporter:
+      enabled: true
+    kubeStateMetrics:
+      enabled: true
+
+  grafana:
+    enabled: true
+    adminPassword: "CHANGE_ME"
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: fast-ssd
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 1000m
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-server
+          isDefault: true
+        - name: Loki
+          type: loki
+          url: http://loki:3100
+        - name: Jaeger
+          type: jaeger
+          url: http://jaeger-query:16686
+
+tracing:
+  jaeger:
+    enabled: true
+    collector:
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 500m
+        limits:
+          memory: 1Gi
+          cpu: 1000m
+    query:
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 250m
+        limits:
+          memory: 512Mi
+          cpu: 500m
+    storage:
+      type: elasticsearch
+      elasticsearch:
+        host: elasticsearch-master
+        port: 9200
+
+logging:
+  loki:
+    enabled: true
+    loki:
+      persistence:
+        enabled: true
+        size: 50Gi
+        storageClass: fast-ssd
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+    promtail:
+      enabled: true
+      resources:
+        requests:
+          memory: 128Mi
+          cpu: 100m
+        limits:
+          memory: 256Mi
+          cpu: 200m
+
+# ============================================================================
+# INGRESS & NETWORKING
+# ============================================================================
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: api.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+    - host: ws.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: realtime-service
+    - host: admin.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: admin-service
+  tls:
+    - secretName: flamoral-tls
+      hosts:
+        - api.flamoral.com
+        - ws.flamoral.com
+        - admin.flamoral.com
+
+# ============================================================================
+# SECURITY
+# ============================================================================
+
+networkPolicies:
+  enabled: true
+
+podSecurityPolicies:
+  enabled: true
+
+serviceAccounts:
+  create: true
+  annotations: {}
+
+rbac:
+  create: true
+
+# ============================================================================
+# BACKUP & DISASTER RECOVERY
+# ============================================================================
+
+backups:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: 30
+  storage:
+    type: s3
+    bucket: flamoral-backups
+    region: us-east-1

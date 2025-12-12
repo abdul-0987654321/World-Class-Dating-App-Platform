@@ -10,7 +10,7 @@ resource "azurerm_key_vault" "main" {
   enabled_for_deployment      = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = var.soft_delete_retention_days
-  purge_protection_enabled    = var.env == "prod" ? true : false
+  purge_protection_enabled    = var.enable_purge_protection
   sku_name                    = var.sku_name
 
   enable_rbac_authorization = true

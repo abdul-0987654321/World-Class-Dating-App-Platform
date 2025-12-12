@@ -69,17 +69,9 @@ resource "azurerm_network_security_group" "aks" {
     destination_address_prefix = "*"
   }
 
-  security_rule {
-    name                       = "AllowHTTP"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
+  # HTTP rule removed - traffic should only use HTTPS (443)
+  # If HTTP redirect is needed, configure it at the ingress controller level
+  # Public HTTP access from NSG removed for security compliance
 
   tags = var.tags
 }

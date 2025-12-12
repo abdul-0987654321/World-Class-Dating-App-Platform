@@ -66,13 +66,13 @@ terraform {
 # Azure CLI commands to create it:
 #
 # # Create resource group for Terraform state
-# az group create --name flamoral-tfstate-rg --location westus2
+# az group create --name flamoral-tfstate-rg --location eastus
 #
 # # Create storage account
 # az storage account create \
 #   --name flamoraltfstatedev \
 #   --resource-group flamoral-tfstate-rg \
-#   --location westus2 \
+#   --location eastus \
 #   --sku Standard_LRS \
 #   --encryption-services blob
 #

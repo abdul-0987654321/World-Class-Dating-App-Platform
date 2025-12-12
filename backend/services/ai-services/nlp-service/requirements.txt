@@ -1,8 +1,8 @@
 # FastAPI and web server
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
-httpx==0.26.0
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+httpx==0.28.0
 
 # Database and caching
 asyncpg==0.29.0
@@ -11,22 +11,22 @@ motor==3.3.2
 sqlalchemy[asyncio]==2.0.25
 
 # ML and NLP
-numpy==1.26.3
-pandas==2.1.4
-scikit-learn==1.4.0
-torch==2.1.2
-transformers==4.36.2
-sentence-transformers==2.2.2
-spacy==3.7.2
-nltk==3.8.1
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.5.2
+torch==2.5.1
+transformers==4.46.3
+sentence-transformers==3.3.1
+spacy==3.8.2
+nltk==3.9.1
 textblob==0.17.1
 langdetect==1.0.9
 emoji==2.10.0
 better-profanity==0.7.0
 
 # Data validation
-pydantic==2.5.3
-pydantic-settings==2.1.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
 
 # Authentication
 python-jose[cryptography]==3.3.0

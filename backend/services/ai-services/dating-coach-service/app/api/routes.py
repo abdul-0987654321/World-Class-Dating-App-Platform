@@ -1,7 +1,8 @@
 """API routes for Dating Coach Service."""
 
 import logging
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, Depends
+from typing import Dict, Any
 from models import (
     IcebreakerRequest,
     IcebreakerResponse,
@@ -16,6 +17,7 @@ from models import (
     UsageRequest,
     UsageResponse,
 )
+from app.api.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,11 @@ router = APIRouter()
 
 
 @router.post("/coach/icebreakers", response_model=IcebreakerResponse)
-async def generate_icebreakers(request: IcebreakerRequest, app_request: Request):
+async def generate_icebreakers(
+    request: IcebreakerRequest,
+    app_request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     Generate icebreaker messages for a match.
 
@@ -33,9 +39,9 @@ async def generate_icebreakers(request: IcebreakerRequest, app_request: Request)
         # Check rate limit
         rate_limiter = app_request.app.state.rate_limiter
         usage_check = await rate_limiter.check_and_increment(
-            user_id=request.user_id,
+            user_id=current_user["user_id"],
             coaching_type="icebreaker",
-            subscription_tier="premium",  # TODO: Get from user context
+            subscription_tier=current_user["subscription_tier"],
         )
 
         if not usage_check["allowed"]:
@@ -70,7 +76,11 @@ async def generate_icebreakers(request: IcebreakerRequest, app_request: Request)
 
 
 @router.post("/coach/suggest-response", response_model=ResponseSuggestionResponse)
-async def suggest_response(request: ResponseSuggestionRequest, app_request: Request):
+async def suggest_response(
+    request: ResponseSuggestionRequest,
+    app_request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     Suggest responses based on conversation context.
 
@@ -80,9 +90,9 @@ async def suggest_response(request: ResponseSuggestionRequest, app_request: Requ
         # Check rate limit
         rate_limiter = app_request.app.state.rate_limiter
         usage_check = await rate_limiter.check_and_increment(
-            user_id=request.user_id,
+            user_id=current_user["user_id"],
             coaching_type="response",
-            subscription_tier="premium",  # TODO: Get from user context
+            subscription_tier=current_user["subscription_tier"],
         )
 
         if not usage_check["allowed"]:
@@ -119,7 +129,11 @@ async def suggest_response(request: ResponseSuggestionRequest, app_request: Requ
 
 
 @router.post("/coach/profile-tips", response_model=ProfileTipsResponse)
-async def get_profile_tips(request: ProfileTipsRequest, app_request: Request):
+async def get_profile_tips(
+    request: ProfileTipsRequest,
+    app_request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     Analyze profile and provide optimization tips.
 
@@ -129,9 +143,9 @@ async def get_profile_tips(request: ProfileTipsRequest, app_request: Request):
         # Check rate limit
         rate_limiter = app_request.app.state.rate_limiter
         usage_check = await rate_limiter.check_and_increment(
-            user_id=request.user_id,
+            user_id=current_user["user_id"],
             coaching_type="profile_tips",
-            subscription_tier="premium",  # TODO: Get from user context
+            subscription_tier=current_user["subscription_tier"],
         )
 
         if not usage_check["allowed"]:
@@ -166,7 +180,11 @@ async def get_profile_tips(request: ProfileTipsRequest, app_request: Request):
 
 
 @router.post("/coach/date-ideas", response_model=DateIdeasResponse)
-async def generate_date_ideas(request: DateIdeasRequest, app_request: Request):
+async def generate_date_ideas(
+    request: DateIdeasRequest,
+    app_request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     Generate personalized date ideas based on both profiles.
 
@@ -176,9 +194,9 @@ async def generate_date_ideas(request: DateIdeasRequest, app_request: Request):
         # Check rate limit
         rate_limiter = app_request.app.state.rate_limiter
         usage_check = await rate_limiter.check_and_increment(
-            user_id=request.user_id,
+            user_id=current_user["user_id"],
             coaching_type="date_ideas",
-            subscription_tier="premium",  # TODO: Get from user context
+            subscription_tier=current_user["subscription_tier"],
         )
 
         if not usage_check["allowed"]:
@@ -216,7 +234,11 @@ async def generate_date_ideas(request: DateIdeasRequest, app_request: Request):
 
 
 @router.post("/coach/conversation-analysis", response_model=ConversationAnalysisResponse)
-async def analyze_conversation(request: ConversationAnalysisRequest, app_request: Request):
+async def analyze_conversation(
+    request: ConversationAnalysisRequest,
+    app_request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     Analyze conversation flow and provide insights.
 
@@ -226,9 +248,9 @@ async def analyze_conversation(request: ConversationAnalysisRequest, app_request
         # Check rate limit
         rate_limiter = app_request.app.state.rate_limiter
         usage_check = await rate_limiter.check_and_increment(
-            user_id=request.user_id,
+            user_id=current_user["user_id"],
             coaching_type="conversation_analysis",
-            subscription_tier="premium",  # TODO: Get from user context
+            subscription_tier=current_user["subscription_tier"],
         )
 
         if not usage_check["allowed"]:

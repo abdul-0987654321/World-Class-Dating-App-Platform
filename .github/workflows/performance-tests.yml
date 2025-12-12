@@ -19,12 +19,12 @@ env:
 
 jobs:
   # ===========================================
-  # Load Testing with k6
+  # Load Testing with k6 - Enhanced
   # ===========================================
   load-tests:
-    name: Load Tests (k6)
+    name: Load Tests (k6) - 1000 VUs
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
@@ -37,42 +37,74 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6
 
-      - name: Run API Load Tests
-        run: |
-          k6 run --out json=results.json backend/tests/performance/k6/api-load-test.js
-        env:
-          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
-          K6_VUS: 50
-          K6_DURATION: '5m'
+      - name: Create results directory
+        run: mkdir -p backend/tests/performance/k6/results
 
-      - name: Run Stress Tests
+      - name: Run Load Test (Normal Traffic)
         run: |
-          k6 run --out json=stress-results.json backend/tests/performance/k6/stress-test.js
+          k6 run \
+            --out json=backend/tests/performance/k6/results/load-test.json \
+            --out influxdb=http://localhost:8086/k6 \
+            backend/tests/performance/k6/scenarios/01-load-test.js
         env:
-          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+          K6_WS_URL: ${{ secrets.STAGING_WS_URL || 'ws://localhost:3000' }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL || 'loadtest@example.com' }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD || 'TestPassword123!' }}
+          K6_INFLUXDB_URL: http://localhost:8086
+          K6_INFLUXDB_DB: k6
 
-      - name: Upload k6 results
+      - name: Upload load test results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: k6-results
-          path: |
-            results.json
-            stress-results.json
-          retention-days: 30
+          name: load-test-results
+          path: backend/tests/performance/k6/results/load-test*
+          retention-days: 90
 
-      - name: Check Performance Thresholds
+  # ===========================================
+  # Stress Testing - High Load
+  # ===========================================
+  stress-tests:
+    name: Stress Tests - 10K VUs
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: load-tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
         run: |
-          # Parse results and check against thresholds
-          echo "Checking performance thresholds..."
-          # p95 response time < 500ms
-          # Error rate < 1%
-          # Throughput > 100 rps
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run Stress Test
+        run: |
+          k6 run \
+            --out json=backend/tests/performance/k6/results/stress-test.json \
+            backend/tests/performance/k6/scenarios/02-stress-test.js
+        env:
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
+
+      - name: Upload stress test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-test-results
+          path: backend/tests/performance/k6/results/stress-test*
+          retention-days: 90
 
   # ===========================================
   # Spike Testing
   # ===========================================
   spike-tests:
-    name: Spike Tests
+    name: Spike Tests - Sudden Traffic
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: load-tests
@@ -88,18 +120,136 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6
 
-      - name: Run Spike Tests
+      - name: Run Spike Test
         run: |
-          k6 run --out json=spike-results.json backend/tests/performance/k6/spike-test.js
+          k6 run \
+            --out json=backend/tests/performance/k6/results/spike-test.json \
+            backend/tests/performance/k6/scenarios/03-spike-test.js
         env:
           K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
 
       - name: Upload spike test results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: spike-test-results
-          path: spike-results.json
-          retention-days: 30
+          path: backend/tests/performance/k6/results/spike-test*
+          retention-days: 90
+
+  # ===========================================
+  # Soak Testing - Extended Duration
+  # ===========================================
+  soak-tests:
+    name: Soak Tests - 2 Hours
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run Soak Test
+        run: |
+          k6 run \
+            --out json=backend/tests/performance/k6/results/soak-test.json \
+            backend/tests/performance/k6/scenarios/04-soak-test.js
+        env:
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
+
+      - name: Upload soak test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soak-test-results
+          path: backend/tests/performance/k6/results/soak-test*
+          retention-days: 90
+
+  # ===========================================
+  # API Endpoint Testing
+  # ===========================================
+  api-endpoint-tests:
+    name: API Endpoint Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run API Endpoint Tests
+        run: |
+          k6 run \
+            --out json=backend/tests/performance/k6/results/api-endpoints.json \
+            backend/tests/performance/k6/scenarios/05-api-endpoints-test.js
+        env:
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
+
+      - name: Upload API endpoint test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-endpoint-test-results
+          path: backend/tests/performance/k6/results/api-endpoints*
+          retention-days: 90
+
+  # ===========================================
+  # WebSocket Testing
+  # ===========================================
+  websocket-tests:
+    name: WebSocket Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run WebSocket Tests
+        run: |
+          k6 run \
+            --out json=backend/tests/performance/k6/results/websocket-test.json \
+            backend/tests/performance/k6/scenarios/06-websocket-test.js
+        env:
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_WS_URL: ${{ secrets.STAGING_WS_URL }}
+          K6_TEST_EMAIL: ${{ secrets.K6_TEST_EMAIL }}
+          K6_TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
+
+      - name: Upload WebSocket test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: websocket-test-results
+          path: backend/tests/performance/k6/results/websocket-test*
+          retention-days: 90
 
   # ===========================================
   # Frontend Performance (Lighthouse)

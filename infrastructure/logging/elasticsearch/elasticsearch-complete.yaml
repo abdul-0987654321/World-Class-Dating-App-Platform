@@ -201,9 +201,18 @@ metadata:
   name: elasticsearch-credentials
   namespace: logging
 type: Opaque
-stringData:
-  username: "elastic"
-  password: "CHANGE_ME_ELASTICSEARCH_PASSWORD"
+# SECURITY: Password must be set via kubectl or external secret management
+# DO NOT hardcode passwords in manifests
+# Usage:
+#   kubectl create secret generic elasticsearch-credentials \
+#     --from-literal=username=elastic \
+#     --from-literal=password=$(openssl rand -base64 32) \
+#     -n logging
+# Or use Azure Key Vault integration with CSI driver
+data:
+  # Base64 encoded values - must be generated securely
+  # username: ZWxhc3RpYw==  (elastic)
+  # password: <GENERATE_SECURE_PASSWORD_BASE64>
 
 ---
 # Index Lifecycle Policy

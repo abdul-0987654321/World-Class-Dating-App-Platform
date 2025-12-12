@@ -49,11 +49,8 @@ resource "azurerm_private_endpoint" "redis" {
   tags = var.tags
 }
 
-# Firewall rules for Redis
-resource "azurerm_redis_firewall_rule" "allow_azure" {
-  name                = "AllowAzureServices"
-  redis_cache_name    = azurerm_redis_cache.main.name
-  resource_group_name = var.resource_group_name
-  start_ip            = "0.0.0.0"
-  end_ip              = "0.0.0.0"
-}
+# Firewall rules removed - Redis access is controlled via:
+# 1. VNet injection for Premium SKU (subnet_id)
+# 2. Private endpoints for Standard/Premium SKU
+# 3. Service endpoints on AKS subnet
+# Public firewall rules (0.0.0.0) are overly permissive and removed for security

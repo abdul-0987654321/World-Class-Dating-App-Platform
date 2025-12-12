@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -118,6 +119,19 @@ export const LoginPage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        <SocialLoginButtons
+          onSuccess={(isNewUser, needsProfileSetup) => {
+            if (needsProfileSetup) {
+              navigate('/profile-setup');
+            } else {
+              navigate('/discover');
+            }
+          }}
+          onError={(error) => {
+            setError(error.message || 'Social login failed');
+          }}
+        />
 
         <div className="mt-6 text-center">
           <p className="text-sm text-charcoal-500">

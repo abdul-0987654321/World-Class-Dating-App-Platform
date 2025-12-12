@@ -1,6 +1,13 @@
-# Pod Security Standards for Production
+# DEPRECATED: PodSecurityPolicy API
+# PodSecurityPolicy was deprecated in Kubernetes 1.21 and removed in 1.25
+# Migrate to Pod Security Standards (PSS) using namespace labels
+# See: infrastructure/kubernetes/security/pod-security-standards.yaml
+#
+# This file is kept for reference only and should not be applied to clusters running K8s 1.25+
 
-# Restricted Pod Security Policy
+# Pod Security Standards for Production (DEPRECATED)
+
+# Restricted Pod Security Policy (DEPRECATED)
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:

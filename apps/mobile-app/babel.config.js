@@ -1,6 +1,9 @@
-module.exports = {
-  presets: ['module:@react-native/babel-preset'],
-  plugins: [
+module.exports = function (api) {
+  api.cache(true);
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const plugins = [
     [
       'module-resolver',
       {
@@ -14,9 +17,27 @@ module.exports = {
           '@services': './src/services',
           '@store': './src/store',
           '@assets': './src/assets',
+          '@utils': './src/utils',
         },
       },
     ],
+    // Must be last
     'react-native-reanimated/plugin',
-  ],
+  ];
+
+  // Remove console statements in production builds
+  if (isProduction) {
+    plugins.unshift([
+      'transform-remove-console',
+      {
+        // Keep error and warn for production debugging
+        exclude: ['error', 'warn'],
+      },
+    ]);
+  }
+
+  return {
+    presets: ['module:@react-native/babel-preset'],
+    plugins,
+  };
 };

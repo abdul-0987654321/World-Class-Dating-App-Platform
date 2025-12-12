@@ -2,6 +2,7 @@ import { ConversationRepository } from '../repositories/conversation.repository'
 import { MessageRepository } from '../repositories/message.repository';
 import { MatchRepository } from '../repositories/match.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { PhotoRepository } from '../repositories/photo.repository';
 import {
   ConversationResponse,
   CreateConversationDto,
@@ -13,17 +14,20 @@ export class MessagingService {
   private messageRepo: MessageRepository;
   private matchRepo: MatchRepository;
   private userRepo: UserRepository;
+  private photoRepo: PhotoRepository;
 
   constructor(
     conversationRepo?: ConversationRepository,
     messageRepo?: MessageRepository,
     matchRepo?: MatchRepository,
-    userRepo?: UserRepository
+    userRepo?: UserRepository,
+    photoRepo?: PhotoRepository
   ) {
     this.conversationRepo = conversationRepo || new ConversationRepository();
     this.messageRepo = messageRepo || new MessageRepository();
     this.matchRepo = matchRepo || new MatchRepository();
     this.userRepo = userRepo || new UserRepository();
+    this.photoRepo = photoRepo || new PhotoRepository();
   }
 
   /**
@@ -79,13 +83,17 @@ export class MessagingService {
           throw new Error(`User ${otherUserId} not found`);
         }
 
+        // Fetch primary photo for the other user
+        const primaryPhoto = await this.photoRepo.getPrimaryPhoto(otherUserId);
+        const photoUrl = primaryPhoto?.photo_url || null;
+
         return {
           id: conv.id,
           match_id: conv.match_id,
           other_user: {
             id: otherUser.id,
             name: `${otherUser.first_name} ${otherUser.last_name}`,
-            photo_url: undefined, // TODO: Fetch from PhotoRepository
+            photo_url: photoUrl,
           },
           last_message: conv.last_message,
           last_message_at: conv.last_message_at,
@@ -218,6 +226,10 @@ export class MessagingService {
       throw new Error(`User ${otherUserId} not found`);
     }
 
+    // Fetch primary photo for the other user
+    const primaryPhoto = await this.photoRepo.getPrimaryPhoto(otherUserId);
+    const photoUrl = primaryPhoto?.photo_url || null;
+
     const unread_count =
       conversation.user1_id === currentUserId
         ? conversation.unread_count_user1
@@ -229,7 +241,7 @@ export class MessagingService {
       other_user: {
         id: otherUser.id,
         name: `${otherUser.first_name} ${otherUser.last_name}`,
-        photo_url: undefined, // TODO: Fetch from PhotoRepository
+        photo_url: photoUrl,
       },
       last_message: conversation.last_message,
       last_message_at: conversation.last_message_at,

@@ -13,9 +13,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
 import { ComprehensiveRateLimitGuard } from './guards/comprehensive-rate-limit.guard';
 import { TracingMiddleware } from './middleware/tracing.middleware';
+import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
+import { CsrfMiddleware } from './middleware/csrf.middleware';
 import { DDoSProtectionService } from './services/ddos-protection.service';
 import { RateLimitAdminController } from './controllers/rate-limit-admin.controller';
+import { SecurityController } from './controllers/security.controller';
 
 @Module({
   imports: [
@@ -55,10 +58,18 @@ import { RateLimitAdminController } from './controllers/rate-limit-admin.control
   controllers: [
     // Admin controllers for rate limit management
     RateLimitAdminController,
+    // Security controller for CSP reporting
+    SecurityController,
   ],
   providers: [
     // Tracing middleware
     TracingMiddleware,
+
+    // Security headers middleware
+    SecurityHeadersMiddleware,
+
+    // CSRF protection middleware
+    CsrfMiddleware,
 
     // Advanced rate limiting middleware
     AdvancedRateLimiterMiddleware,
