@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { authService } from './services';
+import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
 
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
+import FuturisticLandingPage from './pages/Landing/FuturisticLandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
@@ -40,23 +43,22 @@ import {
   AdminSettingsPage,
 } from './pages/Admin';
 
-// Auth check hook
+// Auth check hook - uses httpOnly cookie based authentication
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    setIsAuthenticated(!!token);
+    // Check auth via authService (uses sessionStorage for user data, httpOnly cookies for tokens)
+    setIsAuthenticated(authService.isAuthenticated());
   }, []);
 
   return { isAuthenticated, setIsAuthenticated };
 };
 
-// Protected Route wrapper
+// Protected Route wrapper - uses authService for authentication check
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = localStorage.getItem('authToken');
-
-  if (!token) {
+  // Use authService - authentication is verified via httpOnly cookies
+  if (!authService.isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
@@ -77,9 +79,15 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Landing page - public */}
-        <Route path="/" element={
+      <AvatarProvider>
+        <Routes>
+          {/* Landing page - public */}
+          <Route path="/" element={
+            isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
+          } />
+
+        {/* Old Landing page - fallback */}
+        <Route path="/landing-old" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
         } />
 
@@ -184,7 +192,8 @@ const App: React.FC = () => {
         <Route path="*" element={
           <Navigate to={isAuthenticated ? "/discover" : "/"} replace />
         } />
-      </Routes>
+        </Routes>
+      </AvatarProvider>
     </BrowserRouter>
   );
 };

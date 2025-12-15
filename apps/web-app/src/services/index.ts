@@ -27,7 +27,7 @@ export { privacyService } from './privacy.service';
 
 // Premium Services
 export { boostService } from './boost.service';
-export { coinService } from './coin.service';
+export { coinService, type CoinBalance } from './coin.service';
 export { usageLimitService } from './usage-limit.service';
 
 // Socket Service
@@ -110,6 +110,15 @@ export type {
   ReferralStats,
   ReferralLeaderboardEntry,
 } from './referral.service';
+
+// Policy Service
+export { policyService } from './policy.service';
+export type {
+  Policy,
+  PolicySection,
+  PolicyMetadata,
+  PolicyVersion,
+} from './policy.service';
 
 // AI Services
 export * from './ai';

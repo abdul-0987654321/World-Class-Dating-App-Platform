@@ -7,7 +7,7 @@
 
     <!-- SEO and Social Meta Tags -->
     <meta name="description" content="Flamoral - Where Passion Meets Connection. Find meaningful relationships with our premium dating platform." />
-    <meta name="theme-color" content="#D62839" />
+    <meta name="theme-color" content="#0A0A0A" />
     <meta name="keywords" content="dating, relationships, love, flamoral, premium dating" />
     <meta property="og:title" content="Flamoral - Premium Dating Platform" />
     <meta property="og:description" content="Where Passion Meets Connection" />
@@ -28,20 +28,21 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Content Security Policy -->
-    <!-- Note: This is a fallback. Primary CSP is set via HTTP headers -->
+    <!-- Note: Primary CSP is set via HTTP headers in nginx. This is a fallback. -->
+    <!-- TODO: Implement nonce-based CSP to remove 'unsafe-inline' from script-src -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      script-src 'self' https://js.stripe.com https://www.google-analytics.com https://www.googletagmanager.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: https: blob:;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' wss: ws: https://api.flamoral.com;
+      connect-src 'self' wss://api.flamoral.com https://api.flamoral.com https://*.sentry.io https://api.stripe.com https://www.google-analytics.com https://vitals.vercel-insights.com;
       media-src 'self' blob: data: https:;
       object-src 'none';
-      frame-src 'none';
+      frame-src 'self' https://js.stripe.com;
       frame-ancestors 'none';
       base-uri 'self';
-      form-action 'self';
+      form-action 'self' https://api.flamoral.com;
       upgrade-insecure-requests;
       block-all-mixed-content;
     " />
@@ -75,12 +76,12 @@
 
     <!-- Load fonts with integrity check -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
       crossorigin="anonymous"
     >
 
-    <title>Flamoral - Where Passion Meets Connection</title>
+    <title>FLAMORAL - Find Your Perfect Connection</title>
   </head>
   <body>
     <div id="root"></div>

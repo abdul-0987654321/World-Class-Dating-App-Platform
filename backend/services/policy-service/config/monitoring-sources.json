@@ -1,0 +1,319 @@
+{
+  "sources": [
+    {
+      "id": "eu-official-journal",
+      "name": "EU Official Journal",
+      "jurisdiction": "eu",
+      "type": "rss",
+      "url": "https://eur-lex.europa.eu/oj/rss/en",
+      "keywords": [
+        "GDPR",
+        "data protection",
+        "privacy",
+        "personal data",
+        "regulation (EU)",
+        "directive",
+        "ePrivacy"
+      ],
+      "interval": "6h",
+      "priority": "high",
+      "enabled": true
+    },
+    {
+      "id": "edpb-guidelines",
+      "name": "European Data Protection Board Guidelines",
+      "jurisdiction": "eu",
+      "type": "rss",
+      "url": "https://edpb.europa.eu/news/news_en.xml",
+      "keywords": [
+        "guideline",
+        "recommendation",
+        "decision",
+        "GDPR",
+        "data protection"
+      ],
+      "interval": "daily",
+      "priority": "high",
+      "enabled": true
+    },
+    {
+      "id": "california-legislative",
+      "name": "California Legislative Information",
+      "jurisdiction": "us/california",
+      "type": "scraper",
+      "url": "https://leginfo.legislature.ca.gov/faces/billSearchClient.xhtml",
+      "selectors": {
+        "item": ".bill-row",
+        "title": ".bill-title",
+        "link": ".bill-link",
+        "date": ".bill-date",
+        "status": ".bill-status"
+      },
+      "keywords": [
+        "privacy",
+        "CCPA",
+        "CPRA",
+        "consumer protection",
+        "data breach",
+        "personal information"
+      ],
+      "interval": "daily",
+      "priority": "high",
+      "enabled": true
+    },
+    {
+      "id": "california-privacy-agency",
+      "name": "California Privacy Protection Agency",
+      "jurisdiction": "us/california",
+      "type": "rss",
+      "url": "https://cppa.ca.gov/feed/",
+      "keywords": [
+        "regulation",
+        "CPRA",
+        "enforcement",
+        "guidance",
+        "rulemaking"
+      ],
+      "interval": "6h",
+      "priority": "high",
+      "enabled": true
+    },
+    {
+      "id": "uk-legislation",
+      "name": "UK Legislation",
+      "jurisdiction": "uk",
+      "type": "rss",
+      "url": "https://www.legislation.gov.uk/new/data.feed",
+      "keywords": [
+        "data protection",
+        "privacy",
+        "GDPR",
+        "DPA",
+        "electronic communications"
+      ],
+      "interval": "daily",
+      "priority": "high",
+      "enabled": true
+    },
+    {
+      "id": "ico-news",
+      "name": "UK Information Commissioner's Office",
+      "jurisdiction": "uk",
+      "type": "rss",
+      "url": "https://ico.org.uk/about-the-ico/news-and-events/news-and-blogs.xml",
+      "keywords": [
+        "guidance",
+        "enforcement",
+        "data protection",
+        "privacy",
+        "PECR"
+      ],
+      "interval": "daily",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "canada-privacy-commissioner",
+      "name": "Office of the Privacy Commissioner of Canada",
+      "jurisdiction": "canada",
+      "type": "rss",
+      "url": "https://www.priv.gc.ca/en/opc-news/news-and-announcements/feed/",
+      "keywords": [
+        "PIPEDA",
+        "privacy",
+        "guidance",
+        "enforcement",
+        "breach"
+      ],
+      "interval": "daily",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "brazil-anpd",
+      "name": "Brazilian National Data Protection Authority",
+      "jurisdiction": "brazil",
+      "type": "rss",
+      "url": "https://www.gov.br/anpd/pt-br/assuntos/noticias/RSS",
+      "keywords": [
+        "LGPD",
+        "proteção de dados",
+        "privacidade",
+        "regulamentação"
+      ],
+      "interval": "daily",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "australia-oaic",
+      "name": "Office of the Australian Information Commissioner",
+      "jurisdiction": "australia",
+      "type": "rss",
+      "url": "https://www.oaic.gov.au/news-and-media/rss",
+      "keywords": [
+        "Privacy Act",
+        "APP",
+        "guidance",
+        "determination",
+        "enforcement"
+      ],
+      "interval": "daily",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "singapore-pdpc",
+      "name": "Singapore Personal Data Protection Commission",
+      "jurisdiction": "asia-pacific/singapore",
+      "type": "rss",
+      "url": "https://www.pdpc.gov.sg/news-and-events/rss",
+      "keywords": [
+        "PDPA",
+        "advisory",
+        "enforcement",
+        "guideline"
+      ],
+      "interval": "weekly",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "nigeria-nitda",
+      "name": "Nigeria Data Protection Bureau",
+      "jurisdiction": "nigeria",
+      "type": "scraper",
+      "url": "https://ndpb.gov.ng/news",
+      "selectors": {
+        "item": ".news-item",
+        "title": "h3",
+        "link": "a",
+        "date": ".date"
+      },
+      "keywords": [
+        "NDPR",
+        "data protection",
+        "privacy",
+        "regulation"
+      ],
+      "interval": "weekly",
+      "priority": "low",
+      "enabled": true
+    },
+    {
+      "id": "washington-state-legislature",
+      "name": "Washington State Legislature",
+      "jurisdiction": "us/washington",
+      "type": "scraper",
+      "url": "https://leg.wa.gov/legislature/Pages/BillSearch.aspx",
+      "selectors": {
+        "item": ".bill-item",
+        "title": ".bill-title",
+        "link": "a",
+        "status": ".bill-status"
+      },
+      "keywords": [
+        "privacy",
+        "WPA",
+        "data protection",
+        "consumer protection"
+      ],
+      "interval": "weekly",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "virginia-legislature",
+      "name": "Virginia Legislative Information System",
+      "jurisdiction": "us/virginia",
+      "type": "scraper",
+      "url": "https://lis.virginia.gov/",
+      "selectors": {
+        "item": ".bill-row",
+        "title": ".bill-title",
+        "link": "a"
+      },
+      "keywords": [
+        "CDPA",
+        "privacy",
+        "consumer data",
+        "personal information"
+      ],
+      "interval": "weekly",
+      "priority": "medium",
+      "enabled": false
+    },
+    {
+      "id": "india-meity",
+      "name": "India Ministry of Electronics and IT",
+      "jurisdiction": "asia-pacific/india",
+      "type": "scraper",
+      "url": "https://www.meity.gov.in/content/notifications",
+      "selectors": {
+        "item": ".notification-item",
+        "title": "h4",
+        "link": "a",
+        "date": ".date"
+      },
+      "keywords": [
+        "DPDP",
+        "data protection",
+        "privacy",
+        "Digital Personal Data Protection"
+      ],
+      "interval": "weekly",
+      "priority": "medium",
+      "enabled": true
+    },
+    {
+      "id": "japan-ppc",
+      "name": "Japan Personal Information Protection Commission",
+      "jurisdiction": "asia-pacific/japan",
+      "type": "rss",
+      "url": "https://www.ppc.go.jp/feed/",
+      "keywords": [
+        "個人情報保護",
+        "APPI",
+        "guidance",
+        "enforcement"
+      ],
+      "interval": "weekly",
+      "priority": "medium",
+      "enabled": false
+    },
+    {
+      "id": "south-korea-pipc",
+      "name": "South Korea Personal Information Protection Commission",
+      "jurisdiction": "asia-pacific/south-korea",
+      "type": "scraper",
+      "url": "https://www.pipc.go.kr/np/default/page.do?mCode=D020010000",
+      "selectors": {
+        "item": ".board-list-item",
+        "title": ".title",
+        "link": "a",
+        "date": ".date"
+      },
+      "keywords": [
+        "PIPA",
+        "개인정보보호",
+        "privacy",
+        "data protection"
+      ],
+      "interval": "weekly",
+      "priority": "low",
+      "enabled": false
+    }
+  ],
+  "settings": {
+    "defaultInterval": "daily",
+    "maxRetries": 3,
+    "retryDelay": 300000,
+    "timeout": 30000,
+    "userAgent": "Flamoral Policy Monitor/1.0 (https://flamoral.com; policy-monitor@flamoral.com)",
+    "respectRobotsTxt": true,
+    "rateLimit": {
+      "maxRequestsPerMinute": 10,
+      "maxRequestsPerHour": 100
+    }
+  }
+}

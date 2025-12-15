@@ -1,14 +1,109 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { policyService, Policy } from '../../services';
 
 export const TermsOfService: React.FC = () => {
+  const [policy, setPolicy] = useState<Policy | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    loadPolicy();
   }, []);
 
+  const loadPolicy = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const region = policyService.getUserRegion();
+      const language = policyService.getUserLanguage();
+
+      const policyData = await policyService.getTermsOfService(region, language);
+      setPolicy(policyData);
+    } catch (err) {
+      console.error('Failed to load terms of service:', err);
+      setError('Failed to load terms of service. Showing fallback content.');
+      setPolicy(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <Content>
+          <LoadingSpinner>Loading Terms of Service...</LoadingSpinner>
+        </Content>
+      </Container>
+    );
+  }
+
+  // If we have policy data from API, render it
+  if (!error && policy) {
+    return (
+      <Container>
+        <Content>
+          <Header>
+            <Title>Terms of Service</Title>
+            <LastUpdated>Last Updated: {new Date(policy.lastUpdated).toLocaleDateString()}</LastUpdated>
+            <Version>Version {policy.version}</Version>
+          </Header>
+
+          {policy.summary && (
+            <Section>
+              <SummaryBox>
+                <Paragraph>{policy.summary}</Paragraph>
+              </SummaryBox>
+            </Section>
+          )}
+
+          {policy.sections.map((section) => (
+            <Section key={section.id}>
+              <SectionTitle>{section.title}</SectionTitle>
+              <Paragraph style={{ whiteSpace: 'pre-wrap' }}>{section.content}</Paragraph>
+
+              {section.examples && section.examples.length > 0 && (
+                <ExamplesBox>
+                  <ExamplesTitle>Examples:</ExamplesTitle>
+                  <List>
+                    {section.examples.map((example, idx) => (
+                      <ListItem key={idx}>{example}</ListItem>
+                    ))}
+                  </List>
+                </ExamplesBox>
+              )}
+            </Section>
+          ))}
+
+          {policy.contactInfo && (
+            <Section>
+              <SectionTitle>Contact Information</SectionTitle>
+              <ContactInfo>
+                <div>Flamoral, Inc.</div>
+                <div>Email: {policy.contactInfo.email}</div>
+                {policy.contactInfo.address && <div>Address: {policy.contactInfo.address}</div>}
+              </ContactInfo>
+            </Section>
+          )}
+
+          <Section>
+            <Paragraph style={{ marginTop: '2rem', fontWeight: 500 }}>
+              BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS OF SERVICE AND AGREE TO BE BOUND BY THEM.
+            </Paragraph>
+          </Section>
+        </Content>
+      </Container>
+    );
+  }
+
+  // Fallback to static content
   return (
     <Container>
       <Content>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <Header>
           <Title>Terms of Service</Title>
           <LastUpdated>Last Updated: November 20, 2025</LastUpdated>
@@ -428,6 +523,50 @@ const ContactInfo = styled.div`
       margin-bottom: 0;
     }
   }
+`;
+
+const Version = styled.div`
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.25rem;
+`;
+
+const SummaryBox = styled.div`
+  background: #e3f2fd;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+`;
+
+const ExamplesBox = styled.div`
+  background: #f0f8f0;
+  padding: 1.25rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border-left: 3px solid #4caf50;
+`;
+
+const ExamplesTitle = styled.div`
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+`;
+
+const LoadingSpinner = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+`;
+
+const ErrorMessage = styled.div`
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #c62828;
 `;
 
 export default TermsOfService;

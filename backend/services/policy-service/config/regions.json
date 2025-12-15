@@ -1,0 +1,407 @@
+{
+  "regions": [
+    {
+      "code": "global",
+      "name": "Global (Default)",
+      "description": "Base policies applicable worldwide",
+      "laws": [],
+      "languages": ["en"],
+      "parent": null,
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "123 Main St, San Francisco, CA 94102, USA"
+      }
+    },
+    {
+      "code": "us/general",
+      "name": "United States (General)",
+      "description": "General US policies applicable to all states without specific laws",
+      "laws": ["COPPA", "CAN-SPAM", "FTC Act"],
+      "languages": ["en", "es"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "123 Main St, San Francisco, CA 94102, USA"
+      }
+    },
+    {
+      "code": "us/california",
+      "name": "California, United States",
+      "description": "California-specific policies with CCPA/CPRA compliance",
+      "laws": ["CCPA", "CPRA", "COPPA", "CAN-SPAM"],
+      "languages": ["en", "es", "zh"],
+      "parent": "us/general",
+      "dpo_required": false,
+      "retention_default": "18 months",
+      "specific_rights": [
+        "right_to_know",
+        "right_to_delete",
+        "right_to_correct",
+        "right_to_opt_out",
+        "right_to_limit_sensitive_data"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "california_notice": "Do Not Sell or Share My Personal Information",
+        "address": "123 Main St, San Francisco, CA 94102, USA"
+      }
+    },
+    {
+      "code": "us/washington",
+      "name": "Washington, United States",
+      "description": "Washington-specific policies with WPA compliance",
+      "laws": ["WPA", "My Health My Data Act"],
+      "languages": ["en"],
+      "parent": "us/general",
+      "dpo_required": false,
+      "retention_default": "18 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_delete",
+        "right_to_correct",
+        "right_to_portability",
+        "right_to_opt_out"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "123 Main St, San Francisco, CA 94102, USA"
+      }
+    },
+    {
+      "code": "us/virginia",
+      "name": "Virginia, United States",
+      "description": "Virginia-specific policies with CDPA compliance",
+      "laws": ["CDPA"],
+      "languages": ["en"],
+      "parent": "us/general",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_delete",
+        "right_to_correct",
+        "right_to_portability",
+        "right_to_opt_out"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "123 Main St, San Francisco, CA 94102, USA"
+      }
+    },
+    {
+      "code": "eu",
+      "name": "European Union",
+      "description": "EU-wide policies with GDPR compliance",
+      "laws": ["GDPR", "ePrivacy Directive"],
+      "languages": ["en", "de", "fr", "es", "it", "nl", "pl", "ro"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "12 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_erasure",
+        "right_to_restriction",
+        "right_to_portability",
+        "right_to_object",
+        "right_not_to_be_subject_to_automated_decision_making"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral Europe B.V., Amsterdam, Netherlands",
+        "supervisory_authority": "Local Data Protection Authority"
+      }
+    },
+    {
+      "code": "uk",
+      "name": "United Kingdom",
+      "description": "UK-specific policies with UK GDPR and DPA 2018 compliance",
+      "laws": ["UK GDPR", "DPA 2018", "PECR"],
+      "languages": ["en"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "12 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_erasure",
+        "right_to_restriction",
+        "right_to_portability",
+        "right_to_object",
+        "right_not_to_be_subject_to_automated_decision_making"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral UK Ltd., London, UK",
+        "supervisory_authority": "Information Commissioner's Office (ICO)",
+        "ico_registration": "ZA123456"
+      }
+    },
+    {
+      "code": "canada",
+      "name": "Canada",
+      "description": "Canada-wide policies with PIPEDA compliance",
+      "laws": ["PIPEDA", "CASL"],
+      "languages": ["en", "fr"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_withdraw_consent"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "privacy_officer": "privacy-officer@flamoral.com",
+        "address": "Flamoral Canada Inc., Toronto, ON, Canada"
+      }
+    },
+    {
+      "code": "australia",
+      "name": "Australia",
+      "description": "Australia-wide policies with Privacy Act 1988 compliance",
+      "laws": ["Privacy Act 1988", "APPs"],
+      "languages": ["en"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "Flamoral Australia Pty Ltd., Sydney, NSW, Australia",
+        "supervisory_authority": "Office of the Australian Information Commissioner (OAIC)"
+      }
+    },
+    {
+      "code": "brazil",
+      "name": "Brazil",
+      "description": "Brazil-specific policies with LGPD compliance",
+      "laws": ["LGPD"],
+      "languages": ["pt", "en"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "12 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_deletion",
+        "right_to_portability",
+        "right_to_information",
+        "right_to_revoke_consent"
+      ],
+      "contact": {
+        "email": "privacidade@flamoral.com",
+        "dpo_email": "encarregado@flamoral.com",
+        "address": "Flamoral Brasil Ltda., São Paulo, SP, Brasil",
+        "supervisory_authority": "Autoridade Nacional de Proteção de Dados (ANPD)"
+      }
+    },
+    {
+      "code": "nigeria",
+      "name": "Nigeria",
+      "description": "Nigeria-specific policies with NDPR compliance",
+      "laws": ["NDPR"],
+      "languages": ["en"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_deletion",
+        "right_to_object"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral Nigeria Ltd., Lagos, Nigeria",
+        "supervisory_authority": "Nigeria Data Protection Bureau"
+      }
+    },
+    {
+      "code": "asia-pacific/singapore",
+      "name": "Singapore",
+      "description": "Singapore-specific policies with PDPA compliance",
+      "laws": ["PDPA"],
+      "languages": ["en", "zh"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_withdraw_consent"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral Singapore Pte. Ltd., Singapore",
+        "supervisory_authority": "Personal Data Protection Commission (PDPC)"
+      }
+    },
+    {
+      "code": "asia-pacific/japan",
+      "name": "Japan",
+      "description": "Japan-specific policies with APPI compliance",
+      "laws": ["APPI"],
+      "languages": ["ja", "en"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_disclosure",
+        "right_to_correction",
+        "right_to_deletion",
+        "right_to_suspend_use"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "Flamoral Japan K.K., Tokyo, Japan",
+        "supervisory_authority": "Personal Information Protection Commission"
+      }
+    },
+    {
+      "code": "asia-pacific/india",
+      "name": "India",
+      "description": "India-specific policies with DPDP Act compliance",
+      "laws": ["DPDP Act 2023"],
+      "languages": ["en", "hi"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_erasure",
+        "right_to_nominate"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral India Pvt. Ltd., Bangalore, India",
+        "supervisory_authority": "Data Protection Board of India"
+      }
+    },
+    {
+      "code": "asia-pacific/south-korea",
+      "name": "South Korea",
+      "description": "South Korea-specific policies with PIPA compliance",
+      "laws": ["PIPA"],
+      "languages": ["ko", "en"],
+      "parent": "global",
+      "dpo_required": true,
+      "retention_default": "12 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_deletion",
+        "right_to_suspend_processing"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "dpo_email": "dpo@flamoral.com",
+        "address": "Flamoral Korea Ltd., Seoul, South Korea",
+        "supervisory_authority": "Personal Information Protection Commission"
+      }
+    },
+    {
+      "code": "middle-east/uae",
+      "name": "United Arab Emirates",
+      "description": "UAE-specific policies with DIFC/ADGM data protection compliance",
+      "laws": ["DIFC Data Protection Law", "ADGM Data Protection Regulations"],
+      "languages": ["en", "ar"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_erasure",
+        "right_to_object"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "Flamoral MENA FZ-LLC, Dubai, UAE"
+      }
+    },
+    {
+      "code": "middle-east/saudi-arabia",
+      "name": "Saudi Arabia",
+      "description": "Saudi Arabia-specific policies with PDPL compliance",
+      "laws": ["PDPL"],
+      "languages": ["ar", "en"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_correction",
+        "right_to_deletion",
+        "right_to_object"
+      ],
+      "contact": {
+        "email": "privacy@flamoral.com",
+        "address": "Flamoral Saudi Arabia, Riyadh, Saudi Arabia",
+        "supervisory_authority": "Saudi Data & AI Authority (SDAIA)"
+      }
+    },
+    {
+      "code": "latin-america/mexico",
+      "name": "Mexico",
+      "description": "Mexico-specific policies with LFPDPPP compliance",
+      "laws": ["LFPDPPP"],
+      "languages": ["es", "en"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_cancellation",
+        "right_to_opposition"
+      ],
+      "contact": {
+        "email": "privacidad@flamoral.com",
+        "address": "Flamoral México S.A. de C.V., Mexico City, Mexico",
+        "supervisory_authority": "INAI (Instituto Nacional de Transparencia)"
+      }
+    },
+    {
+      "code": "latin-america/argentina",
+      "name": "Argentina",
+      "description": "Argentina-specific policies with PDPA compliance",
+      "laws": ["PDPA (Law 25.326)"],
+      "languages": ["es", "en"],
+      "parent": "global",
+      "dpo_required": false,
+      "retention_default": "24 months",
+      "specific_rights": [
+        "right_to_access",
+        "right_to_rectification",
+        "right_to_deletion",
+        "right_to_confidentiality"
+      ],
+      "contact": {
+        "email": "privacidad@flamoral.com",
+        "address": "Flamoral Argentina S.A., Buenos Aires, Argentina",
+        "supervisory_authority": "Agencia de Acceso a la Información Pública"
+      }
+    }
+  ],
+  "settings": {
+    "fallback_region": "global",
+    "default_language": "en",
+    "require_parent_validation": true,
+    "auto_cascade_updates": true
+  }
+}
