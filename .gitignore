@@ -23,12 +23,45 @@ coverage/
 .nyc_output/
 *.lcov
 
-# Environment variables
+# Environment variables - EXCLUDE ALL .env FILES
+# Only .env.example files should be committed
 .env
+.env.*
+!.env.example
+!.env.*.example
+!.env.*.template
+
+# Specific exclusions for safety
 .env.local
+.env.development
 .env.development.local
-.env.test.local
+.env.staging
+.env.staging.local
+.env.production
 .env.production.local
+.env.test
+.env.test.local
+
+# Infrastructure config environments
+infrastructure/config/.env.*
+!infrastructure/config/.env.*.template
+!infrastructure/config/.env.*.example
+
+# App-specific environments
+apps/*/‌.env
+apps/*/.env.*
+!apps/*/.env.example
+!apps/*/.env.*.example
+
+# Backend service environments
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/services/**/.env
+backend/services/**/.env.*
+!backend/services/**/.env.example
+!backend/services/**/.env.*.example
+backend/tests/.env.test
 
 # Logs
 logs/

@@ -129,8 +129,8 @@ export const securityConfig: SecurityConfig = {
     maxLoginAttempts: 5,
     lockoutDuration: 15 * 60, // 15 minutes
     sessionTimeout: 24 * 60 * 60, // 24 hours
-    requireEmailVerification: true,
-    require2FA: false, // Optional, can be enabled per user
+    requireEmailVerification: true, // CRITICAL: Always required in production
+    require2FA: false, // Optional for regular users, mandatory for admin accounts
     allowedLoginMethods: ['email', 'phone'],
   },
 

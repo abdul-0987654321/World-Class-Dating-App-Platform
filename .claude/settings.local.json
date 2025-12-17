@@ -496,7 +496,14 @@
       "Bash(git reset:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add comprehensive updates including documentation, infrastructure, and Flamoral app\n\n- Add CI/CD pipeline documentation and fixes\n- Add Azure Front Door and cost optimization docs\n- Add disaster recovery runbooks and scripts\n- Add security audit documentation\n- Add Flamoral app with full codebase\n- Add dark mode implementation documentation\n- Add various infrastructure scripts and configurations\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(gh pr list:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: Unified project structure and CI/CD pipeline for flamoral.com\n\nMajor restructuring for clean, maintainable codebase:\n\nSTRUCTURE CHANGES:\n- Removed duplicate folders (Flamoral, DatingPlatform, flamoral-live-ux-audit)\n- Consolidated documentation into docs/ with organized subfolders\n- Moved configuration to config/{dev,staging,production}/\n- Merged infrastructure components (monitoring, database, security, scripts)\n- Removed obsolete Azure DevOps pipelines\n\nCI/CD IMPROVEMENTS:\n- Created unified flamoral-pipeline.yml for all environments\n- Single pipeline handles dev/staging/production deployments\n- Auto-deploy: develop→dev, release/*→staging, main→production\n- Built-in rollback on deployment failure\n- Health verification after deployments\n\nCLEANUP:\n- Archived 300+ redundant MD files (fix summaries, reports)\n- Removed 85 dependabot branches\n- Removed 46 self-healing branches\n- Synced develop branch with main\n- Cleaned up redundant GitHub workflows\n\nFINAL STRUCTURE:\n├── apps/           (web-app, mobile-app, branding)\n├── backend/        (microservices)\n├── packages/       (shared code)\n├── infrastructure/ (terraform, k8s, docker, scripts)\n├── config/         (environment configs)\n├── docs/           (all documentation)\n└── tests/          (e2e tests)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(az aks start:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --connect-timeout 10 http://48.200.65.15 -H \"Host: flamoral.com\")",
+      "Bash(dig:*)",
+      "Bash(az postgres server:*)",
+      "Bash(az postgres flexible-server start:*)",
+      "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && cat {} | grep -E \"\"\\\"\"name\\\"\"|\\\"\"version\\\"\"|\\\"\"main\\\"\"|\\\"\"scripts\\\"\"\"\" | head -5')"
     ],
     "deny": [],
     "ask": []
