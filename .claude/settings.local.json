@@ -503,7 +503,8 @@
       "Bash(dig:*)",
       "Bash(az postgres server:*)",
       "Bash(az postgres flexible-server start:*)",
-      "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && cat {} | grep -E \"\"\\\"\"name\\\"\"|\\\"\"version\\\"\"|\\\"\"main\\\"\"|\\\"\"scripts\\\"\"\"\" | head -5')"
+      "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && cat {} | grep -E \"\"\\\"\"name\\\"\"|\\\"\"version\\\"\"|\\\"\"main\\\"\"|\\\"\"scripts\\\"\"\"\" | head -5')",
+      "Bash(git remote get-url:*)"
     ],
     "deny": [],
     "ask": []
