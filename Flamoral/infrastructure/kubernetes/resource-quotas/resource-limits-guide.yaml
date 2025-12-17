@@ -1,0 +1,479 @@
+# =============================================================================
+# Resource Limits and Quotas Configuration
+# =============================================================================
+# This file defines recommended resource requests/limits and namespace quotas
+# for the Flamoral dating platform
+# =============================================================================
+
+---
+# =============================================================================
+# Namespace Resource Quota - Production
+# =============================================================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: production-quota
+  namespace: dating-app
+spec:
+  hard:
+    # Compute Resources
+    requests.cpu: "50"
+    requests.memory: "100Gi"
+    limits.cpu: "100"
+    limits.memory: "200Gi"
+
+    # Storage
+    requests.storage: "500Gi"
+    persistentvolumeclaims: "20"
+
+    # Object Counts
+    pods: "100"
+    services: "30"
+    configmaps: "50"
+    secrets: "50"
+    services.loadbalancers: "2"
+    services.nodeports: "0"
+
+---
+# =============================================================================
+# Namespace Resource Quota - Staging
+# =============================================================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: staging-quota
+  namespace: dating-app-staging
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: "40Gi"
+    limits.cpu: "40"
+    limits.memory: "80Gi"
+    requests.storage: "200Gi"
+    persistentvolumeclaims: "10"
+    pods: "50"
+    services: "20"
+    configmaps: "30"
+    secrets: "30"
+
+---
+# =============================================================================
+# Namespace Resource Quota - Development
+# =============================================================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-quota
+  namespace: dating-app-dev
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    requests.storage: "100Gi"
+    persistentvolumeclaims: "5"
+    pods: "30"
+    services: "15"
+    configmaps: "20"
+    secrets: "20"
+
+---
+# =============================================================================
+# LimitRange - Production
+# =============================================================================
+# Defines default and min/max resource limits for containers
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: production-limitrange
+  namespace: dating-app
+spec:
+  limits:
+    # Container limits
+    - type: Container
+      default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "250m"
+        memory: "256Mi"
+      min:
+        cpu: "50m"
+        memory: "64Mi"
+      max:
+        cpu: "4"
+        memory: "8Gi"
+
+    # Pod limits
+    - type: Pod
+      max:
+        cpu: "8"
+        memory: "16Gi"
+      min:
+        cpu: "50m"
+        memory: "64Mi"
+
+    # PersistentVolumeClaim limits
+    - type: PersistentVolumeClaim
+      min:
+        storage: "1Gi"
+      max:
+        storage: "500Gi"
+
+---
+# =============================================================================
+# Service-Specific Resource Recommendations
+# =============================================================================
+
+# API Gateway
+# Role: Request routing, authentication, rate limiting
+# Traffic: High (all external requests)
+# CPU: Medium-High (request processing, JWT validation)
+# Memory: Medium (connection pooling, caching)
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-recommendations
+  namespace: dating-app
+data:
+  api-gateway: |
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    replicas:
+      min: 3
+      max: 10
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Auth Service
+  # Role: User authentication, JWT generation
+  # Traffic: High during login/signup
+  # CPU: Medium (encryption, hashing)
+  # Memory: Low-Medium (session management)
+  auth-service: |
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    replicas:
+      min: 2
+      max: 8
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # User Service
+  # Role: User profile management
+  # Traffic: High (profile views, updates)
+  # CPU: Medium (database queries, validation)
+  # Memory: Medium (caching user data)
+  user-service: |
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    replicas:
+      min: 2
+      max: 8
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Matching Service
+  # Role: Match recommendations, swipe processing
+  # Traffic: High (continuous matching)
+  # CPU: High (algorithm computation, ML inference)
+  # Memory: High (user preference caching, match scoring)
+  matching-service: |
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+      limits:
+        cpu: 4000m
+        memory: 4Gi
+    replicas:
+      min: 3
+      max: 12
+    hpa:
+      cpu: 65%
+      memory: 75%
+
+  # Messaging Service
+  # Role: Chat messages, real-time communication
+  # Traffic: Very High (continuous)
+  # CPU: Medium (message routing, storage)
+  # Memory: Medium-High (message buffering, WebSocket connections)
+  messaging-service: |
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    replicas:
+      min: 3
+      max: 15
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Media Service
+  # Role: Image/video upload, processing, storage
+  # Traffic: High (profile photos, media uploads)
+  # CPU: Very High (image resizing, compression, video encoding)
+  # Memory: Very High (image/video processing buffers)
+  media-service: |
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+    replicas:
+      min: 2
+      max: 10
+    hpa:
+      cpu: 75%
+      memory: 85%
+
+  # Payment Service
+  # Role: Payment processing, subscriptions
+  # Traffic: Medium (purchases, subscriptions)
+  # CPU: Low-Medium (API calls, validation)
+  # Memory: Low (minimal caching)
+  payment-service: |
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    replicas:
+      min: 2
+      max: 6
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Notification Service
+  # Role: Push notifications, emails, SMS
+  # Traffic: High (notifications for matches, messages)
+  # CPU: Medium (queue processing, API calls)
+  # Memory: Medium (message queuing)
+  notification-service: |
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    replicas:
+      min: 2
+      max: 8
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Analytics Service
+  # Role: User behavior tracking, analytics
+  # Traffic: High (event tracking)
+  # CPU: Medium-High (data aggregation, calculations)
+  # Memory: High (data buffering, caching)
+  analytics-service: |
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    replicas:
+      min: 2
+      max: 8
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Moderation Service
+  # Role: Content moderation, safety
+  # Traffic: Medium (on content uploads)
+  # CPU: High (ML inference for content moderation)
+  # Memory: High (ML model loading)
+  moderation-service: |
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    replicas:
+      min: 2
+      max: 6
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Advertising Service
+  # Role: Ad serving, revenue tracking
+  # Traffic: Medium
+  # CPU: Low-Medium
+  # Memory: Low-Medium
+  advertising-service: |
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    replicas:
+      min: 1
+      max: 4
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+  # Realtime Service (Go)
+  # Role: WebSocket connections, real-time updates
+  # Traffic: Very High (persistent connections)
+  # CPU: Medium (connection handling)
+  # Memory: High (thousands of WebSocket connections)
+  realtime-service: |
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    replicas:
+      min: 3
+      max: 20
+    hpa:
+      cpu: 70%
+      memory: 80%
+
+---
+# =============================================================================
+# Priority Classes
+# =============================================================================
+# Define pod priorities for critical services
+
+# Critical services (API Gateway, Auth, User)
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: "High priority for critical services"
+
+---
+# Medium priority services (Matching, Messaging, Media)
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: medium-priority
+value: 500000
+globalDefault: true
+description: "Medium priority for standard services"
+
+---
+# Low priority services (Analytics, Advertising)
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 100000
+globalDefault: false
+description: "Low priority for non-critical services"
+
+---
+# =============================================================================
+# Vertical Pod Autoscaler (VPA) - Example
+# =============================================================================
+# VPA automatically adjusts CPU and memory requests based on usage
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: api-gateway-vpa
+  namespace: dating-app
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  updatePolicy:
+    updateMode: "Auto"  # Auto, Recreate, Initial, or Off
+  resourcePolicy:
+    containerPolicies:
+      - containerName: api-gateway
+        minAllowed:
+          cpu: 250m
+          memory: 256Mi
+        maxAllowed:
+          cpu: 4
+          memory: 8Gi
+        controlledResources:
+          - cpu
+          - memory
+
+---
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+# Ensures minimum availability during voluntary disruptions
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway-pdb
+  namespace: dating-app
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: messaging-service-pdb
+  namespace: dating-app
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: messaging-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: realtime-service-pdb
+  namespace: dating-app
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: realtime-service

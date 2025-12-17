@@ -1,0 +1,64 @@
+# =============================================================================
+# FIXED VERSION: Ingress Configuration
+# =============================================================================
+# Apply this fix to: deploy/ingress.yaml
+# This version fixes the API Gateway port from 80 to 4000
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-ingress
+  namespace: flamoral
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  tls:
+  - hosts:
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+    secretName: flamoral-tls
+  rules:
+  - host: flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-web
+            port:
+              number: 80
+  - host: www.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-web
+            port:
+              number: 80
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Health check endpoint - CRITICAL: must be first for priority routing
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000
+      # All other routes
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000  # FIXED: Changed from 80 to 4000

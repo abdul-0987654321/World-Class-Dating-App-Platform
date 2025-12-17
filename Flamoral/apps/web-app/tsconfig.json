@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@pages/*": ["src/pages/*"],
+      "@store/*": ["src/store/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["src/types/*"],
+      "@services/*": ["src/services/*"],
+      "@flamoral/types": ["../../packages/shared/types/src/index.ts"],
+      "@flamoral/constants": ["../../packages/shared/constants/src/index.ts"],
+      "@flamoral/utils": ["../../packages/shared/utils/src/index.ts"],
+      "@flamoral/validators": ["../../packages/shared/validators/src/index.ts"],
+      "@flamoral/api-client": ["../../packages/shared/api-client/src/index.ts"],
+      "@flamoral/video-sdk": ["../../packages/video-sdk/src/index.ts"],
+      "@store/store": ["src/store/index.ts"]
+    },
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src", "src/vite-env.d.ts"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**",
+    "src/components/VideoCall/**",
+    "src/components/Verification/**",
+    "src/components/admin/**"
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

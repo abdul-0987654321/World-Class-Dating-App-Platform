@@ -1,0 +1,13 @@
+apiVersion: v2
+name: media-processor
+description: Media Processing Service Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - media
+  - processor
+  - nodejs
+maintainers:
+  - name: Dating App Team
+    email: team@flamoral.com

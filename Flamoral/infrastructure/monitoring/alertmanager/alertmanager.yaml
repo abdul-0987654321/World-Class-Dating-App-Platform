@@ -1,0 +1,152 @@
+# Alertmanager Configuration
+global:
+  smtp_smarthost: 'smtp.sendgrid.net:587'
+  smtp_from: 'alerts@flamoral.com'
+  smtp_auth_username: 'apikey'
+  smtp_auth_password: '${SENDGRID_API_KEY}'
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  resolve_timeout: 5m
+
+# Templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing
+route:
+  receiver: 'default-receiver'
+  group_by: ['alertname', 'service', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true
+
+    # Security alerts - dedicated channel
+    - match:
+        alertname: ~"(HighFailedLoginAttempts|SuspiciousAPIActivity|Certificate.*)"
+      receiver: 'security-team'
+      group_wait: 10s
+      repeat_interval: 30m
+
+    # Payment alerts - dedicated channel
+    - match:
+        alertname: ~"Payment.*"
+      receiver: 'payments-team'
+      group_wait: 30s
+      repeat_interval: 1h
+
+    # Database alerts
+    - match:
+        alertname: ~"(PostgreSQL.*|Redis.*)"
+      receiver: 'database-team'
+      group_wait: 30s
+      repeat_interval: 2h
+
+    # Infrastructure alerts
+    - match_re:
+        alertname: (HighCPU.*|HighMemory.*|DiskSpace.*|Pod.*)
+      receiver: 'infrastructure-team'
+      group_wait: 1m
+      repeat_interval: 2h
+
+    # Business metrics - lower priority
+    - match:
+        alertname: ~"(LowMatchingRate|UserRegistrationDrop)"
+      receiver: 'business-alerts'
+      group_wait: 15m
+      repeat_interval: 12h
+
+# Inhibit rules
+inhibit_rules:
+  # If service is down, inhibit all other alerts for that service
+  - source_match:
+      alertname: ServiceDown
+    target_match_re:
+      alertname: '^(?!ServiceDown).*'
+    equal: ['service']
+
+  # If critical, inhibit warnings
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: ['alertname', 'service']
+
+# Receivers
+receivers:
+  - name: 'default-receiver'
+    slack_configs:
+      - channel: '#alerts'
+        send_resolved: true
+        title: '{{ .Status | toUpper }}{{ if eq .Status "firing" }} - {{ .Alerts.Firing | len }}{{ end }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Service:* {{ .Labels.service }}
+          {{ end }}
+
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#critical-alerts'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        title: '🚨 {{ .Status | toUpper }} - {{ .CommonAnnotations.summary }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Service:* {{ .Labels.service }}
+          *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        severity: critical
+    email_configs:
+      - to: 'oncall@flamoral.com'
+        send_resolved: true
+
+  - name: 'security-team'
+    slack_configs:
+      - channel: '#security-alerts'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+        title: '🔒 Security Alert: {{ .CommonAnnotations.summary }}'
+    email_configs:
+      - to: 'security@flamoral.com'
+        send_resolved: true
+
+  - name: 'payments-team'
+    slack_configs:
+      - channel: '#payments-alerts'
+        send_resolved: true
+        title: '💳 Payment Alert: {{ .CommonAnnotations.summary }}'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_PAYMENTS_KEY}'
+        severity: '{{ .CommonLabels.severity }}'
+
+  - name: 'database-team'
+    slack_configs:
+      - channel: '#database-alerts'
+        send_resolved: true
+        title: '🗄️ Database Alert: {{ .CommonAnnotations.summary }}'
+
+  - name: 'infrastructure-team'
+    slack_configs:
+      - channel: '#infrastructure-alerts'
+        send_resolved: true
+        title: '🖥️ Infrastructure Alert: {{ .CommonAnnotations.summary }}'
+
+  - name: 'business-alerts'
+    slack_configs:
+      - channel: '#business-metrics'
+        send_resolved: true
+        title: '📊 Business Alert: {{ .CommonAnnotations.summary }}'

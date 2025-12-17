@@ -1,0 +1,73 @@
+# =============================================================================
+# Flamoral Dating Platform - Staging Environment Values
+# =============================================================================
+# Overrides for staging environment
+# =============================================================================
+
+global:
+  environment: staging
+  imageRegistry: flamoralstagingacr.azurecr.io
+  imageTag: staging-latest
+
+# Staging uses moderate replicas
+apiGateway:
+  replicaCount: 2
+
+authService:
+  replicaCount: 2
+
+userService:
+  replicaCount: 2
+
+matchingService:
+  replicaCount: 2
+
+messagingService:
+  replicaCount: 2
+
+mediaService:
+  replicaCount: 2
+
+paymentService:
+  replicaCount: 2
+
+notificationService:
+  replicaCount: 2
+
+analyticsService:
+  replicaCount: 1
+
+moderationService:
+  replicaCount: 1
+
+advertisingService:
+  enabled: true
+  replicaCount: 1
+
+realtimeService:
+  replicaCount: 2
+
+# Staging ingress
+ingress:
+  hosts:
+    - host: staging-api.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+  tls:
+    - secretName: staging-flamoral-tls
+      hosts:
+        - staging-api.flamoral.com
+
+# Enable autoscaling with lower thresholds
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

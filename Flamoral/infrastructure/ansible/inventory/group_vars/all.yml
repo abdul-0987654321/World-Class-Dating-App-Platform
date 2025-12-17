@@ -1,0 +1,47 @@
+---
+# Global variables for all hosts
+
+# Application configuration
+app_name: dating-app-platform
+app_domain: flamoral.com
+app_port: 3000
+api_port: 4000
+
+# Docker configuration
+docker_compose_version: "2.20.0"
+docker_registry: docker.io
+docker_registry_username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
+docker_registry_password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
+
+# System configuration
+timezone: UTC
+ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+
+# Security
+firewall_allowed_tcp_ports:
+  - 22
+  - 80
+  - 443
+  - 3000
+  - 4000
+  - 6379
+  - 5432
+
+# Monitoring
+monitoring_enabled: true
+prometheus_port: 9090
+grafana_port: 3001
+node_exporter_port: 9100
+
+# Backup configuration
+backup_enabled: true
+backup_retention_days: 30
+backup_schedule: "0 2 * * *"
+
+# SSL/TLS
+ssl_enabled: true
+ssl_provider: letsencrypt
+certbot_email: admin@flamoral.com

@@ -1,0 +1,85 @@
+# =============================================================================
+# Additional Configuration for API Gateway Service Discovery
+# =============================================================================
+# These sections should be APPENDED to the end of values.yaml
+# They provide the configuration needed by the ConfigMap for proper service routing
+# =============================================================================
+
+# =============================================================================
+# Circuit Breaker Configuration
+# =============================================================================
+# Production-hardened circuit breaker settings for API Gateway
+# Controls when the circuit breaker opens/closes to protect downstream services
+circuitBreaker:
+  failureThreshold: 5              # Open after 5 failures (faster response)
+  failureRateThreshold: 50         # Or when 50% of requests fail
+  successThreshold: 5              # Need 5 consecutive successes to close in HALF_OPEN
+  timeout: 15000                   # Wait 15s before attempting HALF_OPEN (faster recovery)
+  resetTimeout: 60000              # Reset failure count after 60s of success
+  minimumRequests: 5               # Evaluate after just 5 requests (faster response)
+  slowCallThreshold: 5000          # Calls taking >5s are "slow"
+  slowCallRateThreshold: 80        # Open if 80% of calls are slow
+  halfOpenMaxCalls: 10             # Allow 10 concurrent test calls in HALF_OPEN
+  slidingWindowSize: 100           # Track last 100 requests for metrics
+
+# =============================================================================
+# Proxy Configuration
+# =============================================================================
+# Retry and timeout settings for service-to-service communication
+proxy:
+  maxRetries: 1                    # Max 1 retry for faster failure response
+  retryDelay: 500                  # 500ms initial delay between retries
+
+# =============================================================================
+# Service Timeouts
+# =============================================================================
+# Hierarchical timeouts: NGINX > Gateway > Service > DB
+# Ensures upstream times out before downstream to avoid orphaned requests
+serviceTimeouts:
+  default: 15000                   # 15 seconds default
+  auth: 5000                       # 5 seconds (auth is fast)
+  user: 10000                      # 10 seconds
+  messaging: 15000                 # 15 seconds
+  media: 45000                     # 45 seconds (uploads are slow)
+  moderation: 20000                # 20 seconds (AI calls)
+  payment: 30000                   # 30 seconds (payment processing)
+  matching: 15000                  # 15 seconds (matching algorithm)
+
+# =============================================================================
+# CORS Configuration
+# =============================================================================
+# Cross-Origin Resource Sharing settings for API Gateway
+cors:
+  origins: "https://flamoral.com,https://www.flamoral.com,https://admin.flamoral.com"
+  credentials: true
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+# Application logging settings
+logging:
+  level: info                      # info, debug, warn, error
+  format: json                     # json or text
+
+# =============================================================================
+# Rate Limiting Configuration
+# =============================================================================
+# Advanced rate limiting for different user types and endpoints
+rateLimit:
+  # Per-user limits
+  user:
+    points: 1000                   # 1000 requests
+    duration: 900                  # per 15 minutes
+    blockDuration: 300             # block for 5 minutes
+
+  # Per-IP limits (stricter for anonymous users)
+  ip:
+    points: 500                    # 500 requests
+    duration: 900                  # per 15 minutes
+    blockDuration: 600             # block for 10 minutes
+
+  # Auth endpoints (strictest - prevent brute force)
+  auth:
+    points: 5                      # 5 requests
+    duration: 900                  # per 15 minutes
+    blockDuration: 3600            # block for 1 hour

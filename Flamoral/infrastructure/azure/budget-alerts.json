@@ -1,0 +1,398 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Azure Budget Alerts configuration for Flamoral Dating Platform",
+    "author": "DevOps Team",
+    "lastUpdated": "2024-12-13"
+  },
+  "parameters": {
+    "subscriptionId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure subscription ID"
+      }
+    },
+    "environment": {
+      "type": "string",
+      "allowedValues": ["dev", "staging", "prod"],
+      "defaultValue": "prod",
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "notificationEmails": {
+      "type": "array",
+      "defaultValue": [
+        "devops@flamoral.com",
+        "finance@flamoral.com"
+      ],
+      "metadata": {
+        "description": "List of email addresses to receive budget alerts"
+      }
+    },
+    "overallBudget": {
+      "type": "int",
+      "defaultValue": 2500,
+      "metadata": {
+        "description": "Overall monthly budget in USD"
+      }
+    },
+    "computeBudget": {
+      "type": "int",
+      "defaultValue": 600,
+      "metadata": {
+        "description": "Compute resources monthly budget in USD"
+      }
+    },
+    "storageBudget": {
+      "type": "int",
+      "defaultValue": 200,
+      "metadata": {
+        "description": "Storage resources monthly budget in USD"
+      }
+    },
+    "networkingBudget": {
+      "type": "int",
+      "defaultValue": 400,
+      "metadata": {
+        "description": "Networking resources monthly budget in USD"
+      }
+    },
+    "databaseBudget": {
+      "type": "int",
+      "defaultValue": 800,
+      "metadata": {
+        "description": "Database resources monthly budget in USD"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    }
+  },
+  "variables": {
+    "budgetPrefix": "[concat('flamoral-', parameters('environment'))]",
+    "alertThresholds": {
+      "warning": 50,
+      "alert": 75,
+      "critical": 90,
+      "exceeded": 100
+    },
+    "startDate": "[concat(utcNow('yyyy-MM'), '-01T00:00:00Z')]",
+    "endDate": "[dateTimeAdd(variables('startDate'), 'P1Y')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[concat(variables('budgetPrefix'), '-overall-budget')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('overallBudget')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('startDate')]",
+          "endDate": "[variables('endDate')]"
+        },
+        "notifications": {
+          "warning-50": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": "[variables('alertThresholds').warning]",
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "contactRoles": ["Owner", "Contributor"],
+            "locale": "en-us"
+          },
+          "alert-75": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": "[variables('alertThresholds').alert]",
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "contactRoles": ["Owner", "Contributor"],
+            "locale": "en-us"
+          },
+          "critical-90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": "[variables('alertThresholds').critical]",
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "contactRoles": ["Owner", "Contributor"],
+            "locale": "en-us"
+          },
+          "exceeded-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": "[variables('alertThresholds').exceeded]",
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "contactRoles": ["Owner", "Contributor"],
+            "locale": "en-us"
+          },
+          "forecasted-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "thresholdType": "Forecasted",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "contactRoles": ["Owner"],
+            "locale": "en-us"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[concat(variables('budgetPrefix'), '-compute-budget')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('computeBudget')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('startDate')]",
+          "endDate": "[variables('endDate')]"
+        },
+        "filter": {
+          "dimensions": {
+            "name": "ResourceType",
+            "operator": "In",
+            "values": [
+              "microsoft.containerservice/managedclusters",
+              "microsoft.compute/virtualmachines",
+              "microsoft.compute/virtualmachinescalesets"
+            ]
+          }
+        },
+        "notifications": {
+          "warning-50": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 50,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "locale": "en-us"
+          },
+          "alert-75": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 75,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "locale": "en-us"
+          },
+          "critical-90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "locale": "en-us"
+          },
+          "exceeded-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]",
+            "locale": "en-us"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[concat(variables('budgetPrefix'), '-storage-budget')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('storageBudget')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('startDate')]",
+          "endDate": "[variables('endDate')]"
+        },
+        "filter": {
+          "dimensions": {
+            "name": "ResourceType",
+            "operator": "In",
+            "values": [
+              "microsoft.storage/storageaccounts",
+              "microsoft.documentdb/databaseaccounts"
+            ]
+          }
+        },
+        "notifications": {
+          "warning-50": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 50,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "alert-75": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 75,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "critical-90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "exceeded-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[concat(variables('budgetPrefix'), '-networking-budget')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('networkingBudget')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('startDate')]",
+          "endDate": "[variables('endDate')]"
+        },
+        "filter": {
+          "dimensions": {
+            "name": "ResourceType",
+            "operator": "In",
+            "values": [
+              "microsoft.network/frontdoors",
+              "microsoft.cdn/profiles",
+              "microsoft.network/publicipaddresses",
+              "microsoft.network/virtualnetworks",
+              "microsoft.network/loadbalancers"
+            ]
+          }
+        },
+        "notifications": {
+          "warning-50": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 50,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "alert-75": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 75,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "critical-90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "exceeded-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[concat(variables('budgetPrefix'), '-database-budget')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('databaseBudget')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('startDate')]",
+          "endDate": "[variables('endDate')]"
+        },
+        "filter": {
+          "dimensions": {
+            "name": "ResourceType",
+            "operator": "In",
+            "values": [
+              "microsoft.dbforpostgresql/flexibleservers",
+              "microsoft.dbforpostgresql/servers",
+              "microsoft.cache/redis",
+              "microsoft.signalrservice/signalr"
+            ]
+          }
+        },
+        "notifications": {
+          "warning-50": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 50,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "alert-75": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 75,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "critical-90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          },
+          "exceeded-100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "thresholdType": "Actual",
+            "contactEmails": "[parameters('notificationEmails')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "overallBudgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', concat(variables('budgetPrefix'), '-overall-budget'))]"
+    },
+    "computeBudgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', concat(variables('budgetPrefix'), '-compute-budget'))]"
+    },
+    "storageBudgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', concat(variables('budgetPrefix'), '-storage-budget'))]"
+    },
+    "networkingBudgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', concat(variables('budgetPrefix'), '-networking-budget'))]"
+    },
+    "databaseBudgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', concat(variables('budgetPrefix'), '-database-budget'))]"
+    }
+  }
+}

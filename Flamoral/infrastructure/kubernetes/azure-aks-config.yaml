@@ -1,0 +1,152 @@
+# Azure AKS-specific Kubernetes configurations
+
+---
+# Azure Container Storage Class
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azure-disk-premium
+provisioner: disk.csi.azure.com
+parameters:
+  storageaccounttype: Premium_LRS
+  kind: Managed
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+# Azure File Storage Class
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azure-file-premium
+provisioner: file.csi.azure.com
+parameters:
+  storageaccounttype: Premium_LRS
+  skuName: Premium_LRS
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=1000
+  - gid=1000
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+---
+# Azure Key Vault Secret Provider Class
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-keyvault-secrets
+  namespace: dating-app
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "true"
+    keyvaultName: "production-dating-kv"
+    objects: |
+      array:
+        - |
+          objectName: postgres-password
+          objectType: secret
+          objectVersion: ""
+        - |
+          objectName: redis-password
+          objectType: secret
+          objectVersion: ""
+        - |
+          objectName: jwt-secret
+          objectType: secret
+          objectVersion: ""
+        - |
+          objectName: encryption-key
+          objectType: secret
+          objectVersion: ""
+    tenantId: "${AZURE_TENANT_ID}"
+  secretObjects:
+  - secretName: dating-app-secrets-from-kv
+    type: Opaque
+    data:
+    - objectName: postgres-password
+      key: DB_PASSWORD
+    - objectName: redis-password
+      key: REDIS_PASSWORD
+    - objectName: jwt-secret
+      key: JWT_SECRET
+    - objectName: encryption-key
+      key: ENCRYPTION_KEY
+---
+# Azure Pod Identity
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: dating-app-identity
+  namespace: dating-app
+spec:
+  type: 0
+  resourceID: /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/dating-app-identity
+  clientID: ${AZURE_CLIENT_ID}
+---
+# Azure Pod Identity Binding
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: dating-app-identity-binding
+  namespace: dating-app
+spec:
+  azureIdentity: dating-app-identity
+  selector: dating-app
+---
+# Azure Application Gateway Ingress
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: azure-application-gateway
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: azure/application-gateway
+---
+# Persistent Volume Claim with Azure Disk
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azure-managed-disk
+  namespace: dating-app
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: azure-disk-premium
+  resources:
+    requests:
+      storage: 100Gi
+---
+# Azure Monitor ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: container-azm-ms-agentconfig
+  namespace: kube-system
+data:
+  schema-version: v1
+  config-version: ver1
+  log-data-collection-settings: |-
+    [log_collection_settings]
+       [log_collection_settings.stdout]
+          enabled = true
+          exclude_namespaces = ["kube-system"]
+       [log_collection_settings.stderr]
+          enabled = true
+          exclude_namespaces = ["kube-system"]
+       [log_collection_settings.env_var]
+          enabled = true
+       [log_collection_settings.enrich_container_logs]
+          enabled = true
+  prometheus-data-collection-settings: |-
+    [prometheus_data_collection_settings.cluster]
+        interval = "1m"
+        monitor_kubernetes_pods = true
+    [prometheus_data_collection_settings.node]
+        interval = "1m"

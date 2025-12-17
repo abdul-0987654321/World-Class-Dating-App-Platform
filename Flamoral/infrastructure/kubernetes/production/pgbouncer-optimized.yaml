@@ -1,0 +1,545 @@
+# Cost-Optimized PgBouncer Configuration
+# This configuration is optimized for cost efficiency by reducing database connections
+# and using transaction pooling mode for better connection reuse.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config-optimized
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+    tier: database
+    optimization: cost-efficient
+data:
+  pgbouncer.ini: |
+    [databases]
+    # Primary database
+    dating_app = host=pgbouncer port=5432 dbname=dating_app_production pool_size=15 pool_mode=transaction
+
+    # Read replica for analytics and reporting
+    dating_app_replica = host=pgbouncer-replica port=5432 dbname=dating_app_production pool_size=10 pool_mode=transaction
+
+    # Service-specific database aliases with connection limits
+    dating_app_user_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=8
+    dating_app_matching_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=8
+    dating_app_messaging_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=6
+    dating_app_payment_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=5
+    dating_app_media_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=5
+    dating_app_notification_service = host=pgbouncer port=5432 dbname=dating_app_production pool_size=4
+    dating_app_analytics_service = host=pgbouncer-replica port=5432 dbname=dating_app_production pool_size=6
+
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = 5432
+    auth_type = scram-sha-256
+    auth_file = /etc/pgbouncer/userlist.txt
+    admin_users = pgbouncer_admin
+    stats_users = stats, pgbouncer_admin
+
+    # CONNECTION POOLING - Cost Optimized
+    # Transaction mode allows connection reuse between transactions
+    pool_mode = transaction
+
+    # Reduced maximum connections for cost efficiency
+    max_client_conn = 500
+    default_pool_size = 15
+    min_pool_size = 5
+    reserve_pool_size = 5
+    reserve_pool_timeout = 3
+
+    # Per-database connection limits
+    max_db_connections = 50
+    max_user_connections = 50
+
+    # TIMEOUTS - Aggressive for cost savings
+    # Close idle server connections quickly to reduce database load
+    server_lifetime = 1800          # 30 minutes (reduced from 1 hour)
+    server_idle_timeout = 300       # 5 minutes (reduced from 10 minutes)
+    server_connect_timeout = 10     # 10 seconds
+    server_login_retry = 10         # 10 seconds
+
+    # Query timeouts
+    query_timeout = 120             # 2 minutes
+    query_wait_timeout = 60         # 1 minute
+
+    # Client timeouts
+    client_idle_timeout = 300       # 5 minutes (disconnect idle clients)
+    idle_transaction_timeout = 300  # 5 minutes (kill idle transactions)
+
+    # LOGGING - Minimal in production for performance
+    log_connections = 0
+    log_disconnections = 0
+    log_pooler_errors = 1
+    verbose = 0
+
+    # PERFORMANCE
+    pkt_buf = 8192
+    listen_backlog = 2048           # Reduced from 4096
+    sbuf_loopcnt = 5
+
+    # SECURITY
+    ignore_startup_parameters = extra_float_digits,options
+
+    # HEALTH CHECK
+    server_check_query = SELECT 1
+    server_check_delay = 30
+
+    # DNS
+    dns_max_ttl = 15
+    dns_zone_check_period = 0
+
+    # AUTO DATABASE
+    autodb_idle_timeout = 3600
+
+  userlist.txt: |
+    "datingappadmin" "SCRAM-SHA-256$$POSTGRES_PASSWORD_HASH"
+    "pgbouncer_admin" "SCRAM-SHA-256$$ADMIN_PASSWORD_HASH"
+---
+# PgBouncer Primary Deployment (for writes)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+    tier: database
+    role: primary
+spec:
+  replicas: 2  # Reduced from 3 for cost savings
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: pgbouncer
+      role: primary
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+        tier: database
+        role: primary
+        monitoring: "true"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9127"
+    spec:
+      priorityClassName: high-priority
+      serviceAccountName: pgbouncer
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - pgbouncer
+                - key: role
+                  operator: In
+                  values:
+                  - primary
+              topologyKey: kubernetes.io/hostname
+
+      initContainers:
+      - name: init-userlist
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          echo "\"$DB_USER\" \"$DB_PASSWORD\"" > /tmp/userlist.txt
+          chmod 600 /tmp/userlist.txt
+        env:
+        - name: DB_USER
+          value: datingappadmin
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: userlist
+          mountPath: /tmp
+
+      containers:
+      - name: pgbouncer
+        image: pgbouncer/pgbouncer:1.21.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: pgbouncer
+          containerPort: 5432
+          protocol: TCP
+
+        resources:
+          requests:
+            cpu: 250m      # Reduced from 500m
+            memory: 256Mi  # Reduced from 512Mi
+          limits:
+            cpu: 1000m     # Reduced from 2000m
+            memory: 1Gi    # Reduced from 2Gi
+
+        livenessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - killall -INT pgbouncer && sleep 60
+
+        env:
+        - name: DATABASES_HOST
+          value: "production-dating-app-postgres.postgres.database.azure.com"
+        - name: DATABASES_PORT
+          value: "5432"
+        - name: DATABASES_DBNAME
+          value: "dating_app_production"
+
+        volumeMounts:
+        - name: config
+          mountPath: /etc/pgbouncer
+          readOnly: true
+        - name: userlist
+          mountPath: /etc/pgbouncer/userlist.txt
+          subPath: userlist.txt
+          readOnly: true
+
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      - name: pgbouncer-exporter
+        image: prometheuscommunity/pgbouncer-exporter:v0.7.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: metrics
+          containerPort: 9127
+          protocol: TCP
+
+        env:
+        - name: PGBOUNCER_EXPORTER_HOST
+          value: "127.0.0.1"
+        - name: PGBOUNCER_EXPORTER_PORT
+          value: "5432"
+        - name: PGBOUNCER_USER
+          value: "stats"
+        - name: PGBOUNCER_PASS
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: DB_PASSWORD
+
+        resources:
+          requests:
+            cpu: 50m       # Reduced from 100m
+            memory: 64Mi   # Reduced from 128Mi
+          limits:
+            cpu: 100m      # Reduced from 200m
+            memory: 128Mi  # Reduced from 256Mi
+
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      volumes:
+      - name: config
+        configMap:
+          name: pgbouncer-config-optimized
+          items:
+          - key: pgbouncer.ini
+            path: pgbouncer.ini
+      - name: userlist
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+---
+# PgBouncer Replica Deployment (for read-only queries)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer-replica
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+    tier: database
+    role: replica
+spec:
+  replicas: 1  # Single replica for cost efficiency
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: pgbouncer
+      role: replica
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+        tier: database
+        role: replica
+        monitoring: "true"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9127"
+    spec:
+      priorityClassName: medium-priority
+      serviceAccountName: pgbouncer
+
+      initContainers:
+      - name: init-userlist
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          echo "\"$DB_USER\" \"$DB_PASSWORD\"" > /tmp/userlist.txt
+          chmod 600 /tmp/userlist.txt
+        env:
+        - name: DB_USER
+          value: datingappadmin
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: userlist
+          mountPath: /tmp
+
+      containers:
+      - name: pgbouncer
+        image: pgbouncer/pgbouncer:1.21.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: pgbouncer
+          containerPort: 5432
+          protocol: TCP
+
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+        env:
+        - name: DATABASES_HOST
+          value: "production-dating-app-postgres-replica.postgres.database.azure.com"
+        - name: DATABASES_PORT
+          value: "5432"
+        - name: DATABASES_DBNAME
+          value: "dating_app_production"
+
+        volumeMounts:
+        - name: config
+          mountPath: /etc/pgbouncer
+          readOnly: true
+        - name: userlist
+          mountPath: /etc/pgbouncer/userlist.txt
+          subPath: userlist.txt
+          readOnly: true
+
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      volumes:
+      - name: config
+        configMap:
+          name: pgbouncer-config-optimized
+          items:
+          - key: pgbouncer.ini
+            path: pgbouncer.ini
+      - name: userlist
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+---
+# PgBouncer Primary Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+    role: primary
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None  # Let PgBouncer handle connection pooling
+  ports:
+  - name: pgbouncer
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+  - name: metrics
+    port: 9127
+    targetPort: 9127
+    protocol: TCP
+  selector:
+    app: pgbouncer
+    role: primary
+---
+# PgBouncer Replica Service (for read-only queries)
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer-replica
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+    role: replica
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: pgbouncer
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+  - name: metrics
+    port: 9127
+    targetPort: 9127
+    protocol: TCP
+  selector:
+    app: pgbouncer
+    role: replica
+---
+# PgBouncer Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pgbouncer
+  namespace: flamoral
+---
+# PgBouncer Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pgbouncer-pdb
+  namespace: flamoral
+spec:
+  minAvailable: 1  # Reduced from 2
+  selector:
+    matchLabels:
+      app: pgbouncer
+      role: primary
+---
+# PgBouncer Horizontal Pod Autoscaler (cost-optimized)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pgbouncer-hpa
+  namespace: flamoral
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pgbouncer
+  minReplicas: 2  # Reduced from 3
+  maxReplicas: 6  # Reduced from 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75  # Increased from 70 to reduce scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85  # Increased from 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # Increased from 300 (slower scale-down)
+      policies:
+      - type: Percent
+        value: 25  # Reduced from 50 (more gradual)
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 120  # Increased from 60
+      policies:
+      - type: Percent
+        value: 50  # Reduced from 100
+        periodSeconds: 60
+      - type: Pods
+        value: 1  # Reduced from 2
+        periodSeconds: 60
+      selectPolicy: Min  # Changed from Max (more conservative)
+---
+# Service Monitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pgbouncer
+  namespace: flamoral
+  labels:
+    app: pgbouncer
+spec:
+  selector:
+    matchLabels:
+      app: pgbouncer
+  endpoints:
+  - port: metrics
+    interval: 60s  # Increased from 30s to reduce monitoring overhead
+    path: /metrics

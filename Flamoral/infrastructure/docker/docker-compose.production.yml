@@ -1,0 +1,805 @@
+version: '3.8'
+
+# =============================================================================
+# Flamoral Dating Platform - Production Docker Compose Configuration
+# =============================================================================
+# IMPORTANT: This file is for production-like testing only
+# For actual production deployment, use Kubernetes (AKS)
+#
+# Usage:
+#   docker-compose -f docker-compose.production.yml up -d
+#
+# Prerequisites:
+#   - All services must have production-ready Dockerfiles
+#   - Environment variables must be loaded from .env.production
+#   - SSL certificates must be properly configured
+#   - External services (Azure, AWS) must be configured
+#
+# Last Updated: 2025-12-11
+# =============================================================================
+
+networks:
+  flamoral-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  jaeger-data:
+
+services:
+  # ===========================================================================
+  # API Gateway (Production Mode)
+  # ===========================================================================
+  api-gateway:
+    image: ${ACR_LOGIN_SERVER}/flamoral-api-gateway:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-api-gateway
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4000:4000"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.flamoral.service=api-gateway"
+      - "com.flamoral.environment=production"
+
+  # ===========================================================================
+  # Auth Service (Production)
+  # ===========================================================================
+  auth-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-auth-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-auth-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4001:4001"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # User Service (Production)
+  # ===========================================================================
+  user-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-user-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-user-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4002
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4002:4002"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Matching Service (Production)
+  # ===========================================================================
+  matching-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-matching-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-matching-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4003
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4003:4003"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Messaging Service (Production)
+  # ===========================================================================
+  messaging-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-messaging-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-messaging-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4004
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4004:4004"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.75'
+          memory: 768M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Media Service (Production)
+  # ===========================================================================
+  media-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-media-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-media-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4005
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4005:4005"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Payment Service (Production)
+  # ===========================================================================
+  payment-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-payment-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-payment-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4006
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4006:4006"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Notification Service (Production)
+  # ===========================================================================
+  notification-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-notification-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-notification-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4007
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4007:4007"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Analytics Service (Production)
+  # ===========================================================================
+  analytics-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-analytics-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-analytics-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4008
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4008:4008"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.75'
+          memory: 768M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Moderation Service (Production)
+  # ===========================================================================
+  moderation-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-moderation-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-moderation-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4009
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4009:4009"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.75'
+          memory: 768M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Realtime Service (WebSockets - Production)
+  # ===========================================================================
+  realtime-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-realtime-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-realtime-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4011
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4011:4011"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Admin Service (Production)
+  # ===========================================================================
+  admin-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-admin-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-admin-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4010
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4010:4010"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Policy Service (Production)
+  # ===========================================================================
+  policy-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-policy-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-policy-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4012
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4012:4012"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4012/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Advertising Service (Production)
+  # ===========================================================================
+  advertising-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-advertising-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-advertising-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4013
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4013:4013"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4013/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.75'
+          memory: 768M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Automation Service (Production)
+  # ===========================================================================
+  automation-service:
+    image: ${ACR_LOGIN_SERVER}/flamoral-automation-service:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-automation-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4014
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4014:4014"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4014/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.75'
+          memory: 768M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Workflow Engine (Production)
+  # ===========================================================================
+  workflow-engine:
+    image: ${ACR_LOGIN_SERVER}/flamoral-workflow-engine:${IMAGE_TAG:-latest}
+    container_name: flamoral-prod-workflow-engine
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4015
+    env_file:
+      - ../../infrastructure/config/.env.production
+    ports:
+      - "4015:4015"
+    networks:
+      - flamoral-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4015/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # Monitoring - Prometheus (Production)
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: flamoral-prod-prometheus
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - flamoral-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ===========================================================================
+  # Monitoring - Grafana (Production)
+  # ===========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: flamoral-prod-grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=https://grafana.flamoral.app
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - flamoral-prod-network
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================================
+  # Tracing - Jaeger (Production)
+  # ===========================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: flamoral-prod-jaeger
+    restart: always
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger-data:/badger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - flamoral-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ===========================================================================
+  # Nginx Reverse Proxy (Production with SSL)
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: flamoral-prod-nginx
+    restart: always
+    volumes:
+      - ../nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - flamoral-prod-network
+    depends_on:
+      - api-gateway
+      - realtime-service
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# =============================================================================
+# Production Deployment Notes
+# =============================================================================
+#
+# 1. Image Registry:
+#    - All images should be pulled from Azure Container Registry (ACR)
+#    - Set ACR_LOGIN_SERVER and IMAGE_TAG environment variables
+#    - Authenticate: az acr login --name flamoralacr8eq5eg
+#
+# 2. Environment Variables:
+#    - Load from .env.production file
+#    - Sensitive values should come from Azure Key Vault
+#    - Use --env-file flag: docker-compose --env-file .env.production up
+#
+# 3. Resource Limits:
+#    - All services have CPU and memory limits defined
+#    - Adjust based on actual load testing results
+#    - Monitor with docker stats
+#
+# 4. Health Checks:
+#    - All services have health checks configured
+#    - Services won't receive traffic until healthy
+#    - Failed health checks trigger automatic restarts
+#
+# 5. Logging:
+#    - JSON file driver with rotation
+#    - Max 10MB per file, 3 files retained
+#    - Consider external log aggregation (ELK, Azure Monitor)
+#
+# 6. Networking:
+#    - Isolated production network
+#    - Services communicate internally
+#    - Only necessary ports exposed externally
+#
+# 7. SSL/TLS:
+#    - Nginx handles SSL termination
+#    - Place certificates in ../nginx/ssl/
+#    - Update nginx.prod.conf with certificate paths
+#
+# 8. Scaling:
+#    - Use docker-compose up --scale service-name=N
+#    - Better: Deploy to Kubernetes for true production
+#
+# 9. Monitoring:
+#    - Prometheus scrapes metrics from all services
+#    - Grafana visualizes metrics
+#    - Jaeger collects distributed traces
+#
+# 10. Backup & Recovery:
+#     - Regular volume backups required
+#     - Database backups handled externally (Azure)
+#     - Document recovery procedures
+#
+# =============================================================================
+# Commands
+# =============================================================================
+#
+# Start all services:
+#   docker-compose -f docker-compose.production.yml up -d
+#
+# View logs:
+#   docker-compose -f docker-compose.production.yml logs -f [service-name]
+#
+# Stop all services:
+#   docker-compose -f docker-compose.production.yml down
+#
+# Update service:
+#   docker-compose -f docker-compose.production.yml up -d --no-deps --build [service-name]
+#
+# Check health:
+#   docker-compose -f docker-compose.production.yml ps
+#
+# =============================================================================

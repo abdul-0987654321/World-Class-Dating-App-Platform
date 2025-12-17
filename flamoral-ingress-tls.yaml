@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-ingress
+  namespace: flamoral
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - flamoral.com
+    - www.flamoral.com
+    secretName: flamoral-tls
+  rules:
+  - host: flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-web
+            port:
+              number: 80
+  - host: www.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-web
+            port:
+              number: 80

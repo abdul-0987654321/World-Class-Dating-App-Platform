@@ -1,0 +1,70 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Root node_modules (has workspace symlinks that cause issues)
+/node_modules
+
+# Apps node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+# Backend services node_modules - will be installed during build
+backend/services/*/node_modules
+
+# Backend shared node_modules - will be installed during build  
+backend/shared/node_modules
+
+# Build artifacts
+**/dist
+**/build
+**/.next
+**/out
+
+# Test files
+**/__tests__
+**/tests
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+**/coverage
+
+# Development files
+**/.env
+**/.env.local
+**/.env.*.local
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github
+.gitlab-ci.yml
+azure-pipelines.yml
+
+# Documentation
+docs
+
+# Mobile specific
+apps/mobile-app/ios/Pods
+apps/mobile-app/ios/build
+apps/mobile-app/android/build
+apps/mobile-app/android/.gradle
+apps/mobile-app/android/app/build
+
+# Terraform
+infrastructure/terraform/**/.terraform
+infrastructure/terraform/**/*.tfstate
+infrastructure/terraform/**/*.tfstate.backup
+
+# Docker (removed - needed for some builds)
+# docker-compose*.yml

@@ -1,0 +1,551 @@
+# =============================================================================
+# VERSION A: TERRAFORM + AKS + ACR OPTIMIZED INFRASTRUCTURE PIPELINE
+# =============================================================================
+# Dedicated infrastructure management pipeline with drift detection,
+# auto-repair capabilities, and optimized Terraform workflows
+# =============================================================================
+
+name: Infrastructure Pipeline (Version A)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'terraform/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'terraform/**'
+  schedule:
+    - cron: '0 6 * * *'  # Daily drift detection at 6 AM UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - staging
+          - prod
+      action:
+        description: 'Terraform action'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+          - drift-detect
+      auto_approve:
+        description: 'Auto-approve apply (requires environment approval)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: terraform-${{ github.event.inputs.environment || 'default' }}
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_LOG: INFO
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # ===========================================================================
+  # STAGE 1: Setup and Determine Environment
+  # ===========================================================================
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      tf_dir: ${{ steps.env.outputs.tf_dir }}
+      action: ${{ steps.env.outputs.action }}
+
+    steps:
+      - name: Determine environment and action
+        id: env
+        run: |
+          # Determine environment
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENV="prod"
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            ENV="staging"
+          elif [ "${{ github.ref }}" == "refs/heads/test" ]; then
+            ENV="test"
+          else
+            ENV="dev"
+          fi
+
+          # Determine action
+          if [ -n "${{ github.event.inputs.action }}" ]; then
+            ACTION="${{ github.event.inputs.action }}"
+          elif [ "${{ github.event_name }}" == "schedule" ]; then
+            ACTION="drift-detect"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            ACTION="plan"
+          else
+            ACTION="plan"
+          fi
+
+          # Set terraform directory
+          case $ENV in
+            dev)
+              TF_DIR="infrastructure/terraform/environments/dating-dev"
+              ;;
+            *)
+              TF_DIR="infrastructure/terraform/environments/${ENV}"
+              ;;
+          esac
+
+          echo "environment=${ENV}" >> $GITHUB_OUTPUT
+          echo "tf_dir=${TF_DIR}" >> $GITHUB_OUTPUT
+          echo "action=${ACTION}" >> $GITHUB_OUTPUT
+
+          echo "Environment: ${ENV}"
+          echo "Terraform Dir: ${TF_DIR}"
+          echo "Action: ${ACTION}"
+
+  # ===========================================================================
+  # STAGE 2: Terraform Security Scan
+  # ===========================================================================
+  security-scan:
+    name: Infrastructure Security Scan
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: ${{ needs.setup.outputs.tf_dir }}
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+          category: 'checkov-terraform-${{ needs.setup.outputs.environment }}'
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: ${{ needs.setup.outputs.tf_dir }}
+          soft_fail: true
+
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: ${{ needs.setup.outputs.tf_dir }}
+          severity: 'CRITICAL,HIGH'
+          format: 'table'
+
+  # ===========================================================================
+  # STAGE 3: Terraform Format & Validate
+  # ===========================================================================
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive -diff
+        working-directory: infrastructure/terraform
+
+      - name: Auto-fix formatting (if needed)
+        if: steps.fmt.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          terraform fmt -recursive
+          git diff --exit-code || echo "Formatting changes needed"
+        working-directory: infrastructure/terraform
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+
+  # ===========================================================================
+  # STAGE 4: Terraform Plan
+  # ===========================================================================
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [setup, security-scan, terraform-validate]
+    environment: ${{ needs.setup.outputs.environment }}
+    outputs:
+      plan_exit_code: ${{ steps.plan.outputs.exitcode }}
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file=terraform.tfvars \
+            -out=tfplan \
+            -detailed-exitcode \
+            -no-color 2>&1 | tee plan-output.txt
+
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "exitcode=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Generate plan summary
+        run: |
+          echo "## Terraform Plan - ${{ needs.setup.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f plan-output.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -100 plan-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ needs.setup.outputs.environment }}-${{ github.run_number }}
+          path: ${{ needs.setup.outputs.tf_dir }}/tfplan
+          retention-days: 7
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ needs.setup.outputs.tf_dir }}/plan-output.txt', 'utf8');
+            const truncated = planOutput.length > 60000 ? planOutput.substring(0, 60000) + '\n...(truncated)' : planOutput;
+
+            const output = `### Terraform Plan - ${{ needs.setup.outputs.environment }}
+
+            \`\`\`
+            ${truncated}
+            \`\`\`
+
+            *Plan generated by workflow run #${{ github.run_number }}*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  # ===========================================================================
+  # STAGE 5: Terraform Apply
+  # ===========================================================================
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [setup, terraform-plan]
+    if: |
+      (needs.setup.outputs.action == 'apply' ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/develop')) &&
+      needs.terraform-plan.outputs.has_changes == 'true'
+    environment: ${{ needs.setup.outputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ needs.setup.outputs.environment }}-${{ github.run_number }}
+          path: ${{ needs.setup.outputs.tf_dir }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Outputs
+        run: |
+          echo "## Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+          terraform output -json > outputs.json
+          cat outputs.json | jq -r 'to_entries[] | "- **\(.key)**: \(.value.value)"' >> $GITHUB_STEP_SUMMARY
+        working-directory: ${{ needs.setup.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload outputs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-${{ needs.setup.outputs.environment }}-${{ github.run_number }}
+          path: ${{ needs.setup.outputs.tf_dir }}/outputs.json
+          retention-days: 30
+
+  # ===========================================================================
+  # STAGE 6: Drift Detection
+  # ===========================================================================
+  drift-detection:
+    name: Drift Detection
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.action == 'drift-detect' || github.event_name == 'schedule'
+    outputs:
+      drift_detected: ${{ steps.drift.outputs.drift_detected }}
+
+    strategy:
+      matrix:
+        environment: [dev, test, prod]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Determine TF directory
+        id: dir
+        run: |
+          case "${{ matrix.environment }}" in
+            dev)
+              echo "tf_dir=infrastructure/terraform/environments/dating-dev" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "tf_dir=infrastructure/terraform/environments/${{ matrix.environment }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ steps.dir.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Detect Drift
+        id: drift
+        run: |
+          terraform plan -detailed-exitcode -no-color 2>&1 | tee drift-check.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "## DRIFT DETECTED - ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat drift-check.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            echo "## No Drift - ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+          fi
+        working-directory: ${{ steps.dir.outputs.tf_dir }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  # ===========================================================================
+  # STAGE 7: AKS Cluster Health Check
+  # ===========================================================================
+  aks-health-check:
+    name: AKS Health Check
+    runs-on: ubuntu-latest
+    needs: [setup, terraform-apply]
+    if: always() && (needs.terraform-apply.result == 'success' || needs.terraform-apply.result == 'skipped')
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group flamoral-${{ needs.setup.outputs.environment }}-rg \
+            --name flamoral-${{ needs.setup.outputs.environment }}-aks \
+            --overwrite-existing
+        continue-on-error: true
+
+      - name: Check cluster health
+        run: |
+          echo "## AKS Cluster Health - ${{ needs.setup.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Node Status" >> $GITHUB_STEP_SUMMARY
+          kubectl get nodes -o wide >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to get nodes" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pod Status" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods --all-namespaces | head -50 >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to get pods" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services" >> $GITHUB_STEP_SUMMARY
+          kubectl get services --all-namespaces | head -30 >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to get services" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+
+  # ===========================================================================
+  # STAGE 8: ACR Health Check
+  # ===========================================================================
+  acr-health-check:
+    name: ACR Health Check
+    runs-on: ubuntu-latest
+    needs: [setup, terraform-apply]
+    if: always() && (needs.terraform-apply.result == 'success' || needs.terraform-apply.result == 'skipped')
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Check ACR health
+        run: |
+          ACR_NAME="flamoral${{ needs.setup.outputs.environment }}acr"
+
+          echo "## ACR Health - $ACR_NAME" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Registry Info" >> $GITHUB_STEP_SUMMARY
+          az acr show --name $ACR_NAME --query "{name:name, loginServer:loginServer, sku:sku.name}" -o table >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to get ACR info" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recent Images" >> $GITHUB_STEP_SUMMARY
+          az acr repository list --name $ACR_NAME -o table 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || echo "Unable to list repositories" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+
+  # ===========================================================================
+  # NOTIFICATION
+  # ===========================================================================
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [setup, terraform-plan, terraform-apply, drift-detection, aks-health-check, acr-health-check]
+    if: always()
+
+    steps:
+      - name: Infrastructure Summary
+        run: |
+          echo "## Infrastructure Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ needs.setup.outputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Plan | ${{ needs.terraform-plan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Apply | ${{ needs.terraform-apply.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Drift Detection | ${{ needs.drift-detection.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AKS Health | ${{ needs.aks-health-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ACR Health | ${{ needs.acr-health-check.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#infrastructure'
+          text: |
+            Infrastructure Pipeline: ${{ job.status }}
+            Environment: ${{ needs.setup.outputs.environment }}
+            Action: ${{ needs.setup.outputs.action }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true

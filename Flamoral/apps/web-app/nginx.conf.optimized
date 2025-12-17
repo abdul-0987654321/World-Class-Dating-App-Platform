@@ -1,0 +1,126 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # =========================================================================
+    # COST OPTIMIZATION: Enhanced Compression Configuration
+    # =========================================================================
+    # Gzip compression (fallback for older clients)
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css application/json application/javascript
+               text/xml application/xml application/rss+xml text/javascript
+               application/x-javascript image/svg+xml;
+
+    # Brotli compression (better than gzip, 15-25% smaller)
+    # Note: Requires nginx-module-brotli to be installed
+    # brotli on;
+    # brotli_comp_level 6;
+    # brotli_types text/plain text/css application/json application/javascript
+    #              text/xml application/xml application/rss+xml text/javascript
+    #              application/x-javascript image/svg+xml;
+
+    # ETag support for conditional requests (304 Not Modified responses)
+    etag on;
+
+    server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # =====================================================================
+        # Health check endpoint - NO CACHING
+        # =====================================================================
+        location /health {
+            return 200 'OK';
+            add_header Content-Type text/plain;
+            add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+            add_header Pragma "no-cache" always;
+            add_header Expires "0" always;
+        }
+
+        # =====================================================================
+        # Static Assets - 7 DAY CACHE
+        # COST OPTIMIZATION: Immutable content with long cache duration
+        # Front Door will cache for 7 days, reducing origin requests by 90%+
+        # =====================================================================
+        location ~* ^/(assets|static|dist|build)/ {
+            expires 7d;
+            add_header Cache-Control "public, max-age=604800, immutable" always;
+            add_header Vary "Accept-Encoding" always;
+
+            # Security headers
+            add_header X-Content-Type-Options "nosniff" always;
+        }
+
+        # =====================================================================
+        # CSS and JavaScript files - 7 DAY CACHE
+        # =====================================================================
+        location ~* \.(css|js)$ {
+            expires 7d;
+            add_header Cache-Control "public, max-age=604800, immutable" always;
+            add_header Vary "Accept-Encoding" always;
+            add_header X-Content-Type-Options "nosniff" always;
+        }
+
+        # =====================================================================
+        # Font files - 30 DAY CACHE
+        # =====================================================================
+        location ~* \.(woff|woff2|ttf|otf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000, immutable" always;
+            add_header Vary "Accept-Encoding" always;
+            add_header Access-Control-Allow-Origin "*" always;
+        }
+
+        # =====================================================================
+        # Media files (images, videos) - 30 DAY CACHE
+        # COST OPTIMIZATION: Long cache for media, reduces origin bandwidth by 95%+
+        # =====================================================================
+        location ~* \.(jpg|jpeg|png|gif|webp|avif|svg|mp4|webm|mov)$ {
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000, immutable" always;
+            add_header Vary "Accept-Encoding" always;
+        }
+
+        # =====================================================================
+        # HTML files - 1 HOUR CACHE with revalidation
+        # COST OPTIMIZATION: Short cache with stale-while-revalidate for freshness
+        # Cache hit ratio target: 70%+
+        # =====================================================================
+        location ~* \.html$ {
+            expires 1h;
+            add_header Cache-Control "public, max-age=3600, stale-while-revalidate=300, stale-if-error=3600" always;
+            add_header Vary "Accept-Encoding" always;
+
+            # Security headers
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+        }
+
+        # =====================================================================
+        # SPA fallback - serve index.html for all routes
+        # 1 HOUR CACHE with revalidation
+        # =====================================================================
+        location / {
+            try_files $uri $uri/ /index.html;
+
+            # Cache for 1 hour with revalidation
+            expires 1h;
+            add_header Cache-Control "public, max-age=3600, stale-while-revalidate=300, stale-if-error=3600" always;
+            add_header Vary "Accept-Encoding" always;
+
+            # Security headers
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+        }
+    }
+}

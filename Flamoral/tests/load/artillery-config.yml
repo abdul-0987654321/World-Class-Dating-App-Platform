@@ -1,0 +1,266 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up"
+
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp-up to 50 users/sec"
+
+    # Sustained load
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained load - 50 users/sec"
+
+    # Peak load
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 100
+      name: "Ramp-up to peak - 100 users/sec"
+
+    # Spike test
+    - duration: 60
+      arrivalRate: 200
+      name: "Spike - 200 users/sec"
+
+    # Cool-down
+    - duration: 60
+      arrivalRate: 200
+      rampTo: 10
+      name: "Cool-down"
+
+  plugins:
+    metrics-by-endpoint:
+      stripQueryString: true
+
+    expect:
+      outputFormat: "pretty"
+
+    publish-metrics:
+      - type: "datadog"
+        apiKey: "{{ $env.DD_API_KEY }}"
+        prefix: "flamoral.loadtest"
+
+  processor: "./artillery-processor.js"
+
+  variables:
+    apiVersion: "v1"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+  http:
+    timeout: 30
+    pool: 50
+
+  ensure:
+    maxErrorRate: 1  # Max 1% error rate
+    p95: 500         # 95th percentile under 500ms
+    p99: 1000        # 99th percentile under 1000ms
+
+scenarios:
+  # Scenario 1: User Registration and Onboarding
+  - name: "User Registration Flow"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/{{ apiVersion }}/auth/register"
+          json:
+            email: "{{ $randomString() }}@loadtest.com"
+            password: "LoadTest123!"
+            name: "{{ $randomString() }}"
+            dateOfBirth: "1995-01-15"
+            gender: "{{ $randomItem(['male', 'female', 'other']) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: 201
+            - contentType: json
+            - hasProperty: "token"
+
+      - think: 2
+
+      - post:
+          url: "/api/{{ apiVersion }}/users/{{ userId }}/photos"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            photo: "base64_encoded_photo_data"
+          expect:
+            - statusCode: 201
+
+  # Scenario 2: Login and Discovery
+  - name: "Login and Discover"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          json:
+            email: "loadtest-{{ $randomNumber(1, 100) }}@flamoral.com"
+            password: "LoadTest123!"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      - get:
+          url: "/api/{{ apiVersion }}/matches/discover"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            limit: 10
+          expect:
+            - statusCode: 200
+            - hasProperty: "profiles"
+
+      - think: 2
+
+      # Simulate swiping
+      - loop:
+          - post:
+              url: "/api/{{ apiVersion }}/matches/swipe"
+              headers:
+                Authorization: "Bearer {{ authToken }}"
+              json:
+                targetUserId: "{{ $randomString() }}"
+                direction: "{{ $randomItem(['left', 'right']) }}"
+              expect:
+                - statusCode:
+                    - 200
+                    - 201
+          - think: 1
+        count: 5
+
+  # Scenario 3: Messaging Flow
+  - name: "Messaging"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          json:
+            email: "loadtest-{{ $randomNumber(1, 100) }}@flamoral.com"
+            password: "LoadTest123!"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/api/{{ apiVersion }}/messages/conversations"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 2
+
+      - post:
+          url: "/api/{{ apiVersion }}/messages"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            conversationId: "conv-{{ $randomNumber(1, 100) }}"
+            text: "{{ $randomString() }}"
+          expect:
+            - statusCode:
+                - 200
+                - 201
+
+      - think: 1
+
+      - get:
+          url: "/api/{{ apiVersion }}/messages"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            conversationId: "conv-{{ $randomNumber(1, 100) }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 4: Profile Management
+  - name: "Profile Management"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          json:
+            email: "loadtest-{{ $randomNumber(1, 100) }}@flamoral.com"
+            password: "LoadTest123!"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/api/{{ apiVersion }}/users/{{ userId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 2
+
+      - put:
+          url: "/api/{{ apiVersion }}/users/{{ userId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            bio: "{{ $randomString() }}"
+            interests: ["hiking", "photography", "cooking"]
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/api/{{ apiVersion }}/users/{{ userId }}/preferences"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 5: Search and Filters
+  - name: "Search and Filter"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          json:
+            email: "loadtest-{{ $randomNumber(1, 100) }}@flamoral.com"
+            password: "LoadTest123!"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+
+      - post:
+          url: "/api/{{ apiVersion }}/matches/search"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            filters:
+              ageMin: 25
+              ageMax: 35
+              distance: 50
+              gender: "{{ $randomItem(['male', 'female']) }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "results"

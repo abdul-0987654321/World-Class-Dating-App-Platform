@@ -1,0 +1,394 @@
+{
+  "mode": "Indexed",
+  "metadata": {
+    "version": "1.0.0",
+    "category": "Cost Management",
+    "description": "Enforce required tags on Azure resources for cost allocation and tracking",
+    "displayName": "Flamoral - Require Cost Allocation Tags",
+    "createdBy": "DevOps Team",
+    "lastUpdated": "2024-12-13"
+  },
+  "parameters": {
+    "requiredTags": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Required Tags",
+        "description": "List of tags that must be present on all resources"
+      },
+      "defaultValue": [
+        "Environment",
+        "Service",
+        "Team",
+        "CostCenter"
+      ]
+    },
+    "environmentValues": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Allowed Environment Values",
+        "description": "Valid values for Environment tag"
+      },
+      "defaultValue": [
+        "dev",
+        "development",
+        "staging",
+        "stage",
+        "prod",
+        "production",
+        "shared"
+      ]
+    },
+    "effect": {
+      "type": "String",
+      "metadata": {
+        "displayName": "Effect",
+        "description": "Enable or disable the execution of the policy"
+      },
+      "allowedValues": [
+        "Audit",
+        "Deny",
+        "Disabled"
+      ],
+      "defaultValue": "Audit"
+    }
+  },
+  "policyRule": {
+    "if": {
+      "anyOf": [
+        {
+          "field": "tags['Environment']",
+          "exists": false
+        },
+        {
+          "field": "tags['Service']",
+          "exists": false
+        },
+        {
+          "field": "tags['Team']",
+          "exists": false
+        },
+        {
+          "field": "tags['CostCenter']",
+          "exists": false
+        }
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  },
+  "policyDefinitions": [
+    {
+      "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/require-tag-environment",
+      "displayName": "Require Environment Tag",
+      "description": "Enforces existence and valid values for Environment tag",
+      "mode": "Indexed",
+      "metadata": {
+        "category": "Cost Management"
+      },
+      "parameters": {
+        "tagName": {
+          "type": "String",
+          "metadata": {
+            "displayName": "Tag Name",
+            "description": "Name of the tag, such as 'Environment'"
+          },
+          "defaultValue": "Environment"
+        },
+        "tagValues": {
+          "type": "Array",
+          "metadata": {
+            "displayName": "Tag Values",
+            "description": "Allowed values for the tag"
+          },
+          "defaultValue": [
+            "dev",
+            "development",
+            "staging",
+            "stage",
+            "prod",
+            "production",
+            "shared"
+          ]
+        }
+      },
+      "policyRule": {
+        "if": {
+          "anyOf": [
+            {
+              "field": "[concat('tags[', parameters('tagName'), ']')]",
+              "exists": false
+            },
+            {
+              "field": "[concat('tags[', parameters('tagName'), ']')]",
+              "notIn": "[parameters('tagValues')]"
+            }
+          ]
+        },
+        "then": {
+          "effect": "deny"
+        }
+      }
+    },
+    {
+      "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/require-tag-service",
+      "displayName": "Require Service Tag",
+      "description": "Enforces existence of Service tag for cost allocation",
+      "mode": "Indexed",
+      "metadata": {
+        "category": "Cost Management"
+      },
+      "policyRule": {
+        "if": {
+          "field": "tags['Service']",
+          "exists": false
+        },
+        "then": {
+          "effect": "deny"
+        }
+      }
+    },
+    {
+      "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/require-tag-team",
+      "displayName": "Require Team Tag",
+      "description": "Enforces existence of Team tag for accountability",
+      "mode": "Indexed",
+      "metadata": {
+        "category": "Cost Management"
+      },
+      "policyRule": {
+        "if": {
+          "field": "tags['Team']",
+          "exists": false
+        },
+        "then": {
+          "effect": "deny"
+        }
+      }
+    },
+    {
+      "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/require-tag-costcenter",
+      "displayName": "Require CostCenter Tag",
+      "description": "Enforces existence of CostCenter tag for billing",
+      "mode": "Indexed",
+      "metadata": {
+        "category": "Cost Management"
+      },
+      "policyRule": {
+        "if": {
+          "field": "tags['CostCenter']",
+          "exists": false
+        },
+        "then": {
+          "effect": "deny"
+        }
+      }
+    },
+    {
+      "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/inherit-tags-from-rg",
+      "displayName": "Inherit Tags from Resource Group",
+      "description": "Automatically inherit cost allocation tags from resource group",
+      "mode": "Indexed",
+      "metadata": {
+        "category": "Cost Management"
+      },
+      "parameters": {
+        "tagNames": {
+          "type": "Array",
+          "metadata": {
+            "displayName": "Tag Names to Inherit",
+            "description": "List of tag names to inherit from resource group"
+          },
+          "defaultValue": [
+            "Environment",
+            "Service",
+            "Team",
+            "CostCenter",
+            "BillingOwner"
+          ]
+        }
+      },
+      "policyRule": {
+        "if": {
+          "allOf": [
+            {
+              "field": "type",
+              "notEquals": "Microsoft.Resources/subscriptions/resourceGroups"
+            },
+            {
+              "value": "[resourceGroup().tags[parameters('tagNames')[0]]]",
+              "notEquals": ""
+            }
+          ]
+        },
+        "then": {
+          "effect": "modify",
+          "details": {
+            "roleDefinitionIds": [
+              "/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+            ],
+            "operations": [
+              {
+                "operation": "addOrReplace",
+                "field": "[concat('tags[', parameters('tagNames')[0], ']')]",
+                "value": "[resourceGroup().tags[parameters('tagNames')[0]]]"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "assignments": [
+    {
+      "name": "flamoral-cost-tags-prod",
+      "displayName": "Flamoral Cost Tags - Production",
+      "description": "Enforce cost allocation tags on all production resources",
+      "scope": "/subscriptions/{subscription-id}/resourceGroups/flamoral-prod-rg",
+      "notScopes": [],
+      "parameters": {
+        "effect": {
+          "value": "Deny"
+        }
+      },
+      "enforcementMode": "Default"
+    },
+    {
+      "name": "flamoral-cost-tags-staging",
+      "displayName": "Flamoral Cost Tags - Staging",
+      "description": "Audit cost allocation tags on staging resources",
+      "scope": "/subscriptions/{subscription-id}/resourceGroups/flamoral-staging-rg",
+      "parameters": {
+        "effect": {
+          "value": "Audit"
+        }
+      },
+      "enforcementMode": "Default"
+    },
+    {
+      "name": "flamoral-cost-tags-dev",
+      "displayName": "Flamoral Cost Tags - Development",
+      "description": "Audit cost allocation tags on dev resources",
+      "scope": "/subscriptions/{subscription-id}/resourceGroups/flamoral-dev-rg",
+      "parameters": {
+        "effect": {
+          "value": "Audit"
+        }
+      },
+      "enforcementMode": "Default"
+    }
+  ],
+  "exemptions": [
+    {
+      "name": "system-resources-exemption",
+      "displayName": "System Resources Exemption",
+      "description": "Exempt system-managed resources from tagging requirements",
+      "exemptionCategory": "Waiver",
+      "policyAssignmentId": "/subscriptions/{subscription-id}/providers/Microsoft.Authorization/policyAssignments/flamoral-cost-tags-prod",
+      "resourceSelectors": [
+        {
+          "name": "SystemManagedResources",
+          "selectors": [
+            {
+              "kind": "resourceType",
+              "in": [
+                "Microsoft.Compute/disks",
+                "Microsoft.Network/networkInterfaces",
+                "Microsoft.Network/privateEndpoints"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "initiatives": {
+    "name": "flamoral-cost-management-initiative",
+    "displayName": "Flamoral Cost Management Initiative",
+    "description": "Combined policy initiative for cost allocation and optimization",
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "RequireTags",
+        "policyDefinitionId": "require-cost-tags",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "InheritTags",
+        "policyDefinitionId": "inherit-tags-from-rg",
+        "parameters": {}
+      },
+      {
+        "policyDefinitionReferenceId": "AllowedLocations",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
+        "parameters": {
+          "listOfAllowedLocations": {
+            "value": [
+              "eastus",
+              "eastus2",
+              "centralus"
+            ]
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "AllowedVMSKUs",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/cccc23c7-8427-4f53-ad12-b6a63eb452b3",
+        "parameters": {
+          "listOfAllowedSKUs": {
+            "value": [
+              "Standard_D2s_v3",
+              "Standard_D4s_v3",
+              "Standard_D8s_v3",
+              "Standard_E2s_v3",
+              "Standard_E4s_v3"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "documentation": {
+    "requiredTags": {
+      "Environment": {
+        "description": "Deployment environment",
+        "allowedValues": ["dev", "staging", "prod", "shared"],
+        "example": "prod"
+      },
+      "Service": {
+        "description": "Service or application name",
+        "allowedValues": ["*"],
+        "example": "flamoral-platform"
+      },
+      "Team": {
+        "description": "Team responsible for the resource",
+        "allowedValues": ["platform", "backend", "frontend", "data", "devops"],
+        "example": "platform"
+      },
+      "CostCenter": {
+        "description": "Cost center for billing",
+        "allowedValues": ["engineering", "marketing", "operations"],
+        "example": "engineering"
+      },
+      "BillingOwner": {
+        "description": "Individual or team accountable for costs",
+        "optional": true,
+        "example": "platform-team@flamoral.com"
+      },
+      "ManagedBy": {
+        "description": "How the resource is managed",
+        "optional": true,
+        "allowedValues": ["terraform", "manual", "arm"],
+        "example": "terraform"
+      }
+    },
+    "deployment": {
+      "terraform": "See infrastructure/terraform/modules/cost-management/",
+      "azureCLI": "az policy assignment create --name flamoral-cost-tags --policy cost-tags-policy.json",
+      "portal": "Azure Portal > Policy > Definitions > Create Policy Definition"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+# Flamoral Robots.txt
+# https://www.flamoral.com/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /matches/
+Disallow: /profile/edit
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://flamoral.com/sitemap.xml
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

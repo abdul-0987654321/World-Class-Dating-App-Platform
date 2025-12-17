@@ -1,0 +1,165 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-service
+  namespace: flamoral-prod
+  labels:
+    app: media-service
+    tier: medium-traffic
+    cost-optimization: enabled
+spec:
+  replicas: 1  # Managed by HPA
+  selector:
+    matchLabels:
+      app: media-service
+  template:
+    metadata:
+      labels:
+        app: media-service
+        tier: medium-traffic
+    spec:
+      serviceAccountName: flamoral-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      # Spot instance eligible - batch processing tolerates interruptions
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.azure.com/scalesetpriority
+                operator: In
+                values:
+                - spot
+      tolerations:
+      - key: kubernetes.azure.com/scalesetpriority
+        operator: Equal
+        value: spot
+        effect: NoSchedule
+
+      containers:
+      - name: media-service
+        image: flamoraldevacr.azurecr.io/media-service:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 3006
+          name: http
+        env:
+        - name: PORT
+          value: "3006"
+        - name: NODE_ENV
+          value: "production"
+        - name: SERVICE_NAME
+          value: "media-service"
+        # Database configuration
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: DATABASE_URL
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_PASSWORD
+        # Redis configuration
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: REDIS_URL
+        # Azure Storage for media
+        - name: AZURE_STORAGE_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-media-secrets
+              key: AZURE_STORAGE_ACCOUNT
+        - name: AZURE_STORAGE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-media-secrets
+              key: AZURE_STORAGE_KEY
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-media-secrets
+              key: AZURE_STORAGE_CONNECTION_STRING
+        - name: AZURE_STORAGE_CONTAINER
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-media-secrets
+              key: AZURE_STORAGE_CONTAINER
+        # CDN configuration
+        - name: CDN_URL
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-media-secrets
+              key: CDN_URL
+        # Auth secrets
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: JWT_SECRET
+        resources:
+          requests:
+            memory: "512Mi"  # Image manipulation needs memory
+            cpu: "200m"      # Media processing is CPU-intensive
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"     # Allow bursts for processing
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3006
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3006
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}

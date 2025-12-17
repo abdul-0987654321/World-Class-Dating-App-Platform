@@ -1,0 +1,223 @@
+/**
+ * API Configuration for Flamoral Mobile App
+ * Centralized configuration for all backend service endpoints
+ */
+
+import { ENV } from '@config/env';
+
+/**
+ * Core API Configuration
+ */
+export const API_CONFIG = {
+  // Base URLs for microservices
+  BASE_URL: ENV.API_BASE_URL,
+  WEBSOCKET_URL: ENV.WEBSOCKET_URL,
+  GRAPHQL_URL: ENV.GRAPHQL_URL,
+
+  // AI Services
+  AI_SERVICES: {
+    FRAUD_DETECTION: ENV.FRAUD_DETECTION_URL,
+    NLP_SERVICE: ENV.NLP_SERVICE_URL,
+    PHOTO_ANALYSIS: ENV.PHOTO_ANALYSIS_URL,
+    RECOMMENDATION: ENV.RECOMMENDATION_URL,
+  },
+
+  // Messaging Service
+  MESSAGING_SERVICE_URL: ENV.MESSAGING_SERVICE_URL,
+
+  // CDN URLs
+  CDN_URL: ENV.CDN_URL,
+  MEDIA_CDN_URL: ENV.MEDIA_CDN_URL,
+
+  // Core Services (relative paths)
+  CORE_SERVICES: {
+    AUTH: '/api/v1/auth',
+    USERS: '/api/v1/users',
+    PROFILES: '/api/v1/profiles',
+    MATCHING: '/api/v1/matching',
+    MESSAGING: '/api/v1/messaging',
+    PAYMENTS: '/api/v1/payments',
+    NOTIFICATIONS: '/api/v1/notifications',
+    SUBSCRIPTIONS: '/api/v1/subscriptions',
+    EVENTS: '/api/v1/events',
+    PHOTOS: '/api/v1/photos',
+    REPORTS: '/api/v1/reports',
+    SETTINGS: '/api/v1/settings',
+    DISCOVERY: '/api/v1/discovery',
+  },
+
+  // Timeouts (ms)
+  TIMEOUTS: {
+    DEFAULT: ENV.API_TIMEOUT,
+    UPLOAD: ENV.UPLOAD_TIMEOUT,
+    AI_ANALYSIS: ENV.AI_ANALYSIS_TIMEOUT,
+    WEBSOCKET_RECONNECT: 5000,
+  },
+
+  // Retry configuration
+  RETRY: {
+    MAX_RETRIES: ENV.MAX_RETRIES,
+    RETRY_DELAY: ENV.RETRY_DELAY,
+    BACKOFF_MULTIPLIER: ENV.BACKOFF_MULTIPLIER,
+    RETRY_STATUS_CODES: [408, 429, 500, 502, 503, 504],
+  },
+
+  // Rate limiting
+  RATE_LIMIT: {
+    ENABLED: true,
+    MAX_REQUESTS: 100,
+    WINDOW_MS: 60000, // 1 minute
+  },
+};
+
+/**
+ * API Endpoints
+ */
+export const API_ENDPOINTS = {
+  // Authentication
+  AUTH: {
+    LOGIN: `${API_CONFIG.CORE_SERVICES.AUTH}/login`,
+    REGISTER: `${API_CONFIG.CORE_SERVICES.AUTH}/register`,
+    LOGOUT: `${API_CONFIG.CORE_SERVICES.AUTH}/logout`,
+    REFRESH: `${API_CONFIG.CORE_SERVICES.AUTH}/refresh`,
+    VERIFY_EMAIL: `${API_CONFIG.CORE_SERVICES.AUTH}/verify-email`,
+    FORGOT_PASSWORD: `${API_CONFIG.CORE_SERVICES.AUTH}/forgot-password`,
+    RESET_PASSWORD: `${API_CONFIG.CORE_SERVICES.AUTH}/reset-password`,
+    CHANGE_PASSWORD: `${API_CONFIG.CORE_SERVICES.AUTH}/change-password`,
+    ME: `${API_CONFIG.CORE_SERVICES.AUTH}/me`,
+  },
+
+  // User Management
+  USERS: {
+    GET_PROFILE: (userId: string) => `${API_CONFIG.CORE_SERVICES.USERS}/${userId}`,
+    UPDATE_PROFILE: `${API_CONFIG.CORE_SERVICES.USERS}/profile`,
+    UPLOAD_PHOTO: `${API_CONFIG.CORE_SERVICES.USERS}/photos`,
+    DELETE_PHOTO: (photoId: string) => `${API_CONFIG.CORE_SERVICES.USERS}/photos/${photoId}`,
+    UPDATE_LOCATION: `${API_CONFIG.CORE_SERVICES.USERS}/location`,
+    UPDATE_PREFERENCES: `${API_CONFIG.CORE_SERVICES.USERS}/preferences`,
+    BLOCK_USER: (userId: string) => `${API_CONFIG.CORE_SERVICES.USERS}/block/${userId}`,
+    REPORT_USER: `${API_CONFIG.CORE_SERVICES.REPORTS}/user`,
+  },
+
+  // Matching & Discovery
+  DISCOVERY: {
+    GET_RECOMMENDATIONS: `${API_CONFIG.CORE_SERVICES.DISCOVERY}/recommendations`,
+    LIKE: `${API_CONFIG.CORE_SERVICES.MATCHING}/like`,
+    PASS: `${API_CONFIG.CORE_SERVICES.MATCHING}/pass`,
+    SUPER_LIKE: `${API_CONFIG.CORE_SERVICES.MATCHING}/super-like`,
+    UNDO: `${API_CONFIG.CORE_SERVICES.MATCHING}/undo`,
+    GET_MATCHES: `${API_CONFIG.CORE_SERVICES.MATCHING}/matches`,
+    GET_LIKES: `${API_CONFIG.CORE_SERVICES.MATCHING}/likes`,
+  },
+
+  // Messaging
+  MESSAGING: {
+    GET_CONVERSATIONS: `${API_CONFIG.CORE_SERVICES.MESSAGING}/conversations`,
+    GET_MESSAGES: (conversationId: string) =>
+      `${API_CONFIG.CORE_SERVICES.MESSAGING}/conversations/${conversationId}/messages`,
+    SEND_MESSAGE: (conversationId: string) =>
+      `${API_CONFIG.CORE_SERVICES.MESSAGING}/conversations/${conversationId}/messages`,
+    DELETE_MESSAGE: (messageId: string) =>
+      `${API_CONFIG.CORE_SERVICES.MESSAGING}/messages/${messageId}`,
+    MARK_READ: (conversationId: string) =>
+      `${API_CONFIG.CORE_SERVICES.MESSAGING}/conversations/${conversationId}/read`,
+    UPLOAD_MEDIA: `${API_CONFIG.CORE_SERVICES.MESSAGING}/media`,
+  },
+
+  // Payments & Subscriptions
+  PAYMENTS: {
+    CREATE_PAYMENT_INTENT: `${API_CONFIG.CORE_SERVICES.PAYMENTS}/intent`,
+    CONFIRM_PAYMENT: `${API_CONFIG.CORE_SERVICES.PAYMENTS}/confirm`,
+    GET_PAYMENT_METHODS: `${API_CONFIG.CORE_SERVICES.PAYMENTS}/methods`,
+    ADD_PAYMENT_METHOD: `${API_CONFIG.CORE_SERVICES.PAYMENTS}/methods`,
+    DELETE_PAYMENT_METHOD: (methodId: string) =>
+      `${API_CONFIG.CORE_SERVICES.PAYMENTS}/methods/${methodId}`,
+  },
+
+  SUBSCRIPTIONS: {
+    GET_PLANS: `${API_CONFIG.CORE_SERVICES.SUBSCRIPTIONS}/plans`,
+    SUBSCRIBE: `${API_CONFIG.CORE_SERVICES.SUBSCRIPTIONS}/subscribe`,
+    CANCEL: `${API_CONFIG.CORE_SERVICES.SUBSCRIPTIONS}/cancel`,
+    UPDATE: `${API_CONFIG.CORE_SERVICES.SUBSCRIPTIONS}/update`,
+    GET_STATUS: `${API_CONFIG.CORE_SERVICES.SUBSCRIPTIONS}/status`,
+  },
+
+  // Events
+  EVENTS: {
+    GET_EVENTS: `${API_CONFIG.CORE_SERVICES.EVENTS}`,
+    GET_EVENT: (eventId: string) => `${API_CONFIG.CORE_SERVICES.EVENTS}/${eventId}`,
+    JOIN_EVENT: (eventId: string) => `${API_CONFIG.CORE_SERVICES.EVENTS}/${eventId}/join`,
+    LEAVE_EVENT: (eventId: string) => `${API_CONFIG.CORE_SERVICES.EVENTS}/${eventId}/leave`,
+  },
+
+  // Notifications
+  NOTIFICATIONS: {
+    GET_ALL: `${API_CONFIG.CORE_SERVICES.NOTIFICATIONS}`,
+    MARK_READ: (notificationId: string) =>
+      `${API_CONFIG.CORE_SERVICES.NOTIFICATIONS}/${notificationId}/read`,
+    MARK_ALL_READ: `${API_CONFIG.CORE_SERVICES.NOTIFICATIONS}/read-all`,
+    UPDATE_SETTINGS: `${API_CONFIG.CORE_SERVICES.NOTIFICATIONS}/settings`,
+  },
+};
+
+/**
+ * Get authentication headers
+ */
+export const getAuthHeaders = (token: string): Record<string, string> => ({
+  Authorization: `Bearer ${token}`,
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+});
+
+/**
+ * Get multipart form headers
+ */
+export const getMultipartHeaders = (token: string): Record<string, string> => ({
+  Authorization: `Bearer ${token}`,
+  'Content-Type': 'multipart/form-data',
+});
+
+/**
+ * Get request headers with optional token
+ */
+export const getHeaders = (
+  token?: string,
+  contentType: string = 'application/json'
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': contentType,
+    Accept: 'application/json',
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+};
+
+/**
+ * Build query string from params
+ */
+export const buildQueryString = (params: Record<string, any>): string => {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+};
+
+/**
+ * Build full URL with query params
+ */
+export const buildUrl = (endpoint: string, params?: Record<string, any>): string => {
+  if (!params) return endpoint;
+  return `${endpoint}${buildQueryString(params)}`;
+};
+
+export default API_CONFIG;

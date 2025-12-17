@@ -1,0 +1,78 @@
+# =============================================================================
+# Flamoral Production Ingress
+# =============================================================================
+# Routes traffic to Web App and API Gateway services
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-ingress
+  namespace: flamoral
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/websocket-services: "realtime-service"
+  labels:
+    app: flamoral
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+    secretName: flamoral-tls
+  rules:
+  # Web App - Main domain
+  - host: flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+  # Web App - www subdomain
+  - host: www.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+  # API - api subdomain
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Health check endpoint - CRITICAL: must be first for priority routing
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000
+      # Route /api/* to API Gateway
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000
+      # Default route to API Gateway
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000

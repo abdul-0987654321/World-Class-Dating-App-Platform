@@ -1,0 +1,373 @@
+# Alert Rules for All Flamoral Services
+
+groups:
+  - name: service_availability
+    interval: 30s
+    rules:
+      # API Gateway Alerts
+      - alert: APIGatewayDown
+        expr: up{job="api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "API Gateway is down"
+          description: "API Gateway instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://runbooks.flamoral.com/APIGatewayDown"
+
+      - alert: APIGatewayHighErrorRate
+        expr: rate(http_requests_total{job="api-gateway",status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "API Gateway high error rate"
+          description: "API Gateway error rate is {{ $value | humanizePercentage }} (>5%)"
+
+      - alert: APIGatewayHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="api-gateway"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "API Gateway high latency"
+          description: "API Gateway 95th percentile latency is {{ $value }}s (>1s)"
+
+      # Auth Service Alerts
+      - alert: AuthServiceDown
+        expr: up{job="auth-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: auth-service
+        annotations:
+          summary: "Auth Service is down"
+          description: "Auth Service instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://runbooks.flamoral.com/AuthServiceDown"
+
+      - alert: AuthServiceHighFailureRate
+        expr: rate(auth_attempts_total{status="failed"}[5m]) / rate(auth_attempts_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          service: auth-service
+        annotations:
+          summary: "Auth Service high failure rate"
+          description: "Authentication failure rate is {{ $value | humanizePercentage }} (>10%)"
+
+      - alert: AuthServiceHighLatency
+        expr: histogram_quantile(0.95, rate(auth_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+        annotations:
+          summary: "Auth Service high latency"
+          description: "Auth Service 95th percentile latency is {{ $value }}s (>2s)"
+
+      # User Service Alerts
+      - alert: UserServiceDown
+        expr: up{job="user-service"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: user-service
+        annotations:
+          summary: "User Service is down"
+          description: "User Service instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: UserServiceHighErrorRate
+        expr: rate(http_requests_total{job="user-service",status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          service: user-service
+        annotations:
+          summary: "User Service high error rate"
+          description: "User Service error rate is {{ $value | humanizePercentage }}"
+
+      # Matching Service Alerts
+      - alert: MatchingServiceDown
+        expr: up{job="matching-service"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: matching-service
+        annotations:
+          summary: "Matching Service is down"
+          description: "Matching Service instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: MatchingQueueBacklog
+        expr: matching_queue_depth > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: matching-service
+        annotations:
+          summary: "Matching queue backlog"
+          description: "Matching queue depth is {{ $value }} (>1000)"
+
+      - alert: MatchingServiceSlowProcessing
+        expr: rate(matching_processed_total[5m]) < 10
+        for: 10m
+        labels:
+          severity: warning
+          service: matching-service
+        annotations:
+          summary: "Matching Service slow processing"
+          description: "Matching processing rate is {{ $value }} matches/sec (<10)"
+
+      # Messaging Service Alerts
+      - alert: MessagingServiceDown
+        expr: up{job="messaging-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: messaging-service
+        annotations:
+          summary: "Messaging Service is down"
+          description: "Messaging Service instance {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: MessageDeliveryFailureHigh
+        expr: rate(messages_failed_total[5m]) / rate(messages_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: high
+          service: messaging-service
+        annotations:
+          summary: "High message delivery failure rate"
+          description: "Message failure rate is {{ $value | humanizePercentage }} (>1%)"
+
+      - alert: MessageQueueBacklog
+        expr: message_queue_depth > 10000
+        for: 5m
+        labels:
+          severity: warning
+          service: messaging-service
+        annotations:
+          summary: "Message queue backlog"
+          description: "Message queue depth is {{ $value }} (>10000)"
+
+      # Media Service Alerts
+      - alert: MediaServiceDown
+        expr: up{job="media-service"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: media-service
+        annotations:
+          summary: "Media Service is down"
+          description: "Media Service instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: MediaUploadFailureHigh
+        expr: rate(media_upload_failed_total[5m]) / rate(media_upload_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          service: media-service
+        annotations:
+          summary: "High media upload failure rate"
+          description: "Media upload failure rate is {{ $value | humanizePercentage }} (>5%)"
+
+      - alert: MediaProcessingQueueBacklog
+        expr: media_processing_queue_depth > 500
+        for: 10m
+        labels:
+          severity: warning
+          service: media-service
+        annotations:
+          summary: "Media processing queue backlog"
+          description: "Media processing queue depth is {{ $value }} (>500)"
+
+      # Payment Service Alerts
+      - alert: PaymentServiceDown
+        expr: up{job="payment-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: payment-service
+        annotations:
+          summary: "Payment Service is down"
+          description: "Payment Service instance {{ $labels.instance }} has been down for more than 30 seconds."
+          runbook_url: "https://runbooks.flamoral.com/PaymentServiceDown"
+
+      - alert: PaymentFailureRateHigh
+        expr: rate(payment_transactions_total{status="failed"}[5m]) / rate(payment_transactions_total[5m]) > 0.02
+        for: 2m
+        labels:
+          severity: critical
+          service: payment-service
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value | humanizePercentage }} (>2%)"
+
+      - alert: PaymentProcessingLatencyHigh
+        expr: histogram_quantile(0.95, rate(payment_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: payment-service
+        annotations:
+          summary: "High payment processing latency"
+          description: "Payment 95th percentile latency is {{ $value }}s (>5s)"
+
+      # Notification Service Alerts
+      - alert: NotificationServiceDown
+        expr: up{job="notification-service"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: notification-service
+        annotations:
+          summary: "Notification Service is down"
+          description: "Notification Service instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: NotificationDeliveryFailureHigh
+        expr: rate(notifications_failed_total[5m]) / rate(notifications_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: notification-service
+        annotations:
+          summary: "High notification delivery failure rate"
+          description: "Notification failure rate is {{ $value | humanizePercentage }} (>10%)"
+
+      - alert: NotificationQueueBacklog
+        expr: notification_queue_depth > 5000
+        for: 10m
+        labels:
+          severity: warning
+          service: notification-service
+        annotations:
+          summary: "Notification queue backlog"
+          description: "Notification queue depth is {{ $value }} (>5000)"
+
+      # Analytics Service Alerts
+      - alert: AnalyticsServiceDown
+        expr: up{job="analytics-service"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: analytics-service
+        annotations:
+          summary: "Analytics Service is down"
+          description: "Analytics Service instance {{ $labels.instance }} has been down for more than 5 minutes."
+
+      - alert: AnalyticsEventProcessingLag
+        expr: analytics_event_lag_seconds > 300
+        for: 10m
+        labels:
+          severity: warning
+          service: analytics-service
+        annotations:
+          summary: "Analytics event processing lag"
+          description: "Analytics processing lag is {{ $value }}s (>300s)"
+
+      # Moderation Service Alerts
+      - alert: ModerationServiceDown
+        expr: up{job="moderation-service"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: moderation-service
+        annotations:
+          summary: "Moderation Service is down"
+          description: "Moderation Service instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: ModerationQueueBacklog
+        expr: moderation_queue_depth > 1000
+        for: 15m
+        labels:
+          severity: warning
+          service: moderation-service
+        annotations:
+          summary: "Moderation queue backlog"
+          description: "Moderation queue depth is {{ $value }} (>1000)"
+
+      # Realtime Service Alerts
+      - alert: RealtimeServiceDown
+        expr: up{job="realtime-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: realtime-service
+        annotations:
+          summary: "Realtime Service is down"
+          description: "Realtime Service instance {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: WebSocketConnectionsHigh
+        expr: websocket_active_connections > 9000
+        for: 5m
+        labels:
+          severity: warning
+          service: realtime-service
+        annotations:
+          summary: "High WebSocket connection count"
+          description: "WebSocket connections at {{ $value }} (>9000 per pod)"
+
+      - alert: WebSocketDisconnectRateHigh
+        expr: rate(websocket_disconnects_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: realtime-service
+        annotations:
+          summary: "High WebSocket disconnect rate"
+          description: "WebSocket disconnect rate is {{ $value }}/sec (>100)"
+
+      # Admin Service Alerts
+      - alert: AdminServiceDown
+        expr: up{job="admin-service"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: admin-service
+        annotations:
+          summary: "Admin Service is down"
+          description: "Admin Service instance {{ $labels.instance }} has been down for more than 5 minutes."
+
+      # Advertising Service Alerts
+      - alert: AdvertisingServiceDown
+        expr: up{job="advertising-service"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: advertising-service
+        annotations:
+          summary: "Advertising Service is down"
+          description: "Advertising Service instance {{ $labels.instance }} has been down for more than 5 minutes."
+
+      # Automation Service Alerts
+      - alert: AutomationServiceDown
+        expr: up{job="automation-service"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: automation-service
+        annotations:
+          summary: "Automation Service is down"
+          description: "Automation Service instance {{ $labels.instance }} has been down for more than 5 minutes."
+
+      # Workflow Engine Alerts
+      - alert: WorkflowEngineDown
+        expr: up{job="workflow-engine"} == 0
+        for: 2m
+        labels:
+          severity: high
+          service: workflow-engine
+        annotations:
+          summary: "Workflow Engine is down"
+          description: "Workflow Engine instance {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: WorkflowQueueBacklog
+        expr: workflow_queue_depth > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: workflow-engine
+        annotations:
+          summary: "Workflow queue backlog"
+          description: "Workflow queue depth is {{ $value }} (>1000)"

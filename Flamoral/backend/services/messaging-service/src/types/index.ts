@@ -1,0 +1,174 @@
+/**
+ * Type definitions for Messaging Service
+ */
+
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  VIDEO = 'video',
+  AUDIO = 'audio',
+  VOICE = 'voice',
+  FILE = 'file',
+  GIF = 'gif',
+  GIFT = 'gift',
+}
+
+export enum MessageStatus {
+  SENT = 'sent',
+  DELIVERED = 'delivered',
+  READ = 'read',
+  FAILED = 'failed',
+}
+
+export enum ConversationStatus {
+  ACTIVE = 'active',
+  ARCHIVED = 'archived',
+  BLOCKED = 'blocked',
+  DELETED = 'deleted',
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  content: string; // Encrypted content
+  type: MessageType;
+  status: MessageStatus;
+  sentAt: Date;
+  deliveredAt?: Date;
+  readAt?: Date;
+  metadata?: {
+    mediaUrl?: string;
+    thumbnailUrl?: string;
+    duration?: number; // for audio/video
+    fileSize?: number;
+    fileName?: string;
+    mimeType?: string;
+    gift?: any; // For gift messages
+    transactionId?: string;
+  };
+  replyTo?: string; // Message ID being replied to
+  deleted?: boolean;
+  deletedAt?: Date;
+  deletedFor?: string[]; // User IDs who have deleted this message (soft delete)
+  // Pinned message support
+  isPinned?: boolean;
+  pinnedBy?: string;
+  pinnedAt?: Date;
+  // End-to-end encryption metadata
+  encryption?: {
+    isEncrypted: boolean;
+    iv?: string; // Initialization vector for AES-GCM
+    authTag?: string; // Authentication tag for AES-GCM
+    version?: number; // Encryption protocol version (for future updates)
+  };
+}
+
+export interface Conversation {
+  id: string;
+  participant1Id: string;
+  participant2Id: string;
+  matchId?: string; // Reference to match from matching service
+  status?: ConversationStatus;
+  lastMessageId?: string;
+  lastMessageAt?: Date;
+  lastMessagePreview?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  unreadCount?: {
+    [userId: string]: number;
+  };
+  // Women-first messaging support
+  requiresWomenFirst?: boolean;
+  womanUserId?: string;
+  conversationInitiated?: boolean;
+  firstMessageSentBy?: string;
+  metadata?: {
+    user1Name?: string;
+    user2Name?: string;
+    user1Photo?: string;
+    user2Photo?: string;
+  };
+}
+
+export interface TypingIndicator {
+  conversationId: string;
+  userId: string;
+  isTyping: boolean;
+  timestamp: Date;
+}
+
+export interface OnlineStatus {
+  userId: string;
+  online: boolean;
+  lastSeen?: Date;
+  socketId?: string;
+}
+
+export interface SendMessageRequest {
+  conversationId: string;
+  receiverId: string;
+  content: string;
+  type: MessageType;
+  metadata?: Message['metadata'];
+  replyTo?: string;
+}
+
+export interface SendMessageResponse {
+  success: boolean;
+  message?: Message;
+  error?: string;
+}
+
+export interface ConversationListRequest {
+  userId: string;
+  limit?: number;
+  offset?: number;
+  status?: ConversationStatus;
+}
+
+export interface MessageHistoryRequest {
+  conversationId: string;
+  userId: string;
+  limit?: number;
+  before?: string; // Message ID for pagination
+}
+
+export interface MarkAsReadRequest {
+  conversationId: string;
+  userId: string;
+  messageIds?: string[]; // If not provided, marks all as read
+}
+
+export interface DeleteMessageRequest {
+  messageId: string;
+  userId: string;
+  deleteForBoth?: boolean; // true = delete for both users, false = only for sender
+}
+
+// Socket.io event types
+export interface ClientToServerEvents {
+  'message:send': (data: SendMessageRequest, callback: (response: SendMessageResponse) => void) => void;
+  'message:read': (data: MarkAsReadRequest) => void;
+  'message:delete': (data: DeleteMessageRequest) => void;
+  'typing:start': (data: { conversationId: string }) => void;
+  'typing:stop': (data: { conversationId: string }) => void;
+  'conversation:join': (data: { conversationId: string }) => void;
+  'conversation:leave': (data: { conversationId: string }) => void;
+}
+
+export interface ServerToClientEvents {
+  'message:new': (message: Message) => void;
+  'message:delivered': (data: { messageId: string; deliveredAt: Date }) => void;
+  'message:read': (data: { messageIds: string[]; readAt: Date }) => void;
+  'message:deleted': (data: { messageId: string; conversationId: string }) => void;
+  'typing:indicator': (data: TypingIndicator) => void;
+  'user:online': (data: OnlineStatus) => void;
+  'user:offline': (data: OnlineStatus) => void;
+  'error': (error: { message: string; code?: string }) => void;
+}
+
+export interface UserSocketMap {
+  [userId: string]: string; // userId -> socketId
+}

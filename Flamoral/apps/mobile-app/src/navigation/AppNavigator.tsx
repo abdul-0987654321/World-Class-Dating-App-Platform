@@ -1,0 +1,190 @@
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/Ionicons';
+
+// Main Tab Screens
+import DiscoveryScreen from '@screens/Main/DiscoveryScreen';
+import MatchesScreen from '@screens/Main/MatchesScreen';
+import MessagesScreen from '@screens/Main/MessagesScreen';
+import ProfileScreen from '@screens/Main/ProfileScreen';
+import ChatScreen from '@screens/Main/ChatScreen';
+import TravelModeScreen from '@screens/Main/TravelModeScreen';
+import LikesYouScreen from '@screens/Main/LikesYouScreen';
+import WhoViewedMeScreen from '@screens/Main/WhoViewedMeScreen';
+
+// Settings Screens
+import SettingsScreen from '@screens/Settings/SettingsScreen';
+import AccountSettingsScreen from '@screens/Settings/AccountSettingsScreen';
+import PrivacySettingsScreen from '@screens/Settings/PrivacySettingsScreen';
+import NotificationSettingsScreen from '@screens/Settings/NotificationSettingsScreen';
+
+// Help Screens
+import HelpCenterScreen from '@screens/Help/HelpCenterScreen';
+import SafetyTipsScreen from '@screens/Help/SafetyTipsScreen';
+
+// Subscription
+import SubscriptionScreen from '@screens/Subscription/SubscriptionScreen';
+
+// Events
+import EventsListScreen from '@screens/Events/EventsListScreen';
+import EventDetailsScreen from '@screens/Events/EventDetailsScreen';
+
+// Video Call
+import VideoCallScreen from '@screens/VideoCall/VideoCallScreen';
+import CallHistoryScreen from '@screens/VideoCall/CallHistoryScreen';
+
+export type MainTabParamList = {
+  Discovery: undefined;
+  Matches: undefined;
+  Messages: undefined;
+  Profile: undefined;
+};
+
+export type AppStackParamList = {
+  MainTabs: undefined;
+  Chat: { matchId: string; matchName: string };
+  Settings: undefined;
+  AccountSettings: undefined;
+  PrivacySettings: undefined;
+  NotificationSettings: undefined;
+  Subscription: undefined;
+  LikesYou: undefined;
+  WhoViewedMe: undefined;
+  TravelMode: undefined;
+  HelpCenter: undefined;
+  SafetyTips: undefined;
+  EventsList: undefined;
+  EventDetails: { eventId: string };
+  VideoCall: { callId: string; matchId: string };
+  CallHistory: undefined;
+};
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createStackNavigator<AppStackParamList>();
+
+const MainTabs = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: string = '';
+
+          switch (route.name) {
+            case 'Discovery':
+              iconName = focused ? 'flame' : 'flame-outline';
+              break;
+            case 'Matches':
+              iconName = focused ? 'heart' : 'heart-outline';
+              break;
+            case 'Messages':
+              iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+              break;
+            case 'Profile':
+              iconName = focused ? 'person' : 'person-outline';
+              break;
+          }
+
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#FF6B6B',
+        tabBarInactiveTintColor: '#999',
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 0.5,
+          borderTopColor: '#E5E5EA',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+      })}
+    >
+      <Tab.Screen
+        name="Discovery"
+        component={DiscoveryScreen}
+        options={{
+          tabBarLabel: 'Discover',
+        }}
+      />
+      <Tab.Screen
+        name="Matches"
+        component={MatchesScreen}
+        options={{
+          tabBarBadge: undefined,
+        }}
+      />
+      <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          tabBarBadge: undefined,
+        }}
+      />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+};
+
+const AppNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#F2F2F7' },
+      }}
+    >
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+
+      {/* Chat & Messaging */}
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{
+          presentation: 'card',
+        }}
+      />
+
+      {/* Settings */}
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+      <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+      <Stack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+      />
+
+      {/* Premium Features */}
+      <Stack.Screen
+        name="Subscription"
+        component={SubscriptionScreen}
+        options={{
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen name="LikesYou" component={LikesYouScreen} />
+      <Stack.Screen name="WhoViewedMe" component={WhoViewedMeScreen} />
+      <Stack.Screen name="TravelMode" component={TravelModeScreen} />
+
+      {/* Help & Safety */}
+      <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+      <Stack.Screen name="SafetyTips" component={SafetyTipsScreen} />
+
+      {/* Events */}
+      <Stack.Screen name="EventsList" component={EventsListScreen} />
+      <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+
+      {/* Video Calls */}
+      <Stack.Screen
+        name="VideoCall"
+        component={VideoCallScreen}
+        options={{
+          presentation: 'fullScreenModal',
+        }}
+      />
+      <Stack.Screen name="CallHistory" component={CallHistoryScreen} />
+    </Stack.Navigator>
+  );
+};
+
+export default AppNavigator;

@@ -1,0 +1,71 @@
+---
+# Production environment variables
+
+environment: production
+environment_tier: prod
+
+# Application
+app_debug: false
+app_log_level: warn
+api_base_url: https://api.flamoral.com
+
+# Database
+db_host: prod-db-01
+db_port: 5432
+db_name: dating_app_production
+db_user: datingapp_prod
+db_max_connections: 200
+db_replica_hosts:
+  - prod-db-02
+  - prod-db-03
+db_connection_pool_size: 100
+
+# Redis Cluster
+redis_master_host: prod-redis-01
+redis_slave_hosts:
+  - prod-redis-02
+  - prod-redis-03
+redis_port: 6379
+redis_db: 0
+redis_sentinel_enabled: true
+
+# Resources
+app_server_cpu: 8
+app_server_memory: 16384
+db_server_cpu: 16
+db_server_memory: 32768
+
+# Scaling
+min_replicas: 3
+max_replicas: 10
+auto_scaling_enabled: true
+cpu_threshold_percent: 70
+
+# Load Balancer
+lb_algorithm: least_connections
+lb_health_check_interval: 5
+lb_sticky_sessions: true
+
+# CDN
+cdn_enabled: true
+cdn_provider: cloudflare
+
+# Monitoring
+datadog_enabled: true
+newrelic_enabled: true
+sentry_enabled: true
+prometheus_retention_days: 90
+
+# Backup
+backup_enabled: true
+backup_retention_days: 90
+backup_schedule: "0 1,13 * * *"
+point_in_time_recovery: true
+
+# Security
+waf_enabled: true
+ddos_protection: true
+ssl_enforce: true
+ssl_protocols:
+  - TLSv1.2
+  - TLSv1.3

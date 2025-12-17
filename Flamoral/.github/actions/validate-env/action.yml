@@ -1,0 +1,174 @@
+# =============================================================================
+# VALIDATE-ENV COMPOSITE ACTION
+# =============================================================================
+# Validates environment variables against schema for dev/staging/prod
+# Ensures required variables are defined before running tools
+# =============================================================================
+
+name: 'Validate Environment'
+description: 'Validate environment variables against schema'
+
+inputs:
+  environment:
+    description: 'Target environment (dev, staging, prod)'
+    required: true
+  schema-path:
+    description: 'Path to env.schema.json'
+    required: false
+    default: '.github/env.schema.json'
+  fail-on-missing:
+    description: 'Fail if required variables are missing'
+    required: false
+    default: 'true'
+
+outputs:
+  valid:
+    description: 'Whether all required variables are present'
+    value: ${{ steps.validate.outputs.valid }}
+  missing-vars:
+    description: 'List of missing required variables'
+    value: ${{ steps.validate.outputs.missing }}
+  report-path:
+    description: 'Path to validation report'
+    value: ${{ steps.validate.outputs.report-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate environment variables
+      id: validate
+      shell: bash
+      run: |
+        ENVIRONMENT="${{ inputs.environment }}"
+        SCHEMA_PATH="${{ inputs.schema-path }}"
+        REPORT_PATH="env-validation-report-${ENVIRONMENT}.json"
+
+        echo "Validating environment: $ENVIRONMENT"
+        echo "Schema path: $SCHEMA_PATH"
+
+        # Initialize report
+        echo '{"environment": "'$ENVIRONMENT'", "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'", "valid": true, "missing": [], "present": []}' > $REPORT_PATH
+
+        # Define required variables per environment
+        COMMON_VARS=(
+          "NODE_VERSION"
+        )
+
+        DEV_VARS=(
+          "DEV_RESOURCE_GROUP"
+          "DEV_AKS_CLUSTER"
+          "DEV_API_URL"
+        )
+
+        STAGING_VARS=(
+          "STAGING_RESOURCE_GROUP"
+          "STAGING_AKS_CLUSTER"
+          "STAGING_URL"
+          "STAGING_API_URL"
+        )
+
+        PROD_VARS=(
+          "PROD_RESOURCE_GROUP"
+          "PROD_AKS_CLUSTER"
+        )
+
+        AZURE_VARS=(
+          "AZURE_CLIENT_ID"
+          "AZURE_TENANT_ID"
+          "AZURE_SUBSCRIPTION_ID"
+        )
+
+        MISSING=()
+        PRESENT=()
+
+        # Check common vars
+        for var in "${COMMON_VARS[@]}"; do
+          if [ -z "${!var:-}" ]; then
+            MISSING+=("$var")
+          else
+            PRESENT+=("$var")
+          fi
+        done
+
+        # Check environment-specific vars
+        case "$ENVIRONMENT" in
+          dev)
+            for var in "${DEV_VARS[@]}"; do
+              if [ -z "${!var:-}" ]; then
+                MISSING+=("$var")
+              else
+                PRESENT+=("$var")
+              fi
+            done
+            ;;
+          staging)
+            for var in "${STAGING_VARS[@]}"; do
+              if [ -z "${!var:-}" ]; then
+                MISSING+=("$var")
+              else
+                PRESENT+=("$var")
+              fi
+            done
+            ;;
+          prod|production)
+            for var in "${PROD_VARS[@]}"; do
+              if [ -z "${!var:-}" ]; then
+                MISSING+=("$var")
+              else
+                PRESENT+=("$var")
+              fi
+            done
+            ;;
+        esac
+
+        # Check Azure vars (always required for cloud deployments)
+        for var in "${AZURE_VARS[@]}"; do
+          if [ -z "${!var:-}" ]; then
+            MISSING+=("$var")
+          else
+            PRESENT+=("$var")
+          fi
+        done
+
+        # Generate report
+        MISSING_JSON=$(printf '%s\n' "${MISSING[@]}" | jq -R . | jq -s .)
+        PRESENT_JSON=$(printf '%s\n' "${PRESENT[@]}" | jq -R . | jq -s .)
+
+        if [ ${#MISSING[@]} -eq 0 ]; then
+          VALID="true"
+        else
+          VALID="false"
+        fi
+
+        cat > $REPORT_PATH <<EOF
+        {
+          "environment": "$ENVIRONMENT",
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "valid": $VALID,
+          "missing": $MISSING_JSON,
+          "present": $PRESENT_JSON,
+          "missing_count": ${#MISSING[@]},
+          "present_count": ${#PRESENT[@]}
+        }
+        EOF
+
+        echo "=== Environment Validation Report ==="
+        cat $REPORT_PATH
+        echo "====================================="
+
+        echo "valid=$VALID" >> $GITHUB_OUTPUT
+        echo "missing=${MISSING[*]}" >> $GITHUB_OUTPUT
+        echo "report-path=$REPORT_PATH" >> $GITHUB_OUTPUT
+
+        if [ "$VALID" = "false" ] && [ "${{ inputs.fail-on-missing }}" = "true" ]; then
+          echo "::error::Missing required environment variables: ${MISSING[*]}"
+          echo "::warning::Set fail-on-missing to false to continue with warnings"
+        fi
+
+    - name: Upload validation report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: env-validation-${{ inputs.environment }}-${{ github.run_id }}
+        path: env-validation-report-${{ inputs.environment }}.json
+        retention-days: 30

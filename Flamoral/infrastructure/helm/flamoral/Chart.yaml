@@ -1,0 +1,19 @@
+apiVersion: v2
+name: flamoral
+description: Flamoral Dating Platform - Main Helm Chart for microservices deployment
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - dating
+  - microservices
+  - flamoral
+  - kubernetes
+maintainers:
+  - name: Flamoral DevOps Team
+    email: devops@flamoral.com
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: common.enabled

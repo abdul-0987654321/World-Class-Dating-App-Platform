@@ -1,0 +1,168 @@
+# =============================================================================
+# Flamoral Dating Platform - Production Environment Configuration
+# SECURITY HARDENING ENABLED
+# =============================================================================
+# Copy this file to terraform.tfvars and update with your values
+# DO NOT commit terraform.tfvars to version control
+# =============================================================================
+
+# =============================================================================
+# Azure Authentication (Required)
+# =============================================================================
+tenant_id = "YOUR_TENANT_ID_HERE"
+
+# =============================================================================
+# SECURITY: AKS API Server Access Control
+# =============================================================================
+# Restrict AKS API server access to specific IP ranges
+# List your office network, VPN gateway, and bastion host IPs
+# Empty list = allow from all IPs (NOT RECOMMENDED for production)
+authorized_ip_ranges = [
+  "203.0.113.0/24",   # Office network CIDR
+  "198.51.100.5/32",  # VPN gateway IP
+  "192.0.2.10/32"     # Bastion host IP
+]
+
+# =============================================================================
+# SECURITY: Disk Encryption
+# =============================================================================
+# Enable encryption at host for all AKS nodes
+# Protects data on temporary disks and OS/data disk caches
+enable_disk_encryption = true
+
+# Optional: Use customer-managed encryption keys
+# disk_encryption_set_id = "/subscriptions/YOUR_SUBSCRIPTION_ID/resourceGroups/YOUR_RG/providers/Microsoft.Compute/diskEncryptionSets/YOUR_DES"
+
+# =============================================================================
+# SECURITY: Key Vault Protection
+# =============================================================================
+# Enable purge protection for production Key Vault
+# WARNING: Cannot be disabled once enabled
+# Protects against accidental deletion with 90-day retention
+enable_purge_protection = true
+
+# Soft delete retention period
+soft_delete_retention_days = 90
+
+# =============================================================================
+# SECURITY: WAF Configuration
+# =============================================================================
+# WAF mode: "Prevention" blocks attacks, "Detection" logs only
+waf_mode = "Prevention"
+
+# Enable geo-filtering to block traffic from specific countries
+enable_geo_filtering = true
+
+# ISO 3166-1 alpha-2 country codes to block
+blocked_countries = [
+  "KP",  # North Korea
+  "IR",  # Iran
+  "SY",  # Syria
+  "CU"   # Cuba
+]
+
+# =============================================================================
+# Domain Configuration (Update after DNS setup)
+# =============================================================================
+domain_name = "flamoral.com"
+
+# Set this after initial deployment when ingress IP is available
+# ingress_public_ip = "X.X.X.X"
+
+# =============================================================================
+# Environment Configuration
+# =============================================================================
+location            = "westus2"
+resource_group_name = "flamoral-prod-rg"
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+vnet_address_space              = ["10.30.0.0/16"]
+aks_subnet_prefix               = "10.30.1.0/24"
+db_subnet_prefix                = "10.30.2.0/24"
+redis_subnet_prefix             = "10.30.3.0/24"
+private_endpoints_subnet_prefix = "10.30.4.0/24"
+appgw_subnet_prefix             = "10.30.5.0/24"
+
+# =============================================================================
+# AKS Production Configuration
+# =============================================================================
+kubernetes_version = "1.28.3"
+
+# System node pool (for system pods)
+system_node_size      = "Standard_D4s_v3"  # 4 vCPU, 16 GB RAM
+system_node_count     = 3
+system_node_min_count = 3
+system_node_max_count = 5
+system_node_disk_size = 128
+
+# User node pool (for application workloads)
+user_node_size      = "Standard_D8s_v3"  # 8 vCPU, 32 GB RAM
+user_node_count     = 3
+user_node_min_count = 3
+user_node_max_count = 20
+user_node_disk_size = 256
+
+# =============================================================================
+# PostgreSQL Production Configuration
+# =============================================================================
+postgres_version                = "15"
+postgres_sku_name               = "GP_Standard_D4s_v3"  # 4 vCores
+postgres_storage_mb             = 262144                # 256 GB
+postgres_backup_retention_days  = 35                    # 5 weeks
+postgres_geo_redundant_backup   = true                  # Multi-region backup
+
+# =============================================================================
+# Redis Production Configuration
+# =============================================================================
+redis_sku_name  = "Premium"  # Supports VNet injection and persistence
+redis_family    = "P"
+redis_capacity  = 1          # P1 = 6 GB cache
+
+# =============================================================================
+# Storage Configuration
+# =============================================================================
+storage_replication_type = "GRS"  # Geo-redundant storage for HA
+
+# =============================================================================
+# Monitoring Configuration
+# =============================================================================
+log_analytics_retention_days = 90  # 3 months retention
+
+# =============================================================================
+# SignalR Production Configuration
+# =============================================================================
+signalr_sku      = "Premium_P1"
+signalr_capacity = 1
+
+# =============================================================================
+# Resource Tags
+# =============================================================================
+tags = {
+  Project       = "Flamoral"
+  Environment   = "production"
+  ManagedBy     = "Terraform"
+  Owner         = "Engineering"
+  Application   = "Dating Platform"
+  Domain        = "flamoral.com"
+  CostCenter    = "Production"
+  AccessLevel   = "Public"
+  Compliance    = "GDPR"
+  SecurityLevel = "High"
+  DataClass     = "Confidential"
+  BackupPolicy  = "Daily"
+  DisasterRecovery = "Enabled"
+}
+
+# =============================================================================
+# NOTES
+# =============================================================================
+# 1. Update authorized_ip_ranges with your actual IPs before deployment
+# 2. Review and adjust node counts based on expected load
+# 3. Ensure enable_purge_protection = true for production
+# 4. Set WAF mode to "Prevention" after testing in "Detection" mode
+# 5. Configure custom domain after DNS is set up
+# 6. Review geo-blocking countries based on your requirements
+# 7. Monitor costs - Premium tiers are more expensive
+# =============================================================================

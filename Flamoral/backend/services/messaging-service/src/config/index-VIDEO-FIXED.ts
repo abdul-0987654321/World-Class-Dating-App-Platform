@@ -1,0 +1,70 @@
+export default {
+  port: parseInt(process.env.PORT || '3004', 10),
+  nodeEnv: process.env.NODE_ENV || 'development',
+
+  jwt: {
+    secret: process.env.JWT_ACCESS_SECRET || 'dev-secret-key',
+  },
+
+  cosmos: {
+    endpoint: process.env.COSMOS_ENDPOINT || '',
+    key: process.env.COSMOS_KEY || '',
+    databaseId: process.env.COSMOS_DATABASE_ID || 'Flamoral',
+    containers: {
+      messages: process.env.COSMOS_MESSAGES_CONTAINER || 'Messages',
+      conversations: process.env.COSMOS_CONVERSATIONS_CONTAINER || 'Conversations',
+      callHistory: process.env.COSMOS_CALL_HISTORY_CONTAINER || 'CallHistory',
+      callRecordings: process.env.COSMOS_CALL_RECORDINGS_CONTAINER || 'CallRecordings',
+    },
+  },
+
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || '',
+    ttl: {
+      onlineStatus: 300, // 5 minutes
+      typingIndicator: 10, // 10 seconds
+      messageCache: 3600, // 1 hour
+    },
+  },
+
+  encryption: {
+    algorithm: 'aes-256-cbc',
+    key: process.env.ENCRYPTION_KEY || 'dev-encryption-key-32-characters',
+    ivLength: 16,
+  },
+
+  messaging: {
+    maxMessageLength: 5000,
+    maxMediaSize: 10 * 1024 * 1024, // 10MB
+    typingTimeout: 10000, // 10 seconds
+    messageRetentionDays: 365,
+    maxConversationsPerPage: 50,
+    maxMessagesPerPage: 50,
+  },
+
+  services: {
+    matchingServiceUrl: process.env.MATCHING_SERVICE_URL || 'http://localhost:3009',
+    userServiceUrl: process.env.USER_SERVICE_URL || 'http://localhost:3002',
+  },
+
+  cors: {
+    origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+  },
+
+  // Realtime service configuration
+  realtimeServiceUrl: process.env.REALTIME_SERVICE_URL || 'http://localhost:8081',
+  serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token-change-in-production',
+
+  // Video calling configuration (Agora)
+  agora: {
+    appId: process.env.AGORA_APP_ID || '',
+    appCertificate: process.env.AGORA_APP_CERTIFICATE || '',
+    tokenExpiryTime: parseInt(process.env.AGORA_TOKEN_EXPIRY_TIME || '3600', 10),
+    customerId: process.env.AGORA_CUSTOMER_ID || '',
+    customerCertificate: process.env.AGORA_CUSTOMER_CERTIFICATE || '',
+    recordingStorageVendor: parseInt(process.env.AGORA_RECORDING_STORAGE_VENDOR || '2', 10),
+    recordingStorageBucket: process.env.AGORA_RECORDING_STORAGE_BUCKET || '',
+  },
+};

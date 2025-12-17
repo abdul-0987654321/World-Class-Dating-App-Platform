@@ -1,0 +1,81 @@
+---
+# Azure-specific monitoring setup
+# Integrates with Azure Monitor, Application Insights, and Log Analytics
+
+- name: Setup Azure Monitoring Integration
+  hosts: azure_production
+  become: yes
+  vars:
+    azure_monitor_agent_version: "1.0"
+
+  tasks:
+    - name: Install Azure CLI
+      apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Download Azure Monitor Agent
+      get_url:
+        url: "https://aka.ms/azuremonitoragent-linux"
+        dest: /tmp/azure-monitor-agent-installer.sh
+        mode: '0755'
+
+    - name: Install Azure Monitor Agent
+      command: /tmp/azure-monitor-agent-installer.sh --install
+      args:
+        creates: /opt/microsoft/azuremonitoragent
+
+    - name: Configure Azure Monitor Agent
+      copy:
+        dest: /etc/opt/microsoft/azuremonitoragent/config.json
+        content: |
+          {
+            "workspaceId": "{{ lookup('env', 'AZURE_WORKSPACE_ID') }}",
+            "workspaceKey": "{{ lookup('env', 'AZURE_WORKSPACE_KEY') }}",
+            "enableContainerInsights": true,
+            "enableApplicationInsights": true
+          }
+        mode: '0600'
+      notify: Restart Azure Monitor Agent
+
+    - name: Install Application Insights SDK for Node.js
+      npm:
+        name: applicationinsights
+        global: yes
+        state: present
+
+    - name: Create Application Insights configuration
+      copy:
+        dest: /opt/dating-app/appinsights.json
+        content: |
+          {
+            "instrumentationKey": "{{ lookup('env', 'APPINSIGHTS_INSTRUMENTATION_KEY') }}",
+            "enableAutoCollectRequests": true,
+            "enableAutoCollectPerformance": true,
+            "enableAutoCollectExceptions": true,
+            "enableAutoCollectDependencies": true,
+            "enableAutoCollectConsole": true
+          }
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0600'
+
+    - name: Install Azure Storage SDK for logs backup
+      command: az extension add --name storage-blob-preview
+      become_user: "{{ app_user }}"
+      ignore_errors: yes
+
+    - name: Configure log shipping to Azure Blob Storage
+      cron:
+        name: "Ship logs to Azure Blob"
+        minute: "*/15"
+        job: "az storage blob upload-batch --source /var/log/dating-app --destination logs --account-name {{ lookup('env', 'AZURE_STORAGE_ACCOUNT') }} --account-key {{ lookup('env', 'AZURE_STORAGE_KEY') }}"
+        user: "{{ app_user }}"
+
+  handlers:
+    - name: Restart Azure Monitor Agent
+      service:
+        name: azuremonitoragent
+        state: restarted

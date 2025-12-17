@@ -1,0 +1,217 @@
+syntax = "proto3";
+
+package heartly.user.v1;
+
+option go_package = "github.com/heartly/proto/gen/go/user/v1;userv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// User service for managing user profiles
+service UserService {
+  // Get user profile by ID
+  rpc GetUser(GetUserRequest) returns (User);
+
+  // Get multiple users by IDs
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+
+  // Update user profile
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+
+  // Delete user account
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+
+  // Get user preferences
+  rpc GetPreferences(GetPreferencesRequest) returns (UserPreferences);
+
+  // Update user preferences
+  rpc UpdatePreferences(UpdatePreferencesRequest) returns (UserPreferences);
+
+  // Block a user
+  rpc BlockUser(BlockUserRequest) returns (google.protobuf.Empty);
+
+  // Unblock a user
+  rpc UnblockUser(UnblockUserRequest) returns (google.protobuf.Empty);
+
+  // Report a user
+  rpc ReportUser(ReportUserRequest) returns (google.protobuf.Empty);
+}
+
+// User represents a user profile
+message User {
+  string id = 1;
+  string email = 2;
+  string phone_number = 3;
+  string name = 4;
+  string birthday = 5;
+  int32 age = 6;
+  Gender gender = 7;
+  repeated Gender interested_in = 8;
+  string bio = 9;
+  repeated Photo photos = 10;
+  Location location = 11;
+  repeated string interests = 12;
+  repeated Prompt prompts = 13;
+  RelationshipGoal relationship_goal = 14;
+  Lifestyle lifestyle = 15;
+  Verification verification = 16;
+  bool is_premium = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+  google.protobuf.Timestamp last_active_at = 20;
+}
+
+// Gender enum
+enum Gender {
+  GENDER_UNSPECIFIED = 0;
+  GENDER_MAN = 1;
+  GENDER_WOMAN = 2;
+  GENDER_NON_BINARY = 3;
+  GENDER_TRANSGENDER_MAN = 4;
+  GENDER_TRANSGENDER_WOMAN = 5;
+  GENDER_OTHER = 6;
+}
+
+// RelationshipGoal enum
+enum RelationshipGoal {
+  RELATIONSHIP_GOAL_UNSPECIFIED = 0;
+  RELATIONSHIP_GOAL_LONG_TERM = 1;
+  RELATIONSHIP_GOAL_SHORT_TERM = 2;
+  RELATIONSHIP_GOAL_CASUAL = 3;
+  RELATIONSHIP_GOAL_FRIENDSHIP = 4;
+  RELATIONSHIP_GOAL_NOT_SURE = 5;
+}
+
+// Photo represents a user photo
+message Photo {
+  string id = 1;
+  string url = 2;
+  string thumbnail_url = 3;
+  int32 position = 4;
+  bool is_primary = 5;
+  bool is_verified = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// Location represents user location
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  string city = 3;
+  string region = 4;
+  string country = 5;
+}
+
+// Prompt represents a profile prompt
+message Prompt {
+  string id = 1;
+  string prompt_id = 2;
+  string question = 3;
+  string answer = 4;
+}
+
+// Lifestyle preferences
+message Lifestyle {
+  string smoking = 1;
+  string drinking = 2;
+  string exercise = 3;
+  string diet = 4;
+  string pets = 5;
+  string education = 6;
+  string job_title = 7;
+  string company = 8;
+  int32 height_cm = 9;
+}
+
+// Verification status
+message Verification {
+  bool email_verified = 1;
+  bool phone_verified = 2;
+  bool photo_verified = 3;
+  bool id_verified = 4;
+}
+
+// User preferences for discovery
+message UserPreferences {
+  string user_id = 1;
+  int32 min_age = 2;
+  int32 max_age = 3;
+  int32 max_distance_km = 4;
+  repeated Gender show_me = 5;
+  bool global_mode = 6;
+  bool show_verified_only = 7;
+  bool incognito_mode = 8;
+}
+
+// Request messages
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUsersRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  optional string name = 2;
+  optional string bio = 3;
+  optional string birthday = 4;
+  optional Gender gender = 5;
+  repeated Gender interested_in = 6;
+  optional RelationshipGoal relationship_goal = 7;
+  optional Lifestyle lifestyle = 8;
+  repeated string interests = 9;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+  string reason = 2;
+}
+
+message GetPreferencesRequest {
+  string user_id = 1;
+}
+
+message UpdatePreferencesRequest {
+  string user_id = 1;
+  optional int32 min_age = 2;
+  optional int32 max_age = 3;
+  optional int32 max_distance_km = 4;
+  repeated Gender show_me = 5;
+  optional bool global_mode = 6;
+  optional bool show_verified_only = 7;
+  optional bool incognito_mode = 8;
+}
+
+message BlockUserRequest {
+  string user_id = 1;
+  string blocked_user_id = 2;
+}
+
+message UnblockUserRequest {
+  string user_id = 1;
+  string blocked_user_id = 2;
+}
+
+message ReportUserRequest {
+  string user_id = 1;
+  string reported_user_id = 2;
+  ReportReason reason = 3;
+  string description = 4;
+}
+
+enum ReportReason {
+  REPORT_REASON_UNSPECIFIED = 0;
+  REPORT_REASON_INAPPROPRIATE_CONTENT = 1;
+  REPORT_REASON_HARASSMENT = 2;
+  REPORT_REASON_SPAM = 3;
+  REPORT_REASON_FAKE_PROFILE = 4;
+  REPORT_REASON_UNDERAGE = 5;
+  REPORT_REASON_SCAM = 6;
+  REPORT_REASON_OTHER = 7;
+}

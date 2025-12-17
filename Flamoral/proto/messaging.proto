@@ -1,0 +1,291 @@
+syntax = "proto3";
+
+package heartly.messaging.v1;
+
+option go_package = "github.com/heartly/proto/gen/go/messaging/v1;messagingv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Messaging service for chat functionality
+service MessagingService {
+  // Get conversations list
+  rpc GetConversations(GetConversationsRequest) returns (GetConversationsResponse);
+
+  // Get conversation by ID
+  rpc GetConversation(GetConversationRequest) returns (Conversation);
+
+  // Get messages in a conversation
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+
+  // Send a message
+  rpc SendMessage(SendMessageRequest) returns (Message);
+
+  // Mark messages as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (google.protobuf.Empty);
+
+  // Delete a message
+  rpc DeleteMessage(DeleteMessageRequest) returns (google.protobuf.Empty);
+
+  // React to a message
+  rpc ReactToMessage(ReactToMessageRequest) returns (google.protobuf.Empty);
+
+  // Remove reaction from message
+  rpc RemoveReaction(RemoveReactionRequest) returns (google.protobuf.Empty);
+
+  // Report a message
+  rpc ReportMessage(ReportMessageRequest) returns (google.protobuf.Empty);
+
+  // Stream messages (bidirectional)
+  rpc StreamMessages(stream ClientMessage) returns (stream ServerMessage);
+}
+
+// ContentType enum
+enum ContentType {
+  CONTENT_TYPE_UNSPECIFIED = 0;
+  CONTENT_TYPE_TEXT = 1;
+  CONTENT_TYPE_IMAGE = 2;
+  CONTENT_TYPE_GIF = 3;
+  CONTENT_TYPE_AUDIO = 4;
+  CONTENT_TYPE_VIDEO = 5;
+  CONTENT_TYPE_VOICE_NOTE = 6;
+  CONTENT_TYPE_LOCATION = 7;
+  CONTENT_TYPE_CONTACT = 8;
+  CONTENT_TYPE_ICEBREAKER = 9;
+}
+
+// MessageStatus enum
+enum MessageStatus {
+  MESSAGE_STATUS_UNSPECIFIED = 0;
+  MESSAGE_STATUS_SENDING = 1;
+  MESSAGE_STATUS_SENT = 2;
+  MESSAGE_STATUS_DELIVERED = 3;
+  MESSAGE_STATUS_READ = 4;
+  MESSAGE_STATUS_FAILED = 5;
+}
+
+// Conversation represents a chat conversation
+message Conversation {
+  string id = 1;
+  string match_id = 2;
+  repeated Participant participants = 3;
+  Message last_message = 4;
+  int32 unread_count = 5;
+  bool is_muted = 6;
+  bool is_pinned = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Participant in a conversation
+message Participant {
+  string user_id = 1;
+  string name = 2;
+  string photo_url = 3;
+  bool is_online = 4;
+  google.protobuf.Timestamp last_seen = 5;
+  bool is_typing = 6;
+}
+
+// Message represents a chat message
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  ContentType content_type = 5;
+  MessageStatus status = 6;
+  MessageMetadata metadata = 7;
+  string reply_to_id = 8;
+  Message reply_to = 9;
+  repeated Reaction reactions = 10;
+  google.protobuf.Timestamp sent_at = 11;
+  google.protobuf.Timestamp delivered_at = 12;
+  google.protobuf.Timestamp read_at = 13;
+  bool is_edited = 14;
+  bool is_deleted = 15;
+}
+
+// MessageMetadata for different content types
+message MessageMetadata {
+  // For images/videos
+  optional string media_url = 1;
+  optional string thumbnail_url = 2;
+  optional int32 width = 3;
+  optional int32 height = 4;
+  optional int32 duration_seconds = 5;
+
+  // For voice notes
+  optional bytes waveform = 6;
+
+  // For location
+  optional double latitude = 7;
+  optional double longitude = 8;
+  optional string place_name = 9;
+
+  // For icebreakers
+  optional string icebreaker_id = 10;
+  optional string icebreaker_text = 11;
+
+  // For GIFs
+  optional string gif_url = 12;
+}
+
+// Reaction to a message
+message Reaction {
+  string user_id = 1;
+  string emoji = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+// Client message for streaming
+message ClientMessage {
+  oneof payload {
+    SendMessagePayload send_message = 1;
+    TypingPayload typing = 2;
+    ReadReceiptPayload read_receipt = 3;
+  }
+}
+
+message SendMessagePayload {
+  string conversation_id = 1;
+  string content = 2;
+  ContentType content_type = 3;
+  string reply_to_id = 4;
+  string temp_id = 5;  // Client-generated ID for optimistic updates
+}
+
+message TypingPayload {
+  string conversation_id = 1;
+  bool is_typing = 2;
+}
+
+message ReadReceiptPayload {
+  string conversation_id = 1;
+  string message_id = 2;
+}
+
+// Server message for streaming
+message ServerMessage {
+  oneof payload {
+    Message new_message = 1;
+    MessageDelivered message_delivered = 2;
+    MessageRead message_read = 3;
+    TypingIndicator typing_indicator = 4;
+    PresenceUpdate presence_update = 5;
+    MessageDeleted message_deleted = 6;
+    ReactionAdded reaction_added = 7;
+    ReactionRemoved reaction_removed = 8;
+  }
+}
+
+message MessageDelivered {
+  string message_id = 1;
+  string temp_id = 2;
+  google.protobuf.Timestamp delivered_at = 3;
+}
+
+message MessageRead {
+  string conversation_id = 1;
+  string message_id = 2;
+  string reader_id = 3;
+  google.protobuf.Timestamp read_at = 4;
+}
+
+message TypingIndicator {
+  string conversation_id = 1;
+  string user_id = 2;
+  bool is_typing = 3;
+}
+
+message PresenceUpdate {
+  string user_id = 1;
+  bool is_online = 2;
+  google.protobuf.Timestamp last_seen = 3;
+}
+
+message MessageDeleted {
+  string message_id = 1;
+  string conversation_id = 2;
+}
+
+message ReactionAdded {
+  string message_id = 1;
+  Reaction reaction = 2;
+}
+
+message ReactionRemoved {
+  string message_id = 1;
+  string user_id = 2;
+  string emoji = 3;
+}
+
+// Request messages
+message GetConversationsRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  string cursor = 3;
+  bool unread_only = 4;
+}
+
+message GetConversationsResponse {
+  repeated Conversation conversations = 1;
+  string next_cursor = 2;
+  int32 total_unread = 3;
+}
+
+message GetConversationRequest {
+  string conversation_id = 1;
+  string user_id = 2;
+}
+
+message GetMessagesRequest {
+  string conversation_id = 1;
+  string user_id = 2;
+  int32 limit = 3;
+  string before_id = 4;
+  string after_id = 5;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+  bool has_more = 2;
+}
+
+message SendMessageRequest {
+  string conversation_id = 1;
+  string sender_id = 2;
+  string content = 3;
+  ContentType content_type = 4;
+  string reply_to_id = 5;
+  MessageMetadata metadata = 6;
+}
+
+message MarkAsReadRequest {
+  string conversation_id = 1;
+  string user_id = 2;
+  string message_id = 3;
+}
+
+message DeleteMessageRequest {
+  string message_id = 1;
+  string user_id = 2;
+}
+
+message ReactToMessageRequest {
+  string message_id = 1;
+  string user_id = 2;
+  string emoji = 3;
+}
+
+message RemoveReactionRequest {
+  string message_id = 1;
+  string user_id = 2;
+  string emoji = 3;
+}
+
+message ReportMessageRequest {
+  string message_id = 1;
+  string user_id = 2;
+  string reason = 3;
+}

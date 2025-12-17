@@ -1,0 +1,24 @@
+# Browsers that we support for Flamoral web app
+# This configuration ensures optimal bundle size while supporting modern browsers
+
+# Production browsers (default)
+# Support for 95%+ of global users with modern browsers
+>0.2%
+not dead
+not op_mini all
+
+# Modern browsers with ES6+ support
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Safari versions
+last 2 Edge versions
+
+# Mobile browsers
+last 2 iOS versions
+last 2 ChromeAndroid versions
+
+# Exclude very old browsers to reduce polyfill size
+not IE 11
+not IE_Mob 11
+not Opera < 60
+not Samsung < 12

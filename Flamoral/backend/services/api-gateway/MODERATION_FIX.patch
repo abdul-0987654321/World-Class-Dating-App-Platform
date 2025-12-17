@@ -1,0 +1,103 @@
+# Moderation Service Port and Endpoint Fix Patch
+
+## File 1: src/config/configuration.ts
+
+### Change 1: Fix moderation service port (line 36)
+**From:**
+```typescript
+    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3005',
+```
+
+**To:**
+```typescript
+    moderationService: process.env.MODERATION_SERVICE_URL || 'http://localhost:3008',
+```
+
+### Change 2: Fix notification service port (line 39)
+**From:**
+```typescript
+    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
+```
+
+**To:**
+```typescript
+    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3012',
+```
+
+## File 2: src/controllers/moderation.controller.ts
+
+**REPLACE ENTIRE FILE** with the corrected version that maps to actual moderation service endpoints.
+
+The new controller should only include these endpoints:
+- POST /api/moderation/image
+- POST /api/moderation/text
+- GET /api/moderation/user/:userId/status
+- GET /api/moderation/user/:userId/restricted
+- GET /api/moderation/user/:userId/violations
+- POST /api/moderation/admin/suspend
+- POST /api/moderation/admin/unsuspend
+- POST /api/moderation/admin/ban
+- POST /api/moderation/admin/unban
+
+Remove all non-existent endpoints:
+- /api/moderation/submit
+- /api/moderation/status/:contentId
+- /api/moderation/queue
+- /api/moderation/approve/:contentId
+- /api/moderation/reject/:contentId
+- /api/moderation/reports
+- /api/moderation/actions/*
+- /api/moderation/scan/*
+- /api/moderation/statistics
+
+## File 3: .env.example
+
+Add/update:
+```bash
+MODERATION_SERVICE_URL=http://localhost:3008
+NOTIFICATION_SERVICE_URL=http://localhost:3012
+```
+
+## Apply Instructions
+
+1. **Backup current files:**
+   ```bash
+   cd backend/services/api-gateway
+   cp src/config/configuration.ts src/config/configuration.ts.backup
+   cp src/controllers/moderation.controller.ts src/controllers/moderation.controller.ts.backup
+   ```
+
+2. **Apply configuration changes:**
+   - Open `src/config/configuration.ts`
+   - Change line 36: `3005` to `3008`
+   - Change line 39: `3008` to `3012`
+
+3. **Apply controller changes:**
+   - Replace `src/controllers/moderation.controller.ts` with the corrected version from MODERATION_SERVICE_FIXES.md
+
+4. **Update environment files:**
+   - `.env.example`: Update MODERATION_SERVICE_URL to use port 3008
+   - `.env` (if exists): Update MODERATION_SERVICE_URL to use port 3008
+
+5. **Restart services:**
+   ```bash
+   # Terminal 1: Restart API Gateway
+   cd backend/services/api-gateway
+   npm run start:dev
+
+   # Terminal 2: Ensure moderation service is running
+   cd backend/services/moderation-service
+   npm start
+   ```
+
+6. **Verify fixes:**
+   ```bash
+   # Check API Gateway health
+   curl http://localhost:4000/health
+
+   # Check moderation service health
+   curl http://localhost:3008/health
+
+   # Check circuit breaker status should show 0 failures for moderationService
+   curl http://localhost:4000/api/v1/health/services
+   ```

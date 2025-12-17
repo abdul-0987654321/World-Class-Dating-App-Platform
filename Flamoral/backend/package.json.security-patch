@@ -1,0 +1,15 @@
+{
+  "description": "Update these lines in package.json scripts section",
+  "original": {
+    "test:security": "jest --config tests/jest.config.security.js --runInBand",
+    "test:security:sqli": "jest --config tests/jest.config.security.js --testPathPattern=sqli --runInBand",
+    "test:security:xss": "jest --config tests/jest.config.security.js --testPathPattern=xss --runInBand",
+    "test:security:auth": "jest --config tests/jest.config.security.js --testPathPattern=auth --runInBand"
+  },
+  "updated": {
+    "test:security": "jest --config tests/jest.config.security-fixed.js --runInBand",
+    "test:security:sqli": "jest --config tests/jest.config.security-fixed.js --testPathPattern=sqli --runInBand",
+    "test:security:xss": "jest --config tests/jest.config.security-fixed.js --testPathPattern=xss --runInBand",
+    "test:security:auth": "jest --config tests/jest.config.security-fixed.js --testPathPattern=auth --runInBand"
+  }
+}

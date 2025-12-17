@@ -1,0 +1,105 @@
+# =============================================================================
+# BOOTSTRAP COMPOSITE ACTION
+# =============================================================================
+# Standardized checkout, tool installation, cache restore, and diagnostics
+# Used as the first step in every workflow job for consistency
+# =============================================================================
+
+name: 'Bootstrap'
+description: 'Checkout code, setup Node.js, restore cache, run diagnostics'
+
+inputs:
+  node-version:
+    description: 'Node.js version to install'
+    required: false
+    default: '20'
+  working-directory:
+    description: 'Working directory for npm operations'
+    required: false
+    default: '.'
+  fetch-depth:
+    description: 'Git fetch depth (0 for full history)'
+    required: false
+    default: '1'
+  install-dependencies:
+    description: 'Whether to run npm ci'
+    required: false
+    default: 'true'
+  cache-dependency-path:
+    description: 'Path to package-lock.json for cache key'
+    required: false
+    default: 'package-lock.json'
+
+outputs:
+  node-version:
+    description: 'Installed Node.js version'
+    value: ${{ steps.setup-node.outputs.node-version }}
+  cache-hit:
+    description: 'Whether cache was hit'
+    value: ${{ steps.setup-node.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    # Step 2: Setup Node.js with caching
+    - name: Setup Node.js ${{ inputs.node-version }}
+      id: setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    # Step 3: Print diagnostics
+    - name: Print diagnostics
+      shell: bash
+      run: |
+        echo "=== Environment Diagnostics ==="
+        echo "Node.js version: $(node --version)"
+        echo "npm version: $(npm --version)"
+        echo "Working directory: $(pwd)"
+        echo "Git SHA: ${{ github.sha }}"
+        echo "Git ref: ${{ github.ref }}"
+        echo "Runner OS: ${{ runner.os }}"
+        echo "Runner arch: ${{ runner.arch }}"
+        echo "Cache hit: ${{ steps.setup-node.outputs.cache-hit }}"
+        echo "==============================="
+
+    # Step 4: Install dependencies (optional)
+    - name: Install dependencies
+      if: inputs.install-dependencies == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ -f "package-lock.json" ]; then
+          echo "Installing dependencies with npm ci..."
+          npm ci --prefer-offline --no-audit
+        elif [ -f "yarn.lock" ]; then
+          echo "Installing dependencies with yarn..."
+          yarn install --frozen-lockfile
+        elif [ -f "pnpm-lock.yaml" ]; then
+          echo "Installing dependencies with pnpm..."
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
+        else
+          echo "No lockfile found, skipping dependency installation"
+        fi
+
+    # Step 5: Verify installation
+    - name: Verify installation
+      if: inputs.install-dependencies == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ -d "node_modules" ]; then
+          echo "node_modules directory exists"
+          echo "Package count: $(ls -1 node_modules | wc -l)"
+        else
+          echo "Warning: node_modules directory not found"
+        fi

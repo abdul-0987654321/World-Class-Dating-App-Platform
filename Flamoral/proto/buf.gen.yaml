@@ -1,0 +1,29 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/heartly/proto/gen/go
+plugins:
+  # Go
+  - plugin: buf.build/protocolbuffers/go
+    out: gen/go
+    opt: paths=source_relative
+  - plugin: buf.build/grpc/go
+    out: gen/go
+    opt: paths=source_relative
+
+  # TypeScript
+  - plugin: buf.build/bufbuild/es
+    out: gen/ts
+    opt:
+      - target=ts
+  - plugin: buf.build/connectrpc/es
+    out: gen/ts
+    opt:
+      - target=ts
+
+  # Python
+  - plugin: buf.build/protocolbuffers/python
+    out: gen/python
+  - plugin: buf.build/grpc/python
+    out: gen/python

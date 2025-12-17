@@ -1,0 +1,414 @@
+# Canary Deployment Configuration for Dating App
+# Gradual rollout with traffic splitting
+---
+# Stable Deployment (current production version)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-stable
+  namespace: dating-app
+  labels:
+    app: api-gateway
+    track: stable
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: api-gateway
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        track: stable
+        prometheus-scrape: "true"
+    spec:
+      containers:
+      - name: api-gateway
+        image: ghcr.io/datingapp/api-gateway:v1.0.0
+        ports:
+        - containerPort: 4000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: TRACK
+          value: "stable"
+        envFrom:
+        - configMapRef:
+            name: dating-app-config-production
+        - secretRef:
+            name: dating-app-secrets
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 4000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+
+---
+# Canary Deployment (new version receiving small percentage of traffic)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-canary
+  namespace: dating-app
+  labels:
+    app: api-gateway
+    track: canary
+spec:
+  replicas: 1  # Start with 1 replica (10% of stable)
+  selector:
+    matchLabels:
+      app: api-gateway
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        track: canary
+        prometheus-scrape: "true"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+      - name: api-gateway
+        image: ghcr.io/datingapp/api-gateway:v1.1.0-canary
+        ports:
+        - containerPort: 4000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: TRACK
+          value: "canary"
+        - name: CANARY_VERSION
+          value: "v1.1.0"
+        envFrom:
+        - configMapRef:
+            name: dating-app-config-production
+        - secretRef:
+            name: dating-app-secrets
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 4000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+
+---
+# Service for Stable
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-stable
+  namespace: dating-app
+  labels:
+    app: api-gateway
+    track: stable
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+    track: stable
+  ports:
+  - port: 4000
+    targetPort: 4000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+
+---
+# Service for Canary
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-canary
+  namespace: dating-app
+  labels:
+    app: api-gateway
+    track: canary
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+    track: canary
+  ports:
+  - port: 4000
+    targetPort: 4000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+
+---
+# Main Service (routes to both stable and canary)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: dating-app
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+  - port: 4000
+    targetPort: 4000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+
+---
+# NGINX Ingress with traffic splitting
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-canary-ingress
+  namespace: dating-app
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+    # Canary annotations for traffic splitting
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "10"  # 10% to canary
+
+    # Canary by header (for testing specific version)
+    nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
+    nginx.ingress.kubernetes.io/canary-by-header-value: "always"
+
+    # Canary by cookie (for sticky sessions during testing)
+    nginx.ingress.kubernetes.io/canary-by-cookie: "canary"
+spec:
+  tls:
+  - hosts:
+    - api.flamoral.com
+    secretName: dating-app-tls
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-canary
+            port:
+              number: 4000
+
+---
+# Stable Ingress (receives remaining traffic)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-stable-ingress
+  namespace: dating-app
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - api.flamoral.com
+    secretName: dating-app-tls
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-stable
+            port:
+              number: 4000
+
+---
+# ServiceMonitor for Canary
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway-canary
+  namespace: dating-app
+  labels:
+    app: api-gateway
+    track: canary
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+      track: canary
+  endpoints:
+  - port: metrics
+    interval: 10s  # More frequent scraping for canary
+    path: /metrics
+
+---
+# PrometheusRule for Canary monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-gateway-canary-alerts
+  namespace: dating-app
+spec:
+  groups:
+  - name: canary_alerts
+    interval: 30s
+    rules:
+    - alert: CanaryHighErrorRate
+      expr: |
+        (sum(rate(http_requests_total{track="canary",status=~"5.."}[5m]))
+        /
+        sum(rate(http_requests_total{track="canary"}[5m]))) > 0.05
+      for: 2m
+      labels:
+        severity: critical
+        track: canary
+      annotations:
+        summary: "Canary deployment has high error rate"
+        description: "Error rate is {{ $value | humanizePercentage }}"
+
+    - alert: CanaryHighLatency
+      expr: |
+        histogram_quantile(0.95,
+          sum(rate(http_request_duration_seconds_bucket{track="canary"}[5m])) by (le)
+        ) > 1
+      for: 5m
+      labels:
+        severity: warning
+        track: canary
+      annotations:
+        summary: "Canary deployment has high latency"
+        description: "P95 latency is {{ $value }}s"
+
+    - alert: CanaryVsStablePerformanceDiff
+      expr: |
+        (histogram_quantile(0.95,
+          sum(rate(http_request_duration_seconds_bucket{track="canary"}[5m])) by (le)
+        )
+        /
+        histogram_quantile(0.95,
+          sum(rate(http_request_duration_seconds_bucket{track="stable"}[5m])) by (le)
+        )) > 1.5
+      for: 5m
+      labels:
+        severity: warning
+        track: canary
+      annotations:
+        summary: "Canary is 50% slower than stable"
+        description: "Canary latency ratio: {{ $value }}"
+
+---
+# PodDisruptionBudget for Stable
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway-stable-pdb
+  namespace: dating-app
+spec:
+  minAvailable: 8
+  selector:
+    matchLabels:
+      app: api-gateway
+      track: stable
+
+---
+# PodDisruptionBudget for Canary
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway-canary-pdb
+  namespace: dating-app
+spec:
+  minAvailable: 0  # Can tolerate all canary pods being down
+  selector:
+    matchLabels:
+      app: api-gateway
+      track: canary
+
+---
+# ConfigMap for Canary rollout script
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canary-rollout-script
+  namespace: dating-app
+data:
+  rollout.sh: |
+    #!/bin/bash
+    set -e
+
+    NAMESPACE="dating-app"
+    CANARY_DEPLOYMENT="api-gateway-canary"
+    STABLE_DEPLOYMENT="api-gateway-stable"
+    CANARY_INGRESS="api-gateway-canary-ingress"
+
+    echo "Starting canary rollout..."
+
+    # Stage 1: 10% traffic
+    echo "Stage 1: 10% traffic to canary"
+    kubectl patch ingress $CANARY_INGRESS -n $NAMESPACE -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/canary-weight":"10"}}}'
+    kubectl scale deployment $CANARY_DEPLOYMENT -n $NAMESPACE --replicas=1
+    sleep 300  # Wait 5 minutes
+
+    # Check metrics
+    ./check-canary-metrics.sh || exit 1
+
+    # Stage 2: 25% traffic
+    echo "Stage 2: 25% traffic to canary"
+    kubectl patch ingress $CANARY_INGRESS -n $NAMESPACE -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/canary-weight":"25"}}}'
+    kubectl scale deployment $CANARY_DEPLOYMENT -n $NAMESPACE --replicas=3
+    sleep 300
+
+    ./check-canary-metrics.sh || exit 1
+
+    # Stage 3: 50% traffic
+    echo "Stage 3: 50% traffic to canary"
+    kubectl patch ingress $CANARY_INGRESS -n $NAMESPACE -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/canary-weight":"50"}}}'
+    kubectl scale deployment $CANARY_DEPLOYMENT -n $NAMESPACE --replicas=5
+    sleep 300
+
+    ./check-canary-metrics.sh || exit 1
+
+    # Stage 4: 100% - Promote to stable
+    echo "Stage 4: Promoting canary to stable"
+    CANARY_IMAGE=$(kubectl get deployment $CANARY_DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}')
+    kubectl set image deployment/$STABLE_DEPLOYMENT api-gateway=$CANARY_IMAGE -n $NAMESPACE
+    kubectl rollout status deployment/$STABLE_DEPLOYMENT -n $NAMESPACE
+
+    # Scale down canary
+    kubectl scale deployment $CANARY_DEPLOYMENT -n $NAMESPACE --replicas=0
+
+    echo "Canary rollout completed successfully!"

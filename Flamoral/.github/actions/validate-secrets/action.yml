@@ -1,0 +1,149 @@
+# =============================================================================
+# VALIDATE-SECRETS COMPOSITE ACTION
+# =============================================================================
+# Asserts required secret names exist (no values logged)
+# Validates by name only to prevent secret exposure
+# =============================================================================
+
+name: 'Validate Secrets'
+description: 'Validate that required secrets are configured (by name only, no values)'
+
+inputs:
+  required-secrets:
+    description: 'Comma-separated list of required secret names'
+    required: true
+  optional-secrets:
+    description: 'Comma-separated list of optional secret names'
+    required: false
+    default: ''
+  fail-on-missing:
+    description: 'Fail if required secrets are missing'
+    required: false
+    default: 'true'
+
+outputs:
+  valid:
+    description: 'Whether all required secrets are present'
+    value: ${{ steps.validate.outputs.valid }}
+  missing-secrets:
+    description: 'List of missing required secrets'
+    value: ${{ steps.validate.outputs.missing }}
+  report-path:
+    description: 'Path to validation report'
+    value: ${{ steps.validate.outputs.report-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate secrets exist
+      id: validate
+      shell: bash
+      env:
+        # Pass secrets as env vars for validation
+        # Note: This uses GitHub's secrets context which must be passed from workflow
+        SECRETS_JSON: ${{ toJSON(env) }}
+      run: |
+        REPORT_PATH="secrets-validation-report.json"
+
+        echo "=== Secrets Validation ==="
+        echo "Checking required secrets by name only (no values logged)..."
+
+        # Parse required secrets
+        IFS=',' read -ra REQUIRED <<< "${{ inputs.required-secrets }}"
+        IFS=',' read -ra OPTIONAL <<< "${{ inputs.optional-secrets }}"
+
+        MISSING=()
+        PRESENT=()
+        OPTIONAL_MISSING=()
+        OPTIONAL_PRESENT=()
+
+        # Note: We can only validate secrets that are passed to this action
+        # The workflow must pass them via env context
+
+        echo ""
+        echo "Required secrets status:"
+        for secret in "${REQUIRED[@]}"; do
+          secret=$(echo "$secret" | xargs)  # trim whitespace
+          if [ -z "$secret" ]; then continue; fi
+
+          # Check if secret is in environment (passed from workflow)
+          # We check by looking for the env var with SECRET_ prefix or the name itself
+          if printenv | grep -q "^${secret}=" 2>/dev/null || \
+             printenv | grep -q "^SECRET_${secret}=" 2>/dev/null || \
+             [ -n "${!secret:-}" ]; then
+            echo "  [OK] $secret - configured"
+            PRESENT+=("$secret")
+          else
+            echo "  [MISSING] $secret - NOT configured"
+            MISSING+=("$secret")
+          fi
+        done
+
+        echo ""
+        echo "Optional secrets status:"
+        for secret in "${OPTIONAL[@]}"; do
+          secret=$(echo "$secret" | xargs)
+          if [ -z "$secret" ]; then continue; fi
+
+          if printenv | grep -q "^${secret}=" 2>/dev/null || [ -n "${!secret:-}" ]; then
+            echo "  [OK] $secret - configured"
+            OPTIONAL_PRESENT+=("$secret")
+          else
+            echo "  [INFO] $secret - not configured (optional)"
+            OPTIONAL_MISSING+=("$secret")
+          fi
+        done
+
+        # Determine validity
+        if [ ${#MISSING[@]} -eq 0 ]; then
+          VALID="true"
+          echo ""
+          echo "All required secrets are configured."
+        else
+          VALID="false"
+          echo ""
+          echo "::warning::Missing required secrets: ${MISSING[*]}"
+        fi
+
+        # Generate JSON report (no secret values)
+        MISSING_JSON=$(printf '%s\n' "${MISSING[@]}" | jq -R . | jq -s . 2>/dev/null || echo '[]')
+        PRESENT_JSON=$(printf '%s\n' "${PRESENT[@]}" | jq -R . | jq -s . 2>/dev/null || echo '[]')
+
+        cat > $REPORT_PATH <<EOF
+        {
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "valid": $VALID,
+          "required": {
+            "missing": $MISSING_JSON,
+            "present": $PRESENT_JSON,
+            "missing_count": ${#MISSING[@]},
+            "present_count": ${#PRESENT[@]}
+          },
+          "optional": {
+            "missing_count": ${#OPTIONAL_MISSING[@]},
+            "present_count": ${#OPTIONAL_PRESENT[@]}
+          },
+          "note": "This report contains secret names only, no values are logged"
+        }
+        EOF
+
+        echo ""
+        echo "=== Validation Complete ==="
+
+        echo "valid=$VALID" >> $GITHUB_OUTPUT
+        echo "missing=${MISSING[*]}" >> $GITHUB_OUTPUT
+        echo "report-path=$REPORT_PATH" >> $GITHUB_OUTPUT
+
+        if [ "$VALID" = "false" ] && [ "${{ inputs.fail-on-missing }}" = "true" ]; then
+          echo "::error::Missing required secrets. Please configure: ${MISSING[*]}"
+          exit 1
+        fi
+
+    - name: Upload validation report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: secrets-validation-${{ github.run_id }}
+        path: secrets-validation-report.json
+        retention-days: 30
+        if-no-files-found: ignore

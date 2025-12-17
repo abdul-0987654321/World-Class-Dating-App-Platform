@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@flamoral/shared": ["packages/shared/src"],
+      "@flamoral/shared/*": ["packages/shared/*/src"],
+      "@flamoral/api-client": ["packages/shared/api-client/src"],
+      "@flamoral/react-api-client": ["packages/api-client/src"],
+      "@flamoral/types": ["packages/shared/types/src"],
+      "@flamoral/utils": ["packages/shared/utils/src"],
+      "@flamoral/constants": ["packages/shared/constants/src"],
+      "@flamoral/validators": ["packages/shared/validators/src"],
+      "@flamoral/i18n": ["packages/i18n/src"],
+      "@flamoral/socket-client": ["packages/socket-client/src"],
+      "@flamoral/video-sdk": ["packages/video-sdk/src"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/__tests__/**"
+  ]
+}

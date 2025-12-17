@@ -1,0 +1,359 @@
+# =============================================================================
+# Azure Front Door Caching Rules Configuration
+# COST OPTIMIZATION - December 2025
+# =============================================================================
+# This file defines cache duration rules and compression settings for all
+# content types served through Azure Front Door.
+#
+# IMPORTANT: These TTLs are applied at the Front Door edge. The origin (nginx)
+# must also set appropriate Cache-Control headers for these to take effect.
+#
+# Cost Savings Target: 40-60% reduction in Front Door costs through:
+# - Higher cache hit ratios (>90% for static, >70% for HTML)
+# - Reduced origin bandwidth (90%+ reduction for static/media)
+# - Lower compute costs (30-40% for read-heavy API endpoints)
+# =============================================================================
+
+apiVersion: frontdoor.azure.com/v1
+kind: CachingPolicy
+metadata:
+  name: flamoral-caching-policy
+  description: Cost-optimized caching rules for Flamoral platform
+  environment: production
+  lastUpdated: 2025-12-13
+
+spec:
+  # =============================================================================
+  # Cache Duration Rules
+  # =============================================================================
+  cachingRules:
+    # HTML Pages - 1 hour with revalidation
+    - name: html-caching
+      priority: 100
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: EndsWith
+          matchValues:
+            - .html
+            - /
+        - matchVariable: RequestMethod
+          operator: Equal
+          matchValues:
+            - GET
+      cacheConfiguration:
+        cacheBehavior: OverrideIfOriginMissing
+        cacheDuration: 1h
+        queryStringCachingBehavior: IgnoreSpecifiedQueryStrings
+        queryParameters:
+          - utm_source
+          - utm_medium
+          - utm_campaign
+          - utm_content
+          - utm_term
+          - fbclid
+          - gclid
+          - msclkid
+          - mc_cid
+          - mc_eid
+          - ref
+          - source
+          - _ga
+          - _gid
+          - _gl
+          - igshid
+      compression:
+        enabled: true
+        compressionTypes:
+          - brotli
+          - gzip
+      revalidation:
+        enabled: true
+        staleWhileRevalidate: 300 # 5 minutes
+        staleIfError: 3600 # 1 hour
+
+    # Static Assets (CSS, JS, Fonts) - 7 days
+    - name: static-assets-caching
+      priority: 90
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: MatchesRegex
+          matchValues:
+            - ^/static/.*
+            - ^/assets/.*
+            - ^/_next/static/.*
+            - ^/dist/.*
+            - ^/build/.*
+        - matchVariable: FileExtension
+          operator: In
+          matchValues:
+            - .css
+            - .js
+            - .woff
+            - .woff2
+            - .ttf
+            - .otf
+            - .eot
+      cacheConfiguration:
+        cacheBehavior: Override
+        cacheDuration: 7d
+        queryStringCachingBehavior: IgnoreQueryString
+      compression:
+        enabled: true
+        compressionTypes:
+          - brotli
+          - gzip
+      revalidation:
+        enabled: false # Immutable content
+
+    # Media Files (Images, Videos) - 30 days
+    - name: media-caching
+      priority: 85
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: MatchesRegex
+          matchValues:
+            - ^/media/.*
+            - ^/uploads/.*
+            - ^/images/.*
+            - ^/videos/.*
+            - ^/thumbnails/.*
+            - ^/avatars/.*
+        - matchVariable: FileExtension
+          operator: In
+          matchValues:
+            - .jpg
+            - .jpeg
+            - .png
+            - .gif
+            - .webp
+            - .avif
+            - .mp4
+            - .webm
+            - .mov
+      cacheConfiguration:
+        cacheBehavior: Override
+        cacheDuration: 30d
+        queryStringCachingBehavior: IgnoreQueryString
+      compression:
+        enabled: false # Media is already compressed
+      revalidation:
+        enabled: false # Immutable content
+
+    # API Responses (Cacheable GET requests) - 5 minutes
+    - name: api-caching
+      priority: 80
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: StartsWith
+          matchValues:
+            - /api/
+            - /v1/
+            - /graphql
+        - matchVariable: RequestMethod
+          operator: Equal
+          matchValues:
+            - GET
+        - matchVariable: ResponseHeader
+          headerName: Cache-Control
+          operator: DoesNotContain
+          matchValues:
+            - no-cache
+            - no-store
+            - private
+      cacheConfiguration:
+        cacheBehavior: OverrideIfOriginMissing
+        cacheDuration: 5m
+        queryStringCachingBehavior: UseQueryString
+        varyByHeaders:
+          - Authorization
+          - Accept-Language
+      compression:
+        enabled: true
+        compressionTypes:
+          - brotli
+          - gzip
+      revalidation:
+        enabled: true
+        staleWhileRevalidate: 60 # 1 minute
+        staleIfError: 300 # 5 minutes
+
+    # WebSocket/Realtime - No caching
+    - name: websocket-no-cache
+      priority: 95
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: StartsWith
+          matchValues:
+            - /ws/
+            - /socket.io/
+            - /signalr/
+            - /realtime/
+      cacheConfiguration:
+        cacheBehavior: BypassCache
+      compression:
+        enabled: false
+
+    # Health Checks - No caching
+    - name: health-check-no-cache
+      priority: 98
+      matchConditions:
+        - matchVariable: RequestPath
+          operator: In
+          matchValues:
+            - /health
+            - /healthz
+            - /ready
+            - /live
+      cacheConfiguration:
+        cacheBehavior: BypassCache
+      compression:
+        enabled: false
+
+  # =============================================================================
+  # Compression Settings
+  # =============================================================================
+  compression:
+    # Brotli is preferred over Gzip for better compression ratios (15-25% smaller)
+    # Front Door automatically negotiates the best compression method with clients
+    defaultCompressionTypes:
+      - brotli
+      - gzip
+
+    compressibleMimeTypes:
+      # Text
+      - text/plain
+      - text/html
+      - text/css
+      - text/xml
+      - text/javascript
+
+      # Application (text-based)
+      - application/javascript
+      - application/x-javascript
+      - application/json
+      - application/xml
+      - application/rss+xml
+      - application/atom+xml
+      - application/graphql
+
+      # Fonts (text-based)
+      - application/x-font-ttf
+      - application/x-font-opentype
+      - application/vnd.ms-fontobject
+      - font/ttf
+      - font/otf
+      - font/eot
+
+      # SVG
+      - image/svg+xml
+
+    minimumFileSizeBytes: 256 # Don't compress files smaller than 256 bytes
+
+    excludedMimeTypes:
+      # Already compressed formats
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+      - image/avif
+      - video/mp4
+      - video/webm
+      - video/quicktime
+      - application/zip
+      - application/gzip
+      - application/x-gzip
+      - font/woff
+      - font/woff2
+
+  # =============================================================================
+  # Origin Shielding (Reduces origin requests by caching at a regional POP)
+  # =============================================================================
+  originShield:
+    enabled: true
+    shieldingPopLocation: WestUS2 # Match origin location for best performance
+
+    # Cost Impact: Reduces origin bandwidth by 70-90%
+    # Performance Impact: Slightly increased latency (1-5ms) but better cache hit ratio
+
+  # =============================================================================
+  # Request Coalescing (Combine duplicate requests for same resource)
+  # =============================================================================
+  requestCoalescing:
+    enabled: true
+
+    # When multiple requests for the same resource arrive simultaneously,
+    # only one request is sent to the origin, and the response is shared
+    # Cost Impact: Reduces origin requests by 20-40% during traffic spikes
+
+  # =============================================================================
+  # Conditional Requests (ETag and Last-Modified support)
+  # =============================================================================
+  conditionalRequests:
+    enabled: true
+
+    # Front Door sends If-None-Match (ETag) and If-Modified-Since headers to origin
+    # Origin can respond with 304 Not Modified to save bandwidth
+    # Cost Impact: Reduces bandwidth by 30-50% for revalidation requests
+
+  # =============================================================================
+  # Cache Key Configuration
+  # =============================================================================
+  cacheKey:
+    # Include these in cache key for proper request differentiation
+    includeHeaders:
+      - Accept-Encoding # For compression negotiation
+      - Accept # For content negotiation
+
+    # Normalize query strings for better cache hit ratio
+    normalizeQueryString: true
+    sortQueryParameters: true
+
+  # =============================================================================
+  # Cache Hit Ratio Targets
+  # =============================================================================
+  monitoring:
+    cacheHitRatioTargets:
+      staticAssets: 0.95 # 95%
+      mediaFiles: 0.95 # 95%
+      htmlPages: 0.70 # 70%
+      apiResponses: 0.40 # 40%
+      overall: 0.80 # 80%
+
+    alerts:
+      - name: low-cache-hit-ratio
+        condition: cacheHitRatio < 0.75
+        severity: warning
+        action: notify-ops-team
+
+      - name: high-origin-bandwidth
+        condition: originBandwidth > baseline * 1.5
+        severity: warning
+        action: notify-ops-team
+
+      - name: high-cache-miss-rate
+        condition: cacheMissRate > 0.30
+        severity: critical
+        action: notify-ops-team-urgent
+
+  # =============================================================================
+  # Cost Optimization Summary
+  # =============================================================================
+  expectedSavings:
+    description: |
+      Based on typical dating platform traffic patterns:
+      - 60% of traffic is static assets (95% cache hit ratio)
+      - 25% of traffic is media files (95% cache hit ratio)
+      - 10% of traffic is HTML pages (70% cache hit ratio)
+      - 5% of traffic is API calls (40% cache hit ratio)
+
+    estimatedCostReduction:
+      frontDoorCosts: 40-60% # Reduced data transfer and requests
+      originBandwidth: 85-90% # Significant reduction in origin egress
+      originCompute: 30-40% # Lower database and compute load
+      totalInfrastructure: 35-45% # Overall infrastructure cost reduction
+
+    monthlyProjection:
+      baseline: $2000
+      optimized: $1200
+      savings: $800
+      savingsPercentage: 40%

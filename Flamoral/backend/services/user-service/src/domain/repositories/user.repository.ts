@@ -1,0 +1,155 @@
+import db from '../../infrastructure/database/connection';
+import { UserEntity, CreateUserDto, UpdateUserDto } from '../entities/User.entity';
+
+export class UserRepository {
+  private tableName = 'users';
+
+  async create(userData: CreateUserDto & { password_hash: string }): Promise<UserEntity> {
+    const [user] = await db(this.tableName)
+      .insert({
+        email: userData.email,
+        password_hash: userData.password_hash,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        date_of_birth: userData.date_of_birth,
+        gender: userData.gender,
+        phone_number: userData.phone_number,
+      })
+      .returning('*');
+
+    return user;
+  }
+
+  async findById(id: string): Promise<UserEntity | null> {
+    const user = await db(this.tableName).where({ id }).first();
+    return user || null;
+  }
+
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    const user = await db(this.tableName).where({ email }).first();
+    return user || null;
+  }
+
+  async update(id: string, userData: UpdateUserDto): Promise<UserEntity | null> {
+    const [user] = await db(this.tableName)
+      .where({ id })
+      .update({
+        ...userData,
+        updated_at: db.fn.now(),
+      })
+      .returning('*');
+
+    return user || null;
+  }
+
+  async updateLastLogin(id: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        last_login_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async verifyEmail(id: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        is_email_verified: true,
+        email_verified_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async verifyPhone(id: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        is_phone_verified: true,
+        phone_verified_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async verifyPhoto(id: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        is_photo_verified: true,
+        photo_verified_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async verifyIdentity(id: string, kycProvider?: string, kycReferenceId?: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        is_identity_verified: true,
+        identity_verified_at: db.fn.now(),
+        kyc_provider: kycProvider,
+        kyc_reference_id: kycReferenceId,
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async getVerificationStatus(id: string): Promise<{
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
+    isPhotoVerified: boolean;
+    isIdentityVerified: boolean;
+    emailVerifiedAt?: Date;
+    phoneVerifiedAt?: Date;
+    photoVerifiedAt?: Date;
+    identityVerifiedAt?: Date;
+  } | null> {
+    const user = await db(this.tableName)
+      .where({ id })
+      .select(
+        'is_email_verified',
+        'is_phone_verified',
+        'is_photo_verified',
+        'is_identity_verified',
+        'email_verified_at',
+        'phone_verified_at',
+        'photo_verified_at',
+        'identity_verified_at'
+      )
+      .first();
+
+    if (!user) return null;
+
+    return {
+      isEmailVerified: user.is_email_verified || false,
+      isPhoneVerified: user.is_phone_verified || false,
+      isPhotoVerified: user.is_photo_verified || false,
+      isIdentityVerified: user.is_identity_verified || false,
+      emailVerifiedAt: user.email_verified_at,
+      phoneVerifiedAt: user.phone_verified_at,
+      photoVerifiedAt: user.photo_verified_at,
+      identityVerifiedAt: user.identity_verified_at,
+    };
+  }
+
+  async updatePassword(id: string, password_hash: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        password_hash,
+        updated_at: db.fn.now(),
+      });
+  }
+
+  async delete(id: string): Promise<void> {
+    await db(this.tableName).where({ id }).delete();
+  }
+
+  async deactivate(id: string): Promise<void> {
+    await db(this.tableName)
+      .where({ id })
+      .update({
+        is_active: false,
+        updated_at: db.fn.now(),
+      });
+  }
+}

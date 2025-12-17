@@ -1,0 +1,221 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # Root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "flamoral/engineering-team"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+      testing:
+        patterns:
+          - "jest"
+          - "@testing-library/*"
+          - "playwright"
+      linting:
+        patterns:
+          - "eslint*"
+          - "prettier*"
+
+  # Backend services
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "chore(deps-backend)"
+
+  # User Service
+  - package-ecosystem: "npm"
+    directory: "/backend/services/user-service"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "user-service"
+    commit-message:
+      prefix: "chore(deps-user)"
+
+  # Matching Service
+  - package-ecosystem: "npm"
+    directory: "/backend/services/matching-service"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "matching-service"
+    commit-message:
+      prefix: "chore(deps-matching)"
+
+  # Web App
+  - package-ecosystem: "npm"
+    directory: "/apps/web-app"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "web-app"
+    commit-message:
+      prefix: "chore(deps-web)"
+    groups:
+      react:
+        patterns:
+          - "react*"
+          - "@tanstack/react-query"
+      vite:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+
+  # Mobile App
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile-app"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "mobile-app"
+    commit-message:
+      prefix: "chore(deps-mobile)"
+    groups:
+      react-native:
+        patterns:
+          - "react-native*"
+          - "@react-native/*"
+          - "@react-navigation/*"
+
+  # AI Services - Python
+  - package-ecosystem: "pip"
+    directory: "/backend/services/ai-services/fraud-detection"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "dependencies"
+      - "ai-services"
+      - "python"
+    commit-message:
+      prefix: "chore(deps-fraud)"
+
+  - package-ecosystem: "pip"
+    directory: "/backend/services/ai-services/nlp-service"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "dependencies"
+      - "ai-services"
+      - "python"
+    commit-message:
+      prefix: "chore(deps-nlp)"
+
+  - package-ecosystem: "pip"
+    directory: "/backend/services/ai-services/photo-analysis"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "dependencies"
+      - "ai-services"
+      - "python"
+    commit-message:
+      prefix: "chore(deps-photo)"
+
+  - package-ecosystem: "pip"
+    directory: "/backend/services/ai-services/recommendation-service"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "dependencies"
+      - "ai-services"
+      - "python"
+    commit-message:
+      prefix: "chore(deps-rec)"
+
+  # Terraform
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure/terraform"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+    labels:
+      - "dependencies"
+      - "infrastructure"
+      - "terraform"
+    commit-message:
+      prefix: "chore(deps-terraform)"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/docker/backend"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(deps-docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps-actions)"
+
+  # Go - Realtime Service
+  - package-ecosystem: "gomod"
+    directory: "/backend/services/realtime-service"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "dependencies"
+      - "go"
+      - "realtime-service"
+    commit-message:
+      prefix: "chore(deps-realtime)"
+
+  # Shared Packages
+  - package-ecosystem: "npm"
+    directory: "/packages/shared"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "shared-packages"
+    commit-message:
+      prefix: "chore(deps-shared)"

@@ -1,0 +1,293 @@
+# =============================================================================
+# Flamoral Dating Platform - Production Values Override
+# =============================================================================
+# Configuration for production deployment to AKS
+# =============================================================================
+
+global:
+  environment: production
+  imageRegistry: flamoralacr.azurecr.io
+  imageTag: latest
+  imagePullSecrets:
+    - name: acr-secret
+  slot: blue
+
+# Common settings
+common:
+  enabled: false
+
+# =============================================================================
+# Working Services - Deploy Only These
+# =============================================================================
+
+# API Gateway
+apiGateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: api-gateway
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    NODE_ENV: production
+    PORT: "3000"
+
+# Messaging Service
+messagingService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: messaging-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3004
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Notification Service
+notificationService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: notification-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3007
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Analytics Service
+analyticsService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: analytics-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3008
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Moderation Service
+moderationService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: moderation-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3009
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Admin Service (NEW)
+adminService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: admin-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3011
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Realtime Service (Go)
+realtimeService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: realtime-service
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+# =============================================================================
+# Disabled Services - Not Working Yet
+# =============================================================================
+
+authService:
+  enabled: false
+
+userService:
+  enabled: false
+
+matchingService:
+  enabled: false
+
+mediaService:
+  enabled: false
+
+paymentService:
+  enabled: false
+
+advertisingService:
+  enabled: false
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/websocket-services: "flamoral-realtime-service"
+  hosts:
+    - host: api.flamoral.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: api-gateway
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+  tls:
+    - secretName: flamoral-tls
+      hosts:
+        - api.flamoral.com
+
+# =============================================================================
+# Autoscaling Configuration
+# =============================================================================
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# =============================================================================
+# Service Account
+# =============================================================================
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# =============================================================================
+# Pod Security - Disabled for now to avoid permission issues
+# =============================================================================
+
+podSecurityContext: {}
+#  runAsNonRoot: true
+#  runAsUser: 1000
+#  fsGroup: 1000
+
+securityContext: {}
+#  capabilities:
+#    drop:
+#      - ALL
+#  readOnlyRootFilesystem: true
+#  allowPrivilegeEscalation: false
+
+# =============================================================================
+# Health Probes
+# =============================================================================
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# =============================================================================
+# Node Selection
+# =============================================================================
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - flamoral
+          topologyKey: kubernetes.io/hostname

@@ -1,0 +1,324 @@
+# =============================================================================
+# REUSABLE WORKFLOW: Compliance & Governance
+# =============================================================================
+# CIS benchmarks, OWASP Top 10, PCI-DSS, security headers validation
+# =============================================================================
+
+name: Reusable Compliance
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: false
+        type: string
+        default: 'staging'
+      include-pci:
+        description: 'Include PCI-DSS checks (for payment flows)'
+        required: false
+        type: boolean
+        default: true
+      include-cis:
+        description: 'Include CIS benchmark checks'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      compliance-score:
+        description: 'Overall compliance score (0-100)'
+        value: ${{ jobs.compliance.outputs.score }}
+      findings-count:
+        description: 'Number of compliance findings'
+        value: ${{ jobs.compliance.outputs.findings }}
+
+jobs:
+  compliance:
+    name: Compliance Checks
+    runs-on: ubuntu-latest
+    outputs:
+      score: ${{ steps.summary.outputs.score }}
+      findings: ${{ steps.summary.outputs.findings }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: OWASP Top 10 Evidence Mapping
+        id: owasp
+        run: |
+          echo "=== OWASP Top 10 Evidence Mapping ==="
+
+          FINDINGS=()
+          PASSES=()
+
+          # A01:2021 - Broken Access Control
+          echo "Checking A01: Broken Access Control..."
+          if grep -r "authorize\|authentication\|rbac\|permission" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Authorization middleware found"
+            PASSES+=("A01")
+          else
+            echo "  WARN: No authorization middleware detected"
+            FINDINGS+=("A01:Broken_Access_Control")
+          fi
+
+          # A02:2021 - Cryptographic Failures
+          echo "Checking A02: Cryptographic Failures..."
+          if grep -r "bcrypt\|argon2\|crypto" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Cryptographic libraries in use"
+            PASSES+=("A02")
+          else
+            FINDINGS+=("A02:Cryptographic_Failures")
+          fi
+
+          # A03:2021 - Injection
+          echo "Checking A03: Injection..."
+          if grep -r "parameterized\|prepared\|sanitize\|escape" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Input sanitization detected"
+            PASSES+=("A03")
+          else
+            FINDINGS+=("A03:Injection")
+          fi
+
+          # A04:2021 - Insecure Design
+          echo "Checking A04: Insecure Design..."
+          if [ -f "docs/architecture.md" ] || [ -f "ARCHITECTURE.md" ]; then
+            echo "  PASS: Architecture documentation exists"
+            PASSES+=("A04")
+          else
+            FINDINGS+=("A04:Insecure_Design")
+          fi
+
+          # A05:2021 - Security Misconfiguration
+          echo "Checking A05: Security Misconfiguration..."
+          if grep -r "helmet\|csp\|cors" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Security middleware configured"
+            PASSES+=("A05")
+          else
+            FINDINGS+=("A05:Security_Misconfiguration")
+          fi
+
+          # A06:2021 - Vulnerable Components
+          echo "Checking A06: Vulnerable Components..."
+          if [ -f ".github/dependabot.yml" ]; then
+            echo "  PASS: Dependabot configured"
+            PASSES+=("A06")
+          else
+            FINDINGS+=("A06:Vulnerable_Components")
+          fi
+
+          # A07:2021 - Auth Failures
+          echo "Checking A07: Authentication Failures..."
+          if grep -r "jwt\|session\|oauth" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Authentication mechanisms found"
+            PASSES+=("A07")
+          else
+            FINDINGS+=("A07:Auth_Failures")
+          fi
+
+          # A08:2021 - Software Integrity
+          echo "Checking A08: Software Integrity..."
+          if [ -f "package-lock.json" ] || [ -f "yarn.lock" ]; then
+            echo "  PASS: Lockfile present"
+            PASSES+=("A08")
+          else
+            FINDINGS+=("A08:Software_Integrity")
+          fi
+
+          # A09:2021 - Logging Failures
+          echo "Checking A09: Logging Failures..."
+          if grep -r "winston\|bunyan\|pino\|logger" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: Logging framework in use"
+            PASSES+=("A09")
+          else
+            FINDINGS+=("A09:Logging_Failures")
+          fi
+
+          # A10:2021 - SSRF
+          echo "Checking A10: SSRF..."
+          if grep -r "url\s*=\s*req\." backend/src --include="*.ts" | grep -v "sanitize\|validate" > /dev/null 2>&1; then
+            FINDINGS+=("A10:SSRF")
+          else
+            echo "  PASS: No obvious SSRF patterns"
+            PASSES+=("A10")
+          fi
+
+          PASS_COUNT=${#PASSES[@]}
+          FINDING_COUNT=${#FINDINGS[@]}
+          TOTAL=10
+          SCORE=$((PASS_COUNT * 100 / TOTAL))
+
+          echo ""
+          echo "OWASP Top 10 Score: $SCORE% ($PASS_COUNT/$TOTAL passed)"
+
+          echo "owasp-score=$SCORE" >> $GITHUB_OUTPUT
+          echo "owasp-findings=$FINDING_COUNT" >> $GITHUB_OUTPUT
+
+      - name: PCI-DSS Checks (Payment Flows)
+        id: pci
+        if: inputs.include-pci
+        run: |
+          echo "=== PCI-DSS Compliance Checks ==="
+
+          FINDINGS=()
+
+          # Req 3: Protect stored cardholder data
+          echo "Checking Req 3: Stored Card Data..."
+          if grep -r "card_number\|cvv\|pan" backend/src --include="*.ts" > /dev/null 2>&1; then
+            echo "  WARN: Potential card data storage detected"
+            FINDINGS+=("PCI_REQ3:Card_Storage")
+          else
+            echo "  PASS: No raw card data storage detected"
+          fi
+
+          # Req 4: Encrypt transmission
+          echo "Checking Req 4: Transmission Encryption..."
+          if grep -r "https\|tls\|ssl" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: TLS/HTTPS references found"
+          else
+            FINDINGS+=("PCI_REQ4:Transmission")
+          fi
+
+          # Req 6: Secure systems and apps
+          echo "Checking Req 6: Secure Development..."
+          if [ -f ".github/workflows/security-tests.yml" ]; then
+            echo "  PASS: Security testing workflow exists"
+          else
+            FINDINGS+=("PCI_REQ6:Security_Testing")
+          fi
+
+          # Req 8: Authentication
+          echo "Checking Req 8: Strong Authentication..."
+          if grep -r "2fa\|mfa\|totp\|speakeasy" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  PASS: MFA implementation found"
+          else
+            echo "  INFO: MFA implementation not detected"
+          fi
+
+          # Check for Stripe/payment processor usage (delegating PCI to them)
+          if grep -r "stripe\|paystack\|flutterwave" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "  INFO: Payment processor (Stripe/Paystack/Flutterwave) in use - PCI scope reduced"
+          fi
+
+          FINDING_COUNT=${#FINDINGS[@]}
+          echo "pci-findings=$FINDING_COUNT" >> $GITHUB_OUTPUT
+
+      - name: CIS Benchmark Checks
+        id: cis
+        if: inputs.include-cis
+        run: |
+          echo "=== CIS Benchmark Checks ==="
+
+          FINDINGS=()
+
+          # Check Dockerfile best practices
+          echo "Checking Docker CIS benchmarks..."
+          for dockerfile in $(find . -name "Dockerfile" -type f ! -path "*/node_modules/*" 2>/dev/null); do
+            echo "  Checking: $dockerfile"
+
+            # CIS 4.1: User should not be root
+            if grep -q "USER\s" "$dockerfile"; then
+              echo "    PASS: Non-root user defined"
+            else
+              FINDINGS+=("CIS_4.1:Root_User:$dockerfile")
+              echo "    WARN: No USER directive"
+            fi
+
+            # CIS 4.6: HEALTHCHECK
+            if grep -q "HEALTHCHECK" "$dockerfile"; then
+              echo "    PASS: HEALTHCHECK defined"
+            else
+              echo "    INFO: No HEALTHCHECK (optional)"
+            fi
+
+            # CIS 4.9: Use COPY instead of ADD
+            if grep -q "^ADD\s" "$dockerfile"; then
+              FINDINGS+=("CIS_4.9:ADD_Usage:$dockerfile")
+              echo "    WARN: Uses ADD instead of COPY"
+            else
+              echo "    PASS: Uses COPY"
+            fi
+          done
+
+          # Check Kubernetes manifests
+          echo "Checking Kubernetes CIS benchmarks..."
+          for manifest in $(find . -path "*/k8s/*.yaml" -o -path "*/kubernetes/*.yaml" 2>/dev/null | head -10); do
+            if grep -q "privileged:\s*true" "$manifest" 2>/dev/null; then
+              FINDINGS+=("CIS_K8S:Privileged:$manifest")
+              echo "  WARN: Privileged container in $manifest"
+            fi
+          done
+
+          FINDING_COUNT=${#FINDINGS[@]}
+          echo "cis-findings=$FINDING_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Security Headers Validation
+        id: headers
+        run: |
+          echo "=== Security Headers Check ==="
+
+          # Check Helmet configuration
+          if grep -r "helmet()" backend/src --include="*.ts" -l > /dev/null 2>&1; then
+            echo "PASS: Helmet middleware configured"
+            echo "headers-status=configured" >> $GITHUB_OUTPUT
+          else
+            echo "WARN: Helmet not detected"
+            echo "headers-status=missing" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Compliance Summary
+        id: summary
+        if: always()
+        run: |
+          REPORT_PATH="compliance-report.json"
+
+          OWASP_SCORE="${{ steps.owasp.outputs.owasp-score || 0 }}"
+          OWASP_FINDINGS="${{ steps.owasp.outputs.owasp-findings || 0 }}"
+          PCI_FINDINGS="${{ steps.pci.outputs.pci-findings || 0 }}"
+          CIS_FINDINGS="${{ steps.cis.outputs.cis-findings || 0 }}"
+
+          TOTAL_FINDINGS=$((OWASP_FINDINGS + PCI_FINDINGS + CIS_FINDINGS))
+
+          cat > $REPORT_PATH <<EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "environment": "${{ inputs.environment }}",
+            "owasp_top_10": {
+              "score": $OWASP_SCORE,
+              "findings": $OWASP_FINDINGS
+            },
+            "pci_dss": {
+              "findings": $PCI_FINDINGS,
+              "scope": "reduced_via_payment_processor"
+            },
+            "cis_benchmarks": {
+              "findings": $CIS_FINDINGS
+            },
+            "security_headers": {
+              "status": "${{ steps.headers.outputs.headers-status || 'unknown' }}"
+            },
+            "total_findings": $TOTAL_FINDINGS,
+            "overall_score": $OWASP_SCORE
+          }
+          EOF
+
+          echo "score=$OWASP_SCORE" >> $GITHUB_OUTPUT
+          echo "findings=$TOTAL_FINDINGS" >> $GITHUB_OUTPUT
+
+          # Generate step summary
+          echo "## Compliance Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Framework | Score/Findings |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|----------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| OWASP Top 10 | $OWASP_SCORE% (${OWASP_FINDINGS} findings) |" >> $GITHUB_STEP_SUMMARY
+          echo "| PCI-DSS | ${PCI_FINDINGS} findings |" >> $GITHUB_STEP_SUMMARY
+          echo "| CIS Benchmarks | ${CIS_FINDINGS} findings |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **${TOTAL_FINDINGS} findings** |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload compliance report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compliance-report-${{ github.run_id }}
+          path: compliance-report.json
+          retention-days: 90

@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-databases
+  namespace: flamoral
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: postgres-client
+        image: postgres:15-alpine
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Creating databases..."
+
+          # Create databases
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'flamoral_users'" | grep -q 1 || \
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE flamoral_users;"
+
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'flamoral_matching'" | grep -q 1 || \
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE flamoral_matching;"
+
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'flamoral_media'" | grep -q 1 || \
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE flamoral_media;"
+
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'flamoral_payments'" | grep -q 1 || \
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE flamoral_payments;"
+
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'flamoral_notifications'" | grep -q 1 || \
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE flamoral_notifications;"
+
+          echo "Databases created successfully!"
+
+          # List all databases
+          echo "Available databases:"
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "\l"
+        env:
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_HOST
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_PASSWORD
+  backoffLimit: 3

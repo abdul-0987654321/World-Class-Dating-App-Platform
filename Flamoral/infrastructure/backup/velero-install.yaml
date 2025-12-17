@@ -1,0 +1,447 @@
+# Velero Installation and Configuration for Kubernetes Backup
+# Flamoral Dating Platform
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+  labels:
+    app: velero
+    purpose: disaster-recovery
+
+---
+# Service Account for Velero
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero
+  namespace: velero
+
+---
+# ClusterRole for Velero
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velero
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- nonResourceURLs:
+  - "*"
+  verbs:
+  - "*"
+
+---
+# ClusterRoleBinding for Velero
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velero
+subjects:
+- kind: ServiceAccount
+  name: velero
+  namespace: velero
+
+---
+# Azure Credentials Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloud-credentials
+  namespace: velero
+type: Opaque
+stringData:
+  cloud: |
+    AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
+    AZURE_TENANT_ID=${AZURE_TENANT_ID}
+    AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+    AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+    AZURE_RESOURCE_GROUP=${AZURE_RESOURCE_GROUP}
+    AZURE_STORAGE_ACCOUNT_ID=${BACKUP_STORAGE_ACCOUNT}
+    AZURE_STORAGE_KEY=${BACKUP_STORAGE_KEY}
+
+---
+# Velero BackupStorageLocation
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: azure
+  objectStorage:
+    bucket: kubernetes-backups
+  config:
+    resourceGroup: ${AZURE_RESOURCE_GROUP}
+    storageAccount: ${BACKUP_STORAGE_ACCOUNT}
+    storageAccountKeyEnvVar: AZURE_STORAGE_KEY
+    subscriptionId: ${AZURE_SUBSCRIPTION_ID}
+
+---
+# Secondary BackupStorageLocation for DR
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: secondary
+  namespace: velero
+spec:
+  provider: azure
+  objectStorage:
+    bucket: kubernetes-backups
+  config:
+    resourceGroup: ${AZURE_RESOURCE_GROUP}-dr
+    storageAccount: ${BACKUP_STORAGE_ACCOUNT_DR}
+    storageAccountKeyEnvVar: AZURE_STORAGE_KEY
+    subscriptionId: ${AZURE_SUBSCRIPTION_ID}
+
+---
+# VolumeSnapshotLocation
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: azure
+  config:
+    apiTimeout: 5m
+    resourceGroup: ${AZURE_RESOURCE_GROUP}
+    subscriptionId: ${AZURE_SUBSCRIPTION_ID}
+    incremental: "true"
+
+---
+# Hourly Critical Services Backup Schedule
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: hourly-critical
+  namespace: velero
+spec:
+  schedule: "0 * * * *"  # Every hour
+  template:
+    includedNamespaces:
+    - flamoral-dating
+    includedResources:
+    - deployments
+    - services
+    - configmaps
+    - secrets
+    - persistentvolumeclaims
+    - persistentvolumes
+    labelSelector:
+      matchLabels:
+        backup-tier: critical
+    ttl: 168h0m0s  # 7 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    snapshotVolumes: true
+    includeClusterResources: false
+    hooks:
+      resources:
+      - name: postgres-backup-hook
+        includedNamespaces:
+        - flamoral-dating
+        labelSelector:
+          matchLabels:
+            app: postgres
+        pre:
+        - exec:
+            command:
+            - /bin/bash
+            - -c
+            - pg_dump -U $POSTGRES_USER -d flamoral_users > /tmp/pre-backup.sql
+            timeout: 5m
+        post:
+        - exec:
+            command:
+            - /bin/bash
+            - -c
+            - rm -f /tmp/pre-backup.sql
+
+---
+# Daily Full Backup Schedule
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-full
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # 2 AM UTC daily
+  template:
+    includedNamespaces:
+    - flamoral-dating
+    - flamoral-ai
+    - monitoring
+    - logging
+    - tracing
+    includedResources:
+    - "*"
+    ttl: 720h0m0s  # 30 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    snapshotVolumes: true
+    includeClusterResources: true
+    defaultVolumesToRestic: false
+
+---
+# Weekly Comprehensive Backup
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-comprehensive
+  namespace: velero
+spec:
+  schedule: "0 1 * * 0"  # 1 AM UTC every Sunday
+  template:
+    includedNamespaces:
+    - "*"
+    includedResources:
+    - "*"
+    ttl: 2160h0m0s  # 90 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    snapshotVolumes: true
+    includeClusterResources: true
+    defaultVolumesToRestic: true
+
+---
+# Namespace Backup Configuration
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: namespace-flamoral-dating
+  namespace: velero
+spec:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  template:
+    includedNamespaces:
+    - flamoral-dating
+    includedResources:
+    - "*"
+    ttl: 336h0m0s  # 14 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    snapshotVolumes: true
+
+---
+# ConfigMap and Secret Backup (More Frequent)
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: configs-and-secrets
+  namespace: velero
+spec:
+  schedule: "0 */2 * * *"  # Every 2 hours
+  template:
+    includedNamespaces:
+    - flamoral-dating
+    - flamoral-ai
+    includedResources:
+    - configmaps
+    - secrets
+    ttl: 168h0m0s  # 7 days
+    storageLocation: default
+    includeClusterResources: false
+
+---
+# PVC Backup Schedule
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: persistent-volumes
+  namespace: velero
+spec:
+  schedule: "0 3 * * *"  # 3 AM UTC daily
+  template:
+    includedNamespaces:
+    - flamoral-dating
+    includedResources:
+    - persistentvolumeclaims
+    - persistentvolumes
+    ttl: 720h0m0s  # 30 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    snapshotVolumes: true
+    defaultVolumesToRestic: true
+
+---
+# Velero Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: velero
+  labels:
+    app: velero
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: velero
+  template:
+    metadata:
+      labels:
+        app: velero
+    spec:
+      serviceAccountName: velero
+      restartPolicy: Always
+      containers:
+      - name: velero
+        image: velero/velero:v1.12.0
+        imagePullPolicy: IfNotPresent
+        command:
+        - /velero
+        args:
+        - server
+        - --default-backup-storage-location=default
+        - --default-volume-snapshot-locations=default
+        - --features=EnableCSI
+        - --log-level=info
+        - --metrics-address=:8085
+        volumeMounts:
+        - name: cloud-credentials
+          mountPath: /credentials
+        - name: plugins
+          mountPath: /plugins
+        - name: scratch
+          mountPath: /scratch
+        env:
+        - name: VELERO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AZURE_CREDENTIALS_FILE
+          value: /credentials/cloud
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+      - name: azure-plugin
+        image: velero/velero-plugin-for-microsoft-azure:v1.8.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: plugins
+          mountPath: /target
+      - name: csi-plugin
+        image: velero/velero-plugin-for-csi:v0.6.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: plugins
+          mountPath: /target
+      volumes:
+      - name: cloud-credentials
+        secret:
+          secretName: cloud-credentials
+      - name: plugins
+        emptyDir: {}
+      - name: scratch
+        emptyDir: {}
+
+---
+# Velero Service for Metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: velero
+  namespace: velero
+  labels:
+    app: velero
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 8085
+    targetPort: 8085
+    protocol: TCP
+  selector:
+    app: velero
+
+---
+# ServiceMonitor for Prometheus Integration
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: velero
+  namespace: velero
+  labels:
+    app: velero
+spec:
+  selector:
+    matchLabels:
+      app: velero
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# PodMonitor for Velero
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: velero
+  namespace: velero
+  labels:
+    app: velero
+spec:
+  selector:
+    matchLabels:
+      app: velero
+  podMetricsEndpoints:
+  - port: metrics
+    interval: 30s
+
+---
+# NetworkPolicy for Velero
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: velero
+  namespace: velero
+spec:
+  podSelector:
+    matchLabels:
+      app: velero
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8085
+  egress:
+  - {}  # Allow all egress for Azure API access
+
+---
+# PodDisruptionBudget for Velero
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: velero
+  namespace: velero
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: velero

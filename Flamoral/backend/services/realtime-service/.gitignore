@@ -1,0 +1,49 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.out
+
+# Build artifacts
+/realtime-service
+/tmp/
+/bin/
+
+# Dependency directories
+/vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Air (hot reload)
+tmp/
+.air.toml.local
+
+# Testing
+testdata/
+
+# Build cache
+.cache/

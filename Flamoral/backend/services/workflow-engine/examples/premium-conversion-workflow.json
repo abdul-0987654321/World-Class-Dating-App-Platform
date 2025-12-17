@@ -1,0 +1,63 @@
+{
+  "name": "Premium Conversion - Profile Complete",
+  "description": "Encourage premium subscription for users who completed their profile",
+  "trigger": {
+    "type": "profile_completed",
+    "config": {
+      "description": "Triggered when user completes their profile to 100%"
+    }
+  },
+  "conditions": [
+    {
+      "type": "user_premium",
+      "operator": "eq",
+      "value": false,
+      "logicalOperator": "AND"
+    },
+    {
+      "type": "profile_complete_percentage",
+      "operator": "gte",
+      "value": 100,
+      "logicalOperator": "AND"
+    }
+  ],
+  "actions": [
+    {
+      "type": "send_in_app_message",
+      "config": {
+        "title": "Your profile looks amazing! ✨",
+        "message": "Get 3x more matches with Flamoral Premium. Limited offer: 20% off!",
+        "type": "promotion",
+        "actionUrl": "/premium/upgrade?discount=PROFILE100"
+      },
+      "delay": 0,
+      "retryOnFailure": false
+    },
+    {
+      "type": "send_email",
+      "config": {
+        "subject": "Unlock your full potential with Flamoral Premium",
+        "template": "premium_conversion_profile_complete",
+        "templateData": {
+          "userName": "{{user.firstName}}",
+          "discountCode": "PROFILE100",
+          "discountPercent": 20
+        }
+      },
+      "delay": 300000,
+      "retryOnFailure": true
+    },
+    {
+      "type": "update_profile_score",
+      "config": {
+        "scoreAdjustment": 10,
+        "reason": "profile_completion_bonus"
+      },
+      "delay": 1000,
+      "retryOnFailure": false
+    }
+  ],
+  "status": "active",
+  "priority": 80,
+  "tags": ["monetization", "premium", "conversion"]
+}

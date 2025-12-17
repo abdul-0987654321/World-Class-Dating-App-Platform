@@ -1,0 +1,186 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: flamoral-prod
+  labels:
+    app: auth-service
+    tier: critical
+    cost-optimization: enabled
+spec:
+  replicas: 2  # Critical service - always maintain 2 for HA
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        tier: critical
+    spec:
+      serviceAccountName: flamoral-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      # Critical service - NO spot instances
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.azure.com/scalesetpriority
+                operator: NotIn
+                values:
+                - spot
+        # Spread across nodes for HA
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - auth-service
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+      - name: auth-service
+        image: flamoraldevacr.azurecr.io/auth-service:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        - name: PORT
+          value: "3001"
+        - name: NODE_ENV
+          value: "production"
+        - name: SERVICE_NAME
+          value: "auth-service"
+        # Database configuration
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: DATABASE_URL
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: POSTGRES_PASSWORD
+        # Redis configuration
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: REDIS_URL
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-database-secrets
+              key: REDIS_PORT
+        # JWT secrets
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: JWT_SECRET
+        - name: JWT_ACCESS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: JWT_ACCESS_SECRET
+        - name: JWT_REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: JWT_REFRESH_SECRET
+        # OAuth secrets
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: GOOGLE_CLIENT_SECRET
+        - name: FACEBOOK_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: FACEBOOK_APP_SECRET
+        - name: APPLE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: APPLE_PRIVATE_KEY
+        # Session secret
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: flamoral-auth-secrets
+              key: SESSION_SECRET
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}

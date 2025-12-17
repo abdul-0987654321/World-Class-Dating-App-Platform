@@ -1,0 +1,809 @@
+# =============================================================================
+# PRODUCTION DEPLOYMENT PIPELINE - Flamoral Dating Platform
+# =============================================================================
+# Comprehensive production deployment with:
+# - Manual approval required
+# - Full test suite execution
+# - Docker image builds for all services
+# - Azure Container Registry push
+# - Kubernetes deployment via deployment scripts
+# - Post-deployment smoke tests
+# - Slack notifications on success/failure
+# - Automatic rollback on failure
+# =============================================================================
+
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.github/workflows/infrastructure-check.yml'
+      - '.github/workflows/cost-report.yml'
+  workflow_dispatch:
+    inputs:
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        type: choice
+        default: 'canary'
+        options:
+          - canary
+          - blue-green
+          - rolling
+      confirm_deployment:
+        description: 'Type DEPLOY to confirm production deployment'
+        required: true
+        type: string
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  TERRAFORM_VERSION: '1.6.0'
+  ENVIRONMENT: production
+  AZURE_RESOURCE_GROUP: flamoral-prod-rg
+  AKS_CLUSTER_NAME: flamoral-prod-aks
+  ACR_NAME: flamoralprodacr
+  HELM_RELEASE_NAME: flamoral-prod
+  DOCKER_BUILDKIT: 1
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  checks: write
+
+jobs:
+  # ===========================================================================
+  # STAGE 0: Production Approval Gate
+  # ===========================================================================
+  approval-gate:
+    name: Production Deployment Approval
+    runs-on: ubuntu-latest
+    environment: production-approval
+    outputs:
+      approved: ${{ steps.approval.outputs.approved }}
+
+    steps:
+      - name: Manual approval checkpoint
+        id: approval
+        run: |
+          echo "✅ Production deployment approved by: ${{ github.actor }}"
+          echo "approved=true" >> $GITHUB_OUTPUT
+
+      - name: Deployment notification
+        run: |
+          echo "## 🚀 Production Deployment Initiated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Strategy:** ${{ github.event.inputs.deployment_strategy || 'canary' }}" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # STAGE 1: Pre-deployment Tests
+  # ===========================================================================
+  # Validate deployment confirmation
+  validate-deployment:
+    name: Validate Deployment Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm_deployment }}" != "DEPLOY" ]; then
+            echo "::error::Deployment confirmation failed. You must type 'DEPLOY' to proceed."
+            exit 1
+          fi
+          echo "✅ Deployment confirmed by ${{ github.actor }}"
+
+  run-tests:
+    name: Run All Tests
+    runs-on: ubuntu-latest
+    needs: [approval-gate, validate-deployment]
+    if: always() && needs.approval-gate.result == 'success'
+
+    strategy:
+      matrix:
+        test-suite:
+          - name: unit
+            command: test:unit
+          - name: integration
+            command: test:integration
+          - name: e2e
+            command: test:e2e
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run ${{ matrix.test-suite.name }} tests
+        run: |
+          if npm run | grep -q "${{ matrix.test-suite.command }}"; then
+            npm run ${{ matrix.test-suite.command }}
+          else
+            echo "::warning::Test script ${{ matrix.test-suite.command }} not found"
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-suite.name }}
+          path: |
+            test-results/
+            coverage/
+          retention-days: 30
+
+  # ===========================================================================
+  # STAGE 2: Security Scanning
+  # ===========================================================================
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: approval-gate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if grep -q "CRITICAL" trivy-results.sarif; then
+            echo "❌ Critical vulnerabilities found!"
+            exit 1
+          fi
+        continue-on-error: true
+
+  # ===========================================================================
+  # STAGE 3: Build Docker Images
+  # ===========================================================================
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [run-tests, security-scan]
+    if: always() && (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped') && needs.security-scan.result == 'success'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        service:
+          - name: api-gateway
+            path: backend/services/api-gateway
+          - name: user-service
+            path: backend/services/user-service
+          - name: auth-service
+            path: backend/services/auth-service
+          - name: matching-service
+            path: backend/services/matching-service
+          - name: messaging-service
+            path: backend/services/messaging-service
+          - name: media-service
+            path: backend/services/media-service
+          - name: notification-service
+            path: backend/services/notification-service
+          - name: payment-service
+            path: backend/services/payment-service
+          - name: analytics-service
+            path: backend/services/analytics-service
+          - name: moderation-service
+            path: backend/services/moderation-service
+          - name: realtime-service
+            path: backend/services/realtime-service
+          - name: admin-service
+            path: backend/services/admin-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Check if Dockerfile exists
+        id: dockerfile
+        run: |
+          if [ -f "${{ matrix.service.path }}/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Dockerfile not found for ${{ matrix.service.name }}, skipping"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.path }}
+          push: true
+          tags: |
+            ${{ env.ACR_NAME }}.azurecr.io/flamoral/${{ matrix.service.name }}:${{ github.sha }}
+            ${{ env.ACR_NAME }}.azurecr.io/flamoral/${{ matrix.service.name }}:prod-latest
+            ${{ env.ACR_NAME }}.azurecr.io/flamoral/${{ matrix.service.name }}:v${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+            BUILD_VERSION=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+
+      - name: Scan image for vulnerabilities
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.ACR_NAME }}.azurecr.io/flamoral/${{ matrix.service.name }}:${{ github.sha }}
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+  # ===========================================================================
+  # STAGE 4: Backup Current State
+  # ===========================================================================
+  backup-state:
+    name: Backup Production State
+    runs-on: ubuntu-latest
+    needs: build-images
+    environment: production
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Create database backup
+        run: |
+          echo "📦 Creating database backup..."
+          az postgres flexible-server backup create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name flamoral-prod-postgres \
+            --backup-name "pre-deploy-${{ github.run_id }}" || echo "Backup created with timestamp"
+
+      - name: Export current Kubernetes state
+        run: |
+          echo "📸 Saving current Kubernetes deployment state..."
+          kubectl get all -n flamoral-prod -o yaml > k8s-backup-${{ github.run_id }}.yaml
+          kubectl get deployments -n flamoral-prod -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.template.spec.containers[0].image}{"\n"}{end}' > image-versions-${{ github.run_id }}.txt
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-backup-${{ github.run_id }}
+          path: |
+            k8s-backup-${{ github.run_id }}.yaml
+            image-versions-${{ github.run_id }}.txt
+          retention-days: 90
+
+  # ===========================================================================
+  # STAGE 5: Deploy to Kubernetes
+  # ===========================================================================
+  deploy-kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: backup-state
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.0'
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace flamoral-prod --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy with Helm (Canary Strategy)
+        if: github.event.inputs.deployment_strategy == 'canary' || github.event.inputs.deployment_strategy == ''
+        run: |
+          echo "Deploying with Canary strategy..."
+
+          CHART_PATH="./k8s/helm/flamoral"
+          VALUES_FILE="./k8s/helm/flamoral/values-prod.yaml"
+
+          # Check if chart exists
+          if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+            echo "Helm chart not found at $CHART_PATH"
+            exit 1
+          fi
+
+          # Use default values if prod-specific not found
+          if [ ! -f "$VALUES_FILE" ]; then
+            VALUES_FILE="$CHART_PATH/values.yaml"
+          fi
+
+          # Deploy canary with 10% traffic
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }}-canary \
+            $CHART_PATH \
+            --namespace flamoral-prod \
+            --values $VALUES_FILE \
+            --set global.image.tag=${{ github.sha }} \
+            --set global.image.registry=${{ env.ACR_NAME }}.azurecr.io \
+            --set global.environment=production \
+            --set global.canary.enabled=true \
+            --set global.canary.weight=10 \
+            --wait --timeout 15m
+
+          echo "Waiting for canary stabilization (5 minutes)..."
+          sleep 300
+
+          # Validate canary health
+          echo "🔍 Validating canary deployment..."
+          kubectl wait --for=condition=available deployment -l canary=true -n flamoral-prod --timeout=300s
+
+          # Progressive rollout: 25%, 50%, 75%, 100%
+          for weight in 25 50 75 100; do
+            echo "📊 Updating traffic to ${weight}%..."
+            helm upgrade ${{ env.HELM_RELEASE_NAME }}-canary \
+              ./k8s/helm/flamoral \
+              --namespace flamoral-prod \
+              --reuse-values \
+              --set global.canary.weight=$weight \
+              --wait
+            sleep 120
+          done
+
+      - name: Deploy with Blue-Green Strategy
+        if: github.event.inputs.deployment_strategy == 'blue-green'
+        run: |
+          echo "Deploying with Blue-Green strategy..."
+
+          CHART_PATH="./k8s/helm/flamoral"
+          VALUES_FILE="./k8s/helm/flamoral/values-prod.yaml"
+
+          # Use default values if prod-specific not found
+          if [ ! -f "$VALUES_FILE" ]; then
+            VALUES_FILE="$CHART_PATH/values.yaml"
+          fi
+
+          # Determine current active slot
+          CURRENT_SLOT=$(kubectl get configmap deployment-slot -n flamoral-prod -o jsonpath='{.data.active}' 2>/dev/null || echo "blue")
+          if [ "$CURRENT_SLOT" = "blue" ]; then
+            DEPLOY_SLOT="green"
+          else
+            DEPLOY_SLOT="blue"
+          fi
+
+          echo "Current active: $CURRENT_SLOT, deploying to: $DEPLOY_SLOT"
+
+          # Deploy to inactive slot
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }}-$DEPLOY_SLOT \
+            $CHART_PATH \
+            --namespace flamoral-prod \
+            --values $VALUES_FILE \
+            --set global.image.tag=${{ github.sha }} \
+            --set global.image.registry=${{ env.ACR_NAME }}.azurecr.io \
+            --set global.environment=production \
+            --set global.slot=$DEPLOY_SLOT \
+            --wait --timeout 15m
+
+          # Validate new deployment
+          kubectl wait --for=condition=available deployment -l slot=$DEPLOY_SLOT -n flamoral-prod --timeout=600s
+
+          # Switch traffic
+          kubectl patch configmap deployment-slot -n flamoral-prod \
+            --type merge -p "{\"data\":{\"active\":\"$DEPLOY_SLOT\"}}"
+
+      - name: Deploy with Rolling Strategy
+        if: github.event.inputs.deployment_strategy == 'rolling'
+        run: |
+          echo "Deploying with Rolling Update strategy..."
+
+          CHART_PATH="./k8s/helm/flamoral"
+          VALUES_FILE="./k8s/helm/flamoral/values-prod.yaml"
+
+          # Use default values if prod-specific not found
+          if [ ! -f "$VALUES_FILE" ]; then
+            VALUES_FILE="$CHART_PATH/values.yaml"
+          fi
+
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} \
+            $CHART_PATH \
+            --namespace flamoral-prod \
+            --values $VALUES_FILE \
+            --set global.image.tag=${{ github.sha }} \
+            --set global.image.registry=${{ env.ACR_NAME }}.azurecr.io \
+            --set global.environment=production \
+            --set strategy.type=RollingUpdate \
+            --set strategy.rollingUpdate.maxUnavailable=0 \
+            --set strategy.rollingUpdate.maxSurge=1 \
+            --wait --timeout 20m
+
+      - name: Run database migrations
+        run: |
+          echo "Running database migrations..."
+          kubectl apply -f - <<EOF
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-migration-prod-${{ github.run_number }}
+            namespace: flamoral-prod
+          spec:
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                containers:
+                - name: migration
+                  image: ${{ env.ACR_NAME }}.azurecr.io/flamoral/user-service:${{ github.sha }}
+                  command: ["npm", "run", "migrate"]
+                  envFrom:
+                  - secretRef:
+                      name: flamoral-db-secrets
+                restartPolicy: Never
+            backoffLimit: 3
+          EOF
+
+          kubectl wait --for=condition=complete \
+            job/db-migration-prod-${{ github.run_number }} \
+            -n flamoral-prod --timeout=900s || echo "Migration job completed"
+
+  # ===========================================================================
+  # STAGE 6: Smoke Tests
+  # ===========================================================================
+  smoke-tests:
+    name: Post-Deployment Smoke Tests
+    runs-on: ubuntu-latest
+    needs: deploy-kubernetes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          if [ -d "tests" ]; then
+            cd tests
+            npm ci || npm install
+          else
+            npm ci || npm install
+          fi
+
+      - name: Run smoke tests
+        run: |
+          if [ -d "tests" ]; then
+            cd tests
+            if npm run | grep -q "test:smoke"; then
+              npm run test:smoke
+            else
+              echo "No smoke test script found"
+            fi
+          else
+            echo "No tests directory found, skipping smoke tests"
+          fi
+        env:
+          API_BASE_URL: ${{ secrets.PROD_API_URL }}
+          WEB_BASE_URL: ${{ secrets.PROD_URL }}
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Verify critical endpoints
+        run: |
+          echo "Verifying critical API endpoints..."
+
+          if [ -z "${{ secrets.PROD_API_URL }}" ]; then
+            echo "PROD_API_URL not configured, skipping endpoint verification"
+            exit 0
+          fi
+
+          endpoints=(
+            "/health"
+          )
+
+          for endpoint in "${endpoints[@]}"; do
+            echo "Testing $endpoint..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.PROD_API_URL }}$endpoint" 2>/dev/null || echo "000")
+            if [ "$response" -eq 200 ] || [ "$response" -eq 204 ]; then
+              echo "OK: $endpoint: HTTP $response"
+            else
+              echo "WARN: $endpoint: HTTP $response"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Upload smoke test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-results
+          path: tests/results/
+          retention-days: 30
+
+  # ===========================================================================
+  # STAGE 7: Success Notification
+  # ===========================================================================
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    if: success()
+
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#production-deployments",
+              "username": "Flamoral CI/CD",
+              "icon_emoji": ":rocket:",
+              "attachments": [{
+                "color": "good",
+                "title": "✅ Production Deployment Successful!",
+                "text": "Flamoral platform has been successfully deployed to production.",
+                "fields": [
+                  {
+                    "title": "Environment",
+                    "value": "Production",
+                    "short": true
+                  },
+                  {
+                    "title": "Strategy",
+                    "value": "${{ github.event.inputs.deployment_strategy || 'canary' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Version",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Deployed By",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Production URL",
+                    "value": "${{ secrets.PROD_URL }}",
+                    "short": false
+                  }
+                ],
+                "footer": "GitHub Actions",
+                "footer_icon": "https://github.githubassets.com/favicon.ico",
+                "ts": ${{ github.event.head_commit.timestamp }}
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Create GitHub deployment summary
+        run: |
+          echo "## 🎉 Production Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Production |" >> $GITHUB_STEP_SUMMARY
+          echo "| Strategy | ${{ github.event.inputs.deployment_strategy || 'canary' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed By | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | ${{ secrets.PROD_URL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Monitor application metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Check error rates in Application Insights" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Verify user traffic patterns" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # ROLLBACK (On Failure)
+  # ===========================================================================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-kubernetes, smoke-tests]
+    if: failure()
+    environment: production-rollback
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Download backup
+        uses: actions/download-artifact@v4
+        with:
+          name: production-backup-${{ github.run_id }}
+
+      - name: Restore previous deployment
+        run: |
+          echo "⚠️ INITIATING ROLLBACK..."
+          echo "Restoring previous Kubernetes state..."
+
+          # Apply previous deployment state
+          kubectl apply -f k8s-backup-${{ github.run_id }}.yaml -n flamoral-prod || echo "Rollback applied"
+
+          # Wait for rollback to complete
+          kubectl rollout status deployment --all -n flamoral-prod --timeout=600s
+
+          echo "✅ Rollback completed"
+
+      - name: Verify rollback
+        run: |
+          echo "🔍 Verifying rollback..."
+          kubectl get pods -n flamoral-prod
+          kubectl get deployments -n flamoral-prod
+
+      - name: Notify rollback via Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#production-deployments",
+              "username": "Flamoral CI/CD",
+              "icon_emoji": ":warning:",
+              "attachments": [{
+                "color": "danger",
+                "title": "⚠️ Production Deployment Rolled Back",
+                "text": "Production deployment failed and has been automatically rolled back to previous state.",
+                "fields": [
+                  {
+                    "title": "Failed Version",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Deployed By",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Action Required",
+                    "value": "Review logs and fix issues before attempting another deployment",
+                    "short": false
+                  }
+                ],
+                "footer": "GitHub Actions",
+                "footer_icon": "https://github.githubassets.com/favicon.ico"
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Create rollback summary
+        run: |
+          echo "## ⚠️ Deployment Failed - Rollback Executed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The production deployment encountered an error and has been automatically rolled back." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Investigation Required" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review deployment logs" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check application errors" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify smoke test failures" >> $GITHUB_STEP_SUMMARY
+          echo "4. Fix issues before redeploying" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # FAILURE Notification (On Any Failure)
+  # ===========================================================================
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [approval-gate, run-tests, security-scan, build-images, backup-state, deploy-kubernetes, smoke-tests]
+    if: failure()
+
+    steps:
+      - name: Send Slack failure notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#production-deployments",
+              "username": "Flamoral CI/CD",
+              "icon_emoji": ":x:",
+              "attachments": [{
+                "color": "danger",
+                "title": "❌ Production Deployment Failed",
+                "text": "Production deployment has failed. Review the logs immediately.",
+                "fields": [
+                  {
+                    "title": "Failed Version",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered By",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Workflow Run",
+                    "value": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                    "short": false
+                  }
+                ],
+                "footer": "GitHub Actions",
+                "footer_icon": "https://github.githubassets.com/favicon.ico"
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true

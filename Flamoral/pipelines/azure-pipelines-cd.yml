@@ -1,0 +1,674 @@
+# Azure DevOps CD Pipeline for Flamoral Dating Platform
+# Multi-stage deployment pipeline: Dev -> Staging -> Production
+# Includes manual approval gates and Helm deployments to AKS
+
+trigger: none # CD pipeline is triggered manually or by CI completion
+
+resources:
+  pipelines:
+    - pipeline: ci-pipeline
+      source: 'Flamoral-CI'
+      trigger:
+        branches:
+          include:
+            - main
+
+variables:
+  - group: flamoral-common-vars
+  - name: vmImageName
+    value: 'ubuntu-latest'
+  - name: acrName
+    value: 'flamoralprodacr'
+  - name: acrLoginServer
+    value: 'flamoralprodacr.azurecr.io'
+  - name: aksClusterName
+    value: 'flamoral-prod-aks'
+  - name: helmVersion
+    value: '3.12.0'
+  - name: kubectlVersion
+    value: '1.28.0'
+
+stages:
+  # ================================
+  # Stage 1: Deploy to Development
+  # ================================
+  - stage: DeployDev
+    displayName: 'Deploy to Development'
+    variables:
+      - group: flamoral-dev-vars
+      - name: environment
+        value: 'dev'
+      - name: namespace
+        value: 'flamoral-dev'
+      - name: resourceGroup
+        value: 'flamoral-dev-rg'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToDevAKS
+        displayName: 'Deploy to Dev AKS'
+        pool:
+          vmImage: $(vmImageName)
+        environment: 'flamoral-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  displayName: 'Install Helm'
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: KubectlInstaller@0
+                  displayName: 'Install kubectl'
+                  inputs:
+                    kubectlVersion: $(kubectlVersion)
+
+                - task: AzureCLI@2
+                  displayName: 'Get AKS credentials'
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - task: Kubernetes@1
+                  displayName: 'Create namespace if not exists'
+                  inputs:
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'Azure-Service-Connection'
+                    azureResourceGroup: $(resourceGroup)
+                    kubernetesCluster: $(aksClusterName)
+                    command: 'apply'
+                    useConfigurationFile: true
+                    inline: |
+                      apiVersion: v1
+                      kind: Namespace
+                      metadata:
+                        name: $(namespace)
+                        labels:
+                          environment: $(environment)
+
+                # Deploy infrastructure services
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'flamoral'
+                    chartPath: 'infrastructure/helm/flamoral'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'flamoral-platform'
+                    valueFiles:
+                      - 'infrastructure/helm/flamoral/values-dev.yaml'
+
+                # Deploy API services
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-api'
+                    chartPath: 'infrastructure/helm/dating-api'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-api'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-api/values-dev.yaml'
+
+                # Deploy web application
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-app'
+                    chartPath: 'infrastructure/helm/dating-app'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-app'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-app/values-dev.yaml'
+
+                - task: Kubernetes@1
+                  displayName: 'Verify deployment status'
+                  inputs:
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'Azure-Service-Connection'
+                    azureResourceGroup: $(resourceGroup)
+                    kubernetesCluster: $(aksClusterName)
+                    namespace: $(namespace)
+                    command: 'get'
+                    arguments: 'pods,services,ingress'
+
+      # Smoke tests for dev environment
+      - job: DevSmokeTests
+        displayName: 'Dev Environment Smoke Tests'
+        dependsOn: DeployToDevAKS
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              export API_URL=https://dev-api.flamoral.com
+              npm run test:e2e:smoke
+            displayName: 'Run smoke tests'
+            env:
+              TEST_ENV: dev
+
+  # ================================
+  # Stage 2: Deploy to Staging
+  # ================================
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: DeployDev
+    condition: succeeded()
+    variables:
+      - group: flamoral-staging-vars
+      - name: environment
+        value: 'staging'
+      - name: namespace
+        value: 'flamoral-staging'
+      - name: resourceGroup
+        value: 'flamoral-staging-rg'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      - deployment: DeployToStagingAKS
+        displayName: 'Deploy to Staging AKS'
+        pool:
+          vmImage: $(vmImageName)
+        environment: 'flamoral-staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  displayName: 'Install Helm'
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: KubectlInstaller@0
+                  displayName: 'Install kubectl'
+                  inputs:
+                    kubectlVersion: $(kubectlVersion)
+
+                - task: AzureCLI@2
+                  displayName: 'Get AKS credentials'
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - task: Kubernetes@1
+                  displayName: 'Create namespace if not exists'
+                  inputs:
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'Azure-Service-Connection'
+                    azureResourceGroup: $(resourceGroup)
+                    kubernetesCluster: $(aksClusterName)
+                    command: 'apply'
+                    useConfigurationFile: true
+                    inline: |
+                      apiVersion: v1
+                      kind: Namespace
+                      metadata:
+                        name: $(namespace)
+                        labels:
+                          environment: $(environment)
+
+                # Deploy with blue-green strategy for staging
+                - task: AzureCLI@2
+                  displayName: 'Create deployment snapshot'
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Save current deployment for potential rollback
+                      kubectl get all -n $(namespace) -o yaml > staging-backup-$(Build.BuildId).yaml
+                      echo "Backup created for rollback purposes"
+
+                # Deploy infrastructure services
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'flamoral'
+                    chartPath: 'infrastructure/helm/flamoral'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'flamoral-platform'
+                    valueFiles:
+                      - 'infrastructure/helm/flamoral/values-staging.yaml'
+
+                # Deploy API services
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-api'
+                    chartPath: 'infrastructure/helm/dating-api'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-api'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-api/values-staging.yaml'
+
+                # Deploy web application
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-app'
+                    chartPath: 'infrastructure/helm/dating-app'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-app'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-app/values-staging.yaml'
+
+                - task: PublishPipelineArtifact@1
+                  displayName: 'Publish deployment backup'
+                  inputs:
+                    targetPath: 'staging-backup-$(Build.BuildId).yaml'
+                    artifact: 'staging-backup'
+                    publishLocation: 'pipeline'
+
+      # Integration tests for staging
+      - job: StagingIntegrationTests
+        displayName: 'Staging Integration Tests'
+        dependsOn: DeployToStagingAKS
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              export API_URL=https://staging-api.flamoral.com
+              npm run test:integration
+            displayName: 'Run integration tests'
+            env:
+              TEST_ENV: staging
+
+          - script: |
+              export API_URL=https://staging-api.flamoral.com
+              npm run test:e2e
+            displayName: 'Run E2E tests'
+            env:
+              TEST_ENV: staging
+
+      # Performance tests for staging
+      - job: StagingPerformanceTests
+        displayName: 'Staging Performance Tests'
+        dependsOn: DeployToStagingAKS
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+
+          - script: |
+              # Install k6
+              sudo gpg -k
+              sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+              echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+              sudo apt-get update
+              sudo apt-get install k6 -y
+            displayName: 'Install k6'
+
+          - script: |
+              export API_URL=https://staging-api.flamoral.com
+              npm run test:load:all
+            displayName: 'Run load tests'
+            env:
+              TEST_ENV: staging
+
+  # ================================
+  # Stage 3: Deploy to Production
+  # ================================
+  - stage: ProductionApproval
+    displayName: 'Production Deployment Approval'
+    dependsOn: DeployStaging
+    condition: succeeded()
+    jobs:
+      - job: WaitForApproval
+        displayName: 'Wait for Production Approval'
+        pool: server
+        timeoutInMinutes: 4320 # 3 days
+        steps:
+          - task: ManualValidation@0
+            displayName: 'Manual approval for production deployment'
+            inputs:
+              notifyUsers: |
+                devops@flamoral.com
+                engineering-leads@flamoral.com
+              instructions: |
+                Please review the staging deployment and test results before approving production deployment.
+
+                Staging URL: https://staging.flamoral.com
+                Test Results: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)
+
+                Verify:
+                - All staging tests passed
+                - Performance metrics are acceptable
+                - No critical bugs reported
+                - Database migrations are ready
+
+                Approve to proceed with production deployment.
+
+  - stage: DeployProduction
+    displayName: 'Deploy to Production'
+    dependsOn: ProductionApproval
+    condition: succeeded()
+    variables:
+      - group: flamoral-prod-vars
+      - name: environment
+        value: 'prod'
+      - name: namespace
+        value: 'flamoral-prod'
+      - name: resourceGroup
+        value: 'flamoral-prod-rg'
+      - name: imageTag
+        value: '$(resources.pipeline.ci-pipeline.runID)'
+    jobs:
+      # Database migration job
+      - job: DatabaseMigration
+        displayName: 'Run Database Migrations'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: 'Backup production database'
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Creating database backup before migration..."
+                # Add your database backup logic here
+                # For PostgreSQL on Azure:
+                # az postgres flexible-server backup create --resource-group $(resourceGroup) --name <server-name> --backup-name pre-deploy-$(Build.BuildId)
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              npm run db:migrate
+            displayName: 'Run database migrations'
+            env:
+              DATABASE_URL: $(PROD_DATABASE_URL)
+              NODE_ENV: production
+
+      # Blue-Green deployment to production
+      - deployment: DeployToProdAKS
+        displayName: 'Deploy to Production AKS (Blue-Green)'
+        dependsOn: DatabaseMigration
+        pool:
+          vmImage: $(vmImageName)
+        environment: 'flamoral-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: HelmInstaller@1
+                  displayName: 'Install Helm'
+                  inputs:
+                    helmVersionToInstall: $(helmVersion)
+
+                - task: KubectlInstaller@0
+                  displayName: 'Install kubectl'
+                  inputs:
+                    kubectlVersion: $(kubectlVersion)
+
+                - task: AzureCLI@2
+                  displayName: 'Get AKS credentials'
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group $(resourceGroup) \
+                        --name $(aksClusterName) \
+                        --overwrite-existing
+
+                - task: AzureCLI@2
+                  displayName: 'Create production snapshot'
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Save current production deployment for rollback
+                      kubectl get all -n $(namespace) -o yaml > production-backup-$(Build.BuildId).yaml
+                      echo "Production backup created"
+
+                # Deploy new version (Green)
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'flamoral'
+                    chartPath: 'infrastructure/helm/flamoral'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'flamoral-platform-green'
+                    valueFiles:
+                      - 'infrastructure/helm/flamoral/values-prod.yaml'
+                    additionalValues:
+                      - 'service.selector.version=green'
+                      - 'deployment.name=flamoral-green'
+
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-api'
+                    chartPath: 'infrastructure/helm/dating-api'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-api-green'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-api/values-prod.yaml'
+                    additionalValues:
+                      - 'service.selector.version=green'
+                      - 'deployment.name=dating-api-green'
+
+                - template: templates/helm-deploy.yml
+                  parameters:
+                    chartName: 'dating-app'
+                    chartPath: 'infrastructure/helm/dating-app'
+                    namespace: $(namespace)
+                    environment: $(environment)
+                    imageTag: $(imageTag)
+                    acrLoginServer: $(acrLoginServer)
+                    releaseName: 'dating-app-green'
+                    valueFiles:
+                      - 'infrastructure/helm/dating-app/values-prod.yaml'
+                    additionalValues:
+                      - 'service.selector.version=green'
+                      - 'deployment.name=dating-app-green'
+
+                # Health check green deployment
+                - task: Kubernetes@1
+                  displayName: 'Verify green deployment health'
+                  inputs:
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'Azure-Service-Connection'
+                    azureResourceGroup: $(resourceGroup)
+                    kubernetesCluster: $(aksClusterName)
+                    namespace: $(namespace)
+                    command: 'get'
+                    arguments: 'pods -l version=green'
+
+                - task: PublishPipelineArtifact@1
+                  displayName: 'Publish production backup'
+                  inputs:
+                    targetPath: 'production-backup-$(Build.BuildId).yaml'
+                    artifact: 'production-backup'
+                    publishLocation: 'pipeline'
+
+      # Switch traffic to green deployment
+      - job: SwitchTraffic
+        displayName: 'Switch Traffic to Green Deployment'
+        dependsOn: DeployToProdAKS
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Get AKS credentials'
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az aks get-credentials \
+                  --resource-group $(resourceGroup) \
+                  --name $(aksClusterName) \
+                  --overwrite-existing
+
+          - task: Kubernetes@1
+            displayName: 'Update service to point to green'
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: 'Azure-Service-Connection'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(aksClusterName)
+              namespace: $(namespace)
+              command: 'patch'
+              arguments: 'service flamoral-platform -p "{\"spec\":{\"selector\":{\"version\":\"green\"}}}"'
+
+          - script: |
+              echo "Traffic switched to green deployment"
+              echo "Monitoring for 5 minutes before cleanup..."
+              sleep 300
+            displayName: 'Monitor green deployment'
+
+      # Production smoke tests
+      - job: ProductionSmokeTests
+        displayName: 'Production Smoke Tests'
+        dependsOn: SwitchTraffic
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              export API_URL=https://api.flamoral.com
+              npm run test:e2e:smoke
+            displayName: 'Run production smoke tests'
+            env:
+              TEST_ENV: production
+
+      # Cleanup old blue deployment
+      - job: CleanupBlueDeployment
+        displayName: 'Cleanup Blue Deployment'
+        dependsOn: ProductionSmokeTests
+        condition: succeeded()
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Get AKS credentials'
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az aks get-credentials \
+                  --resource-group $(resourceGroup) \
+                  --name $(aksClusterName) \
+                  --overwrite-existing
+
+          - task: HelmInstaller@1
+            displayName: 'Install Helm'
+            inputs:
+              helmVersionToInstall: $(helmVersion)
+
+          - script: |
+              # Remove old blue deployment
+              helm uninstall flamoral-platform-blue -n $(namespace) --wait || true
+              helm uninstall dating-api-blue -n $(namespace) --wait || true
+              helm uninstall dating-app-blue -n $(namespace) --wait || true
+
+              # Rename green to blue for next deployment
+              kubectl label deployment flamoral-platform-green version=blue -n $(namespace) --overwrite
+              kubectl label deployment dating-api-green version=blue -n $(namespace) --overwrite
+              kubectl label deployment dating-app-green version=blue -n $(namespace) --overwrite
+            displayName: 'Cleanup and prepare for next deployment'
+
+  # ================================
+  # Stage 4: Post-Deployment
+  # ================================
+  - stage: PostDeployment
+    displayName: 'Post-Deployment Activities'
+    dependsOn: DeployProduction
+    condition: succeeded()
+    jobs:
+      - job: NotifyStakeholders
+        displayName: 'Notify Stakeholders'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - script: |
+              echo "Production deployment completed successfully!"
+              echo "Build: $(Build.BuildId)"
+              echo "Image Tag: $(resources.pipeline.ci-pipeline.runID)"
+            displayName: 'Log deployment success'
+
+          # Add notification tasks here (email, Slack, Teams, etc.)
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish deployment summary'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)'
+              artifact: 'deployment-summary'
+              publishLocation: 'pipeline'

@@ -1,0 +1,12 @@
+import knex, { Knex } from 'knex';
+import config from './knexfile';
+
+const environment = process.env.NODE_ENV || 'development';
+const knexConfig = config[environment];
+
+const db: Knex = knex(knexConfig);
+
+// Alias for getDbConnection
+export const getDbConnection = (): Knex => db;
+
+export default db;

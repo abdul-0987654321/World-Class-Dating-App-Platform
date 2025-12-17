@@ -1,0 +1,439 @@
+# AI Services for Flamoral Dating Platform
+# Includes: Recommendation Service, Dating Coach Service, Moderation AI
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-ai
+  labels:
+    name: flamoral-ai
+    environment: production
+
+---
+# ============================================================================
+# AI RECOMMENDATION SERVICE
+# ============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ai-recommendation-service
+  namespace: flamoral-ai
+  labels:
+    app: ai-recommendation-service
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-recommendation-config
+  namespace: flamoral-ai
+data:
+  FLASK_ENV: "production"
+  PORT: "5000"
+  MODEL_PATH: "/models/recommendation"
+  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  POSTGRES_DB: "flamoral_ml"
+  METRICS_PORT: "9090"
+  BATCH_SIZE: "32"
+  MODEL_VERSION: "v2.3.0"
+  ENABLE_GPU: "true"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-recommendation-secrets
+  namespace: flamoral-ai
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "CHANGE_ME"
+  ML_API_KEY: "CHANGE_ME"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-recommendation-service
+  namespace: flamoral-ai
+  labels:
+    app: ai-recommendation-service
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ai-recommendation-service
+  template:
+    metadata:
+      labels:
+        app: ai-recommendation-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: ai-recommendation-service
+      nodeSelector:
+        workload-type: ml
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: ai-recommendation
+        image: flamoral/ai-recommendation-service:latest
+        ports:
+        - containerPort: 5000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: ai-recommendation-config
+        - secretRef:
+            name: ai-recommendation-secrets
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ai-models-pvc
+      - name: tmp
+        emptyDir:
+          sizeLimit: 2Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-recommendation-service
+  namespace: flamoral-ai
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    targetPort: 5000
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+  selector:
+    app: ai-recommendation-service
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ai-models-pvc
+  namespace: flamoral-ai
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# ============================================================================
+# DATING COACH AI SERVICE
+# ============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dating-coach-service
+  namespace: flamoral-ai
+  labels:
+    app: dating-coach-service
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dating-coach-config
+  namespace: flamoral-ai
+data:
+  FLASK_ENV: "production"
+  PORT: "5001"
+  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  POSTGRES_DB: "flamoral_ml"
+  METRICS_PORT: "9090"
+  OPENAI_MODEL: "gpt-4-turbo"
+  MAX_TOKENS: "500"
+  TEMPERATURE: "0.7"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dating-coach-secrets
+  namespace: flamoral-ai
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "CHANGE_ME"
+  OPENAI_API_KEY: "CHANGE_ME"
+  ANTHROPIC_API_KEY: "CHANGE_ME"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dating-coach-service
+  namespace: flamoral-ai
+  labels:
+    app: dating-coach-service
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dating-coach-service
+  template:
+    metadata:
+      labels:
+        app: dating-coach-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: dating-coach-service
+      containers:
+      - name: dating-coach
+        image: flamoral/dating-coach-service:latest
+        ports:
+        - containerPort: 5001
+          name: http
+        - containerPort: 9090
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: dating-coach-config
+        - secretRef:
+            name: dating-coach-secrets
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5001
+          initialDelaySeconds: 20
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dating-coach-service
+  namespace: flamoral-ai
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5001
+    targetPort: 5001
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+  selector:
+    app: dating-coach-service
+
+---
+# ============================================================================
+# AI MODERATION SERVICE
+# ============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ai-moderation-service
+  namespace: flamoral-ai
+  labels:
+    app: ai-moderation-service
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-moderation-config
+  namespace: flamoral-ai
+data:
+  FLASK_ENV: "production"
+  PORT: "5002"
+  MODEL_PATH: "/models/moderation"
+  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  METRICS_PORT: "9090"
+  BATCH_SIZE: "16"
+  ENABLE_GPU: "true"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-moderation-secrets
+  namespace: flamoral-ai
+type: Opaque
+stringData:
+  ML_API_KEY: "CHANGE_ME"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-moderation-service
+  namespace: flamoral-ai
+  labels:
+    app: ai-moderation-service
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-moderation-service
+  template:
+    metadata:
+      labels:
+        app: ai-moderation-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: ai-moderation-service
+      nodeSelector:
+        workload-type: ml
+      containers:
+      - name: ai-moderation
+        image: flamoral/ai-moderation-service:latest
+        ports:
+        - containerPort: 5002
+          name: http
+        - containerPort: 9090
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: ai-moderation-config
+        - secretRef:
+            name: ai-moderation-secrets
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 45
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+          readOnly: true
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ai-models-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-moderation-service
+  namespace: flamoral-ai
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5002
+    targetPort: 5002
+    name: http
+  - port: 9090
+    targetPort: 9090
+    name: metrics
+  selector:
+    app: ai-moderation-service
+
+---
+# Network Policy for AI Services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ai-services-network-policy
+  namespace: flamoral-ai
+spec:
+  podSelector:
+    matchLabels:
+      component: ai-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: flamoral-dating
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: flamoral-dating
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+  - ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

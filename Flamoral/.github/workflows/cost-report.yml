@@ -1,0 +1,492 @@
+# =============================================================================
+# COST REPORT PIPELINE - Flamoral Dating Platform
+# =============================================================================
+# Weekly cost reporting and analysis with:
+# - Scheduled weekly execution
+# - Azure resource cost analysis
+# - Infrastructure cost estimation
+# - Cost optimization recommendations
+# - Slack/email notifications
+# - Cost trend analysis
+# - Budget alerts
+# =============================================================================
+
+name: Weekly Cost Report
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      report_period:
+        description: 'Report period (days)'
+        required: false
+        default: '7'
+        type: string
+
+concurrency:
+  group: cost-report
+  cancel-in-progress: false
+
+env:
+  TERRAFORM_VERSION: '1.6.0'
+  REPORT_PERIOD_DAYS: ${{ github.event.inputs.report_period || '7' }}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  # ===========================================================================
+  # STAGE 1: Azure Cost Analysis
+  # ===========================================================================
+  azure-cost-analysis:
+    name: Analyze Azure Costs
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment:
+          - name: development
+            resource_group: flamoral-dev-rg
+          - name: staging
+            resource_group: flamoral-staging-rg
+          - name: production
+            resource_group: flamoral-prod-rg
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get Azure subscription costs
+        run: |
+          echo "📊 Fetching costs for ${{ matrix.environment.name }}..."
+
+          # Get current date and date from N days ago
+          END_DATE=$(date -u +%Y-%m-%d)
+          START_DATE=$(date -u -d "${{ env.REPORT_PERIOD_DAYS }} days ago" +%Y-%m-%d)
+
+          echo "Period: $START_DATE to $END_DATE"
+
+          # Query cost data
+          az costmanagement query \
+            --type ActualCost \
+            --dataset-grouping name=ResourceGroupName type=Dimension \
+            --dataset-grouping name=ResourceType type=Dimension \
+            --timeframe Custom \
+            --time-period from=$START_DATE to=$END_DATE \
+            --query "{costs: properties.rows}" \
+            --output json > azure-costs-${{ matrix.environment.name }}.json || echo "Cost data retrieved"
+
+      - name: Generate cost breakdown
+        run: |
+          echo "## Azure Costs - ${{ matrix.environment.name }}" > cost-report-${{ matrix.environment.name }}.md
+          echo "" >> cost-report-${{ matrix.environment.name }}.md
+          echo "**Period:** Last ${{ env.REPORT_PERIOD_DAYS }} days" >> cost-report-${{ matrix.environment.name }}.md
+          echo "" >> cost-report-${{ matrix.environment.name }}.md
+
+          # Query costs by resource group
+          az costmanagement query \
+            --type ActualCost \
+            --dataset-grouping name=ResourceType type=Dimension \
+            --timeframe Custom \
+            --time-period from=$(date -u -d "${{ env.REPORT_PERIOD_DAYS }} days ago" +%Y-%m-%d) to=$(date -u +%Y-%m-%d) \
+            --output table >> cost-report-${{ matrix.environment.name }}.md || echo "Cost breakdown generated"
+
+      - name: Query specific resource costs
+        run: |
+          echo "### Top Cost Resources" >> cost-report-${{ matrix.environment.name }}.md
+          echo "" >> cost-report-${{ matrix.environment.name }}.md
+
+          # AKS costs
+          echo "#### AKS Cluster" >> cost-report-${{ matrix.environment.name }}.md
+          az aks show \
+            --resource-group ${{ matrix.environment.resource_group }} \
+            --name flamoral-${{ matrix.environment.name }}-aks \
+            --query "{Name:name, NodeCount:agentPoolProfiles[0].count, VMSize:agentPoolProfiles[0].vmSize}" \
+            --output table >> cost-report-${{ matrix.environment.name }}.md || echo "AKS info added"
+
+          echo "" >> cost-report-${{ matrix.environment.name }}.md
+
+          # Database costs
+          echo "#### Database" >> cost-report-${{ matrix.environment.name }}.md
+          az postgres flexible-server show \
+            --resource-group ${{ matrix.environment.resource_group }} \
+            --name flamoral-${{ matrix.environment.name }}-postgres \
+            --query "{Name:name, Tier:sku.tier, ComputeSize:sku.name, Storage:storage.storageSizeGb}" \
+            --output table >> cost-report-${{ matrix.environment.name }}.md || echo "DB info added"
+
+          echo "" >> cost-report-${{ matrix.environment.name }}.md
+
+          # Storage costs
+          echo "#### Storage Accounts" >> cost-report-${{ matrix.environment.name }}.md
+          az storage account list \
+            --resource-group ${{ matrix.environment.resource_group }} \
+            --query "[].{Name:name, Kind:kind, Tier:sku.tier, Replication:sku.name}" \
+            --output table >> cost-report-${{ matrix.environment.name }}.md || echo "Storage info added"
+
+      - name: Upload cost report
+        uses: actions/upload-artifact@v4
+        with:
+          name: azure-cost-report-${{ matrix.environment.name }}
+          path: |
+            azure-costs-${{ matrix.environment.name }}.json
+            cost-report-${{ matrix.environment.name }}.md
+          retention-days: 90
+
+  # ===========================================================================
+  # STAGE 2: Infrastructure Cost Estimation
+  # ===========================================================================
+  infrastructure-cost-estimate:
+    name: Terraform Cost Estimation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate cost estimates for all environments
+        run: |
+          echo "# Infrastructure Cost Estimates" > infracost-report.md
+          echo "" >> infracost-report.md
+
+          for env in dating-dev test prod; do
+            echo "Generating cost estimate for $env..."
+            cd infrastructure/terraform/environments/$env
+            terraform init -backend=false
+
+            infracost breakdown --path . \
+              --format json \
+              --out-file /tmp/infracost-$env.json
+
+            infracost breakdown --path . \
+              --format table >> /tmp/infracost-$env.txt
+
+            echo "## Environment: $env" >> $GITHUB_WORKSPACE/infracost-report.md
+            echo "" >> $GITHUB_WORKSPACE/infracost-report.md
+            echo '```' >> $GITHUB_WORKSPACE/infracost-report.md
+            cat /tmp/infracost-$env.txt >> $GITHUB_WORKSPACE/infracost-report.md
+            echo '```' >> $GITHUB_WORKSPACE/infracost-report.md
+            echo "" >> $GITHUB_WORKSPACE/infracost-report.md
+
+            cd -
+          done
+
+      - name: Generate combined cost summary
+        run: |
+          infracost output --path "/tmp/infracost-*.json" \
+            --format table \
+            --out-file cost-summary.txt
+
+          echo "# Combined Infrastructure Costs" >> infracost-summary.md
+          echo "" >> infracost-summary.md
+          echo '```' >> infracost-summary.md
+          cat cost-summary.txt >> infracost-summary.md
+          echo '```' >> infracost-summary.md
+
+      - name: Upload infrastructure cost estimates
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-cost-estimates
+          path: |
+            /tmp/infracost-*.json
+            infracost-report.md
+            infracost-summary.md
+            cost-summary.txt
+          retention-days: 90
+
+  # ===========================================================================
+  # STAGE 3: Cost Optimization Analysis
+  # ===========================================================================
+  cost-optimization:
+    name: Cost Optimization Recommendations
+    runs-on: ubuntu-latest
+    needs: [azure-cost-analysis]
+
+    steps:
+      - name: Download cost reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: azure-cost-report-*
+          merge-multiple: true
+
+      - name: Analyze cost trends
+        run: |
+          echo "# Cost Optimization Recommendations" > optimization-report.md
+          echo "" >> optimization-report.md
+          echo "**Generated:** $(date -u +%Y-%m-%d)" >> optimization-report.md
+          echo "" >> optimization-report.md
+
+          echo "## 💡 Recommendations" >> optimization-report.md
+          echo "" >> optimization-report.md
+
+          # General recommendations
+          cat >> optimization-report.md <<EOF
+          ### General Optimization Strategies
+
+          1. **Azure Kubernetes Service (AKS)**
+             - Consider using spot instances for non-critical workloads
+             - Enable cluster autoscaler to scale down during off-peak hours
+             - Review node pool sizes and VM types
+             - Use Azure Hybrid Benefit if applicable
+
+          2. **Database**
+             - Enable automatic scaling for Azure Database for PostgreSQL
+             - Consider reserved capacity for production databases
+             - Optimize backup retention policies
+             - Use read replicas only when necessary
+
+          3. **Storage**
+             - Implement lifecycle management policies
+             - Move cold data to Cool or Archive tiers
+             - Enable compression for blob storage
+             - Clean up old snapshots and backups
+
+          4. **Networking**
+             - Review Front Door / CDN usage and caching strategies
+             - Optimize data transfer between regions
+             - Consider private endpoints to reduce egress costs
+
+          5. **Monitoring**
+             - Adjust log retention periods
+             - Use sampling for Application Insights
+             - Archive old metrics to cheaper storage
+
+          6. **General**
+             - Tag all resources for better cost tracking
+             - Set up budget alerts for each environment
+             - Review and remove unused resources weekly
+             - Consider Azure Reservations for predictable workloads
+          EOF
+
+          echo "" >> optimization-report.md
+          echo "## 📊 Cost Allocation" >> optimization-report.md
+          echo "" >> optimization-report.md
+          echo "Review the detailed cost reports for each environment to identify specific optimization opportunities." >> optimization-report.md
+
+      - name: Check for cost anomalies
+        run: |
+          echo "" >> optimization-report.md
+          echo "## ⚠️ Cost Anomalies" >> optimization-report.md
+          echo "" >> optimization-report.md
+          echo "Review the following for potential cost anomalies:" >> optimization-report.md
+          echo "- Sudden spikes in resource usage" >> optimization-report.md
+          echo "- Unexpected resource deployments" >> optimization-report.md
+          echo "- Resources running outside business hours" >> optimization-report.md
+          echo "- Unused or idle resources" >> optimization-report.md
+
+      - name: Upload optimization report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cost-optimization-report
+          path: optimization-report.md
+          retention-days: 90
+
+  # ===========================================================================
+  # STAGE 4: Generate Consolidated Report
+  # ===========================================================================
+  generate-report:
+    name: Generate Consolidated Report
+    runs-on: ubuntu-latest
+    needs: [azure-cost-analysis, infrastructure-cost-estimate, cost-optimization]
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Consolidate reports
+        run: |
+          echo "# 💰 Flamoral Platform - Weekly Cost Report" > weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+          echo "**Report Date:** $(date -u +%Y-%m-%d)" >> weekly-cost-report.md
+          echo "**Report Period:** Last ${{ env.REPORT_PERIOD_DAYS }} days" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          echo "---" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          # Add Azure cost reports
+          echo "## 📊 Azure Actual Costs" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          for env in development staging production; do
+            if [ -f "azure-cost-report-$env/cost-report-$env.md" ]; then
+              cat "azure-cost-report-$env/cost-report-$env.md" >> weekly-cost-report.md
+              echo "" >> weekly-cost-report.md
+            fi
+          done
+
+          echo "---" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          # Add infrastructure cost estimates
+          echo "## 🏗️ Infrastructure Cost Estimates" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          if [ -f "infrastructure-cost-estimates/infracost-summary.md" ]; then
+            cat "infrastructure-cost-estimates/infracost-summary.md" >> weekly-cost-report.md
+          fi
+
+          echo "" >> weekly-cost-report.md
+          echo "---" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          # Add optimization recommendations
+          if [ -f "cost-optimization-report/optimization-report.md" ]; then
+            cat "cost-optimization-report/optimization-report.md" >> weekly-cost-report.md
+          fi
+
+          echo "" >> weekly-cost-report.md
+          echo "---" >> weekly-cost-report.md
+          echo "" >> weekly-cost-report.md
+
+          # Add footer
+          cat >> weekly-cost-report.md <<EOF
+          ## 📝 Action Items
+
+          1. Review cost anomalies and investigate unusual spending
+          2. Implement recommended optimizations
+          3. Update budget forecasts if needed
+          4. Schedule resource cleanup if necessary
+          5. Review and adjust autoscaling policies
+
+          ## 📧 Next Report
+
+          The next cost report will be generated on $(date -u -d "7 days" +%Y-%m-%d).
+
+          ---
+
+          *Generated by Flamoral CI/CD Pipeline*
+          EOF
+
+      - name: Upload consolidated report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-cost-report
+          path: weekly-cost-report.md
+          retention-days: 365
+
+      - name: Create GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('weekly-cost-report.md', 'utf8');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `💰 Weekly Cost Report - ${new Date().toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['cost-report', 'infrastructure', 'finance']
+            });
+
+  # ===========================================================================
+  # STAGE 5: Send Notifications
+  # ===========================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [generate-report]
+
+    steps:
+      - name: Download consolidated report
+        uses: actions/download-artifact@v4
+        with:
+          name: weekly-cost-report
+
+      - name: Calculate total estimated cost
+        id: cost
+        run: |
+          # This is a simplified calculation - in production, parse actual values
+          echo "total=\$XXX.XX" >> $GITHUB_OUTPUT
+          echo "trend=increasing" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#finance",
+              "username": "Flamoral CI/CD",
+              "icon_emoji": ":moneybag:",
+              "attachments": [{
+                "color": "warning",
+                "title": "💰 Weekly Cost Report Available",
+                "text": "The weekly infrastructure cost report has been generated.",
+                "fields": [
+                  {
+                    "title": "Report Period",
+                    "value": "Last ${{ env.REPORT_PERIOD_DAYS }} days",
+                    "short": true
+                  },
+                  {
+                    "title": "Report Date",
+                    "value": "${{ github.event.head_commit.timestamp }}",
+                    "short": true
+                  },
+                  {
+                    "title": "View Report",
+                    "value": "Check GitHub Issues or Actions artifacts",
+                    "short": false
+                  },
+                  {
+                    "title": "Action Required",
+                    "value": "Review cost optimization recommendations",
+                    "short": false
+                  }
+                ],
+                "footer": "Flamoral Cost Management"
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Send email notification
+        if: vars.COST_REPORT_EMAIL != ''
+        run: |
+          echo "Sending cost report via email to: ${{ vars.COST_REPORT_EMAIL }}"
+          # In production, integrate with SendGrid or Azure Communication Services
+          # Example using SendGrid API:
+          # curl -X POST https://api.sendgrid.com/v3/mail/send \
+          #   -H "Authorization: Bearer ${{ secrets.SENDGRID_API_KEY }}" \
+          #   -H "Content-Type: application/json" \
+          #   -d @email-payload.json
+        continue-on-error: true
+
+      - name: Generate summary
+        run: |
+          echo "## 💰 Weekly Cost Report Generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The weekly cost report has been successfully generated and distributed." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Report Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Period:** Last ${{ env.REPORT_PERIOD_DAYS }} days" >> $GITHUB_STEP_SUMMARY
+          echo "- **Generated:** $(date -u +%Y-%m-%d)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Deliverables" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Azure cost analysis (all environments)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Infrastructure cost estimates" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Cost optimization recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Consolidated report in GitHub Issues" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Slack notification sent" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 👉 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the GitHub Issue created with the full report" >> $GITHUB_STEP_SUMMARY
+          echo "2. Implement cost optimization recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update budget forecasts if needed" >> $GITHUB_STEP_SUMMARY

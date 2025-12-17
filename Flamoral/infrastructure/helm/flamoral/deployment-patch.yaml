@@ -1,0 +1,46 @@
+# Patch file for API Gateway Deployment
+# This adds the ConfigMap environment variables to the API Gateway deployment
+#
+# To apply manually, edit deployment.yaml and add the envFrom section after the env section
+# in the API Gateway container specification (around line 51)
+#
+# The change adds these lines:
+#
+#           envFrom:
+#             - configMapRef:
+#                 name: {{ $fullName }}-api-gateway-config
+#             - secretRef:
+#                 name: {{ $fullName }}-secrets
+#                 optional: true
+#
+# Full context (lines 47-63 in deployment.yaml):
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flamoral-api-gateway
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-gateway
+          # ... (image, ports, securityContext sections above)
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+          # ADD THE FOLLOWING SECTION HERE:
+          envFrom:
+            - configMapRef:
+                name: flamoral-api-gateway-config
+            - secretRef:
+                name: flamoral-secrets
+                optional: true
+          # THEN CONTINUE WITH:
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10

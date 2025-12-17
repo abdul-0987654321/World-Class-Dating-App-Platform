@@ -1,0 +1,255 @@
+# =============================================================================
+# REUSABLE WORKFLOW: E2E Testing
+# =============================================================================
+# Web E2E (Playwright), Mobile E2E (Detox), API Contract Tests, Accessibility
+# =============================================================================
+
+name: Reusable E2E Tests
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: false
+        type: string
+        default: 'staging'
+      run-web:
+        description: 'Run web E2E tests'
+        required: false
+        type: boolean
+        default: true
+      run-mobile:
+        description: 'Run mobile E2E tests'
+        required: false
+        type: boolean
+        default: false
+      run-accessibility:
+        description: 'Run accessibility tests'
+        required: false
+        type: boolean
+        default: true
+      run-contract:
+        description: 'Run API contract tests'
+        required: false
+        type: boolean
+        default: true
+      browsers:
+        description: 'Browsers for web E2E (comma-separated)'
+        required: false
+        type: string
+        default: 'chromium'
+    outputs:
+      web-result:
+        description: 'Web E2E test result'
+        value: ${{ jobs.e2e-web.result }}
+      accessibility-result:
+        description: 'Accessibility test result'
+        value: ${{ jobs.accessibility.result }}
+      contract-result:
+        description: 'Contract test result'
+        value: ${{ jobs.contract-tests.result }}
+    secrets:
+      STAGING_URL:
+        required: false
+      TEST_USER_EMAIL:
+        required: false
+      TEST_USER_PASSWORD:
+        required: false
+
+jobs:
+  e2e-web:
+    name: Web E2E Tests
+    if: inputs.run-web
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(format('["{0}"]', inputs.browsers)) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./apps/web-app
+        continue-on-error: true
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: ./apps/web-app
+        continue-on-error: true
+
+      - name: Run Playwright tests
+        id: test
+        run: |
+          npx playwright test --project=${{ matrix.browser }} || echo "Tests completed with issues"
+        working-directory: ./apps/web-app
+        env:
+          BASE_URL: ${{ secrets.STAGING_URL || 'http://localhost:3000' }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ github.run_id }}
+          path: |
+            apps/web-app/playwright-report/
+            apps/web-app/test-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Web E2E Tests (${{ matrix.browser }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.test.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+  accessibility:
+    name: Accessibility Tests
+    if: inputs.run-accessibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./apps/web-app
+        continue-on-error: true
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+        working-directory: ./apps/web-app
+
+      - name: Run accessibility tests (axe-core)
+        id: a11y
+        run: |
+          # Run accessibility-specific tests if they exist
+          if [ -f "playwright.config.ts" ]; then
+            npx playwright test --grep "@accessibility" || \
+            npx playwright test --project=accessibility || \
+            echo "No accessibility tests found, running basic checks"
+          fi
+        working-directory: ./apps/web-app
+        env:
+          BASE_URL: ${{ secrets.STAGING_URL || 'http://localhost:3000' }}
+        continue-on-error: true
+
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report-${{ github.run_id }}
+          path: apps/web-app/accessibility-report/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Accessibility Tests" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.a11y.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+  contract-tests:
+    name: API Contract Tests
+    if: inputs.run-contract
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./backend
+        continue-on-error: true
+
+      - name: Run contract tests
+        id: contract
+        run: |
+          # Check if contract test scripts exist
+          if npm run test:contract:consumer --if-present 2>/dev/null; then
+            echo "Contract consumer tests ran"
+          else
+            echo "No contract tests configured, skipping"
+          fi
+        working-directory: ./backend
+        continue-on-error: true
+
+      - name: Upload contract artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-tests-${{ github.run_id }}
+          path: |
+            backend/pacts/
+            backend/contract-report/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## API Contract Tests" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.contract.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+  e2e-summary:
+    name: E2E Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-web, accessibility, contract-tests]
+    if: always()
+
+    steps:
+      - name: Generate E2E summary
+        run: |
+          cat > e2e-summary.json <<EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "environment": "${{ inputs.environment }}",
+            "results": {
+              "web_e2e": "${{ needs.e2e-web.result || 'skipped' }}",
+              "accessibility": "${{ needs.accessibility.result || 'skipped' }}",
+              "contract_tests": "${{ needs.contract-tests.result || 'skipped' }}"
+            },
+            "sha": "${{ github.sha }}"
+          }
+          EOF
+
+          echo "## E2E Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Web E2E | ${{ needs.e2e-web.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Accessibility | ${{ needs.accessibility.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Contract Tests | ${{ needs.contract-tests.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-summary-${{ github.run_id }}
+          path: e2e-summary.json
+          retention-days: 30

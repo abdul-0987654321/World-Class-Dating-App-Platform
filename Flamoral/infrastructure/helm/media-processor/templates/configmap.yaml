@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "media-processor.fullname" . }}-config
+  labels:
+    {{- include "media-processor.labels" . | nindent 4 }}
+data:
+  NODE_ENV: "production"
+  WORKER_TYPE: "media"
+  WORKER_CONCURRENCY: "4"
+  LOG_LEVEL: "info"
+  FFMPEG_PATH: "/usr/bin/ffmpeg"
+  IMAGE_QUALITY: "80"
+  VIDEO_MAX_DURATION: "60"
+  THUMBNAIL_SIZE: "320x320"

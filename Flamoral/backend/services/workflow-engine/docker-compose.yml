@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  workflow-engine:
+    build: .
+    container_name: workflow-engine
+    ports:
+      - "3011:3011"
+    environment:
+      - NODE_ENV=development
+      - PORT=3011
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=workflow_engine_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
+      - USER_SERVICE_URL=http://user-service:3002
+      - MATCHING_SERVICE_URL=http://matching-service:3009
+      - PAYMENT_SERVICE_URL=http://payment-service:3006
+      - INTERNAL_SERVICE_KEY=internal-service-key
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - flamoral-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: workflow-postgres
+    environment:
+      - POSTGRES_DB=workflow_engine_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - workflow-postgres-data:/var/lib/postgresql/data
+    networks:
+      - flamoral-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: workflow-redis
+    ports:
+      - "6382:6379"
+    volumes:
+      - workflow-redis-data:/data
+    networks:
+      - flamoral-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: workflow-rabbitmq
+    ports:
+      - "5675:5672"
+      - "15675:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - workflow-rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - flamoral-network
+
+networks:
+  flamoral-network:
+    driver: bridge
+
+volumes:
+  workflow-postgres-data:
+  workflow-redis-data:
+  workflow-rabbitmq-data:

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@react-native-google-signin/google-signin": "^10.1.0",
+    "@invertase/react-native-apple-authentication": "^2.3.0",
+    "react-native-fbsdk-next": "^12.1.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/react-native-fbsdk-next": "^12.1.0"
+  }
+}

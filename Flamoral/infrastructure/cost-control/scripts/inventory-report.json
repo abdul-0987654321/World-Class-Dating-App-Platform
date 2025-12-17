@@ -1,0 +1,314 @@
+﻿{
+    "Environments":  {
+                         "Shared":  {
+                                        "EstimatedMonthlyCost":  470,
+                                        "ResourceCount":  3,
+                                        "Resources":  [
+                                                          {
+                                                              "Name":  "flamoralacr",
+                                                              "CanBeShutdown":  false,
+                                                              "SKU":  "Premium",
+                                                              "ResourceGroup":  "flamoral-shared-rg",
+                                                              "Type":  "Microsoft.ContainerRegistry/registries",
+                                                              "EstimatedMonthlyCost":  450,
+                                                              "Location":  "westus2"
+                                                          },
+                                                          {
+                                                              "Name":  "flamoraltfstatedev",
+                                                              "CanBeShutdown":  false,
+                                                              "SKU":  "Standard_LRS",
+                                                              "ResourceGroup":  "flamoral-tfstate-rg",
+                                                              "Type":  "Microsoft.Storage/storageAccounts",
+                                                              "EstimatedMonthlyCost":  10,
+                                                              "Location":  "eastus"
+                                                          },
+                                                          {
+                                                              "Name":  "flamoraltfstateprod",
+                                                              "CanBeShutdown":  false,
+                                                              "SKU":  "Standard_GRS",
+                                                              "ResourceGroup":  "flamoral-tfstate-rg",
+                                                              "Type":  "Microsoft.Storage/storageAccounts",
+                                                              "EstimatedMonthlyCost":  10,
+                                                              "Location":  "eastus"
+                                                          }
+                                                      ],
+                                        "Protected":  true
+                                    },
+                         "Staging":  {
+                                         "EstimatedMonthlyCost":  5,
+                                         "ResourceCount":  1,
+                                         "Resources":  [
+                                                           {
+                                                               "Name":  "flamoralstagingacr",
+                                                               "CanBeShutdown":  false,
+                                                               "SKU":  "Basic",
+                                                               "ResourceGroup":  "flamoral-staging-rg",
+                                                               "Type":  "Microsoft.ContainerRegistry/registries",
+                                                               "EstimatedMonthlyCost":  5,
+                                                               "Location":  "eastus"
+                                                           }
+                                                       ],
+                                         "Protected":  false
+                                     },
+                         "Production":  {
+                                            "EstimatedMonthlyCost":  469,
+                                            "ResourceCount":  25,
+                                            "Resources":  [
+                                                              {
+                                                                  "Name":  "flamoral-prod-afd",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  "Premium_AzureFrontDoor",
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Cdn/profiles",
+                                                                  "EstimatedMonthlyCost":  325,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-vnet",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/virtualNetworks",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-aks-nsg",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/networkSecurityGroups",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodzcqqgc",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  "Standard_GRS",
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Storage/storageAccounts",
+                                                                  "EstimatedMonthlyCost":  10,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-logs",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.OperationalInsights/workspaces",
+                                                                  "EstimatedMonthlyCost":  30,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod.postgres.database.azure.com",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/privateDnsZones",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-ingress-pip",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  "Standard",
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/publicIPAddresses",
+                                                                  "EstimatedMonthlyCost":  4,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-redis",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Cache/Redis",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-signalr",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  "Premium_P1",
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.SignalRService/SignalR",
+                                                                  "EstimatedMonthlyCost":  100,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral.com",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/dnszones",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-appinsights",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Insights/components",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "Application Insights Smart Detection",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "microsoft.insights/actiongroups",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-auth-kv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-payment-kv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-data-kv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-infra-kv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodauthkv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodpaymentkv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralproddatakv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodextkv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodinfrakv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-ext-kv",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.KeyVault/vaults",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "westus2"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod.postgres.database.azure.com/postgres-vnet-link",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoral-prod-afd/flamoral-prod",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  null,
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Cdn/profiles/afdendpoints",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              },
+                                                              {
+                                                                  "Name":  "flamoralprodwaf",
+                                                                  "CanBeShutdown":  false,
+                                                                  "SKU":  "Premium_AzureFrontDoor",
+                                                                  "ResourceGroup":  "flamoral-prod-rg",
+                                                                  "Type":  "Microsoft.Network/frontdoorWebApplicationFirewallPolicies",
+                                                                  "EstimatedMonthlyCost":  0,
+                                                                  "Location":  "global"
+                                                              }
+                                                          ],
+                                            "Protected":  true
+                                        },
+                         "Development":  {
+                                             "EstimatedMonthlyCost":  5,
+                                             "ResourceCount":  1,
+                                             "Resources":  [
+                                                               {
+                                                                   "Name":  "flamoraldevacr",
+                                                                   "CanBeShutdown":  false,
+                                                                   "SKU":  "Basic",
+                                                                   "ResourceGroup":  "flamoral-dev-rg",
+                                                                   "Type":  "Microsoft.ContainerRegistry/registries",
+                                                                   "EstimatedMonthlyCost":  5,
+                                                                   "Location":  "eastus"
+                                                               }
+                                                           ],
+                                             "Protected":  false
+                                         }
+                     },
+    "Summary":  {
+                    "NonProductionCost":  10,
+                    "TotalEstimatedMonthlyCost":  949,
+                    "SavingsIfShutdown":  0,
+                    "ProductionCost":  939,
+                    "TotalResources":  30
+                },
+    "GeneratedAt":  "2025-12-13 14:59:58",
+    "Subscription":  {
+                         "Id":  "ebd1613e-fea0-4b6d-8918-7e4de6a71c44",
+                         "Name":  "Dating-Prod"
+                     }
+}

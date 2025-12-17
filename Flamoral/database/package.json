@@ -1,0 +1,52 @@
+{
+  "name": "@flamoral/database",
+  "version": "1.0.0",
+  "description": "Database migrations and schema management for Flamoral Dating Platform",
+  "private": true,
+  "scripts": {
+    "migrate:latest": "knex migrate:latest --knexfile knexfile.ts",
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.ts",
+    "migrate:rollback:all": "knex migrate:rollback --all --knexfile knexfile.ts",
+    "migrate:up": "knex migrate:up --knexfile knexfile.ts",
+    "migrate:down": "knex migrate:down --knexfile knexfile.ts",
+    "migrate:list": "knex migrate:list --knexfile knexfile.ts",
+    "migrate:status": "knex migrate:status --knexfile knexfile.ts",
+    "migrate:make": "knex migrate:make --knexfile knexfile.ts",
+    "migrate:currentVersion": "knex migrate:currentVersion --knexfile knexfile.ts",
+    "seed:run": "knex seed:run --knexfile knexfile.ts",
+    "seed:make": "knex seed:make --knexfile knexfile.ts",
+    "db:setup": "npm run migrate:latest && npm run seed:run",
+    "db:reset": "npm run migrate:rollback:all && npm run migrate:latest && npm run seed:run",
+    "db:fresh": "npm run migrate:rollback:all && npm run migrate:latest",
+    "db:seed:dev": "npm run seed:run",
+    "db:migrate:prod": "NODE_ENV=production npm run migrate:latest",
+    "db:migrate:staging": "NODE_ENV=staging npm run migrate:latest",
+    "db:status": "npm run migrate:status",
+    "db:vacuum": "ts-node scripts/maintenance/vacuum-analyze.ts",
+    "db:vacuum:full": "ts-node scripts/maintenance/vacuum-analyze.ts --full",
+    "db:vacuum:table": "ts-node scripts/maintenance/vacuum-analyze.ts --table",
+    "db:rebuild-indexes": "ts-node scripts/maintenance/rebuild-indexes.ts",
+    "db:rebuild-indexes:concurrent": "ts-node scripts/maintenance/rebuild-indexes.ts --concurrent",
+    "db:update-stats": "ts-node scripts/maintenance/update-statistics.ts",
+    "db:update-stats:schedule": "ts-node scripts/maintenance/update-statistics.ts --schedule",
+    "validate:db-config": "ts-node scripts/validate-database-config.ts",
+    "test:db-connection": "ts-node scripts/validate-database-config.ts",
+    "validate:prod": "NODE_ENV=production ts-node scripts/validate-database-config.ts",
+    "validate:staging": "NODE_ENV=staging ts-node scripts/validate-database-config.ts"
+  },
+  "dependencies": {
+    "knex": "^3.1.0",
+    "pg": "^8.11.3",
+    "bcrypt": "^5.1.1",
+    "redis": "^4.6.12"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

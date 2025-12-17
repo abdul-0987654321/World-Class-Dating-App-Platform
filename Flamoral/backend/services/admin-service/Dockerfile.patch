@@ -1,0 +1,56 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY src ./src
+
+# Patch Redis TLS support - add tls option to socket config
+RUN apk add --no-cache sed && \
+    sed -i 's/port: parseInt(process.env.REDIS_PORT || '\''6379'\''),/port: parseInt(process.env.REDIS_PORT || '\''6379'\''),\n        tls: process.env.REDIS_TLS === '\''true'\'',/' src/infrastructure/redis.ts
+
+# Build TypeScript
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
+
+# Copy built application from builder
+COPY --from=builder /app/dist ./dist
+
+# Change ownership to nodejs user
+RUN chown -R nodejs:nodejs /app
+
+# Switch to nodejs user
+USER nodejs
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3010
+
+# Expose port
+EXPOSE 3010
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3010/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start application
+CMD ["npm", "start"]

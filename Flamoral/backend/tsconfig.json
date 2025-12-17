@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@api/*": ["./src/api/*"],
+      "@services/*": ["./src/services/*"],
+      "@repositories/*": ["./src/repositories/*"],
+      "@middleware/*": ["./src/middleware/*"],
+      "@config/*": ["./src/config/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@types/*": ["./src/types/*"],
+      "@shared/*": ["./shared/*"],
+      "@flamoral/shared": ["./shared/index.ts"],
+      "@flamoral/shared/*": ["./shared/*"],
+      "@flamoral/types": ["../packages/shared/types/src"],
+      "@flamoral/constants": ["../packages/shared/constants/src"],
+      "@flamoral/utils": ["../packages/shared/utils/src"],
+      "@flamoral/validators": ["../packages/shared/validators/src"]
+    }
+  },
+  "include": ["src/**/*", "services/**/src/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "**/*.spec.ts", "**/node_modules", "**/dist"]
+}

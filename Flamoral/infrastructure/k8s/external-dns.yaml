@@ -1,0 +1,200 @@
+# =============================================================================
+# ExternalDNS for Kubernetes
+# =============================================================================
+# Automatically manages DNS records in Azure DNS based on Ingress resources
+# =============================================================================
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+  labels:
+    app: external-dns
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+  labels:
+    app: external-dns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+- kind: ServiceAccount
+  name: external-dns
+  namespace: kube-system
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: external-dns-config
+  namespace: kube-system
+  labels:
+    app: external-dns
+data:
+  # Azure DNS Configuration
+  azure.json: |
+    {
+      "tenantId": "${AZURE_TENANT_ID}",
+      "subscriptionId": "${AZURE_SUBSCRIPTION_ID}",
+      "resourceGroup": "flamoral-prod-rg",
+      "useManagedIdentityExtension": true
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "7979"
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.k8s.io/external-dns/external-dns:v0.14.0
+        imagePullPolicy: IfNotPresent
+        args:
+        # Provider configuration
+        - --source=service
+        - --source=ingress
+        - --domain-filter=flamoral.com  # Only manage flamoral.com domains
+        - --provider=azure
+        - --azure-resource-group=flamoral-prod-rg
+
+        # DNS record configuration
+        - --txt-owner-id=flamoral-k8s
+        - --txt-prefix=_external-dns.
+        - --policy=sync  # Use 'sync' to manage all records, 'upsert-only' to only create
+
+        # Advanced options
+        - --registry=txt
+        - --txt-cache-interval=1h
+        - --interval=1m
+        - --log-level=info
+        - --log-format=text
+
+        # Metrics
+        - --metrics-address=:7979
+
+        # Azure-specific settings
+        - --azure-config-file=/etc/kubernetes/azure.json
+
+        volumeMounts:
+        - name: azure-config
+          mountPath: /etc/kubernetes
+          readOnly: true
+
+        env:
+        # Use Azure Managed Identity
+        - name: AZURE_USE_MANAGED_IDENTITY_EXTENSION
+          value: "true"
+
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "50m"
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      volumes:
+      - name: azure-config
+        configMap:
+          name: external-dns-config
+          items:
+          - key: azure.json
+            path: azure.json
+
+      securityContext:
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+
+---
+# Optional: Service for metrics scraping
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-dns-metrics
+  namespace: kube-system
+  labels:
+    app: external-dns
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "7979"
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 7979
+    targetPort: 7979
+    protocol: TCP
+  selector:
+    app: external-dns
+
+---
+# Optional: ServiceMonitor for Prometheus Operator
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+spec:
+  selector:
+    matchLabels:
+      app: external-dns
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics

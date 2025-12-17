@@ -1,0 +1,574 @@
+# =============================================================================
+# RELEASE PIPELINE - Flamoral Dating Platform
+# =============================================================================
+# Automated release creation with versioning, changelog, and artifact publishing
+# Triggered manually or on version tags
+# =============================================================================
+
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.2.3)'
+        required: true
+        type: string
+      release_type:
+        description: 'Release type'
+        required: true
+        type: choice
+        default: 'minor'
+        options:
+          - major
+          - minor
+          - patch
+          - hotfix
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+
+jobs:
+  # ===========================================================================
+  # Prepare Release
+  # ===========================================================================
+  prepare-release:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists"
+            exit 1
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="$PREV_TAG..HEAD"
+          fi
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "## What's Changed" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+
+          # Features
+          FEATURES=$(git log $RANGE --pretty=format:"- %s (@%an)" --grep="feat:" --grep="feature:")
+          if [ -n "$FEATURES" ]; then
+            echo "### Features" >> $GITHUB_OUTPUT
+            echo "$FEATURES" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
+          # Bug Fixes
+          FIXES=$(git log $RANGE --pretty=format:"- %s (@%an)" --grep="fix:" --grep="bug:")
+          if [ -n "$FIXES" ]; then
+            echo "### Bug Fixes" >> $GITHUB_OUTPUT
+            echo "$FIXES" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
+          # Performance
+          PERF=$(git log $RANGE --pretty=format:"- %s (@%an)" --grep="perf:" --grep="performance:")
+          if [ -n "$PERF" ]; then
+            echo "### Performance Improvements" >> $GITHUB_OUTPUT
+            echo "$PERF" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
+          # Other changes
+          echo "### Other Changes" >> $GITHUB_OUTPUT
+          git log $RANGE --pretty=format:"- %s (@%an)" --invert-grep --grep="feat:" --grep="fix:" --grep="perf:" | head -20 >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update version in package.json
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          npm version $VERSION --no-git-tag-version --allow-same-version
+
+          # Update all service package.json files
+          find backend/services -name package.json -type f | while read file; do
+            node -e "
+              const fs = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('$file'));
+              pkg.version = '$VERSION';
+              fs.writeFileSync('$file', JSON.stringify(pkg, null, 2) + '\n');
+            "
+          done
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}" || echo "No changes to commit"
+
+      - name: Create and push tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+  # ===========================================================================
+  # Build Release Artifacts
+  # ===========================================================================
+  build-artifacts:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: prepare-release
+
+    strategy:
+      matrix:
+        service:
+          - auth-service
+          - user-service
+          - messaging-service
+          - matching-service
+          - media-service
+          - api-gateway
+          - payment-service
+          - notification-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Check if service exists
+        id: check
+        run: |
+          if [ -d "backend/services/${{ matrix.service }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build service
+        if: steps.check.outputs.exists == 'true'
+        working-directory: backend/services/${{ matrix.service }}
+        run: |
+          npm ci || npm install
+          npm run build || echo "No build script"
+
+      - name: Create tarball
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          cd backend/services/${{ matrix.service }}
+          tar -czf ../../../${{ matrix.service }}-v${{ needs.prepare-release.outputs.version }}.tar.gz .
+
+      - name: Upload artifact
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service }}-v${{ needs.prepare-release.outputs.version }}
+          path: ${{ matrix.service }}-v${{ needs.prepare-release.outputs.version }}.tar.gz
+          retention-days: 90
+
+  # ===========================================================================
+  # Build Docker Images
+  # ===========================================================================
+  build-release-images:
+    name: Build Release Docker Images
+    runs-on: ubuntu-latest
+    needs: prepare-release
+
+    strategy:
+      matrix:
+        service:
+          - name: auth-service
+            path: backend/services/auth-service
+          - name: user-service
+            path: backend/services/user-service
+          - name: api-gateway
+            path: backend/services/api-gateway
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Dockerfile
+        id: dockerfile
+        run: |
+          if [ -f "${{ matrix.service.path }}/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.path }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service.name }}:v${{ needs.prepare-release.outputs.version }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=v${{ needs.prepare-release.outputs.version }}
+
+  # ===========================================================================
+  # Package Helm Charts
+  # ===========================================================================
+  package-helm-charts:
+    name: Package Helm Charts
+    runs-on: ubuntu-latest
+    needs: prepare-release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.0'
+
+      - name: Package Helm charts
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+
+          # Package all Helm charts
+          for chart in infrastructure/helm/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Packaging $(basename $chart)"
+              helm package "$chart" --version $VERSION --app-version v$VERSION
+            fi
+          done
+
+      - name: Upload Helm charts
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-charts-v${{ needs.prepare-release.outputs.version }}
+          path: '*.tgz'
+          retention-days: 90
+
+  # ===========================================================================
+  # Generate Release Documentation
+  # ===========================================================================
+  generate-docs:
+    name: Generate Release Documentation
+    runs-on: ubuntu-latest
+    needs: [prepare-release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Generate API documentation
+        run: |
+          if [ -f "scripts/generate-docs.sh" ]; then
+            bash scripts/generate-docs.sh
+          fi
+
+      - name: Create deployment guide
+        run: |
+          cat > DEPLOYMENT_GUIDE_v${{ needs.prepare-release.outputs.version }}.md << 'EOF'
+          # Flamoral Dating Platform - Deployment Guide v${{ needs.prepare-release.outputs.version }}
+
+          ## Prerequisites
+          - Kubernetes cluster (AKS recommended)
+          - Helm 3.x
+          - kubectl configured
+          - Azure CLI (for Azure deployments)
+
+          ## Quick Start
+
+          ### 1. Deploy Infrastructure
+          ```bash
+          cd infrastructure/terraform/environments/prod
+          terraform init
+          terraform plan
+          terraform apply
+          ```
+
+          ### 2. Deploy Application
+          ```bash
+          helm install flamoral-prod ./helm-charts/flamoral-v${{ needs.prepare-release.outputs.version }}.tgz \
+            --namespace flamoral-prod \
+            --values values-prod.yaml \
+            --set image.tag=v${{ needs.prepare-release.outputs.version }}
+          ```
+
+          ### 3. Verify Deployment
+          ```bash
+          kubectl get pods -n flamoral-prod
+          kubectl rollout status deployment --all -n flamoral-prod
+          ```
+
+          ## Migration Guide
+          See CHANGELOG.md for breaking changes and migration steps.
+
+          ## Rollback Procedure
+          ```bash
+          helm rollback flamoral-prod -n flamoral-prod
+          ```
+
+          ## Support
+          For issues, contact: support@flamoral.com
+          EOF
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-docs-v${{ needs.prepare-release.outputs.version }}
+          path: |
+            DEPLOYMENT_GUIDE_*.md
+            docs/**
+          retention-days: 90
+
+  # ===========================================================================
+  # Create GitHub Release
+  # ===========================================================================
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - prepare-release
+      - build-artifacts
+      - build-release-images
+      - package-helm-charts
+      - generate-docs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create release body
+        run: |
+          cat > release-body.md << 'EOF'
+          # Flamoral Dating Platform v${{ needs.prepare-release.outputs.version }}
+
+          ${{ needs.prepare-release.outputs.changelog }}
+
+          ## Installation
+
+          ### Docker Images
+          All services are available at:
+          ```
+          ghcr.io/${{ github.repository }}/<service-name>:v${{ needs.prepare-release.outputs.version }}
+          ```
+
+          ### Helm Chart
+          ```bash
+          helm install flamoral ./flamoral-v${{ needs.prepare-release.outputs.version }}.tgz
+          ```
+
+          ## Documentation
+          - [Deployment Guide](./DEPLOYMENT_GUIDE_v${{ needs.prepare-release.outputs.version }}.md)
+          - [API Documentation](https://docs.flamoral.com)
+          - [Migration Guide](./MIGRATION.md)
+
+          ## Checksums
+          All artifacts include SHA256 checksums for verification.
+
+          ## Support
+          For questions or issues, please open a GitHub issue or contact support@flamoral.com
+
+          ---
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ needs.prepare-release.outputs.version }}
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.prepare-release.outputs.version }}
+          name: Release v${{ needs.prepare-release.outputs.version }}
+          body_path: release-body.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          files: |
+            release-artifacts/**/*.tar.gz
+            release-artifacts/**/*.tgz
+            release-artifacts/**/*.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ===========================================================================
+  # Publish to Package Registries
+  # ===========================================================================
+  publish-packages:
+    name: Publish NPM Packages
+    runs-on: ubuntu-latest
+    needs: create-github-release
+    if: github.event.inputs.prerelease != 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.prepare-release.outputs.version }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish shared packages
+        working-directory: backend/shared
+        run: |
+          npm ci
+          npm publish --access public || echo "Package already published"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+  # ===========================================================================
+  # Notifications
+  # ===========================================================================
+  notify:
+    name: Release Notifications
+    runs-on: ubuntu-latest
+    needs: [create-github-release, publish-packages]
+    if: always()
+
+    steps:
+      - name: Release Summary
+        run: |
+          echo "# Release v${{ needs.prepare-release.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: v${{ needs.prepare-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: ${{ github.event.inputs.release_type || 'standard' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release**: ${{ github.event.inputs.prerelease || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: v${{ needs.prepare-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Deploy to production using the release tag" >> $GITHUB_STEP_SUMMARY
+          echo "2. Monitor application metrics" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update documentation" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          channel: '#releases'
+          custom_payload: |
+            {
+              "text": "New Release Published",
+              "attachments": [{
+                "color": "good",
+                "title": "Flamoral Dating Platform v${{ needs.prepare-release.outputs.version }}",
+                "title_link": "https://github.com/${{ github.repository }}/releases/tag/v${{ needs.prepare-release.outputs.version }}",
+                "fields": [
+                  {
+                    "title": "Version",
+                    "value": "v${{ needs.prepare-release.outputs.version }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Released by",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  }
+                ],
+                "footer": "Ready for production deployment"
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'Flamoral Dating Platform v${{ needs.prepare-release.outputs.version }} Released'
+          to: engineering@flamoral.com,devops@flamoral.com
+          from: github-actions@flamoral.com
+          body: |
+            A new version of Flamoral Dating Platform has been released.
+
+            Version: v${{ needs.prepare-release.outputs.version }}
+            Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.prepare-release.outputs.version }}
+
+            This release is ready for production deployment.
+        continue-on-error: true

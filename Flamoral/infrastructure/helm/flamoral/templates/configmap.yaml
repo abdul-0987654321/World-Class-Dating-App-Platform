@@ -1,0 +1,80 @@
+{{- $fullName := include "flamoral.fullname" . -}}
+
+# =============================================================================
+# API Gateway ConfigMap
+# =============================================================================
+# Service URLs for inter-service communication in Kubernetes
+# =============================================================================
+{{- if .Values.apiGateway.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-api-gateway-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flamoral.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+data:
+  # Service URLs - Use Kubernetes service DNS names
+  # Format: http://<service-name>:<port>
+  AUTH_SERVICE_URL: "http://{{ $fullName }}-auth-service:{{ .Values.authService.service.port }}"
+  USER_SERVICE_URL: "http://{{ $fullName }}-user-service:{{ .Values.userService.service.port }}"
+  PROFILE_SERVICE_URL: "http://{{ $fullName }}-user-service:{{ .Values.userService.service.port }}"
+  MESSAGING_SERVICE_URL: "http://{{ $fullName }}-messaging-service:{{ .Values.messagingService.service.port }}"
+  MEDIA_SERVICE_URL: "http://{{ $fullName }}-media-service:{{ .Values.mediaService.service.port }}"
+  MODERATION_SERVICE_URL: "http://{{ $fullName }}-moderation-service:{{ .Values.moderationService.service.port }}"
+  PAYMENT_SERVICE_URL: "http://{{ $fullName }}-payment-service:{{ .Values.paymentService.service.port }}"
+  ANALYTICS_SERVICE_URL: "http://{{ $fullName }}-analytics-service:{{ .Values.analyticsService.service.port }}"
+  NOTIFICATION_SERVICE_URL: "http://{{ $fullName }}-notification-service:{{ .Values.notificationService.service.port }}"
+  MATCHING_SERVICE_URL: "http://{{ $fullName }}-matching-service:{{ .Values.matchingService.service.port }}"
+  ADVERTISING_SERVICE_URL: "http://{{ $fullName }}-advertising-service:{{ .Values.advertisingService.service.port }}"
+  {{- if .Values.realtimeService.enabled }}
+  REALTIME_SERVICE_URL: "http://{{ $fullName }}-realtime-service:{{ .Values.realtimeService.service.port }}"
+  {{- end }}
+
+  # Circuit Breaker Configuration
+  CIRCUIT_FAILURE_THRESHOLD: {{ .Values.circuitBreaker.failureThreshold | default "5" | quote }}
+  CIRCUIT_FAILURE_RATE_THRESHOLD: {{ .Values.circuitBreaker.failureRateThreshold | default "50" | quote }}
+  CIRCUIT_SUCCESS_THRESHOLD: {{ .Values.circuitBreaker.successThreshold | default "5" | quote }}
+  CIRCUIT_TIMEOUT: {{ .Values.circuitBreaker.timeout | default "15000" | quote }}
+  CIRCUIT_RESET_TIMEOUT: {{ .Values.circuitBreaker.resetTimeout | default "60000" | quote }}
+  CIRCUIT_MINIMUM_REQUESTS: {{ .Values.circuitBreaker.minimumRequests | default "5" | quote }}
+  CIRCUIT_SLOW_CALL_THRESHOLD: {{ .Values.circuitBreaker.slowCallThreshold | default "5000" | quote }}
+  CIRCUIT_SLOW_CALL_RATE_THRESHOLD: {{ .Values.circuitBreaker.slowCallRateThreshold | default "80" | quote }}
+  CIRCUIT_HALF_OPEN_MAX_CALLS: {{ .Values.circuitBreaker.halfOpenMaxCalls | default "10" | quote }}
+  CIRCUIT_SLIDING_WINDOW_SIZE: {{ .Values.circuitBreaker.slidingWindowSize | default "100" | quote }}
+
+  # Proxy Configuration
+  PROXY_MAX_RETRIES: {{ .Values.proxy.maxRetries | default "1" | quote }}
+  PROXY_RETRY_DELAY: {{ .Values.proxy.retryDelay | default "500" | quote }}
+
+  # Service Timeouts (in milliseconds)
+  SERVICE_TIMEOUT_DEFAULT: {{ .Values.serviceTimeouts.default | default "15000" | quote }}
+  SERVICE_TIMEOUT_AUTH: {{ .Values.serviceTimeouts.auth | default "5000" | quote }}
+  SERVICE_TIMEOUT_USER: {{ .Values.serviceTimeouts.user | default "10000" | quote }}
+  SERVICE_TIMEOUT_MESSAGING: {{ .Values.serviceTimeouts.messaging | default "15000" | quote }}
+  SERVICE_TIMEOUT_MEDIA: {{ .Values.serviceTimeouts.media | default "45000" | quote }}
+  SERVICE_TIMEOUT_MODERATION: {{ .Values.serviceTimeouts.moderation | default "20000" | quote }}
+  SERVICE_TIMEOUT_PAYMENT: {{ .Values.serviceTimeouts.payment | default "30000" | quote }}
+  SERVICE_TIMEOUT_MATCHING: {{ .Values.serviceTimeouts.matching | default "15000" | quote }}
+
+  # CORS Configuration
+  CORS_ORIGINS: {{ .Values.cors.origins | default "https://flamoral.com,https://www.flamoral.com,https://admin.flamoral.com" | quote }}
+  CORS_CREDENTIALS: {{ .Values.cors.credentials | default "true" | quote }}
+
+  # Logging
+  LOG_LEVEL: {{ .Values.logging.level | default "info" | quote }}
+  LOG_FORMAT: {{ .Values.logging.format | default "json" | quote }}
+
+  # Rate Limiting
+  RATE_LIMIT_USER_POINTS: {{ .Values.rateLimit.user.points | default "1000" | quote }}
+  RATE_LIMIT_USER_DURATION: {{ .Values.rateLimit.user.duration | default "900" | quote }}
+  RATE_LIMIT_USER_BLOCK: {{ .Values.rateLimit.user.blockDuration | default "300" | quote }}
+  RATE_LIMIT_IP_POINTS: {{ .Values.rateLimit.ip.points | default "500" | quote }}
+  RATE_LIMIT_IP_DURATION: {{ .Values.rateLimit.ip.duration | default "900" | quote }}
+  RATE_LIMIT_IP_BLOCK: {{ .Values.rateLimit.ip.blockDuration | default "600" | quote }}
+  RATE_LIMIT_AUTH_POINTS: {{ .Values.rateLimit.auth.points | default "5" | quote }}
+  RATE_LIMIT_AUTH_DURATION: {{ .Values.rateLimit.auth.duration | default "900" | quote }}
+  RATE_LIMIT_AUTH_BLOCK: {{ .Values.rateLimit.auth.blockDuration | default "3600" | quote }}
+---
+{{- end }}

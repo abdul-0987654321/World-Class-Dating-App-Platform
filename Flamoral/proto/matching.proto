@@ -1,0 +1,199 @@
+syntax = "proto3";
+
+package heartly.matching.v1;
+
+option go_package = "github.com/heartly/proto/gen/go/matching/v1;matchingv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Matching service for swipes, matches, and recommendations
+service MatchingService {
+  // Get recommended profiles for a user
+  rpc GetRecommendations(GetRecommendationsRequest) returns (GetRecommendationsResponse);
+
+  // Record a swipe action (like/pass/super-like)
+  rpc RecordSwipe(RecordSwipeRequest) returns (RecordSwipeResponse);
+
+  // Get user's matches
+  rpc GetMatches(GetMatchesRequest) returns (GetMatchesResponse);
+
+  // Unmatch with a user
+  rpc Unmatch(UnmatchRequest) returns (google.protobuf.Empty);
+
+  // Get who liked the user
+  rpc GetLikes(GetLikesRequest) returns (GetLikesResponse);
+
+  // Undo last swipe (premium feature)
+  rpc UndoSwipe(UndoSwipeRequest) returns (google.protobuf.Empty);
+
+  // Boost profile visibility
+  rpc BoostProfile(BoostProfileRequest) returns (BoostProfileResponse);
+
+  // Get daily recommendations refresh
+  rpc RefreshRecommendations(RefreshRecommendationsRequest) returns (google.protobuf.Empty);
+}
+
+// SwipeAction enum
+enum SwipeAction {
+  SWIPE_ACTION_UNSPECIFIED = 0;
+  SWIPE_ACTION_LIKE = 1;
+  SWIPE_ACTION_PASS = 2;
+  SWIPE_ACTION_SUPER_LIKE = 3;
+}
+
+// ProfileCard represents a recommended profile
+message ProfileCard {
+  string user_id = 1;
+  string name = 2;
+  int32 age = 3;
+  string bio = 4;
+  repeated string photo_urls = 5;
+  string city = 6;
+  int32 distance_km = 7;
+  repeated string interests = 8;
+  repeated Prompt prompts = 9;
+  double compatibility_score = 10;
+  repeated string common_interests = 11;
+  bool is_verified = 12;
+  bool is_online = 13;
+  google.protobuf.Timestamp last_active = 14;
+}
+
+// Prompt in profile card
+message Prompt {
+  string question = 1;
+  string answer = 2;
+}
+
+// Match represents a mutual match
+message Match {
+  string id = 1;
+  string user_id = 2;
+  string matched_user_id = 3;
+  MatchedUser matched_user = 4;
+  google.protobuf.Timestamp matched_at = 5;
+  string last_message = 6;
+  google.protobuf.Timestamp last_message_at = 7;
+  bool is_super_like = 8;
+  bool has_unread = 9;
+}
+
+// MatchedUser summary
+message MatchedUser {
+  string id = 1;
+  string name = 2;
+  string photo_url = 3;
+  bool is_online = 4;
+  google.protobuf.Timestamp last_active = 5;
+}
+
+// Like represents someone who liked the user
+message Like {
+  string id = 1;
+  string from_user_id = 2;
+  LikerSummary from_user = 3;
+  google.protobuf.Timestamp liked_at = 4;
+  bool is_super_like = 5;
+  bool is_revealed = 6;  // Premium users can see who liked them
+}
+
+// LikerSummary (blurred for non-premium)
+message LikerSummary {
+  string id = 1;
+  string blurred_photo_url = 2;
+  string photo_url = 3;  // Only for premium
+  string name = 4;       // Only for premium
+  int32 age = 5;         // Only for premium
+}
+
+// Request messages
+message GetRecommendationsRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  string cursor = 3;
+  RecommendationFilter filter = 4;
+}
+
+message RecommendationFilter {
+  optional int32 min_age = 1;
+  optional int32 max_age = 2;
+  optional int32 max_distance_km = 3;
+  repeated string required_interests = 4;
+  optional bool online_only = 5;
+  optional bool verified_only = 6;
+}
+
+message GetRecommendationsResponse {
+  repeated ProfileCard profiles = 1;
+  string next_cursor = 2;
+  int32 remaining_today = 3;
+}
+
+message RecordSwipeRequest {
+  string user_id = 1;
+  string target_user_id = 2;
+  SwipeAction action = 3;
+}
+
+message RecordSwipeResponse {
+  bool is_match = 1;
+  Match match = 2;  // Only populated if is_match is true
+  int32 remaining_likes = 3;
+  int32 remaining_super_likes = 4;
+}
+
+message GetMatchesRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  string cursor = 3;
+  MatchFilter filter = 4;
+}
+
+message MatchFilter {
+  optional bool unread_only = 1;
+  optional bool super_likes_only = 2;
+}
+
+message GetMatchesResponse {
+  repeated Match matches = 1;
+  string next_cursor = 2;
+  int32 total_count = 3;
+}
+
+message UnmatchRequest {
+  string user_id = 1;
+  string match_id = 2;
+  string reason = 3;
+}
+
+message GetLikesRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  string cursor = 3;
+}
+
+message GetLikesResponse {
+  repeated Like likes = 1;
+  string next_cursor = 2;
+  int32 total_count = 3;
+  bool can_see_likes = 4;  // Premium feature
+}
+
+message UndoSwipeRequest {
+  string user_id = 1;
+}
+
+message BoostProfileRequest {
+  string user_id = 1;
+  int32 duration_minutes = 2;  // 30, 60, 180
+}
+
+message BoostProfileResponse {
+  google.protobuf.Timestamp expires_at = 1;
+  int32 remaining_boosts = 2;
+}
+
+message RefreshRecommendationsRequest {
+  string user_id = 1;
+}

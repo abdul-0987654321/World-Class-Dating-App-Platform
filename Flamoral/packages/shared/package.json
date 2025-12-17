@@ -1,0 +1,76 @@
+{
+  "name": "@flamoral/shared",
+  "version": "1.0.0",
+  "description": "Shared packages for Flamoral (types, utils, constants, validators)",
+  "private": true,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "workspaces": [
+    "types",
+    "utils",
+    "constants",
+    "validators",
+    "api-client"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./types/dist/index.d.ts",
+      "import": "./types/dist/index.js",
+      "require": "./types/dist/index.js"
+    },
+    "./utils": {
+      "types": "./utils/dist/index.d.ts",
+      "import": "./utils/dist/index.js",
+      "require": "./utils/dist/index.js"
+    },
+    "./constants": {
+      "types": "./constants/dist/index.d.ts",
+      "import": "./constants/dist/index.js",
+      "require": "./constants/dist/index.js"
+    },
+    "./validators": {
+      "types": "./validators/dist/index.d.ts",
+      "import": "./validators/dist/index.js",
+      "require": "./validators/dist/index.js"
+    },
+    "./api-client": {
+      "types": "./api-client/dist/index.d.ts",
+      "import": "./api-client/dist/index.js",
+      "require": "./api-client/dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:types": "yarn workspace @flamoral/types build",
+    "build:constants": "yarn workspace @flamoral/constants build",
+    "build:utils": "yarn workspace @flamoral/utils build",
+    "build:validators": "yarn workspace @flamoral/validators build",
+    "build:api-client": "yarn workspace @flamoral/api-client build",
+    "build:all": "yarn build:types && yarn build:constants && yarn build:utils && yarn build:validators && yarn build:api-client && yarn build",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist *.tsbuildinfo && yarn workspaces foreach -pt run clean",
+    "lint": "yarn workspaces foreach -pt run lint",
+    "test": "yarn workspaces foreach -pt run test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@flamoral/types": "workspace:*",
+    "@flamoral/constants": "workspace:*",
+    "@flamoral/utils": "workspace:*",
+    "@flamoral/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.2"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

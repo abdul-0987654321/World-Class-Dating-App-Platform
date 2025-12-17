@@ -1,0 +1,147 @@
+---
+# Database setup playbook
+# Installs and configures PostgreSQL
+
+- name: Setup PostgreSQL Database
+  hosts: dev_db_servers:staging_db_servers:prod_db_servers
+  become: yes
+  vars:
+    postgresql_version: "15"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+
+  tasks:
+    - name: Add PostgreSQL APT repository
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg
+
+    - name: Add PostgreSQL repository key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Install PostgreSQL
+      apt:
+        name:
+          - "postgresql-{{ postgresql_version }}"
+          - "postgresql-contrib-{{ postgresql_version }}"
+          - postgresql-client
+          - python3-psycopg2
+        state: present
+        update_cache: yes
+
+    - name: Ensure PostgreSQL is started and enabled
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure PostgreSQL - postgresql.conf
+      lineinfile:
+        path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^listen_addresses', line: "listen_addresses = '*'" }
+        - { regexp: '^max_connections', line: "max_connections = {{ db_max_connections }}" }
+        - { regexp: '^shared_buffers', line: "shared_buffers = 256MB" }
+        - { regexp: '^effective_cache_size', line: "effective_cache_size = 1GB" }
+        - { regexp: '^maintenance_work_mem', line: "maintenance_work_mem = 64MB" }
+        - { regexp: '^checkpoint_completion_target', line: "checkpoint_completion_target = 0.9" }
+        - { regexp: '^wal_buffers', line: "wal_buffers = 16MB" }
+        - { regexp: '^default_statistics_target', line: "default_statistics_target = 100" }
+        - { regexp: '^random_page_cost', line: "random_page_cost = 1.1" }
+        - { regexp: '^effective_io_concurrency', line: "effective_io_concurrency = 200" }
+        - { regexp: '^work_mem', line: "work_mem = 4MB" }
+        - { regexp: '^min_wal_size', line: "min_wal_size = 1GB" }
+        - { regexp: '^max_wal_size', line: "max_wal_size = 4GB" }
+        - { regexp: '^max_worker_processes', line: "max_worker_processes = 4" }
+        - { regexp: '^max_parallel_workers_per_gather', line: "max_parallel_workers_per_gather = 2" }
+        - { regexp: '^max_parallel_workers', line: "max_parallel_workers = 4" }
+        - { regexp: '^max_parallel_maintenance_workers', line: "max_parallel_maintenance_workers = 2" }
+      notify: Restart PostgreSQL
+
+    - name: Configure PostgreSQL - pg_hba.conf
+      lineinfile:
+        path: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+        line: "{{ item }}"
+        state: present
+      loop:
+        - "host    all             all             10.0.0.0/8              md5"
+        - "host    all             all             172.16.0.0/12           md5"
+      notify: Restart PostgreSQL
+
+    - name: Create application database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        encoding: UTF8
+        lc_collate: en_US.UTF-8
+        lc_ctype: en_US.UTF-8
+        template: template0
+        state: present
+
+    - name: Create application database user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ lookup('env', 'DB_PASSWORD') }}"
+        db: "{{ db_name }}"
+        priv: ALL
+        state: present
+
+    - name: Grant all privileges to application user
+      become_user: postgres
+      postgresql_privs:
+        database: "{{ db_name }}"
+        roles: "{{ db_user }}"
+        privs: ALL
+        type: database
+        state: present
+
+    - name: Enable PostgreSQL extensions
+      become_user: postgres
+      postgresql_ext:
+        name: "{{ item }}"
+        db: "{{ db_name }}"
+        state: present
+      loop:
+        - uuid-ossp
+        - pgcrypto
+        - pg_stat_statements
+
+    - name: Configure PostgreSQL backup script
+      copy:
+        dest: /usr/local/bin/pg_backup.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          BACKUP_DIR="/var/backups/postgresql"
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="${BACKUP_DIR}/{{ db_name }}_${TIMESTAMP}.sql.gz"
+
+          mkdir -p ${BACKUP_DIR}
+          pg_dump {{ db_name }} | gzip > ${BACKUP_FILE}
+
+          # Keep only last 30 days of backups
+          find ${BACKUP_DIR} -name "*.sql.gz" -mtime +30 -delete
+
+          echo "Backup completed: ${BACKUP_FILE}"
+      when: backup_enabled | default(false)
+
+    - name: Schedule PostgreSQL backups
+      cron:
+        name: "PostgreSQL backup"
+        minute: "0"
+        hour: "2"
+        job: "/usr/local/bin/pg_backup.sh >> /var/log/pg_backup.log 2>&1"
+        state: present
+      when: backup_enabled | default(false)
+
+  handlers:
+    - name: Restart PostgreSQL
+      service:
+        name: postgresql
+        state: restarted

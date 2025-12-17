@@ -1,0 +1,280 @@
+/**
+ * SSL Certificate Pinning Configuration for Flamoral Mobile App
+ *
+ * SECURITY NOTE: This configuration uses public key (SPKI) pinning rather than certificate pinning
+ * to allow for certificate rotation without requiring app updates.
+ *
+ * Pin Generation Instructions:
+ * See: SSL_PINNING_SETUP.md for detailed instructions on generating and updating pins
+ *
+ * To generate SSL pins:
+ * 1. For current certificate:
+ *    openssl s_client -servername api.flamoral.com -connect api.flamoral.com:443 | \
+ *    openssl x509 -pubkey -noout | openssl rsa -pubin -outform der | \
+ *    openssl dgst -sha256 -binary | openssl enc -base64
+ *
+ * 2. For backup/next certificate (before rotation):
+ *    Use the same command with your backup certificate
+ */
+
+import { ENV } from './env';
+
+export interface SSLPinConfig {
+  hostname: string;
+  pins: string[];
+  includeSubdomains?: boolean;
+}
+
+/**
+ * Parse SSL pins from environment variable
+ * Format: sha256/PIN1=,sha256/PIN2=
+ */
+function parsePinsFromEnv(envPins: string): string[] {
+  if (!envPins || envPins.trim() === '') {
+    return [];
+  }
+
+  return envPins
+    .split(',')
+    .map((pin) => pin.trim())
+    .filter((pin) => pin.startsWith('sha256/') && pin.length > 7);
+}
+
+/**
+ * Get pins for api.flamoral.com from environment or use defaults
+ */
+function getApiPins(): string[] {
+  const envPins = process.env.SSL_PINS_API_FLAMORAL || '';
+  const pins = parsePinsFromEnv(envPins);
+
+  // Only return pins if they're not placeholder values
+  if (pins.length > 0 && !pins[0].includes('AAAA')) {
+    return pins;
+  }
+
+  return [];
+}
+
+/**
+ * Get backup pins from environment
+ */
+function getBackupPins(): string[] {
+  const envPins = process.env.SSL_PINS_BACKUP || '';
+  const pins = parsePinsFromEnv(envPins);
+
+  // Only return pins if they're not placeholder values
+  if (pins.length > 0 && !pins[0].includes('CCCC')) {
+    return pins;
+  }
+
+  return [];
+}
+
+/**
+ * SSL Pin Configuration for all API endpoints
+ *
+ * IMPORTANT:
+ * 1. Pins are SHA-256 hashes of the Subject Public Key Info (SPKI)
+ * 2. Always include at least 2 pins: current + backup for rotation
+ * 3. Update backup pins 60 days before certificate expiration
+ * 4. Never remove all pins at once - always maintain at least one valid pin
+ * 5. Test thoroughly in staging before deploying to production
+ */
+export const SSL_PIN_CONFIG: SSLPinConfig[] = [
+  {
+    hostname: 'api.flamoral.com',
+    pins: getApiPins(),
+    includeSubdomains: false,
+  },
+  {
+    hostname: 'ai.flamoral.com',
+    pins: getApiPins(), // Use same pins if using same cert infrastructure
+    includeSubdomains: false,
+  },
+  {
+    hostname: 'messaging.flamoral.com',
+    pins: getApiPins(), // Use same pins if using same cert infrastructure
+    includeSubdomains: false,
+  },
+  {
+    hostname: 'cdn.flamoral.com',
+    pins: getApiPins(), // Use same pins if using same cert infrastructure
+    includeSubdomains: false,
+  },
+  {
+    hostname: 'media.flamoral.com',
+    pins: getApiPins(), // Use same pins if using same cert infrastructure
+    includeSubdomains: false,
+  },
+].filter((config) => config.pins.length > 0); // Only include configs with actual pins
+
+/**
+ * SSL Pinning Configuration Options
+ */
+export const SSL_PINNING_OPTIONS = {
+  // Enable SSL pinning (disabled in dev, enabled in staging/prod)
+  enabled: ENV.ENABLE_SSL_PINNING && !__DEV__,
+
+  // Pin validation mode
+  // 'strict': Fail immediately on pin mismatch (production)
+  // 'permissive': Log warnings but allow connection (staging/testing only)
+  validationMode: ENV.SSL_PINNING_MODE as 'strict' | 'permissive',
+
+  // Enable certificate transparency checks
+  certificateTransparency: true,
+
+  // Minimum TLS version
+  minTlsVersion: 'TLSv1.2' as const,
+
+  // Allow certificate chain validation
+  validateCertificateChain: true,
+
+  // Certificate expiration warning threshold (days)
+  expirationWarningDays: 30,
+
+  // Fail closed on configuration errors (safer but may cause outages)
+  failClosed: ENV.APP_ENV === 'production',
+};
+
+/**
+ * Get pin configuration for a specific hostname
+ */
+export function getPinConfigForHostname(hostname: string): SSLPinConfig | undefined {
+  return SSL_PIN_CONFIG.find((config) => {
+    if (config.includeSubdomains) {
+      return hostname.endsWith(config.hostname) || hostname === config.hostname;
+    }
+    return hostname === config.hostname;
+  });
+}
+
+/**
+ * Validate if hostname requires pinning
+ */
+export function requiresPinning(hostname: string): boolean {
+  if (!SSL_PINNING_OPTIONS.enabled) {
+    return false;
+  }
+
+  if (isPinningExempt(hostname)) {
+    return false;
+  }
+
+  return getPinConfigForHostname(hostname) !== undefined;
+}
+
+/**
+ * Get all pins for a hostname (including backup pins)
+ */
+export function getPinsForHostname(hostname: string): string[] {
+  const config = getPinConfigForHostname(hostname);
+  if (!config) {
+    return [];
+  }
+
+  // Combine config pins with backup pins
+  const allPins = [...config.pins];
+  const backupPins = getBackupPins();
+
+  backupPins.forEach((pin) => {
+    if (!allPins.includes(pin)) {
+      allPins.push(pin);
+    }
+  });
+
+  return allPins;
+}
+
+/**
+ * Development/Testing domains that bypass pinning
+ */
+export const PINNING_EXEMPT_DOMAINS = [
+  'localhost',
+  '127.0.0.1',
+  '10.0.2.2', // Android emulator
+  '10.0.3.2', // Genymotion emulator
+  'staging.flamoral.local',
+  'dev.flamoral.local',
+];
+
+/**
+ * Check if domain is exempt from pinning
+ */
+export function isPinningExempt(hostname: string): boolean {
+  if (!SSL_PINNING_OPTIONS.enabled) {
+    return true;
+  }
+
+  // Always exempt in development mode
+  if (__DEV__) {
+    return true;
+  }
+
+  return PINNING_EXEMPT_DOMAINS.some(
+    (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+  );
+}
+
+/**
+ * Validate SSL pin format
+ */
+export function isValidPin(pin: string): boolean {
+  // Pin should be in format: sha256/BASE64STRING=
+  const pinRegex = /^sha256\/[A-Za-z0-9+/]+=*$/;
+  return pinRegex.test(pin);
+}
+
+/**
+ * Get all configured hostnames for pinning
+ */
+export function getPinnedHostnames(): string[] {
+  return SSL_PIN_CONFIG.map((config) => config.hostname);
+}
+
+/**
+ * Check if SSL pinning is properly configured
+ */
+export function isSSLPinningConfigured(): boolean {
+  if (!SSL_PINNING_OPTIONS.enabled) {
+    return true; // Not required if disabled
+  }
+
+  // Check if we have at least one valid pin configuration
+  const hasValidPins = SSL_PIN_CONFIG.some((config) => {
+    return config.pins.length >= 2 && config.pins.every(isValidPin);
+  });
+
+  return hasValidPins;
+}
+
+/**
+ * Log SSL pinning status (for debugging)
+ */
+export function logSSLPinningStatus(): void {
+  if (!ENV.DEBUG_MODE) {
+    return;
+  }
+
+  console.log('=== SSL Pinning Configuration ===');
+  console.log('Enabled:', SSL_PINNING_OPTIONS.enabled);
+  console.log('Mode:', SSL_PINNING_OPTIONS.validationMode);
+  console.log('Configured Hostnames:', getPinnedHostnames());
+  console.log('Is Properly Configured:', isSSLPinningConfigured());
+
+  if (!isSSLPinningConfigured() && ENV.APP_ENV === 'production') {
+    console.warn('WARNING: SSL Pinning is not properly configured for production!');
+  }
+}
+
+export default {
+  SSL_PIN_CONFIG,
+  SSL_PINNING_OPTIONS,
+  getPinConfigForHostname,
+  requiresPinning,
+  getPinsForHostname,
+  isPinningExempt,
+  isValidPin,
+  getPinnedHostnames,
+  isSSLPinningConfigured,
+  logSSLPinningStatus,
+};

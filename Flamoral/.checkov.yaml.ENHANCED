@@ -1,0 +1,264 @@
+# Checkov Security Scanning Configuration (ENHANCED)
+# Dating Platform - SOC2 & GDPR Compliance
+#
+# ENHANCEMENTS:
+# - Added PostgreSQL SSL enforcement
+# - Added Azure Active Directory authentication requirement
+# - Added separate production and development profiles
+# - Enhanced hard-fail checks for production
+# - Better organization and documentation
+
+# Directories to scan
+directory:
+  - terraform/
+  - infrastructure/terraform/
+
+# Skip paths
+skip-path:
+  - terraform/.terraform/
+  - infrastructure/terraform/.terraform/
+  - .git/
+  - node_modules/
+  - dist/
+  - build/
+
+# Framework
+framework:
+  - terraform
+  - terraform_plan
+  - secrets
+  - dockerfile
+  - kubernetes
+
+# Output format
+output: cli
+compact: false
+quiet: false
+
+# Soft fail mode
+# Set to false for CI/CD production deployments
+# Set to true for development to allow progressive fixes
+soft-fail: true
+
+# ============================================================================
+# CRITICAL SECURITY CHECKS - HARD FAIL
+# These checks will always fail the build if violated
+# ============================================================================
+
+hard-fail-on:
+  # TLS and HTTPS
+  - CKV_AZURE_88   # App Service should use latest TLS version (1.2+)
+  - CKV_AZURE_13   # App Service should only be accessible over HTTPS
+  - CKV_AZURE_17   # App Service should use latest HTTP version (HTTP/2)
+
+  # Encryption at Rest
+  - CKV_AZURE_114  # Storage accounts should have encryption at rest
+  - CKV_AZURE_33   # Storage account should use secure transfer (HTTPS only)
+  - CKV_AZURE_35   # Key Vault has soft delete enabled
+  - CKV_AZURE_42   # Key Vault has purge protection enabled
+
+  # Database Security
+  - CKV_AZURE_23   # SQL Server should have threat detection enabled
+  - CKV_AZURE_109  # SQL Server should have auditing enabled
+  - CKV_AZURE_110  # PostgreSQL SSL enforcement enabled
+  - CKV_AZURE_32   # PostgreSQL log connections enabled
+  - CKV_AZURE_130  # PostgreSQL log disconnections enabled
+  - CKV_AZURE_132  # PostgreSQL server has Azure Active Directory authentication enabled
+  - CKV_AZURE_147  # PostgreSQL server has threat detection enabled
+
+  # Network Security
+  - CKV_AZURE_37   # Azure storage account has firewall rules
+  - CKV_AZURE_43   # Storage account should restrict network access
+
+  # Secrets and Keys
+  - CKV_SECRET_6   # High entropy secrets detection
+
+  # Container Security
+  - CKV_DOCKER_2   # Docker image user should not be root
+  - CKV_DOCKER_3   # Docker image version should be pinned
+
+# ============================================================================
+# SKIP CHECKS - WITH JUSTIFICATION
+# These checks are intentionally skipped with documented reasons
+# ============================================================================
+
+skip-check:
+  # -------------------------------------------------------------------------
+  # Development Flexibility
+  # These are skipped to allow faster development iteration
+  # MUST be enabled for production deployments
+  # -------------------------------------------------------------------------
+  - CKV_AZURE_9    # NSG rules - managed separately via Terraform modules
+  - CKV_AZURE_12   # Network Watcher flow logs - implemented separately
+
+  # -------------------------------------------------------------------------
+  # Cost Optimization for Non-Production Environments
+  # These checks require premium SKUs that are not cost-effective for dev/test
+  # -------------------------------------------------------------------------
+  - CKV_AZURE_165  # Container Registry Premium SKU - Standard OK for dev/test
+  - CKV_AZURE_168  # AKS paid tier - Free OK for dev/test
+  - CKV_AZURE_170  # AKS availability zones - Not required for dev/test
+
+  # -------------------------------------------------------------------------
+  # Design Decisions - With Justification
+  # -------------------------------------------------------------------------
+  - CKV2_AZURE_1   # Customer-managed keys - Platform keys OK for initial deployment
+                   # Will be enabled in future release for compliance requirements
+  - CKV2_AZURE_8   # Storage private link - configured separately via networking module
+  - CKV2_AZURE_18  # Key Vault private link - configured for production environment only
+
+  # -------------------------------------------------------------------------
+  # Kubernetes Specific (if using AKS)
+  # -------------------------------------------------------------------------
+  - CKV_K8S_8      # Liveness probe - configured via Helm charts
+  - CKV_K8S_9      # Readiness probe - configured via Helm charts
+  - CKV_K8S_20     # Containers should not run as root - enforced via Pod Security Standards
+  - CKV_K8S_22     # Read-only root filesystem - not compatible with some legacy apps
+  - CKV_K8S_28     # Minimize container capabilities - configured via security context
+  - CKV_K8S_30     # Apply security context to pods - enforced via Pod Security Admission
+
+  # -------------------------------------------------------------------------
+  # False Positives / Not Applicable
+  # -------------------------------------------------------------------------
+  - CKV2_AZURE_3   # VM managed disk encryption - Not using VMs, using containers
+
+# ============================================================================
+# PRODUCTION-ONLY CHECKS
+# These should be enabled when deploying to production
+# Set soft-fail: false and remove these from skip-check
+# ============================================================================
+
+# Uncomment for production deployments:
+# - CKV2_AZURE_21  # Storage account encryption with Customer-Managed Keys
+# - CKV_AZURE_165  # Container Registry Premium SKU
+# - CKV_AZURE_168  # AKS paid tier (Standard/Premium)
+# - CKV_AZURE_170  # AKS availability zones enabled
+# - CKV2_AZURE_8   # Storage account private link
+# - CKV2_AZURE_18  # Key Vault private link
+
+# ============================================================================
+# CONFIGURATION OPTIONS
+# ============================================================================
+
+# Enable variable evaluation for Terraform
+evaluate-variables: true
+
+# Download external modules for scanning
+download-external-modules: true
+
+# External modules download location
+external-modules-download-path: .checkov-modules/
+
+# Baseline file (optional - use to track false positives)
+# baseline: .checkov.baseline
+
+# Create baseline file
+# create-baseline: false
+
+# ============================================================================
+# COMPLIANCE FRAMEWORKS
+# Enable compliance reporting for specific frameworks
+# ============================================================================
+
+# Enable compliance checks
+check:
+  - CKV_*
+  - CKV2_*
+
+# Compliance frameworks to report on
+# compliance:
+#   - soc2
+#   - pci
+#   - hipaa
+#   - nist
+#   - iso27001
+#   - gdpr
+
+# ============================================================================
+# REPORTING
+# ============================================================================
+
+# Output formats (can specify multiple)
+# output-format:
+#   - cli
+#   - json
+#   - sarif
+#   - junitxml
+
+# Output file path (for non-CLI formats)
+# output-file-path: checkov-report.sarif
+
+# ============================================================================
+# SECRETS SCANNING
+# ============================================================================
+
+# Enable secrets scanning
+secrets: true
+
+# Secrets scan entropy threshold (0.0 to 8.0)
+# Higher values = fewer false positives, but may miss some secrets
+secrets-scan-entropy-threshold: 4.5
+
+# ============================================================================
+# GRAPH DATABASE (for complex policy as code)
+# ============================================================================
+
+# Enable graph database for complex policy evaluations
+# graph: true
+
+# ============================================================================
+# NOTES FOR DEPLOYMENT
+# ============================================================================
+
+# For CI/CD Integration:
+# 1. Development: Use soft-fail: true to allow builds while fixing issues
+# 2. Staging: Use soft-fail: false and monitor for new violations
+# 3. Production: Use soft-fail: false and enable all production checks
+
+# Example CI/CD Commands:
+#
+# Development:
+# checkov --config-file .checkov.yaml --directory terraform/
+#
+# Production:
+# checkov --config-file .checkov.yaml \
+#         --directory terraform/ \
+#         --soft-fail false \
+#         --compact \
+#         --output-format cli json \
+#         --output-file-path checkov-report.json
+
+# ============================================================================
+# COMPLIANCE MAPPING
+# ============================================================================
+
+# SOC2 Requirements Covered:
+# - CC6.1: Logical and Physical Access Controls
+# - CC6.6: Encryption of Data at Rest
+# - CC6.7: Encryption of Data in Transit
+# - CC7.2: System Monitoring
+
+# GDPR Requirements Covered:
+# - Article 32: Security of Processing
+# - Article 25: Data Protection by Design and Default
+# - Recital 83: Security Measures
+
+# PCI-DSS Requirements Covered:
+# - Requirement 2: Secure Configurations
+# - Requirement 4: Encrypt Transmission of Data
+# - Requirement 8: Access Control
+# - Requirement 10: Track and Monitor Access
+
+# ============================================================================
+# MAINTENANCE
+# ============================================================================
+
+# Review this configuration quarterly or when:
+# - New Azure services are adopted
+# - Compliance requirements change
+# - New Checkov rules are released
+# - Security incidents occur
+
+# Last Reviewed: 2025-12-16
+# Next Review: 2026-03-16
+# Owner: Security Team

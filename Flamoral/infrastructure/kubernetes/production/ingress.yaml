@@ -1,0 +1,389 @@
+# =============================================================================
+# Flamoral Platform - Production Ingress Configuration
+# =============================================================================
+# Complete ingress setup with SSL/TLS, rate limiting, and routing for all services
+# =============================================================================
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-main-ingress
+  namespace: flamoral
+  annotations:
+    # Ingress Class
+    kubernetes.io/ingress.class: "nginx"
+
+    # SSL/TLS Configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384"
+
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+
+    # Proxy Configuration
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "90"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "90"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+
+    # CORS Configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://flamoral.com,https://www.flamoral.com,https://ws.flamoral.com,https://media.flamoral.com"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/cors-max-age: "86400"
+
+    # Security Headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
+
+    # Connection Settings
+    nginx.ingress.kubernetes.io/upstream-keepalive-connections: "100"
+    nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+    nginx.ingress.kubernetes.io/upstream-keepalive-requests: "100"
+
+    # Monitoring
+    nginx.ingress.kubernetes.io/enable-opentracing: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+
+spec:
+  tls:
+  - hosts:
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+    - ws.flamoral.com
+    - media.flamoral.com
+    secretName: flamoral-tls
+
+  rules:
+  # Main API domain - routes through API Gateway
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Health Check Routes (must be first for priority)
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000
+
+      # Auth Service Routes
+      - path: /api/v1/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 3001
+
+      # User Service Routes
+      - path: /api/v1/users
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service
+            port:
+              number: 3002
+
+      # Matching Service Routes
+      - path: /api/v1/matches
+        pathType: Prefix
+        backend:
+          service:
+            name: matching-service
+            port:
+              number: 3009
+
+      - path: /api/v1/swipes
+        pathType: Prefix
+        backend:
+          service:
+            name: matching-service
+            port:
+              number: 3009
+
+      # Messaging Service Routes
+      - path: /api/v1/messages
+        pathType: Prefix
+        backend:
+          service:
+            name: messaging-service
+            port:
+              number: 3004
+
+      - path: /api/v1/conversations
+        pathType: Prefix
+        backend:
+          service:
+            name: messaging-service
+            port:
+              number: 3004
+
+      # Payment Service Routes
+      - path: /api/v1/payments
+        pathType: Prefix
+        backend:
+          service:
+            name: payment-service
+            port:
+              number: 3005
+
+      - path: /api/v1/subscriptions
+        pathType: Prefix
+        backend:
+          service:
+            name: payment-service
+            port:
+              number: 3005
+
+      # Media Service Routes
+      - path: /api/v1/media
+        pathType: Prefix
+        backend:
+          service:
+            name: media-service
+            port:
+              number: 3006
+
+      - path: /api/v1/upload
+        pathType: Prefix
+        backend:
+          service:
+            name: media-service
+            port:
+              number: 3006
+
+      # Analytics Service Routes
+      - path: /api/v1/analytics
+        pathType: Prefix
+        backend:
+          service:
+            name: analytics-service
+            port:
+              number: 3007
+
+      # Moderation Service Routes
+      - path: /api/v1/moderation
+        pathType: Prefix
+        backend:
+          service:
+            name: moderation-service
+            port:
+              number: 3008
+
+      - path: /api/v1/reports
+        pathType: Prefix
+        backend:
+          service:
+            name: moderation-service
+            port:
+              number: 3008
+
+      # Admin Service Routes
+      - path: /api/v1/admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-service
+            port:
+              number: 3010
+
+      # Advertising Service Routes
+      - path: /api/v1/ads
+        pathType: Prefix
+        backend:
+          service:
+            name: advertising-service
+            port:
+              number: 3011
+
+      # Notification Service Routes
+      - path: /api/v1/notifications
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-service
+            port:
+              number: 3012
+
+      # Workflow Engine Routes
+      - path: /api/v1/workflows
+        pathType: Prefix
+        backend:
+          service:
+            name: workflow-engine
+            port:
+              number: 3013
+
+      # API Gateway (catch-all for other routes)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 4000
+
+---
+# WebSocket Ingress for real-time features
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-websocket-ingress
+  namespace: flamoral
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # WebSocket specific settings
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "realtime-service"
+
+    # Connection upgrade for WebSocket
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_http_version 1.1;
+      proxy_cache_bypass $http_upgrade;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $host;
+
+    # Enable sticky sessions for WebSocket
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-name: "flamoral-ws-route"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+
+spec:
+  tls:
+  - hosts:
+    - ws.flamoral.com
+    secretName: flamoral-websocket-tls
+
+  rules:
+  - host: ws.flamoral.com
+    http:
+      paths:
+      - path: /socket.io
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-realtime-service
+            port:
+              number: 8080
+
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-realtime-service
+            port:
+              number: 8080
+
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-realtime-service
+            port:
+              number: 8080
+
+---
+# Media/CDN Ingress with caching
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-media-ingress
+  namespace: flamoral
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # Higher body size for media uploads
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+    # Caching for media
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Cache-Control "public, max-age=31536000, immutable";
+      expires 1y;
+
+    # CORS for media
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+
+spec:
+  tls:
+  - hosts:
+    - media.flamoral.com
+    secretName: flamoral-media-tls
+
+  rules:
+  - host: media.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flamoral-media-service
+            port:
+              number: 3005
+
+---
+# Admin Dashboard Ingress (restricted access)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-admin-ingress
+  namespace: flamoral
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # Stricter rate limiting for admin
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+
+    # IP whitelist (configure with your admin IPs)
+    # nginx.ingress.kubernetes.io/whitelist-source-range: "1.2.3.4/32,5.6.7.8/32"
+
+spec:
+  tls:
+  - hosts:
+    - admin.flamoral.com
+    secretName: flamoral-admin-tls
+
+  rules:
+  - host: admin.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-service
+            port:
+              number: 3010

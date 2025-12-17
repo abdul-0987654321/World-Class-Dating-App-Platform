@@ -1,0 +1,37 @@
+# FastAPI and web server
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+httpx==0.28.0
+
+# Database and caching
+asyncpg==0.29.0
+redis==5.0.1
+motor==3.3.2
+sqlalchemy[asyncio]==2.0.25
+
+# ML and AI
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.5.2
+sentence-transformers==3.3.1
+torch==2.5.1
+transformers==4.46.3
+pinecone-client==5.0.1
+
+# Data validation
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Monitoring and logging
+prometheus-client==0.19.0
+structlog==24.1.0
+sentry-sdk[fastapi]==1.39.1
+
+# Utilities
+python-dotenv==1.0.0
+tenacity==8.2.3

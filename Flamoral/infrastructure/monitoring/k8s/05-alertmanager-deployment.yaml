@@ -1,0 +1,513 @@
+---
+# ConfigMap for Alertmanager configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      slack_api_url_file: /etc/alertmanager/secrets/slack-webhook-url
+      pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+    templates:
+      - '/etc/alertmanager/templates/*.tmpl'
+
+    route:
+      receiver: 'default'
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      routes:
+        # Critical alerts - PagerDuty immediately + Slack
+        - match:
+            severity: critical
+          receiver: 'pagerduty-critical'
+          group_wait: 0s
+          repeat_interval: 5m
+          continue: true
+
+        - match:
+            severity: critical
+          receiver: 'slack-critical'
+          group_wait: 0s
+          repeat_interval: 15m
+
+        # High severity alerts
+        - match:
+            severity: high
+          receiver: 'pagerduty-high'
+          group_wait: 30s
+          repeat_interval: 30m
+          continue: true
+
+        - match:
+            severity: high
+          receiver: 'slack-alerts'
+          repeat_interval: 1h
+
+        # Warning alerts - Slack only
+        - match:
+            severity: warning
+          receiver: 'slack-warnings'
+          repeat_interval: 4h
+
+        # Service-specific routing
+        - match:
+            service: payment-service
+          receiver: 'pagerduty-payments'
+          routes:
+            - match:
+                severity: critical
+              receiver: 'pagerduty-payments-critical'
+              group_wait: 0s
+
+        - match:
+            service: auth-service
+          receiver: 'pagerduty-auth'
+          routes:
+            - match:
+                severity: critical
+              receiver: 'pagerduty-auth-critical'
+              group_wait: 0s
+
+        # Database alerts
+        - match_re:
+            alertname: '(Postgres|Redis|MongoDB).*'
+          receiver: 'pagerduty-database'
+          group_wait: 1m
+          repeat_interval: 15m
+          continue: true
+
+        - match_re:
+            alertname: '(Postgres|Redis|MongoDB).*'
+          receiver: 'slack-database'
+          repeat_interval: 30m
+
+        # Infrastructure alerts
+        - match_re:
+            alertname: '(Node|Pod|Container).*'
+          receiver: 'slack-infrastructure'
+          repeat_interval: 2h
+
+        # Security alerts
+        - match:
+            component: security
+          receiver: 'slack-security'
+          repeat_interval: 1h
+          continue: true
+
+        - match:
+            component: security
+          receiver: 'pagerduty-security'
+          routes:
+            - match:
+                severity: critical
+              group_wait: 0s
+
+    inhibit_rules:
+      # Inhibit warning alerts if critical alert is firing
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'service', 'instance']
+
+      # Inhibit pod alerts if node is down
+      - source_match:
+          alertname: 'NodeDown'
+        target_match_re:
+          alertname: 'Pod.*'
+        equal: ['node']
+
+      # Inhibit service alerts if database is down
+      - source_match_re:
+          alertname: '(Postgres|Redis|MongoDB)Down'
+        target_match_re:
+          alertname: '.*ServiceDown'
+        equal: ['namespace']
+
+    receivers:
+      # Default receiver
+      - name: 'default'
+        slack_configs:
+          - channel: '#flamoral-alerts-default'
+            title: 'Flamoral Alert'
+            text: '{{ template "slack.default.text" . }}'
+            send_resolved: true
+
+      # PagerDuty - Critical alerts
+      - name: 'pagerduty-critical'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-critical-key
+            severity: 'critical'
+            description: '{{ template "pagerduty.default.description" . }}'
+            details:
+              firing: '{{ .Alerts.Firing | len }}'
+              resolved: '{{ .Alerts.Resolved | len }}'
+              summary: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+              description: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+            client: 'Flamoral Prometheus'
+            client_url: 'https://prometheus.flamoral.com'
+
+      # PagerDuty - High severity
+      - name: 'pagerduty-high'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-high-key
+            severity: 'error'
+            description: '{{ template "pagerduty.default.description" . }}'
+
+      # PagerDuty - Payment service
+      - name: 'pagerduty-payments'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-payments-key
+            severity: 'error'
+            description: 'Payment Service Alert: {{ .GroupLabels.alertname }}'
+
+      - name: 'pagerduty-payments-critical'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-payments-critical-key
+            severity: 'critical'
+            description: 'CRITICAL Payment Service: {{ .GroupLabels.alertname }}'
+
+      # PagerDuty - Auth service
+      - name: 'pagerduty-auth'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-auth-key
+            severity: 'error'
+            description: 'Auth Service Alert: {{ .GroupLabels.alertname }}'
+
+      - name: 'pagerduty-auth-critical'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-auth-critical-key
+            severity: 'critical'
+            description: 'CRITICAL Auth Service: {{ .GroupLabels.alertname }}'
+
+      # PagerDuty - Database alerts
+      - name: 'pagerduty-database'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-database-key
+            severity: 'error'
+            description: 'Database Alert: {{ .GroupLabels.alertname }}'
+
+      # PagerDuty - Security alerts
+      - name: 'pagerduty-security'
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/pagerduty-security-key
+            severity: 'error'
+            description: 'Security Alert: {{ .GroupLabels.alertname }}'
+
+      # Slack - Critical channel
+      - name: 'slack-critical'
+        slack_configs:
+          - channel: '#flamoral-critical'
+            username: 'Flamoral Alert Bot'
+            icon_emoji: ':rotating_light:'
+            title: ':rotating_light: CRITICAL ALERT :rotating_light:'
+            title_link: 'https://prometheus.flamoral.com/alerts'
+            text: '{{ template "slack.critical.text" . }}'
+            color: 'danger'
+            send_resolved: true
+            actions:
+              - type: button
+                text: 'View in Prometheus :prometheus:'
+                url: 'https://prometheus.flamoral.com/alerts'
+              - type: button
+                text: 'View in Grafana :grafana:'
+                url: 'https://grafana.flamoral.com'
+              - type: button
+                text: 'Runbook :book:'
+                url: 'https://runbooks.flamoral.com/{{ .GroupLabels.alertname }}'
+
+      # Slack - Alerts channel
+      - name: 'slack-alerts'
+        slack_configs:
+          - channel: '#flamoral-alerts'
+            username: 'Flamoral Alert Bot'
+            icon_emoji: ':warning:'
+            title: 'High Priority Alert'
+            title_link: 'https://prometheus.flamoral.com/alerts'
+            text: '{{ template "slack.default.text" . }}'
+            color: 'warning'
+            send_resolved: true
+
+      # Slack - Warnings channel
+      - name: 'slack-warnings'
+        slack_configs:
+          - channel: '#flamoral-warnings'
+            username: 'Flamoral Alert Bot'
+            icon_emoji: ':information_source:'
+            title: 'Warning Alert'
+            text: '{{ template "slack.warning.text" . }}'
+            color: '#FFA500'
+            send_resolved: true
+
+      # Slack - Infrastructure channel
+      - name: 'slack-infrastructure'
+        slack_configs:
+          - channel: '#flamoral-infrastructure'
+            username: 'Infrastructure Bot'
+            icon_emoji: ':construction:'
+            title: 'Infrastructure Alert'
+            text: '{{ template "slack.default.text" . }}'
+            color: '#36a64f'
+            send_resolved: true
+
+      # Slack - Database channel
+      - name: 'slack-database'
+        slack_configs:
+          - channel: '#flamoral-database'
+            username: 'Database Bot'
+            icon_emoji: ':database:'
+            title: 'Database Alert'
+            text: '{{ template "slack.database.text" . }}'
+            color: '#FF6B6B'
+            send_resolved: true
+
+      # Slack - Security channel
+      - name: 'slack-security'
+        slack_configs:
+          - channel: '#flamoral-security'
+            username: 'Security Bot'
+            icon_emoji: ':shield:'
+            title: 'Security Alert'
+            text: '{{ template "slack.security.text" . }}'
+            color: '#FF0000'
+            send_resolved: true
+
+---
+# Secret for Alertmanager (PagerDuty keys and Slack webhook)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-secrets
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+type: Opaque
+stringData:
+  # Replace these with actual values
+  slack-webhook-url: "https://hooks.slack.com/services/YOUR_WORKSPACE/YOUR_WEBHOOK"
+  pagerduty-critical-key: "YOUR_PAGERDUTY_CRITICAL_ROUTING_KEY"
+  pagerduty-high-key: "YOUR_PAGERDUTY_HIGH_ROUTING_KEY"
+  pagerduty-payments-key: "YOUR_PAGERDUTY_PAYMENTS_ROUTING_KEY"
+  pagerduty-payments-critical-key: "YOUR_PAGERDUTY_PAYMENTS_CRITICAL_ROUTING_KEY"
+  pagerduty-auth-key: "YOUR_PAGERDUTY_AUTH_ROUTING_KEY"
+  pagerduty-auth-critical-key: "YOUR_PAGERDUTY_AUTH_CRITICAL_ROUTING_KEY"
+  pagerduty-database-key: "YOUR_PAGERDUTY_DATABASE_ROUTING_KEY"
+  pagerduty-security-key: "YOUR_PAGERDUTY_SECURITY_ROUTING_KEY"
+
+---
+# PersistentVolumeClaim for Alertmanager data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-storage
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: premium-ssd
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Alertmanager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+    app.kubernetes.io/version: "v0.26.0"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+        app.kubernetes.io/name: alertmanager
+        app.kubernetes.io/part-of: flamoral-monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9093"
+    spec:
+      serviceAccountName: alertmanager
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.26.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - '--config.file=/etc/alertmanager/alertmanager.yml'
+          - '--storage.path=/alertmanager'
+          - '--data.retention=120h'
+          - '--cluster.listen-address=0.0.0.0:9094'
+          - '--cluster.advertise-address=$(POD_IP):9094'
+          - '--cluster.peer=alertmanager-0.alertmanager.monitoring.svc.cluster.local:9094'
+          - '--cluster.peer=alertmanager-1.alertmanager.monitoring.svc.cluster.local:9094'
+          - '--cluster.peer=alertmanager-2.alertmanager.monitoring.svc.cluster.local:9094'
+          - '--web.external-url=https://alertmanager.flamoral.com'
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        ports:
+        - name: http
+          containerPort: 9093
+          protocol: TCP
+        - name: cluster
+          containerPort: 9094
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9093
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9093
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/alertmanager
+        - name: templates-volume
+          mountPath: /etc/alertmanager/templates
+        - name: secrets-volume
+          mountPath: /etc/alertmanager/secrets
+          readOnly: true
+        - name: storage-volume
+          mountPath: /alertmanager
+      volumes:
+      - name: config-volume
+        configMap:
+          name: alertmanager-config
+      - name: templates-volume
+        configMap:
+          name: alertmanager-templates
+      - name: secrets-volume
+        secret:
+          secretName: alertmanager-secrets
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: alertmanager-storage
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - alertmanager
+            topologyKey: kubernetes.io/hostname
+
+---
+# Alertmanager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: http
+    port: 9093
+    targetPort: 9093
+    protocol: TCP
+  - name: cluster
+    port: 9094
+    targetPort: 9094
+    protocol: TCP
+  selector:
+    app: alertmanager
+
+---
+# Alertmanager Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: flamoral-monitoring
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: alertmanager-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Alertmanager'
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - alertmanager.flamoral.com
+    secretName: alertmanager-tls
+  rules:
+  - host: alertmanager.flamoral.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: alertmanager
+            port:
+              number: 9093
+
+---
+# Secret for Alertmanager basic auth
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-basic-auth
+  namespace: monitoring
+type: Opaque
+data:
+  # Default: admin:flamoral_alert_2025
+  auth: YWRtaW46JGFwcjEkUjJYZGRMWFokOEhiYXhHRi5LQUxHVGN2YjdEbzBwLwo=

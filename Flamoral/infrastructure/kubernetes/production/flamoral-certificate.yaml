@@ -1,0 +1,55 @@
+# =============================================================================
+# Flamoral TLS Certificate
+# =============================================================================
+# Let's Encrypt TLS certificate for flamoral.com domains
+# This certificate is automatically managed by cert-manager
+# =============================================================================
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: flamoral-tls
+  namespace: flamoral
+  labels:
+    app: flamoral
+    environment: production
+spec:
+  # Secret name where the certificate will be stored
+  secretName: flamoral-tls
+
+  # Reference to the ClusterIssuer
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+  # Common name for the certificate
+  commonName: flamoral.com
+
+  # All domains covered by this certificate
+  dnsNames:
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+
+  # Certificate validity and renewal settings
+  duration: 2160h # 90 days
+  renewBefore: 360h # Renew 15 days before expiry
+
+  # Private key configuration
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+    rotationPolicy: Always
+
+  # Certificate usages
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+
+  # Subject information
+  subject:
+    organizations:
+      - Flamoral

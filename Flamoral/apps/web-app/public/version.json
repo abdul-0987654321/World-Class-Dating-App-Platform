@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "buildDate": "2025-12-15T10:30:00Z",
+  "commit": "initial-release",
+  "environment": "production",
+  "features": {
+    "serviceWorker": true,
+    "pwa": true,
+    "offlineSupport": true,
+    "pushNotifications": true,
+    "codesplitting": true,
+    "lazyLoading": true,
+    "imagOptimization": true
+  }
+}

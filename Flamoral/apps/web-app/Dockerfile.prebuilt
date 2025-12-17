@@ -1,0 +1,15 @@
+FROM nginx:alpine
+
+# Copy nginx configuration
+COPY nginx.simple.conf /etc/nginx/nginx.conf
+
+# Copy pre-built application
+COPY dist /usr/share/nginx/html
+
+# Create health endpoint
+RUN mkdir -p /usr/share/nginx/html/health && \
+    echo '{"status":"healthy"}' > /usr/share/nginx/html/health/index.html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

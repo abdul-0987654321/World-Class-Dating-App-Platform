@@ -1,0 +1,85 @@
+{
+  "name": "Flamoral",
+  "displayName": "Flamoral",
+  "version": "1.0.0",
+  "build": "1",
+  "slug": "flamoral",
+  "description": "Where Passion Meets Connection",
+  "privacy": "https://flamoral.com/privacy",
+  "termsOfService": "https://flamoral.com/terms",
+  "support": "https://flamoral.com/support",
+  "contact": "support@flamoral.com",
+  "orientation": "portrait",
+  "platforms": ["ios", "android"],
+  "scheme": "flamoral",
+  "ios": {
+    "bundleIdentifier": "com.flamoral",
+    "buildNumber": "1",
+    "supportsTablet": false,
+    "infoPlist": {
+      "NSCameraUsageDescription": "Take photos to add to your profile and verify your identity",
+      "NSPhotoLibraryUsageDescription": "Choose photos from your library to add to your profile",
+      "NSPhotoLibraryAddUsageDescription": "Save photos to your library",
+      "NSLocationWhenInUseUsageDescription": "We use your location to show you potential matches nearby",
+      "NSLocationAlwaysUsageDescription": "We use your location to show you potential matches nearby",
+      "NSUserNotificationsUsageDescription": "Get notified when you have new matches and messages",
+      "NSMicrophoneUsageDescription": "Enable voice and video calls with your matches",
+      "NSCalendarsUsageDescription": "Create calendar events for dates",
+      "NSContactsUsageDescription": "Find friends who are using Flamoral",
+      "UIBackgroundModes": ["remote-notification", "voip"],
+      "CFBundleURLTypes": [
+        {
+          "CFBundleURLSchemes": ["flamoral"]
+        }
+      ]
+    },
+    "config": {
+      "usesNonExemptEncryption": false
+    },
+    "associatedDomains": [
+      "applinks:flamoral.com",
+      "applinks:www.flamoral.com"
+    ]
+  },
+  "android": {
+    "package": "com.flamoral",
+    "versionCode": 1,
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#FFFFFF"
+    },
+    "permissions": [
+      "CAMERA",
+      "RECORD_AUDIO",
+      "READ_MEDIA_IMAGES",
+      "ACCESS_FINE_LOCATION",
+      "ACCESS_COARSE_LOCATION",
+      "POST_NOTIFICATIONS",
+      "INTERNET",
+      "ACCESS_NETWORK_STATE",
+      "VIBRATE"
+    ],
+    "compileSdkVersion": 34,
+    "targetSdkVersion": 34,
+    "minSdkVersion": 23,
+    "intentFilters": [
+      {
+        "action": "VIEW",
+        "autoVerify": true,
+        "data": [
+          {
+            "scheme": "https",
+            "host": "flamoral.com"
+          },
+          {
+            "scheme": "flamoral"
+          }
+        ],
+        "category": ["BROWSABLE", "DEFAULT"]
+      }
+    ]
+  },
+  "ratingRequired": true,
+  "contentRating": "MATURE_17_PLUS",
+  "ageRating": "17+"
+}

@@ -1,0 +1,107 @@
+{
+  "dashboard": {
+    "title": "Infrastructure Overview - Production",
+    "tags": ["infrastructure", "production", "aks", "kubernetes"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Cluster Health",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "targets": [
+          {"expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})", "legendFormat": "Ready Nodes", "refId": "A"},
+          {"expr": "sum(kube_pod_status_phase{phase=\"Running\",namespace=\"dating-app-production\"})", "legendFormat": "Running Pods", "refId": "B"},
+          {"expr": "sum(kube_deployment_status_replicas_available{namespace=\"dating-app-production\"})", "legendFormat": "Available Replicas", "refId": "C"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Node CPU Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {"expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "{{instance}}", "refId": "A"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Node Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {"expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100", "legendFormat": "{{instance}}", "refId": "A"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Pod Resource Requests vs Limits",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+        "targets": [
+          {"expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\",namespace=\"dating-app-production\"}) by (pod)", "legendFormat": "{{pod}} - Requests", "refId": "A"},
+          {"expr": "sum(kube_pod_container_resource_limits{resource=\"cpu\",namespace=\"dating-app-production\"}) by (pod)", "legendFormat": "{{pod}} - Limits", "refId": "B"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Network I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {"expr": "rate(node_network_receive_bytes_total[5m])", "legendFormat": "Receive - {{device}}", "refId": "A"},
+          {"expr": "rate(node_network_transmit_bytes_total[5m])", "legendFormat": "Transmit - {{device}}", "refId": "B"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Disk I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {"expr": "rate(node_disk_read_bytes_total[5m])", "legendFormat": "Read - {{device}}", "refId": "A"},
+          {"expr": "rate(node_disk_written_bytes_total[5m])", "legendFormat": "Write - {{device}}", "refId": "B"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "PersistentVolume Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+        "targets": [
+          {"expr": "(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100", "legendFormat": "{{persistentvolumeclaim}}", "refId": "A"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Pod Restarts",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36},
+        "targets": [
+          {"expr": "rate(kube_pod_container_status_restarts_total{namespace=\"dating-app-production\"}[5m])", "legendFormat": "{{pod}}", "refId": "A"}
+        ],
+        "alert": {
+          "name": "High Pod Restart Rate",
+          "conditions": [
+            {
+              "evaluator": {"type": "gt", "params": [3]},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "title": "Ingress Request Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36},
+        "targets": [
+          {"expr": "sum(rate(nginx_ingress_controller_requests[5m])) by (status)", "legendFormat": "{{status}}", "refId": "A"}
+        ]
+      }
+    ]
+  }
+}

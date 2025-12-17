@@ -1,0 +1,111 @@
+# =============================================================================
+# OWASP ZAP Alert Threshold Configuration
+# =============================================================================
+# Format: RULE_ID	ALERT_LEVEL	URL_PATTERN
+# Alert levels: IGNORE, INFO, LOW, MEDIUM, HIGH
+# =============================================================================
+
+# SQL Injection - Critical
+10095	HIGH
+10096	HIGH
+10097	HIGH
+40018	HIGH
+40019	HIGH
+40020	HIGH
+40021	HIGH
+40022	HIGH
+
+# Cross-Site Scripting (XSS) - Critical
+10014	HIGH
+10017	HIGH
+40012	HIGH
+40014	HIGH
+40016	HIGH
+40017	HIGH
+
+# Path Traversal - Critical
+6	HIGH
+124	HIGH
+
+# Remote Code Execution - Critical
+90019	HIGH
+90020	HIGH
+90021	HIGH
+
+# Server-Side Request Forgery (SSRF) - Critical
+40046	HIGH
+
+# NoSQL Injection - Critical
+40033	HIGH
+
+# LDAP Injection - High
+40015	HIGH
+
+# XML External Entity (XXE) - Critical
+90023	HIGH
+
+# Authentication Issues - High
+10021	HIGH
+10055	HIGH
+10101	HIGH
+10102	HIGH
+10105	HIGH
+
+# Authorization Issues - High
+10103	HIGH
+
+# Session Management - High
+10012	HIGH
+10054	HIGH
+10094	MEDIUM
+
+# Sensitive Data Exposure - High
+10017	HIGH
+10019	HIGH
+10024	HIGH
+10025	HIGH
+10027	MEDIUM
+
+# Security Headers - Medium
+10015	MEDIUM
+10020	MEDIUM
+10021	MEDIUM
+10035	MEDIUM
+10036	MEDIUM
+10037	MEDIUM
+10038	MEDIUM
+10063	MEDIUM
+
+# CORS Misconfiguration - Medium
+40040	MEDIUM
+
+# Clickjacking - Medium
+10020	MEDIUM
+
+# Information Disclosure - Low
+10023	LOW
+10028	LOW
+10032	LOW
+10050	LOW
+
+# Content Security Policy - Info
+10038	INFO
+
+# Informational Findings - Ignore in CI/CD
+10009	IGNORE
+10010	IGNORE
+10011	IGNORE
+10031	IGNORE
+10033	IGNORE
+
+# Development/Debug related - Ignore
+10016	INFO
+10026	INFO
+
+# Known false positives for API endpoints
+10049	INFO	.*\/api\/v1\/health.*
+10049	INFO	.*\/api\/v1\/metrics.*
+10015	IGNORE	.*\/api\/v1\/webhooks\/.*
+
+# Exclude static assets from certain scans
+10015	IGNORE	.*\.(css|js|png|jpg|gif|ico|svg)$

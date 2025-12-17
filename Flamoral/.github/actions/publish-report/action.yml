@@ -1,0 +1,197 @@
+# =============================================================================
+# PUBLISH-REPORT COMPOSITE ACTION
+# =============================================================================
+# Uploads artifacts and generates PR summary
+# MUST run with if: always() to capture reports even on failure
+# =============================================================================
+
+name: 'Publish Report'
+description: 'Upload artifacts and generate PR/job summary - runs if: always()'
+
+inputs:
+  report-name:
+    description: 'Name for the report artifact'
+    required: true
+  report-path:
+    description: 'Path(s) to report files (supports glob patterns)'
+    required: true
+  report-type:
+    description: 'Type of report (security, test, build, deploy, compliance)'
+    required: false
+    default: 'general'
+  retention-days:
+    description: 'Number of days to retain artifacts'
+    required: false
+    default: '30'
+  generate-summary:
+    description: 'Generate GitHub step summary'
+    required: false
+    default: 'true'
+  summary-title:
+    description: 'Title for the summary section'
+    required: false
+    default: 'Report Summary'
+  job-status:
+    description: 'Status of the job (success, failure, cancelled, skipped)'
+    required: false
+    default: 'unknown'
+  create-pr-comment:
+    description: 'Create a PR comment with summary (requires PR context)'
+    required: false
+    default: 'false'
+
+outputs:
+  artifact-id:
+    description: 'ID of uploaded artifact'
+    value: ${{ steps.upload.outputs.artifact-id }}
+  artifact-url:
+    description: 'URL to uploaded artifact'
+    value: ${{ steps.upload.outputs.artifact-url }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Step 1: Generate JSON metadata
+    - name: Generate report metadata
+      id: metadata
+      shell: bash
+      run: |
+        METADATA_FILE="report-metadata.json"
+
+        cat > $METADATA_FILE <<EOF
+        {
+          "report_name": "${{ inputs.report-name }}",
+          "report_type": "${{ inputs.report-type }}",
+          "job_status": "${{ inputs.job-status }}",
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "run_id": "${{ github.run_id }}",
+          "run_number": "${{ github.run_number }}",
+          "sha": "${{ github.sha }}",
+          "ref": "${{ github.ref }}",
+          "actor": "${{ github.actor }}",
+          "workflow": "${{ github.workflow }}",
+          "job": "${{ github.job }}",
+          "event_name": "${{ github.event_name }}"
+        }
+        EOF
+
+        echo "metadata-file=$METADATA_FILE" >> $GITHUB_OUTPUT
+
+    # Step 2: Upload artifacts
+    - name: Upload report artifacts
+      id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.report-name }}-${{ github.run_id }}
+        path: |
+          ${{ inputs.report-path }}
+          report-metadata.json
+        retention-days: ${{ inputs.retention-days }}
+        if-no-files-found: warn
+
+    # Step 3: Generate GitHub Step Summary
+    - name: Generate step summary
+      if: inputs.generate-summary == 'true'
+      shell: bash
+      run: |
+        # Determine status emoji
+        case "${{ inputs.job-status }}" in
+          success)
+            STATUS_EMOJI="✅"
+            STATUS_COLOR="green"
+            ;;
+          failure)
+            STATUS_EMOJI="❌"
+            STATUS_COLOR="red"
+            ;;
+          cancelled)
+            STATUS_EMOJI="⚠️"
+            STATUS_COLOR="yellow"
+            ;;
+          skipped)
+            STATUS_EMOJI="⏭️"
+            STATUS_COLOR="gray"
+            ;;
+          *)
+            STATUS_EMOJI="ℹ️"
+            STATUS_COLOR="blue"
+            ;;
+        esac
+
+        # Generate summary
+        cat >> $GITHUB_STEP_SUMMARY <<EOF
+
+        ## $STATUS_EMOJI ${{ inputs.summary-title }}
+
+        | Property | Value |
+        |----------|-------|
+        | **Report Name** | ${{ inputs.report-name }} |
+        | **Report Type** | ${{ inputs.report-type }} |
+        | **Status** | ${{ inputs.job-status }} |
+        | **Timestamp** | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |
+        | **Workflow** | ${{ github.workflow }} |
+        | **Job** | ${{ github.job }} |
+        | **Run ID** | [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+        | **Commit** | [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) |
+        | **Actor** | @${{ github.actor }} |
+
+        **Artifact:** ${{ inputs.report-name }}-${{ github.run_id }}
+
+        ---
+
+        EOF
+
+        echo "Summary generated for ${{ inputs.report-name }}"
+
+    # Step 4: Create PR comment (if enabled and in PR context)
+    - name: Create PR comment
+      if: inputs.create-pr-comment == 'true' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const reportName = '${{ inputs.report-name }}';
+          const reportType = '${{ inputs.report-type }}';
+          const jobStatus = '${{ inputs.job-status }}';
+          const runId = '${{ github.run_id }}';
+
+          let statusEmoji = 'ℹ️';
+          if (jobStatus === 'success') statusEmoji = '✅';
+          else if (jobStatus === 'failure') statusEmoji = '❌';
+          else if (jobStatus === 'cancelled') statusEmoji = '⚠️';
+
+          const body = `## ${statusEmoji} ${reportName}
+
+          | Property | Value |
+          |----------|-------|
+          | **Type** | ${reportType} |
+          | **Status** | ${jobStatus} |
+          | **Run** | [#${runId}](https://github.com/${{ github.repository }}/actions/runs/${runId}) |
+
+          <details>
+          <summary>View Details</summary>
+
+          - Workflow: ${{ github.workflow }}
+          - Job: ${{ github.job }}
+          - Commit: ${{ github.sha }}
+
+          </details>
+          `;
+
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: body
+          });
+      continue-on-error: true
+
+    # Step 5: Output artifact info
+    - name: Report artifact info
+      shell: bash
+      run: |
+        echo "=== Report Published ==="
+        echo "Name: ${{ inputs.report-name }}"
+        echo "Type: ${{ inputs.report-type }}"
+        echo "Status: ${{ inputs.job-status }}"
+        echo "Artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+        echo "========================"

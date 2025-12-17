@@ -1,0 +1,145 @@
+/**
+ * Service Exports
+ * Central export point for all services
+ */
+
+// Core Services
+export { apiClient, ApiError } from './api.client';
+export { authService } from './auth.service';
+export { discoveryService } from './discovery.service';
+export { matchingService } from './matching.service';
+export { messagingService } from './messaging.service';
+export { profileService } from './profile.service';
+export { subscriptionService } from './subscription.service';
+
+// Feature Services
+export { gamificationService } from './gamification.service';
+export { communitiesService } from './communities.service';
+export { speedDatingService } from './speed-dating.service';
+export { referralService } from './referral.service';
+
+// Safety & Moderation Services
+export { safetyService } from './safety.service';
+export { moderationService } from './moderation.service';
+export { reportService } from './report.service';
+export { blockService } from './block.service';
+export { privacyService } from './privacy.service';
+
+// Premium Services
+export { boostService } from './boost.service';
+export { coinService, type CoinBalance } from './coin.service';
+export { usageLimitService } from './usage-limit.service';
+
+// Dashboard Service - Single source of truth
+export { dashboardService } from './dashboard.service';
+export type {
+  DashboardData,
+  DashboardProfile,
+  DashboardVerification,
+  DashboardSubscription,
+  DashboardStats,
+  DashboardEntitlements,
+} from './dashboard.service';
+
+// Video Chat Service
+export { videoChatService } from './video-chat.service';
+export type {
+  CallInitiateResponse,
+  CallResponse,
+  ActiveCallResponse,
+  CallHistoryItem,
+  VideoCallEntitlements,
+} from './video-chat.service';
+
+// Socket Service
+export { socketService } from './socket.service';
+
+// Re-export types from auth service
+export type { User, LoginResponse, RegisterData } from './auth.service';
+
+// Re-export types from discovery service
+export {
+  type DiscoveryProfile,
+  type ProfilePhoto as DiscoveryProfilePhoto,
+  type ProfilePrompt as DiscoveryProfilePrompt,
+  type RecommendationsResponse,
+  type SwipeResult,
+} from './discovery.service';
+
+// Re-export types from matching service
+export type {
+  Match,
+  MatchedUser,
+  Like,
+  MatchesResponse,
+  LikesResponse,
+} from './matching.service';
+
+// Re-export types from messaging service
+export type {
+  Message,
+  Conversation,
+  Participant,
+  ConversationsResponse,
+  MessagesResponse,
+} from './messaging.service';
+
+// Re-export types from profile service
+export type {
+  UserProfile,
+  ProfilePhoto,
+  ProfilePrompt,
+  ProfileSettings,
+  UpdateProfileData,
+  UpdateSettingsData,
+} from './profile.service';
+
+// Re-export types from gamification service
+export type {
+  Streak,
+  Achievement,
+  Quest,
+  WalletBalance,
+  SpinWheelResult,
+  DailyReward,
+  LeaderboardEntry,
+} from './gamification.service';
+
+// Re-export types from communities service
+export type {
+  Community,
+  CommunityMember,
+  Post,
+  Comment,
+  CommunityEvent,
+} from './communities.service';
+
+// Re-export types from speed dating service
+export type {
+  SpeedDatingEvent,
+  SpeedDatingRound,
+  SpeedDatingMatch,
+  SpeedDatingInterest,
+  SpeedDatingStats,
+} from './speed-dating.service';
+
+// Re-export types from referral service
+export type {
+  ReferralCode,
+  Referral,
+  ReferralTier,
+  ReferralStats,
+  ReferralLeaderboardEntry,
+} from './referral.service';
+
+// Policy Service
+export { policyService } from './policy.service';
+export type {
+  Policy,
+  PolicySection,
+  PolicyMetadata,
+  PolicyVersion,
+} from './policy.service';
+
+// AI Services
+export * from './ai';

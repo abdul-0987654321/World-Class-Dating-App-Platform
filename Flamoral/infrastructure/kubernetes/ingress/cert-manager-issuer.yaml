@@ -1,0 +1,181 @@
+# =============================================================================
+# Cert-Manager ClusterIssuers for Let's Encrypt
+# =============================================================================
+# Prerequisites:
+# 1. Install cert-manager using Helm:
+#    helm repo add jetstack https://charts.jetstack.io
+#    helm repo update
+#    helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true
+# 2. Apply this file after cert-manager is running
+# =============================================================================
+
+---
+# Let's Encrypt Staging Issuer (for testing)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: issuer
+spec:
+  acme:
+    # Let's Encrypt Staging server
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    # Email address for ACME registration
+    email: devops@flamoral.com
+
+    # Private key secret name for ACME account
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+
+    # Enable HTTP-01 challenge provider
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+            podTemplate:
+              metadata:
+                labels:
+                  app: cert-manager-http01-solver
+              spec:
+                nodeSelector:
+                  kubernetes.io/os: linux
+---
+# Let's Encrypt Production Issuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: issuer
+spec:
+  acme:
+    # Let's Encrypt Production server
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+    # Email address for ACME registration
+    # IMPORTANT: Update this email address!
+    email: devops@flamoral.com
+
+    # Private key secret name for ACME account
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+
+    # Enable HTTP-01 challenge provider
+    solvers:
+      # HTTP-01 solver using NGINX Ingress
+      - http01:
+          ingress:
+            class: nginx
+            podTemplate:
+              metadata:
+                labels:
+                  app: cert-manager-http01-solver
+              spec:
+                nodeSelector:
+                  kubernetes.io/os: linux
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 64Mi
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+
+      # DNS-01 solver (optional, for wildcard certificates)
+      # Uncomment and configure for Azure DNS
+      # - dns01:
+      #     azureDNS:
+      #       subscriptionID: "YOUR_SUBSCRIPTION_ID"
+      #       resourceGroupName: "YOUR_RESOURCE_GROUP"
+      #       hostedZoneName: "flamoral.com"
+      #       # Use Managed Identity or Service Principal
+      #       managedIdentity:
+      #         clientID: "YOUR_MANAGED_IDENTITY_CLIENT_ID"
+---
+# Certificate for flamoral.com (all subdomains)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: flamoral-tls
+  namespace: dating-app
+  labels:
+    app.kubernetes.io/name: flamoral
+    app.kubernetes.io/component: certificate
+spec:
+  secretName: flamoral-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - flamoral.com
+    - www.flamoral.com
+    - api.flamoral.com
+    - admin.flamoral.com
+  # Optional: Add more subdomains as needed
+  # - app.flamoral.com
+  # - ws.flamoral.com
+
+  # Certificate renewal configuration
+  renewBefore: 720h  # 30 days before expiry
+
+  # Private key configuration
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+    rotationPolicy: Always
+
+  # ACME challenge configuration
+  # usages:
+  #   - digital signature
+  #   - key encipherment
+---
+# Certificate for staging environment (optional)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: flamoral-staging-tls
+  namespace: dating-app-staging
+  labels:
+    app.kubernetes.io/name: flamoral
+    app.kubernetes.io/component: certificate
+    app.kubernetes.io/environment: staging
+spec:
+  secretName: flamoral-staging-tls
+  issuerRef:
+    name: letsencrypt-staging  # Use staging for testing
+    kind: ClusterIssuer
+  dnsNames:
+    - staging.flamoral.com
+    - api-staging.flamoral.com
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA
+    size: 2048
+---
+# Certificate for development environment (optional)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: flamoral-dev-tls
+  namespace: dating-app-dev
+  labels:
+    app.kubernetes.io/name: flamoral
+    app.kubernetes.io/component: certificate
+    app.kubernetes.io/environment: development
+spec:
+  secretName: flamoral-dev-tls
+  issuerRef:
+    name: letsencrypt-staging  # Use staging for dev
+    kind: ClusterIssuer
+  dnsNames:
+    - dev.flamoral.com
+    - api-dev.flamoral.com
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA
+    size: 2048

@@ -1,0 +1,23 @@
+Version 1.0.0 - Initial Release
+
+Welcome to Flamoral! We're excited to introduce our new dating platform:
+
+NEW FEATURES:
+- Create engaging video profiles
+- AI-powered smart matching algorithm
+- Real-time messaging with encryption
+- Video calling for virtual dates
+- Advanced safety and verification tools
+- Gamification with daily rewards
+- Multiple relationship modes
+- Smart conversation starters
+- Comprehensive privacy controls
+
+IMPROVEMENTS:
+- Optimized app performance
+- Enhanced security measures
+- Improved user interface
+- Better battery efficiency
+- Faster load times
+
+Thank you for joining Flamoral! We're constantly working to improve your experience. Share your feedback at support@flamoral.com.

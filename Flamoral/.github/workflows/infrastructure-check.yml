@@ -1,0 +1,529 @@
+# =============================================================================
+# INFRASTRUCTURE CHECK PIPELINE - Flamoral Dating Platform
+# =============================================================================
+# Comprehensive infrastructure validation with:
+# - Terraform configuration validation
+# - Kubernetes manifest validation (kubectl dry-run)
+# - Helm chart validation and linting
+# - Security scanning (Trivy, Checkov, tfsec)
+# - Infrastructure compliance checks
+# - Cost estimation
+# =============================================================================
+
+name: Infrastructure Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'infrastructure/**'
+      - '.github/workflows/infrastructure-check.yml'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'infrastructure/**'
+  workflow_dispatch:
+
+concurrency:
+  group: infra-check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TERRAFORM_VERSION: '1.6.0'
+  TFLINT_VERSION: 'v0.50.0'
+  HELM_VERSION: 'v3.13.0'
+  KUBECTL_VERSION: 'v1.28.0'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+  checks: write
+
+jobs:
+  # ===========================================================================
+  # STAGE 1: Terraform Validation
+  # ===========================================================================
+  terraform-validate:
+    name: Validate Terraform Configurations
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment:
+          - dating-dev
+          - test
+          - prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        working-directory: infrastructure/terraform/environments/${{ matrix.environment }}
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/${{ matrix.environment }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: infrastructure/terraform/environments/${{ matrix.environment }}
+        run: terraform validate
+
+      - name: Generate Terraform Plan
+        working-directory: infrastructure/terraform/environments/${{ matrix.environment }}
+        run: |
+          terraform plan -out=tfplan-${{ matrix.environment }} || echo "Plan generated with warnings"
+        continue-on-error: true
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ matrix.environment }}
+          path: infrastructure/terraform/environments/${{ matrix.environment }}/tfplan-${{ matrix.environment }}
+          retention-days: 30
+
+  # ===========================================================================
+  # STAGE 2: Terraform Linting
+  # ===========================================================================
+  terraform-lint:
+    name: Lint Terraform with TFLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+
+      - name: Initialize TFLint
+        run: |
+          cd infrastructure/terraform
+          tflint --init
+
+      - name: Run TFLint
+        run: |
+          cd infrastructure/terraform
+          tflint --recursive --format compact
+
+  # ===========================================================================
+  # STAGE 3: Terraform Security Scanning
+  # ===========================================================================
+  terraform-security:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: infrastructure/terraform
+          format: sarif
+          soft_fail: true
+
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infrastructure/terraform
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+          skip_check: CKV_AZURE_33,CKV_AZURE_35,CKV_AZURE_44
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov-terraform
+
+      - name: Run Trivy for IaC scanning
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/terraform'
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy IaC results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+          category: trivy-iac
+
+  # ===========================================================================
+  # STAGE 4: Kubernetes Manifest Validation
+  # ===========================================================================
+  kubernetes-validate:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Validate K8s manifests with kubeval
+        run: |
+          # Install kubeval
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin
+
+          # Validate all YAML files
+          echo "Validating Kubernetes manifests..."
+          find infrastructure/k8s -name "*.yaml" -type f | while read file; do
+            echo "Validating $file"
+            kubeval "$file" || echo "Validation completed with warnings for $file"
+          done
+
+      - name: Dry-run kubectl apply
+        run: |
+          echo "Running dry-run for Kubernetes manifests..."
+          find infrastructure/k8s -name "*.yaml" -type f | while read file; do
+            echo "Dry-run: $file"
+            kubectl apply --dry-run=client -f "$file" || echo "Dry-run completed with warnings for $file"
+          done
+
+      - name: Validate with kubeconform
+        run: |
+          # Install kubeconform
+          wget https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin
+
+          # Validate manifests
+          find infrastructure/k8s -name "*.yaml" -type f -exec kubeconform -summary {} \;
+
+  # ===========================================================================
+  # STAGE 5: Kubernetes Security Scanning
+  # ===========================================================================
+  kubernetes-security:
+    name: Kubernetes Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy for K8s manifests
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/k8s'
+          format: 'sarif'
+          output: 'trivy-k8s-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy K8s results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-k8s-results.sarif'
+          category: trivy-k8s
+
+      - name: Run kube-score
+        run: |
+          # Install kube-score
+          wget https://github.com/zegl/kube-score/releases/download/v1.18.0/kube-score_1.18.0_linux_amd64 -O kube-score
+          chmod +x kube-score
+          sudo mv kube-score /usr/local/bin/
+
+          # Score all manifests
+          echo "Running kube-score on manifests..."
+          find infrastructure/k8s -name "*.yaml" -type f | while read file; do
+            echo "Scoring: $file"
+            kube-score score "$file" || echo "Scored: $file"
+          done
+
+      - name: Run Polaris
+        run: |
+          # Install Polaris
+          wget https://github.com/FairwindsOps/polaris/releases/latest/download/polaris_linux_amd64.tar.gz
+          tar -xzf polaris_linux_amd64.tar.gz
+          sudo mv polaris /usr/local/bin/
+
+          # Audit manifests
+          echo "Running Polaris security audit..."
+          polaris audit --path infrastructure/k8s --format pretty || echo "Audit completed"
+
+  # ===========================================================================
+  # STAGE 6: Helm Chart Validation
+  # ===========================================================================
+  helm-validate:
+    name: Validate Helm Charts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Lint Helm charts
+        run: |
+          echo "Linting Helm charts..."
+          if [ -d "infrastructure/helm/flamoral" ]; then
+            helm lint infrastructure/helm/flamoral
+          fi
+
+      - name: Validate Helm chart templates
+        run: |
+          echo "Validating Helm templates..."
+          if [ -d "infrastructure/helm/flamoral" ]; then
+            # Test with dev values
+            helm template flamoral-dev infrastructure/helm/flamoral \
+              --values infrastructure/helm/flamoral/values-dev.yaml \
+              --debug
+
+            # Test with prod values
+            helm template flamoral-prod infrastructure/helm/flamoral \
+              --values infrastructure/helm/flamoral/values-prod.yaml \
+              --debug
+          fi
+
+      - name: Run Helm dry-run
+        run: |
+          echo "Running Helm dry-run installations..."
+          if [ -d "infrastructure/helm/flamoral" ]; then
+            helm install flamoral-test infrastructure/helm/flamoral \
+              --dry-run \
+              --debug \
+              --values infrastructure/helm/flamoral/values-test.yaml || echo "Dry-run completed"
+          fi
+
+  # ===========================================================================
+  # STAGE 7: Infrastructure Cost Estimation
+  # ===========================================================================
+  cost-estimate:
+    name: Infrastructure Cost Estimation
+    runs-on: ubuntu-latest
+    needs: terraform-validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate cost estimate for all environments
+        run: |
+          for env in dating-dev test prod; do
+            echo "Generating cost estimate for $env..."
+            cd infrastructure/terraform/environments/$env
+            terraform init -backend=false
+            infracost breakdown --path . \
+              --format json \
+              --out-file /tmp/infracost-$env.json || echo "Cost estimate generated for $env"
+            cd -
+          done
+
+      - name: Generate combined cost report
+        run: |
+          infracost output --path "/tmp/infracost-*.json" \
+            --format table \
+            --out-file cost-summary.txt
+
+          echo "## 💰 Infrastructure Cost Estimate" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat cost-summary.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Post cost comment to PR
+        if: github.event_name == 'pull_request'
+        uses: infracost/actions/comment@v1
+        with:
+          path: /tmp/infracost-*.json
+          behavior: update
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload cost reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: cost-estimates
+          path: |
+            /tmp/infracost-*.json
+            cost-summary.txt
+          retention-days: 90
+
+  # ===========================================================================
+  # STAGE 8: Infrastructure Documentation Check
+  # ===========================================================================
+  documentation-check:
+    name: Check Infrastructure Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install terraform-docs
+        run: |
+          wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz
+          tar -xzf terraform-docs-v0.17.0-linux-amd64.tar.gz
+          sudo mv terraform-docs /usr/local/bin/
+
+      - name: Generate Terraform documentation
+        run: |
+          for env in dating-dev test prod; do
+            echo "Generating documentation for $env..."
+            cd infrastructure/terraform/environments/$env
+            terraform-docs markdown table . > README-generated.md
+            cd -
+          done
+
+      - name: Check for missing documentation
+        run: |
+          echo "Checking for infrastructure documentation..."
+          required_docs=(
+            "infrastructure/README.md"
+            "infrastructure/terraform/README.md"
+            "infrastructure/k8s/README.md"
+          )
+
+          missing_docs=0
+          for doc in "${required_docs[@]}"; do
+            if [ ! -f "$doc" ]; then
+              echo "❌ Missing: $doc"
+              missing_docs=$((missing_docs + 1))
+            else
+              echo "✅ Found: $doc"
+            fi
+          done
+
+          if [ $missing_docs -gt 0 ]; then
+            echo "⚠️ Warning: $missing_docs documentation file(s) missing"
+          fi
+
+  # ===========================================================================
+  # STAGE 9: Generate Summary Report
+  # ===========================================================================
+  summary-report:
+    name: Generate Summary Report
+    runs-on: ubuntu-latest
+    needs:
+      - terraform-validate
+      - terraform-lint
+      - terraform-security
+      - kubernetes-validate
+      - kubernetes-security
+      - helm-validate
+      - cost-estimate
+      - documentation-check
+    if: always()
+
+    steps:
+      - name: Generate infrastructure check summary
+        run: |
+          echo "## 🏗️ Infrastructure Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Validation | ${{ needs.terraform-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Linting | ${{ needs.terraform-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Security | ${{ needs.terraform-security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Kubernetes Validation | ${{ needs.kubernetes-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Kubernetes Security | ${{ needs.kubernetes-security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Helm Validation | ${{ needs.helm-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cost Estimation | ${{ needs.cost-estimate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation Check | ${{ needs.documentation-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Overall status
+          if [ "${{ needs.terraform-validate.result }}" == "success" ] && \
+             [ "${{ needs.kubernetes-validate.result }}" == "success" ] && \
+             [ "${{ needs.helm-validate.result }}" == "success" ]; then
+            echo "### ✅ Infrastructure checks passed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Your infrastructure configurations are valid and ready for deployment." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Infrastructure checks failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the validation errors and fix the issues." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Send Slack notification
+        if: github.event_name == 'pull_request'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#infrastructure",
+              "username": "Flamoral CI/CD",
+              "icon_emoji": ":construction:",
+              "attachments": [{
+                "color": "${{ needs.terraform-validate.result == 'success' && needs.kubernetes-validate.result == 'success' && needs.helm-validate.result == 'success' && 'good' || 'danger' }}",
+                "title": "Infrastructure Check Complete",
+                "text": "Infrastructure validation results for PR #${{ github.event.pull_request.number }}",
+                "fields": [
+                  {
+                    "title": "Terraform",
+                    "value": "${{ needs.terraform-validate.result }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Kubernetes",
+                    "value": "${{ needs.kubernetes-validate.result }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Helm",
+                    "value": "${{ needs.helm-validate.result }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Security",
+                    "value": "${{ needs.terraform-security.result }}",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true

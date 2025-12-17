@@ -1,0 +1,530 @@
+# =============================================================================
+# GITLEAKS CONFIGURATION - Flamoral Dating Platform (ENHANCED)
+# =============================================================================
+# Custom secret detection rules for Flamoral's security requirements
+# Includes: Payment provider keys, cloud credentials, database passwords
+# Excludes: Example files, test fixtures, known safe patterns
+#
+# ENHANCEMENTS:
+# - Added MongoDB Atlas connection string detection
+# - Added Google Service Account private key detection
+# - Added Firebase configuration detection
+# - Enhanced test file exclusions
+# =============================================================================
+
+title = "Flamoral Dating Platform - Gitleaks Configuration (Enhanced)"
+
+# =============================================================================
+# GLOBAL SETTINGS
+# =============================================================================
+
+[extend]
+# Extend default Gitleaks rules with custom configurations
+useDefault = true
+
+# =============================================================================
+# CUSTOM RULES - PAYMENT PROVIDERS
+# =============================================================================
+
+[[rules]]
+id = "stripe-live-secret-key"
+description = "Detected Stripe Live Secret Key"
+regex = '''sk_live_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "payment", "secret", "critical"]
+[rules.allowlist]
+description = "Ignore Stripe test keys and example files"
+regexes = [
+  '''sk_test_''',
+  '''your_stripe_secret_key_here''',
+  '''sk_live_YOUR_KEY_HERE''',
+  '''sk_live_PLACEHOLDER'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/docs/.*''',
+  '''.*/examples/.*''',
+  '''.*/test/.*''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/fixtures/.*''',
+]
+
+[[rules]]
+id = "stripe-live-publishable-key"
+description = "Detected Stripe Live Publishable Key"
+regex = '''pk_live_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "payment", "publishable", "high"]
+[rules.allowlist]
+regexes = [
+  '''pk_test_''',
+  '''your_stripe_publishable_key_here''',
+  '''pk_live_YOUR_KEY_HERE''',
+  '''pk_live_PLACEHOLDER'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/docs/.*''',
+  '''.*/test/.*''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+]
+
+[[rules]]
+id = "stripe-test-secret-key"
+description = "Detected Stripe Test Secret Key (warning only)"
+regex = '''sk_test_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "payment", "test", "medium"]
+[rules.allowlist]
+regexes = [
+  '''your_stripe_secret_key_here''',
+  '''sk_test_YOUR_KEY_HERE''',
+  '''sk_test_PLACEHOLDER'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+]
+
+[[rules]]
+id = "stripe-webhook-secret"
+description = "Detected Stripe Webhook Secret"
+regex = '''whsec_[0-9a-zA-Z]{32,}'''
+tags = ["stripe", "webhook", "secret", "high"]
+[rules.allowlist]
+regexes = [
+  '''whsec_YOUR_WEBHOOK_SECRET''',
+  '''whsec_PLACEHOLDER''',
+  '''your_webhook_secret_here'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/test/.*''',
+  '''.*/tests/.*''',
+]
+
+# =============================================================================
+# CUSTOM RULES - DATABASE CONNECTIONS
+# =============================================================================
+
+[[rules]]
+id = "postgres-connection-string"
+description = "Detected PostgreSQL Connection String with Password"
+regex = '''postgres(?:ql)?://[a-zA-Z0-9_-]+:[^@\s]+@[a-zA-Z0-9.-]+:[0-9]+/[a-zA-Z0-9_-]+'''
+tags = ["database", "postgres", "connection-string", "high"]
+[rules.allowlist]
+regexes = [
+  '''postgres://postgres:postgres@localhost''',
+  '''postgres://test:test@localhost''',
+  '''postgres://user:password@localhost''',
+  '''postgres://USERNAME:PASSWORD@HOST''',
+  '''your_password_here''',
+  '''YOUR_PASSWORD'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/docker-compose\.yml$''',
+  '''.*/docker-compose\.yaml$''',
+  '''.*/docker-compose\.dev\.yml$''',
+]
+
+[[rules]]
+id = "mongodb-connection-string"
+description = "Detected MongoDB Connection String with Password"
+regex = '''mongodb(\+srv)?://[a-zA-Z0-9_-]+:[^@\s]+@[a-zA-Z0-9.-]+'''
+tags = ["database", "mongodb", "connection-string", "high"]
+[rules.allowlist]
+regexes = [
+  '''mongodb://admin:password@localhost''',
+  '''mongodb://USERNAME:PASSWORD@HOST''',
+  '''your_password_here''',
+  '''YOUR_PASSWORD'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/docker-compose\.yml$''',
+]
+
+[[rules]]
+id = "mongodb-atlas-connection-string"
+description = "Detected MongoDB Atlas Connection String"
+regex = '''mongodb\+srv://[a-zA-Z0-9_-]+:[^@\s]+@[a-zA-Z0-9.-]+\.mongodb\.net'''
+tags = ["database", "mongodb", "atlas", "critical"]
+[rules.allowlist]
+regexes = [
+  '''mongodb\+srv://USERNAME:PASSWORD@''',
+  '''your_password_here''',
+  '''YOUR_PASSWORD''',
+  '''<password>'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+]
+
+[[rules]]
+id = "redis-connection-string"
+description = "Detected Redis Connection String with Password"
+regex = '''redis://:[^@\s]+@[a-zA-Z0-9.-]+:[0-9]+'''
+tags = ["database", "redis", "connection-string", "medium"]
+[rules.allowlist]
+regexes = [
+  '''redis://:password@localhost''',
+  '''redis://:YOUR_PASSWORD@''',
+  '''your_redis_password'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/tests/.*''',
+  '''.*/test/.*''',
+  '''.*/docker-compose\.yml$''',
+]
+
+# =============================================================================
+# CUSTOM RULES - JWT & API SECRETS
+# =============================================================================
+
+[[rules]]
+id = "jwt-secret-high-entropy"
+description = "Detected JWT Secret with High Entropy"
+regex = '''(?i)(jwt_secret|jwt_access_secret|jwt_refresh_secret|access_token_secret|refresh_token_secret)\s*[:=]\s*['\"]?([a-zA-Z0-9+/=_-]{32,})['\"]?'''
+entropy = 4.5
+tags = ["jwt", "secret", "token", "high"]
+[rules.allowlist]
+regexes = [
+  '''your-jwt-.*-secret''',
+  '''your_jwt_.*_secret''',
+  '''test_jwt_secret''',
+  '''JWT_SECRET_PLACEHOLDER''',
+  '''your-secret-key-min-32-chars''',
+  '''your-.*-secret-key-min-32-chars''',
+  '''CHANGE_ME_TO_.*'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+]
+
+[[rules]]
+id = "api-key-high-entropy"
+description = "Detected API Key with High Entropy"
+regex = '''(?i)(api_key|apikey|service_api_key|x-api-key)\s*[:=]\s*['\"]?([a-zA-Z0-9_-]{32,})['\"]?'''
+entropy = 4.0
+tags = ["api", "key", "secret", "high"]
+[rules.allowlist]
+regexes = [
+  '''your.*api.*key''',
+  '''YOUR_API_KEY''',
+  '''API_KEY_PLACEHOLDER''',
+  '''test_api_key''',
+  '''your-internal-service-api-key-min-32-chars'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+]
+
+# =============================================================================
+# CUSTOM RULES - THIRD-PARTY SERVICES
+# =============================================================================
+
+[[rules]]
+id = "google-service-account"
+description = "Detected Google Service Account Private Key"
+regex = '''"private_key":\s*"-----BEGIN PRIVATE KEY-----'''
+tags = ["google", "service-account", "private-key", "critical"]
+[rules.allowlist]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+  '''.*/docs/.*''',
+  '''.*/examples/.*''',
+]
+
+[[rules]]
+id = "firebase-api-key"
+description = "Detected Firebase API Key"
+regex = '''AIza[0-9A-Za-z_-]{35}'''
+tags = ["firebase", "google", "api-key", "medium"]
+[rules.allowlist]
+regexes = [
+  '''AIzaSyCONFIG_EXAMPLE''',
+  '''AIzaSyPLACEHOLDER'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/tests/.*''',
+  '''.*/test/.*''',
+]
+
+[[rules]]
+id = "sendgrid-api-key"
+description = "Detected SendGrid API Key"
+regex = '''SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}'''
+tags = ["sendgrid", "email", "api-key", "high"]
+[rules.allowlist]
+regexes = [
+  '''SG\.YOUR_API_KEY''',
+  '''SG\.PLACEHOLDER'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/test/.*''',
+]
+
+[[rules]]
+id = "twilio-api-key"
+description = "Detected Twilio API Key"
+regex = '''SK[a-z0-9]{32}'''
+tags = ["twilio", "sms", "api-key", "high"]
+[rules.allowlist]
+regexes = [
+  '''SK00000000000000000000000000000000''',
+  '''SKYOUR_API_KEY_HERE'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/test/.*''',
+]
+
+[[rules]]
+id = "aws-access-key-id"
+description = "Detected AWS Access Key ID"
+regex = '''(?i)(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+tags = ["aws", "access-key", "critical"]
+[rules.allowlist]
+regexes = [
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''AKIA0000000000000000''',
+  '''YOUR_AWS_ACCESS_KEY'''
+]
+paths = [
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*/docs/.*''',
+  '''.*/test/.*''',
+]
+
+# =============================================================================
+# CUSTOM RULES - PRIVATE KEYS
+# =============================================================================
+
+[[rules]]
+id = "rsa-private-key"
+description = "Detected RSA Private Key"
+regex = '''-----BEGIN RSA PRIVATE KEY-----'''
+tags = ["private-key", "rsa", "critical"]
+[rules.allowlist]
+paths = [
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+  '''.*/docs/.*''',
+  '''.*/examples/.*''',
+]
+
+[[rules]]
+id = "openssh-private-key"
+description = "Detected OpenSSH Private Key"
+regex = '''-----BEGIN OPENSSH PRIVATE KEY-----'''
+tags = ["private-key", "openssh", "critical"]
+[rules.allowlist]
+paths = [
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+  '''.*/examples/.*''',
+]
+
+[[rules]]
+id = "pgp-private-key"
+description = "Detected PGP Private Key"
+regex = '''-----BEGIN PGP PRIVATE KEY BLOCK-----'''
+tags = ["private-key", "pgp", "critical"]
+[rules.allowlist]
+paths = [
+  '''.*/tests/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/test/.*''',
+  '''.*/fixtures/.*''',
+  '''.*/examples/.*''',
+]
+
+# =============================================================================
+# GLOBAL ALLOWLIST
+# =============================================================================
+
+[allowlist]
+description = "Global allowlist for known safe patterns and files"
+
+# Paths to completely ignore
+paths = [
+  # Example and template files
+  '''.*\.env\.example$''',
+  '''.*\.env\.sample$''',
+  '''.*\.env\.template$''',
+  '''.*\.env\.dist$''',
+  '''.*\.env\.local\.example$''',
+
+  # Documentation
+  '''.*/docs/.*\.md$''',
+  '''.*/README\.md$''',
+  '''.*/CHANGELOG\.md$''',
+  '''.*/CONTRIBUTING\.md$''',
+  '''.*/SECURITY\.md$''',
+
+  # Test files and fixtures
+  '''.*/tests/.*''',
+  '''.*/test/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/__mocks__/.*''',
+  '''.*/fixtures/.*''',
+  '''.*/testdata/.*''',
+  '''.*\.test\.ts$''',
+  '''.*\.spec\.ts$''',
+  '''.*\.test\.js$''',
+  '''.*\.spec\.js$''',
+
+  # Node modules
+  '''.*/node_modules/.*''',
+
+  # Build artifacts
+  '''.*/dist/.*''',
+  '''.*/build/.*''',
+  '''.*/out/.*''',
+  '''.*/coverage/.*''',
+  '''.*/\.next/.*''',
+
+  # Lock files
+  '''.*package-lock\.json$''',
+  '''.*yarn\.lock$''',
+  '''.*pnpm-lock\.yaml$''',
+
+  # Configuration files (non-sensitive)
+  '''.*/\.prettierrc.*''',
+  '''.*/\.eslintrc.*''',
+  '''.*/tsconfig\.json$''',
+  '''.*/jest\.config\.*''',
+
+  # Gitleaks itself
+  '''.*\.gitleaks\.toml$''',
+  '''.*\.trufflehogignore$''',
+
+  # Git files
+  '''.*/\.git/.*''',
+  '''.*/\.github/.*\.md$''',
+
+  # Backup files (created by our fix script)
+  '''.*\.backup$''',
+  '''.*\.FIXED\.ts$''',
+  '''.*\.ENHANCED$''',
+]
+
+# Regex patterns to ignore globally
+regexes = [
+  # Common placeholder patterns
+  '''(?i)YOUR_.*_HERE''',
+  '''(?i)PLACEHOLDER''',
+  '''(?i)REPLACE_ME''',
+  '''(?i)TODO''',
+  '''(?i)CHANGEME''',
+  '''(?i)CHANGE_ME_TO''',
+  '''(?i)example''',
+  '''(?i)sample''',
+  '''(?i)test_.*_key''',
+  '''(?i)<password>''',
+  '''(?i)<secret>''',
+  '''(?i)<your-.*>''',
+
+  # Common test values
+  '''test:test@localhost''',
+  '''postgres:postgres@localhost''',
+  '''admin:password@localhost''',
+  '''username:password''',
+  '''user:pass''',
+
+  # UUIDs that are placeholders
+  '''00000000-0000-0000-0000-000000000000''',
+  '''11111111-1111-1111-1111-111111111111''',
+  '''12345678-1234-1234-1234-123456789012''',
+]
+
+# Commits to ignore (useful for baseline)
+commits = []
+
+# Stop scanning at these commits
+stopwords = []
+
+# =============================================================================
+# ENTROPY DETECTION
+# =============================================================================
+
+# Disable generic high-entropy detection to reduce false positives
+# We use specific rules with entropy thresholds instead
+[allowlist.regexTarget]
+regexes = []
+
+# =============================================================================
+# REPORTING CONFIGURATION
+# =============================================================================
+
+# Configure the output
+[report]
+format = "sarif"
+path = "gitleaks-report.sarif"
+
+# =============================================================================
+# PERFORMANCE TUNING
+# =============================================================================
+
+# Adjust these for repository size and scan speed
+[settings]
+# Number of commits to scan (0 = all)
+depth = 0
+
+# Skip binary files
+ignoreBinary = true
+
+# Max file size to scan (bytes)
+maxFileSize = 1048576  # 1MB

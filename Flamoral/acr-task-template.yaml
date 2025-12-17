@@ -1,0 +1,9 @@
+version: v1.1.0
+steps:
+  # Build stage
+  - build: -t {{.Run.Registry}}/{{.Values.serviceName}}:latest -t {{.Run.Registry}}/{{.Values.serviceName}}:v1.0.0 -t {{.Run.Registry}}/{{.Values.serviceName}}:prod -f {{.Values.dockerfilePath}} --build-arg SKIP_POSTINSTALL=true .
+  # Push all tags
+  - push:
+    - "{{.Run.Registry}}/{{.Values.serviceName}}:latest"
+    - "{{.Run.Registry}}/{{.Values.serviceName}}:v1.0.0"
+    - "{{.Run.Registry}}/{{.Values.serviceName}}:prod"

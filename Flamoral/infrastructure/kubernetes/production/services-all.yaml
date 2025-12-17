@@ -1,0 +1,492 @@
+# =============================================================================
+# Flamoral Production Services - All Service Definitions
+# =============================================================================
+# This file contains all ClusterIP Service definitions for internal communication
+# between microservices in the Flamoral platform.
+# =============================================================================
+
+---
+# API Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: flamoral-prod
+  labels:
+    app: api-gateway
+    tier: critical
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  selector:
+    app: api-gateway
+
+---
+# Auth Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: flamoral-prod
+  labels:
+    app: auth-service
+    tier: critical
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3001
+    targetPort: 3001
+    protocol: TCP
+    name: http
+  selector:
+    app: auth-service
+
+---
+# User Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: flamoral-prod
+  labels:
+    app: user-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3002
+    targetPort: 3002
+    protocol: TCP
+    name: http
+  selector:
+    app: user-service
+
+---
+# Messaging Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-service
+  namespace: flamoral-prod
+  labels:
+    app: messaging-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3003
+    targetPort: 3003
+    protocol: TCP
+    name: http
+  selector:
+    app: messaging-service
+
+---
+# Payment Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: flamoral-prod
+  labels:
+    app: payment-service
+    tier: critical
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3005
+    targetPort: 3005
+    protocol: TCP
+    name: http
+  selector:
+    app: payment-service
+
+---
+# Media Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-service
+  namespace: flamoral-prod
+  labels:
+    app: media-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3006
+    targetPort: 3006
+    protocol: TCP
+    name: http
+  selector:
+    app: media-service
+
+---
+# Analytics Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: flamoral-prod
+  labels:
+    app: analytics-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3007
+    targetPort: 3007
+    protocol: TCP
+    name: http
+  selector:
+    app: analytics-service
+
+---
+# Moderation Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: moderation-service
+  namespace: flamoral-prod
+  labels:
+    app: moderation-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3008
+    targetPort: 3008
+    protocol: TCP
+    name: http
+  selector:
+    app: moderation-service
+
+---
+# Matching Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-service
+  namespace: flamoral-prod
+  labels:
+    app: matching-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3009
+    targetPort: 3009
+    protocol: TCP
+    name: http
+  selector:
+    app: matching-service
+
+---
+# Advertising Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: advertising-service
+  namespace: flamoral-prod
+  labels:
+    app: advertising-service
+    tier: low-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3011
+    targetPort: 3011
+    protocol: TCP
+    name: http
+  selector:
+    app: advertising-service
+
+---
+# Notification Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: flamoral-prod
+  labels:
+    app: notification-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3012
+    targetPort: 3012
+    protocol: TCP
+    name: http
+  selector:
+    app: notification-service
+
+---
+# Admin Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: flamoral-prod
+  labels:
+    app: admin-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3013
+    targetPort: 3013
+    protocol: TCP
+    name: http
+  selector:
+    app: admin-service
+
+---
+# Automation Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: automation-service
+  namespace: flamoral-prod
+  labels:
+    app: automation-service
+    tier: low-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3014
+    targetPort: 3014
+    protocol: TCP
+    name: http
+  selector:
+    app: automation-service
+
+---
+# Workflow Engine Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-engine
+  namespace: flamoral-prod
+  labels:
+    app: workflow-engine
+    tier: low-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3015
+    targetPort: 3015
+    protocol: TCP
+    name: http
+  selector:
+    app: workflow-engine
+
+---
+# Policy Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: policy-service
+  namespace: flamoral-prod
+  labels:
+    app: policy-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3016
+    targetPort: 3016
+    protocol: TCP
+    name: http
+  selector:
+    app: policy-service
+
+---
+# Realtime Service (WebSocket)
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime-service
+  namespace: flamoral-prod
+  labels:
+    app: realtime-service
+    tier: high-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8081
+    targetPort: 8081
+    protocol: TCP
+    name: http
+  selector:
+    app: realtime-service
+
+---
+# Flamoral Web Frontend
+apiVersion: v1
+kind: Service
+metadata:
+  name: flamoral-web
+  namespace: flamoral-prod
+  labels:
+    app: flamoral-web
+    tier: critical
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: flamoral-web
+
+---
+# AI Services (Python-based)
+---
+# Recommendation Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendation-service
+  namespace: flamoral-prod
+  labels:
+    app: recommendation-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: recommendation-service
+
+---
+# NLP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nlp-service
+  namespace: flamoral-prod
+  labels:
+    app: nlp-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5001
+    targetPort: 5001
+    protocol: TCP
+    name: http
+  selector:
+    app: nlp-service
+
+---
+# Photo Analysis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: photo-analysis-service
+  namespace: flamoral-prod
+  labels:
+    app: photo-analysis-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5002
+    targetPort: 5002
+    protocol: TCP
+    name: http
+  selector:
+    app: photo-analysis-service
+
+---
+# Fraud Detection Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-detection-service
+  namespace: flamoral-prod
+  labels:
+    app: fraud-detection-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5003
+    targetPort: 5003
+    protocol: TCP
+    name: http
+  selector:
+    app: fraud-detection-service
+
+---
+# Dating Coach Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: dating-coach-service
+  namespace: flamoral-prod
+  labels:
+    app: dating-coach-service
+    tier: low-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5004
+    targetPort: 5004
+    protocol: TCP
+    name: http
+  selector:
+    app: dating-coach-service
+
+---
+# Content Generator Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: content-generator-service
+  namespace: flamoral-prod
+  labels:
+    app: content-generator-service
+    tier: low-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5005
+    targetPort: 5005
+    protocol: TCP
+    name: http
+  selector:
+    app: content-generator-service
+
+---
+# AI Service (Main)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: flamoral-prod
+  labels:
+    app: ai-service
+    tier: medium-traffic
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: ai-service

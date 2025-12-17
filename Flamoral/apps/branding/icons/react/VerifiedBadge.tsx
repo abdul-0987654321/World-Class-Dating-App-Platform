@@ -1,0 +1,50 @@
+/**
+ * Flamoral Verified Badge Icon
+ * Represents verified profiles and authenticity
+ */
+
+import React from 'react';
+
+export interface IconProps {
+  size?: number;
+  className?: string;
+  color?: string;
+  gradientId?: string;
+}
+
+export const VerifiedBadge: React.FC<IconProps> = ({
+  size = 24,
+  className,
+  color,
+  gradientId = 'verifiedGradient',
+}) => {
+  const fill = color || `url(#${gradientId})`;
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      fill="none"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#D62839" />
+          <stop offset="100%" stopColor="#FF6E35" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 1L9.19 4.21L5 3.81l-.4 4.19L1.4 10l2.76 2.79L3 17.19l4.19.4L10 21.81l2-2.62 2 2.62 2.81-4.22 4.19-.4-1.16-4.4L22.6 10l-3.2-2-.4-4.19-4.19.4L12 1z"
+        fill={fill}
+      />
+      <path
+        d="M10 14.17l-3.17-3.17L5.41 12.42 10 17l9-9-1.41-1.42L10 14.17z"
+        fill="#FFF6EE"
+      />
+    </svg>
+  );
+};
+
+export default VerifiedBadge;

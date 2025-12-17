@@ -1,0 +1,16 @@
+apiVersion: v2
+name: dating-app
+description: A Helm chart for Dating App Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - dating-app
+  - microservices
+  - nodejs
+home: https://flamoral.com
+sources:
+  - https://github.com/dating-app/platform
+maintainers:
+  - name: Platform Team
+    email: platform@flamoral.com

@@ -1,0 +1,49 @@
+{
+  "name": "@flamoral/backend-shared",
+  "version": "1.0.0",
+  "description": "Shared types, utilities, and constants for backend services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "types",
+    "utils",
+    "constants",
+    "config",
+    "middleware",
+    "database",
+    "infrastructure",
+    "services",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist *.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
+  },
+  "dependencies": {
+    "@flamoral/types": "workspace:*",
+    "@flamoral/constants": "workspace:*",
+    "@flamoral/utils": "workspace:*",
+    "axios": "^1.7.9",
+    "ioredis": "^5.3.2",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

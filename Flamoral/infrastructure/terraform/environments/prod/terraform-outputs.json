@@ -1,0 +1,460 @@
+{
+  "access_level": {
+    "sensitive": false,
+    "type": "string",
+    "value": "public"
+  },
+  "aks_cluster_fqdn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-px7wiids.hcp.westus2.azmk8s.io"
+  },
+  "aks_cluster_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.ContainerService/managedClusters/flamoral-prod-aks"
+  },
+  "aks_cluster_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-aks"
+  },
+  "aks_kube_config": {
+    "sensitive": true,
+    "type": "string",
+    "value": "apiVersion: v1\nclusters:\n- cluster:\n    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUU2RENDQXRDZ0F3SUJBZ0lRWjc2b0pzUUFBUlJ2aUdrcGJGaGRHakFOQmdrcWhraUc5dzBCQVFzRkFEQU4KTVFzd0NRWURWUVFERXdKallUQWdGdzB5TlRFeU1UTXlNekl6TkRGYUdBOHlNRFUxTVRJeE16SXpNek0wTVZvdwpEVEVMTUFrR0ExVUVBeE1DWTJFd2dnSWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUNEd0F3Z2dJS0FvSUNBUURaCnRCZjVzWGI2TEVvT00wNVlRL0sydS9SNHVxOHVJeURkQnBMK0Z3bDRsTittYjJtUlRhakNZNDlZOTVkOWxjc0gKZ0YveWdJbXc0MmgwdEY1dXg1ZEljRCs1NHgyeEdabWozbTZkTVRTRm10Nnk4K3FXVUs1bzVEMHN6bHlnWkc0bgpIMU0wUmpSOUt4Y2VVNmIzbHVuVjhvR01jODVGOEhydzUxODBVakF4dWlGMit3T0gzc3cycWFZSHdTY3VDY01MCnpLUVowdEtXNVE4Qi94SHM3d1JSL29xQlV4SDM1MEM0ZWRqb0tnekdHUVZZRVZESnJSVEpqdC95TDExSlhnZVoKNUpuNjBOL2NhT0RwYkRJdk9qUmh0eEVXTzNJZlhTeWw0Uk9keUc0TFpjZmtqcXg1R05jczFyV2lSZHdFc1BrUApQakRjcWJiMEY3cWRVWlM5K1BzdDVUVmQ4QjVWTUl1bjhtalNFTmtEbGxYMFpvcXpVeWh0N1c4dExHNXZaRzdoCjZ4U0MrYVk1ckZhdUNrRmg5RHBEUmRCU2w1VkRSYkZHdmcvdm5zcWtJazRiZ2h2cFVRWlUrVkxZMHR1Yk4rbkYKRkg0dGIvbVRiM3U1c2ZrM0JlODZFNjdtNHoySDhTYkxqeG9Rb1MzZk5ITWd5Ly9PMDgyM1FwN0JBRy9PVXp6WQpRT1FXNjZOZGVCckg4Y2M5R0dLc2JFQU0vTUVYVy90bFc1WTQ5UUgzajlaMFQ1ajloRCtzdU5FQ3JnOWptcjRZCkVMWHoxZ1pjdm5qalVQdkdoQnJ4Q0NDNytIN2NLRjAybkFxT1ZtZUZ5R3VlMURYRGlpWGZiblJJZUJaRU5HYUYKUTJ2NVBVOXFkb1NnQWM0TDJ4VFJmNzlXMDlYQlJlOWh6WXh3VHJvb2FRSURBUUFCbzBJd1FEQU9CZ05WSFE4QgpBZjhFQkFNQ0FxUXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVU3MjRYaWtXNzR1UFhoS1ZnCkJvVFJNdEFac2tZd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dJQkFMRmpOa0FJL2ZIRDk2MnBJN0ZnSnZ1WmZUcjgKajhmQkJRS0pqYXREcFdjRVY5dHpxQUZkZFZsMWJDVlB5Y1FDSkltbTRGRDVJK3NsMkE2WE5scWg0cmllWXFKTAoxL3drbmc5SmNNbkF2TnpNQlpDV1JnY3RybHMrZ2l0U1B6enRhYjh5dVFSRlRXZXQ0eHRMaVE2bnZ5Q3NGdUxhClMxdzR3bjROUzk4bVRicC9DN2lFZ1hXNTZtdXBpK0ZpMHUrdERDU2xNSnFFa29FakpHTXBvTVU1SjRKb0ZCVmgKNXZaemlXelA4TUpCbUl0cll3cGxObVNMTHphMzFVbjZ0NmZTd0lkUERpRGFsZ2M4SVF2L25PcjdSVTYyWVlzYgpKUEVsc0JkVjEwMW10aGR3dnZWSE5mRGdMV013TFIzN29ZZ1JONHhZRDVXa2VIeTVpUFlSTm54dlFvb29rdnJwCmNlYzlUVmxUcHhScVJZajFISzFqY0RlY0NiOGpPbmIrVUxzdmNCeGJKTTdvZGZOQUJ0WDJhU3hDMTJCV29reXkKcC9heUtwRUtkYnhIK2JqK0UrdFQrRVRheGdTMXo4TWxOQUljUXJleUlUWEw0Y3hmVklLeWdNR0dXbGRJZ1k5aAprN0QySXRxYWVKbkxDVk9ycEN3TG5tV25nRGlpeHAzV0w4bnFCd0ZHeWEzNWlGTXhYWS9pdHNLeU92ckV3STQ4CnRzbFEyb3AvSmdWUVhoa2RmV0drdDh5SjBmWUFDQ2pJaW9zcEdVeU9vVGo5bUE2YnkrS0ppTktvYzZCVHdvRnkKSitKRkI2ZkVRai9kZ05tM3c5cG1ld201UG1RQ2V3MjgwY05zbzROb1k4aWx2OElPT29iditzZ0FhbFNNV20zMQo2MExaK2pGNnZTV2Q4TVFXCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\n    server: https://flamoral-prod-px7wiids.hcp.westus2.azmk8s.io:443\n  name: flamoral-prod-aks\ncontexts:\n- context:\n    cluster: flamoral-prod-aks\n    user: clusterUser_flamoral-prod-rg_flamoral-prod-aks\n  name: flamoral-prod-aks\ncurrent-context: flamoral-prod-aks\nkind: Config\npreferences: {}\nusers:\n- name: clusterUser_flamoral-prod-rg_flamoral-prod-aks\n  user:\n    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZIakNDQXdhZ0F3SUJBZ0lSQVArVWx1cTQ5andIVUJ4QjU4OWtpdnN3RFFZSktvWklodmNOQVFFTEJRQXcKRFRFTE1Ba0dBMVVFQXhNQ1kyRXdIaGNOTWpVeE1qRXpNak15TXpReFdoY05NamN4TWpFek1qTXpNelF4V2pBdwpNUmN3RlFZRFZRUUtFdzV6ZVhOMFpXMDZiV0Z6ZEdWeWN6RVZNQk1HQTFVRUF4TU1iV0Z6ZEdWeVkyeHBaVzUwCk1JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQ0NnS0NBZ0VBdnp5MzNCV1pZajFSejI4WENseDcKMTczTzB5dFFBcUhOTzIrRWw3RjNabHNWRnlUZENDaFZ5VnBoRFF3WmFIVTh5enhiUStqQU1WRnplM1o4ZVdBRwpycmdYcHRGWWRLdithaktLUU9Edk5zbCtUME9wVjF5ZXNKS0txRmZnYVd6ek1WcWlhck85VlpHUzJKTmdxVDQvCkRmNTRQQlRvMG9qajUvWTBSajhCeWk5RlhiY0hrMEUzVmRESFJUVmFKdjR6SVc0TFlTbW9FcTg3SWFneXI3bUcKS0RCdjJTK1lPR1loSmdaNzkzRm9KL1FaVlUxcVAzT0x4Q3dwcFVsVFArV1RtemxBNjgvbS8wK0VuL2pVMUxRVQo5Ymd3bWYxTXgyWUNtVktMVnM3ZmMvdi9tQ1BISnJydlMyRUF6eE9GSTlYVVhjYkF6U2ZNTXhNcTUxMkJmekVtCmtjb1J1SlJ2dmdXdHVGTnVHRHVESjhDdFdleThDSDJDazh2L0s1RytvZmsxY2EvdGdiNnNDSU9QUHFyaENqdjAKYkJWak01TzlkRHVxZ2JyTTVsbDhQTk4zQk5EazFBQ2VwQUxhbUJrblJ2eXBBNnphZDAzUXBnVEFWSHdFVXhHSApNcitkTERQU3BYQ1JOb3BobmdkQTZCTEoxNlJDUk1LQ2ZuK2tHTTdVM3pWMHZlZi9hakFNcW5IUEdEL2h2c05aCnpCaGVGbEV1QW04a0FkNk1QN05DU01kdHdDMGdpNWErUUFsdkl2Tkp1RXBaQndXRWxhaVFuNFFFOURML3lodTQKeVh5cWJVSHU5SERYQmpKTWtaekRKQXVUNWNRMjV1YURFZ0NCdWF5L3lmSTVjVklPbmFhbHNFRml6c2NuSVFlSAp3TFU0b0Z3R1hFbzR1Q0VaWUNITHRZMENBd0VBQWFOV01GUXdEZ1lEVlIwUEFRSC9CQVFEQWdXZ01CTUdBMVVkCkpRUU1NQW9HQ0NzR0FRVUZCd01DTUF3R0ExVWRFd0VCL3dRQ01BQXdId1lEVlIwakJCZ3dGb0FVNzI0WGlrVzcKNHVQWGhLVmdCb1RSTXRBWnNrWXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnSUJBQXhpbjhtak0xdkl5M1YwTFpKcwp4RXBiNFJ1RGVoSmgxWm1aVHN3aEJ4SzREWUJCNStmQXVnd3NtaDFFWEdNTzhtZDJkTHhFSjgxT0xnWSs3TDR3CjFWUFUxMzJxa1VjbXVqNGJId2tteUhDNnA2MlI1T1c3K3kydHFXQitVS2ZYeks0K3J5Ym93ZnlzZUI1VlVNKzEKaFp3QzNtNURoVWtuSG5IOXlHMTdvaWJrNjh4VnhDSFArcG1Td2hDV2pibDF5VlJvZjJOR0dreUpGQzdVcVJKagp0MVozZm44Wnk0OTY2QjVvdEVNU1g3YU5OZTlLb1ZrbU54Y0x2a2JiNGRDQTdmdWZPb0pLUDU0c0p4bkN3WTQ0CmlCc2dyZUJEZXlGM21ZOWhpR2tycU9QK1Zxdkp4ZTl5N1dLNFh5bzVDVXgrL3k0a2pnb01pcXRkRmZoaVdhOEkKZmdSSURKbkY5blFRV3hRSDhuRVhRajgzdTg2SjVuUHBJLytqVDdyRkVqYnNYTXlrYXk1VXdNaFFmb0ozc2tFcgpqSVlzQ0NiMWpqRjhyQ1lKdXdXdS9NQlBRWUtRWEJHQkZZWllFdmhaTG9EYng5VWlBYnhDQ3pWYU1tY1l6OU1VCjdQRnd0MFArbFZOTGovK3NkNXg0OTJTaEhTVC9JaDF3WjUva3lmWXdYaVIyZmRIeVdFUmdsSHJBQ01FVWxLTi8KQ3dqRW50VjVLa0UveStpK29aSFZmaTlUclhYdmk0dzE4bG4rd1JwK2FLcGJUakVnY1Q2eFNaVjF2aHRzZDFsdgp1QXI0ZVExUEx0RWdVYW05cnV6S1grc2szQXIwNjBlWmwrdkVOd3pxVzJSQ2xGRndtSTBlVlRNVnNSbDN0bk1pCmNRN0U0dmRhUFlvNG1ZZmJlMmJQbTRSbQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==\n    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS1FJQkFBS0NBZ0VBdnp5MzNCV1pZajFSejI4WENseDcxNzNPMHl0UUFxSE5PMitFbDdGM1psc1ZGeVRkCkNDaFZ5VnBoRFF3WmFIVTh5enhiUStqQU1WRnplM1o4ZVdBR3JyZ1hwdEZZZEt2K2FqS0tRT0R2TnNsK1QwT3AKVjF5ZXNKS0txRmZnYVd6ek1WcWlhck85VlpHUzJKTmdxVDQvRGY1NFBCVG8wb2pqNS9ZMFJqOEJ5aTlGWGJjSAprMEUzVmRESFJUVmFKdjR6SVc0TFlTbW9FcTg3SWFneXI3bUdLREJ2MlMrWU9HWWhKZ1o3OTNGb0ovUVpWVTFxClAzT0x4Q3dwcFVsVFArV1RtemxBNjgvbS8wK0VuL2pVMUxRVTliZ3dtZjFNeDJZQ21WS0xWczdmYy92L21DUEgKSnJydlMyRUF6eE9GSTlYVVhjYkF6U2ZNTXhNcTUxMkJmekVta2NvUnVKUnZ2Z1d0dUZOdUdEdURKOEN0V2V5OApDSDJDazh2L0s1RytvZmsxY2EvdGdiNnNDSU9QUHFyaENqdjBiQlZqTTVPOWREdXFnYnJNNWxsOFBOTjNCTkRrCjFBQ2VwQUxhbUJrblJ2eXBBNnphZDAzUXBnVEFWSHdFVXhHSE1yK2RMRFBTcFhDUk5vcGhuZ2RBNkJMSjE2UkMKUk1LQ2ZuK2tHTTdVM3pWMHZlZi9hakFNcW5IUEdEL2h2c05aekJoZUZsRXVBbThrQWQ2TVA3TkNTTWR0d0MwZwppNWErUUFsdkl2Tkp1RXBaQndXRWxhaVFuNFFFOURML3lodTR5WHlxYlVIdTlIRFhCakpNa1p6REpBdVQ1Y1EyCjV1YURFZ0NCdWF5L3lmSTVjVklPbmFhbHNFRml6c2NuSVFlSHdMVTRvRndHWEVvNHVDRVpZQ0hMdFkwQ0F3RUEKQVFLQ0FnQUZwa1YzNU9oMDIwTVBOSG96QmhQcU1KM2dwYWlBWEx6UTBHOStRV2NrV04rbzRSL1VLdkxoTEZYRAp6NmpHMUtNbU9EaC9BS3dxMk5FOG8yaGVkK2N0VFZ3ZmcyZzYvQ053MzR1RTMvcnVmS25mV0JiemhvQXhUd2IxCnlGdDZ2eXRPWTRoNjlxZmdLYTZJK09PZVpGWnpDS0tQTGRQMG9rZ2txbVNWY3dJNmNadmtQcHU1N29UZXVMaW0KVTFoQU5pVnNZUHZ6azhvMnU4S3NzTWpITndmSnFLZitrU0RNcTd4aUlKeSt3alRWbDFPOG1NNmhKTDMxM3BNZwpEUDJVQno3TmZnc1hCdnVOUW53SnlNMVZkNk4xNElvenNROWpXdllMM0ZaOW9FWVZmd0NTN2ZMOGNvSE92Qy9NCnJrZ3lOenlGNzdEeTdwc2lUWGc5NjdNcUZDN2ppeHRNY1dwN1c3c211V2t0WHpENGpseTVidGFIa25FYWJ5cnkKNEwzeHovSXdPOTF6RG1ta01vWVYvaGdURW5Kd05wQkNSeTRXdW5naTB3ZjlTSVF6OXBtcDNuOTJFak5ZM0Y5SwpKQlYza3JQalY0a0NJRlhjWXRoaUJDek45S01rWHVMaU5zbjNxYXRRQXMzRGZDdy9heTBuUS9LM2xBV1BhaVFtCkFSR1oyWklaWmMvN2cyV0l4cnFwY3Z2bWpsQWgwMlM4c3ZCM0UzNUFPNlNyUUJrdEFiY2UxSEhrRU9ScFdWTm4KRVRkR1JHOExBT1A2blU5ZEVZTnFZek1uR091OFVnL2ZOU1BUTXhQSXFHYm5ubG5yR0FqdnZtb0JaUXl1QWk0ZgpodGhaWmRQeTJkRy9nMGdIenY4blZaLytUQm1UcTVPalNuSHUyemRXSHNCQkR1QWF5UUtDQVFFQTVtRWljRXZqCnFxWWhQamtnYVZZLytFY1BNVzhSV3llZHE5djBQcG4zeHhkbDZEdzhzcVQ4L0FjcHlOcGNkN3VjSS9YclplMXEKSGFMZndnWitPOWVVclgyOGxqOEJlUUszMis5QmxWeEh3aHJwaFBjL2xDZG0zWG43OXVLNlppR3lTUFFXSHNRKwpKZ2RxWm52S2NxM3FnSkYyL0hsS3VCWVBaeVN0RnoxejZQZXRsNTlzcUpuTFI1c0M0djg5Q0VPMzdSTFlMdFdzCkIvQks4d1pCTWVPTEhHWkJmZEV5dWovcHc2dmNZam50cTgyYUdtZk9RaFBCYU95QjJRWTNlSmdHV2tJUGtITlcKRlB3L0M2eWVnTm43d1hBVHZMeE5kYlg3QmJVdHBWNXRMMnFKcUNYamxoVDdJZDF2aFRpdks4d2FFZmt4ZmgwdQo1UGhGdjBxem84aGk5UUtDQVFFQTFJRTF4bjEzT1dqMVVZbHg1NTNrZ3AvYjlscjdiM0VYc25NaitQcE5KVGJZCi9MN3VzeVZNbGF6aDJtR1ZndUVHdW5VdWJOQlR2TUJzWXlHVUxlTUJBZ3Z6dWY0VnZyODZ5VXRyazlWRWp3VDMKbVphalBBRWFla1FWVERMZUcxTGJZRDluRWRrTHQ4S050QXJtVDBwSmprOWUySTUvRlZNdEh4bkdhdFRodlVNQwpnaEJJQXB4VnJtLzFSMSs0SDl5SC90WHlQdzkzMUNWVHZpQzcvbGdheld5WTlMNUxTQ0RTVUJ2NEc2cUt0enJVCng0dklIMWViWnpvQVJQMWhDdmdqRkhSWFFibk8xUnVYc0xudDVYWkNyNU0zZjhoSkJLRnlsaWhuelowMDJYWVAKQlVEQm1RRmxZRnhUeTFDT05WcklLMjYrU2x5R3hYbStoWUM2M1p6Wk9RS0NBUUVBcm8rSFFzT2QvRjNvN25ibQp3aW9pU29POVZWMnRMdjZ6ajljWUdKOGRpZk9HdWhONmducFZYcm9teFJQLzRKRjlYQm9vaFpFQlNQZHl5RmVYCktzek0wVEJteHdseW1qaWZDNzBjV29vVHJWWXEveDlCUTRjZmdFMi94M0JBZ01hamluZTRreE5yYS9GT2c5emsKcDBSMFhYcmJSNjY0R1FoT0gzOUEwRTAyR0o0aklMSWg2UmF2V3RCdnZZUmN3SGhmVXZsbWFRWnFWWkdUbU5WeQpiTlRYUVd1UjBEM0ZUQzdGZUFndTh4YWxxZm9kL0VnUGx5M1U3U1hYdFpQcVVDd1JGQzdlRUR2MFMrNWQ3d0NiCkVWTWFXWllNdm9PSHhkdGdHeEVQUnpCblZ2aEkyZW5ycW5xM1Z3K3NRcXVTdjRMbGRoejFqWE9iWnM5Z09mUG0KYmdHV1NRS0NBUUJkT0JVcjdtdjNqamhYUFZEdlJzOHdFZ28rNXFoM3VZZW9xMk96VzdHdHlvS2pWT3FIUWF4MwoyQy8zU1dsNTBWYlBRb3BNQjVORU1MRWJSMmFtUG5kNXUxNStUNXlnWVdqYlZxOXBXVnZLMVdYOFJSMTBQQk91CllPRnEzTUdjQU52bE84cnVCR1ZraGY3OVpPNmxCN1Ircmdpd1BNbzR3NVQrbUtMMnlFNENaVHZiYkdMNmFqUVgKNGxzWnBUNnpFMTNCQjM5TjlHNGZiUVJ3V2hHOXdFNTVvTkwwUWVucVNTT1pLcnZLL3lQOHZ0MEtjQ0lveFppUgpUdHRCYUZsQ281bFg1clZFU3NzVnB4WUMyMzBsZEp4S1F1MU1xOEtFT29KMnBtRHF6TFNiVkhQQVhTalFBdEhDCjFKMlppY3ZvVWR1UFdmUTEwS0w2UzY2dEI4eHhYTlhaQW9JQkFRQ0lmQW9rcWk3SFlna1lkZlZ6bEdBTEZ2T3oKOExUQzFRbjJnK25Gdi81aW9xLzBPaEpoOFo3aTRUOTFWRCtMdGtGaTg0Ky82UGhyUUFJUXo5aVdVNGphZk5MTApTZTgrVGJnbUNIMVhqSnBDcmhYRVExYnc2bi9ON01rald0SVdzb3BTQzY3WlVuV0p0YzlvdHhSVDV3UFlRbVlmCnVIUjFzUWRqUXgrMS9hUnY0NDF5MGhSYjhNdHVXWGxlenF3b09ZcGwxKzk4R29YbmpTQkRLMnJyUzNSZm9lcXIKZVJKVlFlZjFRMHpoRGRVV3htbWpaT1pGUnIxbzZHMENLOXM5czBRcnlzcktIZUhXZ3BlN0x2QmZSMEQra2lxdApIeVVhNmtOWmVHNlR0TTZuenprUjRaWnpHcWpvbHpqeXB0SzU5SlZ4dHMzR3ZlNGVqdU0ra0w0Vk9PRGYKLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0K\n    token: 5ih4h5prc96p97swvqt82h5tt5vk886jvkc3gyoro8hdiukzs3quzn81l4zx57s13ghs46cqra48s3o9p2opk15el5on1dzn0vi4lvnepz5uwr5f7u5vgip9cimerh1z\n"
+  },
+  "aks_kubelet_identity": {
+    "sensitive": false,
+    "type": "string",
+    "value": "3ce4f174-f226-45ca-bd65-fb6148fd4011"
+  },
+  "aks_subnet_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.Network/virtualNetworks/flamoral-prod-vnet/subnets/aks-subnet"
+  },
+  "app_insights_connection_string": {
+    "sensitive": true,
+    "type": "string",
+    "value": "InstrumentationKey=36adec2a-c3f2-4cb7-841a-8596b29f8d5e;IngestionEndpoint=https://westus2-2.in.applicationinsights.azure.com/;LiveEndpoint=https://westus2.livediagnostics.monitor.azure.com/;ApplicationId=ade60587-b37a-4b09-aa11-259b0fd57b6a"
+  },
+  "auth_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralprodauthkv.vault.azure.net/"
+  },
+  "csi_secret_provider_config": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "auth": [
+          "object",
+          {
+            "keyvaultName": "string",
+            "objects": [
+              "tuple",
+              [
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string"
+              ]
+            ],
+            "tenantId": "string",
+            "usePodIdentity": "string",
+            "useVMManagedIdentity": "string"
+          }
+        ],
+        "data": [
+          "object",
+          {
+            "keyvaultName": "string",
+            "objects": [
+              "tuple",
+              [
+                "string",
+                "string",
+                "string",
+                "string",
+                "string"
+              ]
+            ],
+            "tenantId": "string",
+            "usePodIdentity": "string",
+            "useVMManagedIdentity": "string"
+          }
+        ],
+        "external": [
+          "object",
+          {
+            "keyvaultName": "string",
+            "objects": [
+              "tuple",
+              [
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string"
+              ]
+            ],
+            "tenantId": "string",
+            "usePodIdentity": "string",
+            "useVMManagedIdentity": "string"
+          }
+        ],
+        "infra": [
+          "object",
+          {
+            "keyvaultName": "string",
+            "objects": [
+              "tuple",
+              [
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string"
+              ]
+            ],
+            "tenantId": "string",
+            "usePodIdentity": "string",
+            "useVMManagedIdentity": "string"
+          }
+        ],
+        "payment": [
+          "object",
+          {
+            "keyvaultName": "string",
+            "objects": [
+              "tuple",
+              [
+                "string",
+                "string",
+                "string",
+                "string",
+                "string",
+                "string"
+              ]
+            ],
+            "tenantId": "string",
+            "usePodIdentity": "string",
+            "useVMManagedIdentity": "string"
+          }
+        ]
+      }
+    ],
+    "value": {
+      "auth": {
+        "keyvaultName": "flamoralprodauthkv",
+        "objects": [
+          "jwt-secret",
+          "jwt-access-secret",
+          "jwt-refresh-secret",
+          "session-secret",
+          "google-client-secret",
+          "facebook-app-secret",
+          "apple-private-key"
+        ],
+        "tenantId": "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0",
+        "usePodIdentity": "false",
+        "useVMManagedIdentity": "true"
+      },
+      "data": {
+        "keyvaultName": "flamoralproddatakv",
+        "objects": [
+          "postgres-connection-string",
+          "mongodb-uri",
+          "redis-password",
+          "redis-connection-string",
+          "cosmosdb-key"
+        ],
+        "tenantId": "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0",
+        "usePodIdentity": "false",
+        "useVMManagedIdentity": "true"
+      },
+      "external": {
+        "keyvaultName": "flamoralprodexternalkv",
+        "objects": [
+          "sendgrid-api-key",
+          "twilio-auth-token",
+          "firebase-private-key",
+          "agora-app-certificate",
+          "agora-customer-secret",
+          "sentry-dsn",
+          "openai-api-key"
+        ],
+        "tenantId": "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0",
+        "usePodIdentity": "false",
+        "useVMManagedIdentity": "true"
+      },
+      "infra": {
+        "keyvaultName": "flamoralprodinfrakv",
+        "objects": [
+          "service-api-key",
+          "encryption-key",
+          "azure-storage-key",
+          "azure-storage-connection-string",
+          "azure-face-api-key",
+          "azure-content-moderator-key",
+          "azure-service-bus-connection-string",
+          "application-insights-connection-string",
+          "elasticsearch-password"
+        ],
+        "tenantId": "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0",
+        "usePodIdentity": "false",
+        "useVMManagedIdentity": "true"
+      },
+      "payment": {
+        "keyvaultName": "flamoralprodpaymentkv",
+        "objects": [
+          "stripe-secret-key",
+          "stripe-webhook-secret",
+          "paystack-secret-key",
+          "flutterwave-secret-key",
+          "apple-iap-shared-secret",
+          "google-play-service-account"
+        ],
+        "tenantId": "ed27e9a3-1b1c-46c9-8a73-a4f3609d75c0",
+        "usePodIdentity": "false",
+        "useVMManagedIdentity": "true"
+      }
+    }
+  },
+  "data_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralproddatakv.vault.azure.net/"
+  },
+  "dns_zone_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral.com"
+  },
+  "dns_zone_name_servers": {
+    "sensitive": false,
+    "type": [
+      "set",
+      "string"
+    ],
+    "value": [
+      "ns1-07.azure-dns.com.",
+      "ns2-07.azure-dns.net.",
+      "ns3-07.azure-dns.org.",
+      "ns4-07.azure-dns.info."
+    ]
+  },
+  "domain": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral.com"
+  },
+  "environment": {
+    "sensitive": false,
+    "type": "string",
+    "value": "production"
+  },
+  "external_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralprodexternalkv.vault.azure.net/"
+  },
+  "front_door_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-andtbkagfve5h5da.z01.azurefd.net"
+  },
+  "frontdoor_routes": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "api_route": "string",
+        "default_route": "string",
+        "health_route": "string",
+        "media_route": "string",
+        "static_route": "string",
+        "websocket_route": "string"
+      }
+    ],
+    "value": {
+      "api_route": "api-route",
+      "default_route": "default-route",
+      "health_route": "health-route",
+      "media_route": "media-route",
+      "static_route": "static-route",
+      "websocket_route": "websocket-route"
+    }
+  },
+  "godaddy_dns_instructions": {
+    "sensitive": false,
+    "type": "string",
+    "value": "=============================================================================\nGoDaddy DNS Configuration for flamoral.com\n=============================================================================\n\nOption 1: Point GoDaddy nameservers to Azure DNS (Recommended)\n---------------------------------------------------------------\n1. Log in to your GoDaddy account\n2. Go to Domain Settings for flamoral.com\n3. Under Nameservers, click \"Change\"\n4. Select \"Enter my own nameservers (advanced)\"\n5. Enter the following Azure DNS nameservers:\n   ns1-07.azure-dns.com.\n       ns2-07.azure-dns.net.\n       ns3-07.azure-dns.org.\n       ns4-07.azure-dns.info.\n6. Save changes\n\nOption 2: Create records directly in GoDaddy\n---------------------------------------------\nCreate the following A records in GoDaddy:\n- Type: A, Name: @, Value: 4.155.106.208\n- Type: A, Name: www, Value: 4.155.106.208\n- Type: A, Name: api, Value: 4.155.106.208\n\nNote: DNS propagation may take up to 48 hours.\n=============================================================================\n"
+  },
+  "infra_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralprodinfrakv.vault.azure.net/"
+  },
+  "ingress_public_fqdn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral.westus2.cloudapp.azure.com"
+  },
+  "ingress_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "4.155.106.208"
+  },
+  "key_vault_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-kv-zcqqgc"
+  },
+  "key_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoral-prod-kv-zcqqgc.vault.azure.net/"
+  },
+  "log_analytics_workspace_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.OperationalInsights/workspaces/flamoral-prod-logs"
+  },
+  "payment_vault_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralprodpaymentkv.vault.azure.net/"
+  },
+  "postgres_fqdn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-postgres.postgres.database.azure.com"
+  },
+  "postgres_server_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-postgres"
+  },
+  "redis_hostname": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-redis.redis.cache.windows.net"
+  },
+  "redis_port": {
+    "sensitive": false,
+    "type": "number",
+    "value": 6380
+  },
+  "resource_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg"
+  },
+  "resource_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-rg"
+  },
+  "service_vault_ids": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "auth": "string",
+        "data": "string",
+        "external": "string",
+        "infra": "string",
+        "payment": "string"
+      }
+    ],
+    "value": {
+      "auth": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.KeyVault/vaults/flamoralprodauthkv",
+      "data": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.KeyVault/vaults/flamoralproddatakv",
+      "external": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.KeyVault/vaults/flamoralprodexternalkv",
+      "infra": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.KeyVault/vaults/flamoralprodinfrakv",
+      "payment": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.KeyVault/vaults/flamoralprodpaymentkv"
+    }
+  },
+  "service_vault_names": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "auth": "string",
+        "data": "string",
+        "external": "string",
+        "infra": "string",
+        "payment": "string"
+      }
+    ],
+    "value": {
+      "auth": "flamoralprodauthkv",
+      "data": "flamoralproddatakv",
+      "external": "flamoralprodexternalkv",
+      "infra": "flamoralprodinfrakv",
+      "payment": "flamoralprodpaymentkv"
+    }
+  },
+  "service_vault_uris": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "auth": "string",
+        "data": "string",
+        "external": "string",
+        "infra": "string",
+        "payment": "string"
+      }
+    ],
+    "value": {
+      "auth": "https://flamoralprodauthkv.vault.azure.net/",
+      "data": "https://flamoralproddatakv.vault.azure.net/",
+      "external": "https://flamoralprodexternalkv.vault.azure.net/",
+      "infra": "https://flamoralprodinfrakv.vault.azure.net/",
+      "payment": "https://flamoralprodpaymentkv.vault.azure.net/"
+    }
+  },
+  "signalr_connection_string": {
+    "sensitive": true,
+    "type": "string",
+    "value": "Endpoint=https://flamoral-prod-signalr.service.signalr.net;AccessKey=9XGkyRTsqe9vRbhvu5mg8Uspo3HQEJzc3If790DDeejyP8wrosk8JQQJ99BLAC8vTInXJ3w3AAAAASRSbg4g;Version=1.0;"
+  },
+  "signalr_hostname": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-signalr.service.signalr.net"
+  },
+  "storage_account_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoralprodzcqqgc"
+  },
+  "storage_primary_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://flamoralprodzcqqgc.blob.core.windows.net/"
+  },
+  "vnet_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/subscriptions/ebd1613e-fea0-4b6d-8918-7e4de6a71c44/resourceGroups/flamoral-prod-rg/providers/Microsoft.Network/virtualNetworks/flamoral-prod-vnet"
+  },
+  "vnet_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "flamoral-prod-vnet"
+  }
+}
