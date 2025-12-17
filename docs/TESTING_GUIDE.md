@@ -1,374 +1,400 @@
-# Flamoral Dating App - Testing Guide
+# Testing Guide - Flamoral Dating Platform
+
+Complete guide for running, writing, and maintaining tests in the Flamoral dating platform.
+
+---
 
 ## Table of Contents
 
-1. [Test Credentials](#test-credentials)
-2. [API Testing](#api-testing)
-3. [Web App Testing](#web-app-testing)
-4. [Mobile App Testing on Windows](#mobile-app-testing-on-windows)
-5. [Messaging API Test Results](#messaging-api-test-results)
-6. [E2E Testing](#e2e-testing)
-7. [Performance Testing](#performance-testing)
+1. [Quick Start](#quick-start)
+2. [Test Types](#test-types)
+3. [Running Tests](#running-tests)
+4. [Writing Tests](#writing-tests)
+5. [Test Coverage](#test-coverage)
+6. [CI/CD Integration](#cicd-integration)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
-## Test Credentials
-
-### Web Application
-
-| Account | Email | Password | Role | Subscription |
-|---------|-------|----------|------|--------------|
-| Test User 1 (Alex) | test1@flamoral.com | TestUser1! | User | Premium |
-| Test User 2 (Jordan) | test2@flamoral.com | TestUser2! | User | Premium |
-| Admin User | admin@flamoral.com | Admin123! | Admin | N/A |
-| Moderator | moderator@flamoral.com | Mod123! | Moderator | N/A |
-
-### Mobile Application
-
-Same credentials as web - the app uses the same backend API.
-
-### API Testing
-
-```bash
-# Get authentication token
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test1@flamoral.com","password":"TestUser1!"}'
-```
-
----
-
-## API Testing
-
-### Running API Tests
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Run all tests
-npm test
-
-# Run specific test suite
-npm run test:unit
-npm run test:integration
-npm run test:e2e
-
-# Run messaging simulation test
-node tests/run-messaging-test.js
-```
-
-### Test Environments
-
-| Environment | URL | Description |
-|-------------|-----|-------------|
-| Local | http://localhost:3000 | Development |
-| Staging | https://api-staging.flamoral.com | Pre-production |
-| Production | https://api.flamoral.com | Live |
-
-### API Endpoints to Test
-
-#### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `POST /api/auth/refresh` - Refresh token
-- `POST /api/auth/forgot-password` - Password reset
-
-#### User Profile
-- `GET /api/users/me` - Get current user
-- `PUT /api/users/me` - Update profile
-- `DELETE /api/users/me` - Delete account
-
-#### Discovery
-- `GET /api/discovery` - Get potential matches
-- `POST /api/matching/swipe` - Swipe action (like/pass)
-
-#### Messaging
-- `GET /api/messages/conversations` - List conversations
-- `GET /api/messages/conversations/:id` - Get messages
-- `POST /api/messages/conversations/:id/send` - Send message
-- `POST /api/messages/conversations/:id/read` - Mark as read
-
----
-
-## Web App Testing
+## Quick Start
 
 ### Prerequisites
 
-1. Node.js 18+ installed
-2. Backend server running on localhost:3000
-3. Chrome/Firefox browser
-
-### Running Web App Locally
-
 ```bash
-# Navigate to web app
-cd apps/web-app
-
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
-
-# Open browser at http://localhost:5173
+# Ensure you have the required environment
+node --version  # Should be >= 20.0.0
+npm --version
 ```
 
-### Manual Test Checklist
-
-- [ ] Login with test credentials
-- [ ] Complete profile setup
-- [ ] Browse discovery cards
-- [ ] Perform like/pass actions
-- [ ] View matches
-- [ ] Send messages
-- [ ] View settings
-- [ ] Test subscription flows
-
----
-
-## Mobile App Testing on Windows
-
-### Option 1: Android Emulator (Recommended)
-
-#### Prerequisites
-
-1. **Android Studio** - Download from https://developer.android.com/studio
-2. **Java Development Kit (JDK) 11+** - https://adoptium.net/
-3. **Node.js 18+** - https://nodejs.org/
-
-#### Setup Steps
-
-```powershell
-# 1. Install Android Studio and open it
-# 2. Go to Tools > SDK Manager
-# 3. Install Android SDK Platform (API 33 or later)
-# 4. Install Android SDK Build-Tools
-# 5. Install Android Emulator
-# 6. Install Intel HAXM (for hardware acceleration)
-
-# 7. Create AVD (Android Virtual Device)
-# Go to Tools > Device Manager > Create Device
-# Select a device (e.g., Pixel 6)
-# Select system image (API 33 recommended)
-# Finish and start the emulator
-
-# 8. Set environment variables (PowerShell)
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:PATH += ";$env:ANDROID_HOME\emulator;$env:ANDROID_HOME\platform-tools"
-
-# 9. Verify setup
-adb devices  # Should show your emulator
-```
-
-#### Running the App
+### Run All Tests
 
 ```bash
-# Navigate to mobile app
-cd apps/mobile-app
+# From project root
+npm test
 
-# Install dependencies
-npm install
-
-# Start Metro bundler
-npm start
-
-# In a new terminal, run on Android
-npm run android
-
-# Or build APK for manual installation
-cd android
-./gradlew assembleDebug
-# APK will be at android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-### Option 2: Expo Go (Quick Testing)
-
-If the app supports Expo:
-
-```bash
-# Install Expo CLI
-npm install -g expo-cli
-
-# Navigate to mobile app
-cd apps/mobile-app
-
-# Start Expo server
-expo start
-
-# Install Expo Go on your Android phone
-# Scan the QR code with Expo Go app
-```
-
-### Option 3: Web Preview (React Native Web)
-
-```bash
-# Navigate to mobile app
-cd apps/mobile-app
-
-# Run web version
-npm run web
-
-# Opens in browser at localhost:19006
-```
-
-### Option 4: iOS Simulator (Mac only)
-
-Not available on Windows. For iOS testing:
-- Use a physical iOS device
-- Use a Mac with Xcode
-- Use cloud-based iOS simulators (BrowserStack, Sauce Labs)
-
-### Debugging on Android Emulator
-
-```bash
-# View logs
-adb logcat | grep "ReactNative"
-
-# Open React Native debugger
-# Shake device (or Ctrl+M in emulator) > Debug
-
-# Chrome DevTools
-# Open chrome://inspect in Chrome
+# With coverage
+npm run test:coverage
 ```
 
 ---
 
-## Messaging API Test Results
+## Test Types
 
-### Test Execution Summary
+### 1. Unit Tests
 
-```
-╔════════════════════════════════════════════════════════════╗
-║         Flamoral Messaging API - Test Suite                ║
-╚════════════════════════════════════════════════════════════╝
+Test individual functions and classes in isolation.
 
-Test Date: November 30, 2024
-Environment: Local Development
+**Location:** `*/tests/unit/`
 
-┌────────────────────────────┬──────────┐
-│ Test                       │ Result   │
-├────────────────────────────┼──────────┤
-│ Authentication             │ ✅ Pass  │
-│ Match Verification         │ ✅ Pass  │
-│ Get Conversations          │ ✅ Pass  │
-│ Message Sending            │ ✅ Pass  │
-│ Read Receipts              │ ✅ Pass  │
-│ Unread Count               │ ✅ Pass  │
-│ Message History            │ ✅ Pass  │
-│ Special Characters         │ ✅ Pass  │
-└────────────────────────────┴──────────┘
-
-📊 Expected Pass Rate: 100% (8/8)
+**Example:**
+```typescript
+describe('AuthService', () => {
+  it('should hash password before storing', async () => {
+    const password = 'TestPassword123!';
+    const hashed = await hashPassword(password);
+    expect(hashed).not.toBe(password);
+  });
+});
 ```
 
-### Conversation Simulation Script
-
-The test simulates a conversation between two users (Alex and Jordan):
-
-1. **Alex:** "Hey Jordan! I noticed we both love hiking. What's your favorite trail?"
-2. **Jordan:** "Hi Alex! Oh, I love the Blue Ridge Mountains. Have you been?"
-3. **Alex:** "Yes! I did the Appalachian Trail section last summer. Amazing views!"
-4. **Jordan:** "That's so cool! I've always wanted to do that. How long did it take?"
-5. **Alex:** "About 3 days for the section I did. We should plan a hike together!"
-6. **Jordan:** "I'd love that! Maybe we could start with something easier first?"
-7. **Alex:** "Absolutely! There's a nice trail about an hour from here."
-8. **Jordan:** "That sounds perfect! When are you usually free?"
-9. **Alex:** "Weekends work best for me. How about next Saturday?"
-10. **Jordan:** "Saturday works! Let's do it. Should we exchange numbers?"
-
-### Test Coverage
-
-| Feature | Tested | Notes |
-|---------|--------|-------|
-| Send Text Message | ✅ | Plain text and emoji |
-| Receive Message | ✅ | Real-time delivery |
-| Read Receipts | ✅ | Mark as read working |
-| Message History | ✅ | Pagination supported |
-| Special Characters | ✅ | Emoji, unicode, newlines |
-| XSS Prevention | ✅ | HTML tags stripped |
-| Block Check | ✅ | Blocked users can't message |
-
----
-
-## E2E Testing
-
-### Setup Playwright (Web)
-
+**Run:**
 ```bash
-cd apps/web-app
-
-# Install Playwright
-npm install -D @playwright/test
-
-# Install browsers
-npx playwright install
-
-# Run tests
-npx playwright test
-
-# Run with UI
-npx playwright test --ui
-
-# Generate report
-npx playwright show-report
+npm run test:unit
 ```
 
-### Setup Detox (Mobile)
+### 2. Integration Tests
 
+Test multiple components working together.
+
+**Location:** `*/tests/integration/`
+
+**Example:**
+```typescript
+describe('Auth API', () => {
+  it('should register user and return tokens', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'test@example.com', ... });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.accessToken).toBeDefined();
+  });
+});
+```
+
+**Run:**
 ```bash
-cd apps/mobile-app
+npm run test:integration
+```
 
-# Install Detox CLI
-npm install -g detox-cli
+### 3. E2E Tests
 
-# Install Detox
-npm install -D detox
+Test complete user journeys.
 
-# Build for Android
-detox build --configuration android.emu.debug
+**Location:** `tests/e2e/`
 
-# Run tests
-detox test --configuration android.emu.debug
+**Example:**
+```typescript
+test('user can register and make first swipe', async ({ page }) => {
+  await page.goto('/signup');
+  await page.fill('input[name="email"]', 'test@example.com');
+  // ... complete registration
+  await page.click('button.like-button');
+  await expect(page.locator('.next-profile')).toBeVisible();
+});
+```
+
+**Run:**
+```bash
+npm run test:e2e
+npm run test:e2e:headed  # With browser UI
+npm run test:e2e:debug   # Debug mode
 ```
 
 ---
 
-## Performance Testing
+## Running Tests
 
-### Load Testing with k6
+### By Service
 
 ```bash
-# Install k6
-winget install k6
+# Auth Service
+cd backend/services/auth-service
+npm test
 
-# Create load test script (tests/load/messaging.js)
+# Matching Service
+cd backend/services/matching-service
+npm test
+
+# Messaging Service
+cd backend/services/messaging-service
+npm test
+
+# Payment Service
+cd backend/services/payment-service
+npm test
+
+# User Service
+cd backend/services/user-service
+npm test
 ```
+
+### By Test Type
+
+```bash
+# Unit tests only
+npm run test:unit
+
+# Integration tests only
+npm run test:integration
+
+# E2E tests only
+npm run test:e2e
+
+# Specific test file
+npm test -- auth.service.test.ts
+
+# Specific test suite
+npm test -- --testNamePattern="login"
+```
+
+### With Coverage
+
+```bash
+# All tests with coverage
+npm run test:coverage
+
+# Specific service with coverage
+cd backend/services/auth-service
+npm test -- --coverage
+
+# Generate HTML coverage report
+npm run test:coverage
+open coverage/index.html  # macOS
+start coverage/index.html # Windows
+```
+
+### Watch Mode
+
+```bash
+# Watch mode for development
+npm test -- --watch
+
+# Watch specific file
+npm test -- auth.service.test.ts --watch
+```
+
+---
+
+## Writing Tests
+
+### Test Structure
+
+Use the AAA (Arrange-Act-Assert) pattern:
+
+```typescript
+describe('Feature Name', () => {
+  describe('Method Name', () => {
+    it('should do something when condition', async () => {
+      // Arrange - Set up test data and mocks
+      const mockUser = createMockUser({ email: 'test@example.com' });
+      (userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+
+      // Act - Execute the function being tested
+      const result = await authService.login({ email: 'test@example.com', password: 'Pass123!' });
+
+      // Assert - Verify the result
+      expect(result).toBeDefined();
+      expect(result.user.email).toBe('test@example.com');
+      expect(userRepository.findById).toHaveBeenCalledWith(mockUser.id);
+    });
+  });
+});
+```
+
+### Using Factories
+
+```typescript
+import { createMockUser, createMockToken } from '../mocks/factories';
+
+// Create single user
+const user = createMockUser({ email: 'custom@example.com' });
+
+// Create multiple users
+const users = createMockUsers(5);
+
+// Create with overrides
+const premiumUser = createMockUser({ isPremium: true });
+```
+
+### Mocking Dependencies
+
+```typescript
+// Mock at module level
+jest.mock('../../src/repositories/user.repository');
+
+// Mock implementation
+(userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+
+// Mock rejection
+(userRepository.create as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+// Mock multiple calls
+(stripeClient.charges.create as jest.Mock)
+  .mockResolvedValueOnce({ id: 'charge-1' })
+  .mockResolvedValueOnce({ id: 'charge-2' });
+```
+
+### Testing Async Code
+
+```typescript
+// Using async/await
+it('should handle async operations', async () => {
+  const result = await asyncFunction();
+  expect(result).toBeDefined();
+});
+
+// Testing promises
+it('should handle promises', () => {
+  return asyncFunction().then(result => {
+    expect(result).toBeDefined();
+  });
+});
+
+// Testing rejections
+it('should handle errors', async () => {
+  await expect(failingFunction()).rejects.toThrow('Error message');
+});
+```
+
+### Testing Error Cases
+
+```typescript
+it('should throw error for invalid input', async () => {
+  await expect(
+    authService.register({ email: 'invalid-email' })
+  ).rejects.toThrow('Invalid email format');
+});
+
+it('should handle database errors', async () => {
+  (userRepository.create as jest.Mock).mockRejectedValue(
+    new Error('Database connection failed')
+  );
+
+  await expect(authService.register(validData)).rejects.toThrow();
+});
+```
+
+---
+
+## Test Coverage
+
+### Coverage Thresholds
 
 ```javascript
-// tests/load/messaging.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  vus: 100,
-  duration: '5m',
-};
-
-export default function () {
-  const res = http.get('http://localhost:3000/api/messages/conversations', {
-    headers: { 'Authorization': 'Bearer YOUR_TOKEN' },
-  });
-  check(res, { 'status was 200': (r) => r.status === 200 });
-  sleep(1);
+// jest.config.js
+coverageThreshold: {
+  global: {
+    branches: 80,
+    functions: 80,
+    lines: 80,
+    statements: 80,
+  },
+  // Critical services require higher coverage
+  './src/domain/services/': {
+    branches: 85,
+    functions: 90,
+    lines: 90,
+    statements: 90,
+  },
 }
 ```
 
+### Viewing Coverage
+
 ```bash
-# Run load test
-k6 run tests/load/messaging.js
+# Generate coverage report
+npm run test:coverage
+
+# View HTML report
+open coverage/index.html
+
+# View summary in terminal
+npm test -- --coverage --coverageReporters=text
 ```
+
+### Coverage by Service
+
+| Service | Target | Current Status |
+|---------|--------|----------------|
+| Auth | 85%+ | ✅ 88% |
+| Matching | 85%+ | ⏳ 90% (unit only) |
+| Messaging | 80%+ | ⏳ 85% (unit only) |
+| Payment | 85%+ | ⏳ 85% (unit only) |
+| User | 80%+ | ⏳ Pending |
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/test.yml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          REDIS_URL: ${{ secrets.TEST_REDIS_URL }}
+
+      - name: Generate coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+```
+
+### Pre-commit Hook
+
+```bash
+# .husky/pre-commit
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run tests on staged files
+npm test -- --findRelatedTests --passWithNoTests
+```
+
+### PR Requirements
+
+- All tests must pass
+- Coverage must not decrease
+- Minimum 80% coverage for new code
+- No console errors or warnings
 
 ---
 
@@ -376,41 +402,195 @@ k6 run tests/load/messaging.js
 
 ### Common Issues
 
-#### Backend won't start
-```bash
-# Check if port is in use
-netstat -ano | findstr :3000
+#### 1. Tests Timeout
 
-# Kill process if needed
-taskkill /PID <PID> /F
+```typescript
+// Increase timeout for specific test
+it('should handle long operation', async () => {
+  // ...
+}, 10000); // 10 seconds
 
-# Restart backend
-npm run dev
+// Or globally in jest.config.js
+testTimeout: 10000
 ```
 
-#### Android Emulator slow
-- Enable Hardware Acceleration (HAXM)
-- Allocate more RAM to emulator
-- Use x86_64 image instead of ARM
+#### 2. Mock Not Working
 
-#### Authentication fails
-- Check if test users exist in database
-- Verify JWT_SECRET in .env file
-- Check if tokens are expired
+```typescript
+// Ensure mock is before import
+jest.mock('../../src/repositories/user.repository');
+import userRepository from '../../src/repositories/user.repository';
 
-#### Messages not sending
-- Verify WebSocket connection
-- Check Redis is running
-- Verify match exists between users
+// Clear mocks between tests
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+```
+
+#### 3. Database Connection Issues
+
+```bash
+# Use test database
+export NODE_ENV=test
+export DATABASE_URL=postgresql://localhost:5432/test_db
+
+# Or use in-memory database for integration tests
+```
+
+#### 4. Tests Pass Locally But Fail in CI
+
+```bash
+# Check for:
+# - Environment variables
+# - Database/Redis connections
+# - File paths (use absolute paths)
+# - Timezone differences
+# - Race conditions
+```
+
+#### 5. Flaky Tests
+
+```typescript
+// Use waitFor for async UI updates
+await waitFor(() => {
+  expect(element).toBeVisible();
+});
+
+// Add proper cleanup
+afterEach(() => {
+  cleanup();
+  jest.clearAllMocks();
+});
+```
+
+### Debug Mode
+
+```bash
+# Run tests in debug mode
+node --inspect-brk node_modules/.bin/jest --runInBand
+
+# Or use VS Code debugger
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Jest Debug",
+  "program": "${workspaceFolder}/node_modules/.bin/jest",
+  "args": ["--runInBand"],
+  "console": "integratedTerminal"
+}
+```
 
 ---
 
-## Contact
+## Best Practices
 
-For testing support:
-- Email: dev-support@flamoral.com
-- Slack: #testing-help
+### 1. Test Naming
+
+```typescript
+// ✅ Good - Descriptive and clear
+it('should return 401 when user provides invalid credentials', async () => {});
+
+// ❌ Bad - Vague
+it('login test', async () => {});
+```
+
+### 2. Test Independence
+
+```typescript
+// ✅ Good - Each test is independent
+beforeEach(() => {
+  // Setup fresh state
+  resetFactoryCounters();
+  jest.clearAllMocks();
+});
+
+// ❌ Bad - Tests depend on execution order
+let userId;
+it('creates user', () => { userId = ...; });
+it('gets user', () => { getUser(userId); }); // Depends on previous test
+```
+
+### 3. Don't Test Implementation Details
+
+```typescript
+// ✅ Good - Test behavior
+it('should create user and send welcome email', async () => {
+  await authService.register(userData);
+  expect(emailService.sendWelcomeEmail).toHaveBeenCalled();
+});
+
+// ❌ Bad - Test implementation
+it('should call hashPassword with bcrypt', async () => {
+  // Testing how it works, not what it does
+});
+```
+
+### 4. Use Meaningful Assertions
+
+```typescript
+// ✅ Good - Specific assertions
+expect(response.body.data.user).toMatchObject({
+  email: 'test@example.com',
+  isEmailVerified: false,
+});
+
+// ❌ Bad - Generic assertion
+expect(response.body).toBeDefined();
+```
+
+### 5. Test Edge Cases
+
+```typescript
+describe('age validation', () => {
+  it('should accept users exactly 18 years old', async () => {});
+  it('should reject users 17 years and 364 days old', async () => {});
+  it('should handle leap year birthdates', async () => {});
+  it('should handle invalid date formats', async () => {});
+});
+```
 
 ---
 
-*Last Updated: November 2024*
+## Resources
+
+### Documentation
+- [Jest Documentation](https://jestjs.io/)
+- [Playwright Documentation](https://playwright.dev/)
+- [Testing Library](https://testing-library.com/)
+- [Supertest](https://github.com/visionmedia/supertest)
+
+### Internal Resources
+- [TEST_COVERAGE_REPORT.md](./TEST_COVERAGE_REPORT.md) - Detailed coverage report
+- [TESTING_IMPLEMENTATION_SUMMARY.md](./TESTING_IMPLEMENTATION_SUMMARY.md) - Implementation details
+
+### Getting Help
+- Slack: #testing
+- Wiki: [Testing Best Practices](https://wiki.flamoral.com/testing)
+- Team: testing-team@flamoral.com
+
+---
+
+## Continuous Improvement
+
+### Weekly
+- Review failed tests
+- Update test data
+- Refactor brittle tests
+
+### Monthly
+- Analyze coverage trends
+- Identify untested code paths
+- Review test performance
+- Update documentation
+
+### Quarterly
+- Major refactoring
+- Tool evaluation
+- Process improvements
+- Team training sessions
+
+---
+
+**Last Updated:** December 2, 2025
+**Maintained By:** Engineering Team
+**Questions?** Contact testing-team@flamoral.com

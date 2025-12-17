@@ -1,41 +1,60 @@
-# Flamoral - World-Class Dating Application Platform
+# Flamoral - World-Class Dating Platform
 
-**Version 2.0.0** | **Production Ready** | **iOS | Android | Web**
+**Version 2.0.0** | **Production Ready** | **flamoral.com**
 
+[![CI/CD](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/flamoral-pipeline.yml/badge.svg)](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/flamoral-pipeline.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](package.json)
-[![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](DOCUMENTATION/)
-[![CI](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/unified-ci.yml/badge.svg)](https://github.com/oks-citadel/World-Class-Dating-App-Platform/actions/workflows/unified-ci.yml)
 
 ---
 
-## 🎯 Overview
+## Overview
 
-Complete, production-ready dating application ecosystem featuring native mobile apps (iOS & Android), responsive web application, scalable backend architecture, and comprehensive admin dashboard.
-
-### ✨ Highlights
-
-- ✅ **Full-Stack Platform** - Mobile, Web, Backend, Admin
-- ✅ **Production Ready** - Complete with tests, monitoring, CI/CD
-- ✅ **App Store Compliant** - Privacy policy, terms, age verification
-- ✅ **Scalable Architecture** - Kubernetes, auto-scaling, CDN
-- ✅ **Complete Documentation** - 30+ comprehensive guides
+Production-ready dating application platform featuring web app, mobile apps (iOS/Android), scalable microservices backend, and Azure cloud infrastructure.
 
 ---
 
-## 📱 Platforms
+## Project Structure
 
-| Platform | Technology | Status |
-|----------|------------|--------|
-| 📱 iOS App | React Native 0.73 | ✅ Ready |
-| 🤖 Android App | React Native 0.73 | ✅ Ready |
-| 🌐 Web App | React 18 + Vite | ✅ Ready |
-| 👨‍💼 Admin Dashboard | React 18 | ✅ Ready |
-| ⚙️ Backend API | Node.js 20 | ✅ Ready |
+```
+flamoral/
+├── .github/workflows/     # CI/CD Pipelines
+│   └── flamoral-pipeline.yml  # Master pipeline (dev/staging/prod)
+├── apps/                  # Frontend Applications
+│   ├── web-app/          # React Web App (flamoral.com)
+│   ├── mobile-app/       # React Native (iOS/Android)
+│   └── branding/         # Brand assets & design system
+├── backend/              # Backend Services
+│   └── services/         # Microservices
+│       ├── api-gateway/  # API Gateway (Port 4000)
+│       ├── auth-service/ # Authentication
+│       ├── user-service/ # User management
+│       ├── matching-service/  # Match algorithm
+│       ├── messaging-service/ # Real-time chat
+│       ├── payment-service/   # Stripe payments
+│       └── ...           # Other services
+├── packages/             # Shared Packages
+│   ├── shared/           # Common utilities
+│   └── i18n/            # Internationalization
+├── infrastructure/       # Infrastructure as Code
+│   ├── terraform/        # Azure infrastructure
+│   ├── kubernetes/       # K8s manifests
+│   ├── docker/          # Dockerfiles
+│   └── scripts/         # Deployment scripts
+├── config/              # Environment Configs
+│   ├── dev/             # Development
+│   ├── staging/         # Staging
+│   └── production/      # Production
+├── docs/                # Documentation
+│   ├── architecture/    # System architecture
+│   ├── deployment/      # Deployment guides
+│   ├── api/            # API documentation
+│   └── runbooks/       # Operational runbooks
+└── tests/               # E2E & Integration Tests
+```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone repository
@@ -43,250 +62,166 @@ git clone https://github.com/oks-citadel/World-Class-Dating-App-Platform.git
 cd World-Class-Dating-App-Platform
 
 # Install dependencies
-yarn install
-
-# Build shared packages
-yarn build:all
-
-# Start infrastructure
-docker-compose up -d
+npm install
 
 # Start development
-yarn dev:web      # Web app → http://localhost:5173
-yarn dev:backend  # Backend API → http://localhost:3000
-```
-
-### 🔑 Test Accounts
-- **User**: demo@flamoral.com / Demo123!
-- **Premium**: premium@flamoral.com / Premium123!
-- **Admin**: admin@flamoral.com / Admin123!
-
----
-
-## 📚 **COMPLETE DOCUMENTATION**
-
-### 📂 All Documentation in One Place!
-
-**👉 [DOCUMENTATION/](DOCUMENTATION/) - Start Here!**
-
-All documentation files are numbered for easy sequential reading:
-
-#### Getting Started
-- **[00-START-HERE.md](DOCUMENTATION/00-START-HERE.md)** ⭐ - Read this first!
-- **[01-Installation-Guide.md](DOCUMENTATION/01-Installation-Guide.md)** - Setup instructions
-- **[02-Quick-Start.md](DOCUMENTATION/02-Quick-Start.md)** - 5-minute quick start
-- **[03-Test-Accounts.md](DOCUMENTATION/03-Test-Accounts.md)** - Login credentials
-
-#### Product & Architecture
-- **[10-Product-Specification.md](DOCUMENTATION/10-Product-Specification.md)** - Complete features
-- **[20-System-Architecture.md](DOCUMENTATION/20-System-Architecture.md)** - Architecture overview
-- **[21-Database-Schema.md](DOCUMENTATION/21-Database-Schema.md)** - Database design
-- **[23-API-Documentation.md](DOCUMENTATION/23-API-Documentation.md)** - Complete API docs
-
-#### Development
-- **[31-Web-App-Development.md](DOCUMENTATION/31-Web-App-Development.md)** - Web app guide
-- **[32-Mobile-App-Development.md](DOCUMENTATION/32-Mobile-App-Development.md)** - Mobile app guide
-
-#### Deployment
-- **[40-Deployment-Guide.md](DOCUMENTATION/40-Deployment-Guide.md)** - Production deployment
-
-#### Compliance & Legal
-- **[50-App-Store-Compliance.md](DOCUMENTATION/50-App-Store-Compliance.md)** - Store requirements
-- **[51-Privacy-Policy.md](DOCUMENTATION/51-Privacy-Policy.md)** - Privacy policy
-- **[52-Terms-of-Service.md](DOCUMENTATION/52-Terms-of-Service.md)** - Terms of service
-
-#### User Guides
-- **[60-End-User-Guide.md](DOCUMENTATION/60-End-User-Guide.md)** - How to use the app
-
-**[📖 See all documentation →](DOCUMENTATION/README.md)**
-
----
-
-## 💎 Features
-
-### Core Features
-✅ User authentication (email/phone/social)
-✅ Profile creation with photo galleries
-✅ Location-based matching
-✅ Swipe interface (like/pass/super like)
-✅ Real-time messaging
-✅ Video/voice calling
-✅ Push notifications
-✅ Advanced filters (Premium)
-
-### Monetization
-✅ Free tier (50 likes/day)
-✅ Premium ($19.99/mo) - Unlimited likes
-✅ Premium+ ($29.99/mo) - All features
-✅ À la carte purchases
-
-### Safety & Compliance
-✅ Photo verification (AI + manual)
-✅ User reporting & blocking
-✅ AI content moderation
-✅ GDPR & CCPA compliant
-✅ App Store ready
-
----
-
-## 🏗️ Architecture
-
-```
-Frontend (React/React Native)
-       ↓
-API Gateway (Express)
-       ↓
-Backend Services (Node.js)
-       ↓
-Databases (PostgreSQL/MongoDB/Redis)
-       ↓
-External Services (Stripe/Twilio/Azure)
-```
-
-**[See detailed architecture →](DOCUMENTATION/20-System-Architecture.md)**
-
----
-
-## 📂 Project Structure
-
-```
-├── apps/
-│   ├── web/              # React web app
-│   ├── mobile/           # React Native app
-│   └── admin/            # Admin dashboard
-├── backend/              # Node.js backend
-├── packages/shared/      # Shared packages
-├── infrastructure/       # Kubernetes, Docker
-├── DOCUMENTATION/        # 📚 All docs here!
-└── README.md            # This file
+docker-compose up -d          # Start databases
+npm run dev:backend           # Backend API
+npm run dev:web              # Web app at http://localhost:5173
 ```
 
 ---
 
-## 🛠️ Technology Stack
+## Environments
 
-**Frontend**: React 18, React Native 0.73, TypeScript, Redux, Tailwind
-**Backend**: Node.js 20, Express, GraphQL, Socket.io, TypeScript
-**Databases**: PostgreSQL 15, MongoDB 7, Redis 7, Elasticsearch 8
-**Infrastructure**: Docker, Kubernetes, Azure/AWS, GitHub Actions
-**Services**: Stripe, Twilio, SendGrid, Azure Blob, Agora, Sentry
-
----
-
-## 📱 Mobile App Deployment
-
-### iOS (App Store)
-```bash
-cd apps/mobile
-cd ios && pod install && cd ..
-npx react-native run-ios --configuration Release
-```
-
-### Android (Play Store)
-```bash
-cd apps/mobile/android
-./gradlew bundleRelease
-```
-
-**[See complete mobile deployment guide →](DOCUMENTATION/32-Mobile-App-Development.md)**
+| Environment | URL | Branch | Deployment |
+|-------------|-----|--------|------------|
+| Development | dev.flamoral.com | `develop` | Auto on push |
+| Staging | staging.flamoral.com | `release/*` | Auto on push |
+| Production | flamoral.com | `main` | Auto on push |
 
 ---
 
-## 🚢 Production Deployment
+## CI/CD Pipeline
+
+The master pipeline (`flamoral-pipeline.yml`) handles all environments:
+
+```
+Push to develop  → Build → Test → Deploy to DEV
+Push to release/* → Build → Test → Deploy to STAGING
+Push to main     → Build → Test → Deploy to PRODUCTION
+```
+
+### Pipeline Jobs
+
+1. **Setup** - Detect changes & determine environment
+2. **Quality** - Linting & TypeScript checks
+3. **Security** - Vulnerability & secret scanning
+4. **Test** - Unit & integration tests
+5. **Build** - Docker images to ACR
+6. **Deploy** - Kubernetes deployment
+7. **Verify** - Health checks
+8. **Rollback** - Automatic on failure
+
+### Manual Deployment
 
 ```bash
-# Deploy to Azure/AWS with Kubernetes
-cd infrastructure/terraform
-terraform apply
-kubectl apply -f infrastructure/kubernetes/
+# Via GitHub Actions UI or CLI
+gh workflow run flamoral-pipeline.yml -f environment=production
 ```
-
-**[See complete deployment guide →](DOCUMENTATION/40-Deployment-Guide.md)**
 
 ---
 
-## 🧪 Testing
+## Azure Resources
+
+| Resource | Dev | Staging | Production |
+|----------|-----|---------|------------|
+| Resource Group | flamoral-rg-dev | flamoral-rg-staging | flamoral-rg |
+| AKS Cluster | flamoral-aks-dev | flamoral-aks-staging | flamoral-aks |
+| Key Vault | flamoral-kv-dev | flamoral-kv-staging | flamoral-kv-prod |
+| ACR | flamoralacr | flamoralacr | flamoralacr |
+| Front Door | flamoral-fd | flamoral-fd | flamoral-fd |
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, React Native 0.73, TypeScript, Tailwind |
+| Backend | Node.js 20, Express, Socket.io, TypeScript |
+| Database | PostgreSQL 15, MongoDB 7, Redis 7 |
+| Infrastructure | Azure AKS, Front Door, Key Vault, ACR |
+| CI/CD | GitHub Actions |
+
+---
+
+## Features
+
+- User authentication (email/social/phone)
+- Profile creation with photo galleries
+- Location-based matching algorithm
+- Real-time messaging with WebSocket
+- Video/voice calling (Agora)
+- Stripe payment integration
+- Push notifications
+- AI content moderation
+
+---
+
+## Configuration
+
+Environment variables are organized by environment in the `config/` folder:
+
+```
+config/
+├── dev/.env.example
+├── staging/.env.example
+└── production/.env.example
+```
+
+Secrets are stored in Azure Key Vault and injected via External Secrets Operator.
+
+---
+
+## Troubleshooting
+
+### Check Deployment Status
 
 ```bash
-yarn test:all          # All tests
-yarn test:unit         # Unit tests
-yarn test:integration  # Integration tests
-yarn test:e2e          # E2E tests
+# Get AKS credentials
+az aks get-credentials -g flamoral-rg -n flamoral-aks
+
+# Check pods
+kubectl get pods -n flamoral-prod
+
+# Check logs
+kubectl logs -f deployment/api-gateway -n flamoral-prod
+
+# Check services
+kubectl get svc -n flamoral-prod
+```
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Pod CrashLoopBackOff | Check logs, verify secrets |
+| Image pull error | Verify ACR credentials |
+| Health check fail | Check service ports |
+| Database connection | Verify connection strings in Key Vault |
+
+### Rollback
+
+```bash
+# Rollback to previous deployment
+kubectl rollout undo deployment/api-gateway -n flamoral-prod
+
+# Check rollout status
+kubectl rollout status deployment/api-gateway -n flamoral-prod
+
+# View rollout history
+kubectl rollout history deployment/api-gateway -n flamoral-prod
 ```
 
 ---
 
-## 📊 Performance
+## Documentation
 
-- Response Time: <100ms (95th percentile)
-- Uptime: 99.9%
-- Concurrent Users: 100,000+
-- Auto-scaling: Kubernetes HPA
-- CDN: Global content delivery
-
----
-
-## 🔒 Security & Compliance
-
-✅ GDPR compliant
-✅ CCPA compliant
-✅ PCI DSS (Stripe)
-✅ End-to-end encryption
-✅ Age verification (18+)
-✅ Regular security audits
+| Topic | Location |
+|-------|----------|
+| Architecture | [docs/architecture/](docs/architecture/) |
+| Deployment | [docs/deployment/](docs/deployment/) |
+| API | [docs/api/](docs/api/) |
+| Runbooks | [docs/runbooks/](docs/runbooks/) |
+| Security | [docs/security/](docs/security/) |
 
 ---
 
-## 🎯 What's Included
+## License
 
-✅ **Complete Monorepo** - Production-ready code
-✅ **Mobile Apps** - iOS & Android with compliance
-✅ **Web Application** - React + Vite + Tailwind
-✅ **Backend Services** - Scalable Node.js API
-✅ **Database Schema** - Complete design
-✅ **API Documentation** - REST, GraphQL, WebSocket
-✅ **Deployment Infra** - Kubernetes, Docker, CI/CD
-✅ **Legal Documents** - Privacy, Terms, Compliance
-✅ **User Guides** - Complete documentation
-✅ **Test Accounts** - Ready to use
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
-## 🆘 Support
-
-**📚 Documentation**: [DOCUMENTATION/](DOCUMENTATION/)
-**🐛 Issues**: [GitHub Issues](https://github.com/oks-citadel/World-Class-Dating-App-Platform/issues)
-**📧 Email**: support@flamoral.com
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file
-
----
-
-## 🎯 Roadmap
-
-**Q1 2026**: Beta launch, App Store approval
-**Q2 2026**: Regional expansion
-**Q3 2026**: National launch
-**Q4 2026**: International expansion
-
----
-
-## ⭐ Getting Started
-
-1. **📖 Read** [DOCUMENTATION/00-START-HERE.md](DOCUMENTATION/00-START-HERE.md)
-2. **🛠️ Install** [DOCUMENTATION/01-Installation-Guide.md](DOCUMENTATION/01-Installation-Guide.md)
-3. **🚀 Deploy** [DOCUMENTATION/40-Deployment-Guide.md](DOCUMENTATION/40-Deployment-Guide.md)
-
----
-
-**Built for Production** ✅ | **Ready for Deployment** ✅ | **App Store Compliant** ✅
-
----
-
-*Last Updated: November 23, 2025 | Version 2.0.0*
-
-**[👉 Start with Documentation →](DOCUMENTATION/00-START-HERE.md)**
+**Flamoral** | flamoral.com | Built for Production

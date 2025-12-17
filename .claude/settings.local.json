@@ -493,7 +493,10 @@
       "Bash(git init:*)",
       "Bash(git remote:*)",
       "Bash(git fetch:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add comprehensive updates including documentation, infrastructure, and Flamoral app\n\n- Add CI/CD pipeline documentation and fixes\n- Add Azure Front Door and cost optimization docs\n- Add disaster recovery runbooks and scripts\n- Add security audit documentation\n- Add Flamoral app with full codebase\n- Add dark mode implementation documentation\n- Add various infrastructure scripts and configurations\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh pr list:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

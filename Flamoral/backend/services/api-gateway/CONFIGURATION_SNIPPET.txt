@@ -1,6 +1,0 @@
-// Add these three lines to the services object in src/config/configuration.ts
-// After adminService (line 46) and before the closing brace:
-
-    policyService: process.env.POLICY_SERVICE_URL || 'http://localhost:3012',
-    automationService: process.env.AUTOMATION_SERVICE_URL || 'http://localhost:3013',
-    workflowService: process.env.WORKFLOW_SERVICE_URL || 'http://localhost:3014',

@@ -1,7 +1,0 @@
-Chat Worker has been deployed!
-
-To check the status of the deployment:
-  kubectl get pods -l "app.kubernetes.io/name={{ include "chat-worker.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
-
-To view logs:
-  kubectl logs -l "app.kubernetes.io/name={{ include "chat-worker.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --tail=100 -f

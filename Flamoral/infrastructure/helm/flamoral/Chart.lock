@@ -1,6 +1,0 @@
-dependencies:
-- name: common
-  repository: https://charts.bitnami.com/bitnami
-  version: 1.17.1
-digest: sha256:75657849daa7e1b0413e4d878daa6f28459908e33f049a48656c6d01a01a35b2
-generated: "2025-12-15T21:46:21.0491631-06:00"

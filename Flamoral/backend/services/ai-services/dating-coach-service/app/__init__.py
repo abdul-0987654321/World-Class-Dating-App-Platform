@@ -1,1 +1,0 @@
-"""Dating Coach Service application."""
