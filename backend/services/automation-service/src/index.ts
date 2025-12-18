@@ -84,8 +84,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Mount API routes
-app.use('/api', apiRoutes);
-app.use('/api/automation', automationRoutes);
+app.use('/api/v1', apiRoutes);
+app.use('/api/v1/automation', automationRoutes);
 
 // Setup RabbitMQ event handlers
 async function setupEventHandlers(): Promise<void> {

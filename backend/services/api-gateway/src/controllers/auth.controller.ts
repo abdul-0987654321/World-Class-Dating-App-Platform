@@ -10,7 +10,7 @@ import {
 import { ProxyService } from '../services/proxy.service';
 import { Public } from '../decorators/public.decorator';
 
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly proxyService: ProxyService) {}
 

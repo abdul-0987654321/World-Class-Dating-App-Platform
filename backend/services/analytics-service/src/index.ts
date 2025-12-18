@@ -98,10 +98,10 @@ import dashboardRoutes from './api/routes/dashboard.routes';
 import eventsRoutes from './api/routes/events.routes';
 
 // Register routes
-app.use('/api/tracking', trackingRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/events', eventsRoutes);
+app.use('/api/v1/tracking', trackingRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/events', eventsRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

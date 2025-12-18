@@ -49,7 +49,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 // API Routes
-app.use('/api/media', mediaRoutes);
+app.use('/api/v1/media', mediaRoutes);
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: any): void => {

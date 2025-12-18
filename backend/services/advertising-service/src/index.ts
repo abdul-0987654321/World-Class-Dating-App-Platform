@@ -53,10 +53,10 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/targeting', targetingRoutes);
-app.use('/api/creative', creativeRoutes);
-app.use('/api/optimization', optimizationRoutes);
-app.use('/api/innovations', innovationsRoutes);
+app.use('/api/v1/targeting', targetingRoutes);
+app.use('/api/v1/creative', creativeRoutes);
+app.use('/api/v1/optimization', optimizationRoutes);
+app.use('/api/v1/innovations', innovationsRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

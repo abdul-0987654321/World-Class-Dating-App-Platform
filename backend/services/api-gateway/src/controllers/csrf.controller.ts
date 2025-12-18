@@ -10,7 +10,7 @@ import { CsrfToken } from '../decorators/csrf.decorator';
  * Provides endpoints for obtaining CSRF tokens
  */
 @ApiTags('security')
-@Controller('api/csrf')
+@Controller('csrf')
 export class CsrfController {
   /**
    * Get CSRF Token

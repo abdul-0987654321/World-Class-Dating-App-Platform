@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ProxyService } from '../services/proxy.service';
 
-@Controller('api')
+@Controller()
 export class MessagingController {
   constructor(private readonly proxyService: ProxyService) {}
 

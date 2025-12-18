@@ -17,7 +17,7 @@ import { Public } from '../decorators/public.decorator';
 
 @ApiTags('subscriptions', 'payments')
 @ApiBearerAuth('JWT-auth')
-@Controller('api')
+@Controller()
 export class PaymentController {
   constructor(private readonly proxyService: ProxyService) {}
 

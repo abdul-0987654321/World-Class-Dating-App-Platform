@@ -93,7 +93,7 @@ paths:
                 $ref: '#/components/schemas/PublicConfig'
 
   # ============== AUTH SERVICE ==============
-  /api/auth/register:
+  /api/v1/auth/register:
     post:
       tags: [Auth]
       summary: Register new user
@@ -116,7 +116,7 @@ paths:
         '409':
           description: Email already exists
 
-  /api/auth/login:
+  /api/v1/auth/login:
     post:
       tags: [Auth]
       summary: User login
@@ -137,7 +137,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/auth/logout:
+  /api/v1/auth/logout:
     post:
       tags: [Auth]
       summary: User logout
@@ -150,7 +150,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/auth/refresh-token:
+  /api/v1/auth/refresh-token:
     post:
       tags: [Auth]
       summary: Refresh access token
@@ -173,7 +173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
 
-  /api/auth/verify-email:
+  /api/v1/auth/verify-email:
     post:
       tags: [Auth]
       summary: Verify email address
@@ -192,7 +192,7 @@ paths:
         '200':
           description: Email verified successfully
 
-  /api/auth/resend-verification:
+  /api/v1/auth/resend-verification:
     post:
       tags: [Auth]
       summary: Resend verification email
@@ -212,7 +212,7 @@ paths:
         '200':
           description: Verification email sent
 
-  /api/auth/forgot-password:
+  /api/v1/auth/forgot-password:
     post:
       tags: [Auth]
       summary: Request password reset
@@ -232,7 +232,7 @@ paths:
         '200':
           description: Password reset email sent
 
-  /api/auth/reset-password:
+  /api/v1/auth/reset-password:
     post:
       tags: [Auth]
       summary: Reset password with token
@@ -254,7 +254,7 @@ paths:
         '200':
           description: Password reset successful
 
-  /api/auth/me:
+  /api/v1/auth/me:
     get:
       tags: [Auth]
       summary: Get current user
@@ -271,7 +271,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/auth/validate-token:
+  /api/v1/auth/validate-token:
     post:
       tags: [Auth]
       summary: Validate JWT token
@@ -285,7 +285,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
 
   # ============== USER SERVICE - PROFILE ==============
-  /api/profile:
+  /api/v1/profile:
     get:
       tags: [Profile]
       summary: Get user profile
@@ -320,7 +320,7 @@ paths:
                 $ref: '#/components/schemas/Profile'
 
   # ============== USER SERVICE - PHOTOS ==============
-  /api/photos:
+  /api/v1/photos:
     get:
       tags: [Photos]
       summary: Get user photos
@@ -360,7 +360,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Photo'
 
-  /api/photos/{id}:
+  /api/v1/photos/{id}:
     delete:
       tags: [Photos]
       summary: Delete photo
@@ -377,7 +377,7 @@ paths:
         '200':
           description: Photo deleted
 
-  /api/photos/{id}/primary:
+  /api/v1/photos/{id}/primary:
     put:
       tags: [Photos]
       summary: Set primary photo
@@ -394,7 +394,7 @@ paths:
         '200':
           description: Primary photo set
 
-  /api/photos/reorder:
+  /api/v1/photos/reorder:
     put:
       tags: [Photos]
       summary: Reorder photos
@@ -417,7 +417,7 @@ paths:
           description: Photos reordered
 
   # ============== USER SERVICE - SUBSCRIPTIONS ==============
-  /api/subscriptions/current:
+  /api/v1/subscriptions/current:
     get:
       tags: [Subscriptions]
       summary: Get current subscription
@@ -432,7 +432,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Subscription'
 
-  /api/subscriptions/features:
+  /api/v1/subscriptions/features:
     get:
       tags: [Subscriptions]
       summary: Get available features
@@ -449,7 +449,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Feature'
 
-  /api/subscriptions/features/{key}/access:
+  /api/v1/subscriptions/features/{key}/access:
     get:
       tags: [Subscriptions]
       summary: Check feature access
@@ -473,7 +473,7 @@ paths:
                   hasAccess:
                     type: boolean
 
-  /api/subscriptions/tier:
+  /api/v1/subscriptions/tier:
     put:
       tags: [Subscriptions]
       summary: Update subscription tier
@@ -494,7 +494,7 @@ paths:
         '200':
           description: Subscription updated
 
-  /api/subscriptions/cancel:
+  /api/v1/subscriptions/cancel:
     post:
       tags: [Subscriptions]
       summary: Cancel subscription
@@ -505,7 +505,7 @@ paths:
         '200':
           description: Subscription cancelled
 
-  /api/subscriptions/reactivate:
+  /api/v1/subscriptions/reactivate:
     post:
       tags: [Subscriptions]
       summary: Reactivate subscription
@@ -517,7 +517,7 @@ paths:
           description: Subscription reactivated
 
   # ============== USER SERVICE - COINS ==============
-  /api/coins/balance:
+  /api/v1/coins/balance:
     get:
       tags: [Coins]
       summary: Get coin balance
@@ -535,7 +535,7 @@ paths:
                   balance:
                     type: integer
 
-  /api/coins/transactions:
+  /api/v1/coins/transactions:
     get:
       tags: [Coins]
       summary: Get coin transactions
@@ -561,7 +561,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedTransactions'
 
-  /api/coins/transactions/summary:
+  /api/v1/coins/transactions/summary:
     get:
       tags: [Coins]
       summary: Get transaction summary
@@ -572,7 +572,7 @@ paths:
         '200':
           description: Transaction summary
 
-  /api/coins/products:
+  /api/v1/coins/products:
     get:
       tags: [Coins]
       summary: Get coin products
@@ -589,7 +589,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/CoinProduct'
 
-  /api/coins/purchase:
+  /api/v1/coins/purchase:
     post:
       tags: [Coins]
       summary: Purchase coins
@@ -611,7 +611,7 @@ paths:
         '200':
           description: Purchase successful
 
-  /api/coins/spend:
+  /api/v1/coins/spend:
     post:
       tags: [Coins]
       summary: Spend coins
@@ -633,7 +633,7 @@ paths:
         '200':
           description: Coins spent
 
-  /api/coins/daily-reward:
+  /api/v1/coins/daily-reward:
     post:
       tags: [Coins]
       summary: Claim daily reward
@@ -647,7 +647,7 @@ paths:
           description: Already claimed today
 
   # ============== USER SERVICE - BOOSTS ==============
-  /api/boosts/products:
+  /api/v1/boosts/products:
     get:
       tags: [Boosts]
       summary: Get boost products
@@ -664,7 +664,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/BoostProduct'
 
-  /api/boosts/active:
+  /api/v1/boosts/active:
     get:
       tags: [Boosts]
       summary: Get active boosts
@@ -681,7 +681,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ActiveBoost'
 
-  /api/boosts/history:
+  /api/v1/boosts/history:
     get:
       tags: [Boosts]
       summary: Get boost history
@@ -692,7 +692,7 @@ paths:
         '200':
           description: Boost history
 
-  /api/boosts/activate-with-coins:
+  /api/v1/boosts/activate-with-coins:
     post:
       tags: [Boosts]
       summary: Activate boost with coins
@@ -713,7 +713,7 @@ paths:
           description: Boost activated
 
   # ============== USER SERVICE - PRIVACY ==============
-  /api/privacy/settings:
+  /api/v1/privacy/settings:
     get:
       tags: [Privacy]
       summary: Get privacy settings
@@ -744,7 +744,7 @@ paths:
           description: Privacy settings updated
 
   # ============== USER SERVICE - BLOCKS ==============
-  /api/blocks:
+  /api/v1/blocks:
     get:
       tags: [Blocks]
       summary: Get blocked users
@@ -779,7 +779,7 @@ paths:
         '201':
           description: User blocked
 
-  /api/blocks/{userId}:
+  /api/v1/blocks/{userId}:
     delete:
       tags: [Blocks]
       summary: Unblock user
@@ -797,7 +797,7 @@ paths:
           description: User unblocked
 
   # ============== USER SERVICE - REPORTS ==============
-  /api/reports/categories:
+  /api/v1/reports/categories:
     get:
       tags: [Reports]
       summary: Get report categories
@@ -814,7 +814,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ReportCategory'
 
-  /api/reports:
+  /api/v1/reports:
     post:
       tags: [Reports]
       summary: Submit report
@@ -832,7 +832,7 @@ paths:
           description: Report submitted
 
   # ============== MATCHING SERVICE ==============
-  /api/discovery:
+  /api/v1/discovery:
     get:
       tags: [Discovery]
       summary: Get discovery feed
@@ -855,7 +855,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/DiscoveryProfile'
 
-  /api/discovery/preferences:
+  /api/v1/discovery/preferences:
     get:
       tags: [Discovery]
       summary: Get discovery preferences
@@ -885,7 +885,7 @@ paths:
         '200':
           description: Preferences updated
 
-  /api/swipes:
+  /api/v1/swipes:
     post:
       tags: [Swipes]
       summary: Record swipe action
@@ -906,7 +906,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SwipeResponse'
 
-  /api/swipes/stats:
+  /api/v1/swipes/stats:
     get:
       tags: [Swipes]
       summary: Get swipe statistics
@@ -921,7 +921,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SwipeStats'
 
-  /api/matches:
+  /api/v1/matches:
     get:
       tags: [Matches]
       summary: Get all matches
@@ -945,7 +945,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedMatches'
 
-  /api/matches/recent:
+  /api/v1/matches/recent:
     get:
       tags: [Matches]
       summary: Get recent matches
@@ -956,7 +956,7 @@ paths:
         '200':
           description: Recent matches
 
-  /api/matches/count:
+  /api/v1/matches/count:
     get:
       tags: [Matches]
       summary: Get match count
@@ -974,7 +974,7 @@ paths:
                   count:
                     type: integer
 
-  /api/matches/{matchId}:
+  /api/v1/matches/{matchId}:
     get:
       tags: [Matches]
       summary: Get match details
@@ -1010,7 +1010,7 @@ paths:
         '200':
           description: Unmatched successfully
 
-  /api/matches/{matchId}/extend:
+  /api/v1/matches/{matchId}/extend:
     post:
       tags: [Matches]
       summary: Extend match expiry
@@ -1027,7 +1027,7 @@ paths:
         '200':
           description: Match extended
 
-  /api/matches/{targetUserId}/rematch:
+  /api/v1/matches/{targetUserId}/rematch:
     post:
       tags: [Matches]
       summary: Request rematch
@@ -1045,7 +1045,7 @@ paths:
           description: Rematch requested
 
   # ============== MESSAGING SERVICE ==============
-  /api/conversations:
+  /api/v1/conversations:
     get:
       tags: [Conversations]
       summary: Get conversations
@@ -1069,7 +1069,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedConversations'
 
-  /api/conversations/{id}:
+  /api/v1/conversations/{id}:
     get:
       tags: [Conversations]
       summary: Get conversation details
@@ -1090,7 +1090,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Conversation'
 
-  /api/conversations/{id}/messages:
+  /api/v1/conversations/{id}/messages:
     get:
       tags: [Conversations]
       summary: Get conversation messages
@@ -1119,7 +1119,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedMessages'
 
-  /api/conversations/{id}/read:
+  /api/v1/conversations/{id}/read:
     put:
       tags: [Conversations]
       summary: Mark conversation as read
@@ -1136,7 +1136,7 @@ paths:
         '200':
           description: Marked as read
 
-  /api/conversations/{id}/archive:
+  /api/v1/conversations/{id}/archive:
     put:
       tags: [Conversations]
       summary: Archive conversation
@@ -1153,7 +1153,7 @@ paths:
         '200':
           description: Conversation archived
 
-  /api/messages:
+  /api/v1/messages:
     post:
       tags: [Messages]
       summary: Send message
@@ -1174,7 +1174,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Message'
 
-  /api/messages/unread-count:
+  /api/v1/messages/unread-count:
     get:
       tags: [Messages]
       summary: Get unread message count
@@ -1192,7 +1192,7 @@ paths:
                   count:
                     type: integer
 
-  /api/messages/{messageId}:
+  /api/v1/messages/{messageId}:
     get:
       tags: [Messages]
       summary: Get message
@@ -1252,7 +1252,7 @@ paths:
         '200':
           description: Message deleted
 
-  /api/messages/{messageId}/status:
+  /api/v1/messages/{messageId}/status:
     put:
       tags: [Messages]
       summary: Update message status
@@ -1280,7 +1280,7 @@ paths:
           description: Status updated
 
   # ============== NOTIFICATION SERVICE ==============
-  /api/notifications:
+  /api/v1/notifications:
     get:
       tags: [Notifications]
       summary: Get notifications
@@ -1304,7 +1304,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedNotifications'
 
-  /api/notifications/unread-count:
+  /api/v1/notifications/unread-count:
     get:
       tags: [Notifications]
       summary: Get unread notification count
@@ -1322,7 +1322,7 @@ paths:
                   count:
                     type: integer
 
-  /api/notifications/{id}/read:
+  /api/v1/notifications/{id}/read:
     put:
       tags: [Notifications]
       summary: Mark notification as read
@@ -1339,7 +1339,7 @@ paths:
         '200':
           description: Marked as read
 
-  /api/notifications/read-all:
+  /api/v1/notifications/read-all:
     put:
       tags: [Notifications]
       summary: Mark all notifications as read
@@ -1350,7 +1350,7 @@ paths:
         '200':
           description: All marked as read
 
-  /api/notifications/preferences:
+  /api/v1/notifications/preferences:
     get:
       tags: [Notifications]
       summary: Get notification preferences
@@ -1380,7 +1380,7 @@ paths:
         '200':
           description: Preferences updated
 
-  /api/notifications/devices:
+  /api/v1/notifications/devices:
     post:
       tags: [Notifications]
       summary: Register device for push notifications
@@ -1398,7 +1398,7 @@ paths:
           description: Device registered
 
   # ============== PAYMENT SERVICE ==============
-  /api/payments/create-intent:
+  /api/v1/payments/create-intent:
     post:
       tags: [Payments]
       summary: Create payment intent
@@ -1419,7 +1419,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentIntent'
 
-  /api/payments/history:
+  /api/v1/payments/history:
     get:
       tags: [Payments]
       summary: Get payment history
@@ -1443,7 +1443,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedPayments'
 
-  /api/payments/methods:
+  /api/v1/payments/methods:
     get:
       tags: [Payments]
       summary: Get payment methods
@@ -1460,7 +1460,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/PaymentMethod'
 
-  /api/payments/webhook:
+  /api/v1/payments/webhook:
     post:
       tags: [Payments]
       summary: Stripe webhook
@@ -1476,7 +1476,7 @@ paths:
           description: Webhook processed
 
   # ============== MEDIA SERVICE ==============
-  /api/media/upload:
+  /api/v1/media/upload:
     post:
       tags: [Media]
       summary: Upload media file
@@ -1504,7 +1504,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/MediaUploadResponse'
 
-  /api/media/presigned-url:
+  /api/v1/media/presigned-url:
     get:
       tags: [Media]
       summary: Get presigned upload URL
@@ -1535,7 +1535,7 @@ paths:
                   key:
                     type: string
 
-  /api/media/video:
+  /api/v1/media/video:
     post:
       tags: [Media]
       summary: Upload video
@@ -1556,7 +1556,7 @@ paths:
         '201':
           description: Video uploaded
 
-  /api/media/voice-note:
+  /api/v1/media/voice-note:
     post:
       tags: [Media]
       summary: Upload voice note

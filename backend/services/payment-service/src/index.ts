@@ -30,14 +30,14 @@ app.use(cors({
 
 // Note: Webhook routes must be mounted BEFORE express.json() middleware
 // because they need access to the raw body for signature verification
-app.use('/api/webhooks', webhookRoutes);
+app.use('/api/v1/webhooks', webhookRoutes);
 
 // JSON parsing for all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Mount payment routes
-app.use('/api/payments', paymentRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

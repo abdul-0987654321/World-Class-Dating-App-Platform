@@ -93,59 +93,59 @@ app.get('/', (_req: Request, res: Response) => {
       health: '/health',
       docs: '/api-docs',
       docsJson: '/api-docs.json',
-      auth: '/api/auth',
-      profile: '/api/profile',
-      verification: '/api/verification',
-      phone: '/api/phone',
-      passwordReset: '/api/password-reset',
-      photos: '/api/photos',
-      prompts: '/api/prompts',
-      swipes: '/api/swipes',
-      matches: '/api/matches',
-      discovery: '/api/discovery',
-      messages: '/api/messages',
-      subscriptions: '/api/subscriptions',
-      coins: '/api/coins',
-      boosts: '/api/boosts',
-      privacy: '/api/privacy',
-      blocks: '/api/blocks',
-      reports: '/api/reports',
-      usageLimits: '/api/usage-limits',
-      internal: '/api/internal',
-      badges: '/api/badges',
-      achievements: '/api/achievements',
+      auth: '/api/v1/auth',
+      profile: '/api/v1/profile',
+      verification: '/api/v1/verification',
+      phone: '/api/v1/phone',
+      passwordReset: '/api/v1/password-reset',
+      photos: '/api/v1/photos',
+      prompts: '/api/v1/prompts',
+      swipes: '/api/v1/swipes',
+      matches: '/api/v1/matches',
+      discovery: '/api/v1/discovery',
+      messages: '/api/v1/messages',
+      subscriptions: '/api/v1/subscriptions',
+      coins: '/api/v1/coins',
+      boosts: '/api/v1/boosts',
+      privacy: '/api/v1/privacy',
+      blocks: '/api/v1/blocks',
+      reports: '/api/v1/reports',
+      usageLimits: '/api/v1/usage-limits',
+      internal: '/api/v1/internal',
+      badges: '/api/v1/badges',
+      achievements: '/api/v1/achievements',
     },
   });
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/verification', verificationRoutes);
-app.use('/api/phone', phoneVerificationRoutes);
-app.use('/api/password-reset', passwordResetRoutes);
-app.use('/api/photos', photoRoutes);
-app.use('/api/prompts', promptRoutes);
-app.use('/api/swipes', swipeRoutes);
-app.use('/api/matches', matchRoutes);
-app.use('/api/discovery', discoveryRoutes);
-app.use('/api/messages', messagingRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/profile', profileRoutes);
+app.use('/api/v1/verification', verificationRoutes);
+app.use('/api/v1/phone', phoneVerificationRoutes);
+app.use('/api/v1/password-reset', passwordResetRoutes);
+app.use('/api/v1/photos', photoRoutes);
+app.use('/api/v1/prompts', promptRoutes);
+app.use('/api/v1/swipes', swipeRoutes);
+app.use('/api/v1/matches', matchRoutes);
+app.use('/api/v1/discovery', discoveryRoutes);
+app.use('/api/v1/messages', messagingRoutes);
 
 // Phase 1 monetization & safety routes
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/coins', coinRoutes);
-app.use('/api/boosts', boostRoutes);
-app.use('/api/privacy', privacyRoutes);
-app.use('/api/blocks', blockRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/usage-limits', usageLimitRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/coins', coinRoutes);
+app.use('/api/v1/boosts', boostRoutes);
+app.use('/api/v1/privacy', privacyRoutes);
+app.use('/api/v1/blocks', blockRoutes);
+app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/usage-limits', usageLimitRoutes);
 
-app.use('/api/badges', badgeRoutes);
+app.use('/api/v1/badges', badgeRoutes);
 // Gamification routes
-app.use('/api/achievements', achievementsRoutes);
+app.use('/api/v1/achievements', achievementsRoutes);
 
 // Internal service-to-service routes (no rate limiting)
-app.use('/api/internal', internalRoutes);
+app.use('/api/v1/internal', internalRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
@@ -176,7 +176,7 @@ initializeSocket(httpServer);
 httpServer.listen(PORT, async () => {
   logger.info(`User Service running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`API endpoints available at http://localhost:${PORT}/api`);
+  logger.info(`API endpoints available at http://localhost:${PORT}/api/v1`);
   logger.info(`WebSocket server initialized for real-time messaging`);
 
   // Initialize upload service (Azure Blob Storage)

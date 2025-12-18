@@ -49,22 +49,22 @@ app.get('/', (_req: Request, res: Response) => {
     version: '1.0.0',
     status: 'running',
     endpoints: {
-      swipes: '/api/swipes',
-      matches: '/api/matches',
-      recommendations: '/api/recommendations',
-      search: '/api/search',
+      swipes: '/api/v1/swipes',
+      matches: '/api/v1/matches',
+      recommendations: '/api/v1/recommendations',
+      search: '/api/v1/search',
     },
   });
 });
 
 // API Routes
-app.use('/api/swipes', swipeRoutes);
-app.use('/api/matches', matchRoutes);
-app.use('/api/recommendations', recommendationRoutes);
-app.use('/api/search', searchRoutes);
+app.use('/api/v1/swipes', swipeRoutes);
+app.use('/api/v1/matches', matchRoutes);
+app.use('/api/v1/recommendations', recommendationRoutes);
+app.use('/api/v1/search', searchRoutes);
 
 // Internal API Routes (service-to-service)
-app.use('/api/internal/matches', internalRoutes);
+app.use('/api/v1/internal/matches', internalRoutes);
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: any): void => {

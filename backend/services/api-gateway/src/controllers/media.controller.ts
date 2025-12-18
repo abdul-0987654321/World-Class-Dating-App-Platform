@@ -15,7 +15,7 @@ import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('media')
 @ApiBearerAuth('JWT-auth')
-@Controller('api/media')
+@Controller('media')
 export class MediaController {
   constructor(private readonly proxyService: ProxyService) {}
 

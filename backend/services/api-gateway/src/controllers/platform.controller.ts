@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Public } from '../decorators/public.decorator';
 import { execSync } from 'child_process';
 
-@Controller('api/v1/platform')
+@Controller('platform')
 export class PlatformController {
   constructor(private readonly configService: ConfigService) {}
 

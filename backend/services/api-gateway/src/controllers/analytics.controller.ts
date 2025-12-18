@@ -14,7 +14,7 @@ import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('analytics')
 @ApiBearerAuth('JWT-auth')
-@Controller('api/analytics')
+@Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly proxyService: ProxyService) {}
 

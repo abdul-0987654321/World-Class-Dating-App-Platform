@@ -97,12 +97,12 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API Routes
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/devices', deviceRoutes);
-app.use('/api/batch', batchRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/devices', deviceRoutes);
+app.use('/api/v1/batch', batchRoutes);
 
 // Internal API Routes (service-to-service)
-app.use('/api/internal/notifications', internalRoutes);
+app.use('/api/v1/internal/notifications', internalRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -55,10 +55,10 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API Routes
-app.use('/api/moderation', moderationRoutes);
+app.use('/api/v1/moderation', moderationRoutes);
 
 // Internal API Routes (service-to-service)
-app.use('/api/internal/moderation', internalRoutes);
+app.use('/api/v1/internal/moderation', internalRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

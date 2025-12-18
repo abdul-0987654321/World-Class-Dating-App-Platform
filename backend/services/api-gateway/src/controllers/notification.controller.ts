@@ -16,7 +16,7 @@ import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('notifications')
 @ApiBearerAuth('JWT-auth')
-@Controller('api/notifications')
+@Controller('notifications')
 export class NotificationController {
   constructor(private readonly proxyService: ProxyService) {}
 

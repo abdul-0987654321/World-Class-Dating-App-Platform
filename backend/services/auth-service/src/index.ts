@@ -51,14 +51,14 @@ app.get('/', (req: Request, res: Response) => {
     status: 'running',
     endpoints: {
       health: '/health',
-      auth: '/api/auth',
-      docs: '/api/docs',
+      auth: '/api/v1/auth',
+      docs: '/api/v1/docs',
     },
   });
 });
 
 // Mount API routes
-app.use('/api', apiRoutes);
+app.use('/api/v1', apiRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

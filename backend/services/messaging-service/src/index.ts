@@ -67,22 +67,22 @@ app.get('/', (req: Request, res: Response) => {
     activeConnections: socketManager.getConnectedCount(),
     endpoints: {
       health: '/health',
-      api: '/api',
-      conversations: '/api/conversations',
-      messages: '/api/messages',
+      api: '/api/v1',
+      conversations: '/api/v1/conversations',
+      messages: '/api/v1/messages',
       websocket: `ws://localhost:${PORT}`,
     },
   });
 });
 
 // Mount API routes
-app.use('/api', apiRoutes);
+app.use('/api/v1', apiRoutes);
 
 // Internal API Routes (service-to-service)
-app.use('/api/internal/messages', internalRoutes);
+app.use('/api/v1/internal/messages', internalRoutes);
 
 // API endpoint to check user online status
-app.get('/api/users/:userId/status', async (req: Request, res: Response) => {
+app.get('/api/v1/users/:userId/status', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const status = await socketManager.getOnlineStatus(userId);

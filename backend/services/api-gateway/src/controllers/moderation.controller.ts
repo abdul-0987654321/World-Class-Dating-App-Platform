@@ -15,7 +15,7 @@ import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('moderation')
 @ApiBearerAuth('JWT-auth')
-@Controller('api/moderation')
+@Controller('moderation')
 export class ModerationController {
   constructor(private readonly proxyService: ProxyService) {}
 

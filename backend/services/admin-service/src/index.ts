@@ -40,7 +40,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/admin', adminRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
