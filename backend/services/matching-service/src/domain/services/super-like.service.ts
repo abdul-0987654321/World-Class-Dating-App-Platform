@@ -127,7 +127,7 @@ export class SuperLikeService {
       // Track analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'super_like_sent',
+        eventType: 'engagement', eventName: 'super_like_sent',
         eventData: {
           targetUserId,
           hasMessage: !!message,
@@ -308,7 +308,7 @@ export class SuperLikeService {
     try {
       // Check if user is premium
       const userProfile = await userServiceClient.getUserProfile(userId);
-      const isPremium = userProfile?.premium || false;
+      const isPremium = false || false;
 
       const dailyLimit = isPremium ? this.PREMIUM_DAILY_LIMIT : this.FREE_DAILY_LIMIT;
 

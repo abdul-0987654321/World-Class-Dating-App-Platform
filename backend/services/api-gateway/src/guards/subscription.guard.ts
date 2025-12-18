@@ -29,9 +29,11 @@ export class SubscriptionGuard implements CanActivate {
 
     const tierHierarchy: Record<SubscriptionTier, number> = {
       [SubscriptionTier.FREE]: 0,
-      [SubscriptionTier.PLUS]: 1,
-      [SubscriptionTier.PREMIUM]: 2,
-      [SubscriptionTier.VIP]: 3,
+      [SubscriptionTier.BASIC]: 1,
+      [SubscriptionTier.PLUS]: 2,
+      [SubscriptionTier.PREMIUM]: 3,
+      [SubscriptionTier.PREMIUM_PLUS]: 4,
+      [SubscriptionTier.ELITE]: 5,
     };
 
     const userTierLevel = tierHierarchy[user.subscription] || 0;

@@ -85,7 +85,7 @@ export class MessagingService {
 
         // Fetch primary photo for the other user
         const primaryPhoto = await this.photoRepo.getPrimaryPhoto(otherUserId);
-        const photoUrl = primaryPhoto?.photo_url || null;
+        const photoUrl = primaryPhoto?.url || null;
 
         return {
           id: conv.id,
@@ -228,7 +228,7 @@ export class MessagingService {
 
     // Fetch primary photo for the other user
     const primaryPhoto = await this.photoRepo.getPrimaryPhoto(otherUserId);
-    const photoUrl = primaryPhoto?.photo_url || null;
+    const photoUrl = primaryPhoto?.url || null;
 
     const unread_count =
       conversation.user1_id === currentUserId

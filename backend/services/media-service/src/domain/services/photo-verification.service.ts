@@ -515,7 +515,7 @@ export class PhotoVerificationService {
       // Check for natural expressions
       if (face.faceAttributes?.emotion) {
         const emotions = face.faceAttributes.emotion;
-        const totalEmotion = Object.values(emotions).reduce((a: number, b: number) => a + b, 0);
+        const totalEmotion = Object.values(emotions).reduce<number>((a, b) => a + (typeof b === 'number' ? b : 0), 0);
         if (totalEmotion > 0) {
           livenessScore += 0.1; // Natural emotions present
         }

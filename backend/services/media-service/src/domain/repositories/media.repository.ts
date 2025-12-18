@@ -5,6 +5,12 @@ import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('media-repository');
 
+export interface MediaRecord extends MediaMetadata {
+  verificationData?: any;
+  flaggedForReview?: boolean;
+  flagReason?: string;
+}
+
 export class MediaRepository {
   private db: Knex;
 
@@ -46,13 +52,13 @@ export class MediaRepository {
   /**
    * Find media by ID
    */
-  async findById(id: string): Promise<MediaMetadata | null> {
+  async findById(id: string): Promise<MediaRecord | null> {
     try {
       const media = await this.db('media')
         .where({ id })
         .first();
 
-      return media ? this.mapToMediaMetadata(media) : null;
+      return media ? this.mapToMediaRecord(media) : null;
     } catch (error) {
       logger.error('Failed to find media by ID', error);
       throw error;
@@ -71,6 +77,49 @@ export class MediaRepository {
       return media.map(this.mapToMediaMetadata);
     } catch (error) {
       logger.error('Failed to find media by user ID', error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Find all media with optional filters
+   */
+  async findAll(options?: {
+    where?: any;
+    select?: string[];
+  }): Promise<MediaRecord[]> {
+    try {
+      let query = this.db('media');
+
+      if (options?.where) {
+        // Handle special operators like $ne
+        Object.entries(options.where).forEach(([key, value]: [string, any]) => {
+          const dbKey = key === 'userId' ? 'user_id' :
+                       key === 'isVerified' ? 'is_verified' : key;
+
+          if (value && typeof value === 'object' && value.$ne !== undefined) {
+            query = query.whereNot(dbKey, value.$ne);
+          } else {
+            query = query.where(dbKey, value);
+          }
+        });
+      }
+
+      if (options?.select) {
+        const dbColumns = options.select.map(col => {
+          if (col === 'userId') return 'user_id';
+          if (col === 'isVerified') return 'is_verified';
+          if (col === 'verificationData') return 'verification_data';
+          return col;
+        });
+        query = query.select(dbColumns);
+      }
+
+      const media = await query;
+      return media.map(this.mapToMediaRecord);
+    } catch (error) {
+      logger.error('Failed to find all media', error);
       throw error;
     }
   }
@@ -97,7 +146,7 @@ export class MediaRepository {
   /**
    * Update media record
    */
-  async update(id: string, updates: Partial<MediaMetadata>): Promise<MediaMetadata | null> {
+  async update(id: string, updates: Partial<MediaRecord>): Promise<MediaRecord | null> {
     try {
       const updateData: any = {};
 
@@ -114,12 +163,25 @@ export class MediaRepository {
         updateData.moderation_result = JSON.stringify(updates.moderationResult);
       }
 
+      // Handle additional fields like verificationData, flaggedForReview, flagReason
+      if (updates.verificationData !== undefined) {
+        updateData.verification_data = JSON.stringify(updates.verificationData);
+      }
+      if (updates.flaggedForReview !== undefined) {
+        updateData.flagged_for_review = updates.flaggedForReview;
+      }
+      if (updates.flagReason !== undefined) {
+        updateData.flag_reason = updates.flagReason;
+      }
+
+      updateData.updated_at = new Date();
+
       const [updated] = await this.db('media')
         .where({ id })
         .update(updateData)
         .returning('*');
 
-      return updated ? this.mapToMediaMetadata(updated) : null;
+      return updated ? this.mapToMediaRecord(updated) : null;
     } catch (error) {
       logger.error('Failed to update media record', error);
       throw error;
@@ -212,6 +274,23 @@ export class MediaRepository {
         : undefined,
       uploadedAt: new Date(record.uploaded_at),
       updatedAt: new Date(record.updated_at),
+    };
+  }
+
+  /**
+   * Map database record to MediaRecord (includes extra fields)
+   */
+  private mapToMediaRecord(record: any): MediaRecord {
+    const base = this.mapToMediaMetadata(record);
+    return {
+      ...base,
+      verificationData: record.verification_data
+        ? (typeof record.verification_data === 'string'
+          ? JSON.parse(record.verification_data)
+          : record.verification_data)
+        : undefined,
+      flaggedForReview: record.flagged_for_review,
+      flagReason: record.flag_reason,
     };
   }
 }

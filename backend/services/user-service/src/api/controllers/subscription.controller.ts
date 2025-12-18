@@ -116,14 +116,27 @@ export class SubscriptionController {
         });
       }
 
-      if (!tier || !['free', 'basic', 'mid', 'ultra'].includes(tier)) {
+      // Valid subscription tiers: 6-tier model
+      const validTiers = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'];
+      // Legacy tier mapping for backwards compatibility
+      const legacyTierMapping: Record<string, string> = {
+        'mid': 'premium',
+        'ultra': 'elite'
+      };
+
+      let normalizedTier = tier?.toLowerCase();
+      if (normalizedTier && legacyTierMapping[normalizedTier]) {
+        normalizedTier = legacyTierMapping[normalizedTier];
+      }
+
+      if (!normalizedTier || !validTiers.includes(normalizedTier)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid tier specified',
+          message: `Invalid tier specified. Valid tiers: ${validTiers.join(', ')}`,
         });
       }
 
-      const subscription = await this.subscriptionService.updateSubscriptionTier(userId, tier);
+      const subscription = await this.subscriptionService.updateSubscriptionTier(userId, normalizedTier);
 
       return res.status(200).json({
         success: true,

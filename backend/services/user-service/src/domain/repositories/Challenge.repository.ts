@@ -101,10 +101,10 @@ export class ChallengeRepository {
     return challenges.map(this.mapUserChallengeToEntity);
   }
 
-  private mapToEntity(row: any): ChallengeDefinition {
+  private mapToEntity(row: any): any {
     return {
       id: row.id,
-      key: row.key,
+      slug: row.key || row.challenge_slug,
       title: row.title,
       description: row.description,
       type: row.type,
@@ -131,11 +131,11 @@ export class ChallengeRepository {
     };
   }
 
-  private mapUserChallengeToEntity(row: any): UserChallenge {
+  private mapUserChallengeToEntity(row: any): any {
     return {
       id: row.id,
-      userId: row.user_id,
-      challengeId: row.challenge_id,
+      user_id: row.user_id,
+      challenge_id: row.challenge_id,
       status: row.status,
       progress: row.progress,
       target: row.target,

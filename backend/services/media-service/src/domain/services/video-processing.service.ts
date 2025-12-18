@@ -204,7 +204,7 @@ export class VideoProcessingService {
           const width = videoStream.width || 0;
           const height = videoStream.height || 0;
           const codec = videoStream.codec_name;
-          const bitrate = metadata.format.bit_rate ? parseInt(metadata.format.bit_rate, 10) : undefined;
+          const bitrate = metadata.format.bit_rate ? (typeof metadata.format.bit_rate === 'string' ? parseInt(metadata.format.bit_rate, 10) : metadata.format.bit_rate) : undefined;
 
           // Calculate frame rate
           let frameRate: number | undefined;

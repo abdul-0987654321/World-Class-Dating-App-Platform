@@ -228,13 +228,14 @@ export class AuthService {
 
   private generateTokens(user: any): { accessToken: string; refreshToken: string } {
     const payload = {
+      id: user.id,
       userId: user.id,
       email: user.email,
     };
 
     return {
-      accessToken: jwtUtils.generateAccessToken(payload),
-      refreshToken: jwtUtils.generateRefreshToken(payload),
+      accessToken: jwtUtils.generateAccessToken(payload as any),
+      refreshToken: jwtUtils.generateRefreshToken(payload as any),
     };
   }
 

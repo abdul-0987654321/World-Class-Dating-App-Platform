@@ -6,12 +6,17 @@ const logger = createLogger('auth-middleware');
 
 interface AuthRequest extends Request {
   user?: {
+    id: string;
     userId: string;
     email: string;
   };
 }
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  authenticate(req, res, next);
+};
+
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   authenticate(req, res, next);
 };
 
@@ -34,6 +39,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
       const decoded = jwt.verify(token, secret) as any;
 
       req.user = {
+        id: decoded.userId || decoded.id,
         userId: decoded.userId || decoded.id,
         email: decoded.email,
       };

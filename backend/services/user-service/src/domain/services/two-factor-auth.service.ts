@@ -354,8 +354,6 @@ export class TwoFactorAuthService {
 
       // TODO: Send SMS via Twilio
       logger.info(`SMS 2FA code sent to user ${userId}`);
-
-      }
     } catch (error) {
       logger.error('Error sending SMS code:', error);
       throw new Error('Failed to send SMS code');
@@ -418,4 +416,60 @@ export class TwoFactorAuthService {
 
       // TODO: Send email via SendGrid
       logger.info(`Email 2FA code sent to user ${userId}`);
+    } catch (error) {
+      logger.error('Error sending email code:', error);
+      throw new Error('Failed to send email code');
+    }
+  }
+
+  /**
+   * Verify email code
+   */
+  async verifyEmailCode(userId: string, code: string): Promise<boolean> {
+    try {
+      const verificationCode = await db('user_verification_codes')
+        .where({
+          user_id: userId,
+          code: code,
+          type: '2fa_email',
+          is_used: false,
+        })
+        .andWhere('expires_at', '>', new Date())
+        .first();
+
+      if (!verificationCode) {
+        logger.warn(`Invalid or expired email code for user ${userId}`);
+        return false;
+      }
+
+      // Mark code as used
+      await db('user_verification_codes')
+        .where({ id: verificationCode.id })
+        .update({
+          is_used: true,
+          verified_at: new Date(),
+        });
+
+      logger.info(`Email code verified for user ${userId}`);
+      return true;
+    } catch (error) {
+      logger.error('Error verifying email code:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Generate numeric code
+   */
+  private generateNumericCode(length: number): string {
+    const digits = '0123456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+      code += digits.charAt(Math.floor(Math.random() * digits.length));
+    }
+    return code;
+  }
+}
+
+export default TwoFactorAuthService;
 

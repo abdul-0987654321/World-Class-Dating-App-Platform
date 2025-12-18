@@ -8,14 +8,18 @@ interface UpdateSubscriptionDto {
   status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing' | 'grace_period';
   currentPeriodEnd?: Date;
   gracePeriodEnd?: Date;
+  provider?: string;
+  providerSubscriptionId?: string;
 }
 
 interface AddCoinsDto {
   userId: string;
   amount: number;
-  transactionType: 'purchase' | 'reward' | 'refund';
-  stripePaymentId: string;
-  productSku: string;
+  transactionType: 'purchase' | 'reward' | 'refund' | 'iap_purchase';
+  stripePaymentId?: string;
+  productSku?: string;
+  iapTransactionId?: string;
+  provider?: string;
 }
 
 interface ActivateBoostDto {
@@ -23,6 +27,20 @@ interface ActivateBoostDto {
   productSku: string;
   durationMinutes: number;
   stripePaymentId: string;
+}
+
+interface AddBoostsDto {
+  userId: string;
+  amount: number;
+  transactionId: string;
+  provider: string;
+}
+
+interface AddSuperLikesDto {
+  userId: string;
+  amount: number;
+  transactionId: string;
+  provider: string;
 }
 
 export class UserServiceClient {
@@ -61,6 +79,32 @@ export class UserServiceClient {
       tier: this.mapTierName(data.subscription_tier),
       status: data.subscription_status as any,
     });
+  }
+
+  /**
+   * Get user subscription
+   */
+  async getSubscription(userId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/internal/users/${userId}/subscription`);
+      return response.data;
+    } catch (error: any) {
+      logger.error('Failed to get subscription from user-service:', error.message);
+      throw new Error(`User service get subscription failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get user wallet
+   */
+  async getWallet(userId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/internal/users/${userId}/wallet`);
+      return response.data;
+    } catch (error: any) {
+      logger.error('Failed to get wallet from user-service:', error.message);
+      throw new Error(`User service get wallet failed: ${error.message}`);
+    }
   }
 
   /**
@@ -121,6 +165,32 @@ export class UserServiceClient {
     } catch (error: any) {
       logger.error('Failed to activate boost in user-service:', error.message);
       throw new Error(`User service boost activation failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Add boosts to user
+   */
+  async addBoosts(data: AddBoostsDto): Promise<void> {
+    try {
+      await this.client.post('/api/internal/boosts/add', data);
+      logger.info(`Added ${data.amount} boost(s) to user ${data.userId}`);
+    } catch (error: any) {
+      logger.error('Failed to add boosts in user-service:', error.message);
+      throw new Error(`User service add boosts failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Add super likes to user
+   */
+  async addSuperLikes(data: AddSuperLikesDto): Promise<void> {
+    try {
+      await this.client.post('/api/internal/superlikes/add', data);
+      logger.info(`Added ${data.amount} super like(s) to user ${data.userId}`);
+    } catch (error: any) {
+      logger.error('Failed to add super likes in user-service:', error.message);
+      throw new Error(`User service add super likes failed: ${error.message}`);
     }
   }
 

@@ -59,7 +59,7 @@ export class BadgeRepository {
       .insert({
         user_id: data.userId,
         badge_id: data.badgeId,
-        is_equipped: data.isEquipped,
+        is_equipped: data.isEquipped !== undefined ? data.isEquipped : false,
         display_order: data.displayOrder,
         expires_at: data.expiresAt,
         metadata: data.metadata ? JSON.stringify(data.metadata) : null,
@@ -69,13 +69,18 @@ export class BadgeRepository {
   }
 
   async updateUserBadge(userBadgeId: string, updates: any): Promise<UserProfileBadge> {
+    const updateData: any = {
+      updated_at: this.db.fn.now(),
+    };
+    if (updates.isEquipped !== undefined) {
+      updateData.is_equipped = updates.isEquipped;
+    }
+    if (updates.displayOrder !== undefined) {
+      updateData.display_order = updates.displayOrder;
+    }
     const [updated] = await this.db('user_profile_badges')
       .where({ id: userBadgeId })
-      .update({
-        is_equipped: updates.isEquipped,
-        display_order: updates.displayOrder,
-        updated_at: this.db.fn.now(),
-      })
+      .update(updateData)
       .returning('*');
     return this.mapUserBadgeToEntity(updated);
   }
@@ -117,23 +122,30 @@ export class BadgeRepository {
       .insert({
         user_id: data.userId,
         collection_id: data.collectionId,
-        is_completed: data.isCompleted,
+        is_completed: data.isCompleted !== undefined ? data.isCompleted : false,
         completed_at: data.completedAt,
-        reward_claimed: data.rewardClaimed,
+        reward_claimed: data.rewardClaimed !== undefined ? data.rewardClaimed : false,
       })
       .returning('*');
     return this.mapUserCollectionToEntity(created);
   }
 
   async updateUserCollection(userCollectionId: string, updates: any): Promise<UserBadgeCollection> {
+    const updateData: any = {
+      updated_at: this.db.fn.now(),
+    };
+    if (updates.isCompleted !== undefined) {
+      updateData.is_completed = updates.isCompleted;
+    }
+    if (updates.completedAt !== undefined) {
+      updateData.completed_at = updates.completedAt;
+    }
+    if (updates.rewardClaimed !== undefined) {
+      updateData.reward_claimed = updates.rewardClaimed;
+    }
     const [updated] = await this.db('user_badge_collections')
       .where({ id: userCollectionId })
-      .update({
-        is_completed: updates.isCompleted,
-        completed_at: updates.completedAt,
-        reward_claimed: updates.rewardClaimed,
-        updated_at: this.db.fn.now(),
-      })
+      .update(updateData)
       .returning('*');
     return this.mapUserCollectionToEntity(updated);
   }

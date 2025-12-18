@@ -44,17 +44,16 @@ export class AchievementService {
     });
 
     achievements.sort((a, b) => {
-      const orderA = a.showcaseOrder ?? 999;
-      const orderB = b.showcaseOrder ?? 999;
+      const orderA = (a as any).showcase_order ?? 999;
+      const orderB = (b as any).showcase_order ?? 999;
       return orderA - orderB;
     });
 
     const stats = await this.getUserStats(userId);
 
     return {
-      userId,
-      achievements,
-      stats,
+      user_id: userId,
+      achievement_ids: achievements.map(a => a.achievement_id),
     };
   }
 
@@ -93,8 +92,8 @@ export class AchievementService {
     update: AchievementProgressUpdate
   ): Promise<AchievementUnlockResult | null> {
     // Get achievement definition
-    const definition = await repository.findDefinitionByKey(update.achievementKey);
-    if (!definition || !definition.isActive) {
+    const definition = await repository.findDefinitionByKey(update.achievement_slug);
+    if (!definition || !definition.is_active) {
       return null;
     }
 
@@ -102,36 +101,35 @@ export class AchievementService {
     const userAchievement = await repository.findOrCreateUserAchievement(
       userId,
       definition.id,
-      definition.targetValue || undefined
+      definition.target_value || undefined
     );
 
     // Skip if already unlocked and not repeatable
-    if (userAchievement.isUnlocked && !definition.isRepeatable) {
+    if (userAchievement.is_completed && !(definition as any).is_repeatable) {
       return null;
     }
 
     // Calculate new progress
-    const previousProgress = userAchievement.progress;
-    const incrementBy = update.incrementBy !== undefined ? update.incrementBy : 1;
+    const previousProgress = userAchievement.current_progress;
+    const incrementBy = update.progress_increment !== undefined ? update.progress_increment : 1;
     const newProgress = previousProgress + incrementBy;
 
-    const target = definition.targetValue || 1;
+    const target = definition.target_value || 1;
     const progressPercentage = calculateProgressPercentage(newProgress, target);
 
     // Update progress
     await repository.updateUserAchievement(userId, definition.id, {
-      progress: newProgress,
-      progressPercentage,
+      current_progress: newProgress,
     });
 
     // Log progress
     await repository.createProgressLog({
-      userId,
-      achievementId: definition.id,
-      actionType: update.actionType,
-      progressIncrement: incrementBy,
-      progressAfter: newProgress,
-      metadata: update.metadata || null,
+      user_id: userId,
+      achievement_id: definition.id,
+      progress_change: incrementBy,
+      old_progress: previousProgress,
+      new_progress: newProgress,
+      event_type: 'progress_update',
     });
 
     // Check if achievement is now complete
@@ -142,22 +140,21 @@ export class AchievementService {
     if (unlocked) {
       // Unlock achievement
       await repository.updateUserAchievement(userId, definition.id, {
-        isUnlocked: true,
-        unlockedAt: new Date(),
-        timesCompleted: userAchievement.timesCompleted + 1,
+        is_completed: true,
+        completed_at: new Date(),
+        times_completed: userAchievement.times_completed + 1,
       });
 
       // Award coins if specified
-      if (definition.coinReward > 0) {
-        await this.awardCoins(this.db, userId, definition.coinReward, definition.name);
+      if (definition.coin_reward > 0) {
+        await this.awardCoins(this.db, userId, definition.coin_reward, definition.name);
       }
 
       // For repeatable achievements, reset progress
-      if (definition.isRepeatable) {
+      if ((definition as any).is_repeatable) {
         await repository.updateUserAchievement(userId, definition.id, {
-          progress: 0,
-          progressPercentage: 0,
-          isUnlocked: false,
+          current_progress: 0,
+          is_completed: false,
         });
       }
     }
@@ -165,11 +162,10 @@ export class AchievementService {
     return {
       unlocked,
       achievement: definition,
-      previousProgress,
-      newProgress,
-      pointsEarned: unlocked ? definition.points : 0,
-      coinsEarned: unlocked ? definition.coinReward : 0,
-      isFirstTime: userAchievement.timesCompleted === 0,
+      rewards: unlocked ? {
+        xp_granted: definition.xp_reward,
+        coins_granted: definition.coin_reward,
+      } : undefined,
     };
   }
 
@@ -178,9 +174,9 @@ export class AchievementService {
 
     if (completionPercentage >= 100) {
       updates.push({
-        achievementKey: 'PROFILE_COMPLETE',
-        actionType: 'profile_completed',
-        incrementBy: 100,
+        user_id: userId,
+        achievement_slug: 'PROFILE_COMPLETE',
+        progress_increment: 100,
       });
     }
 
@@ -194,17 +190,17 @@ export class AchievementService {
 
     if (totalPhotos >= 3) {
       updates.push({
-        achievementKey: 'PHOTOS_UPLOADED_3',
-        actionType: 'photo_uploaded',
-        incrementBy: totalPhotos,
+        user_id: userId,
+        achievement_slug: 'PHOTOS_UPLOADED_3',
+        progress_increment: totalPhotos,
       });
     }
 
     if (totalPhotos >= 6) {
       updates.push({
-        achievementKey: 'PHOTOS_UPLOADED_6',
-        actionType: 'photo_uploaded',
-        incrementBy: totalPhotos,
+        user_id: userId,
+        achievement_slug: 'PHOTOS_UPLOADED_6',
+        progress_increment: totalPhotos,
       });
     }
 
@@ -216,9 +212,9 @@ export class AchievementService {
   async trackPhoneVerification(userId: string): Promise<void> {
     await this.updateProgress(userId, [
       {
-        achievementKey: 'PHONE_VERIFIED',
-        actionType: 'phone_verified',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'PHONE_VERIFIED',
+        progress_increment: 1,
       },
     ]);
   }
@@ -226,9 +222,9 @@ export class AchievementService {
   async trackPhotoVerification(userId: string): Promise<void> {
     await this.updateProgress(userId, [
       {
-        achievementKey: 'PHOTO_VERIFIED',
-        actionType: 'photo_verified',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'PHOTO_VERIFIED',
+        progress_increment: 1,
       },
     ]);
   }
@@ -236,41 +232,41 @@ export class AchievementService {
   async trackMatch(userId: string, totalMatches: number, isSuperLike: boolean = false): Promise<void> {
     const updates: AchievementProgressUpdate[] = [
       {
-        achievementKey: 'FIRST_MATCH',
-        actionType: 'match_created',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'FIRST_MATCH',
+        progress_increment: 1,
       },
     ];
 
     if (totalMatches >= 10) {
       updates.push({
-        achievementKey: 'MATCHES_10',
-        actionType: 'match_created',
-        incrementBy: totalMatches,
+        user_id: userId,
+        achievement_slug: 'MATCHES_10',
+        progress_increment: totalMatches,
       });
     }
 
     if (totalMatches >= 50) {
       updates.push({
-        achievementKey: 'MATCHES_50',
-        actionType: 'match_created',
-        incrementBy: totalMatches,
+        user_id: userId,
+        achievement_slug: 'MATCHES_50',
+        progress_increment: totalMatches,
       });
     }
 
     if (totalMatches >= 100) {
       updates.push({
-        achievementKey: 'MATCHES_100',
-        actionType: 'match_created',
-        incrementBy: totalMatches,
+        user_id: userId,
+        achievement_slug: 'MATCHES_100',
+        progress_increment: totalMatches,
       });
     }
 
     if (isSuperLike) {
       updates.push({
-        achievementKey: 'SUPER_LIKE_MATCH',
-        actionType: 'super_like_match',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'SUPER_LIKE_MATCH',
+        progress_increment: 1,
       });
     }
 
@@ -280,35 +276,34 @@ export class AchievementService {
   async trackMessage(userId: string, totalMessages: number, responseTime?: number): Promise<void> {
     const updates: AchievementProgressUpdate[] = [
       {
-        achievementKey: 'FIRST_MESSAGE',
-        actionType: 'message_sent',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'FIRST_MESSAGE',
+        progress_increment: 1,
       },
     ];
 
     if (totalMessages >= 100) {
       updates.push({
-        achievementKey: 'MESSAGES_100',
-        actionType: 'message_sent',
-        incrementBy: totalMessages,
+        user_id: userId,
+        achievement_slug: 'MESSAGES_100',
+        progress_increment: totalMessages,
       });
     }
 
     if (totalMessages >= 500) {
       updates.push({
-        achievementKey: 'MESSAGES_500',
-        actionType: 'message_sent',
-        incrementBy: totalMessages,
+        user_id: userId,
+        achievement_slug: 'MESSAGES_500',
+        progress_increment: totalMessages,
       });
     }
 
     // Check for quick responder (within 60 seconds)
     if (responseTime && responseTime <= 60) {
       updates.push({
-        achievementKey: 'QUICK_RESPONDER',
-        actionType: 'quick_response',
-        incrementBy: 1,
-        metadata: { responseTime },
+        user_id: userId,
+        achievement_slug: 'QUICK_RESPONDER',
+        progress_increment: 1,
       });
     }
 
@@ -320,25 +315,25 @@ export class AchievementService {
 
     if (totalSwipes >= 100) {
       updates.push({
-        achievementKey: 'SWIPES_100',
-        actionType: 'swipe',
-        incrementBy: totalSwipes,
+        user_id: userId,
+        achievement_slug: 'SWIPES_100',
+        progress_increment: totalSwipes,
       });
     }
 
     if (totalSwipes >= 500) {
       updates.push({
-        achievementKey: 'SWIPES_500',
-        actionType: 'swipe',
-        incrementBy: totalSwipes,
+        user_id: userId,
+        achievement_slug: 'SWIPES_500',
+        progress_increment: totalSwipes,
       });
     }
 
     if (totalSwipes >= 1000) {
       updates.push({
-        achievementKey: 'SWIPES_1000',
-        actionType: 'swipe',
-        incrementBy: totalSwipes,
+        user_id: userId,
+        achievement_slug: 'SWIPES_1000',
+        progress_increment: totalSwipes,
       });
     }
 
@@ -346,10 +341,9 @@ export class AchievementService {
     const hour = new Date().getHours();
     if (hour >= 0 && hour < 5) {
       updates.push({
-        achievementKey: 'MIDNIGHT_SWIPER',
-        actionType: 'midnight_swipe',
-        incrementBy: 1,
-        metadata: { hour },
+        user_id: userId,
+        achievement_slug: 'MIDNIGHT_SWIPER',
+        progress_increment: 1,
       });
     }
 
@@ -363,25 +357,25 @@ export class AchievementService {
 
     if (streakDays >= 7) {
       updates.push({
-        achievementKey: 'LOGIN_STREAK_7',
-        actionType: 'login_streak',
-        incrementBy: streakDays,
+        user_id: userId,
+        achievement_slug: 'LOGIN_STREAK_7',
+        progress_increment: streakDays,
       });
     }
 
     if (streakDays >= 30) {
       updates.push({
-        achievementKey: 'LOGIN_STREAK_30',
-        actionType: 'login_streak',
-        incrementBy: streakDays,
+        user_id: userId,
+        achievement_slug: 'LOGIN_STREAK_30',
+        progress_increment: streakDays,
       });
     }
 
     if (streakDays >= 100) {
       updates.push({
-        achievementKey: 'LOGIN_STREAK_100',
-        actionType: 'login_streak',
-        incrementBy: streakDays,
+        user_id: userId,
+        achievement_slug: 'LOGIN_STREAK_100',
+        progress_increment: streakDays,
       });
     }
 
@@ -393,9 +387,9 @@ export class AchievementService {
   async trackSubscription(userId: string): Promise<void> {
     await this.updateProgress(userId, [
       {
-        achievementKey: 'FIRST_SUBSCRIPTION',
-        actionType: 'subscription_created',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'FIRST_SUBSCRIPTION',
+        progress_increment: 1,
       },
     ]);
   }
@@ -403,17 +397,17 @@ export class AchievementService {
   async trackReferral(userId: string, totalReferrals: number): Promise<void> {
     const updates: AchievementProgressUpdate[] = [
       {
-        achievementKey: 'REFER_FRIEND',
-        actionType: 'referral',
-        incrementBy: 1,
+        user_id: userId,
+        achievement_slug: 'REFER_FRIEND',
+        progress_increment: 1,
       },
     ];
 
     if (totalReferrals >= 5) {
       updates.push({
-        achievementKey: 'REFER_FRIENDS_5',
-        actionType: 'referral',
-        incrementBy: totalReferrals,
+        user_id: userId,
+        achievement_slug: 'REFER_FRIENDS_5',
+        progress_increment: totalReferrals,
       });
     }
 
@@ -432,7 +426,7 @@ export class AchievementService {
       achievementId
     );
 
-    if (!userAchievement || !userAchievement.isUnlocked) {
+    if (!userAchievement || !(userAchievement as any).is_unlocked) {
       throw new Error('Achievement not unlocked');
     }
 
@@ -442,15 +436,24 @@ export class AchievementService {
         isShowcased: true,
       });
 
-      if (showcased.length >= 3 && !userAchievement.isShowcased) {
+      if (showcased.length >= 3 && !(userAchievement as any).is_showcased) {
         throw new Error('Maximum 3 achievements can be showcased');
       }
     }
 
-    return this.repository.updateUserAchievement(userId, achievementId, {
-      isShowcased: showcase,
-      showcaseOrder: order,
-    });
+    // Note: is_showcased and showcase_order are not in UpdateUserAchievementInput type
+    // but the database supports them, so we use 'as any' to bypass type checking
+    const updateData: any = {};
+
+    if (showcase !== undefined) {
+      updateData.is_showcased = showcase;
+    }
+
+    if (order !== undefined) {
+      updateData.showcase_order = order;
+    }
+
+    return this.repository.updateUserAchievement(userId, achievementId, updateData);
   }
 
   async getAllAchievements(): Promise<AchievementDefinition[]> {

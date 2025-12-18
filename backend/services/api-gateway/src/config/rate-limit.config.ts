@@ -4,11 +4,12 @@
  */
 
 export enum SubscriptionTier {
-  FREE = 'FREE',
-  PLUS = 'PLUS',
-  GOLD = 'GOLD',
-  PLATINUM = 'PLATINUM',
-  DIAMOND = 'DIAMOND',
+  FREE = 'free',
+  BASIC = 'basic',
+  PLUS = 'plus',
+  PREMIUM = 'premium',
+  PREMIUM_PLUS = 'premium_plus',
+  ELITE = 'elite',
 }
 
 export interface RateLimitRule {
@@ -18,10 +19,11 @@ export interface RateLimitRule {
 
 export interface TieredRateLimitRule {
   [SubscriptionTier.FREE]: RateLimitRule;
+  [SubscriptionTier.BASIC]: RateLimitRule;
   [SubscriptionTier.PLUS]: RateLimitRule;
-  [SubscriptionTier.GOLD]: RateLimitRule;
-  [SubscriptionTier.PLATINUM]: RateLimitRule;
-  [SubscriptionTier.DIAMOND]: RateLimitRule;
+  [SubscriptionTier.PREMIUM]: RateLimitRule;
+  [SubscriptionTier.PREMIUM_PLUS]: RateLimitRule;
+  [SubscriptionTier.ELITE]: RateLimitRule;
 }
 
 /**
@@ -40,27 +42,30 @@ export const RATE_LIMITS = {
   // ==================== Swipes (Tiered by Subscription) ====================
   'POST /swipes': {
     [SubscriptionTier.FREE]: { window: '24h', max: 50 },
-    [SubscriptionTier.PLUS]: { window: '24h', max: 100 },
-    [SubscriptionTier.GOLD]: { window: '24h', max: 200 },
-    [SubscriptionTier.PLATINUM]: { window: '24h', max: 500 },
-    [SubscriptionTier.DIAMOND]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.BASIC]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PLUS]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PREMIUM]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.ELITE]: { window: '24h', max: -1 }, // unlimited
   } as TieredRateLimitRule,
 
   'POST /likes': {
-    [SubscriptionTier.FREE]: { window: '24h', max: 100 },
-    [SubscriptionTier.PLUS]: { window: '24h', max: 200 },
-    [SubscriptionTier.GOLD]: { window: '24h', max: 400 },
-    [SubscriptionTier.PLATINUM]: { window: '24h', max: 1000 },
-    [SubscriptionTier.DIAMOND]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.FREE]: { window: '24h', max: 50 },
+    [SubscriptionTier.BASIC]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PLUS]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PREMIUM]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.ELITE]: { window: '24h', max: -1 }, // unlimited
   } as TieredRateLimitRule,
 
   // ==================== Super Likes (Tiered by Subscription) ====================
   'POST /super-likes': {
     [SubscriptionTier.FREE]: { window: '24h', max: 1 },
-    [SubscriptionTier.PLUS]: { window: '24h', max: 5 },
-    [SubscriptionTier.GOLD]: { window: '24h', max: 10 },
-    [SubscriptionTier.PLATINUM]: { window: '24h', max: 20 },
-    [SubscriptionTier.DIAMOND]: { window: '24h', max: 50 },
+    [SubscriptionTier.BASIC]: { window: '24h', max: 5 },
+    [SubscriptionTier.PLUS]: { window: '24h', max: 10 },
+    [SubscriptionTier.PREMIUM]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '24h', max: -1 }, // unlimited
+    [SubscriptionTier.ELITE]: { window: '24h', max: -1 }, // unlimited
   } as TieredRateLimitRule,
 
   // ==================== Messaging Endpoints ====================
@@ -87,10 +92,11 @@ export const RATE_LIMITS = {
   // ==================== Boost Endpoints (Tiered) ====================
   'POST /boost': {
     [SubscriptionTier.FREE]: { window: '24h', max: 0 }, // Not available for free
-    [SubscriptionTier.PLUS]: { window: '24h', max: 1 },
-    [SubscriptionTier.GOLD]: { window: '24h', max: 2 },
-    [SubscriptionTier.PLATINUM]: { window: '24h', max: 5 },
-    [SubscriptionTier.DIAMOND]: { window: '24h', max: 10 },
+    [SubscriptionTier.BASIC]: { window: '30d', max: 1 }, // 1 per month
+    [SubscriptionTier.PLUS]: { window: '30d', max: 1 }, // 1 per month
+    [SubscriptionTier.PREMIUM]: { window: '30d', max: 2 }, // 2 per month
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '30d', max: 4 }, // 4 per month
+    [SubscriptionTier.ELITE]: { window: '30d', max: 12 }, // 12 per month
   } as TieredRateLimitRule,
 
   // ==================== Payment Endpoints ====================

@@ -86,7 +86,7 @@ export class StreakService {
 
       let increased = false;
       let broken = false;
-      let protected = false;
+      let wasProtected = false;
       let newStreakCount = streak.currentStreak;
 
       if (daysDifference === 0) {
@@ -114,7 +114,7 @@ export class StreakService {
         // Streak broken
         if (streak.isProtected && streak.protectionExpiresAt && new Date(streak.protectionExpiresAt) > now) {
           // Streak is protected - maintain it
-          protected = true;
+          wasProtected = true;
 
           const updatedStreak = await repository.updateUserStreak(streak.id, {
             lastActivityDate: today,
@@ -157,7 +157,7 @@ export class StreakService {
         streak,
         increased,
         broken,
-        protected,
+        protected: wasProtected,
         milestonesReached,
       };
     });

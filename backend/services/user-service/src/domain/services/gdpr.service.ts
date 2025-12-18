@@ -1,7 +1,7 @@
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 import emailService from '../../infrastructure/email/email.service';
-import type archiver from 'archiver';
+import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';

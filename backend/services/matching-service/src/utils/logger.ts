@@ -3,6 +3,7 @@
  * Re-exports the shared logger with service-specific context
  */
 import { createLogger } from '@flamoral/shared';
+import type { Logger } from 'winston';
 
-export const logger = createLogger('matching-service');
+export const logger: Logger = createLogger('matching-service');
 export default logger;

@@ -6,20 +6,21 @@
     "types": ["node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "strict": false,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@flamoral/shared": ["../../shared"],
+      "@flamoral/shared/*": ["../../shared/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "src/**/*.test.ts", "src/**/__tests__", "src/**/__mocks__"]
+  "exclude": ["node_modules", "dist", "tests", "src/__tests__/**/*", "**/*.test.ts", "**/*.spec.ts"]
 }

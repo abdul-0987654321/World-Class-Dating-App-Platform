@@ -169,7 +169,7 @@ export class DailyRewardRepository {
         this.db.raw("SUM(CASE WHEN reward_type = 'super_likes' THEN reward_amount ELSE 0 END) as total_super_likes"),
         this.db.raw("SUM(CASE WHEN reward_type = 'boosts' THEN reward_amount ELSE 0 END) as total_boosts")
       )
-      .first();
+      .first() as any;
 
     return {
       totalClaims: parseInt(stats?.total_claims as string) || 0,

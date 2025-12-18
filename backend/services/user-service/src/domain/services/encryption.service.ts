@@ -276,7 +276,7 @@ export class EncryptionService {
    * Derive encryption key from shared secret using HKDF
    */
   private deriveKey(sharedSecret: Buffer, salt: Buffer, info: string): Buffer {
-    return crypto.hkdfSync('sha256', sharedSecret, salt, info, 32);
+    return Buffer.from(crypto.hkdfSync('sha256', sharedSecret, salt, info, 32));
   }
 
   /**

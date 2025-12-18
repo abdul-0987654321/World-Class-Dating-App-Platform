@@ -65,14 +65,23 @@ export interface UserStreakResponse {
 
 export interface StreakMilestone {
   id: string;
-  days: number;
+  streakType?: StreakType;
   daysRequired: number;
   title: string;
-  reward_coins: number;
-  reward_xp: number;
+  description?: string;
   coinReward: number;
   boostReward: number;
   superLikeReward: number;
+  bonusRewards?: any;
+  badgeIcon?: string;
+  badgeColor?: string;
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  // Legacy properties for backwards compatibility
+  days?: number;
+  reward_coins?: number;
+  reward_xp?: number;
   badge_slug?: string;
 }
 
@@ -86,26 +95,41 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
   { id: 'streak_365', days: 365, daysRequired: 365, title: 'Year Legend', reward_coins: 1000, reward_xp: 10000, coinReward: 1000, boostReward: 10, superLikeReward: 10 },
 ];
 
-// Type aliases for backwards compatibility
-export type UserStreak = UserStreakEntity;
-export type UserStreakMilestone = {
+// Domain model (camelCase for use in services)
+export interface UserStreak {
   id: string;
-  user_id: string;
-  streak_type: StreakType;
-  milestone_level: number;
-  days_required: number;
-  reached_at: Date;
-  title: string;
-  coin_reward?: number;
-  boost_reward?: number;
-  super_like_reward?: number;
-};
-export type StreakUpdateResult = {
-  streak: UserStreakEntity;
-  milestone_reached?: UserStreakMilestone;
-  rewards?: {
-    coins?: number;
-    xp?: number;
-    badge?: string;
-  };
-};
+  userId: string;
+  streakType: StreakType;
+  currentStreak: number;
+  longestStreak: number;
+  streakStartDate: Date;
+  lastActivityDate: Date;
+  isProtected: boolean;
+  protectionCount: number;
+  protectionExpiresAt?: Date | null;
+  streakHistory: any[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserStreakMilestone {
+  id: string;
+  userId: string;
+  milestoneId: string;
+  streakId: string;
+  streakAtAchievement: number;
+  rewardClaimed: boolean;
+  achievedAt?: Date;
+  claimedAt?: Date | null;
+}
+
+export interface StreakUpdateResult {
+  streak: UserStreak;
+  increased: boolean;
+  broken: boolean;
+  protected: boolean;
+  milestonesReached: StreakMilestone[];
+}
+
+// Type aliases for backwards compatibility
+export type UserStreakDb = UserStreakEntity;

@@ -1,0 +1,138 @@
+# =============================================================================
+# Flamoral Dating Platform - ACR Tasks Configuration
+# =============================================================================
+# This file defines Azure Container Registry Tasks for building Docker images
+# directly in Azure cloud without requiring local Docker.
+#
+# Usage:
+#   az acr run --registry flamoralacr --file acr-tasks.yaml .
+# =============================================================================
+
+version: v1.1.0
+
+# Build all Node.js services
+steps:
+  # API Gateway
+  - id: build-api-gateway
+    build: -t {{.Run.Registry}}/api-gateway:{{.Run.ID}} -t {{.Run.Registry}}/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
+    when: ["-"]
+
+  # Auth Service
+  - id: build-auth-service
+    build: -t {{.Run.Registry}}/auth-service:{{.Run.ID}} -t {{.Run.Registry}}/auth-service:latest -f backend/services/auth-service/Dockerfile .
+    when: ["-"]
+
+  # User Service
+  - id: build-user-service
+    build: -t {{.Run.Registry}}/user-service:{{.Run.ID}} -t {{.Run.Registry}}/user-service:latest -f backend/services/user-service/Dockerfile .
+    when: ["-"]
+
+  # Matching Service
+  - id: build-matching-service
+    build: -t {{.Run.Registry}}/matching-service:{{.Run.ID}} -t {{.Run.Registry}}/matching-service:latest -f backend/services/matching-service/Dockerfile .
+    when: ["-"]
+
+  # Messaging Service
+  - id: build-messaging-service
+    build: -t {{.Run.Registry}}/messaging-service:{{.Run.ID}} -t {{.Run.Registry}}/messaging-service:latest -f backend/services/messaging-service/Dockerfile .
+    when: ["-"]
+
+  # Media Service
+  - id: build-media-service
+    build: -t {{.Run.Registry}}/media-service:{{.Run.ID}} -t {{.Run.Registry}}/media-service:latest -f backend/services/media-service/Dockerfile .
+    when: ["-"]
+
+  # Payment Service
+  - id: build-payment-service
+    build: -t {{.Run.Registry}}/payment-service:{{.Run.ID}} -t {{.Run.Registry}}/payment-service:latest -f backend/services/payment-service/Dockerfile .
+    when: ["-"]
+
+  # Notification Service
+  - id: build-notification-service
+    build: -t {{.Run.Registry}}/notification-service:{{.Run.ID}} -t {{.Run.Registry}}/notification-service:latest -f backend/services/notification-service/Dockerfile .
+    when: ["-"]
+
+  # Analytics Service
+  - id: build-analytics-service
+    build: -t {{.Run.Registry}}/analytics-service:{{.Run.ID}} -t {{.Run.Registry}}/analytics-service:latest -f backend/services/analytics-service/Dockerfile .
+    when: ["-"]
+
+  # Moderation Service
+  - id: build-moderation-service
+    build: -t {{.Run.Registry}}/moderation-service:{{.Run.ID}} -t {{.Run.Registry}}/moderation-service:latest -f backend/services/moderation-service/Dockerfile .
+    when: ["-"]
+
+  # Admin Service
+  - id: build-admin-service
+    build: -t {{.Run.Registry}}/admin-service:{{.Run.ID}} -t {{.Run.Registry}}/admin-service:latest -f backend/services/admin-service/Dockerfile .
+    when: ["-"]
+
+  # Automation Service
+  - id: build-automation-service
+    build: -t {{.Run.Registry}}/automation-service:{{.Run.ID}} -t {{.Run.Registry}}/automation-service:latest -f backend/services/automation-service/Dockerfile .
+    when: ["-"]
+
+  # Advertising Service
+  - id: build-advertising-service
+    build: -t {{.Run.Registry}}/advertising-service:{{.Run.ID}} -t {{.Run.Registry}}/advertising-service:latest -f backend/services/advertising-service/Dockerfile .
+    when: ["-"]
+
+  # Workflow Engine
+  - id: build-workflow-engine
+    build: -t {{.Run.Registry}}/workflow-engine:{{.Run.ID}} -t {{.Run.Registry}}/workflow-engine:latest -f backend/services/workflow-engine/Dockerfile .
+    when: ["-"]
+
+  # Realtime Service
+  - id: build-realtime-service
+    build: -t {{.Run.Registry}}/realtime-service:{{.Run.ID}} -t {{.Run.Registry}}/realtime-service:latest -f backend/services/realtime-service/Dockerfile .
+    when: ["-"]
+
+  # Push all images
+  - id: push-images
+    push:
+      - "{{.Run.Registry}}/api-gateway:{{.Run.ID}}"
+      - "{{.Run.Registry}}/api-gateway:latest"
+      - "{{.Run.Registry}}/auth-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/auth-service:latest"
+      - "{{.Run.Registry}}/user-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/user-service:latest"
+      - "{{.Run.Registry}}/matching-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/matching-service:latest"
+      - "{{.Run.Registry}}/messaging-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/messaging-service:latest"
+      - "{{.Run.Registry}}/media-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/media-service:latest"
+      - "{{.Run.Registry}}/payment-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/payment-service:latest"
+      - "{{.Run.Registry}}/notification-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/notification-service:latest"
+      - "{{.Run.Registry}}/analytics-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/analytics-service:latest"
+      - "{{.Run.Registry}}/moderation-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/moderation-service:latest"
+      - "{{.Run.Registry}}/admin-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/admin-service:latest"
+      - "{{.Run.Registry}}/automation-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/automation-service:latest"
+      - "{{.Run.Registry}}/advertising-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/advertising-service:latest"
+      - "{{.Run.Registry}}/workflow-engine:{{.Run.ID}}"
+      - "{{.Run.Registry}}/workflow-engine:latest"
+      - "{{.Run.Registry}}/realtime-service:{{.Run.ID}}"
+      - "{{.Run.Registry}}/realtime-service:latest"
+    when:
+      - build-api-gateway
+      - build-auth-service
+      - build-user-service
+      - build-matching-service
+      - build-messaging-service
+      - build-media-service
+      - build-payment-service
+      - build-notification-service
+      - build-analytics-service
+      - build-moderation-service
+      - build-admin-service
+      - build-automation-service
+      - build-advertising-service
+      - build-workflow-engine
+      - build-realtime-service

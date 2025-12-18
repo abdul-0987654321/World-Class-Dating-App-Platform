@@ -432,6 +432,7 @@ export class MatchRepository {
       user1Id: record.user1_id,
       user2Id: record.user2_id,
       status: record.status,
+      mode: record.mode || 'date',
       compatibilityScore: record.compatibility_score ? parseFloat(record.compatibility_score) : undefined,
       matchedAt: new Date(record.matched_at),
       lastActivityAt: new Date(record.last_activity_at),

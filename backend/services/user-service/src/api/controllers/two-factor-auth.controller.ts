@@ -1,10 +1,12 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { TwoFactorAuthService } from '../../domain/services/two-factor-auth.service';
+import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 
 export class TwoFactorAuthController {
   private twoFactorAuthService: TwoFactorAuthService;
+  private db = db;
 
   constructor(twoFactorAuthService?: TwoFactorAuthService) {
     this.twoFactorAuthService = twoFactorAuthService || new TwoFactorAuthService();
@@ -449,15 +451,15 @@ export class TwoFactorAuthController {
         });
       }
 
-      const status = await this.twoFactorAuthService.is2FAEnabled(userId);
-      const config = await this.twoFactorAuthService.get2FAConfig(userId);
+      // Get 2FA status from database
+      const twoFactorAuth = await this.db('two_factor_auth').where({ user_id: userId }).first();
 
       return res.status(200).json({
         success: true,
         data: {
-          enabled: status.enabled,
-          methods: status.methods,
-          configuration: config,
+          enabled: twoFactorAuth ? twoFactorAuth.is_enabled : false,
+          methods: twoFactorAuth && twoFactorAuth.is_enabled ? [twoFactorAuth.method] : [],
+          configuration: twoFactorAuth || null,
         },
       });
     } catch (error: any) {

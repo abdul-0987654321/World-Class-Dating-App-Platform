@@ -19,7 +19,7 @@ const logger = createLogger('content-moderation-worker');
 export const processContentModerationJob = async (
   job: Queue.Job<ContentModerationJobData>
 ): Promise<JobResult> => {
-  const { mediaId, imageUrl } = job.data;
+  const { mediaId, userId, imageUrl } = job.data;
 
   try {
     logger.info(`Processing content moderation for media ${mediaId}`);
@@ -27,7 +27,7 @@ export const processContentModerationJob = async (
     await job.progress(20);
 
     // Step 1: Moderate the image
-    const { status, result } = await contentModerationService.moderateImage(imageUrl);
+    const { status, result } = await contentModerationService.moderateImage(imageUrl, mediaId, userId);
 
     await job.progress(60);
 

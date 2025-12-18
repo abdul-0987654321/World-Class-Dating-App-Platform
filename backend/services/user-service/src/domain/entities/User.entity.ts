@@ -20,12 +20,14 @@ export interface UserEntity {
 
 export interface CreateUserDto {
   email: string;
-  password: string;
+  password?: string;
+  password_hash?: string;
   first_name: string;
   last_name: string;
   date_of_birth: Date;
   gender: 'male' | 'female' | 'non-binary' | 'other' | 'prefer_not_to_say';
   phone_number?: string;
+  is_email_verified?: boolean;
 }
 
 export interface UpdateUserDto {

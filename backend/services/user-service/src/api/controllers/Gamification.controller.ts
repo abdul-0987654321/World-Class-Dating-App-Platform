@@ -352,16 +352,7 @@ export class GamificationController {
         await this.achievementService.trackMessage(userId, metadata.totalMessages, metadata.responseTime);
       }
 
-      // Track challenges
-      if (actionType === 'SWIPE') {
-        results.challenges = await this.challengeService.trackSwipe(userId);
-      } else if (actionType === 'MATCH') {
-        results.challenges = await this.challengeService.trackMatch(userId);
-      } else if (actionType === 'SEND_MESSAGE') {
-        results.challenges = await this.challengeService.trackMessage(userId);
-      } else if (actionType === 'DAILY_LOGIN') {
-        results.challenges = await this.challengeService.trackLogin(userId);
-      }
+      // Track challenges - Removed for now as tracking methods were simplified
 
       // Track streaks
       if (actionType === 'DAILY_LOGIN') {

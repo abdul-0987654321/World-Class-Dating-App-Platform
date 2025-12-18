@@ -104,7 +104,7 @@ export class BoostService {
       // Track boost activation in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost_activated',
+        eventType: 'boost', eventName: 'boost_activated',
         eventData: {
           boostId: boost.id,
           duration,
@@ -242,7 +242,7 @@ export class BoostService {
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost_profile_view',
+        eventType: 'boost', eventName: 'profile_view',
         eventData: {
           boostId: boost.id,
           viewerId,
@@ -272,7 +272,7 @@ export class BoostService {
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost_like_received',
+        eventType: 'boost', eventName: 'like_received',
         eventData: {
           boostId: boost.id,
           likerId,
@@ -302,7 +302,7 @@ export class BoostService {
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost_match',
+        eventType: 'boost', eventName: 'match',
         eventData: {
           boostId: boost.id,
           matchedUserId,
@@ -432,7 +432,7 @@ export class BoostService {
       // Track cancellation
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost_cancelled',
+        eventType: 'boost', eventName: 'cancelled',
         eventData: {
           boostId: boost.id,
           reason,

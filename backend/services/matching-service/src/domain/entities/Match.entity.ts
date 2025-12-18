@@ -1,10 +1,11 @@
-import { MatchStatus } from '../../types';
+import { MatchStatus, UserMode } from '../../types';
 
 export class Match {
   id: string;
   user1Id: string;
   user2Id: string;
   status: MatchStatus;
+  mode: UserMode;
   compatibilityScore?: number;
   matchedAt: Date;
   lastActivityAt: Date;
@@ -24,6 +25,7 @@ export class Match {
     user1Id: string;
     user2Id: string;
     status: MatchStatus;
+  mode: UserMode;
     compatibilityScore?: number;
     matchedAt: Date;
     lastActivityAt: Date;
@@ -42,6 +44,7 @@ export class Match {
     this.user1Id = data.user1Id;
     this.user2Id = data.user2Id;
     this.status = data.status;
+    this.mode = data.mode;
     this.compatibilityScore = data.compatibilityScore;
     this.matchedAt = data.matchedAt;
     this.lastActivityAt = data.lastActivityAt;
@@ -65,7 +68,7 @@ export class Match {
     return this.user1Id === userId ? this.user2Id : this.user1Id;
   }
 
-  static createNew(user1Id: string, user2Id: string, score?: number): Partial<Match> {
+  static createNew(user1Id: string, user2Id: string, mode: UserMode = UserMode.DATE, score?: number): Partial<Match> {
     // Ensure consistent ordering (alphabetically) to prevent duplicates
     const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
 
@@ -77,6 +80,7 @@ export class Match {
       user1Id: sortedUser1,
       user2Id: sortedUser2,
       status: MatchStatus.MATCHED,
+      mode,
       compatibilityScore: score,
       matchedAt: new Date(),
       lastActivityAt: new Date(),

@@ -72,6 +72,31 @@ export class NotificationServiceClient {
       this.notifyNewMatch(user2Id, user1Id, matchId),
     ]);
   }
+
+  /**
+   * Send super like notification to a user
+   */
+  async notifySuperLike(data: {
+    userId: string;
+    superLikerId: string;
+    hasMessage: boolean;
+    messagePreview?: string;
+  }): Promise<void> {
+    await this.sendNotification({
+      userId: data.userId,
+      type: 'new_like',
+      title: 'You got a Super Like!',
+      body: data.hasMessage
+        ? `Someone sent you a Super Like with a message: "${data.messagePreview}"`
+        : 'Someone sent you a Super Like! Check them out.',
+      data: {
+        superLikerId: data.superLikerId,
+        hasMessage: data.hasMessage,
+        action: 'view_super_like',
+      },
+      channel: 'push',
+    });
+  }
 }
 
 export default new NotificationServiceClient();

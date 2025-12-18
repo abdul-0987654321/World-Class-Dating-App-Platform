@@ -88,16 +88,76 @@ export interface BadgeProgressResponse {
 }
 
 // Type aliases for backwards compatibility
-export type ProfileBadge = BadgeEntity;
-export type UserProfileBadge = UserBadgeEntity;
-export type BadgeType = BadgeCategory;
-export type BadgeCollection = {
-  user_id: string;
-  badges: BadgeEntity[];
-  total_count: number;
+export type ProfileBadge = {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  type: BadgeCategory;
+  rarity: BadgeRarity;
+  iconName: string;
+  iconColor: string;
+  backgroundColor: string;
+  requirements: any;
+  isAutoAwarded: boolean;
+  isPermanent: boolean;
+  durationDays: number | null;
+  isVisibleOnProfile: boolean;
+  displayPriority: number;
+  isActive: boolean;
+  is_active?: boolean;
+  is_permanent?: boolean;
+  duration_days?: number | null;
+  is_visible?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };
+
+export type UserProfileBadge = {
+  id: string;
+  userId: string;
+  badgeId: string;
+  isEquipped: boolean;
+  displayOrder: number | null;
+  earnedAt: Date;
+  expiresAt: Date | null;
+  metadata: any;
+  is_equipped?: boolean;
+  badge_id?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type BadgeType = BadgeCategory;
+
+export type BadgeCollection = {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  requiredBadgeIds: string[];
+  required_badge_ids?: string[];
+  coinReward: number;
+  coin_reward?: number;
+  xpReward: number;
+  xp_reward?: number;
+  bonusRewards: any;
+  collectionBadgeIcon: string;
+  collectionBadgeColor: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type UserBadgeCollection = {
-  user_id: string;
-  badges: UserBadgeEntity[];
-  total_count: number;
+  id: string;
+  userId: string;
+  collectionId: string;
+  isCompleted: boolean;
+  is_completed?: boolean;
+  completedAt: Date | null;
+  rewardClaimed: boolean;
+  reward_claimed?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };

@@ -187,7 +187,7 @@ export class BoostRepository {
         db.raw('SUM(likes_gained) as total_likes'),
         db.raw('SUM(matches_gained) as total_matches')
       )
-      .first();
+      .first() as any;
 
     const totalBoosts = parseInt(result?.total_boosts || '0', 10);
     const totalImpressions = parseInt(result?.total_impressions || '0', 10);

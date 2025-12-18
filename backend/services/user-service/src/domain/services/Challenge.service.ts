@@ -17,7 +17,7 @@ export class ChallengeService {
   }
 
   async getActiveChallenges(userId: string): Promise<UserChallenge[]> {
-    return this.repository.findUserChallengesByStatus(userId, 'in_progress');
+    return this.repository.findUserChallengesByStatus(userId, 'active');
   }
 
   async getAvailableChallenges(userId: string, type?: ChallengeType): Promise<ChallengeDefinition[]> {
@@ -26,19 +26,20 @@ export class ChallengeService {
       : await this.repository.findActiveChallenges();
 
     const userChallenges = await this.repository.findUserChallenges(userId);
-    const userChallengeIds = new Set(userChallenges.map(uc => uc.challengeId));
+    const userChallengeIds = new Set(userChallenges.map(uc => uc.challenge_id));
 
     return allChallenges.filter(challenge => {
       // Filter out challenges user already has (unless repeatable)
-      if (!challenge.isRepeatable && userChallengeIds.has(challenge.id)) {
+      const isRepeatable = (challenge as any).is_repeatable;
+      if (!isRepeatable && userChallengeIds.has(challenge.id)) {
         return false;
       }
 
       // Check date availability
-      if (challenge.startDate && new Date(challenge.startDate) > new Date()) {
+      if (challenge.start_date && new Date(challenge.start_date) > new Date()) {
         return false;
       }
-      if (challenge.endDate && new Date(challenge.endDate) < new Date()) {
+      if (challenge.end_date && new Date(challenge.end_date) < new Date()) {
         return false;
       }
 
@@ -63,35 +64,37 @@ export class ChallengeService {
       const repository = new ChallengeRepository(trx);
 
       const challenge = await repository.findChallengeById(challengeId);
-      if (!challenge || !challenge.isActive) {
+      if (!challenge || !challenge.is_active) {
         throw new Error('Challenge not found or inactive');
       }
 
       // Check if user already has this challenge
       const existing = await repository.findUserChallenge(userId, challengeId);
-      if (existing && !challenge.isRepeatable) {
+      const isRepeatable = (challenge as any).is_repeatable;
+      if (existing && !isRepeatable) {
         throw new Error('Challenge already started or completed');
       }
 
       // Calculate expiration
       const now = new Date();
       const expiresAt = new Date(now);
-      if (challenge.durationDays) {
-        expiresAt.setDate(expiresAt.getDate() + challenge.durationDays);
-      } else if (challenge.endDate) {
-        expiresAt.setTime(new Date(challenge.endDate).getTime());
+      const durationDays = (challenge as any).duration_days;
+      if (durationDays) {
+        expiresAt.setDate(expiresAt.getDate() + durationDays);
+      } else if (challenge.end_date) {
+        expiresAt.setTime(new Date(challenge.end_date).getTime());
       }
 
       // Create user challenge
       return repository.createUserChallenge({
-        userId,
-        challengeId,
-        status: 'in_progress',
+        userId: userId,
+        challengeId: challengeId,
+        status: 'active',
         progress: 0,
-        target: challenge.targetValue,
+        target: challenge.target_value,
         progressPercentage: 0,
         startedAt: now,
-        expiresAt,
+        expiresAt: expiresAt,
         rewardClaimed: false,
         progressData: {},
         timesCompleted: 0,
@@ -107,21 +110,22 @@ export class ChallengeService {
       const repository = new ChallengeRepository(trx);
 
       // Find matching challenges
-      const userChallenges = await repository.findUserChallengesByStatus(userId, 'in_progress');
+      const userChallenges = await repository.findUserChallengesByStatus(userId, 'active');
 
       let completedChallenge: ChallengeCompletionResult | null = null;
 
       for (const userChallenge of userChallenges) {
-        const challenge = await repository.findChallengeById(userChallenge.challengeId);
+        const challenge = await repository.findChallengeById(userChallenge.challenge_id);
         if (!challenge) continue;
 
-        // Check if this challenge matches the action
-        const requirements = challenge.requirements as any;
-        if (requirements.action !== update.actionType) continue;
+        // If challenge_id is specified, only update that specific challenge
+        if (update.challenge_id && userChallenge.challenge_id !== update.challenge_id) continue;
 
         // Update progress
-        const newProgress = userChallenge.progress + (update.incrementBy || 1);
-        const progressPercentage = (newProgress / userChallenge.target) * 100;
+        const newProgress = update.set_progress !== undefined
+          ? update.set_progress
+          : userChallenge.current_progress + (update.progress_increment || 1);
+        const progressPercentage = (newProgress / userChallenge.target_progress) * 100;
 
         await repository.updateUserChallenge(userChallenge.id, {
           progress: newProgress,
@@ -133,14 +137,15 @@ export class ChallengeService {
           userId,
           challengeId: challenge.id,
           userChallengeId: userChallenge.id,
-          actionType: update.actionType,
-          progressIncrement: update.incrementBy || 1,
+          actionType: 'challenge_progress',
+          progressIncrement: update.progress_increment || 1,
           progressAfter: newProgress,
-          metadata: update.metadata || null,
+          metadata: null,
         });
 
         // Check if completed
-        if (newProgress >= userChallenge.target && userChallenge.status === 'in_progress') {
+        const isCompleted = userChallenge.is_completed;
+        if (newProgress >= userChallenge.target_progress && !isCompleted) {
           await repository.updateUserChallenge(userChallenge.id, {
             status: 'completed',
             completedAt: new Date(),
@@ -151,17 +156,12 @@ export class ChallengeService {
 
           completedChallenge = {
             challenge,
-            userChallenge: {
-              ...userChallenge,
-              status: 'completed',
-              progress: newProgress,
-              progressPercentage,
-            },
-            rewardsAwarded: {
-              coins: challenge.coinReward,
-              xp: challenge.xpReward,
-              boosts: challenge.boostReward,
-              superLikes: challenge.superLikeReward,
+            completed: true,
+            rewards: {
+              xp_reward: challenge.xp_reward,
+              coin_reward: challenge.coin_reward,
+              boost_reward: challenge.boost_reward,
+              super_like_reward: challenge.super_like_reward,
             },
           };
 
@@ -173,21 +173,23 @@ export class ChallengeService {
     });
   }
 
-  private async awardChallengeRewards(db: Knex, userId: string, challenge: ChallengeDefinition): Promise<void> {
-    if (challenge.coinReward > 0) {
-      await this.awardCoins(db, userId, challenge.coinReward, `Challenge: ${challenge.title}`);
+  private async awardChallengeRewards(db: Knex, user_id: string, challenge: ChallengeDefinition): Promise<void> {
+    const challengeName = (challenge as any).name || 'Challenge';
+
+    if (challenge.coin_reward > 0) {
+      await this.awardCoins(db, user_id, challenge.coin_reward, `Challenge: ${challengeName}`);
     }
 
-    if (challenge.xpReward > 0) {
-      await this.awardXP(db, userId, challenge.xpReward, `Challenge: ${challenge.title}`);
+    if (challenge.xp_reward > 0) {
+      await this.awardXP(db, user_id, challenge.xp_reward, `Challenge: ${challengeName}`);
     }
 
-    if (challenge.boostReward > 0) {
-      await this.awardBoosts(db, userId, challenge.boostReward);
+    if (challenge.boost_reward > 0) {
+      await this.awardBoosts(db, user_id, challenge.boost_reward);
     }
 
-    if (challenge.superLikeReward > 0) {
-      await this.awardSuperLikes(db, userId, challenge.superLikeReward);
+    if (challenge.super_like_reward > 0) {
+      await this.awardSuperLikes(db, user_id, challenge.super_like_reward);
     }
   }
 
@@ -225,50 +227,55 @@ export class ChallengeService {
   // Tracking methods
   async trackSwipe(userId: string): Promise<ChallengeCompletionResult | null> {
     return this.updateChallengeProgress(userId, {
-      actionType: 'swipe',
-      incrementBy: 1,
+      user_id: userId,
+      challenge_id: '',
+      progress_increment: 1,
     });
   }
 
   async trackMessage(userId: string): Promise<ChallengeCompletionResult | null> {
     return this.updateChallengeProgress(userId, {
-      actionType: 'message',
-      incrementBy: 1,
+      user_id: userId,
+      challenge_id: '',
+      progress_increment: 1,
     });
   }
 
   async trackMatch(userId: string): Promise<ChallengeCompletionResult | null> {
     return this.updateChallengeProgress(userId, {
-      actionType: 'match',
-      incrementBy: 1,
+      user_id: userId,
+      challenge_id: '',
+      progress_increment: 1,
     });
   }
 
   async trackLogin(userId: string): Promise<ChallengeCompletionResult | null> {
     return this.updateChallengeProgress(userId, {
-      actionType: 'login',
-      incrementBy: 1,
+      user_id: userId,
+      challenge_id: '',
+      progress_increment: 1,
     });
   }
 
-  async trackProfileUpdate(userId: string): Promise<ChallengeCompletionResult | null> {
-    return this.updateChallengeProgress(userId, {
-      actionType: 'profile_update',
-      incrementBy: 1,
+  async trackProfileUpdate(user_id: string): Promise<ChallengeCompletionResult | null> {
+    return this.updateChallengeProgress(user_id, {
+      user_id: user_id,
+      challenge_id: '',
+      progress_increment: 1,
     });
   }
 
-  private async awardCoins(db: Knex, userId: string, amount: number, reason: string): Promise<void> {
-    const existingCoins = await db('coins').where({ user_id: userId }).first();
+  private async awardCoins(db: Knex, user_id: string, amount: number, reason: string): Promise<void> {
+    const existingCoins = await db('coins').where({ user_id }).first();
     if (existingCoins) {
       await db('coins')
-        .where({ user_id: userId })
+        .where({ user_id })
         .increment('balance', amount)
         .increment('total_earned', amount)
         .update({ updated_at: db.fn.now() });
     } else {
       await db('coins').insert({
-        user_id: userId,
+        user_id,
         balance: amount,
         total_earned: amount,
         total_spent: 0,
@@ -276,7 +283,7 @@ export class ChallengeService {
       });
     }
     await db('coin_transactions').insert({
-      user_id: userId,
+      user_id,
       amount,
       type: 'earned',
       source: 'challenge',
@@ -285,26 +292,26 @@ export class ChallengeService {
     });
   }
 
-  private async awardXP(db: Knex, userId: string, amount: number, reason: string): Promise<void> {
-    const userExp = await db('user_experience').where({ user_id: userId }).first();
+  private async awardXP(db: Knex, user_id: string, amount: number, reason: string): Promise<void> {
+    const userExp = await db('user_experience').where({ user_id }).first();
     if (userExp) {
       await db('user_experience')
-        .where({ user_id: userId })
+        .where({ user_id })
         .increment('total_xp', amount)
         .update({ updated_at: db.fn.now() });
     }
   }
 
-  private async awardBoosts(db: Knex, userId: string, count: number): Promise<void> {
-    const existingBoosts = await db('boosts').where({ user_id: userId }).first();
+  private async awardBoosts(db: Knex, user_id: string, count: number): Promise<void> {
+    const existingBoosts = await db('boosts').where({ user_id }).first();
     if (existingBoosts) {
       await db('boosts')
-        .where({ user_id: userId })
+        .where({ user_id })
         .increment('available_count', count)
         .update({ updated_at: db.fn.now() });
     } else {
       await db('boosts').insert({
-        user_id: userId,
+        user_id,
         available_count: count,
         total_purchased: 0,
         total_used: 0,
@@ -312,11 +319,11 @@ export class ChallengeService {
     }
   }
 
-  private async awardSuperLikes(db: Knex, userId: string, count: number): Promise<void> {
-    const usageLimit = await db('usage_limits').where({ user_id: userId }).first();
+  private async awardSuperLikes(db: Knex, user_id: string, count: number): Promise<void> {
+    const usageLimit = await db('usage_limits').where({ user_id }).first();
     if (usageLimit) {
       await db('usage_limits')
-        .where({ user_id: userId })
+        .where({ user_id })
         .increment('super_likes_remaining', count)
         .update({ updated_at: db.fn.now() });
     }

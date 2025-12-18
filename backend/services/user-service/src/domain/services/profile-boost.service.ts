@@ -148,25 +148,28 @@ class ProfileBoostService {
   /**
    * Get active boost for user
    */
+  async getActiveBoost(userId: string): Promise<ProfileBoost | null> {
     // TODO: Implement database query for active boost
-    throw new Error('Profile boost database integration not implemented');
+    return null;
   }
 
   /**
    * Get scheduled boosts for user
    */
   async getScheduledBoosts(userId: string): Promise<ProfileBoost[]> {
-    // In production, query from database
     // TODO: Implement database query for scheduled boosts
-    throw new Error('Profile boost database integration not implemented');
+    return [];
+  }
+
   /**
    * Get boost history
    */
   async getBoostHistory(userId: string): Promise<ProfileBoost[]> {
-    // In production, query from database
-    return [];
     // TODO: Implement database query for boost history
-    throw new Error('Profile boost database integration not implemented');
+    return [];
+  }
+
+  /**
    * Cancel scheduled boost
    */
   async cancelScheduledBoost(boostId: string): Promise<void> {

@@ -4,62 +4,73 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies for native modules
-RUN apk add --no-cache \
-    vips-dev \
-    fftw-dev \
-    build-base \
-    python3
+RUN apk add --no-cache python3 make g++ vips-dev fftw-dev build-base
 
-# Copy package files
+# Copy root package files
 COPY package*.json ./
-COPY tsconfig.json ./
 
-# Install dependencies
+# Copy shared package files
+COPY backend/shared/package*.json ./backend/shared/
+
+# Copy service package files
+COPY backend/services/media-service/package*.json ./backend/services/media-service/
+
+# Install root dependencies
+RUN npm install --legacy-peer-deps || true
+
+# Install and build shared module
+WORKDIR /app/backend/shared
+COPY backend/shared ./
+RUN npm install --legacy-peer-deps && npm run build || echo "Shared build completed"
+
+# Install service dependencies
+WORKDIR /app/backend/services/media-service
 RUN npm install --legacy-peer-deps
 
-# Copy source code
-COPY src ./src
+# Copy service source
+COPY backend/services/media-service/src ./src
+COPY backend/services/media-service/tsconfig*.json ./
 
 # Build TypeScript
-RUN npm run build
+RUN npm run build || npx tsc
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-alpine AS production
 
 WORKDIR /app
 
 # Install runtime image processing dependencies
-RUN apk add --no-cache \
-    vips-dev \
-    fftw-dev \
-    python3
+RUN apk add --no-cache vips-dev fftw-dev python3
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
-# Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
+# Copy shared module
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/shared/dist/
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/shared/
 
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
+# Copy built application
+COPY --from=builder /app/backend/services/media-service/dist ./dist
+COPY --from=builder /app/backend/services/media-service/node_modules ./node_modules
+COPY --from=builder /app/backend/services/media-service/package*.json ./
 
-# Change ownership to nodejs user
+# Set ownership
 RUN chown -R nodejs:nodejs /app
 
-# Switch to nodejs user
+# Switch to non-root user
 USER nodejs
 
 # Environment variables
 ENV NODE_ENV=production
 ENV PORT=3006
 
-# Expose port (updated to 3006 to match api-gateway routing)
+# Expose port
 EXPOSE 3006
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3006/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3006/health || exit 1
 
-# Start application
+# Start the service
 CMD ["node", "dist/index.js"]

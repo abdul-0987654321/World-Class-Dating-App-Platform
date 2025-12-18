@@ -1,4 +1,5 @@
-import logger from '../utils/logger';
+import { createLogger } from '@flamoral/shared';
+const logger = createLogger('video-thumbnails-service');
 import * as path from 'path';
 
 export interface VideoMetadata {

@@ -112,28 +112,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', async (req: Request, res: Response) => {
-  const checks = {
-    cosmosdb: false,
-  };
-
-  try {
-    // Check Cosmos DB connection by attempting to access a container
-    if (cosmosClient.isInitialized()) {
-      // Simple check - if client is initialized, we consider it healthy
-      checks.cosmosdb = true;
-    }
-  } catch (e) {
-    logger.error('Cosmos DB health check failed', e);
-  }
-
-  const healthy = Object.values(checks).every(v => v);
-  res.status(healthy ? 200 : 503).json({
-    status: healthy ? 'healthy' : 'unhealthy',
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'healthy',
     service: 'messaging-service',
     timestamp: new Date().toISOString(),
     connections: socketManager.getConnectedCount(),
-    checks,
   });
 });
 

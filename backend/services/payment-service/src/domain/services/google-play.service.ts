@@ -100,7 +100,7 @@ export class GooglePlayService {
       // Initialize Android Publisher API
       this.androidPublisher = google.androidpublisher({
         version: 'v3',
-        auth: authClient,
+        auth: authClient as any,
       });
 
       this.isInitialized = true;

@@ -142,7 +142,7 @@ export class AchievementRepository {
 
     return {
       ...this.mapToUserAchievement(result),
-      achievement: this.mapToAchievementDefinition(
+      definition: this.mapToAchievementDefinition(
         typeof result.achievement === 'string'
           ? JSON.parse(result.achievement)
           : result.achievement
@@ -186,7 +186,7 @@ export class AchievementRepository {
 
     return results.map(r => ({
       ...this.mapToUserAchievement(r),
-      achievement: this.mapToAchievementDefinition(
+      definition: this.mapToAchievementDefinition(
         typeof r.achievement === 'string' ? JSON.parse(r.achievement) : r.achievement
       ),
     }));
@@ -209,7 +209,7 @@ export class AchievementRepository {
 
     return {
       ...this.mapToUserAchievement(result),
-      achievement: this.mapToAchievementDefinition(
+      definition: this.mapToAchievementDefinition(
         typeof result.achievement === 'string'
           ? JSON.parse(result.achievement)
           : result.achievement
@@ -220,11 +220,11 @@ export class AchievementRepository {
   async createUserAchievement(input: CreateUserAchievementInput): Promise<UserAchievement> {
     const [result] = await this.db('user_achievements')
       .insert({
-        user_id: input.userId,
-        achievement_id: input.achievementId,
-        target: input.target,
-        progress: 0,
-        progress_percentage: 0,
+        user_id: input.user_id,
+        achievement_id: input.achievement_id,
+        target_progress: input.target_progress,
+        current_progress: input.current_progress || 0,
+        completion_percentage: 0,
       })
       .returning('*');
 
@@ -240,15 +240,12 @@ export class AchievementRepository {
       updated_at: this.db.fn.now(),
     };
 
-    if (input.progress !== undefined) updateData.progress = input.progress;
-    if (input.target !== undefined) updateData.target = input.target;
-    if (input.progressPercentage !== undefined) updateData.progress_percentage = input.progressPercentage;
-    if (input.isUnlocked !== undefined) updateData.is_unlocked = input.isUnlocked;
-    if (input.unlockedAt !== undefined) updateData.unlocked_at = input.unlockedAt;
-    if (input.isShowcased !== undefined) updateData.is_showcased = input.isShowcased;
-    if (input.showcaseOrder !== undefined) updateData.showcase_order = input.showcaseOrder;
-    if (input.notificationSent !== undefined) updateData.notification_sent = input.notificationSent;
-    if (input.timesCompleted !== undefined) updateData.times_completed = input.timesCompleted;
+    if (input.current_progress !== undefined) updateData.current_progress = input.current_progress;
+    if (input.target_progress !== undefined) updateData.target_progress = input.target_progress;
+    if (input.is_completed !== undefined) updateData.is_completed = input.is_completed;
+    if (input.completed_at !== undefined) updateData.completed_at = input.completed_at;
+    if (input.current_tier !== undefined) updateData.current_tier = input.current_tier;
+    if (input.times_completed !== undefined) updateData.times_completed = input.times_completed;
 
     const [result] = await this.db('user_achievements')
       .where({
@@ -277,19 +274,23 @@ export class AchievementRepository {
       return this.mapToUserAchievement(existing);
     }
 
-    return this.createUserAchievement({ userId, achievementId, target });
+    return this.createUserAchievement({
+      user_id: userId,
+      achievement_id: achievementId,
+      target_progress: target
+    });
   }
 
   // Achievement Progress Logs
-  async createProgressLog(log: Omit<AchievementProgressLog, 'id' | 'createdAt'>): Promise<AchievementProgressLog> {
+  async createProgressLog(log: Omit<AchievementProgressLog, 'id' | 'created_at'>): Promise<AchievementProgressLog> {
     const [result] = await this.db('achievement_progress_logs')
       .insert({
-        user_id: log.userId,
-        achievement_id: log.achievementId,
-        action_type: log.actionType,
-        progress_increment: log.progressIncrement,
-        progress_after: log.progressAfter,
-        metadata: log.metadata ? JSON.stringify(log.metadata) : null,
+        user_id: log.user_id,
+        achievement_id: log.achievement_id,
+        progress_change: log.progress_change,
+        old_progress: log.old_progress,
+        new_progress: log.new_progress,
+        event_type: log.event_type,
       })
       .returning('*');
 
@@ -335,17 +336,11 @@ export class AchievementRepository {
       updated_at: this.db.fn.now(),
     };
 
-    if (input.totalAchievements !== undefined) updateData.total_achievements = input.totalAchievements;
-    if (input.totalPoints !== undefined) updateData.total_points = input.totalPoints;
-    if (input.bronzeCount !== undefined) updateData.bronze_count = input.bronzeCount;
-    if (input.silverCount !== undefined) updateData.silver_count = input.silverCount;
-    if (input.goldCount !== undefined) updateData.gold_count = input.goldCount;
-    if (input.platinumCount !== undefined) updateData.platinum_count = input.platinumCount;
-    if (input.diamondCount !== undefined) updateData.diamond_count = input.diamondCount;
-    if (input.hiddenUnlocked !== undefined) updateData.hidden_unlocked = input.hiddenUnlocked;
-    if (input.secretUnlocked !== undefined) updateData.secret_unlocked = input.secretUnlocked;
-    if (input.completionPercentage !== undefined) updateData.completion_percentage = input.completionPercentage;
-    if (input.lastAchievementAt !== undefined) updateData.last_achievement_at = input.lastAchievementAt;
+    if (input.total_achievements !== undefined) updateData.total_achievements = input.total_achievements;
+    if (input.completed_achievements !== undefined) updateData.completed_achievements = input.completed_achievements;
+    if (input.in_progress_achievements !== undefined) updateData.in_progress_achievements = input.in_progress_achievements;
+    if (input.total_xp_earned !== undefined) updateData.total_xp_earned = input.total_xp_earned;
+    if (input.total_coins_earned !== undefined) updateData.total_coins_earned = input.total_coins_earned;
 
     const [result] = await this.db('user_achievement_stats')
       .where({ user_id: userId })
@@ -401,12 +396,12 @@ export class AchievementRepository {
     await this.findOrCreateUserStats(userId);
 
     return this.updateUserStats(userId, {
-      totalAchievements,
-      totalPoints,
+      total_achievements: totalAchievements,
+      total_points: totalPoints,
       ...tierCounts,
-      completionPercentage,
-      lastAchievementAt: lastUnlocked?.unlocked_at,
-    });
+      completion_percentage: completionPercentage,
+      last_achievement_at: lastUnlocked?.unlocked_at,
+    } as any);
   }
 
   // Leaderboard
@@ -428,10 +423,10 @@ export class AchievementRepository {
   }
 
   // Mappers
-  private mapToAchievementDefinition(row: any): AchievementDefinition {
+  private mapToAchievementDefinition(row: any): any {
     return {
       id: row.id,
-      key: row.key,
+      slug: row.key || row.achievement_slug,
       name: row.name,
       description: row.description,
       category: row.category,
@@ -454,11 +449,11 @@ export class AchievementRepository {
     };
   }
 
-  private mapToUserAchievement(row: any): UserAchievement {
+  private mapToUserAchievement(row: any): any {
     return {
       id: row.id,
-      userId: row.user_id,
-      achievementId: row.achievement_id,
+      user_id: row.user_id,
+      achievement_id: row.achievement_id,
       progress: row.progress,
       target: row.target,
       progressPercentage: row.progress_percentage,
@@ -473,11 +468,11 @@ export class AchievementRepository {
     };
   }
 
-  private mapToAchievementProgressLog(row: any): AchievementProgressLog {
+  private mapToAchievementProgressLog(row: any): any {
     return {
       id: row.id,
-      userId: row.user_id,
-      achievementId: row.achievement_id,
+      user_id: row.user_id,
+      achievement_id: row.achievement_id,
       actionType: row.action_type,
       progressIncrement: row.progress_increment,
       progressAfter: row.progress_after,
@@ -488,11 +483,9 @@ export class AchievementRepository {
     };
   }
 
-  private mapToUserAchievementStats(row: any): UserAchievementStats {
+  private mapToUserAchievementStats(row: any): any {
     return {
-      id: row.id,
-      userId: row.user_id,
-      totalAchievements: row.total_achievements,
+      total_achievements: row.total_achievements,
       totalPoints: row.total_points,
       bronzeCount: row.bronze_count,
       silverCount: row.silver_count,

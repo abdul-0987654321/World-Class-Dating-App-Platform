@@ -3,7 +3,7 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('subscription_features', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.enum('tier', ['free', 'basic', 'mid', 'ultra']).notNullable();
+    table.enum('tier', ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite']).notNullable();
     table.string('feature_key', 100).notNullable();
     table.jsonb('feature_value').notNullable();
     table.text('description').nullable();
