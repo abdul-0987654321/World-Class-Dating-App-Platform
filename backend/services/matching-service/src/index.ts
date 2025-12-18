@@ -11,6 +11,7 @@ import searchRoutes from './api/routes/search.routes';
 import internalRoutes from './api/routes/internal.routes';
 import config from './config';
 import matchExpirationJob from './jobs/match-expiration.job';
+import db from './infrastructure/database/connection';
 
 // Load environment variables
 dotenv.config();
@@ -58,11 +59,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (_req: Request, res: Response) => {
+  const checks = {
+    database: false,
+  };
+
+  try {
+    // Check database connection
+    await db.raw('SELECT 1');
+    checks.database = true;
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'matching-service',
     timestamp: new Date().toISOString(),
+    checks,
   });
 });
 

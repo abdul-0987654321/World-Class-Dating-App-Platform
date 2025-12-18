@@ -49,12 +49,38 @@ app.use(express.urlencoded({ extended: true }));
 app.use(generalLimiter);
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks = {
+    database: false,
+    redis: false,
+  };
+
+  try {
+    // Check database
+    await testConnection();
+    checks.database = true;
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  try {
+    // Check Redis connection
+    const redisClient = redisCache['client'];
+    if (redisClient && redisCache['isConnected']) {
+      await redisClient.ping();
+      checks.redis = true;
+    }
+  } catch (e) {
+    logger.error('Redis health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'auth-service',
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
+    checks,
   });
 });
 

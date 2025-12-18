@@ -168,3 +168,12 @@ export interface ServerToClientEvents {
 export interface UserSocketMap {
   [userId: string]: string; // userId -> socketId
 }
+
+// Socket.IO TypeScript augmentation for socket.data
+declare module 'socket.io' {
+  interface Socket {
+    data: {
+      userId?: string; // Set by JWT authentication middleware
+    };
+  }
+}

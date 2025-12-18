@@ -82,4 +82,16 @@ export class UserRepository {
         updated_at: db.fn.now(),
       });
   }
+
+  /**
+   * PERFORMANCE: Batch fetch users by IDs
+   * Fixes N+1 query issue in match list
+   */
+  async findByIdsBatch(ids: string[]): Promise<UserEntity[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    return db(this.tableName).whereIn('id', ids);
+  }
 }

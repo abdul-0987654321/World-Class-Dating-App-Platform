@@ -73,10 +73,11 @@ export class CallSignalingHandler {
    * Setup socket handlers
    */
   setupHandlers(socket: Socket): void {
-    const userId = socket.handshake.auth.userId;
+    // SECURITY: Use verified userId from JWT authentication middleware
+    const userId = socket.data.userId;
 
     if (!userId) {
-      logger.warn('Socket connection without userId', { socketId: socket.id });
+      logger.warn('Socket connection without userId (JWT verification failed)', { socketId: socket.id });
       socket.disconnect();
       return;
     }
@@ -159,7 +160,7 @@ export class CallSignalingHandler {
     data: InitiateCallData,
     callback: (response: any) => void
   ): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     // Check if callee is online
     const calleeSocketId = this.connectedUsers.get(data.calleeId);
@@ -251,7 +252,7 @@ export class CallSignalingHandler {
     data: AcceptCallData,
     callback: (response: any) => void
   ): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     const result = await this.videoCallService.acceptCall(data.callId, userId);
 
@@ -295,7 +296,7 @@ export class CallSignalingHandler {
     data: RejectCallData,
     callback: (response: any) => void
   ): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     const callSession = await this.videoCallService.getCallSession(data.callId);
     if (!callSession) {
@@ -331,7 +332,7 @@ export class CallSignalingHandler {
     data: EndCallData,
     callback: (response: any) => void
   ): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     const callSession = await this.videoCallService.getCallSession(data.callId);
     if (!callSession) {
@@ -367,7 +368,7 @@ export class CallSignalingHandler {
    * Handle ICE candidate
    */
   private async handleIceCandidate(socket: Socket, data: IceCandidateData): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     const callSession = await this.videoCallService.getCallSession(data.callId);
     if (!callSession) {
@@ -395,7 +396,7 @@ export class CallSignalingHandler {
     data: RecordingConsentData,
     callback: (response: any) => void
   ): Promise<void> {
-    const userId = socket.handshake.auth.userId;
+    const userId = socket.data.userId;
 
     await this.videoCallService.setRecordingConsent(data.callId, userId, data.consent);
 

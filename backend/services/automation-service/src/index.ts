@@ -87,12 +87,54 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks = {
+    database: false,
+    redis: false,
+    rabbitmq: false,
+  };
+
+  try {
+    // Check database - we'll need to import knex instance
+    const db = await import('./infrastructure/database/knex');
+    if (db && db.default) {
+      await db.default.raw('SELECT 1');
+      checks.database = true;
+    }
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  try {
+    // Check Redis
+    const redis = await import('./infrastructure/cache/redis');
+    if (redis && redis.getRedisClient) {
+      const client = redis.getRedisClient();
+      if (client) {
+        await client.ping();
+        checks.redis = true;
+      }
+    }
+  } catch (e) {
+    logger.error('Redis health check failed', e);
+  }
+
+  try {
+    // Check RabbitMQ
+    if (rabbitMQ && rabbitMQ.isConnected()) {
+      checks.rabbitmq = true;
+    }
+  } catch (e) {
+    logger.error('RabbitMQ health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'automation-service',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
+    checks,
   });
 });
 

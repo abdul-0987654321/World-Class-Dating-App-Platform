@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Button } from '../common/Button';
 
-export type SubscriptionTier = 'free' | 'premium' | 'premium_plus';
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 export type BillingPeriod = 'monthly' | 'annual';
 
 export interface SubscriptionPlan {
@@ -47,44 +47,82 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
   },
   {
+    tier: 'basic',
+    name: 'Basic',
+    tagline: 'Unlock unlimited swipes',
+    monthlyPrice: 9.99,
+    annualPrice: 95.88,
+    features: [
+      'Unlimited likes',
+      '5 super likes per day',
+      'See who likes you',
+      'Rewind last swipe',
+      '1 free boost per month',
+      'No ads',
+    ],
+  },
+  {
+    tier: 'plus',
+    name: 'Plus',
+    tagline: 'Enhanced visibility and privacy',
+    monthlyPrice: 14.99,
+    annualPrice: 143.88,
+    features: [
+      'Everything in Basic',
+      '10 super likes per day',
+      'Incognito mode',
+      'Priority likes',
+      'Read receipts',
+      'No ads',
+    ],
+  },
+  {
     tier: 'premium',
     name: 'Premium',
     tagline: 'The full dating experience',
     monthlyPrice: 19.99,
-    annualPrice: 99.99,
+    annualPrice: 191.88,
     popular: true,
     badge: 'Most Popular',
     features: [
-      'Unlimited likes',
-      '5 super likes per day',
-      'Unlimited rewinds',
-      'See who likes you',
-      'Control your profile visibility',
-      '1 free boost per month',
+      'Everything in Plus',
+      'Unlimited super likes',
+      'Passport - swipe anywhere',
       'Advanced filters',
-      'Read receipts',
-      'No ads',
-      'Priority support',
+      'Profile controls',
+      '2 free boosts per month',
     ],
   },
   {
     tier: 'premium_plus',
     name: 'Premium+',
-    tagline: 'Maximum visibility and features',
+    tagline: 'Power user features',
     monthlyPrice: 29.99,
-    annualPrice: 149.99,
+    annualPrice: 287.88,
     badge: 'Best Value',
     features: [
       'Everything in Premium',
-      'Unlimited super likes',
-      '2 free boosts per month',
-      'Priority likes (appear first)',
       'Message before matching',
-      'See who read your messages',
-      'Advanced conversation insights',
+      '1 weekly boost',
+      'See who viewed your profile',
+      'Priority customer support',
+      '4 free boosts per month',
+    ],
+  },
+  {
+    tier: 'elite',
+    name: 'Elite',
+    tagline: 'The ultimate VIP experience',
+    monthlyPrice: 49.99,
+    annualPrice: 479.88,
+    features: [
+      'Everything in Premium+',
       'VIP badge on profile',
-      'Exclusive events access',
-      'Dedicated concierge support',
+      '3 weekly boosts',
+      'Exclusive Elite matches',
+      'Dedicated account manager',
+      '24/7 priority support',
+      'Early access to new features',
     ],
   },
 ];
@@ -158,7 +196,11 @@ export const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
 
   const renderPlanCard = (plan: SubscriptionPlan) => {
     const isCurrentPlan = plan.tier === currentTier;
-    const isDowngrade = currentTier === 'premium_plus' && plan.tier === 'premium';
+    // Check if this is a downgrade based on tier hierarchy
+    const tierHierarchy = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'];
+    const currentTierIndex = tierHierarchy.indexOf(currentTier);
+    const planTierIndex = tierHierarchy.indexOf(plan.tier);
+    const isDowngrade = planTierIndex < currentTierIndex;
     const savings = calculateSavings(plan);
     const isLoadingThis = isLoading === plan.tier;
 

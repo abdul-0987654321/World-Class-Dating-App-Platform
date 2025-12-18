@@ -147,9 +147,36 @@ export class DiscoveryService {
     // Build discovery profiles with photos and prompts
     const discoveryProfiles: DiscoveryProfile[] = [];
 
+    if (candidates.length === 0) {
+      return discoveryProfiles;
+    }
+
+    // PERFORMANCE FIX: Batch load photos and prompts for all candidates
+    const candidateIds = candidates.map((c) => c.id);
+
+    // Fetch all photos in a single query
+    const allPhotos = await this.photoRepository.findByUserIds(candidateIds);
+    const photoMap = new Map<string, typeof allPhotos>();
+    allPhotos.forEach((photo) => {
+      if (!photoMap.has(photo.user_id)) {
+        photoMap.set(photo.user_id, []);
+      }
+      photoMap.get(photo.user_id)!.push(photo);
+    });
+
+    // Fetch all prompts in a single query
+    const allPrompts = await this.promptRepository.findUserPromptsBatch(candidateIds);
+    const promptMap = new Map<string, typeof allPrompts>();
+    allPrompts.forEach((prompt) => {
+      if (!promptMap.has(prompt.user_id)) {
+        promptMap.set(prompt.user_id, []);
+      }
+      promptMap.get(prompt.user_id)!.push(prompt);
+    });
+
     for (const candidate of candidates) {
-      const photos = await this.photoRepository.findByUserId(candidate.id);
-      const prompts = await this.promptRepository.findUserPrompts(candidate.id);
+      const photos = photoMap.get(candidate.id) || [];
+      const prompts = promptMap.get(candidate.id) || [];
 
       // Calculate distance if both users have location
       let distance: number | undefined;

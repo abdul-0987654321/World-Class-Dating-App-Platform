@@ -17,6 +17,7 @@ import internalRoutes from './api/routes/internal.routes';
 import deviceRoutes from './api/routes/device.routes';
 import batchRoutes from './api/routes/batch.routes';
 import { notificationQueue, getQueueStats, cleanQueue } from './queues/notification.queue';
+import { createClient } from 'redis';
 
 // Load environment variables
 dotenv.config();
@@ -91,16 +92,38 @@ app.use((req: Request, res: Response, next) => {
 
 // Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {
-  const dbHealthy = await testConnection();
+  const checks = {
+    database: false,
+    redis: false,
+  };
+
+  try {
+    // Check database
+    checks.database = await testConnection();
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  try {
+    // Check Redis via Bull queue connection
+    const queueClient = await notificationQueue.client;
+    if (queueClient) {
+      await queueClient.ping();
+      checks.redis = true;
+    }
+  } catch (e) {
+    logger.error('Redis health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
   const queueStats = await getQueueStats();
 
-  res.status(dbHealthy ? 200 : 503).json({
-    status: dbHealthy ? 'healthy' : 'degraded',
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'notification-service',
     timestamp: new Date().toISOString(),
-    database: dbHealthy ? 'connected' : 'disconnected',
+    checks,
     queue: {
-      status: 'operational',
       stats: queueStats,
     },
   });

@@ -14,15 +14,19 @@ export interface PhotoVerificationResult {
   reason?: string;
   faceMatch?: boolean;
   livenessDetected?: boolean;
+  status?: 'approved' | 'rejected' | 'pending_review';
+  requiresManualReview?: boolean;
 }
 
 /**
  * Photo Verification Service
  * Implements selfie verification with pose detection and face matching
+ * Includes graceful degradation when Azure Face API is unavailable
  */
 export class PhotoVerificationService {
   private readonly VERIFICATION_THRESHOLD = 0.85; // 85% confidence threshold
   private readonly FACE_MATCH_THRESHOLD = 0.90; // 90% face match threshold
+  private readonly AZURE_API_TIMEOUT = 10000; // 10 second timeout for Azure API calls
 
   /**
    * Request photo verification
@@ -95,7 +99,14 @@ export class PhotoVerificationService {
       }
 
       // Verify the photo
-      const result = await this.verifyPhoto(request.user_id, photoUrl, request.requested_pose);
+      const result = await this.verifyPhoto(request.user_id, photoUrl, request.requested_pose, verificationId);
+
+      // Handle pending review status
+      if (result.status === 'pending_review') {
+        await this.updateVerificationStatus(verificationId, 'pending_review' as any, result);
+        logger.info(`Photo queued for manual review for user ${request.user_id}`);
+        return result;
+      }
 
       // Update verification request
       await this.updateVerificationStatus(
@@ -129,12 +140,28 @@ export class PhotoVerificationService {
   }
 
   /**
-   * Verify photo using AI/ML
+   * Verify photo using AI/ML with graceful degradation
    */
-  private async verifyPhoto(userId: string, photoUrl: string, requestedPose: string): Promise<PhotoVerificationResult> {
+  private async verifyPhoto(
+    userId: string,
+    photoUrl: string,
+    requestedPose: string,
+    verificationId?: string
+  ): Promise<PhotoVerificationResult> {
     try {
       // Step 1: Detect face and liveness
-      const livenessResult = await this.detectLiveness(photoUrl);
+      const livenessResult = await this.detectLiveness(userId, photoUrl, verificationId);
+
+      // Check if manual review was triggered
+      if (livenessResult.requiresManualReview) {
+        return {
+          verified: false,
+          confidence: 0.5,
+          reason: 'Photo submitted for manual verification',
+          status: 'pending_review',
+          requiresManualReview: true,
+        };
+      }
 
       if (!livenessResult.live) {
         return {
@@ -146,7 +173,18 @@ export class PhotoVerificationService {
       }
 
       // Step 2: Verify pose
-      const poseResult = await this.verifyPose(photoUrl, requestedPose);
+      const poseResult = await this.verifyPose(userId, photoUrl, requestedPose, verificationId);
+
+      // Check if manual review was triggered
+      if (poseResult.requiresManualReview) {
+        return {
+          verified: false,
+          confidence: 0.5,
+          reason: 'Photo submitted for manual verification',
+          status: 'pending_review',
+          requiresManualReview: true,
+        };
+      }
 
       if (!poseResult.matched) {
         return {
@@ -158,7 +196,18 @@ export class PhotoVerificationService {
       }
 
       // Step 3: Match with existing profile photos
-      const faceMatchResult = await this.matchWithProfilePhotos(userId, photoUrl);
+      const faceMatchResult = await this.matchWithProfilePhotos(userId, photoUrl, verificationId);
+
+      // Check if manual review was triggered
+      if (faceMatchResult.requiresManualReview) {
+        return {
+          verified: false,
+          confidence: 0.5,
+          reason: 'Photo submitted for manual verification',
+          status: 'pending_review',
+          requiresManualReview: true,
+        };
+      }
 
       if (!faceMatchResult.matched) {
         return {
@@ -182,151 +231,248 @@ export class PhotoVerificationService {
         faceMatch: true,
       };
     } catch (error) {
-      logger.error('Error verifying photo:', error);
-      throw new Error('Failed to verify photo');
+      logger.error('Error verifying photo - queueing for manual review:', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      // Queue for manual review on unexpected errors
+      await this.queueForManualReview(userId, photoUrl, 'unexpected_error', verificationId);
+
+      return {
+        verified: false,
+        confidence: 0.5,
+        reason: 'Photo submitted for manual verification',
+        status: 'pending_review',
+        requiresManualReview: true,
+      };
     }
   }
 
   /**
-   * Detect liveness (anti-spoofing)
+   * Detect liveness (anti-spoofing) with graceful degradation
    */
-  private async detectLiveness(photoUrl: string): Promise<{ live: boolean; confidence: number }> {
+  private async detectLiveness(
+    userId: string,
+    photoUrl: string,
+    verificationId?: string
+  ): Promise<{ live: boolean; confidence: number; requiresManualReview?: boolean }> {
     try {
-      // In production, integrate with Azure Face API or AWS Rekognition
-      // For now, implement basic checks
-
       if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
-        // Use Azure Face API for liveness detection
-        const response = await axios.post(
-          `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
-          {
-            url: photoUrl,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
+        try {
+          // Use Azure Face API for liveness detection
+          const response = await axios.post(
+            `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
+            {
+              url: photoUrl,
             },
-            params: {
-              returnFaceAttributes: 'blur,exposure,noise',
-              detectionModel: 'detection_03',
-            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
+              },
+              params: {
+                returnFaceAttributes: 'blur,exposure,noise',
+                detectionModel: 'detection_03',
+              },
+              timeout: this.AZURE_API_TIMEOUT,
+            }
+          );
+
+          if (response.data && response.data.length > 0) {
+            const face = response.data[0];
+            const attributes = face.faceAttributes;
+
+            // Check for photo quality indicators
+            const isLive =
+              attributes.blur.blurLevel === 'low' &&
+              attributes.exposure.exposureLevel === 'goodExposure' &&
+              attributes.noise.noiseLevel === 'low';
+
+            return {
+              live: isLive,
+              confidence: isLive ? 0.95 : 0.50,
+            };
           }
-        );
-
-        if (response.data && response.data.length > 0) {
-          const face = response.data[0];
-          const attributes = face.faceAttributes;
-
-          // Check for photo quality indicators
-          const isLive =
-            attributes.blur.blurLevel === 'low' &&
-            attributes.exposure.exposureLevel === 'goodExposure' &&
-            attributes.noise.noiseLevel === 'low';
 
           return {
-            live: isLive,
-            confidence: isLive ? 0.95 : 0.50,
+            live: false,
+            confidence: 0.0,
+          };
+        } catch (azureError: any) {
+          // Azure Face API failed - log and queue for manual review
+          logger.error('Azure Face API unavailable for liveness detection, queueing for manual review', {
+            userId,
+            error: azureError.message,
+            verificationId,
+          });
+
+          await this.queueForManualReview(userId, photoUrl, 'azure_api_unavailable_liveness', verificationId);
+
+          return {
+            live: false,
+            confidence: 0.5,
+            requiresManualReview: true,
           };
         }
-
-        return {
-          live: false,
-          confidence: 0.0,
-        };
       }
 
-      // Azure Face API is required for liveness detection
-      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
-    } catch (error) {
-      logger.error('Error detecting liveness:', error);
+      // Azure Face API not configured - queue for manual review
+      logger.warn('Azure Face API credentials not configured, queueing for manual review', {
+        userId,
+        verificationId,
+      });
+
+      await this.queueForManualReview(userId, photoUrl, 'azure_api_not_configured', verificationId);
+
       return {
         live: false,
-        confidence: 0.0,
+        confidence: 0.5,
+        requiresManualReview: true,
+      };
+    } catch (error) {
+      logger.error('Error detecting liveness, queueing for manual review:', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      await this.queueForManualReview(userId, photoUrl, 'liveness_detection_error', verificationId);
+
+      return {
+        live: false,
+        confidence: 0.5,
+        requiresManualReview: true,
       };
     }
   }
 
   /**
-   * Verify pose matches requested pose
+   * Verify pose matches requested pose with graceful degradation
    */
-  private async verifyPose(photoUrl: string, requestedPose: string): Promise<{ matched: boolean; confidence: number }> {
+  private async verifyPose(
+    userId: string,
+    photoUrl: string,
+    requestedPose: string,
+    verificationId?: string
+  ): Promise<{ matched: boolean; confidence: number; requiresManualReview?: boolean }> {
     try {
-      // In production, use Azure Face API or AWS Rekognition for pose detection
-      // For now, implement basic validation
-
       if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
-        const response = await axios.post(
-          `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
-          {
-            url: photoUrl,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
+        try {
+          const response = await axios.post(
+            `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
+            {
+              url: photoUrl,
             },
-            params: {
-              returnFaceAttributes: 'headPose,smile',
-              detectionModel: 'detection_03',
-            },
-          }
-        );
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
+              },
+              params: {
+                returnFaceAttributes: 'headPose,smile',
+                detectionModel: 'detection_03',
+              },
+              timeout: this.AZURE_API_TIMEOUT,
+            }
+          );
 
-        if (response.data && response.data.length > 0) {
-          const face = response.data[0];
-          const headPose = face.faceAttributes.headPose;
-          const smile = face.faceAttributes.smile;
+          if (response.data && response.data.length > 0) {
+            const face = response.data[0];
+            const headPose = face.faceAttributes.headPose;
+            const smile = face.faceAttributes.smile;
 
-          // Verify pose based on requested pose
-          let matched = false;
+            // Verify pose based on requested pose
+            let matched = false;
 
-          switch (requestedPose) {
-            case 'smile':
-              matched = smile > 0.5;
-              break;
-            case 'neutral':
-              matched = smile < 0.3;
-              break;
-            case 'look_left':
-              matched = headPose.yaw < -15;
-              break;
-            case 'look_right':
-              matched = headPose.yaw > 15;
-              break;
-            case 'look_up':
-              matched = headPose.pitch > 10;
-              break;
-            case 'thumbs_up':
-              // Hand gesture detection requires additional ML model
-              matched = true; // Accept for now
-              break;
-            default:
-              matched = true;
+            switch (requestedPose) {
+              case 'smile':
+                matched = smile > 0.5;
+                break;
+              case 'neutral':
+                matched = smile < 0.3;
+                break;
+              case 'look_left':
+                matched = headPose.yaw < -15;
+                break;
+              case 'look_right':
+                matched = headPose.yaw > 15;
+                break;
+              case 'look_up':
+                matched = headPose.pitch > 10;
+                break;
+              case 'thumbs_up':
+                // Hand gesture detection requires additional ML model
+                matched = true; // Accept for now
+                break;
+              default:
+                matched = true;
+            }
+
+            return {
+              matched,
+              confidence: matched ? 0.90 : 0.40,
+            };
           }
 
           return {
-            matched,
-            confidence: matched ? 0.90 : 0.40,
+            matched: false,
+            confidence: 0.0,
+          };
+        } catch (azureError: any) {
+          // Azure Face API failed - log and queue for manual review
+          logger.error('Azure Face API unavailable for pose verification, queueing for manual review', {
+            userId,
+            error: azureError.message,
+            verificationId,
+          });
+
+          await this.queueForManualReview(userId, photoUrl, 'azure_api_unavailable_pose', verificationId);
+
+          return {
+            matched: false,
+            confidence: 0.5,
+            requiresManualReview: true,
           };
         }
       }
 
-      // Azure Face API is required for pose verification
-      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
-    } catch (error) {
-      logger.error('Error verifying pose:', error);
+      // Azure Face API not configured - queue for manual review
+      logger.warn('Azure Face API credentials not configured for pose verification, queueing for manual review', {
+        userId,
+        verificationId,
+      });
+
+      await this.queueForManualReview(userId, photoUrl, 'azure_api_not_configured_pose', verificationId);
+
       return {
         matched: false,
-        confidence: 0.0,
+        confidence: 0.5,
+        requiresManualReview: true,
+      };
+    } catch (error) {
+      logger.error('Error verifying pose, queueing for manual review:', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      await this.queueForManualReview(userId, photoUrl, 'pose_verification_error', verificationId);
+
+      return {
+        matched: false,
+        confidence: 0.5,
+        requiresManualReview: true,
       };
     }
   }
 
   /**
-   * Match verification photo with profile photos
+   * Match verification photo with profile photos with graceful degradation
    */
-  private async matchWithProfilePhotos(userId: string, verificationPhotoUrl: string): Promise<{ matched: boolean; confidence: number }> {
+  private async matchWithProfilePhotos(
+    userId: string,
+    verificationPhotoUrl: string,
+    verificationId?: string
+  ): Promise<{ matched: boolean; confidence: number; requiresManualReview?: boolean }> {
     try {
       // Get user's profile photos
       const photos = await db('user_photos')
@@ -346,30 +492,65 @@ export class PhotoVerificationService {
         };
       }
 
-      // Use Azure Face API or AWS Rekognition for face matching
+      // Use Azure Face API for face matching
       if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
-        let maxSimilarity = 0;
+        try {
+          let maxSimilarity = 0;
 
-        for (const photo of photos) {
-          const similarity = await this.compareFaces(verificationPhotoUrl, photo.photo_url);
-          maxSimilarity = Math.max(maxSimilarity, similarity);
+          for (const photo of photos) {
+            const similarity = await this.compareFaces(verificationPhotoUrl, photo.photo_url);
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+          }
+
+          const matched = maxSimilarity >= this.FACE_MATCH_THRESHOLD;
+
+          return {
+            matched,
+            confidence: maxSimilarity,
+          };
+        } catch (azureError: any) {
+          // Azure Face API failed - log and queue for manual review
+          logger.error('Azure Face API unavailable for face matching, queueing for manual review', {
+            userId,
+            error: azureError.message,
+            verificationId,
+          });
+
+          await this.queueForManualReview(userId, verificationPhotoUrl, 'azure_api_unavailable_face_match', verificationId);
+
+          return {
+            matched: false,
+            confidence: 0.5,
+            requiresManualReview: true,
+          };
         }
-
-        const matched = maxSimilarity >= this.FACE_MATCH_THRESHOLD;
-
-        return {
-          matched,
-          confidence: maxSimilarity,
-        };
       }
 
-      // Azure Face API is required for face matching
-      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
-    } catch (error) {
-      logger.error('Error matching with profile photos:', error);
+      // Azure Face API not configured - queue for manual review
+      logger.warn('Azure Face API credentials not configured for face matching, queueing for manual review', {
+        userId,
+        verificationId,
+      });
+
+      await this.queueForManualReview(userId, verificationPhotoUrl, 'azure_api_not_configured_face_match', verificationId);
+
       return {
         matched: false,
-        confidence: 0.0,
+        confidence: 0.5,
+        requiresManualReview: true,
+      };
+    } catch (error) {
+      logger.error('Error matching with profile photos, queueing for manual review:', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      await this.queueForManualReview(userId, verificationPhotoUrl, 'face_matching_error', verificationId);
+
+      return {
+        matched: false,
+        confidence: 0.5,
+        requiresManualReview: true,
       };
     }
   }
@@ -380,7 +561,7 @@ export class PhotoVerificationService {
   private async compareFaces(photo1Url: string, photo2Url: string): Promise<number> {
     try {
       if (!process.env.AZURE_FACE_API_KEY || !process.env.AZURE_FACE_API_ENDPOINT) {
-        return 0.85; // Default similarity
+        throw new Error('Azure Face API credentials not configured');
       }
 
       // Detect face in both photos
@@ -393,6 +574,7 @@ export class PhotoVerificationService {
               'Content-Type': 'application/json',
               'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
             },
+            timeout: this.AZURE_API_TIMEOUT,
           }
         );
 
@@ -418,13 +600,62 @@ export class PhotoVerificationService {
             'Content-Type': 'application/json',
             'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
           },
+          timeout: this.AZURE_API_TIMEOUT,
         }
       );
 
       return response.data.confidence || 0.0;
     } catch (error) {
       logger.error('Error comparing faces:', error);
-      return 0.0;
+      throw error; // Re-throw to trigger manual review in caller
+    }
+  }
+
+  /**
+   * Queue photo for manual review
+   * Used when automated verification fails due to API unavailability
+   */
+  private async queueForManualReview(
+    userId: string,
+    photoUrl: string,
+    reason: string,
+    verificationId?: string
+  ): Promise<void> {
+    try {
+      // Get user information for the queue
+      const user = await db('users')
+        .where({ id: userId })
+        .first('first_name', 'last_name');
+
+      const userName = user ? `${user.first_name} ${user.last_name}` : 'Unknown User';
+
+      // Insert into moderation queue for manual review
+      await db('moderation_queue').insert({
+        content_id: verificationId || `photo_${userId}_${Date.now()}`,
+        content_type: 'photo_verification',
+        content_url: photoUrl,
+        user_id: userId,
+        user_name: userName,
+        risk_score: 0.5, // Medium priority
+        violations: JSON.stringify([reason]),
+        status: 'flagged',
+        priority: 'medium',
+        flagged_at: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      logger.info('Photo queued for manual review', {
+        userId,
+        verificationId,
+        reason,
+      });
+    } catch (error) {
+      logger.error('Failed to queue photo for manual review', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      // Don't throw - we don't want queue failures to block verification
     }
   }
 
@@ -433,7 +664,7 @@ export class PhotoVerificationService {
    */
   private async updateVerificationStatus(
     verificationId: string,
-    status: 'approved' | 'rejected' | 'expired',
+    status: 'approved' | 'rejected' | 'expired' | 'pending_review',
     result: PhotoVerificationResult | null
   ): Promise<void> {
     try {

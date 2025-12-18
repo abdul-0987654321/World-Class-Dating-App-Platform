@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'premium' | 'premium_plus';
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'expired';
 export type TransactionType = 'subscription' | 'coins' | 'boost' | 'super_like';
 export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'refunded';

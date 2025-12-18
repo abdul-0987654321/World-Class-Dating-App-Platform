@@ -55,11 +55,35 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
+app.get('/health', async (req, res) => {
+  const checks = {
+    database: false,
+    redis: false,
+  };
+
+  try {
+    // Check database
+    checks.database = await testConnection();
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  try {
+    // Check Redis
+    if (redis['client']) {
+      await redis['client'].ping();
+      checks.redis = true;
+    }
+  } catch (e) {
+    logger.error('Redis health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'admin-service',
     timestamp: new Date().toISOString(),
+    checks,
   });
 });
 

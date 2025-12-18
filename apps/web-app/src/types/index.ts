@@ -32,7 +32,7 @@ export interface User {
     identity?: boolean;
   };
   subscription?: string;
-  premium_tier?: 'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
+  premium_tier?: SubscriptionTier;
   coinBalance?: number;
   isVerified?: boolean;
   createdAt?: string;
@@ -51,7 +51,7 @@ export interface Profile {
   occupation?: string;
   interests?: string[];
   verified?: boolean;
-  premium_tier?: 'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
+  premium_tier?: SubscriptionTier;
   compatibilityScore?: number;
 }
 
@@ -120,13 +120,13 @@ export interface Like {
 }
 
 // Subscription Types
-export type SubscriptionTier = 'FREE' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 
 export interface Subscription {
   id: string;
   userId: string;
   tier: SubscriptionTier;
-  status: 'active' | 'cancelled' | 'expired';
+  status: 'active' | 'cancelled' | 'expired' | 'past_due' | 'trialing';
   startDate: string;
   endDate?: string;
   autoRenew: boolean;

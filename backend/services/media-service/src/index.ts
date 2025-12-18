@@ -8,6 +8,7 @@ import mediaRoutes from './api/routes/media.routes';
 import azureStorageService from './infrastructure/storage/azure-storage.service';
 import workerManager from './workers/worker-manager';
 import config from './config';
+import db from './infrastructure/database/connection';
 
 // Load environment variables
 dotenv.config();
@@ -61,11 +62,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (_req: Request, res: Response) => {
+  const checks = {
+    database: false,
+    azureStorage: false,
+  };
+
+  try {
+    // Check database connection
+    await db.raw('SELECT 1');
+    checks.database = true;
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  try {
+    // Check Azure Storage - verify service is initialized
+    // We don't make an actual call to avoid unnecessary costs
+    if (azureStorageService['initialized']) {
+      checks.azureStorage = true;
+    }
+  } catch (e) {
+    logger.error('Azure Storage health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'media-service',
     timestamp: new Date().toISOString(),
+    checks,
   });
 });
 

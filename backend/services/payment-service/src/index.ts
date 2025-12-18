@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
 import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { db } from './infrastructure/database/connection';
 
 // Import routes
 import paymentRoutes from './api/routes/payment.routes';
@@ -63,11 +64,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/payments', paymentRoutes);
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks = {
+    database: false,
+  };
+
+  try {
+    // Check database connection
+    await db.raw('SELECT 1');
+    checks.database = true;
+  } catch (e) {
+    logger.error('Database health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'payment-service',
     timestamp: new Date().toISOString(),
+    checks,
   });
 });
 

@@ -34,11 +34,39 @@ export class MatchService {
     const matches = await this.matchRepository.findByUserId(userId, true);
     const matchResponses: MatchResponse[] = [];
 
+    if (matches.length === 0) {
+      return matchResponses;
+    }
+
+    // PERFORMANCE FIX: Batch load all matched users' data
+    const matchedUserIds = matches.map((match) =>
+      match.user1_id === userId ? match.user2_id : match.user1_id
+    );
+
+    // Fetch all users, profiles, and primary photos in parallel
+    const [usersMap, profilesMap, primaryPhotosMap] = await Promise.all([
+      this.userRepository.findByIdsBatch(matchedUserIds).then((users) => {
+        const map = new Map();
+        users.forEach((user) => map.set(user.id, user));
+        return map;
+      }),
+      this.profileRepository.findByUserIdsBatch(matchedUserIds).then((profiles) => {
+        const map = new Map();
+        profiles.forEach((profile) => map.set(profile.user_id, profile));
+        return map;
+      }),
+      this.photoRepository.findPrimaryPhotosBatch(matchedUserIds).then((photos) => {
+        const map = new Map();
+        photos.forEach((photo) => map.set(photo.user_id, photo));
+        return map;
+      }),
+    ]);
+
     for (const match of matches) {
       const matchedUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
-      const matchedUser = await this.userRepository.findById(matchedUserId);
-      const matchedProfile = await this.profileRepository.findByUserId(matchedUserId);
-      const primaryPhoto = await this.photoRepository.getPrimaryPhoto(matchedUserId);
+      const matchedUser = usersMap.get(matchedUserId);
+      const matchedProfile = profilesMap.get(matchedUserId);
+      const primaryPhoto = primaryPhotosMap.get(matchedUserId);
 
       if (!matchedUser) continue;
 

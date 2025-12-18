@@ -73,4 +73,32 @@ export class PhotoRepository {
       }
     });
   }
+
+  /**
+   * PERFORMANCE: Batch fetch photos for multiple users
+   * Fixes N+1 query issue in discovery feed
+   */
+  async findByUserIds(userIds: string[]): Promise<PhotoEntity[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    return db(this.tableName)
+      .whereIn('user_id', userIds)
+      .orderBy('position', 'asc');
+  }
+
+  /**
+   * PERFORMANCE: Batch fetch primary photos for multiple users
+   * Fixes N+1 query issue in match list
+   */
+  async findPrimaryPhotosBatch(userIds: string[]): Promise<PhotoEntity[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    return db(this.tableName)
+      .whereIn('user_id', userIds)
+      .where('is_primary', true);
+  }
 }

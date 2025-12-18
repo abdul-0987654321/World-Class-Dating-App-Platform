@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
+import jwt from 'jsonwebtoken';
 import { createLogger } from './utils/logger';
 import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
@@ -51,9 +52,53 @@ const io = new Server(httpServer, {
   },
 });
 
+// JWT Authentication Middleware for Socket.IO
+io.use((socket, next) => {
+  try {
+    // Extract token from auth object or authorization header
+    const token = socket.handshake.auth?.token ||
+                  socket.handshake.headers?.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      logger.warn('WebSocket connection rejected: No token provided');
+      return next(new Error('Authentication required'));
+    }
+
+    // Verify JWT token
+    const jwtSecret = process.env.JWT_ACCESS_SECRET;
+    if (!jwtSecret) {
+      logger.error('JWT_ACCESS_SECRET not configured');
+      return next(new Error('Server configuration error'));
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as any;
+
+    // Extract user ID from token payload
+    const userId = decoded.sub || decoded.userId;
+    if (!userId) {
+      logger.warn('WebSocket connection rejected: No userId in token');
+      return next(new Error('Invalid token payload'));
+    }
+
+    // Attach userId to socket data for use in handlers
+    socket.data.userId = userId;
+    logger.info(`WebSocket authentication successful for user: ${userId}`);
+
+    next();
+  } catch (error: any) {
+    logger.warn(`WebSocket authentication failed: ${error.message}`);
+    if (error.name === 'TokenExpiredError') {
+      return next(new Error('Token expired'));
+    } else if (error.name === 'JsonWebTokenError') {
+      return next(new Error('Invalid token'));
+    }
+    return next(new Error('Authentication failed'));
+  }
+});
+
 // Initialize Socket Manager
 const socketManager = new SocketManager(io);
-logger.info('Socket Manager initialized');
+logger.info('Socket Manager initialized with JWT authentication');
 
 // Middleware
 app.use(helmet());
@@ -67,12 +112,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks = {
+    cosmosdb: false,
+  };
+
+  try {
+    // Check Cosmos DB connection by attempting to access a container
+    if (cosmosClient.isInitialized()) {
+      // Simple check - if client is initialized, we consider it healthy
+      checks.cosmosdb = true;
+    }
+  } catch (e) {
+    logger.error('Cosmos DB health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'messaging-service',
     timestamp: new Date().toISOString(),
     connections: socketManager.getConnectedCount(),
+    checks,
   });
 });
 

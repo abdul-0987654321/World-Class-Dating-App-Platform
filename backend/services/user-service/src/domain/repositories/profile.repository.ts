@@ -48,6 +48,19 @@ export class ProfileRepository {
     await db(this.tableName).where({ user_id: userId }).delete();
   }
 
+  /**
+   * PERFORMANCE: Batch fetch profiles for multiple users
+   * Fixes N+1 query issue in match list
+   */
+  async findByUserIdsBatch(userIds: string[]): Promise<ProfileEntity[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const profiles = await db(this.tableName).whereIn('user_id', userIds);
+    return profiles.map((profile) => this.parseJsonFields(profile));
+  }
+
   private parseJsonFields(profile: any): ProfileEntity {
     return {
       ...profile,

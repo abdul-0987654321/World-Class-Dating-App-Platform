@@ -77,4 +77,28 @@ export class PromptRepository {
       .first();
     return parseInt(result?.count as string) || 0;
   }
+
+  /**
+   * PERFORMANCE: Batch fetch prompts for multiple users
+   * Fixes N+1 query issue in discovery feed
+   */
+  async findUserPromptsBatch(userIds: string[]): Promise<any[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    return db(this.userPromptsTable as any)
+      .select(
+        'user_prompts.id',
+        'user_prompts.user_id',
+        'user_prompts.prompt_id',
+        'user_prompts.answer',
+        'user_prompts.display_order',
+        'prompts.question',
+        'prompts.category'
+      )
+      .join('prompts', 'user_prompts.prompt_id', 'prompts.id')
+      .whereIn('user_prompts.user_id', userIds)
+      .orderBy('user_prompts.display_order', 'asc');
+  }
 }

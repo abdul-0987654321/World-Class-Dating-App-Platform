@@ -10,8 +10,8 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Plan identification
-    table.string('name', 50).notNullable().unique(); // free, basic, mid, ultra
-    table.enum('tier', ['free', 'basic', 'mid', 'ultra']).notNullable();
+    table.string('name', 50).notNullable().unique(); // free, basic, plus, premium, premium_plus, elite
+    table.enum('tier', ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite']).notNullable();
     table.string('display_name', 100).notNullable();
     table.text('description').nullable();
 
@@ -211,7 +211,7 @@ export async function up(knex: Knex): Promise<void> {
     table.index('created_at');
   });
 
-  // Insert default subscription plans
+  // Insert default subscription plans (6-tier model)
   await knex('subscription_plans').insert([
     {
       name: 'free',
@@ -223,7 +223,8 @@ export async function up(knex: Knex): Promise<void> {
       features: JSON.stringify([
         '50 daily swipes',
         '1 super like per day',
-        'Basic matching algorithm'
+        'Basic matching algorithm',
+        'Limited profile visibility'
       ]),
       daily_swipes: 50,
       daily_super_likes: 1,
@@ -242,17 +243,18 @@ export async function up(knex: Knex): Promise<void> {
     {
       name: 'basic',
       tier: 'basic',
-      display_name: 'Flamoral Basic',
+      display_name: 'Basic',
       description: 'Get more swipes and super likes',
       price_monthly: 9.99,
-      price_yearly: 79.99,
-      price_3_months: 24.99,
+      price_yearly: 95.88,
+      price_3_months: 26.97,
       features: JSON.stringify([
         'Unlimited swipes',
         '5 super likes per day',
         'See who likes you',
         '1 boost per month',
-        'Rewind last swipe'
+        'Rewind last swipe',
+        'No ads'
       ]),
       daily_swipes: 999999,
       daily_super_likes: 5,
@@ -269,56 +271,56 @@ export async function up(knex: Knex): Promise<void> {
       sort_order: 1,
     },
     {
-      name: 'mid',
-      tier: 'mid',
-      display_name: 'Flamoral Mid',
-      description: 'Enhanced features for better matches',
-      price_monthly: 19.99,
-      price_yearly: 159.99,
-      price_6_months: 89.99,
+      name: 'plus',
+      tier: 'plus',
+      display_name: 'Plus',
+      description: 'Enhanced visibility and privacy features',
+      price_monthly: 14.99,
+      price_yearly: 143.88,
+      price_3_months: 40.47,
+      price_6_months: 71.94,
       features: JSON.stringify([
         'Everything in Basic',
-        'Unlimited super likes',
-        '3 boosts per month',
-        'Advanced filters',
+        '10 super likes per day',
+        'Incognito mode',
         'Priority likes',
         'Read receipts',
-        'Unlimited rewinds'
+        '1 free boost per month'
       ]),
       daily_swipes: 999999,
-      daily_super_likes: 999999,
-      monthly_boosts: 3,
+      daily_super_likes: 10,
+      monthly_boosts: 1,
       unlimited_likes: true,
       see_who_likes_you: true,
       rewind_enabled: true,
-      incognito_mode: false,
+      incognito_mode: true,
       passport_enabled: false,
       priority_likes: true,
       read_receipts: true,
-      advanced_filters: true,
-      unlimited_rewinds: true,
+      advanced_filters: false,
+      unlimited_rewinds: false,
       sort_order: 2,
     },
     {
-      name: 'ultra',
-      tier: 'ultra',
-      display_name: 'Flamoral Ultra',
-      description: 'The ultimate dating experience',
-      price_monthly: 34.99,
-      price_yearly: 279.99,
-      price_6_months: 149.99,
+      name: 'premium',
+      tier: 'premium',
+      display_name: 'Premium',
+      description: 'Full feature access with Passport',
+      price_monthly: 19.99,
+      price_yearly: 191.88,
+      price_3_months: 53.97,
+      price_6_months: 95.94,
       features: JSON.stringify([
-        'Everything in Mid',
-        '5 boosts per month',
-        'Incognito mode',
-        'Passport (swipe anywhere)',
-        'Priority customer support',
-        'Profile boost',
-        'Top picks daily'
+        'Everything in Plus',
+        'Unlimited super likes',
+        'Passport - swipe anywhere',
+        'Profile controls',
+        'Advanced filters',
+        '2 free boosts per month'
       ]),
       daily_swipes: 999999,
       daily_super_likes: 999999,
-      monthly_boosts: 5,
+      monthly_boosts: 2,
       unlimited_likes: true,
       see_who_likes_you: true,
       rewind_enabled: true,
@@ -329,6 +331,69 @@ export async function up(knex: Knex): Promise<void> {
       advanced_filters: true,
       unlimited_rewinds: true,
       sort_order: 3,
+    },
+    {
+      name: 'premium_plus',
+      tier: 'premium_plus',
+      display_name: 'Premium+',
+      description: 'Power user features with message before match',
+      price_monthly: 29.99,
+      price_yearly: 287.88,
+      price_3_months: 80.97,
+      price_6_months: 143.94,
+      features: JSON.stringify([
+        'Everything in Premium',
+        'Message before matching',
+        '1 weekly boost',
+        'Unlimited rewinds',
+        'See who viewed your profile',
+        'Priority customer support'
+      ]),
+      daily_swipes: 999999,
+      daily_super_likes: 999999,
+      monthly_boosts: 4,
+      unlimited_likes: true,
+      see_who_likes_you: true,
+      rewind_enabled: true,
+      incognito_mode: true,
+      passport_enabled: true,
+      priority_likes: true,
+      read_receipts: true,
+      advanced_filters: true,
+      unlimited_rewinds: true,
+      sort_order: 4,
+    },
+    {
+      name: 'elite',
+      tier: 'elite',
+      display_name: 'Elite',
+      description: 'The ultimate VIP dating experience',
+      price_monthly: 49.99,
+      price_yearly: 479.88,
+      price_3_months: 134.97,
+      price_6_months: 239.94,
+      features: JSON.stringify([
+        'Everything in Premium+',
+        'VIP badge on profile',
+        '3 weekly boosts',
+        'Exclusive Elite matches',
+        'Dedicated account manager',
+        '24/7 priority support',
+        'Early access to new features'
+      ]),
+      daily_swipes: 999999,
+      daily_super_likes: 999999,
+      monthly_boosts: 12,
+      unlimited_likes: true,
+      see_who_likes_you: true,
+      rewind_enabled: true,
+      incognito_mode: true,
+      passport_enabled: true,
+      priority_likes: true,
+      read_receipts: true,
+      advanced_filters: true,
+      unlimited_rewinds: true,
+      sort_order: 5,
     },
   ]);
 }

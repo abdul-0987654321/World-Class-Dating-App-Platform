@@ -64,11 +64,26 @@ app.use(express.json());
 const PORT = process.env.PORT || 3010;
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
+app.get('/health', async (req, res) => {
+  const checks = {
+    openai: false,
+  };
+
+  try {
+    // Check OpenAI API key is configured
+    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 0) {
+      checks.openai = true;
+    }
+  } catch (e) {
+    logger.error('OpenAI health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'advertising-service',
     timestamp: new Date().toISOString(),
+    checks,
     features: {
       total: 40,
       categories: [

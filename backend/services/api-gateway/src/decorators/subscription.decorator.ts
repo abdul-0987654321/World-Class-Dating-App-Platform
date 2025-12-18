@@ -1,10 +1,12 @@
 import { SetMetadata } from '@nestjs/common';
 
 export enum SubscriptionTier {
-  FREE = 'FREE',
-  PLUS = 'PLUS',
-  PREMIUM = 'PREMIUM',
-  VIP = 'VIP',
+  FREE = 'free',
+  BASIC = 'basic',
+  PLUS = 'plus',
+  PREMIUM = 'premium',
+  PREMIUM_PLUS = 'premium_plus',
+  ELITE = 'elite',
 }
 
 export const SUBSCRIPTION_KEY = 'subscription';

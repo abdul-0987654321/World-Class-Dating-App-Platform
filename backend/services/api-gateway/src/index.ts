@@ -24,11 +24,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks: Record<string, boolean> = {
+    gateway: true, // API Gateway itself is running
+  };
+
+  // Check downstream service URLs are configured
+  const serviceUrls = {
+    user: process.env.USER_SERVICE_URL,
+    auth: process.env.AUTH_SERVICE_URL,
+    matching: process.env.MATCHING_SERVICE_URL,
+    messaging: process.env.MESSAGING_SERVICE_URL,
+    media: process.env.MEDIA_SERVICE_URL,
+    payment: process.env.PAYMENT_SERVICE_URL,
+    notification: process.env.NOTIFICATION_SERVICE_URL,
+  };
+
+  // Verify service URLs are configured (not actually calling them to avoid circular dependencies)
+  checks.servicesConfigured = Object.values(serviceUrls).every(url => url && url.length > 0);
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'api-gateway',
     timestamp: new Date().toISOString(),
+    checks,
+    services: serviceUrls,
   });
 });
 

@@ -70,11 +70,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.get('/health', async (req: Request, res: Response) => {
+  const checks = {
+    awsRekognition: false,
+    azureContentModerator: false,
+  };
+
+  try {
+    // Check if AWS credentials are configured
+    if (config.aws.accessKeyId && config.aws.secretAccessKey) {
+      checks.awsRekognition = true;
+    }
+  } catch (e) {
+    logger.error('AWS Rekognition health check failed', e);
+  }
+
+  try {
+    // Check if Azure Content Moderator is configured
+    if (config.azure.contentModerator.endpoint && config.azure.contentModerator.apiKey) {
+      checks.azureContentModerator = true;
+    }
+  } catch (e) {
+    logger.error('Azure Content Moderator health check failed', e);
+  }
+
+  const healthy = Object.values(checks).every(v => v);
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     service: 'moderation-service',
     timestamp: new Date().toISOString(),
+    checks,
   });
 });
 

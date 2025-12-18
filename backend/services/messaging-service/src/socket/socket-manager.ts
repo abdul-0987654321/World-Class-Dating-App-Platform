@@ -46,11 +46,12 @@ export class SocketManager {
   private handleConnection(socket: Socket): void {
     logger.info(`Client connected: ${socket.id}`);
 
-    // Get userId from handshake auth
-    const userId = socket.handshake.auth.userId;
+    // Get userId from socket.data (set by JWT authentication middleware)
+    // SECURITY: Never trust client-provided userId - always use the verified one from JWT
+    const userId = socket.data.userId;
 
     if (!userId) {
-      logger.warn(`Connection rejected: No userId provided`);
+      logger.error(`Connection rejected: No userId in socket.data (JWT verification failed)`);
       socket.emit('error', { message: 'Authentication required', code: 'AUTH_REQUIRED' });
       socket.disconnect();
       return;
