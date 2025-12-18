@@ -59,12 +59,17 @@ permissions:
   pull-requests: write
   security-events: write
 
+# ===========================================================================
+# WORKFLOW DISABLED: Set to false to prevent accidental production triggers
+# To re-enable, remove the 'if: false' condition below
+# ===========================================================================
 jobs:
   # ===========================================================================
   # Terraform Validation & Linting
   # ===========================================================================
   validate:
     name: Validate & Lint
+    if: false  # DISABLED - Remove this line to re-enable workflow
     runs-on: ubuntu-latest
 
     steps:

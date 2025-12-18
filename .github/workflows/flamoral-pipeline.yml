@@ -54,9 +54,13 @@ permissions:
 # =============================================================================
 # JOB 1: DETERMINE ENVIRONMENT AND CHANGES
 # =============================================================================
+# WORKFLOW DISABLED: Set to false to prevent accidental production triggers
+# To re-enable, remove the 'if: false' condition below
+# =============================================================================
 jobs:
   setup:
     name: Setup & Detect Changes
+    if: false  # DISABLED - Remove this line to re-enable workflow
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.env.outputs.environment }}
