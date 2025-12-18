@@ -4,38 +4,37 @@
 # Quick rollback capability with database restoration and traffic shifting
 # For emergency production recovery
 # =============================================================================
-# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
-# 🔒 Locked by: Claude Code on 2025-12-17
-# =============================================================================
 
 name: Rollback Pipeline
 
-# 🔒 LOCKDOWN: Original triggers disabled
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       environment:
-#         description: 'Environment to rollback'
-#         required: true
-#         type: choice
-#         options:
-#           - production
-#           - staging
-#           - development
-#       rollback_type:
-#         description: 'Rollback type'
-#         required: true
-#         type: choice
-#         default: 'application'
-
-# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
   workflow_dispatch:
     inputs:
-      unlock_code:
-        description: 'Enter unlock code to run'
+      environment:
+        description: 'Environment to rollback'
         required: true
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      rollback_type:
+        description: 'Rollback type'
+        required: true
+        type: choice
+        default: 'application'
+        options:
+          - application
+          - database
+          - full
+      target_version:
+        description: 'Version to rollback to (leave empty for previous)'
+        required: false
         type: string
+      skip_database:
+        description: 'Skip database rollback (application only)'
+        type: boolean
+        default: false
 
 concurrency:
   group: rollback-${{ github.event.inputs.environment }}

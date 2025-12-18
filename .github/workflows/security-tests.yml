@@ -1,26 +1,13 @@
-# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
-# 🔒 Locked by: Claude Code on 2025-12-17
-
 name: Security Tests
 
-# 🔒 LOCKDOWN: Original triggers disabled
-# on:
-#   push:
-#     branches: [main, develop]
-#   pull_request:
-#     branches: [main]
-#   schedule:
-#     - cron: '0 4 * * *'  # Daily at 4 AM UTC
-#   workflow_dispatch:
-
-# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * *'  # Daily at 4 AM UTC
   workflow_dispatch:
-    inputs:
-      unlock_code:
-        description: 'Enter unlock code to run'
-        required: true
-        type: string
 
 env:
   NODE_VERSION: '20'

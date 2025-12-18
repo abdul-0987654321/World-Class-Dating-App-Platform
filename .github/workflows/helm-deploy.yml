@@ -1,41 +1,30 @@
-# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
-# 🔒 Locked by: Claude Code on 2025-12-17
-
 name: Deploy to AKS with Helm
 
-# 🔒 LOCKDOWN: Original triggers disabled
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       environment:
-#         description: 'Environment to deploy'
-#         required: true
-#         type: choice
-#         options:
-#           - dev
-#           - staging
-#           - prod
-#       service:
-#         description: 'Service to deploy (or all)'
-#         required: true
-#         type: choice
-#         options:
-#           - all
-#           - dating-api
-#           - media-processor
-#           - chat-worker
-#       image_tag:
-#         description: 'Image tag to deploy'
-#         required: true
-
-# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
   workflow_dispatch:
     inputs:
-      unlock_code:
-        description: 'Enter unlock code to run'
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      service:
+        description: 'Service to deploy (or all)'
+        required: true
+        type: choice
+        options:
+          - all
+          - dating-api
+          - media-processor
+          - chat-worker
+      image_tag:
+        description: 'Image tag to deploy'
         required: true
         type: string
+        default: 'latest'
 
 permissions:
   id-token: write
