@@ -16,8 +16,8 @@ class CosmosDBClient {
   async connect(): Promise<void> {
     try {
       if (!config.cosmos.endpoint || !config.cosmos.key) {
-        logger.warn('Cosmos DB credentials not configured, using mock mode');
-        return;
+        throw new Error('Cosmos DB credentials not configured. Please set COSMOS_ENDPOINT and COSMOS_KEY environment variables.');
+
       }
 
       this.client = new CosmosClient({

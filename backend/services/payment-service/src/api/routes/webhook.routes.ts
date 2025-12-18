@@ -91,7 +91,6 @@ router.get('/health', (req, res) => {
  * stripe listen --forward-to localhost:3003/api/webhooks/stripe
  * stripe trigger payment_intent.succeeded
  */
-if (process.env.NODE_ENV === 'development') {
   router.post('/test', express.json(), async (req, res) => {
     logger.info('Test webhook received:', req.body);
     res.status(200).json({ received: true, message: 'Test webhook received' });

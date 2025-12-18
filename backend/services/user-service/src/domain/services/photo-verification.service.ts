@@ -236,19 +236,8 @@ export class PhotoVerificationService {
         };
       }
 
-      // Fallback: basic validation
-      // In development mode, accept all photos
-      if (process.env.NODE_ENV === 'development') {
-        return {
-          live: true,
-          confidence: 0.90,
-        };
-      }
-
-      return {
-        live: true,
-        confidence: 0.80,
-      };
+      // Azure Face API is required for liveness detection
+      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
     } catch (error) {
       logger.error('Error detecting liveness:', error);
       return {
@@ -323,18 +312,8 @@ export class PhotoVerificationService {
         }
       }
 
-      // Fallback for development
-      if (process.env.NODE_ENV === 'development') {
-        return {
-          matched: true,
-          confidence: 0.85,
-        };
-      }
-
-      return {
-        matched: true,
-        confidence: 0.75,
-      };
+      // Azure Face API is required for pose verification
+      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
     } catch (error) {
       logger.error('Error verifying pose:', error);
       return {
@@ -384,18 +363,8 @@ export class PhotoVerificationService {
         };
       }
 
-      // Fallback for development
-      if (process.env.NODE_ENV === 'development') {
-        return {
-          matched: true,
-          confidence: 0.92,
-        };
-      }
-
-      return {
-        matched: true,
-        confidence: 0.85,
-      };
+      // Azure Face API is required for face matching
+      throw new Error('Azure Face API credentials not configured. Please set AZURE_FACE_API_KEY and AZURE_FACE_API_ENDPOINT environment variables.');
     } catch (error) {
       logger.error('Error matching with profile photos:', error);
       return {

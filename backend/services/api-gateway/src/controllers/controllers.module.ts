@@ -9,6 +9,7 @@ import { NotificationController } from './notification.controller';
 import { ModerationController } from './moderation.controller';
 import { AnalyticsController } from './analytics.controller';
 import { CsrfController } from './csrf.controller';
+import { PlatformController } from './platform.controller';
 
 @Module({
   controllers: [
@@ -22,6 +23,7 @@ import { CsrfController } from './csrf.controller';
     ModerationController,
     AnalyticsController,
     CsrfController,
+    PlatformController,
   ],
 })
 export class ControllersModule {}

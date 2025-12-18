@@ -504,7 +504,17 @@
       "Bash(az postgres server:*)",
       "Bash(az postgres flexible-server start:*)",
       "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && cat {} | grep -E \"\"\\\"\"name\\\"\"|\\\"\"version\\\"\"|\\\"\"main\\\"\"|\\\"\"scripts\\\"\"\"\" | head -5')",
-      "Bash(git remote get-url:*)"
+      "Bash(git remote get-url:*)",
+      "Bash(GIT_TERMINAL_PROMPT=0 git push:*)",
+      "Bash(where gh:*)",
+      "Bash(start \"\" git push origin main)",
+      "Bash(start \"\" git push origin --delete develop self-healing/code-quality-265 self-healing/code-quality-266 self-healing/security-265 self-healing/security-266)",
+      "Bash(az redis list-keys:*)",
+      "Bash(az redis force-reboot:*)",
+      "Bash(az signalr update:*)",
+      "Bash(az redis delete:*)",
+      "Bash(do echo \"Still deleting...\")",
+      "Bash(az redis create:*)"
     ],
     "deny": [],
     "ask": []

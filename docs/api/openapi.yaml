@@ -27,6 +27,8 @@ servers:
     description: Production API
 
 tags:
+  - name: Platform
+    description: Platform information and configuration
   - name: Auth
     description: Authentication and authorization endpoints
   - name: Profile
@@ -63,6 +65,33 @@ tags:
     description: Media upload services
 
 paths:
+  # ============== PLATFORM ENDPOINTS ==============
+  /api/v1/platform/version:
+    get:
+      tags: [Platform]
+      summary: Get application version information
+      operationId: getPlatformVersion
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+
+  /api/v1/platform/config/public:
+    get:
+      tags: [Platform]
+      summary: Get public configuration
+      operationId: getPublicConfig
+      responses:
+        '200':
+          description: Public configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicConfig'
+
   # ============== AUTH SERVICE ==============
   /api/auth/register:
     post:
@@ -1576,6 +1605,57 @@ components:
             $ref: '#/components/schemas/Error'
 
   schemas:
+    # Platform schemas
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        build:
+          type: string
+          example: "abc1234"
+        environment:
+          type: string
+          enum: [development, staging, production]
+          example: "production"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-12-17T10:30:00.000Z"
+
+    PublicConfig:
+      type: object
+      properties:
+        features:
+          type: object
+          properties:
+            videoCallsEnabled:
+              type: boolean
+              example: true
+            verificationEnabled:
+              type: boolean
+              example: true
+            maxPhotos:
+              type: integer
+              example: 6
+        support:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+              example: "support@flamoral.com"
+        legal:
+          type: object
+          properties:
+            termsUrl:
+              type: string
+              example: "/legal/terms"
+            privacyUrl:
+              type: string
+              example: "/legal/privacy"
+
     Error:
       type: object
       properties:
