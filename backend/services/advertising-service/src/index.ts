@@ -15,9 +15,38 @@ import targetingRoutes from './api/routes/targeting.routes';
 import creativeRoutes from './api/routes/creative.routes';
 import optimizationRoutes from './api/routes/optimization.routes';
 import innovationsRoutes from './api/routes/innovations.routes';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('advertising-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3011),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  commonValidations.dbPassword,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name for advertising data',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  {
+    name: 'OPENAI_API_KEY',
+    required: true,
+    description: 'OpenAI API key for AI-powered ad creative generation',
+    minLength: 20,
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 const app = express();
 

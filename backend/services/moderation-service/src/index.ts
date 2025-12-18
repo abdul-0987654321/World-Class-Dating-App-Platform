@@ -6,9 +6,50 @@ import moderationRoutes from './routes/moderation.routes';
 import internalRoutes from './routes/internal.routes';
 import config from './config';
 import { createLogger } from './utils/logger';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('moderation-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3012),
+  commonValidations.jwtAccessSecret,
+  {
+    name: 'AWS_ACCESS_KEY_ID',
+    required: true,
+    description: 'AWS access key ID for Rekognition image moderation',
+    sensitive: true,
+  },
+  {
+    name: 'AWS_SECRET_ACCESS_KEY',
+    required: true,
+    description: 'AWS secret access key for Rekognition',
+    minLength: 20,
+    sensitive: true,
+  },
+  {
+    name: 'AWS_REGION',
+    required: false,
+    description: 'AWS region for Rekognition service',
+    defaultValue: 'us-east-1',
+  },
+  {
+    name: 'AZURE_CONTENT_MODERATOR_ENDPOINT',
+    required: true,
+    description: 'Azure Content Moderator endpoint URL for text moderation',
+    validate: (value: string) => value.startsWith('https://'),
+  },
+  {
+    name: 'AZURE_CONTENT_MODERATOR_KEY',
+    required: true,
+    description: 'Azure Content Moderator API key',
+    minLength: 32,
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 // Initialize logger
 const logger = createLogger('moderation-service');

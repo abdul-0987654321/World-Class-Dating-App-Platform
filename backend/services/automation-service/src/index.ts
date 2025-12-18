@@ -14,9 +14,45 @@ import { SocketManager } from './infrastructure/websocket/socket-manager';
 import { MessageAutomationService } from './services/message-automation.service';
 import automationRoutes from './routes';
 import apiRoutes from './api/routes';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('automation-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3009),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  commonValidations.dbPassword,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name for automation data',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  {
+    name: 'OPENAI_API_KEY',
+    required: true,
+    description: 'OpenAI API key for AI-powered automation features',
+    minLength: 20,
+    sensitive: true,
+  },
+  {
+    name: 'RABBITMQ_URL',
+    required: true,
+    description: 'RabbitMQ connection URL for message queuing',
+  },
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 // Initialize logger
 const logger = createLogger('automation-service');

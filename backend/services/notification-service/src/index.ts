@@ -6,6 +6,7 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 import logger from './utils/logger';
 import { config } from './config';
 import { testConnection } from './config/database';
@@ -19,6 +20,50 @@ import { notificationQueue, getQueueStats, cleanQueue } from './queues/notificat
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('notification-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3004),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name for notification service',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  commonValidations.dbPassword,
+  {
+    name: 'SENDGRID_API_KEY',
+    required: true,
+    description: 'SendGrid API key for sending emails',
+    sensitive: true,
+  },
+  {
+    name: 'FIREBASE_SERVICE_ACCOUNT',
+    required: false,
+    description: 'Firebase service account JSON for push notifications (Android/Web)',
+  },
+  {
+    name: 'APNS_KEY_ID',
+    required: false,
+    description: 'Apple Push Notification Service key ID for iOS push notifications',
+  },
+  {
+    name: 'APNS_TEAM_ID',
+    required: false,
+    description: 'Apple Push Notification Service team ID for iOS push notifications',
+  },
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();

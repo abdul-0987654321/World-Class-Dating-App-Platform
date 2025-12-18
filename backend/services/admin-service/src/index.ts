@@ -6,8 +6,32 @@ import { logger } from './utils/logger';
 import { testConnection } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
 import adminRoutes from './routes';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('admin-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3010),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  commonValidations.dbPassword,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 const app = express();
 const PORT = process.env.PORT || 3010;

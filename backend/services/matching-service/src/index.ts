@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 import swipeRoutes from './api/routes/swipe.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';
@@ -13,6 +14,29 @@ import matchExpirationJob from './jobs/match-expiration.job';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('matching-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3002),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name for matching service',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  commonValidations.dbPassword,
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 // Initialize logger
 const logger = createLogger('matching-service');

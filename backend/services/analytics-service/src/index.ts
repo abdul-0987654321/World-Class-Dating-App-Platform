@@ -8,9 +8,39 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import config from './config';
 import { dbClient } from './infrastructure/database/db-client';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('analytics-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3008),
+  commonValidations.jwtAccessSecret,
+  commonValidations.jwtRefreshSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  {
+    name: 'DB_NAME',
+    required: true,
+    description: 'PostgreSQL database name for analytics data',
+  },
+  {
+    name: 'DB_USER',
+    required: true,
+    description: 'PostgreSQL database user',
+  },
+  commonValidations.dbPassword,
+  {
+    name: 'SERVICE_API_KEY',
+    required: true,
+    description: 'Internal service API key for service-to-service authentication',
+    minLength: 32,
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();

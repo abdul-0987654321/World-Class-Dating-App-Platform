@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 import mediaRoutes from './api/routes/media.routes';
 import azureStorageService from './infrastructure/storage/azure-storage.service';
 import workerManager from './workers/worker-manager';
@@ -10,6 +11,35 @@ import config from './config';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('media-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3005),
+  commonValidations.jwtAccessSecret,
+  commonValidations.azureStorageAccount,
+  commonValidations.azureStorageKey,
+  {
+    name: 'AZURE_CONTAINER_NAME',
+    required: true,
+    description: 'Azure Storage container name for media files',
+  },
+  {
+    name: 'AZURE_CV_ENDPOINT',
+    required: true,
+    description: 'Azure Computer Vision endpoint for content moderation',
+    validate: (value: string) => value.startsWith('https://'),
+  },
+  {
+    name: 'AZURE_CV_API_KEY',
+    required: true,
+    description: 'Azure Computer Vision API key',
+    sensitive: true,
+  },
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 // Initialize logger
 const logger = createLogger('media-service');
