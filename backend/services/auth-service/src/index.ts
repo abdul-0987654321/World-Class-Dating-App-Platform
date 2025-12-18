@@ -8,9 +8,24 @@ import { testConnection, closePool } from './infrastructure/database/pool';
 import redisCache from './infrastructure/cache/redis';
 import apiRoutes from './api/routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('auth-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3007),
+  commonValidations.jwtAccessSecret,
+  commonValidations.jwtRefreshSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  commonValidations.dbPassword,
+  commonValidations.redisHost,
+  commonValidations.redisPort,
+]);
+validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();

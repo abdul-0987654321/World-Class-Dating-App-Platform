@@ -9,12 +9,30 @@ import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
 import apiRoutes from './api/routes';
 import internalRoutes from './api/routes/internal.routes';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
 
 // Initialize logger
 const logger = createLogger('messaging-service');
+
+// Validate environment variables at startup
+const validator = createValidator('messaging-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3003),
+  commonValidations.jwtAccessSecret,
+  commonValidations.cosmosEndpoint,
+  commonValidations.cosmosKey,
+  {
+    name: 'ENCRYPTION_KEY',
+    required: true,
+    description: 'Message encryption key for E2E encryption',
+    minLength: 32,
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();

@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Import routes
 import paymentRoutes from './api/routes/payment.routes';
@@ -13,6 +14,28 @@ dotenv.config();
 
 // Initialize logger
 const logger = createLogger('payment-service');
+
+// Validate environment variables at startup
+const validator = createValidator('payment-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3006),
+  commonValidations.jwtAccessSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPassword,
+  {
+    name: 'STRIPE_SECRET_KEY',
+    required: true,
+    description: 'Stripe API secret key for payment processing',
+    sensitive: true,
+  },
+  {
+    name: 'STRIPE_WEBHOOK_SECRET',
+    required: true,
+    description: 'Stripe webhook signing secret for signature verification',
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 // Create Express app
 const app: Application = express();

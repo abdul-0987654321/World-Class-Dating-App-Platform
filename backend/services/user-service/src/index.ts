@@ -31,9 +31,39 @@ import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
 import { initializeSocket } from './infrastructure/websocket/socket.config';
 import { initializeEncryptionKey } from './utils/encryption';
+import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables at startup
+const validator = createValidator('user-service', [
+  commonValidations.nodeEnv,
+  commonValidations.port(3001),
+  commonValidations.jwtAccessSecret,
+  commonValidations.jwtRefreshSecret,
+  commonValidations.dbHost,
+  commonValidations.dbPort,
+  commonValidations.dbPassword,
+  commonValidations.redisHost,
+  commonValidations.azureStorageAccount,
+  commonValidations.azureStorageKey,
+  {
+    name: 'TOTP_ENCRYPTION_MASTER_KEY',
+    required: true,
+    description: '2FA/TOTP encryption master key (minimum 32 characters)',
+    minLength: 32,
+    sensitive: true,
+  },
+  {
+    name: 'TOTP_ENCRYPTION_KEY_SALT',
+    required: true,
+    description: '2FA/TOTP encryption key salt',
+    minLength: 16,
+    sensitive: true,
+  },
+]);
+validator.validateOrThrow();
 
 // Initialize encryption key for TOTP/2FA
 try {
