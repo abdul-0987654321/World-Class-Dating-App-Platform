@@ -23,11 +23,6 @@ const config: { [key: string]: Knex.Config } = {
       extension: 'ts',
       loadExtensions: ['.ts'],
     },
-    seeds: {
-      directory: './seeds',
-      extension: 'ts',
-      loadExtensions: ['.ts'],
-    },
   },
 
   staging: {

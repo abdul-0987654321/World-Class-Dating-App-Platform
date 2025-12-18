@@ -15,23 +15,24 @@ All production deployments use:
 - Helm charts in `infrastructure/helm/`
 - Terraform configurations in `infrastructure/terraform/`
 
+## Azure-Only Infrastructure Rule
+
+This project follows an **Azure-only infrastructure policy**:
+
+- Production, staging, and testing environments run on Azure services
+- Docker Compose files are ONLY for local development
+- No docker-compose files should exist in the project root
+- All infrastructure is provisioned via Terraform
+- All deployments use Kubernetes (AKS)
+
 ## Available Docker Compose Files
 
-### Main Development Files
+### Development Files
 
-- **docker-compose.yml** - Main development stack with all core services and infrastructure
-- **docker-compose.dev.yml** - Development environment configuration
-- **docker-compose.test.yml** - Test environment with test databases
-- **docker-compose.staging.yml** - Staging environment simulation
-- **docker-compose.prod.yml** - Production-like environment (LOCAL ONLY - not actual production)
-- **docker-compose.hub.yml** - Hub services configuration
+- **docker-compose.dev.yml** - Development infrastructure (PostgreSQL, Redis, MongoDB, RabbitMQ, Elasticsearch)
+- **docker-compose.test.yml** - Test environment with isolated test databases and services (MinIO, Mailhog)
 
-### Additional Configurations
-
-- **docker-compose.infrastructure.yml** - Infrastructure services only (databases, caching, messaging)
-- **docker-compose.services.yml** - Backend microservices
-- **docker-compose.monitoring.yml** - Monitoring stack (Prometheus, Grafana, etc.)
-- **docker-compose.production.yml** - Production simulation for testing
+These files provide local infrastructure services only. Backend services should be run directly using npm/yarn scripts.
 
 ## Usage
 
@@ -40,60 +41,63 @@ All production deployments use:
 From the project root:
 
 ```bash
-# Start all services
-npm run docker:up
+# Start development infrastructure
+npm run docker:dev:up
 
 # Start test environment
 npm run docker:test:up
 
-# Stop all services
-npm run docker:down
+# Stop development services
+npm run docker:dev:down
 
-# Rebuild and restart
-npm run docker:rebuild
+# Stop test services
+npm run docker:test:down
 ```
 
-### Using Specific Compose Files
+### Using Docker Compose Directly
 
 ```bash
-# Use the main development compose file
-docker-compose -f infrastructure/local-dev/docker-compose.yml up -d
+# Start development infrastructure
+docker-compose -f infrastructure/local-dev/docker-compose.dev.yml up -d
 
-# Use the test environment
+# Start test environment
 docker-compose -f infrastructure/local-dev/docker-compose.test.yml up -d
 
-# Use multiple compose files together
-docker-compose -f infrastructure/local-dev/docker-compose.yml \
-               -f infrastructure/local-dev/docker-compose.monitoring.yml \
-               up -d
+# Stop services
+docker-compose -f infrastructure/local-dev/docker-compose.dev.yml down
+docker-compose -f infrastructure/local-dev/docker-compose.test.yml down
 ```
 
 ## What These Files Provide
 
-### Infrastructure Services
-- PostgreSQL database
-- MongoDB
-- Redis cache
-- Elasticsearch
-- RabbitMQ message queue
+### Development Infrastructure (docker-compose.dev.yml)
+- PostgreSQL database (port 5432)
+- MongoDB (port 27017)
+- Redis cache (port 6379)
+- Elasticsearch (port 9200)
+- RabbitMQ message queue (ports 5672, 15672 for management UI)
+
+### Test Infrastructure (docker-compose.test.yml)
+- PostgreSQL test database (port 5433)
+- MongoDB test database (port 27018)
+- Redis test cache (port 6380)
+- Elasticsearch test (port 9201)
+- RabbitMQ test (ports 5673, 15673)
+- MinIO (S3-compatible storage) (ports 9000, 9001)
+- Mailhog (email testing) (ports 1025 SMTP, 8025 Web UI)
 
 ### Backend Services
-- API Gateway
-- Auth Service
-- User Service
-- Matching Service
-- Messaging Service
-- Media Service
-- Speed Dating Service
-- Community Service
-- Gamification Service
-- Referral Service
-- A/B Testing Service
 
-### Monitoring (when using monitoring compose)
-- Prometheus
-- Grafana
-- Alertmanager
+Backend microservices are NOT run via Docker Compose. Run them directly:
+
+```bash
+# Run all backend services
+npm run dev:backend
+
+# Or run specific services
+cd backend/services/api-gateway && npm run dev
+cd backend/services/auth-service && npm run dev
+```
 
 ## Security Notes
 
@@ -109,8 +113,8 @@ These files contain:
 
 The CI/CD pipeline enforces the Azure-only deployment rule:
 1. Builds container images
-2. Pushes to Azure Container Registry
-3. Deploys to AKS using Kubernetes manifests
+2. Pushes to Azure Container Registry (ACR)
+3. Deploys to AKS using Kubernetes manifests and Helm charts
 4. **Does NOT use docker-compose for deployment**
 
 ## Questions?

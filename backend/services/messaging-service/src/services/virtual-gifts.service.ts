@@ -11,8 +11,6 @@ const logger = createLogger('virtual-gifts-service');
 // Payment service URL for coin transactions
 const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3004';
 
-// In-memory transaction store (production would use Cosmos DB)
-const transactionStore: GiftTransaction[] = [];
 
 export interface VirtualGift {
   id: string;
@@ -141,8 +139,8 @@ class VirtualGiftsService {
         status: 'completed',
       };
 
-      // Store transaction (in-memory for now)
-      transactionStore.push(transaction);
+      // TODO: Store transaction in Cosmos DB
+      throw new Error('Gift transaction storage not implemented - requires Cosmos DB integration');
 
       // 3. Credit a portion to receiver (gift economy - 70% to receiver)
       const receiverShare = Math.floor(gift.price * 0.7);
@@ -261,23 +259,8 @@ class VirtualGiftsService {
     type: 'sent' | 'received' | 'all' = 'all',
     limit: number = 50
   ): Promise<GiftTransaction[]> {
-    try {
-      let filtered = transactionStore;
-
-      if (type === 'sent') {
-        filtered = transactionStore.filter(t => t.senderId === userId);
-      } else if (type === 'received') {
-        filtered = transactionStore.filter(t => t.receiverId === userId);
-      } else {
-        filtered = transactionStore.filter(t => t.senderId === userId || t.receiverId === userId);
-      }
-
-      return filtered
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, limit);
-    } catch (error: any) {
-      logger.error('Failed to get gift history:', error);
-      return [];
+      // TODO: Query gift transaction history from Cosmos DB
+      throw new Error('Gift history not implemented - requires Cosmos DB integration');
     }
   }
 
@@ -290,22 +273,8 @@ class VirtualGiftsService {
     coinsSpent: number;
     coinsEarned: number;
   }> {
-    try {
-      const sent = transactionStore.filter(t => t.senderId === userId);
-      const received = transactionStore.filter(t => t.receiverId === userId);
-
-      const coinsSpent = sent.reduce((sum, t) => sum + t.price, 0);
-      const coinsReceived = received.reduce((sum, t) => sum + t.price, 0);
-
-      return {
-        totalSent: sent.length,
-        totalReceived: received.length,
-        coinsSpent,
-        coinsEarned: Math.floor(coinsReceived * 0.7),
-      };
-    } catch (error: any) {
-      logger.error('Failed to get gift stats:', error);
-      return { totalSent: 0, totalReceived: 0, coinsSpent: 0, coinsEarned: 0 };
+      // TODO: Query gift statistics from Cosmos DB
+      throw new Error('Gift statistics not implemented - requires Cosmos DB integration');
     }
   }
 }

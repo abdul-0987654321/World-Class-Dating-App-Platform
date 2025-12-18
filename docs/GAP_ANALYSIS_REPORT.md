@@ -154,7 +154,7 @@ flamoral/
   - frank.miller@example.com
   - Password: `Test123!`
 
-**Test Fixtures (tests/fixtures/):**
+**Test Fixtures: REMOVED FOR PRODUCTION**
 - `users.json` - 7 test users including:
   - test1@flamoral.com / TestUser1!
   - test2@flamoral.com / TestUser2!
@@ -419,7 +419,7 @@ Documentation is **scattered** with many duplicates:
 
 1. **Remove all test data and seed files**
    - Delete or guard all dev seed files
-   - Remove tests/fixtures/users.json from production builds
+   - COMPLETED: Test fixtures removed
    - Remove mock modes from services
 
 2. **Remove docker-compose local development**
@@ -485,12 +485,12 @@ Documentation is **scattered** with many duplicates:
 
 ```
 # Test Data Files
-infrastructure/database/seeds/001_dev_users_and_profiles.ts
+DELETED: Test seed files removed
 infrastructure/database/seeds/002_dev_photos_and_prompts.ts
 infrastructure/database/seeds/003_dev_matching_data.ts
 infrastructure/database/seeds/004_dev_conversations_messages.ts
 infrastructure/database/seeds/005_dev_subscriptions.ts
-tests/fixtures/users.json
+DELETED: Test fixtures removed
 infrastructure/scripts/seed-data.ts
 
 # Docker Compose (Local Dev)

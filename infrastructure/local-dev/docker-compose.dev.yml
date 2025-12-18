@@ -1,0 +1,116 @@
+version: '3.8'
+
+# LOCAL DEVELOPMENT ONLY
+# This Docker Compose file is for local development environments only.
+# DO NOT use this for production, staging, or any cloud deployment.
+# Production infrastructure uses Azure services (AKS, PostgreSQL, Redis, etc.) via Terraform.
+
+services:
+  # ==================== Infrastructure ====================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: flamoral-postgres-dev
+    environment:
+      POSTGRES_DB: flamoral
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flamoral-dev-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: flamoral-redis-dev
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flamoral-dev-network
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: flamoral-mongodb-dev
+    environment:
+      MONGO_INITDB_DATABASE: flamoral
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flamoral-dev-network
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: flamoral-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flamoral-dev-network
+
+  # Elasticsearch (optional - for search functionality)
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: flamoral-elasticsearch-dev
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - flamoral-dev-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+  rabbitmq_data:
+  elasticsearch_data:
+
+networks:
+  flamoral-dev-network:
+    driver: bridge
+    name: flamoral-dev-network

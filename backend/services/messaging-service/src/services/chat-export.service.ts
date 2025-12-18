@@ -225,10 +225,8 @@ export class ChatExportService {
    * Export as PDF
    */
   private async exportAsPdf(messages: Message[], conversation: any): Promise<Buffer> {
-    // In production, use a library like 'pdfkit' or 'puppeteer' to generate PDF
-    // For now, return text as buffer
-    const textExport = await this.exportAsText(messages, conversation);
-    return Buffer.from(textExport);
+    // TODO: Implement PDF generation using pdfkit or puppeteer
+    throw new Error('PDF export not implemented - requires pdfkit or puppeteer integration');
   }
 
   /**
@@ -240,13 +238,8 @@ export class ChatExportService {
     format: string
   ): Promise<string> {
     try {
-      // In production, upload to Azure Blob Storage or S3
-      // For now, return a mock URL
-      const mockUrl = `https://storage.flamoral.com/exports/${exportId}.${format}`;
-
-      logger.info('Export uploaded', { exportId, format });
-
-      return mockUrl;
+      // TODO: Implement Azure Blob Storage or S3 upload
+      throw new Error('Export storage not configured - Azure Blob Storage or S3 integration required');
     } catch (error: any) {
       logger.error('Failed to upload export:', error);
       throw new Error('Failed to upload export file');
@@ -257,9 +250,8 @@ export class ChatExportService {
    * Get export by ID
    */
   async getExport(exportId: string, userId: string): Promise<ChatExportResult | null> {
-    // In production, retrieve from database/cache
-    // For now, return null
-    return null;
+    // TODO: Implement database/cache retrieval for exports
+    throw new Error('Export retrieval not implemented - requires database integration');
   }
 
   /**
@@ -267,10 +259,8 @@ export class ChatExportService {
    */
   async cleanupExpiredExports(): Promise<number> {
     try {
-      // In production, delete expired exports from storage
-      // This would be run as a scheduled job
-      logger.info('Cleaning up expired exports');
-      return 0;
+      // TODO: Implement export cleanup from storage
+      throw new Error('Export cleanup not implemented - requires storage integration');
     } catch (error: any) {
       logger.error('Failed to cleanup exports:', error);
       return 0;
@@ -285,12 +275,8 @@ export class ChatExportService {
     exportsThisMonth: number;
     storageUsed: number;
   }> {
-    // In production, get actual stats from database
-    return {
-      totalExports: 0,
-      exportsThisMonth: 0,
-      storageUsed: 0,
-    };
+    // TODO: Implement export statistics from database
+    throw new Error('Export statistics not implemented - requires database integration');
   }
 
   /**

@@ -378,19 +378,10 @@ Complete inventory of all test files, test coverage, and testing infrastructure 
 
 ## Test Data
 
-### Fixtures
-**Location:** `backend/services/*/tests/fixtures/`
-- User fixtures
-- Profile fixtures
-- Message fixtures
-- Match fixtures
-
 ### Seeds
 **Location:** `backend/services/user-service/src/infrastructure/database/seeds/`
 - `README.md` - Seeding documentation
-- Test user seeds
-- Profile data seeds
-- Match relationship seeds
+- Production configuration seeds (coin products, boost products, report categories, subscription features)
 
 ### Test Accounts
 See [Test Accounts](../TEST-ACCOUNTS.md) for pre-created test users.
