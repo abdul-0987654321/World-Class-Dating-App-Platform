@@ -4,35 +4,49 @@
 # Unified CI/CD for Development, Staging, and Production
 # Environment: Azure AKS + Azure Front Door
 # =============================================================================
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
+# 🔒 To unlock: Remove LOCKDOWN comments and restore triggers
+# =============================================================================
 
 name: Flamoral CI/CD Pipeline
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     branches:
+#       - main           # Production deployment
+#       - develop        # Development deployment
+#       - 'release/*'    # Staging deployment
+#   pull_request:
+#     branches: [main, develop]
+#   workflow_dispatch:
+#     inputs:
+#       environment:
+#         description: 'Target environment'
+#         type: choice
+#         options:
+#           - dev
+#           - staging
+#           - production
+#         required: true
+#       skip_tests:
+#         description: 'Skip tests'
+#         type: boolean
+#         default: false
+#       debug_mode:
+#         description: 'Enable debug logging'
+#         type: boolean
+#         default: false
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    branches:
-      - main           # Production deployment
-      - develop        # Development deployment
-      - 'release/*'    # Staging deployment
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Target environment'
-        type: choice
-        options:
-          - dev
-          - staging
-          - production
+      unlock_code:
+        description: 'Enter unlock code to run pipeline'
         required: true
-      skip_tests:
-        description: 'Skip tests'
-        type: boolean
-        default: false
-      debug_mode:
-        description: 'Enable debug logging'
-        type: boolean
-        default: false
+        type: string
 
 concurrency:
   group: flamoral-${{ github.ref }}-${{ github.event.inputs.environment || 'auto' }}

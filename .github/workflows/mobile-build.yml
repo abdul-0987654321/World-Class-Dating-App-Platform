@@ -1,34 +1,41 @@
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
+
 name: Mobile Build
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     branches: [main]
+#     paths:
+#       - 'apps/mobile-app/**'
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - 'apps/mobile-app/**'
+#   workflow_dispatch:
+#     inputs:
+#       platform:
+#         description: 'Platform to build'
+#         required: true
+#         default: 'all'
+#         type: choice
+#         options:
+#           - all
+#           - ios
+#           - android
+#       build_type:
+#         description: 'Build type'
+#         required: true
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/mobile-app/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'apps/mobile-app/**'
   workflow_dispatch:
     inputs:
-      platform:
-        description: 'Platform to build'
+      unlock_code:
+        description: 'Enter unlock code to run'
         required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - ios
-          - android
-      build_type:
-        description: 'Build type'
-        required: true
-        default: 'development'
-        type: choice
-        options:
-          - development
-          - staging
-          - production
+        type: string
 
 env:
   NODE_VERSION: '20'

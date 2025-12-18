@@ -4,44 +4,43 @@
 # Automated builds and deployments to TestFlight and Play Store
 # Includes code signing, testing, and store submission automation
 # =============================================================================
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
+# =============================================================================
 
 name: Mobile App CI/CD
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#       - 'release/**'
+#     paths:
+#       - 'apps/mobile-app/**'
+#   pull_request:
+#     branches: [main, develop]
+#     paths:
+#       - 'apps/mobile-app/**'
+#   workflow_dispatch:
+#     inputs:
+#       platform:
+#         description: 'Platform to build'
+#         required: true
+#         type: choice
+#         options:
+#           - both
+#           - ios
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - 'release/**'
-    paths:
-      - 'apps/mobile-app/**'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'apps/mobile-app/**'
   workflow_dispatch:
     inputs:
-      platform:
-        description: 'Platform to build'
+      unlock_code:
+        description: 'Enter unlock code to run'
         required: true
-        type: choice
-        options:
-          - both
-          - ios
-          - android
-      environment:
-        description: 'Target environment'
-        required: true
-        type: choice
-        default: 'development'
-        options:
-          - development
-          - staging
-          - production
-      deploy_to_store:
-        description: 'Deploy to app stores (production only)'
-        type: boolean
-        default: false
+        type: string
 
 concurrency:
   group: mobile-${{ github.ref }}

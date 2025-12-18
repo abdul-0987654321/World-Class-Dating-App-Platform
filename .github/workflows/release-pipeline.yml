@@ -4,33 +4,46 @@
 # Automated release creation with versioning, changelog, and artifact publishing
 # Triggered manually or on version tags
 # =============================================================================
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
+# =============================================================================
 
 name: Release Pipeline
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     tags:
+#       - 'v*.*.*'
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: 'Release version (e.g., 1.2.3)'
+#         required: true
+#         type: string
+#       release_type:
+#         description: 'Release type'
+#         required: true
+#         type: choice
+#         default: 'minor'
+#         options:
+#           - major
+#           - minor
+#           - patch
+#           - hotfix
+#       prerelease:
+#         description: 'Mark as pre-release'
+#         type: boolean
+#         default: false
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release version (e.g., 1.2.3)'
+      unlock_code:
+        description: 'Enter unlock code to run'
         required: true
         type: string
-      release_type:
-        description: 'Release type'
-        required: true
-        type: choice
-        default: 'minor'
-        options:
-          - major
-          - minor
-          - patch
-          - hotfix
-      prerelease:
-        description: 'Mark as pre-release'
-        type: boolean
-        default: false
 
 permissions:
   contents: write

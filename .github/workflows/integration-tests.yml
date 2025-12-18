@@ -1,14 +1,26 @@
 # GitHub Actions Workflow for Integration and E2E Tests
 # This is an alternative to Azure DevOps for GitHub repositories
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
 
 name: Integration & E2E Tests
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main, develop ]
+#   workflow_dispatch:
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
   workflow_dispatch:
+    inputs:
+      unlock_code:
+        description: 'Enter unlock code to run'
+        required: true
+        type: string
 
 env:
   NODE_VERSION: '20.x'

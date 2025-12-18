@@ -1,19 +1,32 @@
+# 🔒 LOCKDOWN MODE: All automatic triggers disabled until further notice
+# 🔒 Locked by: Claude Code on 2025-12-17
+
 name: Infrastructure Tests
 
+# 🔒 LOCKDOWN: Original triggers disabled
+# on:
+#   push:
+#     branches: [main, develop]
+#     paths:
+#       - 'infrastructure/terraform/**'
+#       - 'infrastructure/kubernetes/**'
+#       - 'infrastructure/helm/**'
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - 'infrastructure/terraform/**'
+#       - 'infrastructure/kubernetes/**'
+#       - 'infrastructure/helm/**'
+#   workflow_dispatch:
+
+# 🔒 LOCKDOWN: Manual trigger only with unlock code required
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'infrastructure/kubernetes/**'
-      - 'infrastructure/helm/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'infrastructure/kubernetes/**'
-      - 'infrastructure/helm/**'
   workflow_dispatch:
+    inputs:
+      unlock_code:
+        description: 'Enter unlock code to run'
+        required: true
+        type: string
 
 env:
   TF_VERSION: '1.6.0'
