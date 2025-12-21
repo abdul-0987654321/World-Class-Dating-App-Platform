@@ -74,7 +74,7 @@ export const cache = {
     try {
       const client = getRedisClient();
       const value = await client.get(key);
-      return value ? JSON.parse(value) : null;
+      return value ? (JSON.parse(value as string) as T) : null;
     } catch (error) {
       console.error('[Redis] Error getting key:', error);
       return null;

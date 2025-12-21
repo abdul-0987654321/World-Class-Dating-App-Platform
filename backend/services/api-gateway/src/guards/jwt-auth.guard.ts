@@ -9,6 +9,17 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+interface JwtTokenPayload {
+  sub: string;         // User ID
+  userId?: string;     // Alternative user ID field
+  email: string;
+  roles?: string[];
+  subscription?: string;
+  deviceId?: string;
+  iat: number;
+  exp: number;
+}
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -31,26 +42,67 @@ export class JwtAuthGuard implements CanActivate {
     const token = this.extractToken(request);
 
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException({
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required. Please provide a valid Bearer token.',
+      });
     }
 
     try {
       const secret = this.configService.get<string>('jwt.accessSecret');
-      const payload = jwt.verify(token, secret) as { userId: string; email: string };
+      const payload = jwt.verify(token, secret) as JwtTokenPayload;
+
+      // Normalize the payload for downstream use
+      const normalizedUser = {
+        sub: payload.sub || payload.userId,
+        userId: payload.sub || payload.userId,
+        email: payload.email,
+        roles: payload.roles || [],
+        subscription: payload.subscription || 'free',
+        deviceId: payload.deviceId,
+        iat: payload.iat,
+        exp: payload.exp,
+      };
 
       // Attach user to request for downstream use
-      request.user = payload;
+      request.user = normalizedUser;
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new UnauthorizedException({
+          code: 'TOKEN_EXPIRED',
+          message: 'Your session has expired. Please log in again.',
+        });
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new UnauthorizedException({
+          code: 'INVALID_TOKEN',
+          message: 'Invalid authentication token. Please log in again.',
+        });
+      }
+      throw new UnauthorizedException({
+        code: 'UNAUTHORIZED',
+        message: 'Authentication failed. Please try logging in again.',
+      });
     }
   }
 
   private extractToken(request: any): string | null {
     const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader) {
       return null;
     }
-    return authHeader.substring(7);
+
+    // Support both "Bearer <token>" and just "<token>" formats
+    if (authHeader.startsWith('Bearer ')) {
+      return authHeader.substring(7);
+    }
+
+    // If it looks like a JWT (contains dots), try to use it directly
+    if (authHeader.includes('.')) {
+      return authHeader;
+    }
+
+    return null;
   }
 }

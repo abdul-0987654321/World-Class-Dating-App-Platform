@@ -230,8 +230,8 @@ export class PushNotificationService {
         },
       };
 
-      // Send to FCM
-      const response = await admin.messaging().sendMulticast(message);
+      // Send to FCM (using sendEachForMulticast - the modern replacement for deprecated sendMulticast)
+      const response = await admin.messaging().sendEachForMulticast(message);
 
       // Handle failed tokens (remove invalid ones)
       if (response.failureCount > 0) {

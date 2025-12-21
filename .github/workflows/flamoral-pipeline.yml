@@ -54,13 +54,9 @@ permissions:
 # =============================================================================
 # JOB 1: DETERMINE ENVIRONMENT AND CHANGES
 # =============================================================================
-# WORKFLOW DISABLED: Set to false to prevent accidental production triggers
-# To re-enable, remove the 'if: false' condition below
-# =============================================================================
 jobs:
   setup:
     name: Setup & Detect Changes
-    if: false  # DISABLED - Remove this line to re-enable workflow
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.env.outputs.environment }}
@@ -321,21 +317,28 @@ jobs:
     if: needs.setup.outputs.should_deploy == 'true'
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine API URL
+        id: api
+        run: |
+          ENV=${{ needs.setup.outputs.environment }}
+          case $ENV in
+            dev)
+              echo "url=https://dev.flamoral.com/api" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "url=https://staging.flamoral.com/api" >> $GITHUB_OUTPUT
+              ;;
+            production)
+              echo "url=https://api.flamoral.com" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
       - name: Health Check
         run: |
           ENV=${{ needs.setup.outputs.environment }}
-
-          case $ENV in
-            dev)
-              URL="https://dev.flamoral.com/health"
-              ;;
-            staging)
-              URL="https://staging.flamoral.com/health"
-              ;;
-            production)
-              URL="https://flamoral.com/health"
-              ;;
-          esac
+          URL="${{ steps.api.outputs.url }}/health"
 
           echo "Checking health at: $URL"
 
@@ -350,13 +353,23 @@ jobs:
 
           echo "Health check failed after 5 attempts"
           exit 1
-        continue-on-error: true
 
-      - name: Notify Success
-        if: success()
+      - name: Run Smoke Tests
         run: |
-          echo "## Deployment Verified" >> $GITHUB_STEP_SUMMARY
-          echo "flamoral.com is healthy and running" >> $GITHUB_STEP_SUMMARY
+          chmod +x scripts/smoke-test.sh
+          ./scripts/smoke-test.sh "${{ steps.api.outputs.url }}"
+        env:
+          TEST_TOKEN: ${{ secrets.SMOKE_TEST_TOKEN }}
+
+      - name: Smoke Test Summary
+        if: always()
+        run: |
+          echo "## Deployment Verification - ${{ needs.setup.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ needs.setup.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API URL:** ${{ steps.api.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check:** Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke Tests:** Completed" >> $GITHUB_STEP_SUMMARY
 
 # =============================================================================
 # JOB 8: ROLLBACK (Manual Trigger Only)

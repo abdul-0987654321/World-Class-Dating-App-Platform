@@ -1,42 +1,59 @@
 import { Request, Response } from 'express';
-import Stripe from 'stripe';
 
-// Mock Stripe before importing
+// Create mock instances that will be used by the controller
+const mockWebhookServiceInstance = {
+  isEventProcessed: jest.fn(),
+  storeEvent: jest.fn(),
+  markEventProcessed: jest.fn(),
+  markEventFailed: jest.fn(),
+  handleSubscriptionCreated: jest.fn(),
+  handleSubscriptionUpdated: jest.fn(),
+  handleSubscriptionDeleted: jest.fn(),
+  handleTrialWillEnd: jest.fn(),
+  handleSubscriptionPendingUpdateApplied: jest.fn(),
+  handleSubscriptionPendingUpdateExpired: jest.fn(),
+  handleInvoicePaymentSucceeded: jest.fn(),
+  handleInvoicePaymentFailed: jest.fn(),
+  handleInvoicePaymentActionRequired: jest.fn(),
+  handleInvoiceUpcoming: jest.fn(),
+  handleInvoiceFinalized: jest.fn(),
+  handlePaymentIntentSucceeded: jest.fn(),
+  handlePaymentIntentFailed: jest.fn(),
+  handlePaymentIntentCanceled: jest.fn(),
+  handlePaymentIntentRequiresAction: jest.fn(),
+  handleCheckoutSessionCompleted: jest.fn(),
+  handleCheckoutSessionExpired: jest.fn(),
+  handleChargeSucceeded: jest.fn(),
+  handleChargeFailed: jest.fn(),
+  handleChargeRefunded: jest.fn(),
+  handleDisputeCreated: jest.fn(),
+  handleRefundCreated: jest.fn(),
+  handleRefundUpdated: jest.fn(),
+  handleCustomerCreated: jest.fn(),
+  handleCustomerUpdated: jest.fn(),
+  handleCustomerDeleted: jest.fn(),
+  handlePaymentMethodAttached: jest.fn(),
+  handlePaymentMethodDetached: jest.fn(),
+};
+
+const mockConstructEvent = jest.fn();
+
+// Mock Stripe before importing the controller
 jest.mock('stripe', () => {
-  const mockStripe = {
+  return jest.fn().mockImplementation(() => ({
     webhooks: {
-      constructEvent: jest.fn(),
+      constructEvent: mockConstructEvent,
     },
-  };
-  return jest.fn(() => mockStripe);
+  }));
 });
 
-// Mock the webhook service
+// Mock the webhook service - must return the same instance
 jest.mock('../../../src/domain/services/webhook.service', () => ({
-  WebhookService: jest.fn().mockImplementation(() => ({
-    isEventProcessed: jest.fn(),
-    storeEvent: jest.fn(),
-    markEventProcessed: jest.fn(),
-    markEventFailed: jest.fn(),
-    handleSubscriptionCreated: jest.fn(),
-    handleSubscriptionUpdated: jest.fn(),
-    handleSubscriptionDeleted: jest.fn(),
-    handleTrialWillEnd: jest.fn(),
-    handleInvoicePaymentSucceeded: jest.fn(),
-    handleInvoicePaymentFailed: jest.fn(),
-    handleInvoiceUpcoming: jest.fn(),
-    handlePaymentIntentSucceeded: jest.fn(),
-    handlePaymentIntentFailed: jest.fn(),
-    handleChargeRefunded: jest.fn(),
-    handleDisputeCreated: jest.fn(),
-    handleCustomerCreated: jest.fn(),
-    handleCustomerUpdated: jest.fn(),
-    handlePaymentMethodAttached: jest.fn(),
-    handlePaymentMethodDetached: jest.fn(),
-  })),
+  WebhookService: jest.fn().mockImplementation(() => mockWebhookServiceInstance),
 }));
 
 jest.mock('../../../src/utils/logger', () => ({
+  __esModule: true,
   default: {
     info: jest.fn(),
     error: jest.fn(),
@@ -45,13 +62,11 @@ jest.mock('../../../src/utils/logger', () => ({
   },
 }));
 
+// Now import the controller after mocks are set up
 import { WebhookController } from '../../../src/api/controllers/webhook.controller';
-import { WebhookService } from '../../../src/domain/services/webhook.service';
 
 describe('WebhookController', () => {
   let webhookController: WebhookController;
-  let mockStripeInstance: any;
-  let mockWebhookService: jest.Mocked<WebhookService>;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let responseJson: jest.Mock;
@@ -72,8 +87,6 @@ describe('WebhookController', () => {
     jest.clearAllMocks();
 
     webhookController = new WebhookController();
-    mockStripeInstance = (Stripe as unknown as jest.Mock)();
-    mockWebhookService = new WebhookService() as jest.Mocked<WebhookService>;
 
     responseJson = jest.fn();
     responseStatus = jest.fn().mockReturnValue({ json: responseJson });
@@ -108,7 +121,7 @@ describe('WebhookController', () => {
     });
 
     it('should return 400 if signature verification fails', async () => {
-      mockStripeInstance.webhooks.constructEvent.mockImplementation(() => {
+      mockConstructEvent.mockImplementation(() => {
         throw new Error('Invalid signature');
       });
 
@@ -126,8 +139,8 @@ describe('WebhookController', () => {
     it('should return 200 for duplicate events', async () => {
       const mockEvent = { id: 'evt_duplicate', type: 'payment_intent.succeeded' };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(true);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(true);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
@@ -145,18 +158,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'sub_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleSubscriptionCreated.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleSubscriptionCreated.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleSubscriptionCreated).toHaveBeenCalledWith({ id: 'sub_test' });
+      expect(mockWebhookServiceInstance.handleSubscriptionCreated).toHaveBeenCalledWith({ id: 'sub_test' });
       expect(responseStatus).toHaveBeenCalledWith(200);
       expect(responseJson).toHaveBeenCalledWith({ received: true });
     });
@@ -168,18 +181,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'sub_test', status: 'active' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleSubscriptionUpdated.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleSubscriptionUpdated.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleSubscriptionUpdated).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleSubscriptionUpdated).toHaveBeenCalled();
       expect(responseStatus).toHaveBeenCalledWith(200);
     });
 
@@ -190,18 +203,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'sub_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleSubscriptionDeleted.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleSubscriptionDeleted.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleSubscriptionDeleted).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleSubscriptionDeleted).toHaveBeenCalled();
       expect(responseStatus).toHaveBeenCalledWith(200);
     });
 
@@ -212,18 +225,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'pi_test', amount: 1000 } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handlePaymentIntentSucceeded.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handlePaymentIntentSucceeded.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handlePaymentIntentSucceeded).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handlePaymentIntentSucceeded).toHaveBeenCalled();
     });
 
     it('should process payment_intent.payment_failed event', async () => {
@@ -233,18 +246,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'pi_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handlePaymentIntentFailed.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handlePaymentIntentFailed.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handlePaymentIntentFailed).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handlePaymentIntentFailed).toHaveBeenCalled();
     });
 
     it('should process invoice.payment_succeeded event', async () => {
@@ -254,18 +267,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'inv_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleInvoicePaymentSucceeded.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleInvoicePaymentSucceeded.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleInvoicePaymentSucceeded).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleInvoicePaymentSucceeded).toHaveBeenCalled();
     });
 
     it('should process invoice.payment_failed event', async () => {
@@ -275,18 +288,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'inv_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleInvoicePaymentFailed.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleInvoicePaymentFailed.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleInvoicePaymentFailed).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleInvoicePaymentFailed).toHaveBeenCalled();
     });
 
     it('should process charge.refunded event', async () => {
@@ -296,18 +309,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'ch_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleChargeRefunded.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleChargeRefunded.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleChargeRefunded).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleChargeRefunded).toHaveBeenCalled();
     });
 
     it('should process charge.dispute.created event', async () => {
@@ -317,18 +330,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'dp_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleDisputeCreated.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleDisputeCreated.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleDisputeCreated).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleDisputeCreated).toHaveBeenCalled();
     });
 
     it('should log unhandled event types', async () => {
@@ -338,10 +351,10 @@ describe('WebhookController', () => {
         data: { object: {} },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
@@ -359,20 +372,20 @@ describe('WebhookController', () => {
         data: { object: { id: 'pi_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handlePaymentIntentSucceeded.mockRejectedValue(
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handlePaymentIntentSucceeded.mockRejectedValue(
         new Error('Processing error')
       );
-      mockWebhookService.markEventFailed.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventFailed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.markEventFailed).toHaveBeenCalledWith('evt_test', 'Processing error');
+      expect(mockWebhookServiceInstance.markEventFailed).toHaveBeenCalledWith('evt_test', 'Processing error');
       // Returns 200 to prevent Stripe retries (internal handling)
       expect(responseStatus).toHaveBeenCalledWith(200);
       expect(responseJson).toHaveBeenCalledWith({
@@ -388,18 +401,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'sub_test', trial_end: Date.now() / 1000 + 86400 * 3 } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleTrialWillEnd.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleTrialWillEnd.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleTrialWillEnd).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleTrialWillEnd).toHaveBeenCalled();
     });
 
     it('should process customer.created event', async () => {
@@ -409,18 +422,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'cus_test', email: 'test@example.com' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handleCustomerCreated.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handleCustomerCreated.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handleCustomerCreated).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handleCustomerCreated).toHaveBeenCalled();
     });
 
     it('should process payment_method.attached event', async () => {
@@ -430,18 +443,18 @@ describe('WebhookController', () => {
         data: { object: { id: 'pm_test', customer: 'cus_test' } },
       };
 
-      mockStripeInstance.webhooks.constructEvent.mockReturnValue(mockEvent);
-      mockWebhookService.isEventProcessed.mockResolvedValue(false);
-      mockWebhookService.storeEvent.mockResolvedValue(undefined);
-      mockWebhookService.handlePaymentMethodAttached.mockResolvedValue(undefined);
-      mockWebhookService.markEventProcessed.mockResolvedValue(undefined);
+      mockConstructEvent.mockReturnValue(mockEvent);
+      mockWebhookServiceInstance.isEventProcessed.mockResolvedValue(false);
+      mockWebhookServiceInstance.storeEvent.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.handlePaymentMethodAttached.mockResolvedValue(undefined);
+      mockWebhookServiceInstance.markEventProcessed.mockResolvedValue(undefined);
 
       await webhookController.handleStripeWebhook(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(mockWebhookService.handlePaymentMethodAttached).toHaveBeenCalled();
+      expect(mockWebhookServiceInstance.handlePaymentMethodAttached).toHaveBeenCalled();
     });
   });
 });

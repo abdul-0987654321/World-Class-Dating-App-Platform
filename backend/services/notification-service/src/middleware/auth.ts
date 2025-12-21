@@ -10,17 +10,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 export interface AuthUser {
   id: string;
+  userId: string;
   email: string;
   role?: string;
-}
-
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthUser;
-    }
-  }
 }
 
 /**
@@ -50,8 +42,8 @@ export const requireAuth = async (
       // Attach user to request
       req.user = {
         id: decoded.id,
+        userId: decoded.userId || decoded.id,
         email: decoded.email,
-        role: decoded.role,
       };
 
       next();
@@ -99,8 +91,8 @@ export const optionalAuth = async (
         const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
         req.user = {
           id: decoded.id,
+          userId: decoded.userId || decoded.id,
           email: decoded.email,
-          role: decoded.role,
         };
       } catch (jwtError) {
         // Invalid token, but we continue anyway
@@ -131,7 +123,7 @@ export const requireAdmin = async (
     return;
   }
 
-  if (req.user.role !== 'admin') {
+  if ((req.user as AuthUser).role !== 'admin') {
     res.status(403).json({
       success: false,
       error: 'Admin access required',

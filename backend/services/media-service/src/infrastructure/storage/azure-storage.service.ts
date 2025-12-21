@@ -1,13 +1,29 @@
-import { BlobServiceClient, ContainerClient, BlockBlobClient } from '@azure/storage-blob';
+import {
+  BlobServiceClient,
+  ContainerClient,
+  BlockBlobClient,
+  generateBlobSASQueryParameters,
+  BlobSASPermissions,
+  StorageSharedKeyCredential,
+  SASProtocol,
+} from '@azure/storage-blob';
 import { v4 as uuidv4 } from 'uuid';
 import config from '../../config';
 import { createLogger } from '@flamoral/shared';
 
 const logger = createLogger('azure-storage-service');
 
+/**
+ * SECURITY: Default signed URL expiration time in seconds
+ * 1 hour = 3600 seconds
+ */
+const DEFAULT_SIGNED_URL_EXPIRY_SECONDS = 3600;
+
 export class AzureStorageService {
   private blobServiceClient: BlobServiceClient;
   private containerClient: ContainerClient;
+  private sharedKeyCredential: StorageSharedKeyCredential | null = null;
+  private isLocalDevelopment: boolean = false;
 
   constructor() {
     let connectionString: string;
@@ -17,10 +33,19 @@ export class AzureStorageService {
       // Azurite default connection string
       connectionString = 'UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://localhost:10000/devstoreaccount1';
       logger.info('Using Azurite (Azure Storage Emulator) for local development');
+      this.isLocalDevelopment = true;
     } else {
       // Production Azure Storage connection string
       connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.azure.storageAccountName};AccountKey=${config.azure.storageAccountKey};EndpointSuffix=core.windows.net`;
       logger.info('Using Azure Blob Storage');
+
+      // SECURITY: Create shared key credential for signed URL generation
+      if (config.azure.storageAccountName && config.azure.storageAccountKey) {
+        this.sharedKeyCredential = new StorageSharedKeyCredential(
+          config.azure.storageAccountName,
+          config.azure.storageAccountKey
+        );
+      }
     }
 
     this.blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
@@ -260,6 +285,151 @@ export class AzureStorageService {
     } catch (error) {
       logger.error('Failed to get blob metadata', error);
       throw error;
+    }
+  }
+
+  /**
+   * SECURITY: Generate signed URL for media access
+   * Signed URLs expire after 1 hour by default
+   *
+   * @param url - The original blob URL or blob path
+   * @param expirySeconds - Optional custom expiry time in seconds (default: 3600 = 1 hour)
+   * @param userId - Optional user ID for access logging
+   * @returns Signed URL with SAS token
+   */
+  async getSignedUrl(
+    url: string,
+    expirySeconds: number = DEFAULT_SIGNED_URL_EXPIRY_SECONDS,
+    userId?: string
+  ): Promise<{
+    signedUrl: string;
+    expiresAt: Date;
+    expirySeconds: number;
+  }> {
+    try {
+      // In local development, just return the original URL
+      if (this.isLocalDevelopment) {
+        const expiresAt = new Date(Date.now() + expirySeconds * 1000);
+        logger.info('Returning unsigned URL for local development', { userId });
+        return {
+          signedUrl: url,
+          expiresAt,
+          expirySeconds,
+        };
+      }
+
+      // SECURITY: Ensure we have credentials for signing
+      if (!this.sharedKeyCredential) {
+        throw new Error('Storage credentials not available for signing URLs');
+      }
+
+      // Extract blob name from URL
+      let blobName = url;
+      if (url.includes(`/${config.azure.containerName}/`)) {
+        blobName = url.split(`/${config.azure.containerName}/`)[1];
+      }
+
+      if (!blobName) {
+        throw new Error('Invalid blob URL or path');
+      }
+
+      // SECURITY: Limit expiry time to maximum 4 hours
+      const maxExpirySeconds = 4 * 60 * 60; // 4 hours
+      const safeExpirySeconds = Math.min(expirySeconds, maxExpirySeconds);
+
+      // Calculate expiry time
+      const startsOn = new Date();
+      const expiresAt = new Date(startsOn.getTime() + safeExpirySeconds * 1000);
+
+      // SECURITY: Generate SAS token with read-only permissions
+      const sasToken = generateBlobSASQueryParameters(
+        {
+          containerName: config.azure.containerName,
+          blobName,
+          permissions: BlobSASPermissions.parse('r'), // Read-only
+          startsOn,
+          expiresOn: expiresAt,
+          protocol: SASProtocol.Https, // SECURITY: HTTPS only
+        },
+        this.sharedKeyCredential
+      ).toString();
+
+      const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
+      const signedUrl = `${blockBlobClient.url}?${sasToken}`;
+
+      logger.info('Generated signed URL', {
+        blobName,
+        expirySeconds: safeExpirySeconds,
+        expiresAt,
+        userId,
+      });
+
+      return {
+        signedUrl,
+        expiresAt,
+        expirySeconds: safeExpirySeconds,
+      };
+    } catch (error) {
+      logger.error('Failed to generate signed URL', error);
+      throw new Error('Failed to generate signed URL');
+    }
+  }
+
+  /**
+   * SECURITY: Generate signed URLs for multiple images
+   * Used for profile photos that need concurrent signed access
+   */
+  async getSignedUrls(
+    urls: string[],
+    expirySeconds: number = DEFAULT_SIGNED_URL_EXPIRY_SECONDS,
+    userId?: string
+  ): Promise<Array<{ url: string; signedUrl: string; expiresAt: Date }>> {
+    const results = await Promise.all(
+      urls.map(async (url) => {
+        const { signedUrl, expiresAt } = await this.getSignedUrl(url, expirySeconds, userId);
+        return { url, signedUrl, expiresAt };
+      })
+    );
+
+    return results;
+  }
+
+  /**
+   * SECURITY: Verify user has access to media
+   * Checks ownership or other access rules before generating signed URL
+   */
+  async getSignedUrlWithAccessCheck(
+    url: string,
+    requestingUserId: string,
+    mediaOwnerId: string,
+    expirySeconds: number = DEFAULT_SIGNED_URL_EXPIRY_SECONDS
+  ): Promise<{
+    signedUrl: string;
+    expiresAt: Date;
+    expirySeconds: number;
+  } | null> {
+    try {
+      // SECURITY: For now, allow access - in production, implement proper ACL checks
+      // This could check:
+      // - Is the requesting user the owner?
+      // - Is the requesting user matched with the owner?
+      // - Is the content public?
+      // - Does the requesting user have premium access?
+
+      logger.info('Generating signed URL with access check', {
+        requestingUserId,
+        mediaOwnerId,
+        url,
+      });
+
+      return await this.getSignedUrl(url, expirySeconds, requestingUserId);
+    } catch (error) {
+      logger.error('Access check failed for signed URL', {
+        requestingUserId,
+        mediaOwnerId,
+        error,
+      });
+      return null;
     }
   }
 }

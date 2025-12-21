@@ -170,10 +170,5 @@ export interface UserSocketMap {
 }
 
 // Socket.IO TypeScript augmentation for socket.data
-declare module 'socket.io' {
-  interface Socket {
-    data: {
-      userId?: string; // Set by JWT authentication middleware
-    };
-  }
-}
+// Note: Socket.data typing is handled by socket.io's built-in SocketData generic
+// Custom data access can use: (socket as any).data.userId

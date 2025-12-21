@@ -4,7 +4,7 @@
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -31,13 +31,19 @@
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
-      "@flamoral/shared": ["../packages/shared/src"],
-      "@flamoral/types": ["../packages/shared/types/src"],
-      "@flamoral/utils": ["../packages/shared/utils/src"],
-      "@flamoral/constants": ["../packages/shared/constants/src"],
-      "@flamoral/validators": ["../packages/shared/validators/src"]
+      "@flamoral/shared": ["./shared"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["services/**/*", "shared/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "**/node_modules/**",
+    "**/tests/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "services/analytics-service/src/integrations/**"
+  ]
 }

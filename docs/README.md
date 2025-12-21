@@ -2,8 +2,55 @@
 
 Welcome to the Flamoral dating platform documentation.
 
-**Last Updated:** 2025-12-18
-**Version:** 3.0.0
+**Last Updated:** 2025-12-21
+**Version:** 3.1.0
+
+---
+
+## Authoritative Contract Documents
+
+> **CRITICAL**: These documents are the source of truth. If code differs, either implement to match or update the contract with justification.
+
+| Document | Description |
+|----------|-------------|
+| [API Inventory](./02-api/api-inventory.md) | Canonical endpoint and database contract |
+| [OpenAPI Spec](./02-api/openapi.yaml) | Machine-readable API contract |
+| [Non-Negotiables](./00-overview/non-negotiables.md) | Critical rules and SEV-1 definitions |
+| [Runbooks](./05-reliability/runbooks.md) | SEV-1 incident response procedures |
+
+---
+
+## New Structured Documentation
+
+### Overview (`docs/00-overview/`)
+- [Platform Summary](./00-overview/platform-summary.md) - What is Flamoral
+- [Glossary](./00-overview/glossary.md) - Standard terminology
+- [Non-Negotiables](./00-overview/non-negotiables.md) - Critical rules
+- [Claude Fix Everything Prompt](./00-overview/CLAUDE_FIX_EVERYTHING_PROMPT.md) - Enforcement prompt
+
+### Architecture (`docs/01-architecture/`)
+- [Platform Architecture](./01-architecture/platform-architecture.md) - System architecture
+- [Service Boundaries](./01-architecture/service-boundaries.md) - Service ownership
+- [Data Model](./01-architecture/data-model.md) - Database schema
+
+### API (`docs/02-api/`)
+- [API Inventory](./02-api/api-inventory.md) - All endpoints + database tables
+- [OpenAPI Spec](./02-api/openapi.yaml) - OpenAPI 3.0 specification
+
+### Security (`docs/03-security/`)
+- [Threat Model](./03-security/threat-model.md) - Security threats and mitigations
+- [Auth & RBAC](./03-security/auth-rbac.md) - Authentication and authorization
+
+### Compliance (`docs/04-compliance/`)
+- [Compliance Matrix](./04-compliance/compliance-matrix.md) - Regulatory requirements
+- [Privacy & Consent](./04-compliance/privacy-and-consent.md) - Privacy controls
+
+### Reliability (`docs/05-reliability/`)
+- [Runbooks](./05-reliability/runbooks.md) - Incident response
+- [SLO/SLA](./05-reliability/slo-sla.md) - Service level objectives
+
+### Testing (`docs/06-testing/`)
+- [Test Inventory](./06-testing/test-inventory.md) - Test coverage strategy
 
 ---
 

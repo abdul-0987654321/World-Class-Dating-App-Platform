@@ -4,11 +4,14 @@ import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('messaging-auth-middleware');
 
+export interface AuthUser {
+  id: string;
+  userId: string;
+  email: string;
+}
+
 export interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    email: string;
-  };
+  user?: AuthUser;
 }
 
 /**
@@ -35,7 +38,11 @@ export const authenticate = async (
 
     try {
       const payload = jwt.verify(token, jwtSecret) as { userId: string; email: string };
-      req.user = payload;
+      req.user = {
+        id: payload.userId,
+        userId: payload.userId,
+        email: payload.email,
+      };
       return next();
     } catch (error) {
       logger.warn('Invalid token attempt');

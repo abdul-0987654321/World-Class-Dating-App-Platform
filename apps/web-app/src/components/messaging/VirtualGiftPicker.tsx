@@ -166,7 +166,7 @@ export const VirtualGiftPicker: React.FC<VirtualGiftPickerProps> = ({
             <button
               key={gift.id}
               onClick={() => setSelectedGift(gift)}
-              disabled={balance && balance.coins < gift.price}
+              disabled={balance ? balance.coins < gift.price : false}
               className={`p-3 rounded-xl border-2 transition-all ${
                 selectedGift?.id === gift.id
                   ? 'border-pink-500 bg-pink-50'
@@ -196,7 +196,7 @@ export const VirtualGiftPicker: React.FC<VirtualGiftPickerProps> = ({
             </div>
             <button
               onClick={handleSendGift}
-              disabled={sending || (balance && balance.coins < selectedGift.price)}
+              disabled={sending || (balance ? balance.coins < selectedGift.price : false)}
               className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sending ? 'Sending...' : `Send (${selectedGift.price})`}

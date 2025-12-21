@@ -520,7 +520,13 @@
       "Bash(cut:*)",
       "Bash(kubectl set env deployment/flamoral-auth-service:*)",
       "Bash(for deploy in flamoral-user-service flamoral-media-service flamoral-payment-service flamoral-matching-service flamoral-advertising-service flamoral-analytics-service flamoral-auth-service flamoral-api-gateway flamoral-messaging-service flamoral-moderation-service flamoral-notification-service flamoral-realtime-service)",
-      "Bash(do kubectl scale deployment/$deploy --replicas=1 -n flamoral-dating)"
+      "Bash(do kubectl scale deployment/$deploy --replicas=1 -n flamoral-dating)",
+      "Bash(npm run pre-pr:*)",
+      "Bash(yarn install:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn build)",
+      "Bash(npm run lint)",
+      "Bash(npm test)"
     ],
     "deny": [],
     "ask": []

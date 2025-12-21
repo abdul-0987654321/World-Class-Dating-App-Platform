@@ -62,7 +62,8 @@ class RedisCache {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await this.client.get(`refresh_token:${userId}`);
+      const result = await this.client.get(`refresh_token:${userId}`);
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get refresh token', error);
       return null;
@@ -187,7 +188,7 @@ class RedisCache {
 
     try {
       const data = await this.client.get(`verification:${token}`);
-      return data ? JSON.parse(data) : null;
+      return data ? (JSON.parse(data as string) as { userId: string; type: string }) : null;
     } catch (error) {
       logger.error('Failed to get verification token', error);
       return null;
@@ -214,7 +215,8 @@ class RedisCache {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await this.client.get(key);
+      const result = await this.client.get(key);
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get key from Redis', error);
       return null;

@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+export interface AuthUser {
+  id: string;
+  userId: string;
+  email: string;
+}
+
 export interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    email: string;
-  };
+  user?: AuthUser;
 }
 
 // Export authenticate as both named export and requireAuth alias
@@ -32,7 +35,11 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
     try {
       const decoded = jwt.verify(token, secret) as { userId: string; email: string };
-      req.user = decoded;
+      req.user = {
+        id: decoded.userId,
+        userId: decoded.userId,
+        email: decoded.email,
+      };
       next();
     } catch (error) {
       res.status(401).json({

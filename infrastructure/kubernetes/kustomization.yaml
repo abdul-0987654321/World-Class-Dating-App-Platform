@@ -1,0 +1,169 @@
+# =============================================================================
+# Flamoral Dating Platform - Kubernetes Kustomization
+# Main entry point for deploying all services to Kubernetes
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: flamoral-dating
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/part-of: flamoral-dating
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations
+commonAnnotations:
+  flamoral.com/environment: production
+
+# Resources to include
+resources:
+  # Base configurations
+  - base/namespace.yaml
+  - base/configmap.yaml
+
+  # Core Services (Individual manifests)
+  - services/auth-service.yaml
+  - services/user-service.yaml
+  - services/matching-service.yaml
+  - services/messaging-service.yaml
+  - services/policy-service.yaml
+  - services/verification-service.yaml
+
+  # All other services (combined manifest)
+  - services/all-services-manifests.yaml
+
+  # Autoscaling
+  - autoscaling/hpa-all-services.yaml
+  - autoscaling/vpa-all-services.yaml
+
+  # Ingress
+  - ingress/flamoral-ingress.yaml
+
+  # Security
+  - security/network-policies-all-services.yaml
+  - security/pod-security-standards.yaml
+  - security/istio-mtls-config.yaml
+
+  # Secrets
+  - secrets/external-secrets-config.yaml
+  - secrets/azure-keyvault-secretprovider.yaml
+
+  # ConfigMaps
+  - configmaps/common-config.yaml
+  - configmaps/production-configmap.yaml
+
+  # Production-specific
+  - production/namespace.yaml
+  - production/cert-manager.yaml
+  - production/pod-disruption-budgets.yaml
+  - production/resource-quotas.yaml
+  - production/pgbouncer.yaml
+
+# Images to use (override with actual ACR images)
+images:
+  - name: flamoral/api-gateway
+    newName: flamoralacr.azurecr.io/api-gateway
+    newTag: latest
+  - name: flamoral/auth-service
+    newName: flamoralacr.azurecr.io/auth-service
+    newTag: latest
+  - name: flamoral/user-service
+    newName: flamoralacr.azurecr.io/user-service
+    newTag: latest
+  - name: flamoral/matching-service
+    newName: flamoralacr.azurecr.io/matching-service
+    newTag: latest
+  - name: flamoral/messaging-service
+    newName: flamoralacr.azurecr.io/messaging-service
+    newTag: latest
+  - name: flamoral/media-service
+    newName: flamoralacr.azurecr.io/media-service
+    newTag: latest
+  - name: flamoral/payment-service
+    newName: flamoralacr.azurecr.io/payment-service
+    newTag: latest
+  - name: flamoral/notification-service
+    newName: flamoralacr.azurecr.io/notification-service
+    newTag: latest
+  - name: flamoral/moderation-service
+    newName: flamoralacr.azurecr.io/moderation-service
+    newTag: latest
+  - name: flamoral/analytics-service
+    newName: flamoralacr.azurecr.io/analytics-service
+    newTag: latest
+  - name: flamoral/admin-service
+    newName: flamoralacr.azurecr.io/admin-service
+    newTag: latest
+  - name: flamoral/realtime-service
+    newName: flamoralacr.azurecr.io/realtime-service
+    newTag: latest
+  - name: flamoral/advertising-service
+    newName: flamoralacr.azurecr.io/advertising-service
+    newTag: latest
+  - name: flamoral/automation-service
+    newName: flamoralacr.azurecr.io/automation-service
+    newTag: latest
+  - name: flamoral/workflow-engine
+    newName: flamoralacr.azurecr.io/workflow-engine
+    newTag: latest
+  - name: flamoral/policy-service
+    newName: flamoralacr.azurecr.io/policy-service
+    newTag: latest
+  - name: flamoral/verification-service
+    newName: flamoralacr.azurecr.io/verification-service
+    newTag: latest
+
+# ConfigMap generators
+configMapGenerator:
+  - name: flamoral-service-ports
+    literals:
+      - API_GATEWAY_PORT=3000
+      - AUTH_SERVICE_PORT=3002
+      - USER_SERVICE_PORT=3001
+      - MATCHING_SERVICE_PORT=3003
+      - MESSAGING_SERVICE_PORT=3004
+      - MEDIA_SERVICE_PORT=3005
+      - PAYMENT_SERVICE_PORT=3006
+      - NOTIFICATION_SERVICE_PORT=3007
+      - ANALYTICS_SERVICE_PORT=3008
+      - MODERATION_SERVICE_PORT=3009
+      - REALTIME_SERVICE_PORT=3010
+      - ADMIN_SERVICE_PORT=3011
+      - ADVERTISING_SERVICE_PORT=3012
+      - AUTOMATION_SERVICE_PORT=3013
+      - WORKFLOW_ENGINE_PORT=3014
+      - POLICY_SERVICE_PORT=3015
+      - VERIFICATION_SERVICE_PORT=3016
+      - METRICS_PORT=9090
+
+# Secret generators (for development only - use ExternalSecrets in production)
+# secretGenerator:
+#   - name: flamoral-jwt-secret
+#     literals:
+#       - JWT_SECRET=change-me-in-production
+
+# Patches to apply
+patches:
+  # Add resource limits to all deployments
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources/limits
+        value:
+          memory: "2Gi"
+          cpu: "2000m"
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/part-of=flamoral-dating"
+
+# Replacements for environment-specific values
+replacements:
+  - source:
+      kind: ConfigMap
+      name: flamoral-service-ports
+      fieldPath: data.METRICS_PORT
+    targets:
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - spec.template.metadata.annotations.prometheus\.io/port

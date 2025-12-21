@@ -34,7 +34,13 @@ export { usageLimitService } from './usage-limit.service';
 export { socketService } from './socket.service';
 
 // Re-export types from auth service
-export type { User, LoginResponse, RegisterData } from './auth.service';
+export type {
+  User,
+  LoginResponse,
+  RegisterData,
+  Entitlements,
+  SessionResponse,
+} from './auth.service';
 
 // Re-export types from discovery service
 export {
@@ -42,6 +48,7 @@ export {
   type ProfilePhoto as DiscoveryProfilePhoto,
   type ProfilePrompt as DiscoveryProfilePrompt,
   type RecommendationsResponse,
+  type DiscoveryFeedResponse,
   type SwipeResult,
 } from './discovery.service';
 

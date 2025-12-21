@@ -11,13 +11,34 @@ export class SwipeController {
     this.swipeService = swipeService || new SwipeService();
   }
 
+  /**
+   * SECURITY: Get user subscription tier - server-side enforcement
+   * Returns 'free' if no subscription or error
+   */
+  private async getUserSubscriptionTier(userId: string): Promise<string> {
+    try {
+      const subscription = await subscriptionService.getUserSubscription(userId);
+
+      if (!subscription) {
+        return 'free';
+      }
+
+      // Check if subscription is active
+      if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+        return 'free';
+      }
+
+      return subscription.tier || 'free';
+    } catch (error) {
+      logger.error('Error getting subscription tier:', error);
+      return 'free'; // Default to free on error for safety
+    }
+  }
+
   async like(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const userId = req.user!.userId;
       const { target_user_id } = req.body;
-
-      // Check if user has premium subscription
-      const isPremium = await this.checkPremiumStatus(userId);
 
       if (!target_user_id) {
         return res.status(400).json({
@@ -26,7 +47,9 @@ export class SwipeController {
         });
       }
 
-      const result = await this.swipeService.like(userId, target_user_id, isPremium);
+      // SECURITY: Get subscription tier server-side for limit enforcement
+      const subscriptionTier = await this.getUserSubscriptionTier(userId);
+      const result = await this.swipeService.like(userId, target_user_id, subscriptionTier);
 
       return res.status(200).json({
         success: true,
@@ -35,6 +58,16 @@ export class SwipeController {
       });
     } catch (error: any) {
       logger.error('Like error:', error);
+
+      // Handle limit exceeded with 429 status
+      if (error.message.includes('limit')) {
+        return res.status(429).json({
+          success: false,
+          message: error.message,
+          code: 'LIMIT_EXCEEDED',
+        });
+      }
+
       return res.status(400).json({
         success: false,
         message: error.message || 'Failed to like user',
@@ -82,7 +115,9 @@ export class SwipeController {
         });
       }
 
-      const result = await this.swipeService.superLike(userId, target_user_id);
+      // SECURITY: Get subscription tier server-side for limit enforcement
+      const subscriptionTier = await this.getUserSubscriptionTier(userId);
+      const result = await this.swipeService.superLike(userId, target_user_id, subscriptionTier);
 
       return res.status(200).json({
         success: true,
@@ -91,6 +126,16 @@ export class SwipeController {
       });
     } catch (error: any) {
       logger.error('Super Like error:', error);
+
+      // Handle limit exceeded with 429 status
+      if (error.message.includes('limit')) {
+        return res.status(429).json({
+          success: false,
+          message: error.message,
+          code: 'LIMIT_EXCEEDED',
+        });
+      }
+
       return res.status(400).json({
         success: false,
         message: error.message || 'Failed to super like user',
@@ -156,28 +201,4 @@ export class SwipeController {
     }
   }
 
-  /**
-   * Check if user has premium subscription
-   */
-  private async checkPremiumStatus(userId: string): Promise<boolean> {
-    try {
-      const subscription = await subscriptionService.getUserSubscription(userId);
-
-      if (!subscription) {
-        return false; // No subscription means free tier
-      }
-
-      // Check if subscription is active
-      if (subscription.status !== 'active' && subscription.status !== 'trialing') {
-        return false;
-      }
-
-      // Premium tiers: basic, plus, premium, premium_plus, elite
-      const premiumTiers = ['basic', 'plus', 'premium', 'premium_plus', 'elite'];
-      return premiumTiers.includes(subscription.tier);
-    } catch (error) {
-      logger.error('Error checking premium status:', error);
-      return false; // Default to non-premium on error
-    }
-  }
 }

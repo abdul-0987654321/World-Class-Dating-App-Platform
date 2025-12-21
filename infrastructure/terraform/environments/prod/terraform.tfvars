@@ -15,7 +15,7 @@ terraform_sp_name      = "terraform-datingapp-sp"
 terraform_sp_client_id = "a85e4029-4e37-4399-9390-6e18922b38e7"
 
 # Shared Resources
-shared_acr_name            = "flamoralacr"
+shared_acr_name            = "flamoralprodacr"
 shared_resource_group_name = "flamoral-shared-rg"
 
 # Domain Configuration

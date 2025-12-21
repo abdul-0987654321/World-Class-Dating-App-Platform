@@ -101,7 +101,8 @@ class RedisClient {
    */
   async getUserIdFromSocket(socketId: string): Promise<string | null> {
     try {
-      return await this.client?.get(`socket:${socketId}`) || null;
+      const result = await this.client?.get(`socket:${socketId}`);
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get user ID from socket', error);
       return null;
@@ -155,7 +156,7 @@ class RedisClient {
     try {
       const key = `message:${messageId}`;
       const data = await this.client?.get(key);
-      return data ? JSON.parse(data) : null;
+      return data ? (JSON.parse(data as string) as any) : null;
     } catch (error) {
       logger.error('Failed to get cached message', error);
       return null;
@@ -247,7 +248,8 @@ class RedisClient {
    */
   async get(key: string): Promise<string | null> {
     try {
-      return await this.client?.get(key) || null;
+      const result = await this.client?.get(key);
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get value:', error);
       return null;

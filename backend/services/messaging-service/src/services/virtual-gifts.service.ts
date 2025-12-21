@@ -259,9 +259,8 @@ class VirtualGiftsService {
     type: 'sent' | 'received' | 'all' = 'all',
     limit: number = 50
   ): Promise<GiftTransaction[]> {
-      // TODO: Query gift transaction history from Cosmos DB
-      throw new Error('Gift history not implemented - requires Cosmos DB integration');
-    }
+    // TODO: Query gift transaction history from Cosmos DB
+    throw new Error('Gift history not implemented - requires Cosmos DB integration');
   }
 
   /**
@@ -273,9 +272,8 @@ class VirtualGiftsService {
     coinsSpent: number;
     coinsEarned: number;
   }> {
-      // TODO: Query gift statistics from Cosmos DB
-      throw new Error('Gift statistics not implemented - requires Cosmos DB integration');
-    }
+    // TODO: Query gift statistics from Cosmos DB
+    throw new Error('Gift statistics not implemented - requires Cosmos DB integration');
   }
 }
 

@@ -2,10 +2,31 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SUBSCRIPTION_KEY, SubscriptionTier } from '../decorators/subscription.decorator';
+
+// Tier hierarchy for comparison
+const TIER_HIERARCHY: Record<string, number> = {
+  'free': 0,
+  'basic': 1,
+  'plus': 2,
+  'premium': 3,
+  'premium_plus': 4,
+  'elite': 5,
+};
+
+// Human-readable tier names
+const TIER_NAMES: Record<string, string> = {
+  'free': 'Free',
+  'basic': 'Basic',
+  'plus': 'Plus',
+  'premium': 'Premium',
+  'premium_plus': 'Premium Plus',
+  'elite': 'Elite',
+};
 
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
@@ -27,22 +48,18 @@ export class SubscriptionGuard implements CanActivate {
       return false;
     }
 
-    const tierHierarchy: Record<SubscriptionTier, number> = {
-      [SubscriptionTier.FREE]: 0,
-      [SubscriptionTier.BASIC]: 1,
-      [SubscriptionTier.PLUS]: 2,
-      [SubscriptionTier.PREMIUM]: 3,
-      [SubscriptionTier.PREMIUM_PLUS]: 4,
-      [SubscriptionTier.ELITE]: 5,
-    };
-
-    const userTierLevel = tierHierarchy[user.subscription] || 0;
-    const requiredTierLevel = tierHierarchy[requiredTier];
+    const userTier = user.subscription?.toLowerCase() || 'free';
+    const userTierLevel = TIER_HIERARCHY[userTier] ?? 0;
+    const requiredTierLevel = TIER_HIERARCHY[requiredTier.toLowerCase()] ?? 0;
 
     if (userTierLevel < requiredTierLevel) {
-      throw new ForbiddenException(
-        `This feature requires ${requiredTier} subscription or higher`,
-      );
+      // Return 402 Payment Required with upgrade info
+      throw new HttpException({
+        code: 'UPGRADE_REQUIRED',
+        message: `This feature requires a ${TIER_NAMES[requiredTier] || requiredTier} subscription or higher. Please upgrade to access this feature.`,
+        required_plan: requiredTier,
+        current_plan: userTier,
+      }, HttpStatus.PAYMENT_REQUIRED);
     }
 
     return true;

@@ -1,0 +1,222 @@
+/**
+ * Discovery Service
+ * Handles profile discovery and recommendations
+ */
+
+export interface ProfilePhoto {
+  url: string;
+  is_primary: boolean;
+}
+
+export interface ProfilePrompt {
+  question: string;
+  answer: string;
+}
+
+export interface DiscoveryProfile {
+  user_id: string;
+  first_name: string;
+  age: number;
+  bio?: string;
+  occupation?: string;
+  city?: string;
+  distance?: number;
+  photos: ProfilePhoto[];
+  prompts: ProfilePrompt[];
+  interests: string[];
+  is_verified: boolean;
+  premium_tier?: string;
+  compatibility_score?: number;
+}
+
+export interface RecommendationsResponse {
+  profiles: DiscoveryProfile[];
+  nextCursor: string | null;
+  remainingToday: number;
+}
+
+// Alias for DiscoveryFeedResponse to match backend API
+export type DiscoveryFeedResponse = RecommendationsResponse;
+
+export interface SwipeResult {
+  isMatch: boolean;
+  match?: {
+    id: string;
+    matchedUser: {
+      id: string;
+      name: string;
+      photoUrl: string;
+      isOnline: boolean;
+    };
+    matchedAt: string;
+  };
+  remainingLikes: number;
+  remainingSuperLikes: number;
+}
+
+class DiscoveryService {
+  private baseUrl = '/api/discovery';
+
+  async getRecommendations(cursor?: string): Promise<RecommendationsResponse> {
+    // In mock mode, return mock data
+    if (!import.meta.env.VITE_API_URL) {
+      const { mockApi } = await import('../mocks/mockApi');
+      const result = await mockApi.getRecommendations();
+
+      // Transform mock profiles to DiscoveryProfile format
+      return {
+        profiles: result.profiles.map((p: any) => ({
+          user_id: p.userId,
+          first_name: p.name,
+          age: p.age,
+          bio: p.bio,
+          occupation: p.occupation,
+          city: p.city,
+          distance: p.distance,
+          photos: p.photos.map((url: string, i: number) => ({ url, is_primary: i === 0 })),
+          prompts: [],
+          interests: p.interests || [],
+          is_verified: p.verified,
+          premium_tier: p.premium_tier,
+          compatibility_score: p.compatibilityScore,
+        })),
+        nextCursor: result.nextCursor,
+        remainingToday: result.remainingToday,
+      };
+    }
+
+    // Use /feed endpoint instead of /recommendations
+    const url = cursor
+      ? `${this.baseUrl}/feed?cursor=${cursor}`
+      : `${this.baseUrl}/feed`;
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch discovery feed');
+    }
+
+    // Backend returns { success: true, data: { profiles, nextCursor, remainingToday } }
+    const json = await response.json();
+    return json.data || json;
+  }
+
+  // Alias for getRecommendations to match new API naming
+  async getFeed(cursor?: string): Promise<DiscoveryFeedResponse> {
+    return this.getRecommendations(cursor);
+  }
+
+  async swipe(targetUserId: string, action: 'like' | 'pass' | 'super_like'): Promise<SwipeResult> {
+    // In mock mode, use mock API
+    if (!import.meta.env.VITE_API_URL) {
+      const { mockApi } = await import('../mocks/mockApi');
+      const result = await mockApi.swipe(targetUserId, action);
+
+      // Transform mock result to SwipeResult format
+      return {
+        isMatch: result.isMatch,
+        match: result.match ? {
+          id: result.match.id,
+          matchedUser: {
+            id: result.match.matchedUser.id,
+            name: result.match.matchedUser.name,
+            photoUrl: result.match.matchedUser.photoUrl,
+            isOnline: result.match.matchedUser.isOnline,
+          },
+          matchedAt: result.match.matchedAt,
+        } : undefined,
+        remainingLikes: result.remainingLikes,
+        remainingSuperLikes: result.remainingSuperLikes,
+      };
+    }
+
+    // Use the correct discovery endpoint based on action
+    // POST /discovery/like, POST /discovery/pass, POST /discovery/super-like
+    const endpoint = action === 'super_like'
+      ? `${this.baseUrl}/super-like`
+      : `${this.baseUrl}/${action}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+
+      // Handle rate limiting (429) and payment required (402)
+      if (response.status === 429) {
+        throw new Error(errorData.error || 'Daily limit exceeded');
+      }
+      if (response.status === 402) {
+        throw new Error(errorData.error || 'Upgrade required for this action');
+      }
+
+      throw new Error(errorData.error || 'Failed to swipe');
+    }
+
+    // For pass action, response is 204 No Content
+    if (action === 'pass') {
+      return {
+        isMatch: false,
+        remainingLikes: -1,
+        remainingSuperLikes: -1,
+      };
+    }
+
+    const data = await response.json();
+    return {
+      isMatch: data.data?.match_created || false,
+      match: data.data?.match ? {
+        id: data.data.match.match_id,
+        matchedUser: {
+          id: data.data.match.user_b_id,
+          name: '',
+          photoUrl: '',
+          isOnline: false,
+        },
+        matchedAt: data.data.match.created_at,
+      } : undefined,
+      remainingLikes: -1,
+      remainingSuperLikes: -1,
+    };
+  }
+
+  async getStats(): Promise<{
+    remainingLikes: number;
+    remainingSuperLikes: number;
+    remainingBoosts: number;
+    likesResetAt: string;
+    isPremium: boolean;
+  }> {
+    // In mock mode, use mock API
+    if (!import.meta.env.VITE_API_URL) {
+      const { mockApi } = await import('../mocks/mockApi');
+      return mockApi.getStats();
+    }
+
+    const response = await fetch(`${this.baseUrl}/stats`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+
+    return response.json();
+  }
+}
+
+export const discoveryService = new DiscoveryService();

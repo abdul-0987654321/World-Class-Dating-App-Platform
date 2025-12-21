@@ -209,7 +209,7 @@ export class TicketsService {
       .whereNotNull('ticket_messages.created_at')
       .first();
 
-    return Math.round(result?.avg_seconds || 0);
+    return Math.round((result as { avg_seconds?: number })?.avg_seconds || 0);
   }
 
   private formatTicket(ticket: any): SupportTicket {

@@ -40,7 +40,11 @@ class RedisClient {
 
   // Cache helpers
   async get(key: string): Promise<string | null> {
-    return this.getClient().get(key);
+    const result = await this.getClient().get(key);
+    if (typeof result === 'string') {
+      return result;
+    }
+    return null;
   }
 
   async set(key: string, value: string, expirySeconds?: number): Promise<void> {

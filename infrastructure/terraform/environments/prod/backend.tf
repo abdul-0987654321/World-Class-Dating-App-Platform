@@ -38,7 +38,7 @@ terraform {
   backend "azurerm" {
     # Storage Account for Terraform State
     resource_group_name  = "flamoral-tfstate-rg"
-    storage_account_name = "flamoraltfstateprod"
+    storage_account_name = "flamoraltfstate2024"
     container_name       = "tfstate"
     key                  = "flamoral-prod.terraform.tfstate"
 

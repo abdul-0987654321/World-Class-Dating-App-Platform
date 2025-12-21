@@ -35,6 +35,9 @@ export interface RecommendationsResponse {
   remainingToday: number;
 }
 
+// Alias for DiscoveryFeedResponse to match backend API
+export type DiscoveryFeedResponse = RecommendationsResponse;
+
 export interface SwipeResult {
   isMatch: boolean;
   match?: {
@@ -82,9 +85,10 @@ class DiscoveryService {
       };
     }
 
+    // Use /feed endpoint instead of /recommendations
     const url = cursor
-      ? `${this.baseUrl}/recommendations?cursor=${cursor}`
-      : `${this.baseUrl}/recommendations`;
+      ? `${this.baseUrl}/feed?cursor=${cursor}`
+      : `${this.baseUrl}/feed`;
 
     const response = await fetch(url, {
       headers: {
@@ -94,12 +98,17 @@ class DiscoveryService {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch recommendations');
+      throw new Error('Failed to fetch discovery feed');
     }
 
     // Backend returns { success: true, data: { profiles, nextCursor, remainingToday } }
     const json = await response.json();
     return json.data || json;
+  }
+
+  // Alias for getRecommendations to match new API naming
+  async getFeed(cursor?: string): Promise<DiscoveryFeedResponse> {
+    return this.getRecommendations(cursor);
   }
 
   async swipe(targetUserId: string, action: 'like' | 'pass' | 'super_like'): Promise<SwipeResult> {

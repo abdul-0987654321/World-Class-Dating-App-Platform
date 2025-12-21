@@ -63,6 +63,8 @@ tags:
     description: Payment processing
   - name: Media
     description: Media upload services
+  - name: Audit
+    description: Audit log endpoints for compliance and transparency
 
 paths:
   # ============== PLATFORM ENDPOINTS ==============
@@ -283,6 +285,95 @@ paths:
           description: Token is valid
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/session:
+    get:
+      tags: [Auth]
+      summary: Get current session info with entitlements
+      operationId: getSession
+      description: Returns user summary and their current entitlements/limits based on subscription tier
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Session info with entitlements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============== AUDIT ENDPOINTS ==============
+  /api/v1/audit/logs:
+    get:
+      tags: [Audit]
+      summary: List user's own audit log events
+      operationId: getAuditLogs
+      description: Returns an append-only list of user's audit log events for compliance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Cursor for pagination (opaque string from previous response)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Number of items to return
+        - name: event_type
+          in: query
+          schema:
+            type: string
+          description: Filter by event type (e.g., "login", "password_change")
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter events after this date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter events before this date
+      responses:
+        '200':
+          description: Audit log events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/audit/event-types:
+    get:
+      tags: [Audit]
+      summary: Get available audit event types
+      operationId: getAuditEventTypes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of valid event types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  event_types:
+                    type: array
+                    items:
+                      type: string
 
   # ============== USER SERVICE - PROFILE ==============
   /api/v1/profile:
@@ -884,6 +975,48 @@ paths:
       responses:
         '200':
           description: Preferences updated
+
+  /api/v1/discovery/super-like:
+    post:
+      tags: [Discovery]
+      summary: Super-like a user (tier enforced)
+      operationId: superLikeUser
+      description: |
+        Super-like a user with tier-based daily limits:
+        - Free: 1/day
+        - Basic: 3/day
+        - Plus: 5/day
+        - Premium: 10/day
+        - Premium Plus/Elite: Unlimited
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_user_id]
+              properties:
+                target_user_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the user to super-like
+      responses:
+        '200':
+          description: Super-like recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuperLikeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredOrUpgrade'
+        '429':
+          $ref: '#/components/responses/RateLimited'
 
   /api/v1/swipes:
     post:
@@ -1590,21 +1723,227 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiError'
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiError'
+    PaymentRequiredOrUpgrade:
+      description: Payment required - upgrade subscription
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpgradeRequiredError'
+    Forbidden:
+      description: Forbidden - access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     NotFound:
       description: Not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiError'
+    RateLimited:
+      description: Rate limited - too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RateLimitError'
 
   schemas:
+    # API Error schemas
+    ApiError:
+      type: object
+      required: [code, message, correlation_id]
+      properties:
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: "BAD_REQUEST"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid request parameters"
+        correlation_id:
+          type: string
+          description: Unique ID for error tracking
+          example: "1703001234567-abc123xyz"
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/api/v1/discovery/super-like"
+        details:
+          type: object
+          description: Additional error details
+
+    UpgradeRequiredError:
+      type: object
+      required: [code, message, correlation_id, required_plan, current_plan]
+      properties:
+        code:
+          type: string
+          example: "UPGRADE_REQUIRED"
+        message:
+          type: string
+          example: "This feature requires a Premium subscription or higher"
+        correlation_id:
+          type: string
+        required_plan:
+          type: string
+          enum: [basic, plus, premium, premium_plus, elite]
+          example: "premium"
+        current_plan:
+          type: string
+          enum: [free, basic, plus, premium, premium_plus, elite]
+          example: "free"
+
+    RateLimitError:
+      type: object
+      required: [code, message, correlation_id]
+      properties:
+        code:
+          type: string
+          example: "RATE_LIMITED"
+        message:
+          type: string
+          example: "Too many requests. Please try again later."
+        correlation_id:
+          type: string
+        retry_after:
+          type: integer
+          description: Seconds until the limit resets
+          example: 60
+
+    # Session and entitlements schemas
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        entitlements:
+          $ref: '#/components/schemas/EntitlementsSnapshot'
+        session:
+          type: object
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            expiresAt:
+              type: string
+              format: date-time
+            deviceId:
+              type: string
+
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailVerified:
+          type: boolean
+
+    EntitlementsSnapshot:
+      type: object
+      properties:
+        subscription:
+          type: object
+          properties:
+            tier:
+              type: string
+              enum: [free, basic, plus, premium, premium_plus, elite]
+            status:
+              type: string
+              enum: [active, cancelled, expired]
+            expiresAt:
+              type: string
+              format: date-time
+        features:
+          type: array
+          items:
+            type: string
+          example: ["swipe", "match", "message", "super_like"]
+        limits:
+          type: object
+          properties:
+            dailyLikes:
+              type: integer
+              description: -1 means unlimited
+            dailySuperLikes:
+              type: integer
+            dailyBoosts:
+              type: integer
+            messageLimit:
+              type: integer
+        usageToday:
+          type: object
+          properties:
+            likesUsed:
+              type: integer
+            superLikesUsed:
+              type: integer
+            boostsUsed:
+              type: integer
+
+    # Audit log schemas
+    AuditLogsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEvent'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+
+    AuditLogEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        event_type:
+          type: string
+          enum: [login, logout, password_change, email_change, profile_update, photo_upload, photo_delete, subscription_change, payment, match, unmatch, message_sent, block_user, unblock_user, report_user, settings_change, privacy_settings_change, notification_settings_change, account_deactivate, account_reactivate, account_delete_request, data_export_request]
+        event_data:
+          type: object
+        ip_address:
+          type: string
+        user_agent:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    # Super-like response
+    SuperLikeResponse:
+      type: object
+      properties:
+        super_liked:
+          type: boolean
+        matched:
+          type: boolean
+        match_id:
+          type: string
+        remaining_super_likes:
+          type: integer
+          description: -1 means unlimited
     # Platform schemas
     VersionInfo:
       type: object

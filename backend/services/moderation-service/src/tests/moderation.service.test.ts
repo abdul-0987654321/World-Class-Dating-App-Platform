@@ -43,7 +43,6 @@ describe('ModerationService', () => {
         overallRiskScore: 0.23,
         detectedViolations: [],
         recommendations: [],
-        recommendations: [],
       });
 
       const result = await moderationService.moderateImage({
@@ -247,15 +246,15 @@ describe('ModerationService', () => {
 
       // Test skipped - handleViolations is private
       // await moderationService.handleViolations(userId, {
-        contentId: 'test-content-001',
-        userId,
-        status: ModerationStatus.REJECTED,
-        action: 'auto_rejected',
-        overallRiskScore: 0.95,
-        detectedViolations: [ViolationType.EXPLICIT_NUDITY],
-        recommendations: ['Content removed'],
-        moderatedAt: new Date(),
-      } as any);
+      //   contentId: 'test-content-001',
+      //   userId,
+      //   status: ModerationStatus.REJECTED,
+      //   action: 'auto_rejected',
+      //   overallRiskScore: 0.95,
+      //   detectedViolations: [ViolationType.EXPLICIT_NUDITY],
+      //   recommendations: ['Content removed'],
+      //   moderatedAt: new Date(),
+      // } as any);
 
       // Verify warning was issued
       // In real implementation, check database or service calls
@@ -277,15 +276,15 @@ describe('ModerationService', () => {
 
       // Test skipped - handleViolations is private
       // await moderationService.handleViolations(userId, {
-        contentId: 'test-content-002',
-        userId,
-        status: ModerationStatus.REJECTED,
-        action: 'auto_rejected',
-        overallRiskScore: 0.92,
-        detectedViolations: [ViolationType.VIOLENCE],
-        recommendations: ['Account suspended'],
-        moderatedAt: new Date(),
-      } as any);
+      //   contentId: 'test-content-002',
+      //   userId,
+      //   status: ModerationStatus.REJECTED,
+      //   action: 'auto_rejected',
+      //   overallRiskScore: 0.92,
+      //   detectedViolations: [ViolationType.VIOLENCE],
+      //   recommendations: ['Account suspended'],
+      //   moderatedAt: new Date(),
+      // } as any);
 
       // Verify suspension was applied
       expect(true).toBe(true); // Placeholder
@@ -308,15 +307,15 @@ describe('ModerationService', () => {
 
       // Test skipped - handleViolations is private
       // await moderationService.handleViolations(userId, {
-        contentId: 'test-content-003',
-        userId,
-        status: ModerationStatus.REJECTED,
-        action: 'auto_rejected',
-        overallRiskScore: 0.98,
-        detectedViolations: [ViolationType.EXPLICIT_NUDITY],
-        recommendations: ['Account banned'],
-        moderatedAt: new Date(),
-      } as any);
+      //   contentId: 'test-content-003',
+      //   userId,
+      //   status: ModerationStatus.REJECTED,
+      //   action: 'auto_rejected',
+      //   overallRiskScore: 0.98,
+      //   detectedViolations: [ViolationType.EXPLICIT_NUDITY],
+      //   recommendations: ['Account banned'],
+      //   moderatedAt: new Date(),
+      // } as any);
 
       // Verify ban was applied
       expect(true).toBe(true); // Placeholder
@@ -421,7 +420,7 @@ describe('ModerationService', () => {
         detectedViolations: [ViolationType.SUGGESTIVE_NUDITY],
       } as any;
 
-      await // moderationService.addToModerationQueue(moderationResult);
+      // await moderationService.addToModerationQueue(moderationResult);
 
       // Verify queue entry was created
       expect(true).toBe(true); // Placeholder
@@ -444,7 +443,7 @@ describe('ModerationService', () => {
           detectedViolations: [],
         } as any;
 
-        await // moderationService.addToModerationQueue(moderationResult);
+        // await moderationService.addToModerationQueue(moderationResult);
 
         // Verify priority assignment
         // In real implementation, check database for correct priority
@@ -461,7 +460,6 @@ describe('ModerationService', () => {
         categories: {},
         overallRiskScore: 0.15,
         detectedViolations: [],
-        recommendations: [],
         recommendations: [],
       });
 
@@ -485,7 +483,6 @@ describe('ModerationService', () => {
         categories: {},
         overallRiskScore: 0.20,
         detectedViolations: [],
-        recommendations: [],
         recommendations: [],
       });
 

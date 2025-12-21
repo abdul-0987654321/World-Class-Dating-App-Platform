@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 /**
  * Initialize Sentry for error tracking and performance monitoring
@@ -27,8 +27,8 @@ export function initializeSentry(serviceName: string): void {
 
     integrations: [
       // Profiling integration
-      new ProfilingIntegration(),
-    ],
+      nodeProfilingIntegration(),
+    ] as any,
 
     // Filter sensitive data
     beforeSend(event, hint) {
@@ -47,7 +47,7 @@ export function initializeSentry(serviceName: string): void {
         }
 
         // Remove sensitive query parameters
-        if (event.request.query_string) {
+        if (event.request.query_string && typeof event.request.query_string === 'string') {
           event.request.query_string = event.request.query_string
             .replace(/password=[^&]+/gi, 'password=[REDACTED]')
             .replace(/token=[^&]+/gi, 'token=[REDACTED]');

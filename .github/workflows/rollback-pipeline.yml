@@ -48,17 +48,12 @@ permissions:
   contents: read
   actions: read
 
-# ===========================================================================
-# WORKFLOW DISABLED: Set to false to prevent accidental production triggers
-# To re-enable, remove the 'if: false' condition below
-# ===========================================================================
 jobs:
   # ===========================================================================
   # Validate Rollback Request
   # ===========================================================================
   validate-rollback:
     name: Validate Rollback
-    if: false  # DISABLED - Remove this line to re-enable workflow
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}-rollback-approval
     outputs:

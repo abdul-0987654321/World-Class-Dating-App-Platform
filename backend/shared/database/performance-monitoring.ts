@@ -269,6 +269,13 @@ export async function getIndexUsageStats(knex: Knex): Promise<IndexUsageStats[]>
  */
 export async function getUnusedIndexes(knex: Knex, minSizeMB: number = 1): Promise<IndexUsageStats[]> {
   try {
+    // Validate that minSizeMB is a valid positive number
+    if (typeof minSizeMB !== 'number' || minSizeMB < 0 || !isFinite(minSizeMB)) {
+      logger.error(`Invalid minSizeMB provided: ${minSizeMB}`);
+      return [];
+    }
+
+    const minSizeBytes = minSizeMB * 1024 * 1024;
     const stats = await knex.raw(`
       SELECT
         schemaname AS schema_name,
@@ -280,9 +287,9 @@ export async function getUnusedIndexes(knex: Knex, minSizeMB: number = 1): Promi
       FROM pg_stat_user_indexes
       WHERE idx_scan = 0
         AND indexrelname NOT LIKE '%_pkey'
-        AND pg_relation_size(indexrelid) > ${minSizeMB * 1024 * 1024}
+        AND pg_relation_size(indexrelid) > ?
       ORDER BY pg_relation_size(indexrelid) DESC;
-    `);
+    `, [minSizeBytes]);
 
     return stats.rows.map((row: any) => ({
       schemaName: row.schema_name,
@@ -380,6 +387,12 @@ export async function getActiveQueries(knex: Knex): Promise<any[]> {
  */
 export async function getLongRunningQueries(knex: Knex, minDurationSeconds: number = 5): Promise<any[]> {
   try {
+    // Validate that minDurationSeconds is a valid positive number
+    if (typeof minDurationSeconds !== 'number' || minDurationSeconds < 0 || !isFinite(minDurationSeconds)) {
+      logger.error(`Invalid minDurationSeconds provided: ${minDurationSeconds}`);
+      return [];
+    }
+
     const queries = await knex.raw(`
       SELECT
         pid,
@@ -392,9 +405,9 @@ export async function getLongRunningQueries(knex: Knex, minDurationSeconds: numb
       FROM pg_stat_activity
       WHERE state != 'idle'
         AND pid != pg_backend_pid()
-        AND EXTRACT(EPOCH FROM (now() - query_start)) > ${minDurationSeconds}
+        AND EXTRACT(EPOCH FROM (now() - query_start)) > ?
       ORDER BY query_start ASC;
-    `);
+    `, [minDurationSeconds]);
 
     return queries.rows;
   } catch (error) {
@@ -408,7 +421,13 @@ export async function getLongRunningQueries(knex: Knex, minDurationSeconds: numb
  */
 export async function killQuery(knex: Knex, pid: number): Promise<boolean> {
   try {
-    await knex.raw(`SELECT pg_cancel_backend(${pid});`);
+    // Validate that pid is a valid positive integer
+    if (!Number.isInteger(pid) || pid <= 0) {
+      logger.error(`Invalid PID provided: ${pid}`);
+      return false;
+    }
+
+    await knex.raw('SELECT pg_cancel_backend(?)', [pid]);
     logger.info(`Query with PID ${pid} cancelled`);
     return true;
   } catch (error) {

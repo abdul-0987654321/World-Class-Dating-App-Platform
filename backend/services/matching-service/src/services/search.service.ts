@@ -128,11 +128,19 @@ export class SearchService {
 
       // Age filter
       if (filters.minAge || filters.maxAge) {
+        // Validate that ages are integers to prevent SQL injection
+        if (filters.maxAge !== undefined && (!Number.isInteger(filters.maxAge) || filters.maxAge < 0)) {
+          throw new Error('Invalid maxAge parameter');
+        }
+        if (filters.minAge !== undefined && (!Number.isInteger(filters.minAge) || filters.minAge < 0)) {
+          throw new Error('Invalid minAge parameter');
+        }
+
         const minDate = filters.maxAge
-          ? db.raw(`CURRENT_DATE - INTERVAL '${filters.maxAge} years'`)
+          ? db.raw(`CURRENT_DATE - INTERVAL '1 year' * ?`, [filters.maxAge])
           : null;
         const maxDate = filters.minAge
-          ? db.raw(`CURRENT_DATE - INTERVAL '${filters.minAge} years'`)
+          ? db.raw(`CURRENT_DATE - INTERVAL '1 year' * ?`, [filters.minAge])
           : null;
 
         if (minDate && maxDate) {

@@ -454,7 +454,7 @@ export class PushNotificationDeliveryService {
         },
       };
 
-      const response = await admin.messaging().sendMulticast(message);
+      const response = await admin.messaging().sendEachForMulticast(message);
 
       const errors: Array<{ token: string; error: string; platform: string }> = [];
       response.responses.forEach((resp, idx) => {

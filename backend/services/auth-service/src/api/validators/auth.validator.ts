@@ -1,7 +1,57 @@
 import Joi from 'joi';
 
 /**
+ * Custom validation for age >= 18
+ */
+const ageValidation = (value: Date, helpers: Joi.CustomHelpers) => {
+  const today = new Date();
+  const birthDate = new Date(value);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  if (age < 18) {
+    return helpers.error('date.minAge');
+  }
+
+  return value;
+};
+
+/**
+ * Consent schema - REQUIRED for registration
+ * Both terms and privacy must be explicitly accepted
+ */
+const consentSchema = Joi.object({
+  terms: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      'any.only': 'You must accept the Terms of Service to register',
+      'any.required': 'Terms of Service acceptance is required',
+    }),
+  privacy: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      'any.only': 'You must accept the Privacy Policy to register',
+      'any.required': 'Privacy Policy acceptance is required',
+    }),
+  marketing: Joi.boolean()
+    .optional()
+    .default(false),
+  data_sharing: Joi.boolean()
+    .optional()
+    .default(false),
+}).required().messages({
+  'any.required': 'Consent information is required for registration',
+});
+
+/**
  * Registration request validation schema
+ * SECURITY: Enforces age >= 18 and required consents at validation layer
  */
 export const registerSchema = Joi.object({
   email: Joi.string()
@@ -41,9 +91,11 @@ export const registerSchema = Joi.object({
   date_of_birth: Joi.date()
     .max('now')
     .required()
+    .custom(ageValidation)
     .messages({
       'date.max': 'Date of birth cannot be in the future',
       'any.required': 'Date of birth is required',
+      'date.minAge': 'You must be at least 18 years old to register',
     }),
   gender: Joi.string()
     .valid('male', 'female', 'non-binary', 'other')
@@ -58,6 +110,8 @@ export const registerSchema = Joi.object({
     .messages({
       'string.pattern.base': 'Please provide a valid phone number',
     }),
+  // SECURITY: Required consents for legal compliance
+  consents: consentSchema,
 });
 
 /**

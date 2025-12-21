@@ -128,4 +128,34 @@ export class SwipeRepository {
       .first();
     return parseInt(result?.count as string) || 0;
   }
+
+  /**
+   * SECURITY: Count likes sent today for tier enforcement
+   */
+  async countLikesToday(userId: string): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const result = await db(this.tableName)
+      .where({ swiper_id: userId, action: 'like' })
+      .where('created_at', '>=', today)
+      .count('* as count')
+      .first();
+    return parseInt(result?.count as string) || 0;
+  }
+
+  /**
+   * SECURITY: Count super-likes sent today for tier enforcement
+   */
+  async countSuperLikesToday(userId: string): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const result = await db(this.tableName)
+      .where({ swiper_id: userId, action: 'super_like' })
+      .where('created_at', '>=', today)
+      .count('* as count')
+      .first();
+    return parseInt(result?.count as string) || 0;
+  }
 }

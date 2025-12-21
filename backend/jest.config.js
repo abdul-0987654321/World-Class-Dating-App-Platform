@@ -6,6 +6,14 @@ module.exports = {
     '**/__tests__/**/*.test.ts',
     '**/?(*.)+(spec|test).ts'
   ],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: {
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
+      }
+    }]
+  },
   collectCoverageFrom: [
     'services/**/src/**/*.ts',
     '!services/**/src/**/*.d.ts',
@@ -26,18 +34,16 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/services/$1/src/$1',
-    '^@shared/(.*)$': '<rootDir>/services/shared/$1'
+    '^@shared/(.*)$': '<rootDir>/services/shared/$1',
+    '^@flamoral/shared$': '<rootDir>/shared/index.ts',
+    '^@flamoral/shared/(.*)$': '<rootDir>/shared/$1'
   },
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/'
+  ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testTimeout: 30000,
   verbose: true,
   maxWorkers: '50%',
-  globals: {
-    'ts-jest': {
-      tsconfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true
-      }
-    }
-  }
 };

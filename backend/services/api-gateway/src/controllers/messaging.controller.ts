@@ -11,8 +11,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ProxyService } from '../services/proxy.service';
 
+@ApiTags('conversations', 'messages')
+@ApiBearerAuth('JWT-auth')
 @Controller()
 export class MessagingController {
   constructor(private readonly proxyService: ProxyService) {}
@@ -21,8 +24,60 @@ export class MessagingController {
 
   /**
    * Get all conversations for the authenticated user
+   * Returns a list of conversations with last message and unread count
    */
   @Get('conversations')
+  @ApiOperation({ summary: 'Get all conversations' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of conversations to return (default: 20)' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of conversations',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              matchId: { type: 'string' },
+              participant: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  firstName: { type: 'string' },
+                  photoUrl: { type: 'string' },
+                },
+              },
+              lastMessage: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  content: { type: 'string' },
+                  senderId: { type: 'string' },
+                  createdAt: { type: 'string', format: 'date-time' },
+                },
+              },
+              unreadCount: { type: 'number' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+            },
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            limit: { type: 'number' },
+            offset: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getConversations(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
@@ -66,9 +121,53 @@ export class MessagingController {
   }
 
   /**
-   * Get a specific conversation
+   * Get a specific conversation with messages
+   * Returns conversation details including participant info and recent messages
    */
   @Get('conversations/:conversationId')
+  @ApiOperation({ summary: 'Get specific conversation with messages' })
+  @ApiParam({ name: 'conversationId', type: String, description: 'Conversation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversation details with messages',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        matchId: { type: 'string' },
+        participant: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            age: { type: 'number' },
+            photoUrl: { type: 'string' },
+            isOnline: { type: 'boolean' },
+            lastActive: { type: 'string', format: 'date-time' },
+          },
+        },
+        messages: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              content: { type: 'string' },
+              type: { type: 'string', enum: ['text', 'image', 'gif', 'voice'] },
+              senderId: { type: 'string' },
+              status: { type: 'string', enum: ['sent', 'delivered', 'read'] },
+              createdAt: { type: 'string', format: 'date-time' },
+            },
+          },
+        },
+        unreadCount: { type: 'number' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Conversation not found' })
   async getConversation(
     @Headers('authorization') authorization: string,
     @Param('conversationId') conversationId: string,

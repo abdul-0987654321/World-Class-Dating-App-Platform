@@ -179,7 +179,7 @@ export const cache = {
         3,
         500
       );
-      return value ? JSON.parse(value) : null;
+      return value ? (JSON.parse(value as string) as T) : null;
     } catch (error) {
       logger.error('Error getting key', error);
       return null;
@@ -294,12 +294,13 @@ export const cache = {
   async hGet(key: string, field: string): Promise<string | null> {
     try {
       const client = getRedisClient();
-      return await withRetry(
+      const result = await withRetry(
         () => client.hGet(key, field),
         'hGet',
         3,
         500
-      ) || null;
+      );
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Error getting hash field', error);
       return null;
@@ -410,12 +411,13 @@ export const cache = {
   async sIsMember(key: string, member: string): Promise<boolean> {
     try {
       const client = getRedisClient();
-      return await withRetry(
+      const result = await withRetry(
         () => client.sIsMember(key, member),
         'sIsMember',
         3,
         500
       );
+      return Boolean(result);
     } catch (error) {
       logger.error('Error checking set membership', error);
       return false;

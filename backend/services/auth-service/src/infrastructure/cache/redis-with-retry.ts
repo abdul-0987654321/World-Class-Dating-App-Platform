@@ -159,12 +159,13 @@ class RedisCache {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await withRetry(
+      const result = await withRetry(
         () => this.client!.get(`refresh_token:${userId}`),
         'getRefreshToken',
         3,
         500
       );
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get refresh token after retries', error);
       return null;
@@ -312,7 +313,7 @@ class RedisCache {
         3,
         500
       );
-      return data ? JSON.parse(data) : null;
+      return data ? (JSON.parse(data as string) as { userId: string; type: string }) : null;
     } catch (error) {
       logger.error('Failed to get verification token after retries', error);
       return null;
@@ -344,12 +345,13 @@ class RedisCache {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await withRetry(
+      const result = await withRetry(
         () => this.client!.get(key),
         'get',
         3,
         500
       );
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get key from Redis after retries', error);
       return null;

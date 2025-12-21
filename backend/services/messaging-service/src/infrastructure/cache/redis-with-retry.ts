@@ -202,12 +202,13 @@ class RedisClient {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await withRetry(
+      const result = await withRetry(
         () => this.client!.get(`socket:${socketId}`),
         'getUserIdFromSocket',
         3,
         500
-      ) || null;
+      );
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get user ID from socket', error);
       return null;
@@ -281,7 +282,7 @@ class RedisClient {
         3,
         500
       );
-      return data ? JSON.parse(data) : null;
+      return data ? (JSON.parse(data as string) as any) : null;
     } catch (error) {
       logger.error('Failed to get cached message', error);
       return null;
@@ -321,7 +322,7 @@ class RedisClient {
         3,
         500
       );
-      return members || [];
+      return (members as string[]) || [];
     } catch (error) {
       logger.error('Failed to get blocked users list', error);
       return [];
@@ -341,7 +342,7 @@ class RedisClient {
         3,
         500
       );
-      return members || [];
+      return (members as string[]) || [];
     } catch (error) {
       logger.error('Failed to get blocked-by users list', error);
       return [];
@@ -401,12 +402,13 @@ class RedisClient {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      return await withRetry(
+      const result = await withRetry(
         () => this.client!.get(key),
         'get',
         3,
         500
-      ) || null;
+      );
+      return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get value:', error);
       return null;

@@ -1,0 +1,984 @@
+openapi: 3.0.3
+info:
+  title: Flamoral Dating Platform API
+  version: 1.0.0
+  description: >
+    Production API contract for Flamoral. All endpoints are server-authoritative.
+servers:
+  - url: /api
+
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Discovery
+  - name: Matches
+  - name: Conversations
+  - name: Calls
+  - name: Verification
+  - name: Reports
+  - name: Moderation
+  - name: Subscriptions
+  - name: Media
+  - name: Audit
+  - name: Health
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new user (age gate + consent required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthSessionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthSessionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Exchange refresh token for new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthSessionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/session:
+    get:
+      tags: [Auth]
+      summary: Get current session + entitlements snapshot
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /profile/me:
+    get:
+      tags: [Profile]
+      summary: Get my profile (server truth)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProfileResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [Profile]
+      summary: Update my profile (versioned)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdateRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProfileResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /profile/photos:
+    post:
+      tags: [Profile]
+      summary: Upload a profile photo (tier limits enforced)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                caption:
+                  type: string
+                  maxLength: 200
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoResponse' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+
+  /profile/photos/{photo_id}:
+    delete:
+      tags: [Profile]
+      summary: Delete a profile photo
+      parameters:
+        - in: path
+          name: photo_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /discovery/feed:
+    get:
+      tags: [Discovery]
+      summary: Get discovery feed candidates (must never be empty when eligible users exist)
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DiscoveryFeedResponse' }
+
+  /discovery/like:
+    post:
+      tags: [Discovery]
+      summary: Like a user (caps enforced server-side)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TargetUserRequest' }
+      responses:
+        '200':
+          description: OK (may create match)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LikeResponse' }
+        '402': { $ref: '#/components/responses/PaymentRequiredOrUpgrade' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /discovery/pass:
+    post:
+      tags: [Discovery]
+      summary: Pass on a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TargetUserRequest' }
+      responses:
+        '204': { description: OK }
+
+  /discovery/super-like:
+    post:
+      tags: [Discovery]
+      summary: Super-like a user (tier enforced)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TargetUserRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuperLikeResponse' }
+        '402': { $ref: '#/components/responses/PaymentRequiredOrUpgrade' }
+
+  /matches:
+    get:
+      tags: [Matches]
+      summary: List my matches
+      parameters:
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 30 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchesResponse' }
+
+  /matches/{match_id}:
+    delete:
+      tags: [Matches]
+      summary: Unmatch
+      parameters:
+        - in: path
+          name: match_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Deleted }
+
+  /conversations:
+    get:
+      tags: [Conversations]
+      summary: List my conversations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConversationsResponse' }
+
+  /conversations/{conversation_id}:
+    get:
+      tags: [Conversations]
+      summary: Get conversation thread
+      parameters:
+        - in: path
+          name: conversation_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConversationResponse' }
+
+  /conversations/{conversation_id}/messages:
+    post:
+      tags: [Conversations]
+      summary: Send a message (idempotent)
+      parameters:
+        - in: path
+          name: conversation_id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SendMessageRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /calls/request:
+    post:
+      tags: [Calls]
+      summary: Request a 1:1 call (must be matched + allowed by policy)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CallRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CallSessionResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /calls/accept:
+    post:
+      tags: [Calls]
+      summary: Accept a call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CallAcceptRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CallSessionResponse' }
+
+  /calls/reject:
+    post:
+      tags: [Calls]
+      summary: Reject a call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CallEndRequest' }
+      responses:
+        '204': { description: OK }
+
+  /calls/end:
+    post:
+      tags: [Calls]
+      summary: End a call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CallEndRequest' }
+      responses:
+        '204': { description: OK }
+
+  /verification/start:
+    post:
+      tags: [Verification]
+      summary: Start a verification flow (consent + region policy)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VerificationStartRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerificationStatusResponse' }
+
+  /verification/upload:
+    post:
+      tags: [Verification]
+      summary: Upload verification artifact (ID/selfie/video/etc.)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [request_id, file]
+              properties:
+                request_id: { type: string, format: uuid }
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerificationStatusResponse' }
+
+  /verification/status:
+    get:
+      tags: [Verification]
+      summary: Get current verification status (must reflect live truth)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerificationStatusResponse' }
+
+  /reports:
+    post:
+      tags: [Reports]
+      summary: Report a user or content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportResponse' }
+
+  /subscriptions/plans:
+    get:
+      tags: [Subscriptions]
+      summary: List subscription plans
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubscriptionPlansResponse' }
+
+  /subscriptions/subscribe:
+    post:
+      tags: [Subscriptions]
+      summary: Subscribe to a plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubscribeRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubscriptionStatusResponse' }
+
+  /subscriptions/status:
+    get:
+      tags: [Subscriptions]
+      summary: Get subscription status + entitlements
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubscriptionStatusResponse' }
+
+  /media/upload:
+    post:
+      tags: [Media]
+      summary: Upload media (validated, scanned, tier limits)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                purpose: { type: string, enum: [profile_photo, chat_attachment, verification_artifact] }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaResponse' }
+
+  /audit/logs:
+    get:
+      tags: [Audit]
+      summary: List my audit log events (append-only)
+      parameters:
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditLogsResponse' }
+
+  /health:
+    get:
+      tags: [Health]
+      security: []
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthResponse' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    RateLimited:
+      description: Rate limited
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    PayloadTooLarge:
+      description: Payload too large
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    PaymentRequiredOrUpgrade:
+      description: Upgrade required for this action
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  required_plan: { type: string }
+                  current_plan: { type: string }
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message, correlation_id]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        correlation_id: { type: string }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, date_of_birth, country, consents]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10 }
+        date_of_birth: { type: string, format: date }
+        country: { type: string, minLength: 2, maxLength: 2 }
+        consents:
+          type: object
+          required: [terms, privacy]
+          properties:
+            terms: { type: boolean }
+            privacy: { type: boolean }
+            marketing: { type: boolean }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+
+    AuthSessionResponse:
+      type: object
+      required: [access_token, refresh_token, expires_in]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer }
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        entitlements:
+          $ref: '#/components/schemas/EntitlementsSnapshot'
+
+    SessionResponse:
+      type: object
+      required: [user, entitlements]
+      properties:
+        user: { $ref: '#/components/schemas/UserSummary' }
+        entitlements: { $ref: '#/components/schemas/EntitlementsSnapshot' }
+
+    UserSummary:
+      type: object
+      required: [user_id, email, role, created_at]
+      properties:
+        user_id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        role: { type: string, enum: [user, moderator, admin, support] }
+        created_at: { type: string, format: date-time }
+
+    EntitlementsSnapshot:
+      type: object
+      required: [plan, limits, features]
+      properties:
+        plan: { type: string }
+        limits:
+          type: object
+          properties:
+            daily_likes: { type: integer }
+            daily_super_likes: { type: integer }
+            daily_boosts: { type: integer }
+            max_photos: { type: integer }
+        features:
+          type: object
+          properties:
+            who_liked_you: { type: boolean }
+            read_receipts: { type: boolean }
+            advanced_filters: { type: boolean }
+            calls_enabled: { type: boolean }
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        display_name: { type: string, maxLength: 50 }
+        bio: { type: string, maxLength: 2000 }
+        gender: { type: string }
+        interests:
+          type: array
+          items: { type: string, maxLength: 50 }
+        location:
+          $ref: '#/components/schemas/Location'
+        preferences:
+          $ref: '#/components/schemas/PreferenceProfile'
+
+    ProfileResponse:
+      type: object
+      required: [user_id, profile, verification, subscription]
+      properties:
+        user_id: { type: string, format: uuid }
+        profile:
+          $ref: '#/components/schemas/Profile'
+        verification:
+          $ref: '#/components/schemas/VerificationSummary'
+        subscription:
+          $ref: '#/components/schemas/SubscriptionSummary'
+
+    Profile:
+      type: object
+      properties:
+        display_name: { type: string }
+        bio: { type: string }
+        gender: { type: string }
+        interests:
+          type: array
+          items: { type: string }
+        location: { $ref: '#/components/schemas/Location' }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/Photo' }
+
+    Photo:
+      type: object
+      required: [photo_id, url, status]
+      properties:
+        photo_id: { type: string, format: uuid }
+        url: { type: string }
+        status: { type: string, enum: [pending_scan, approved, rejected] }
+
+    PhotoResponse:
+      type: object
+      required: [photo]
+      properties:
+        photo: { $ref: '#/components/schemas/Photo' }
+
+    Location:
+      type: object
+      properties:
+        country: { type: string, minLength: 2, maxLength: 2 }
+        city: { type: string }
+        region: { type: string }
+        lat: { type: number }
+        lon: { type: number }
+
+    PreferenceProfile:
+      type: object
+      properties:
+        age_min: { type: integer, minimum: 18, maximum: 99 }
+        age_max: { type: integer, minimum: 18, maximum: 99 }
+        distance_km: { type: integer, minimum: 1, maximum: 500 }
+        genders:
+          type: array
+          items: { type: string }
+
+    DiscoveryFeedResponse:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/DiscoveryCandidate' }
+        next_cursor: { type: string, nullable: true }
+
+    DiscoveryCandidate:
+      type: object
+      required: [user_id, profile_preview, reasons]
+      properties:
+        user_id: { type: string, format: uuid }
+        profile_preview:
+          $ref: '#/components/schemas/ProfilePreview'
+        reasons:
+          type: array
+          items: { type: string }
+
+    ProfilePreview:
+      type: object
+      properties:
+        display_name: { type: string }
+        age: { type: integer }
+        city: { type: string }
+        photos:
+          type: array
+          items: { type: string }
+
+    TargetUserRequest:
+      type: object
+      required: [target_user_id]
+      properties:
+        target_user_id: { type: string, format: uuid }
+
+    LikeResponse:
+      type: object
+      required: [liked, match_created]
+      properties:
+        liked: { type: boolean }
+        match_created: { type: boolean }
+        match:
+          $ref: '#/components/schemas/Match'
+          nullable: true
+
+    SuperLikeResponse:
+      type: object
+      required: [super_liked]
+      properties:
+        super_liked: { type: boolean }
+
+    MatchesResponse:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Match' }
+        next_cursor: { type: string, nullable: true }
+
+    Match:
+      type: object
+      required: [match_id, user_a_id, user_b_id, created_at]
+      properties:
+        match_id: { type: string, format: uuid }
+        user_a_id: { type: string, format: uuid }
+        user_b_id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+
+    ConversationsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ConversationSummary' }
+
+    ConversationSummary:
+      type: object
+      required: [conversation_id, match_id, last_message_at]
+      properties:
+        conversation_id: { type: string, format: uuid }
+        match_id: { type: string, format: uuid }
+        last_message_at: { type: string, format: date-time }
+
+    ConversationResponse:
+      type: object
+      required: [conversation_id, messages]
+      properties:
+        conversation_id: { type: string, format: uuid }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/MessageResponse' }
+
+    SendMessageRequest:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [text, image, voice] }
+        content: { type: string, nullable: true }
+        media_id: { type: string, format: uuid, nullable: true }
+
+    MessageResponse:
+      type: object
+      required: [message_id, conversation_id, sender_id, type, created_at]
+      properties:
+        message_id: { type: string, format: uuid }
+        conversation_id: { type: string, format: uuid }
+        sender_id: { type: string, format: uuid }
+        type: { type: string }
+        content: { type: string, nullable: true }
+        media_id: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    CallRequest:
+      type: object
+      required: [match_id, type]
+      properties:
+        match_id: { type: string, format: uuid }
+        type: { type: string, enum: [audio, video] }
+
+    CallAcceptRequest:
+      type: object
+      required: [call_id]
+      properties:
+        call_id: { type: string, format: uuid }
+
+    CallEndRequest:
+      type: object
+      required: [call_id]
+      properties:
+        call_id: { type: string, format: uuid }
+
+    CallSessionResponse:
+      type: object
+      required: [call_id, status]
+      properties:
+        call_id: { type: string, format: uuid }
+        status: { type: string, enum: [requested, ringing, active, ended, rejected] }
+        provider: { type: string, nullable: true }
+        provider_room: { type: string, nullable: true }
+
+    VerificationStartRequest:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [email, phone, id, selfie, liveness, video, biometric] }
+
+    VerificationStatusResponse:
+      type: object
+      required: [status]
+      properties:
+        request_id: { type: string, format: uuid, nullable: true }
+        status: { type: string, enum: [not_started, pending, in_review, approved, denied, expired] }
+        reason_code: { type: string, nullable: true }
+
+    VerificationSummary:
+      type: object
+      properties:
+        verified: { type: boolean }
+        level: { type: string, nullable: true }
+        status: { type: string }
+
+    ReportCreateRequest:
+      type: object
+      required: [target_user_id, category]
+      properties:
+        target_user_id: { type: string, format: uuid }
+        category: { type: string, enum: [harassment, scam, impersonation, underage, spam, nudity, violence, hate] }
+        description: { type: string, maxLength: 4000 }
+        evidence_media_id: { type: string, format: uuid, nullable: true }
+
+    ReportResponse:
+      type: object
+      required: [report_id, status]
+      properties:
+        report_id: { type: string, format: uuid }
+        status: { type: string, enum: [received, triaged, action_taken, closed] }
+
+    SubscriptionPlansResponse:
+      type: object
+      required: [plans]
+      properties:
+        plans:
+          type: array
+          items: { $ref: '#/components/schemas/SubscriptionPlan' }
+
+    SubscriptionPlan:
+      type: object
+      required: [plan_id, name, price, currency]
+      properties:
+        plan_id: { type: string }
+        name: { type: string }
+        price: { type: number }
+        currency: { type: string }
+
+    SubscribeRequest:
+      type: object
+      required: [plan_id]
+      properties:
+        plan_id: { type: string }
+        payment_method_id: { type: string, nullable: true }
+
+    SubscriptionStatusResponse:
+      type: object
+      required: [plan, status, entitlements]
+      properties:
+        plan: { type: string }
+        status: { type: string, enum: [active, past_due, canceled, trialing] }
+        renews_at: { type: string, format: date-time, nullable: true }
+        entitlements: { $ref: '#/components/schemas/EntitlementsSnapshot' }
+
+    SubscriptionSummary:
+      type: object
+      properties:
+        plan: { type: string }
+        status: { type: string }
+
+    MediaResponse:
+      type: object
+      required: [media_id, url, status]
+      properties:
+        media_id: { type: string, format: uuid }
+        url: { type: string }
+        status: { type: string, enum: [pending_scan, approved, rejected] }
+
+    AuditLogsResponse:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AuditLogEvent' }
+        next_cursor: { type: string, nullable: true }
+
+    AuditLogEvent:
+      type: object
+      required: [event_id, event_type, actor_user_id, created_at, correlation_id]
+      properties:
+        event_id: { type: string, format: uuid }
+        event_type: { type: string }
+        actor_user_id: { type: string, format: uuid }
+        subject_user_id: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+        correlation_id: { type: string }
+
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status: { type: string, enum: [ok] }
+        version: { type: string }

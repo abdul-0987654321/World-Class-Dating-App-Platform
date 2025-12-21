@@ -473,7 +473,7 @@ export class SocketManager {
     try {
       const statusStr = await redisClient.getClient().get(`user:online:${userId}`);
       if (statusStr) {
-        return JSON.parse(statusStr);
+        return JSON.parse(statusStr as string) as OnlineStatus;
       }
       return null;
     } catch (error: any) {
