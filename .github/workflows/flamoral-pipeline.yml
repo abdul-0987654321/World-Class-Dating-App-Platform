@@ -39,11 +39,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AZURE_RESOURCE_GROUP: flamoral-rg
-  ACR_NAME: flamoralacr
-  AKS_CLUSTER: flamoral-aks
+  AZURE_RESOURCE_GROUP: flamoral-prod-rg
+  ACR_NAME: flamoralprodacr
+  AKS_CLUSTER: flamoral-prod-aks
   NODE_VERSION: '20'
-  REGISTRY: flamoralacr.azurecr.io
+  REGISTRY: flamoralprodacr.azurecr.io
 
 permissions:
   contents: read
@@ -271,8 +271,8 @@ jobs:
       - name: Get AKS Credentials
         run: |
           az aks get-credentials \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}-${{ needs.setup.outputs.environment }} \
-            --name ${{ env.AKS_CLUSTER }}-${{ needs.setup.outputs.environment }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
             --overwrite-existing
 
       - name: Set Image Tag
@@ -286,19 +286,23 @@ jobs:
         run: |
           ENV=${{ needs.setup.outputs.environment }}
           TAG=${{ steps.tag.outputs.tag }}
+          NAMESPACE="flamoral"
+
+          # Create namespace if not exists
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
 
           # Update image tags in deployments
           kubectl set image deployment/api-gateway \
             api-gateway=${{ env.REGISTRY }}/api-gateway:${TAG} \
-            -n flamoral-${ENV} || true
+            -n ${NAMESPACE} || true
 
           kubectl set image deployment/web-app \
             web-app=${{ env.REGISTRY }}/web-app:${TAG} \
-            -n flamoral-${ENV} || true
+            -n ${NAMESPACE} || true
 
           # Wait for rollout
-          kubectl rollout status deployment/api-gateway -n flamoral-${ENV} --timeout=300s || true
-          kubectl rollout status deployment/web-app -n flamoral-${ENV} --timeout=300s || true
+          kubectl rollout status deployment/api-gateway -n ${NAMESPACE} --timeout=300s || true
+          kubectl rollout status deployment/web-app -n ${NAMESPACE} --timeout=300s || true
 
       - name: Deployment Summary
         run: |
@@ -389,17 +393,17 @@ jobs:
       - name: Get AKS Credentials
         run: |
           az aks get-credentials \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}-${{ needs.setup.outputs.environment }} \
-            --name ${{ env.AKS_CLUSTER }}-${{ needs.setup.outputs.environment }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
             --overwrite-existing
 
       - name: Rollback Deployment
         run: |
-          ENV=${{ needs.setup.outputs.environment }}
+          NAMESPACE="flamoral"
 
-          echo "Rolling back deployments in flamoral-${ENV}..."
-          kubectl rollout undo deployment/api-gateway -n flamoral-${ENV} || true
-          kubectl rollout undo deployment/web-app -n flamoral-${ENV} || true
+          echo "Rolling back deployments in ${NAMESPACE}..."
+          kubectl rollout undo deployment/api-gateway -n ${NAMESPACE} || true
+          kubectl rollout undo deployment/web-app -n ${NAMESPACE} || true
 
           echo "## Rollback Executed" >> $GITHUB_STEP_SUMMARY
           echo "Previous deployment restored due to health check failure" >> $GITHUB_STEP_SUMMARY
