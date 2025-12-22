@@ -34,10 +34,16 @@
     "constants/**/*",
     "config/**/*",
     "src/**/*",
+    "errors/**/*",
+    "middleware/**/*",
     "index.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }
