@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 import mediaRoutes from './api/routes/media.routes';
 import azureStorageService from './infrastructure/storage/azure-storage.service';
 import workerManager from './workers/worker-manager';

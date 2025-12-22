@@ -8,7 +8,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import config from './config';
 import { dbClient } from './infrastructure/database/db-client';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();

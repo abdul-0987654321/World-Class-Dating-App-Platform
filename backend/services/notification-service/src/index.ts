@@ -6,7 +6,7 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 import logger from './utils/logger';
 import { config } from './config';
 import { testConnection } from './config/database';

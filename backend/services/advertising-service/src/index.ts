@@ -15,7 +15,7 @@ import targetingRoutes from './api/routes/targeting.routes';
 import creativeRoutes from './api/routes/creative.routes';
 import optimizationRoutes from './api/routes/optimization.routes';
 import innovationsRoutes from './api/routes/innovations.routes';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();

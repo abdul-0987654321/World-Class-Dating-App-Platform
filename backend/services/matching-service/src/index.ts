@@ -2,14 +2,15 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@flamoral/shared';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
 import {
+  createLogger,
+  createValidator,
+  commonValidations,
   correlationIdMiddleware,
   errorHandlerMiddleware,
   notFoundHandler,
   initializeGlobalErrorHandlers,
-} from '../../../shared/middleware';
+} from '@flamoral/shared';
 import swipeRoutes from './api/routes/swipe.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';

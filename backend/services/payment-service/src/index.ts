@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 import { db } from './infrastructure/database/connection';
 
 // Import routes

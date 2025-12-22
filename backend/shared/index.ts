@@ -7,6 +7,7 @@ export * from './types/message.types';
 export { default as createLogger } from './utils/logger';
 export * from './utils/validation';
 export * from './utils/encryption';
+export * from './utils/env-validator';
 
 // Constants
 export * from './constants/app.constants';

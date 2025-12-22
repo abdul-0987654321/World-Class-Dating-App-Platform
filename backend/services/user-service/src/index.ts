@@ -31,7 +31,7 @@ import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
 import { initializeSocket } from './infrastructure/websocket/socket.config';
 import { initializeEncryptionKey } from './utils/encryption';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 import db from './infrastructure/database/connection';
 
 // Load environment variables

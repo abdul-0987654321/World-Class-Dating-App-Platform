@@ -14,7 +14,7 @@ import { SocketManager } from './infrastructure/websocket/socket-manager';
 import { MessageAutomationService } from './services/message-automation.service';
 import automationRoutes from './routes';
 import apiRoutes from './api/routes';
-import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import { createValidator, commonValidations } from '@flamoral/shared';
 
 // Load environment variables
 dotenv.config();
