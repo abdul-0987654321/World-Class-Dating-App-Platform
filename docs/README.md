@@ -1,195 +1,161 @@
 # Flamoral Platform Documentation
 
-Welcome to the Flamoral dating platform documentation.
-
-**Last Updated:** 2025-12-21
-**Version:** 3.1.0
+**Version:** 4.0.0
+**Last Updated:** 2025-12-22
 
 ---
 
-## Authoritative Contract Documents
+## Quick Navigation
 
-> **CRITICAL**: These documents are the source of truth. If code differs, either implement to match or update the contract with justification.
+| Section | Description |
+|---------|-------------|
+| [00-overview](./00-overview/) | Platform summary, glossary, core principles |
+| [01-architecture](./01-architecture/) | System design, data models, service boundaries |
+| [02-api](./02-api/) | API inventory, OpenAPI specs, error handling |
+| [03-security](./03-security/) | Authentication, authorization, threat model |
+| [04-compliance](./04-compliance/) | GDPR, privacy, regulatory compliance |
+| [05-reliability](./05-reliability/) | SLO/SLA, runbooks, incident response |
+| [06-testing](./06-testing/) | Test inventory, testing strategy |
+| [07-operations](./07-operations/) | Deployment, monitoring, operations |
+
+---
+
+## Authoritative Documents
+
+> **CRITICAL**: These are the source of truth. If code differs, update the code or document changes.
 
 | Document | Description |
 |----------|-------------|
-| [API Inventory](./02-api/api-inventory.md) | Canonical endpoint and database contract |
-| [OpenAPI Spec](./02-api/openapi.yaml) | Machine-readable API contract |
-| [Non-Negotiables](./00-overview/non-negotiables.md) | Critical rules and SEV-1 definitions |
-| [Runbooks](./05-reliability/runbooks.md) | SEV-1 incident response procedures |
+| [System Map](./01-architecture/SYSTEM_MAP.md) | Complete service architecture |
+| [API Inventory](./02-api/API_INVENTORY.md) | All 150+ API endpoints |
+| [OpenAPI Spec](./02-api/openapi-complete.yaml) | Machine-readable API contract |
+| [Non-Negotiables](./00-overview/non-negotiables.md) | Critical rules and requirements |
 
 ---
 
-## New Structured Documentation
+## Documentation by Section
 
-### Overview (`docs/00-overview/`)
-- [Platform Summary](./00-overview/platform-summary.md) - What is Flamoral
-- [Glossary](./00-overview/glossary.md) - Standard terminology
-- [Non-Negotiables](./00-overview/non-negotiables.md) - Critical rules
-- [Claude Fix Everything Prompt](./00-overview/CLAUDE_FIX_EVERYTHING_PROMPT.md) - Enforcement prompt
+### 00-overview/
+- **platform-summary.md** - Executive summary of Flamoral
+- **non-negotiables.md** - Core requirements that must be maintained
+- **glossary.md** - Platform terminology and definitions
 
-### Architecture (`docs/01-architecture/`)
-- [Platform Architecture](./01-architecture/platform-architecture.md) - System architecture
-- [Service Boundaries](./01-architecture/service-boundaries.md) - Service ownership
-- [Data Model](./01-architecture/data-model.md) - Database schema
+### 01-architecture/
+- **SYSTEM_MAP.md** - Complete service map with ports and dependencies
+- **platform-architecture.md** - High-level architecture overview
+- **service-boundaries.md** - Microservice boundaries and responsibilities
+- **data-model.md** - Database entities and relationships
+- **DATABASE_SCHEMA.md** - Detailed database schema
+- **PRODUCT_SPECIFICATION.md** - Product requirements
+- **adr/** - Architecture Decision Records
 
-### API (`docs/02-api/`)
-- [API Inventory](./02-api/api-inventory.md) - All endpoints + database tables
-- [OpenAPI Spec](./02-api/openapi.yaml) - OpenAPI 3.0 specification
-- [Error Handling](./errors.md) - Unified error handling system
+### 02-api/
+- **API_INVENTORY.md** - Complete endpoint inventory (150+ endpoints)
+- **openapi-complete.yaml** - Full OpenAPI 3.0 specification
+- **WEBSOCKET_API.md** - Real-time messaging API
+- **INTEGRATION_GUIDES.md** - Third-party integrations
+- **errors/** - Error handling documentation
+  - error-codes.md
+  - api-contract.md
+  - frontend-handling.md
+  - backend-integration.md
+- **dating-platform.postman_collection.json** - Postman collection
 
-### Security (`docs/03-security/`)
-- [Threat Model](./03-security/threat-model.md) - Security threats and mitigations
-- [Auth & RBAC](./03-security/auth-rbac.md) - Authentication and authorization
+### 03-security/
+- **authentication-architecture.md** - JWT, OAuth, session management
+- **auth-rbac.md** - Role-based access control
+- **threat-model.md** - Security threats and mitigations
 
-### Compliance (`docs/04-compliance/`)
-- [Compliance Matrix](./04-compliance/compliance-matrix.md) - Regulatory requirements
-- [Privacy & Consent](./04-compliance/privacy-and-consent.md) - Privacy controls
+### 04-compliance/
+- **compliance-matrix.md** - Compliance requirements
+- **privacy-and-consent.md** - GDPR, data protection
 
-### Reliability (`docs/05-reliability/`)
-- [Runbooks](./05-reliability/runbooks.md) - Incident response
-- [SLO/SLA](./05-reliability/slo-sla.md) - Service level objectives
+### 05-reliability/
+- **slo-sla.md** - Service level objectives
+- **runbooks.md** - Operational runbooks
 
-### Testing (`docs/06-testing/`)
-- [Test Inventory](./06-testing/test-inventory.md) - Test coverage strategy
+### 06-testing/
+- **test-inventory.md** - Test coverage and strategy
+
+---
+
+## Service Quick Reference
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| API Gateway | 4000 | Entry point, routing, auth verification |
+| Auth Service | 3001 | Authentication, JWT, OAuth |
+| User Service | 3002 | Profile management |
+| Matching Service | 3003 | AI recommendations, swipes |
+| Messaging Service | 5000 | Real-time messaging (Socket.io) |
+| Payment Service | 3005 | Subscriptions, Stripe |
+| Notification Service | 3008 | Push, email, SMS |
+| Media Service | 3009 | Photo processing |
+| Admin Service | 3010 | Admin dashboard |
+| Analytics Service | 3007 | Event tracking |
+| Moderation Service | 3012 | Content moderation |
+| Advertising Service | 3011 | Ad management |
+| Automation Service | 3013 | Workflow automation |
+
+---
+
+## Scripts & Tools
+
+Located in `/scripts/`:
+
+| Script | Purpose |
+|--------|---------|
+| `validate-traffic.sh` | Traffic flow validation |
+| `test-harness.sh` | Automated test suite |
+| `release-readiness-gate.sh` | Pre-deployment checks |
+| `synthetic-monitoring.ts` | User journey validation |
 
 ---
 
 ## Quick Start by Role
 
-- **Developers** → [Development Setup](./development/setup.md)
-- **DevOps** → [Azure Deployment](./deployment/azure-deployment.md)
-- **Security** → [Security Overview](./security/security-overview.md)
-- **Product** → [Product Requirements](./prd/PRD.md)
-- **Testing** → [Testing Guide](./testing/README.md)
+### Developers
+1. [System Map](./01-architecture/SYSTEM_MAP.md) - Understand architecture
+2. [API Inventory](./02-api/API_INVENTORY.md) - All endpoints
+3. [Error Codes](./02-api/errors/error-codes.md) - Error handling
 
----
-
-## Core Documentation
-
-### Architecture
-- **[Architecture Overview](./architecture/overview.md)** - System architecture (NEW)
-- [Database Schema](./architecture/DATABASE_SCHEMA.md)
-
-### Development
-- **[Development Setup](./development/setup.md)** - Local environment setup (NEW)
-- **[Contributing Guidelines](./development/contributing.md)** - How to contribute (NEW)
-- [Development Inventory](./development/development-inventory.md)
-
-### API Documentation
-- [API Inventory](./api/api-inventory.md) - All API endpoints
-- [OpenAPI Specification](./api/openapi.yaml)
-- **[Error Handling Guide](./errors.md)** - Error codes and handling (NEW)
-
-### Deployment
-- **[Azure Deployment Guide](./deployment/azure-deployment.md)** - Deploy to Azure (NEW)
-- [Deployment Checklist](./deployment/DEPLOYMENT_CHECKLIST.md)
-- [Rollback Plan](./deployment/ROLLBACK_PLAN.md)
+### DevOps/SRE
+1. [System Map](./01-architecture/SYSTEM_MAP.md) - Infrastructure
+2. [Runbooks](./05-reliability/runbooks.md) - Incident response
+3. [SLO/SLA](./05-reliability/slo-sla.md) - Service targets
 
 ### Security
-- **[Security Overview](./security/security-overview.md)** - Security practices (NEW)
-- [OWASP Top 10 Checklist](./security-compliance/OWASP_TOP_10_CHECKLIST.md)
-- [Penetration Testing Plan](./security-compliance/PENETRATION_TESTING_PLAN.md)
-- [GDPR Privacy Audit](./security-compliance/GDPR_PRIVACY_AUDIT.md)
-
-### Testing
-- [Testing Guide](./testing/README.md)
-- [Test Inventory](./testing/test-inventory.md)
-- [Test Accounts](./TEST-ACCOUNTS.md)
-
-### Operations
-- [Operations Runbooks](./operations/)
-- [Incident Response](./operations/INCIDENT_RESPONSE_RUNBOOK.md)
-- [Launch Runbook](./operations/LAUNCH_RUNBOOK.md)
-
-### Product
-- [Product Requirements Document](./prd/PRD.md)
-- [Platform Requirements](./Platform-Requirements.md)
-- [Roadmap](./ROADMAP_MVP_TO_PRODUCTION.md)
+1. [Authentication](./03-security/authentication-architecture.md) - Auth flow
+2. [Threat Model](./03-security/threat-model.md) - Security threats
+3. [Compliance](./04-compliance/compliance-matrix.md) - Regulatory
 
 ---
 
-## Platform Overview
+## Technology Stack
 
-### Microservices (18 Services)
-
-**Core:**
-- API Gateway, Auth Service, User Service
-- Matching Service, Messaging Service, Media Service
-- Notification Service, Payment Service, Analytics Service
-- Moderation Service, Admin Service, Automation Service
-- Realtime Service, Policy Service, Workflow Engine
-
-**AI Services:**
-- Dating Coach, Photo Analysis, Fraud Detection
-- NLP Service, Recommendation Service (ML)
-
-### Technology Stack
-
-- **Frontend:** React 18, TypeScript, Redux Toolkit
-- **Backend:** Node.js 20, NestJS, TypeScript
-- **Databases:** PostgreSQL 16, MongoDB 7, Redis 7
-- **Cloud:** Azure (Container Apps, Front Door, Key Vault)
-- **CI/CD:** GitHub Actions, Docker
+- **Frontend:** React 18, React Native, TypeScript
+- **Backend:** Node.js 20, Express/NestJS, TypeScript
+- **Databases:** PostgreSQL, Redis, MongoDB
+- **Cloud:** Azure AKS, Azure PostgreSQL, Azure Redis
+- **CI/CD:** GitHub Actions, Azure ACR
 
 ---
 
-## Getting Started
+## Archive
 
-### Developers
-
-```bash
-# Clone and install
-git clone https://github.com/your-org/flamoral.git
-cd flamoral && npm install
-
-# Start local development
-cd infrastructure/local-dev
-docker-compose up -d
-npm run dev:all
-```
-
-See [Development Setup](./development/setup.md) for details.
-
-### DevOps
-
-1. [Azure Deployment Guide](./deployment/azure-deployment.md)
-2. [Deployment Checklist](./deployment/DEPLOYMENT_CHECKLIST.md)  
-3. [Operations Runbooks](./operations/)
-
-### Security Teams
-
-1. [Security Overview](./security/security-overview.md)
-2. [OWASP Top 10 Checklist](./security-compliance/OWASP_TOP_10_CHECKLIST.md)
-3. [Incident Response Plan](./security-compliance/SECURITY_INCIDENT_RESPONSE_PLAN.md)
+Legacy documentation preserved in `archive/` for reference.
 
 ---
 
-## Support
+## Recent Changes
 
-- **Team Chat:** Slack #flamoral-dev
-- **Documentation:** This site
-- **Issues:** GitHub Issues
-
----
-
-## Recent Changes (v3.1.0 - 2025-12-21)
-
-- Created comprehensive [Error Handling Guide](./errors.md) with:
-  - [Error Codes Reference](./errors/error-codes.md)
-  - [Frontend Error Handling](./errors/frontend-handling.md)
-  - [Backend Integration Guide](./errors/backend-integration.md)
-  - [API Error Contract](./errors/api-contract.md)
-
-## Previous Changes (v3.0.0 - 2025-12-18)
-
-- Created consolidated [Architecture Overview](./architecture/overview.md)
-- Created consolidated [Security Overview](./security/security-overview.md)
-- Created [Development Setup Guide](./development/setup.md)
-- Created [Contributing Guidelines](./development/contributing.md)
-- Created [Azure Deployment Guide](./deployment/azure-deployment.md)
-- Improved navigation and organization
+### v4.0.0 (2025-12-22)
+- Reorganized documentation into clean numbered structure
+- Added comprehensive [System Map](./01-architecture/SYSTEM_MAP.md)
+- Added complete [API Inventory](./02-api/API_INVENTORY.md) with 150+ endpoints
+- Archived legacy/duplicate documentation
+- Created scripts for validation and monitoring
 
 ---
 
-**Version:** 3.1.0 | **Last Updated:** 2025-12-21
+*Maintained by the Flamoral Platform Team*

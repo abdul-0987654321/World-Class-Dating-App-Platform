@@ -1,0 +1,1758 @@
+openapi: 3.0.3
+info:
+  title: Flamoral Dating Platform API
+  description: |
+    # Flamoral Dating Platform API Documentation
+
+    Complete API documentation for the Flamoral Dating Platform - a modern, feature-rich dating application.
+
+    ## Features
+
+    - **Authentication**: Email/password, social login (Google, Facebook, Apple), phone verification
+    - **User Profiles**: Rich profiles with photos, bio, interests, verification badges
+    - **Discovery**: Smart matching algorithm with filters and preferences
+    - **Messaging**: Real-time messaging with text, images, GIFs, voice notes, and video calls
+    - **Subscriptions**: Free, Premium, and Premium Plus tiers
+    - **Coins & Boosts**: Virtual currency for premium features and profile boosts
+    - **Privacy & Safety**: Blocking, reporting, photo verification, content moderation
+    - **Payments**: Stripe integration for subscriptions, coins, and in-app purchases
+    - **Analytics**: User behavior tracking and engagement metrics
+    - **Admin**: Comprehensive admin dashboard for platform management
+
+    ## Architecture
+
+    The platform uses a microservices architecture:
+    - **API Gateway**: Request routing, rate limiting, authentication
+    - **Auth Service**: User authentication and authorization
+    - **User Service**: Profile management, subscriptions, coins, boosts
+    - **Matching Service**: Discovery algorithm, swipes, matches
+    - **Messaging Service**: Real-time messaging via WebSocket
+    - **Media Service**: Photo/video upload, processing, storage
+    - **Payment Service**: Stripe integration, subscriptions, transactions
+    - **Notification Service**: Push notifications, email, in-app notifications
+    - **Analytics Service**: Event tracking, metrics, reporting
+    - **Moderation Service**: Content moderation, CSAM detection
+    - **Admin Service**: Admin dashboard and management tools
+
+    ## Authentication
+
+    Most endpoints require authentication using JWT bearer tokens:
+
+    ```
+    Authorization: Bearer <access_token>
+    ```
+
+    ### Token Lifecycle
+
+    1. **Login**: Obtain access token and refresh token
+    2. **Access Token**: Valid for 15 minutes (use for API requests)
+    3. **Refresh Token**: Valid for 30 days (use to obtain new access token)
+    4. **Logout**: Invalidate refresh token
+
+    ### Obtaining Tokens
+
+    ```bash
+    POST /api/auth/login
+    Content-Type: application/json
+
+    {
+      "email": "user@example.com",
+      "password": "SecurePass123!"
+    }
+    ```
+
+    Response:
+    ```json
+    {
+      "user": { ... },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+    ```
+
+    ### Refreshing Tokens
+
+    ```bash
+    POST /api/auth/refresh-token
+    Content-Type: application/json
+
+    {
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+    ```
+
+    ## Rate Limiting
+
+    API endpoints are rate-limited to prevent abuse:
+
+    | Endpoint Type | Rate Limit | Window |
+    |--------------|------------|---------|
+    | Authentication | 5 requests | 15 minutes |
+    | General API | 100 requests | 15 minutes |
+    | Media Upload | 20 requests | 15 minutes |
+    | Messaging | 60 requests | 1 minute |
+
+    Rate limit headers are included in responses:
+
+    ```
+    X-RateLimit-Limit: 100
+    X-RateLimit-Remaining: 95
+    X-RateLimit-Reset: 1640995200
+    ```
+
+    ## Error Handling
+
+    Errors follow a consistent format:
+
+    ```json
+    {
+      "error": "ValidationError",
+      "message": "Invalid email format",
+      "statusCode": 400,
+      "details": {
+        "field": "email",
+        "constraint": "isEmail"
+      }
+    }
+    ```
+
+    ### Common Error Codes
+
+    | Code | Description |
+    |------|-------------|
+    | 400 | Bad Request - Invalid input |
+    | 401 | Unauthorized - Missing or invalid token |
+    | 403 | Forbidden - Insufficient permissions |
+    | 404 | Not Found - Resource does not exist |
+    | 409 | Conflict - Resource already exists |
+    | 429 | Too Many Requests - Rate limit exceeded |
+    | 500 | Internal Server Error |
+
+    ## Pagination
+
+    List endpoints support pagination:
+
+    ```bash
+    GET /api/matches?page=1&limit=20
+    ```
+
+    Response includes pagination metadata:
+
+    ```json
+    {
+      "data": [...],
+      "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 150,
+        "totalPages": 8,
+        "hasNext": true,
+        "hasPrevious": false
+      }
+    }
+    ```
+
+    ## Webhooks
+
+    The platform supports webhooks for real-time event notifications:
+
+    - **Stripe Webhooks**: Payment events, subscription updates
+    - **Moderation Webhooks**: Content moderation results
+    - **Custom Webhooks**: Match events, message events
+
+    See the Webhooks section for detailed documentation.
+
+    ## WebSocket API
+
+    Real-time features use WebSocket connections:
+
+    ```javascript
+    import io from 'socket.io-client';
+
+    const socket = io('wss://api.flamoral.com', {
+      auth: {
+        token: accessToken,
+        userId: currentUserId
+      }
+    });
+
+    // Listen for new messages
+    socket.on('message:new', (message) => {
+      console.log('New message:', message);
+    });
+
+    // Send a message
+    socket.emit('message:send', {
+      conversationId: 'conv_123',
+      receiverId: 'user_456',
+      content: 'Hello!',
+      type: 'text'
+    }, (response) => {
+      console.log('Message sent:', response);
+    });
+    ```
+
+    See the WebSocket API section for detailed documentation.
+
+  version: 2.0.0
+  contact:
+    name: Flamoral Platform Team
+    email: api@flamoral.com
+    url: https://flamoral.com/support
+  license:
+    name: Proprietary
+    url: https://flamoral.com/terms
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api-staging.flamoral.com
+    description: Staging environment
+  - url: https://api.flamoral.com
+    description: Production API
+
+tags:
+  - name: Authentication
+    description: User authentication, registration, and session management
+  - name: Social Login
+    description: OAuth authentication with Google, Facebook, and Apple
+  - name: User Profile
+    description: User profile management and customization
+  - name: Photos
+    description: Photo upload, management, and verification
+  - name: Subscriptions
+    description: Subscription tier management (Free, Premium, Premium Plus)
+  - name: Coins
+    description: Virtual currency for premium features
+  - name: Boosts
+    description: Profile boost features for increased visibility
+  - name: Privacy
+    description: Privacy settings and controls
+  - name: Blocking
+    description: User blocking management
+  - name: Reporting
+    description: User and content reporting
+  - name: Discovery
+    description: User discovery and matching preferences
+  - name: Swipes
+    description: Swiping actions (like, pass, superlike)
+  - name: Matches
+    description: Match management and interactions
+  - name: Conversations
+    description: Conversation management
+  - name: Messages
+    description: Messaging operations
+  - name: Video Calls
+    description: Video calling with Agora integration
+  - name: Notifications
+    description: Push and in-app notification management
+  - name: Payments
+    description: Payment processing and transaction history
+  - name: Media
+    description: Media upload and management services
+  - name: Analytics
+    description: User analytics and engagement tracking
+  - name: Admin
+    description: Admin dashboard and management tools
+  - name: Moderation
+    description: Content moderation and safety features
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ============== AUTHENTICATION SERVICE ==============
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user
+      description: |
+        Register a new user account with email and password.
+
+        **Requirements:**
+        - Unique email address
+        - Password minimum 8 characters
+        - Valid date of birth (must be 18+ years old)
+
+        **Process:**
+        1. Validates user input
+        2. Checks for existing email
+        3. Hashes password using bcrypt
+        4. Creates user account
+        5. Sends verification email
+        6. Returns access and refresh tokens
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              basic:
+                summary: Basic registration
+                value:
+                  email: john.doe@example.com
+                  password: SecurePass123!
+                  firstName: John
+                  lastName: Doe
+                  dateOfBirth: "1995-06-15"
+                  gender: male
+      responses:
+        '201':
+          description: User registered successfully
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                success:
+                  summary: Successful registration
+                  value:
+                    user:
+                      id: usr_123abc456def
+                      email: john.doe@example.com
+                      firstName: John
+                      lastName: Doe
+                      emailVerified: false
+                      createdAt: "2024-01-15T10:30:00Z"
+                    accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: ConflictError
+                message: An account with this email already exists
+                statusCode: 409
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      description: |
+        Authenticate user with email and password.
+
+        **Process:**
+        1. Validates credentials
+        2. Verifies password hash
+        3. Generates JWT access token (15 min expiry)
+        4. Generates refresh token (30 day expiry)
+        5. Updates last login timestamp
+        6. Returns user data and tokens
+
+        **Rate Limiting:**
+        - 5 attempts per 15 minutes per IP
+        - Account locked after 10 failed attempts (1 hour lockout)
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              email:
+                summary: Login with email
+                value:
+                  email: john.doe@example.com
+                  password: SecurePass123!
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: Refresh token cookie (httpOnly, secure, sameSite)
+              schema:
+                type: string
+                example: refreshToken=eyJhbG...; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '423':
+          description: Account locked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: AccountLocked
+                message: Account temporarily locked due to too many failed login attempts
+                statusCode: 423
+                details:
+                  lockedUntil: "2024-01-15T12:00:00Z"
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: User logout
+      description: |
+        Logout user and invalidate refresh token.
+
+        **Process:**
+        1. Validates access token
+        2. Invalidates refresh token
+        3. Removes token from whitelist
+        4. Clears cookies
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout successful
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/refresh-token:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      description: |
+        Obtain a new access token using a valid refresh token.
+
+        **Process:**
+        1. Validates refresh token
+        2. Checks token whitelist
+        3. Generates new access token
+        4. Optionally rotates refresh token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+                  description: Valid refresh token
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/verify-email:
+    post:
+      tags: [Authentication]
+      summary: Verify email address
+      description: |
+        Verify user email address using verification token sent via email.
+
+        **Process:**
+        1. Validates verification token
+        2. Checks token expiration (24 hours)
+        3. Updates user email_verified status
+        4. Grants access to full platform features
+      operationId: verifyEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Email verification token from email
+                  example: verify_abc123def456
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Email verified successfully
+                  emailVerified:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/resend-verification:
+    post:
+      tags: [Authentication]
+      summary: Resend verification email
+      description: |
+        Resend email verification link.
+
+        **Rate Limiting:**
+        - 3 requests per hour per email
+      operationId: resendVerification
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verification email sent successfully
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Request password reset
+      description: |
+        Request password reset link via email.
+
+        **Security:**
+        - Always returns 200 (prevents email enumeration)
+        - Token expires in 1 hour
+        - Rate limited to 3 requests per hour
+      operationId: forgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+      responses:
+        '200':
+          description: Password reset email sent (if account exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: If an account exists, a password reset link has been sent
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/reset-password:
+    post:
+      tags: [Authentication]
+      summary: Reset password with token
+      description: |
+        Reset user password using token from email.
+
+        **Requirements:**
+        - Valid reset token
+        - Password minimum 8 characters
+        - Password cannot be same as previous 3 passwords
+      operationId: resetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:
+                  type: string
+                  description: Password reset token from email
+                  example: reset_abc123def456
+                password:
+                  type: string
+                  minLength: 8
+                  description: New password
+                  example: NewSecurePass123!
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password reset successfully
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user
+      description: |
+        Get current authenticated user information.
+
+        **Returns:**
+        - User profile data
+        - Subscription status
+        - Coin balance
+        - Feature access permissions
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/validate-token:
+    post:
+      tags: [Authentication]
+      summary: Validate JWT token (Internal)
+      description: |
+        Validate JWT token for internal service-to-service authentication.
+
+        **Internal Use Only:**
+        - Requires service key authentication
+        - Used by API Gateway and microservices
+      operationId: validateToken
+      security:
+        - serviceKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  userId:
+                    type: string
+                    example: usr_123abc456def
+                  email:
+                    type: string
+                    example: john.doe@example.com
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============== SOCIAL LOGIN ==============
+  /api/auth/social/google:
+    post:
+      tags: [Social Login]
+      summary: Login with Google
+      description: |
+        Authenticate user with Google OAuth token.
+
+        **Process:**
+        1. Validates Google OAuth token with Google API
+        2. Extracts user info (email, name, profile picture)
+        3. Creates or updates user account
+        4. Returns access and refresh tokens
+
+        **Auto-populated fields:**
+        - Email (verified by Google)
+        - First name
+        - Last name
+        - Profile picture
+      operationId: googleLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Google OAuth ID token
+                  example: ya29.a0AfH6SMBx...
+                deviceInfo:
+                  $ref: '#/components/schemas/DeviceInfo'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/social/facebook:
+    post:
+      tags: [Social Login]
+      summary: Login with Facebook
+      description: |
+        Authenticate user with Facebook OAuth token.
+      operationId: facebookLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Facebook OAuth access token
+                deviceInfo:
+                  $ref: '#/components/schemas/DeviceInfo'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/social/apple:
+    post:
+      tags: [Social Login]
+      summary: Login with Apple
+      description: |
+        Authenticate user with Apple Sign In token.
+
+        **Note:** Apple may not provide email if user opts for privacy relay.
+      operationId: appleLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identityToken]
+              properties:
+                identityToken:
+                  type: string
+                  description: Apple identity token
+                authorizationCode:
+                  type: string
+                  description: Apple authorization code
+                user:
+                  type: object
+                  description: User data (only provided on first sign in)
+                  properties:
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    email:
+                      type: string
+                deviceInfo:
+                  $ref: '#/components/schemas/DeviceInfo'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ============== USER PROFILE SERVICE ==============
+  /api/profile:
+    get:
+      tags: [User Profile]
+      summary: Get user profile
+      description: |
+        Get complete user profile including photos, bio, interests, and verification status.
+      operationId: getProfile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [User Profile]
+      summary: Update user profile
+      description: |
+        Update user profile information.
+
+        **Updatable fields:**
+        - Bio (max 500 characters)
+        - Interests (max 10)
+        - Height
+        - Education
+        - Occupation
+        - Relationship goals
+        - Location (city, country)
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+            examples:
+              basic:
+                summary: Update basic info
+                value:
+                  bio: "Adventure seeker and coffee enthusiast ☕"
+                  interests: ["Travel", "Photography", "Cooking", "Hiking"]
+                  height: 175
+                  education: "Bachelor's Degree"
+                  occupation: "Software Engineer"
+              complete:
+                summary: Complete profile update
+                value:
+                  bio: "Adventure seeker and coffee enthusiast ☕"
+                  interests: ["Travel", "Photography", "Cooking", "Hiking"]
+                  height: 175
+                  education: "Bachelor's Degree"
+                  occupation: "Software Engineer"
+                  relationshipGoal: "long-term"
+                  location:
+                    city: "San Francisco"
+                    country: "United States"
+                    coordinates:
+                      latitude: 37.7749
+                      longitude: -122.4194
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/profile/{userId}:
+    get:
+      tags: [User Profile]
+      summary: Get another user's profile
+      description: |
+        Get public profile of another user.
+
+        **Privacy:**
+        - Respects user's privacy settings
+        - Some fields may be hidden based on preferences
+        - Blocked users cannot view each other's profiles
+      operationId: getUserProfile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: usr_123abc456def
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicProfile'
+        '403':
+          description: Cannot view this profile (blocked/privacy settings)
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== PHOTOS ==============
+  /api/photos:
+    get:
+      tags: [Photos]
+      summary: Get user photos
+      description: |
+        Get all photos for the authenticated user.
+
+        **Returns:**
+        - Photo URLs (CDN-optimized)
+        - Photo order
+        - Primary photo indicator
+        - Verification status
+      operationId: getPhotos
+      responses:
+        '200':
+          description: List of photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+              example:
+                - id: photo_123
+                  url: https://cdn.flamoral.com/photos/usr_123/photo_123.jpg
+                  thumbnailUrl: https://cdn.flamoral.com/photos/usr_123/photo_123_thumb.jpg
+                  isPrimary: true
+                  isVerified: true
+                  order: 1
+                  uploadedAt: "2024-01-15T10:30:00Z"
+                - id: photo_456
+                  url: https://cdn.flamoral.com/photos/usr_123/photo_456.jpg
+                  thumbnailUrl: https://cdn.flamoral.com/photos/usr_123/photo_456_thumb.jpg
+                  isPrimary: false
+                  isVerified: false
+                  order: 2
+                  uploadedAt: "2024-01-16T14:20:00Z"
+
+    post:
+      tags: [Photos]
+      summary: Upload photo
+      description: |
+        Upload a new photo to profile.
+
+        **Requirements:**
+        - Max 9 photos per profile
+        - Supported formats: JPEG, PNG, WebP
+        - Max file size: 10MB
+        - Min resolution: 800x800px
+        - Max resolution: 4096x4096px
+
+        **Processing:**
+        1. Validates file format and size
+        2. Runs AI moderation (NSFW detection)
+        3. Resizes and optimizes image
+        4. Generates thumbnails
+        5. Uploads to CDN (Azure Blob Storage)
+        6. Updates user profile
+
+        **Rate Limiting:**
+        - 20 uploads per hour
+      operationId: uploadPhoto
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Photo file (JPEG, PNG, WebP)
+                order:
+                  type: integer
+                  description: Display order (1-9)
+                  minimum: 1
+                  maximum: 9
+      responses:
+        '201':
+          description: Photo uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        '400':
+          description: Invalid file or max photos reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                maxPhotos:
+                  summary: Max photos reached
+                  value:
+                    error: MaxPhotosReached
+                    message: You have reached the maximum of 9 photos
+                    statusCode: 400
+                invalidFile:
+                  summary: Invalid file format
+                  value:
+                    error: InvalidFile
+                    message: Only JPEG, PNG, and WebP formats are supported
+                    statusCode: 400
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: FileTooLarge
+                message: File size must be less than 10MB
+                statusCode: 413
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/photos/{id}:
+    delete:
+      tags: [Photos]
+      summary: Delete photo
+      description: |
+        Delete a photo from profile.
+
+        **Requirements:**
+        - Must have at least 2 photos (cannot delete if only 1 remaining)
+        - Cannot delete photo that is currently primary
+      operationId: deletePhoto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: photo_123
+      responses:
+        '200':
+          description: Photo deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Photo deleted successfully
+        '400':
+          description: Cannot delete photo (minimum requirement or primary photo)
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/photos/{id}/primary:
+    put:
+      tags: [Photos]
+      summary: Set primary photo
+      description: |
+        Set a photo as the primary profile photo.
+
+        **Note:** Primary photo is displayed first in discovery and matches.
+      operationId: setPrimaryPhoto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: photo_123
+      responses:
+        '200':
+          description: Primary photo set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Primary photo updated successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/photos/reorder:
+    put:
+      tags: [Photos]
+      summary: Reorder photos
+      description: |
+        Change the display order of photos.
+
+        **Requirements:**
+        - Must include all existing photo IDs
+        - Order numbers must be sequential (1-N)
+      operationId: reorderPhotos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [photoIds]
+              properties:
+                photoIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of photo IDs in desired order
+                  example: ["photo_456", "photo_123", "photo_789"]
+      responses:
+        '200':
+          description: Photos reordered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Photos reordered successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/photos/{id}/verify:
+    post:
+      tags: [Photos]
+      summary: Request photo verification
+      description: |
+        Request verification for a photo to earn a verification badge.
+
+        **Process:**
+        1. User uploads a real-time selfie matching a pose
+        2. AI compares selfie with profile photos
+        3. Manual review if AI confidence is low
+        4. Verification badge granted on approval
+
+        **Benefits:**
+        - Verification badge on profile
+        - Increased trust and match rate
+        - Access to verified-only discovery feed
+      operationId: verifyPhoto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [verificationPhoto]
+              properties:
+                verificationPhoto:
+                  type: string
+                  format: binary
+                  description: Real-time selfie for verification
+      responses:
+        '202':
+          description: Verification request submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verification request submitted successfully
+                  status:
+                    type: string
+                    example: pending
+                  estimatedTime:
+                    type: string
+                    example: "10-15 minutes"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+# Continue with remaining endpoints...
+# This is a partial implementation showing the structure and detail level
+# The full specification would continue with all remaining endpoints
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token obtained from login or registration.
+
+        Example: `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+    serviceKey:
+      type: apiKey
+      in: header
+      name: X-Service-Key
+      description: Internal service-to-service authentication key
+
+  headers:
+    X-RateLimit-Limit:
+      description: The number of allowed requests in the current period
+      schema:
+        type: integer
+        example: 100
+
+    X-RateLimit-Remaining:
+      description: The number of remaining requests in the current period
+      schema:
+        type: integer
+        example: 95
+
+    X-RateLimit-Reset:
+      description: The time at which the current rate limit window resets (Unix timestamp)
+      schema:
+        type: integer
+        example: 1640995200
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input or validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            validation:
+              summary: Validation error
+              value:
+                error: ValidationError
+                message: Invalid input data
+                statusCode: 400
+                details:
+                  - field: email
+                    message: Invalid email format
+                  - field: password
+                    message: Password must be at least 8 characters
+
+    Unauthorized:
+      description: Unauthorized - Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missingToken:
+              summary: Missing token
+              value:
+                error: Unauthorized
+                message: No authorization token provided
+                statusCode: 401
+            invalidToken:
+              summary: Invalid token
+              value:
+                error: Unauthorized
+                message: Invalid or expired token
+                statusCode: 401
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Forbidden
+            message: You do not have permission to access this resource
+            statusCode: 403
+
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: NotFound
+            message: The requested resource was not found
+            statusCode: 404
+
+    TooManyRequests:
+      description: Too many requests - Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+        Retry-After:
+          description: Number of seconds to wait before making another request
+          schema:
+            type: integer
+            example: 900
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: TooManyRequests
+            message: Rate limit exceeded. Please try again later.
+            statusCode: 429
+            details:
+              retryAfter: 900
+              limit: 100
+              window: 900
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+        - statusCode
+      properties:
+        error:
+          type: string
+          description: Error type/code
+          example: ValidationError
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid input data
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        details:
+          type: object
+          description: Additional error details (optional)
+          additionalProperties: true
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - dateOfBirth
+        - gender
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address (must be unique)
+          example: john.doe@example.com
+        password:
+          type: string
+          minLength: 8
+          format: password
+          description: User password (min 8 chars, must include letters and numbers)
+          example: SecurePass123!
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: User's first name
+          example: John
+        lastName:
+          type: string
+          maxLength: 50
+          description: User's last name (optional)
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth (must be 18+ years old)
+          example: "1995-06-15"
+        gender:
+          type: string
+          enum: [male, female, non-binary, other]
+          description: User gender
+          example: male
+        phoneNumber:
+          type: string
+          pattern: '^\+[1-9]\d{1,14}$'
+          description: Phone number in E.164 format (optional)
+          example: "+14155552671"
+        referralCode:
+          type: string
+          description: Referral code from existing user (optional)
+          example: JOHN123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          description: User password
+          example: SecurePass123!
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        accessToken:
+          type: string
+          description: JWT access token (expires in 15 minutes)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMTIzYWJjNDU2ZGVmIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDA5OTYxMDB9.abc123def456
+        refreshToken:
+          type: string
+          description: Refresh token (expires in 30 days)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMTIzYWJjNDU2ZGVmIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDM1ODcyMDB9.def456ghi789
+        expiresIn:
+          type: integer
+          description: Access token expiration time in seconds
+          example: 900
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: New JWT access token
+        refreshToken:
+          type: string
+          description: New refresh token (if rotated)
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          example: 900
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+          example: usr_123abc456def
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        emailVerified:
+          type: boolean
+          description: Whether email has been verified
+          example: true
+        phoneVerified:
+          type: boolean
+          description: Whether phone number has been verified
+          example: false
+        photoVerified:
+          type: boolean
+          description: Whether profile photo has been verified
+          example: true
+        subscriptionTier:
+          type: string
+          enum: [free, premium, premium_plus]
+          example: premium
+        coinBalance:
+          type: integer
+          description: Current coin balance
+          example: 150
+        profileComplete:
+          type: boolean
+          description: Whether profile setup is complete
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        lastActiveAt:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: usr_123abc456def
+        firstName:
+          type: string
+          example: John
+        age:
+          type: integer
+          description: Calculated from date of birth
+          example: 28
+        bio:
+          type: string
+          maxLength: 500
+          description: User bio/description
+          example: "Adventure seeker and coffee enthusiast ☕"
+        gender:
+          type: string
+          enum: [male, female, non-binary, other]
+          example: male
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+              example: San Francisco
+            country:
+              type: string
+              example: United States
+            coordinates:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  format: double
+                  example: 37.7749
+                longitude:
+                  type: number
+                  format: double
+                  example: -122.4194
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        interests:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+          example: ["Travel", "Photography", "Cooking", "Hiking"]
+        height:
+          type: integer
+          description: Height in centimeters
+          example: 175
+        education:
+          type: string
+          example: "Bachelor's Degree"
+        occupation:
+          type: string
+          example: "Software Engineer"
+        relationshipGoal:
+          type: string
+          enum: [casual, dating, relationship, long-term, friendship]
+          example: long-term
+        verified:
+          type: boolean
+          description: Whether profile is verified
+          example: true
+        profileScore:
+          type: integer
+          description: Profile completeness score (0-100)
+          example: 85
+
+    PublicProfile:
+      type: object
+      description: Public-facing profile (respects privacy settings)
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        age:
+          type: integer
+        bio:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        interests:
+          type: array
+          items:
+            type: string
+        distance:
+          type: number
+          description: Distance in kilometers (may be hidden)
+        verified:
+          type: boolean
+        lastActive:
+          type: string
+          description: Last active time (may be hidden)
+          example: "Active today"
+
+    ProfileUpdate:
+      type: object
+      properties:
+        bio:
+          type: string
+          maxLength: 500
+        interests:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        height:
+          type: integer
+        education:
+          type: string
+        occupation:
+          type: string
+        relationshipGoal:
+          type: string
+          enum: [casual, dating, relationship, long-term, friendship]
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+            country:
+              type: string
+            coordinates:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  format: double
+                longitude:
+                  type: number
+                  format: double
+
+    Photo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: photo_123
+        url:
+          type: string
+          format: uri
+          description: CDN URL for full-size photo
+          example: https://cdn.flamoral.com/photos/usr_123/photo_123.jpg
+        thumbnailUrl:
+          type: string
+          format: uri
+          description: CDN URL for thumbnail (optimized)
+          example: https://cdn.flamoral.com/photos/usr_123/photo_123_thumb.jpg
+        isPrimary:
+          type: boolean
+          description: Whether this is the primary profile photo
+          example: true
+        isVerified:
+          type: boolean
+          description: Whether this photo has been verified
+          example: false
+        order:
+          type: integer
+          minimum: 1
+          maximum: 9
+          description: Display order
+          example: 1
+        uploadedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        moderationStatus:
+          type: string
+          enum: [pending, approved, rejected]
+          example: approved
+
+    DeviceInfo:
+      type: object
+      description: Device information for login tracking and push notifications
+      properties:
+        deviceId:
+          type: string
+          description: Unique device identifier
+          example: "device_abc123"
+        deviceType:
+          type: string
+          enum: [ios, android, web]
+          example: ios
+        deviceName:
+          type: string
+          example: "iPhone 13 Pro"
+        appVersion:
+          type: string
+          example: "1.2.0"
+        osVersion:
+          type: string
+          example: "iOS 17.2"
+        pushToken:
+          type: string
+          description: FCM/APNS token for push notifications
+          example: "fcm_token_abc123..."
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number (1-indexed)
+          example: 1
+        limit:
+          type: integer
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of items
+          example: 150
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 8
+        hasNext:
+          type: boolean
+          description: Whether there is a next page
+          example: true
+        hasPrevious:
+          type: boolean
+          description: Whether there is a previous page
+          example: false
+
+# Additional schemas would continue here...
+# This specification demonstrates the structure and detail level
+# A complete specification would include all remaining endpoints and schemas
