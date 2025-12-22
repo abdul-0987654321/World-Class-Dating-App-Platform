@@ -114,9 +114,10 @@ export const HTTP_STATUS_MAP: Record<ErrorCode, number> = {
 
 /**
  * Get HTTP status code for an error code
+ * Accepts any string to support custom error codes
  */
-export function getHttpStatus(code: ErrorCode): number {
-  return HTTP_STATUS_MAP[code] ?? 500;
+export function getHttpStatus(code: ErrorCode | string): number {
+  return HTTP_STATUS_MAP[code as ErrorCode] ?? 500;
 }
 
 /**

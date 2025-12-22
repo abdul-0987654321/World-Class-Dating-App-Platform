@@ -115,8 +115,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 /**
  * Get user-friendly error message for an error code
  */
-export function getErrorMessage(code: ErrorCode): string {
-  return ERROR_MESSAGES[code] ?? 'An unexpected error occurred. Please try again.';
+export function getErrorMessage(code: ErrorCode | string): string {
+  return ERROR_MESSAGES[code as ErrorCode] ?? 'An unexpected error occurred. Please try again.';
 }
 
 /**
