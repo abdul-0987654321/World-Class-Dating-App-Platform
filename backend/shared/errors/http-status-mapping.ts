@@ -27,8 +27,15 @@ export const HTTP_STATUS_MAP: Record<ErrorCode, number> = {
   [AuthErrorCode.AUTH_TOKEN_MISSING]: 401,
   [AuthErrorCode.AUTH_TOKEN_INVALID]: 401,
   [AuthErrorCode.AUTH_TOKEN_EXPIRED]: 401,
+  [AuthErrorCode.AUTH_TOKEN_REVOKED]: 401,
+  [AuthErrorCode.AUTH_REFRESH_TOKEN_INVALID]: 401,
+  [AuthErrorCode.AUTH_REFRESH_TOKEN_REUSED]: 401,
   [AuthErrorCode.AUTH_MFA_REQUIRED]: 401,
   [AuthErrorCode.AUTH_ACCOUNT_LOCKED]: 423,
+  [AuthErrorCode.AUTH_ACCOUNT_LOCKED_PERMANENT]: 423,
+  [AuthErrorCode.AUTH_ACCOUNT_DEACTIVATED]: 403,
+  [AuthErrorCode.AUTH_ACCOUNT_BANNED]: 403,
+  [AuthErrorCode.AUTH_EMAIL_NOT_VERIFIED]: 403,
 
   // Permission errors -> 403 Forbidden
   [PermissionErrorCode.PERM_DENIED]: 403,
@@ -148,3 +155,9 @@ export function isRetryable(code: ErrorCode): boolean {
   ];
   return retryableCodes.includes(code);
 }
+
+/**
+ * Get user-friendly message for an error code
+ * Re-export from error-messages for convenience
+ */
+export { getErrorMessage as getUserMessage } from './error-messages';

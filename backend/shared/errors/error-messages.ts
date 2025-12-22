@@ -27,8 +27,15 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [AuthErrorCode.AUTH_TOKEN_MISSING]: 'Please sign in to continue.',
   [AuthErrorCode.AUTH_TOKEN_INVALID]: 'Your session is invalid. Please sign in again.',
   [AuthErrorCode.AUTH_TOKEN_EXPIRED]: 'Your session has expired. Please sign in again.',
+  [AuthErrorCode.AUTH_TOKEN_REVOKED]: 'Your session has been revoked. Please sign in again.',
+  [AuthErrorCode.AUTH_REFRESH_TOKEN_INVALID]: 'Session refresh failed. Please sign in again.',
+  [AuthErrorCode.AUTH_REFRESH_TOKEN_REUSED]: 'Security alert: Please sign in again.',
   [AuthErrorCode.AUTH_MFA_REQUIRED]: 'Please complete two-factor authentication.',
   [AuthErrorCode.AUTH_ACCOUNT_LOCKED]: 'Your account has been temporarily locked. Please try again later or reset your password.',
+  [AuthErrorCode.AUTH_ACCOUNT_LOCKED_PERMANENT]: 'Your account has been locked. Please contact support.',
+  [AuthErrorCode.AUTH_ACCOUNT_DEACTIVATED]: 'Your account has been deactivated.',
+  [AuthErrorCode.AUTH_ACCOUNT_BANNED]: 'Your account has been suspended.',
+  [AuthErrorCode.AUTH_EMAIL_NOT_VERIFIED]: 'Please verify your email address to continue.',
 
   // Permission errors
   [PermissionErrorCode.PERM_DENIED]: 'You do not have permission to perform this action.',

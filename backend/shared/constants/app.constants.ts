@@ -14,7 +14,7 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
 } as const;
 
-export const ERROR_MESSAGES = {
+export const LEGACY_ERROR_MESSAGES = {
   INVALID_CREDENTIALS: 'Invalid email or password',
   UNAUTHORIZED: 'Unauthorized access',
   USER_NOT_FOUND: 'User not found',
