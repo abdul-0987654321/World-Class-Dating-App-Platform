@@ -117,6 +117,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 // Aliases for authenticate - commonly used in routes
 export const requireAuth = authenticate;
 export const authenticateToken = authenticate;
+export const authMiddleware = authenticate;
 
 /**
  * RBAC: Require specific role(s) middleware

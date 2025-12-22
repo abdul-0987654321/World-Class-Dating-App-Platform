@@ -237,7 +237,7 @@ export class SwipeService {
     return {
       likes_received: likesReceived,
       swipes_today: swipesToday,
-      swipes_remaining: Math.max(0, this.FREE_SWIPE_LIMIT - swipesToday),
+      swipes_remaining: Math.max(0, TIER_LIMITS.free.dailyLikes - swipesToday),
       total_swiped: swipedUserIds.length,
     };
   }
