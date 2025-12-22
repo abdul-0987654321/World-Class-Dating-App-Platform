@@ -1,7 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import swipeService from '../../domain/services/swipe.service';
 import { SwipeAction } from '../../types';
 import { createLogger } from '@flamoral/shared';
+import {
+  ApiError,
+  MatchingErrorCode,
+  ValidationErrorCode,
+} from '../../../../../shared/errors';
 
 const logger = createLogger('swipe-controller');
 
@@ -10,36 +15,35 @@ export class SwipeController {
    * Process a swipe action
    * POST /api/swipes
    */
-  async swipe(req: Request, res: Response): Promise<void> {
+  async swipe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId } = (req as any).user; // From auth middleware
       const { targetUserId, action } = req.body;
 
       // Validate action
       if (!Object.values(SwipeAction).includes(action)) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid swipe action',
+        throw new ApiError({
+          code: ValidationErrorCode.VALIDATION_FAILED,
+          message: 'Invalid swipe action. Must be LIKE, PASS, or SUPER_LIKE',
+          details: [{ field: 'action', message: 'Invalid swipe action' }],
         });
-        return;
       }
 
       // Validate targetUserId
       if (!targetUserId) {
-        res.status(400).json({
-          success: false,
-          error: 'Target user ID is required',
+        throw new ApiError({
+          code: ValidationErrorCode.FIELD_REQUIRED,
+          message: 'Target user ID is required',
+          details: [{ field: 'targetUserId', message: 'Required field missing' }],
         });
-        return;
       }
 
       // Can't swipe on yourself
       if (userId === targetUserId) {
-        res.status(400).json({
-          success: false,
-          error: 'Cannot swipe on yourself',
+        throw new ApiError({
+          code: MatchingErrorCode.SELF_ACTION_NOT_ALLOWED,
+          message: 'Cannot swipe on yourself',
         });
-        return;
       }
 
       const result = await swipeService.processSwipe({
@@ -53,11 +57,7 @@ export class SwipeController {
         data: result,
       });
     } catch (error) {
-      logger.error('Swipe action failed', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to process swipe',
-      });
+      next(error);
     }
   }
 
@@ -65,7 +65,7 @@ export class SwipeController {
    * Get users who liked me
    * GET /api/swipes/likes
    */
-  async getWhoLikedMe(req: Request, res: Response): Promise<void> {
+  async getWhoLikedMe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId } = (req as any).user;
 
@@ -79,11 +79,7 @@ export class SwipeController {
         },
       });
     } catch (error) {
-      logger.error('Failed to get likes', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve likes',
-      });
+      next(error);
     }
   }
 
@@ -91,7 +87,7 @@ export class SwipeController {
    * Get swipe statistics
    * GET /api/swipes/stats
    */
-  async getStats(req: Request, res: Response): Promise<void> {
+  async getStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId } = (req as any).user;
 
@@ -102,11 +98,7 @@ export class SwipeController {
         data: stats,
       });
     } catch (error) {
-      logger.error('Failed to get stats', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve statistics',
-      });
+      next(error);
     }
   }
 
@@ -114,29 +106,25 @@ export class SwipeController {
    * Undo last swipe (premium feature)
    * POST /api/swipes/undo
    */
-  async undoSwipe(req: Request, res: Response): Promise<void> {
+  async undoSwipe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId } = (req as any).user;
 
       const success = await swipeService.undoLastSwipe(userId);
 
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Swipe undone successfully',
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          error: 'Cannot undo swipe',
+      if (!success) {
+        throw new ApiError({
+          code: MatchingErrorCode.UNDO_NOT_ALLOWED,
+          message: 'Cannot undo swipe. No recent swipe found or undo window expired.',
         });
       }
-    } catch (error) {
-      logger.error('Failed to undo swipe', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to undo swipe',
+
+      res.status(200).json({
+        success: true,
+        message: 'Swipe undone successfully',
       });
+    } catch (error) {
+      next(error);
     }
   }
 }

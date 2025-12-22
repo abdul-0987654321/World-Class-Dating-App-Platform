@@ -1,0 +1,333 @@
+# =============================================================================
+# Flamoral Production Kyverno Policies
+# =============================================================================
+# Production-grade admission control policies for enforcement pack
+# =============================================================================
+
+---
+# Policy 1: Block :latest tag in all images
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      The ':latest' tag is mutable and can lead to unexpected behavior.
+      All images must use specific, immutable tags.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-latest-tag-containers
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: "Using ':latest' tag is not allowed. Use a specific version tag (e.g., v1.0.0 or sha256 digest)."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+    - name: block-latest-tag-initContainers
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: "Using ':latest' tag is not allowed for init containers. Use a specific version tag."
+        pattern:
+          spec:
+            =(initContainers):
+              - image: "!*:latest"
+---
+# Policy 2: Require mandatory labels
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels
+  annotations:
+    policies.kyverno.io/title: Require Labels
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      All deployments must have required labels for tracking and management.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-deployment-labels
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+              namespaces:
+                - flamoral
+      validate:
+        message: "The label 'app' is required on all workloads in flamoral namespace."
+        pattern:
+          metadata:
+            labels:
+              app: "?*"
+    - name: require-team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+              namespaces:
+                - flamoral
+      validate:
+        message: "The label 'team' is required on all workloads."
+        pattern:
+          metadata:
+            labels:
+              team: "?*"
+---
+# Policy 3: Block manual deployments (require CI annotation)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-ci-deployment
+  annotations:
+    policies.kyverno.io/title: Require CI/CD Deployment
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      All deployments must be made through CI/CD pipeline.
+      Manual kubectl deployments are blocked unless break-glass is enabled.
+spec:
+  validationFailureAction: Audit  # Start in Audit mode, switch to Enforce after testing
+  background: true
+  rules:
+    - name: require-ci-annotation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+              namespaces:
+                - flamoral
+      exclude:
+        any:
+          - clusterRoles:
+              - break-glass-admin
+      validate:
+        message: >-
+          Deployments must be made through CI/CD pipeline.
+          Missing annotation 'flamoral.com/deployed-by: github-actions'.
+          For emergency access, use break-glass procedure.
+        pattern:
+          metadata:
+            annotations:
+              flamoral.com/deployed-by: "github-actions*"
+---
+# Policy 4: Enforce ACR-only images
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Only images from approved registries are allowed in production.
+spec:
+  validationFailureAction: Audit  # Start in Audit mode
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: >-
+          Only images from flamoralprodacr.azurecr.io or approved base images are allowed.
+          Found: {{request.object.spec.containers[*].image}}
+        deny:
+          conditions:
+            all:
+              - key: "{{request.object.spec.containers[*].image}}"
+                operator: AnyNotIn
+                value:
+                  - "flamoralprodacr.azurecr.io/*"
+                  - "nginx:alpine*"
+                  - "redis:*"
+                  - "postgres:*"
+                  - "mcr.microsoft.com/*"
+---
+# Policy 5: Require resource limits
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require Resource Limits
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      All containers must have resource limits defined.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-resources
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: "All containers must have memory and CPU limits defined."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+---
+# Policy 6: Require probes for production workloads
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-probes
+  annotations:
+    policies.kyverno.io/title: Require Health Probes
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      All production workloads must have readiness and liveness probes.
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: validate-probes
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              namespaces:
+                - flamoral
+      validate:
+        message: "Deployments must have readinessProbe and livenessProbe defined."
+        pattern:
+          spec:
+            template:
+              spec:
+                containers:
+                  - readinessProbe: {}
+                    livenessProbe: {}
+---
+# Policy 7: Disallow privileged containers
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/category: Pod Security Standards
+    policies.kyverno.io/severity: critical
+    policies.kyverno.io/description: >-
+      Privileged containers are not allowed in production.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: "Privileged containers are not allowed."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  privileged: "false"
+            =(initContainers):
+              - securityContext:
+                  privileged: "false"
+---
+# Policy 8: Disallow host network
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-network
+  annotations:
+    policies.kyverno.io/title: Disallow Host Network
+    policies.kyverno.io/category: Pod Security Standards
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Host network access is not allowed.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-host-network
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      validate:
+        message: "Host network is not allowed."
+        pattern:
+          spec:
+            =(hostNetwork): "false"
+---
+# Policy 9: Auto-add deployment annotations (mutation)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-deployment-metadata
+  annotations:
+    policies.kyverno.io/title: Add Deployment Metadata
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/description: >-
+      Automatically adds standard annotations to deployments.
+spec:
+  background: false
+  rules:
+    - name: add-deploy-timestamp
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              namespaces:
+                - flamoral
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              flamoral.com/last-applied: "{{request.object.metadata.creationTimestamp}}"

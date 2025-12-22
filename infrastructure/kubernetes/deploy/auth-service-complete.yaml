@@ -1,0 +1,381 @@
+# =============================================================================
+# Flamoral Dating Platform - Auth Service Complete Deployment
+# =============================================================================
+# Handles user authentication, authorization, JWT token management, and OAuth.
+#
+# This file includes:
+#   - Deployment with ConfigMap and Secret references
+#   - Service with Prometheus metrics
+#   - PodDisruptionBudget for high availability
+#   - HorizontalPodAutoscaler
+#
+# Dependencies:
+#   - ConfigMaps: auth-config, auth-security-config
+#   - Secrets: auth-secrets
+#   - Services: postgres, redis
+#
+# Usage:
+#   kubectl apply -f auth-service-complete.yaml
+#
+# Last Updated: 2024-12-21
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: flamoral
+  labels:
+    app: auth-service
+    component: authentication
+    version: v1
+  annotations:
+    description: "Authentication service for Flamoral dating platform"
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        component: authentication
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: flamoral-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: auth-service
+        image: flamoraldevacr.azurecr.io/auth-service:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3001
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+
+        # Load configuration from ConfigMaps
+        envFrom:
+        - configMapRef:
+            name: auth-config
+        - configMapRef:
+            name: auth-security-config
+
+        # Load secrets and override specific values
+        env:
+        # Override PORT from config if needed
+        - name: PORT
+          value: "3001"
+        - name: VALIDATE_JWT_SECRETS
+          value: "true"
+
+        # Database credentials from secrets
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: DB_USER
+              optional: true
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: DB_PASSWORD
+              optional: false
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: DATABASE_URL
+              optional: true
+
+        # Redis credentials
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: REDIS_URL
+              optional: false
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: REDIS_PASSWORD
+              optional: true
+
+        # JWT secrets (REQUIRED)
+        - name: JWT_ACCESS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: JWT_ACCESS_SECRET
+              optional: false
+        - name: JWT_REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: JWT_REFRESH_SECRET
+              optional: false
+
+        # Internal service authentication
+        - name: INTERNAL_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: INTERNAL_SERVICE_KEY
+              optional: true
+
+        # Email service
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: SMTP_PASSWORD
+              optional: true
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: SENDGRID_API_KEY
+              optional: true
+
+        # Google OAuth
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: GOOGLE_CLIENT_ID
+              optional: true
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: GOOGLE_CLIENT_SECRET
+              optional: true
+
+        # Apple Sign-In
+        - name: APPLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: APPLE_CLIENT_ID
+              optional: true
+        - name: APPLE_TEAM_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: APPLE_TEAM_ID
+              optional: true
+        - name: APPLE_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: APPLE_KEY_ID
+              optional: true
+        - name: APPLE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: APPLE_PRIVATE_KEY
+              optional: true
+
+        # Facebook OAuth
+        - name: FACEBOOK_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: FACEBOOK_APP_ID
+              optional: true
+        - name: FACEBOOK_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: FACEBOOK_APP_SECRET
+              optional: true
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        # Health checks
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        # Startup probe for slow starts
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.cache
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+      imagePullSecrets:
+      - name: acr-pull-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - auth-service
+              topologyKey: kubernetes.io/hostname
+
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: auth-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: flamoral
+  labels:
+    app: auth-service
+    component: authentication
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+  - name: http
+    port: 3001
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+
+---
+# Pod Disruption Budget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-pdb
+  namespace: flamoral
+  labels:
+    app: auth-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: flamoral
+  labels:
+    app: auth-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max

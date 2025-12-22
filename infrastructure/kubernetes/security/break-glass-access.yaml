@@ -1,0 +1,104 @@
+# =============================================================================
+# Flamoral Break-Glass Access Controls
+# =============================================================================
+# Emergency access for production with full audit trail
+# =============================================================================
+
+---
+# Break-Glass Admin Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: break-glass-admin
+  labels:
+    flamoral.com/access-type: break-glass
+  annotations:
+    flamoral.com/description: "Emergency admin access - requires justification and audit"
+rules:
+  # Full access to deployments in flamoral namespace
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Full access to pods
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec", "pods/portforward"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # ConfigMaps and Secrets
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Services
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Ingress
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# Break-Glass Role Binding - bind to specific users during emergency
+# This should be created/deleted via automation, not committed with users
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: break-glass-binding
+  labels:
+    flamoral.com/access-type: break-glass
+  annotations:
+    flamoral.com/expires: "2099-01-01T00:00:00Z"  # Set expiry when granting
+    flamoral.com/ticket: ""  # Incident ticket number
+    flamoral.com/approver: ""  # Who approved the access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: break-glass-admin
+subjects: []  # Add subjects via kubectl during emergency
+
+---
+# Break-Glass Access Audit ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: break-glass-audit
+  namespace: flamoral
+  labels:
+    app: break-glass
+data:
+  AUDIT_ENABLED: "true"
+  AUDIT_LOG_PATH: "/var/log/break-glass-audit.log"
+
+---
+# Break-Glass Request Template (for automation)
+# Usage: kubectl apply -f - with filled values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: break-glass-request-template
+  namespace: flamoral
+  labels:
+    app: break-glass
+data:
+  request-template.yaml: |
+    # Break-Glass Access Request
+    # Fill out and submit via incident management
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: break-glass-request-${TIMESTAMP}
+      namespace: flamoral
+      labels:
+        flamoral.com/access-type: break-glass-request
+    data:
+      requestor: "${REQUESTOR_EMAIL}"
+      justification: "${JUSTIFICATION}"
+      incident_ticket: "${INCIDENT_ID}"
+      requested_duration: "${DURATION_HOURS}h"
+      approved_by: "${APPROVER_EMAIL}"
+      approved_at: "${APPROVAL_TIMESTAMP}"
+      target_resources: "${RESOURCES}"

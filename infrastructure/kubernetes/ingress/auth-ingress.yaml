@@ -1,0 +1,287 @@
+# =============================================================================
+# Flamoral Dating Platform - Auth API Ingress Configuration
+# =============================================================================
+# Configures nginx ingress for authentication endpoints with:
+#   - Rate limiting for login/register endpoints
+#   - Enhanced security headers
+#   - CORS configuration for web app
+#
+# Auth Endpoints Covered:
+#   - POST /api/v1/auth/register
+#   - POST /api/v1/auth/login
+#   - POST /api/v1/auth/logout
+#   - POST /api/v1/auth/refresh-token (mapped from /api/v1/auth/refresh)
+#   - POST /api/v1/auth/verify-email
+#   - POST /api/v1/auth/forgot-password
+#   - POST /api/v1/auth/reset-password
+#   - POST /api/v1/auth/resend-verification
+#   - GET  /api/v1/auth/me
+#   - GET  /api/v1/auth/session
+#
+# Usage:
+#   kubectl apply -f auth-ingress.yaml
+#
+# Last Updated: 2024-12-21
+# =============================================================================
+
+---
+# Auth Endpoints Ingress with Rate Limiting
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-auth-ingress
+  namespace: flamoral
+  labels:
+    app: api-gateway
+    component: ingress
+    feature: authentication
+  annotations:
+    # Ingress Class
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+    # SSL/TLS Configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+
+    # Rate Limiting for Auth Endpoints (stricter than general API)
+    # 10 requests per second with burst of 20
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+    # Whitelist internal IPs from rate limiting
+    nginx.ingress.kubernetes.io/limit-whitelist: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
+    # Proxy Configuration
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+
+    # CORS Configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Request-ID,X-Correlation-ID,X-Device-Id,X-Device-Fingerprint"
+    nginx.ingress.kubernetes.io/cors-max-age: "86400"
+
+    # URL Rewriting - map /api/v1/auth/* to auth-service's /api/auth/*
+    nginx.ingress.kubernetes.io/rewrite-target: /api/auth/$2
+
+    # Security Headers and Custom Configuration
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Security Headers
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+      add_header X-Frame-Options "DENY" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+      add_header X-Permitted-Cross-Domain-Policies "none" always;
+
+      # Content Security Policy for API responses
+      add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none';" always;
+
+      # Remove server identification
+      more_clear_headers Server;
+      more_clear_headers X-Powered-By;
+
+      # Request ID for tracing
+      set $request_id $request_id;
+      proxy_set_header X-Request-ID $request_id;
+      proxy_set_header X-Correlation-ID $request_id;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Real-IP $remote_addr;
+
+      # Rate limiting response headers
+      add_header X-RateLimit-Limit $limit_rate always;
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.flamoral.com
+    secretName: flamoral-api-tls
+
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Auth endpoints - route to API Gateway which proxies to auth-service
+      - path: /api/v1/auth(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+---
+# High Security Auth Endpoints (Login, Register, Password Reset)
+# These endpoints have stricter rate limiting
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-auth-critical-ingress
+  namespace: flamoral
+  labels:
+    app: api-gateway
+    component: ingress
+    feature: authentication-critical
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # Very strict rate limiting for login/register (prevent brute force)
+    # 5 requests per second with small burst
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "1"
+
+    # Proxy Configuration
+    nginx.ingress.kubernetes.io/proxy-body-size: "100k"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+
+    # CORS Configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://flamoral.com,https://www.flamoral.com,https://app.flamoral.com"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type,Authorization,X-Device-Id,X-Device-Fingerprint"
+
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Additional logging for security-critical endpoints
+      access_log /var/log/nginx/auth-critical-access.log combined;
+
+      # Security Headers
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+      add_header X-Frame-Options "DENY" always;
+      add_header X-Content-Type-Options "nosniff" always;
+
+      # Request tracing
+      proxy_set_header X-Request-ID $request_id;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.flamoral.com
+    secretName: flamoral-api-tls
+
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Login endpoint - strict rate limiting
+      - path: /api/v1/auth/login
+        pathType: Exact
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+      # Register endpoint - strict rate limiting
+      - path: /api/v1/auth/register
+        pathType: Exact
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+      # Password reset request - strict rate limiting
+      - path: /api/v1/auth/forgot-password
+        pathType: Exact
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+      # Password reset with token
+      - path: /api/v1/auth/reset-password
+        pathType: Exact
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+---
+# OAuth Provider Endpoints
+# These handle redirects from Google, Apple, Facebook
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flamoral-auth-oauth-ingress
+  namespace: flamoral
+  labels:
+    app: api-gateway
+    component: ingress
+    feature: oauth
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # Moderate rate limiting for OAuth callbacks
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
+
+    # Proxy Configuration
+    nginx.ingress.kubernetes.io/proxy-body-size: "10k"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+
+    # Security
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+      add_header X-Content-Type-Options "nosniff" always;
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.flamoral.com
+    secretName: flamoral-api-tls
+
+  rules:
+  - host: api.flamoral.com
+    http:
+      paths:
+      # Google OAuth callback
+      - path: /api/v1/auth/google
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+      # Apple Sign-In callback
+      - path: /api/v1/auth/apple
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+      # Facebook OAuth callback
+      - path: /api/v1/auth/facebook
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000

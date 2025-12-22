@@ -4,6 +4,12 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/shared';
 import { createValidator, commonValidations } from '../../../shared/utils/env-validator';
+import {
+  correlationIdMiddleware,
+  errorHandlerMiddleware,
+  notFoundHandler,
+  initializeGlobalErrorHandlers,
+} from '../../../shared/middleware';
 import swipeRoutes from './api/routes/swipe.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';
@@ -42,23 +48,29 @@ validator.validateOrThrow();
 // Initialize logger
 const logger = createLogger('matching-service');
 
+// Initialize global error handlers for uncaught exceptions
+initializeGlobalErrorHandlers();
+
 // Create Express app
 const app: Application = express();
 const PORT = config.port;
 
-// Middleware
+// Core middleware
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 app.use(helmet());
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID', 'X-Request-ID']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
+// Correlation ID middleware - must be early in the chain
+app.use(correlationIdMiddleware);
+
+// Health check endpoint (before auth)
 app.get('/health', async (_req: Request, res: Response) => {
   const checks = {
     database: false,
@@ -105,15 +117,11 @@ app.use('/api/v1/search', searchRoutes);
 // Internal API Routes (service-to-service)
 app.use('/api/v1/internal/matches', internalRoutes);
 
-// Error handling middleware
-app.use((err: any, _req: Request, res: Response, _next: any): void => {
-  logger.error('Unhandled error', err);
+// 404 handler for unmatched routes
+app.use(notFoundHandler);
 
-  res.status(500).json({
-    success: false,
-    error: err.message || 'Internal server error',
-  });
-});
+// Global error handling middleware - MUST be last
+app.use(errorHandlerMiddleware);
 
 // Start server
 app.listen(PORT, () => {

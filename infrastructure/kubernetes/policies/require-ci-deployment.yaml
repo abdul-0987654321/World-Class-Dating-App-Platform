@@ -1,0 +1,39 @@
+# Policy: Block manual deployments (require CI annotation)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-ci-deployment
+  annotations:
+    policies.kyverno.io/title: Require CI/CD Deployment
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      All deployments must be made through CI/CD pipeline.
+      Manual kubectl deployments are blocked unless break-glass is enabled.
+spec:
+  validationFailureAction: Audit  # Start in Audit mode, switch to Enforce after testing
+  background: false  # Required for exclude with clusterRoles
+  rules:
+    - name: require-ci-annotation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+              namespaces:
+                - flamoral
+      exclude:
+        any:
+          - clusterRoles:
+              - break-glass-admin
+              - cluster-admin
+      validate:
+        message: >-
+          Deployments must be made through CI/CD pipeline.
+          Missing annotation 'flamoral.com/deployed-by: github-actions'.
+          For emergency access, use break-glass procedure.
+        pattern:
+          metadata:
+            annotations:
+              flamoral.com/deployed-by: "github-actions*"

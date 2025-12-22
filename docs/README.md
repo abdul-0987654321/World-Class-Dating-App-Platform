@@ -36,6 +36,7 @@ Welcome to the Flamoral dating platform documentation.
 ### API (`docs/02-api/`)
 - [API Inventory](./02-api/api-inventory.md) - All endpoints + database tables
 - [OpenAPI Spec](./02-api/openapi.yaml) - OpenAPI 3.0 specification
+- [Error Handling](./errors.md) - Unified error handling system
 
 ### Security (`docs/03-security/`)
 - [Threat Model](./03-security/threat-model.md) - Security threats and mitigations
@@ -75,9 +76,10 @@ Welcome to the Flamoral dating platform documentation.
 - **[Contributing Guidelines](./development/contributing.md)** - How to contribute (NEW)
 - [Development Inventory](./development/development-inventory.md)
 
-### API Documentation  
+### API Documentation
 - [API Inventory](./api/api-inventory.md) - All API endpoints
 - [OpenAPI Specification](./api/openapi.yaml)
+- **[Error Handling Guide](./errors.md)** - Error codes and handling (NEW)
 
 ### Deployment
 - **[Azure Deployment Guide](./deployment/azure-deployment.md)** - Deploy to Azure (NEW)
@@ -171,7 +173,15 @@ See [Development Setup](./development/setup.md) for details.
 
 ---
 
-## Recent Changes (v3.0.0 - 2025-12-18)
+## Recent Changes (v3.1.0 - 2025-12-21)
+
+- Created comprehensive [Error Handling Guide](./errors.md) with:
+  - [Error Codes Reference](./errors/error-codes.md)
+  - [Frontend Error Handling](./errors/frontend-handling.md)
+  - [Backend Integration Guide](./errors/backend-integration.md)
+  - [API Error Contract](./errors/api-contract.md)
+
+## Previous Changes (v3.0.0 - 2025-12-18)
 
 - Created consolidated [Architecture Overview](./architecture/overview.md)
 - Created consolidated [Security Overview](./security/security-overview.md)
@@ -182,4 +192,4 @@ See [Development Setup](./development/setup.md) for details.
 
 ---
 
-**Version:** 3.0.0 | **Last Updated:** 2025-12-18
+**Version:** 3.1.0 | **Last Updated:** 2025-12-21

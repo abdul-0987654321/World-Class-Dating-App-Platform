@@ -1,0 +1,358 @@
+# ServiceMonitor resources for Flamoral services
+# These configure Prometheus to scrape metrics from each service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: flamoral-web
+  namespace: monitoring
+  labels:
+    app: flamoral-web
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: flamoral-web
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: flamoral-web
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: flamoral-web
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway
+  namespace: monitoring
+  labels:
+    app: api-gateway
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: api-gateway
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: api-gateway
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: api-gateway
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: auth-service
+  namespace: monitoring
+  labels:
+    app: auth-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: auth-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: auth-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: auth-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: user-service
+  namespace: monitoring
+  labels:
+    app: user-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: user-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: user-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: user-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: matching-service
+  namespace: monitoring
+  labels:
+    app: matching-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: matching-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: matching-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: matching-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: messaging-service
+  namespace: monitoring
+  labels:
+    app: messaging-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: messaging-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: messaging-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: messaging-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payment-service
+  namespace: monitoring
+  labels:
+    app: payment-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: payment-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: payment-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: payment-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: notification-service
+  namespace: monitoring
+  labels:
+    app: notification-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: notification-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: notification-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: notification-service
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: media-service
+  namespace: monitoring
+  labels:
+    app: media-service
+    release: prometheus
+    team: platform-engineering
+spec:
+  jobLabel: media-service
+  namespaceSelector:
+    matchNames:
+      - flamoral
+  selector:
+    matchLabels:
+      app: media-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - targetLabel: service
+          replacement: media-service
+
+---
+# ServiceMonitor for NGINX Ingress Controller
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: nginx-ingress-controller
+  namespace: monitoring
+  labels:
+    app: nginx-ingress
+    release: prometheus
+spec:
+  jobLabel: nginx-ingress
+  namespaceSelector:
+    matchNames:
+      - ingress-nginx
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/component: controller
+  endpoints:
+    - port: metrics
+      interval: 30s
+
+---
+# ServiceMonitor for PostgreSQL (if using postgres-exporter)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgresql-exporter
+  namespace: monitoring
+  labels:
+    app: postgresql-exporter
+    release: prometheus
+spec:
+  jobLabel: postgresql
+  namespaceSelector:
+    matchNames:
+      - flamoral
+      - databases
+  selector:
+    matchLabels:
+      app: postgresql-exporter
+  endpoints:
+    - port: metrics
+      interval: 30s
+
+---
+# ServiceMonitor for Redis (if using redis-exporter)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-exporter
+  namespace: monitoring
+  labels:
+    app: redis-exporter
+    release: prometheus
+spec:
+  jobLabel: redis
+  namespaceSelector:
+    matchNames:
+      - flamoral
+      - databases
+  selector:
+    matchLabels:
+      app: redis-exporter
+  endpoints:
+    - port: metrics
+      interval: 30s

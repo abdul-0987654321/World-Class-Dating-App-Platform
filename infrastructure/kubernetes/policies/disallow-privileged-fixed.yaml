@@ -1,0 +1,38 @@
+# Policy: Disallow Privileged Containers (Fixed for cert-manager)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/category: Pod Security Standards
+    policies.kyverno.io/severity: critical
+    policies.kyverno.io/description: >-
+      Privileged containers are not allowed in production.
+      Excludes cert-manager ACME solver pods.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+      exclude:
+        any:
+          - resources:
+              selector:
+                matchLabels:
+                  acme.cert-manager.io/http01-solver: "true"
+      validate:
+        message: "Privileged containers are not allowed."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.containers[?securityContext.privileged == `true`] | length(@) }}"
+                operator: GreaterThan
+                value: 0

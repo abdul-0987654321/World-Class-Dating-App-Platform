@@ -16,3 +16,16 @@ export * from './config/environment';
 
 // Services
 export * from './src/services/service-client';
+
+// Errors - Single source of truth for error handling
+export * from './errors';
+export {
+  createErrorMiddleware,
+  correlationIdMiddleware,
+  asyncHandler,
+  notFoundHandler,
+  errorMiddleware,
+} from './errors/error-middleware';
+
+// Middleware - Enhanced middleware components
+export * from './middleware';
