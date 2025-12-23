@@ -5,12 +5,19 @@ import authService from '../../../src/domain/services/auth.service';
 // Mock the auth service
 jest.mock('../../../src/domain/services/auth.service');
 jest.mock('../../../src/utils/logger', () => ({
+  __esModule: true,
   default: {
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
   },
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  })),
 }));
 
 describe('AuthController', () => {

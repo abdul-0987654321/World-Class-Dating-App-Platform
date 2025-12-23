@@ -10,6 +10,7 @@ declare global {
         id: string;
         userId: string;
         email: string;
+        role?: string;
       };
     }
   }

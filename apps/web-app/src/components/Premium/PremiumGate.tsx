@@ -1,9 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Canonical subscription tier type (matches backend)
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
+
+// Legacy tier name mapping for backwards compatibility
+const LEGACY_TIER_MAP: Record<string, SubscriptionTier> = {
+  FREE: 'free',
+  GOLD: 'basic',
+  PLATINUM: 'plus',
+  DIAMOND: 'premium',
+  ELITE: 'elite',
+};
+
+// Display names for tiers (user-facing)
+export const TIER_DISPLAY_NAMES: Record<SubscriptionTier, string> = {
+  free: 'Free',
+  basic: 'Basic',
+  plus: 'Plus',
+  premium: 'Premium',
+  premium_plus: 'Premium+',
+  elite: 'Elite',
+};
+
+// Tier hierarchy for comparison
+const TIER_HIERARCHY: Record<SubscriptionTier, number> = {
+  free: 0,
+  basic: 1,
+  plus: 2,
+  premium: 3,
+  premium_plus: 4,
+  elite: 5,
+};
+
+// Normalize tier name to canonical format
+function normalizeTier(tier: string | undefined): SubscriptionTier {
+  if (!tier) return 'free';
+  const lower = tier.toLowerCase();
+  if (lower in TIER_HIERARCHY) return lower as SubscriptionTier;
+  return LEGACY_TIER_MAP[tier.toUpperCase()] || 'free';
+}
 
 interface PremiumGateProps {
   feature: string;
-  requiredTier?: 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'ELITE';
+  requiredTier?: SubscriptionTier;
   children?: React.ReactNode;
   onUnlock?: () => void;
   customMessage?: string;
@@ -12,7 +52,7 @@ interface PremiumGateProps {
 
 export const PremiumGate: React.FC<PremiumGateProps> = ({
   feature,
-  requiredTier = 'GOLD',
+  requiredTier = 'basic',
   children,
   onUnlock,
   customMessage,
@@ -21,19 +61,29 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(true);
 
-  // Check if user has required tier
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const currentTier = currentUser?.subscriptionTier || 'FREE';
+  // Get user subscription from session storage (set by auth service, not modifiable by user)
+  // Note: In production, this should come from a secure context/hook that fetches from the server
+  const currentTier = useMemo(() => {
+    try {
+      // Try session storage first (more secure than localStorage)
+      const sessionUser = sessionStorage.getItem('flamoral_session');
+      if (sessionUser) {
+        const parsed = JSON.parse(sessionUser);
+        return normalizeTier(parsed?.subscription?.tier || parsed?.subscriptionTier);
+      }
+      // Fallback to localStorage for backwards compatibility
+      const localUser = localStorage.getItem('currentUser');
+      if (localUser) {
+        const parsed = JSON.parse(localUser);
+        return normalizeTier(parsed?.subscriptionTier);
+      }
+      return 'free' as SubscriptionTier;
+    } catch {
+      return 'free' as SubscriptionTier;
+    }
+  }, []);
 
-  const tierLevels = {
-    FREE: 0,
-    GOLD: 1,
-    PLATINUM: 2,
-    DIAMOND: 3,
-    ELITE: 4,
-  };
-
-  const hasAccess = tierLevels[currentTier as keyof typeof tierLevels] >= tierLevels[requiredTier];
+  const hasAccess = TIER_HIERARCHY[currentTier] >= TIER_HIERARCHY[requiredTier];
 
   if (hasAccess) {
     if (onUnlock) {
@@ -101,15 +151,22 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
     icon: '🔒',
   };
 
-  const tierColors = {
-    GOLD: 'from-yellow-400 to-amber-500',
-    PLATINUM: 'from-purple-500 to-indigo-600',
-    DIAMOND: 'from-cyan-400 to-blue-500',
-    ELITE: 'from-rose-500 to-pink-600',
+  const tierColors: Record<SubscriptionTier, string> = {
+    free: 'from-gray-400 to-gray-500',
+    basic: 'from-yellow-400 to-amber-500',
+    plus: 'from-purple-500 to-indigo-600',
+    premium: 'from-cyan-400 to-blue-500',
+    premium_plus: 'from-emerald-500 to-teal-600',
+    elite: 'from-rose-500 to-pink-600',
   };
 
-  const tierBenefits: { [key: string]: string[] } = {
-    GOLD: [
+  const tierBenefits: Record<SubscriptionTier, string[]> = {
+    free: [
+      '50 daily swipes',
+      '1 Super Like/day',
+      'Basic messaging',
+    ],
+    basic: [
       'Unlimited likes',
       'See who likes you',
       'Advanced filters',
@@ -117,8 +174,8 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       '1 Boost/week',
       'Rewind feature',
     ],
-    PLATINUM: [
-      'Everything in Gold',
+    plus: [
+      'Everything in Basic',
       'Message before matching',
       'Priority in Discovery',
       '10 Super Likes/day',
@@ -126,8 +183,8 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       'Read receipts',
       'Incognito mode',
     ],
-    DIAMOND: [
-      'Everything in Platinum',
+    premium: [
+      'Everything in Plus',
       'Exclusive events',
       'Verified badge',
       'Unlimited Super Likes',
@@ -135,8 +192,14 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       'AI matchmaking insights',
       'Video call priority',
     ],
-    ELITE: [
-      'Everything in Diamond',
+    premium_plus: [
+      'Everything in Premium',
+      'Passport (swipe anywhere)',
+      'Priority support',
+      'Early access to features',
+    ],
+    elite: [
+      'Everything in Premium+',
       'VIP matchmaking service',
       'Profile by experts',
       'Dedicated relationship coach',
@@ -182,7 +245,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span>Requires {requiredTier}</span>
+              <span>Requires {TIER_DISPLAY_NAMES[requiredTier]}</span>
             </div>
           </div>
 
@@ -198,7 +261,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
 
           {/* Benefits */}
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-800 mb-3">Unlock with {requiredTier}:</h3>
+            <h3 className="font-semibold text-gray-800 mb-3">Unlock with {TIER_DISPLAY_NAMES[requiredTier]}:</h3>
             <div className="space-y-2">
               {tierBenefits[requiredTier].slice(0, 4).map((benefit, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
@@ -238,7 +301,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
               }}
               className={`w-full py-4 bg-gradient-to-r ${tierColors[requiredTier]} text-white rounded-xl font-semibold hover:opacity-90 transition shadow-lg`}
             >
-              Upgrade to {requiredTier}
+              Upgrade to {TIER_DISPLAY_NAMES[requiredTier]}
             </button>
 
             <button

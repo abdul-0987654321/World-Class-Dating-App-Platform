@@ -94,3 +94,47 @@ export {
 
 // Default export for audit middleware
 export { default as auditMiddleware } from './audit-logging.middleware';
+
+// ============================================================================
+// Subscription Enforcement Middleware
+// ============================================================================
+export {
+  createSubscriptionMiddleware,
+  requireTier,
+  requireFeature,
+  checkUsageLimit,
+  normalizeTier,
+  meetsTierRequirement,
+  hasFeatureAccess,
+  getDailyLimits,
+  TIER_HIERARCHY,
+  TIER_DAILY_LIMITS,
+  FEATURE_TIER_REQUIREMENTS,
+  LEGACY_TIER_MAP,
+  type SubscriptionTier,
+  type SubscriptionRequest,
+  type SubscriptionLookupFn,
+} from './subscription-enforcement.middleware';
+
+// Default export for subscription enforcement
+export { default as subscriptionEnforcement } from './subscription-enforcement.middleware';
+
+// ============================================================================
+// Tier-based Rate Limiting Middleware
+// ============================================================================
+export {
+  createTierRateLimiter,
+  endpointRateLimiter,
+  InMemoryRateLimitStore,
+  RedisRateLimitStore,
+  TIER_RATE_LIMITS,
+  ENDPOINT_RATE_LIMITS,
+  cleanupExpiredEntries,
+  type RateLimitConfig,
+  type RateLimitStore,
+  type RateLimitedRequest,
+  type TierRateLimitOptions,
+} from './tier-rate-limiting.middleware';
+
+// Default export for rate limiting
+export { default as tierRateLimiting } from './tier-rate-limiting.middleware';
