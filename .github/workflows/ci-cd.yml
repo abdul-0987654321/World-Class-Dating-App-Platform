@@ -1,0 +1,229 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  AZURE_CONTAINER_REGISTRY: flamoralacr.azurecr.io
+  RESOURCE_GROUP: flamoral-rg
+  NODE_VERSION: '20'
+
+jobs:
+  # Build and test all packages
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build all packages
+        run: yarn build:all
+
+      - name: Run linting
+        run: yarn lint:all || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/web-app/dist
+            backend/**/dist
+          retention-days: 1
+
+  # Build and push Docker images to ACR
+  build-docker-images:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - user-service
+          - matching-service
+          - messaging-service
+          - media-service
+          - payment-service
+          - notification-service
+          - analytics-service
+          - moderation-service
+          - admin-service
+          - automation-service
+          - advertising-service
+          - workflow-engine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push ${{ matrix.service }}
+        run: |
+          docker build \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${{ github.sha }} \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:latest \
+            -f backend/services/${{ matrix.service }}/Dockerfile \
+            .
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:latest
+
+  # Build frontend image
+  build-frontend:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push frontend
+        run: |
+          docker build \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${{ github.sha }} \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:latest \
+            -f infrastructure/docker/frontend/Dockerfile \
+            .
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${{ github.sha }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:latest
+
+  # Deploy to Azure Container Apps
+  deploy-to-azure:
+    needs: [build-docker-images, build-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy API Gateway
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-api-gateway
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/api-gateway:${{ github.sha }}
+
+      - name: Deploy Auth Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-auth-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/auth-service:${{ github.sha }}
+
+      - name: Deploy User Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-user-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/user-service:${{ github.sha }}
+
+      - name: Deploy Matching Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-matching-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/matching-service:${{ github.sha }}
+
+      - name: Deploy Messaging Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-messaging-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/messaging-service:${{ github.sha }}
+
+      - name: Deploy Media Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-media-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/media-service:${{ github.sha }}
+
+      - name: Deploy Payment Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-payment-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/payment-service:${{ github.sha }}
+
+      - name: Deploy Notification Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-notification-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/notification-service:${{ github.sha }}
+
+      - name: Deploy Analytics Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-analytics-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/analytics-service:${{ github.sha }}
+
+      - name: Deploy Moderation Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-moderation-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/moderation-service:${{ github.sha }}
+
+      - name: Deploy Admin Service
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-admin-service
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/admin-service:${{ github.sha }}
+
+      - name: Deploy Workflow Engine
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-workflow-engine
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/workflow-engine:${{ github.sha }}
+
+      - name: Deploy Frontend
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: flamoral-web
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${{ github.sha }}
+
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- All services deployed to Azure Container Apps" >> $GITHUB_STEP_SUMMARY

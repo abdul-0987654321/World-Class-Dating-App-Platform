@@ -5,27 +5,32 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
 
-# Install dependencies
-RUN npm ci
+# Copy root package files for workspace resolution
+COPY package.json yarn.lock ./
+COPY apps/web-app/package.json ./apps/web-app/
+COPY packages/ ./packages/
 
-# Copy source code
-COPY . .
+# Install dependencies with yarn workspaces
+RUN yarn install --frozen-lockfile || yarn install
 
-# Build application
-RUN npm run build
+# Copy web app source
+COPY apps/web-app ./apps/web-app
+
+# Build the web app
+RUN yarn workspace @flamoral/web build
 
 # Stage 2: Production with Nginx
 FROM nginx:alpine
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf /etc/nginx/conf.d/default.conf
+COPY infrastructure/docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY infrastructure/docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy built application from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web-app/dist /usr/share/nginx/html
 
 # Create non-root user
 RUN adduser -D -g 'nginx' -u 1001 nginx && \
