@@ -10,7 +10,7 @@ import { SocketManager } from './socket/socket-manager';
 import cosmosClient from './infrastructure/database/cosmos-client';
 import apiRoutes from './api/routes';
 import internalRoutes from './api/routes/internal.routes';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
 dotenv.config();

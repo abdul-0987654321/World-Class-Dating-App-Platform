@@ -88,7 +88,7 @@ export class VideoCallClient extends EventEmitter {
       this.updateState({ status: 'initializing' });
 
       // Get local media stream
-      await this.getLocalStream(options);
+      await this.initializeLocalStream(options);
 
       // Create peer connection
       await this.createPeerConnection();
@@ -145,7 +145,7 @@ export class VideoCallClient extends EventEmitter {
       this.updateState({ status: 'connecting', callId });
 
       // Get local media stream
-      await this.getLocalStream(options);
+      await this.initializeLocalStream(options);
 
       // Create peer connection
       await this.createPeerConnection();
@@ -352,7 +352,7 @@ export class VideoCallClient extends EventEmitter {
 
   // Private methods
 
-  private async getLocalStream(options: CallOptions): Promise<void> {
+  private async initializeLocalStream(options: CallOptions): Promise<void> {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({
         video: options.video ? this.config.videoConstraints : false,

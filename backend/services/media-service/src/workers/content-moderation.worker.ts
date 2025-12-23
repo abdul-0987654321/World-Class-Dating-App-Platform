@@ -6,7 +6,7 @@ import contentModerationService from '../domain/services/content-moderation.serv
 import mediaRepository from '../domain/repositories/media.repository';
 import azureStorageService from '../infrastructure/storage/azure-storage.service';
 import { ModerationStatus } from '../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('content-moderation-worker');
 

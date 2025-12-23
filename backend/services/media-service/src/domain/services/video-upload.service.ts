@@ -3,7 +3,7 @@ import videoProcessingService from './video-processing.service';
 import azureStorageService from '../../infrastructure/storage/azure-storage.service';
 import contentModerationService from './content-moderation.service';
 import { VideoMetadata, ModerationStatus, UploadedFile } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import videoRepository from '../repositories/video.repository';
 
 const logger = createLogger('video-upload-service');

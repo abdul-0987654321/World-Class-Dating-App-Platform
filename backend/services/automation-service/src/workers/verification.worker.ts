@@ -6,7 +6,7 @@
  */
 
 import { Job } from 'bull';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
 import {
   BaseWorker,

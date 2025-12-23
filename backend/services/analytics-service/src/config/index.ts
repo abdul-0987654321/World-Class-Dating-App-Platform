@@ -6,6 +6,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+function requireSecret(name: string, devDefault: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (isProduction) throw new Error(`${name} environment variable is required in production`);
+  return devDefault;
+}
+
 interface Config {
   port: number;
   nodeEnv: string;
@@ -101,9 +110,9 @@ const config: Config = {
     matchingServiceUrl: process.env.MATCHING_SERVICE_URL || 'http://localhost:3002',
   },
 
-  jwtAccessSecret: process.env.JWT_ACCESS_SECRET || 'your-jwt-access-secret-key-min-32-chars',
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'your-jwt-refresh-secret-key-min-32-chars',
-  serviceApiKey: process.env.SERVICE_API_KEY || 'your-internal-service-api-key',
+  jwtAccessSecret: requireSecret('JWT_ACCESS_SECRET', 'dev-only-jwt-access-secret-32chars'),
+  jwtRefreshSecret: requireSecret('JWT_REFRESH_SECRET', 'dev-only-jwt-refresh-secret-32char'),
+  serviceApiKey: requireSecret('SERVICE_API_KEY', 'dev-only-service-api-key'),
 
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
 

@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { verify } from 'jsonwebtoken';
 import config from '../../config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import { cache } from '../cache/redis';
 
 const logger = createLogger('automation-service:socket');

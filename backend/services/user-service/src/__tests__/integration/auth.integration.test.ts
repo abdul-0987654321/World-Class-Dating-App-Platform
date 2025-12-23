@@ -8,7 +8,7 @@ jest.mock('../../infrastructure/database/connection', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('@flamoral/shared/utils/validation', () => ({
+jest.mock('@flamoral/backend-shared/utils/validation', () => ({
   isValidEmail: jest.fn(() => true),
   isValidPassword: jest.fn(() => true),
   isValidAge: jest.fn(() => true),

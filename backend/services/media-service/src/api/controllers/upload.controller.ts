@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import uploadService from '../../domain/services/upload.service';
 import { UploadedFile } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('upload-controller');
 

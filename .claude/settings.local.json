@@ -552,7 +552,16 @@
       "Bash(npx playwright test:*)",
       "Bash(export PYTHONIOENCODING=utf-8)",
       "Bash(az acr task list-runs:*)",
-      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && grep \"\"^[A-Z_]*PORT\"\" {} 2>/dev/null | head -3')"
+      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && grep \"\"^[A-Z_]*PORT\"\" {} 2>/dev/null | head -3')",
+      "Bash(xargs basename:*)",
+      "Bash(dir /b \"C:\\\\Users\\\\citad\\\\OneDrive\\\\Documents\\\\Dating\\\\docs\\\\archive\")",
+      "Bash(yarn workspaces:*)",
+      "Bash(yarn workspace @flamoral/backend build:*)",
+      "Bash(yarn workspace @flamoral/web lint:*)",
+      "Bash(yarn workspace @flamoral/backend lint:*)",
+      "Bash(yarn build:all:*)",
+      "Bash(yarn workspace @flamoral/backend-shared build:*)",
+      "Bash(yarn test:backend)"
     ],
     "deny": [],
     "ask": []

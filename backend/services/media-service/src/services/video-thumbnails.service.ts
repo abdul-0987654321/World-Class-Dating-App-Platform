@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 const logger = createLogger('video-thumbnails-service');
 import * as path from 'path';
 

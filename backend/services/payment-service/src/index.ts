@@ -2,8 +2,8 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@flamoral/shared';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import { db } from './infrastructure/database/connection';
 
 // Import routes

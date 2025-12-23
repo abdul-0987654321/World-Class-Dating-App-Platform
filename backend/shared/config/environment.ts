@@ -1,3 +1,18 @@
+/**
+ * Require environment variable - throws if missing in production
+ */
+function requireEnvVar(name: string, fallback?: string): string {
+  const value = process.env[name];
+  if (value) return value;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`Required environment variable ${name} is not set`);
+  }
+
+  if (fallback !== undefined) return fallback;
+  throw new Error(`Required environment variable ${name} is not set`);
+}
+
 export interface EnvironmentConfig {
   nodeEnv: string;
   port: number;
@@ -76,8 +91,8 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
       tls: process.env.REDIS_TLS === 'true',
     },
     jwt: {
-      accessTokenSecret: process.env.JWT_ACCESS_SECRET || 'your-secret-key',
-      refreshTokenSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
+      accessTokenSecret: requireEnvVar('JWT_ACCESS_SECRET', process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-access-secret' : undefined),
+      refreshTokenSecret: requireEnvVar('JWT_REFRESH_SECRET', process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-refresh-secret' : undefined),
       accessTokenExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h',
       refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
     },

@@ -4,7 +4,7 @@ import db from '../infrastructure/database/knex';
 import { cache } from '../infrastructure/cache/redis';
 import { rabbitMQ } from '../infrastructure/messaging/rabbitmq';
 import config from '../config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('automation-service:message-automation');
 

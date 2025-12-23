@@ -6,7 +6,7 @@
  */
 
 import { Job } from 'bull';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
 import {
   BaseWorker,
@@ -479,7 +479,7 @@ export class MatchCreationWorker extends BaseWorker<MatchCreationJobData, MatchC
   async scheduleMatchCreation(
     user1Id: string,
     user2Id: string,
-    matchMode: string = 'standard'
+    matchMode: 'standard' | 'women_first' | 'friends' = 'standard'
   ): Promise<void> {
     await this.addJob(
       {

@@ -30,7 +30,7 @@ jest.mock('../../../src/config', () => ({
     },
   },
 }));
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

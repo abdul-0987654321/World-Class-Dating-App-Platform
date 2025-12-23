@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { SmartReplyService } from '../services/smart-reply.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('automation-service:smart-reply-controller');
 

@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
 import { Match } from '../entities/Match.entity';
 import { MatchStatus } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('match-repository');
 

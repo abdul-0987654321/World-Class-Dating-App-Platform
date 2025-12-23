@@ -5,7 +5,7 @@
 
 import Queue, { Job, JobOptions, Queue as BullQueue } from 'bull';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('base-worker');
 

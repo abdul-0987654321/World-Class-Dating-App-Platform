@@ -5,7 +5,7 @@
 
 import matchRepository from '../repositories/match.repository';
 import { Match } from '../entities/Match.entity';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
 
 const logger = createLogger('match-service');

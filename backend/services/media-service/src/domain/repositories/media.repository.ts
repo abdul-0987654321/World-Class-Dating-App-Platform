@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
 import { MediaMetadata, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('media-repository');
 

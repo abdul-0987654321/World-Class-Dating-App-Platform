@@ -9,7 +9,7 @@ import notificationServiceClient from '../../../src/infrastructure/clients/notif
 
 jest.mock('../../../src/domain/repositories/match.repository');
 jest.mock('../../../src/infrastructure/clients/notification-service.client');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

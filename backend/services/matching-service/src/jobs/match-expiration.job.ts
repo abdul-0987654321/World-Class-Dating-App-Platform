@@ -3,16 +3,16 @@
  * Runs every 5 minutes to process expired matches and send expiration warnings
  */
 
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import matchService from '../domain/services/match.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('match-expiration-job');
 
 export class MatchExpirationJob {
-  private expirationTask: cron.ScheduledTask | null = null;
-  private sixHourWarningTask: cron.ScheduledTask | null = null;
-  private oneHourWarningTask: cron.ScheduledTask | null = null;
+  private expirationTask: ScheduledTask | null = null;
+  private sixHourWarningTask: ScheduledTask | null = null;
+  private oneHourWarningTask: ScheduledTask | null = null;
 
   /**
    * Start the match expiration cron job

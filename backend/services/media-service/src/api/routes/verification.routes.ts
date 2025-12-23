@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import photoVerificationService from '../../domain/services/photo-verification.service';
 import { authenticate } from '../middleware/auth.middleware';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const router = Router();
 const logger = createLogger('verification-routes');

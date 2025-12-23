@@ -143,11 +143,16 @@ export class ServiceClient {
         status: response.status,
       });
 
+      const responseHeaders: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
       return {
-        data: responseData,
+        data: responseData as T,
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
+        headers: responseHeaders,
       };
     } catch (error: any) {
       const shouldRetry = retryCount < this.maxRetries && this.isRetryableError(error);

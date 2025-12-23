@@ -9,7 +9,7 @@ import {
 } from '@azure/storage-blob';
 import { v4 as uuidv4 } from 'uuid';
 import config from '../../config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('azure-storage-service');
 

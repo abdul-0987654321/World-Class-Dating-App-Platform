@@ -8,7 +8,7 @@ import matchRepository from '../repositories/match.repository';
 import swipeService from './swipe.service';
 import recommendationService from './recommendation.service';
 import { SwipeAction, UserProfile, MatchScore } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
 
 const logger = createLogger('discovery-service');

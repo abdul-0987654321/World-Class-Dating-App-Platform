@@ -6,7 +6,7 @@ import moderationRoutes from './routes/moderation.routes';
 import internalRoutes from './routes/internal.routes';
 import config from './config';
 import { createLogger } from './utils/logger';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
 dotenv.config();

@@ -43,10 +43,11 @@ export class SocketServer {
         const cleanToken = token.replace('Bearer ', '');
 
         // Verify JWT token
-        const decoded = jwt.verify(
-          cleanToken,
-          process.env.JWT_ACCESS_SECRET || 'your_jwt_access_secret_here'
-        ) as { userId: string };
+        const jwtSecret = process.env.JWT_ACCESS_SECRET;
+        if (!jwtSecret) {
+          return next(new Error('Server configuration error: JWT secret not configured'));
+        }
+        const decoded = jwt.verify(cleanToken, jwtSecret) as { userId: string };
 
         socket.userId = decoded.userId;
         next();

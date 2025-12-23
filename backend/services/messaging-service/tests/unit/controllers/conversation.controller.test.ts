@@ -11,7 +11,7 @@ import { messageRepository } from '../../../src/domain/repositories/message.repo
 
 jest.mock('../../../src/domain/repositories/conversation.repository');
 jest.mock('../../../src/domain/repositories/message.repository');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

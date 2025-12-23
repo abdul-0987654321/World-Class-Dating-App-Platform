@@ -7,7 +7,7 @@ import swipeRepository from '../repositories/swipe.repository';
 import matchRepository from '../repositories/match.repository';
 import matchingAlgorithm from './matching-algorithm.service';
 import { RecommendationRequest, UserProfile, UserPreferences, MatchScore } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
 
 const logger = createLogger('recommendation-service');

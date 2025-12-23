@@ -18,7 +18,7 @@ jest.mock('../../../src/domain/repositories/conversation.repository');
 jest.mock('../../../src/domain/services/message-events.service');
 jest.mock('../../../src/infrastructure/clients/realtime-http.client');
 jest.mock('../../../src/infrastructure/clients/matching-service.client');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

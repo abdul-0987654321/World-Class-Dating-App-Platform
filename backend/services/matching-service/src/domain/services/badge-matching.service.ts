@@ -3,7 +3,7 @@
  * Enhances matching algorithm with interest and intention badge compatibility
  */
 
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('badge-matching');
 

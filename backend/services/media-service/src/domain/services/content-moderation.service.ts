@@ -3,7 +3,7 @@ import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
 import { ApiKeyCredentials } from '@azure/ms-rest-js';
 import config from '../../config';
 import { ModerationResult, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('content-moderation-service');
 

@@ -4,7 +4,16 @@ import { AuthRequest, AdminRole, Permission, ROLE_PERMISSIONS } from '../types';
 import { logger } from '../utils/logger';
 import { db } from '../infrastructure/database';
 
-const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET || 'admin-secret';
+// SECURITY: Admin JWT secret MUST be set in environment variables
+const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET;
+if (!JWT_ADMIN_SECRET) {
+  throw new Error('CRITICAL SECURITY ERROR: JWT_ADMIN_SECRET environment variable is required for admin authentication. Never use default values.');
+}
+
+// Validate admin secret strength (minimum 32 characters)
+if (JWT_ADMIN_SECRET.length < 32) {
+  throw new Error('CRITICAL SECURITY ERROR: JWT_ADMIN_SECRET must be at least 32 characters long');
+}
 
 interface JWTPayload {
   adminId: string;

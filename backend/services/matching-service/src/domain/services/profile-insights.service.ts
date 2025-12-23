@@ -6,7 +6,7 @@
 
 import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import userServiceClient from '../../infrastructure/clients/user-service.client';
 
 const logger = createLogger('profile-insights-service');

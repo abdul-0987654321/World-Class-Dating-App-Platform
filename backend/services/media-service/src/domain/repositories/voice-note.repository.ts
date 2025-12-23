@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
 import { ModerationStatus } from '../../types';
 import { VoiceNoteMetadata } from '../services/voice-note.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('voice-note-repository');
 

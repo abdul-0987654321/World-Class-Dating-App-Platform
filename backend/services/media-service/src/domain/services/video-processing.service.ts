@@ -1,4 +1,4 @@
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import { promisify } from 'util';

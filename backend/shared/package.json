@@ -1,5 +1,5 @@
 {
-  "name": "@flamoral/shared",
+  "name": "@flamoral/backend-shared",
   "version": "1.0.0",
   "description": "Shared types, utilities, and constants for backend services",
   "main": "dist/index.js",

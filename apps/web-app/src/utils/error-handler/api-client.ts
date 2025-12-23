@@ -138,7 +138,7 @@ export function createApiClient(config: ApiClientConfig) {
       skipAuth = false,
       skipCsrf = false,
       timeout = clientConfig.timeout,
-      headers: customHeaders = {},
+      headers: customHeaders = {} as Record<string, string>,
       suppressGlobalError = false,
       signal: customSignal,
       ...fetchOptions
@@ -163,11 +163,13 @@ export function createApiClient(config: ApiClientConfig) {
       );
 
       // Build headers
+      const authHeader = !skipAuth ? await getAuthHeader() : {};
+      const csrfHeader = needsCsrf ? await getCsrfHeader() : {};
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...(!skipAuth ? await getAuthHeader() : {}),
-        ...(needsCsrf ? await getCsrfHeader() : {}),
-        ...customHeaders,
+        ...authHeader,
+        ...csrfHeader,
+        ...(customHeaders as Record<string, string>),
       };
 
       // Make request

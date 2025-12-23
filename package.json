@@ -11,7 +11,9 @@
     "packages/shared/validators",
     "packages/shared/api-client",
     "apps/*",
-    "backend"
+    "backend",
+    "backend/shared",
+    "backend/services/*"
   ],
   "scripts": {
     "install:all": "yarn install",

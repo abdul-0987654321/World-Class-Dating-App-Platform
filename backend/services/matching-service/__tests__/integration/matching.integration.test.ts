@@ -18,7 +18,7 @@ jest.mock('../../src/infrastructure/database/connection', () => ({
   },
 }));
 
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),

@@ -1,5 +1,5 @@
 {
-  "name": "@flamoral/shared",
+  "name": "@flamoral/service-utils",
   "version": "1.0.0",
   "description": "Shared utilities, middleware, and clients for Flamoral services",
   "main": "dist/index.js",

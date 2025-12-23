@@ -4,7 +4,7 @@
  * Premium feature for more refined matching
  */
 
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('advanced-filters-service');
 

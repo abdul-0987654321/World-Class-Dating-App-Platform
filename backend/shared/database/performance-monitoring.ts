@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { createLogger } from '@flamoral/shared';
+import createLogger from '../utils/logger';
 
 const logger = createLogger('db-performance-monitor');
 

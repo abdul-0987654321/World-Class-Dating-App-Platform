@@ -7,7 +7,7 @@
 import { Knex } from 'knex';
 import db from '../../infrastructure/database/connection';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import swipeRepository from '../repositories/swipe.repository';
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
 import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';

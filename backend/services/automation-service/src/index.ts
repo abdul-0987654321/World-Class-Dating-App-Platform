@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import cron from 'node-cron';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import config from './config';
 import { initializeDatabase, closeDatabase } from './infrastructure/database/knex';
 import { initializeRedis, closeRedis } from './infrastructure/cache/redis';
@@ -14,7 +14,7 @@ import { SocketManager } from './infrastructure/websocket/socket-manager';
 import { MessageAutomationService } from './services/message-automation.service';
 import automationRoutes from './routes';
 import apiRoutes from './api/routes';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
 dotenv.config();

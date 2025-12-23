@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import profileInsightsService from '../../domain/services/profile-insights.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('insights-controller');
 

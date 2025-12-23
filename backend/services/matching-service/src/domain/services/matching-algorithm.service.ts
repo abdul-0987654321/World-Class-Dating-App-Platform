@@ -4,7 +4,7 @@
  */
 
 import { UserProfile, UserPreferences, MatchScore } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('matching-algorithm');
 

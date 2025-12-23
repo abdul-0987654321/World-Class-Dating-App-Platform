@@ -5,7 +5,7 @@ import {
   ContentModerationJobData,
   PhotoVerificationJobData,
 } from './job-types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('queue-manager');
 

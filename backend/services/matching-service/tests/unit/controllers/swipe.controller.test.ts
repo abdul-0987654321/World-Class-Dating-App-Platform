@@ -9,7 +9,7 @@ import swipeService from '../../../src/domain/services/swipe.service';
 import { SwipeAction } from '../../../src/types';
 
 jest.mock('../../../src/domain/services/swipe.service');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

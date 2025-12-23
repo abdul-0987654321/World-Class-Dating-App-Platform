@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import boostService from '../../domain/services/boost.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('boost-controller');
 

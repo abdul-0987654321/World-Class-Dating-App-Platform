@@ -6,7 +6,7 @@ import { logger } from './utils/logger';
 import { testConnection } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
 import adminRoutes from './routes';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 dotenv.config();
 

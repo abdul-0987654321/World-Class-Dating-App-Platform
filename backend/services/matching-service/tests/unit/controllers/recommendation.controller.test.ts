@@ -8,7 +8,7 @@ import { RecommendationController } from '../../../src/api/controllers/recommend
 import recommendationService from '../../../src/domain/services/recommendation.service';
 
 jest.mock('../../../src/domain/services/recommendation.service');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

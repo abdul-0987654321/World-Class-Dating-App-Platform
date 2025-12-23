@@ -107,20 +107,33 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 
 ## Subscription Tiers
 
-| Feature | Free | Premium | Elite |
-|---------|:----:|:-------:|:-----:|
-| **Price** | $0 | $19.99/mo | $39.99/mo |
-| **Daily Likes** | 10 | 100 | Unlimited |
-| **Super Likes** | 1/day | 5/day | 10/day |
-| **See Who Likes You** | - | Yes | Yes |
-| **Rewind/Undo** | - | Yes | Yes |
-| **Advanced Filters** | - | Yes | Yes |
-| **Profile Boost** | - | 1/mo | 3/mo |
-| **Travel Mode** | - | - | Yes |
-| **Incognito Mode** | - | - | Yes |
-| **Priority Support** | - | - | Yes |
-| **Read Receipts** | - | Yes | Yes |
-| **Ad-Free** | - | Yes | Yes |
+Flamoral offers a **6-tier subscription model** to cater to different user needs:
+
+| Feature | Free | Basic | Plus | Premium | Premium+ | Elite |
+|---------|:----:|:-----:|:----:|:-------:|:--------:|:-----:|
+| **Price (Monthly)** | $0 | $9.99 | $14.99 | $19.99 | $29.99 | $49.99 |
+| **Price (Yearly)** | $0 | $95.88 | $143.88 | $191.88 | $287.88 | $479.88 |
+| **Trial Days** | - | 7 | 7 | 14 | 14 | 14 |
+| **Unlimited Swipes** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **See Who Likes You** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Rewind/Undo** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Ad-Free** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Incognito Mode** | - | - | ✓ | ✓ | ✓ | ✓ |
+| **Priority Likes** | - | - | ✓ | ✓ | ✓ | ✓ |
+| **Read Receipts** | - | - | ✓ | ✓ | ✓ | ✓ |
+| **Unlimited Super Likes** | - | - | - | ✓ | ✓ | ✓ |
+| **Passport/Travel Mode** | - | - | - | ✓ | ✓ | ✓ |
+| **Advanced Filters** | - | - | - | ✓ | ✓ | ✓ |
+| **Profile Controls** | - | - | - | ✓ | ✓ | ✓ |
+| **Message Before Match** | - | - | - | - | ✓ | ✓ |
+| **Weekly Boost** | - | - | - | - | ✓ | ✓ |
+| **See Profile Visitors** | - | - | - | - | ✓ | ✓ |
+| **Priority Support** | - | - | - | - | ✓ | ✓ |
+| **VIP Badge** | - | - | - | - | - | ✓ |
+| **Elite Matches** | - | - | - | - | - | ✓ |
+| **Dedicated Account Manager** | - | - | - | - | - | ✓ |
+| **Unlimited Boosts** | - | - | - | - | - | ✓ |
+| **Early Access** | - | - | - | - | - | ✓ |
 
 ### Coin Packages
 

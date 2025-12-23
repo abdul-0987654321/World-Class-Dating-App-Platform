@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import matchRepository from '../../domain/repositories/match.repository';
 import matchService from '../../domain/services/match.service';
 import { MatchStatus } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('match-controller');
 

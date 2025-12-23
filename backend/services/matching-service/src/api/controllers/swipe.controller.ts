@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import swipeService from '../../domain/services/swipe.service';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import {
   ApiError,
   MatchingErrorCode,

@@ -482,8 +482,8 @@ describe('Error Handler Middleware', () => {
     });
 
     it('should include HTTP method in error message', () => {
-      mockRequest.method = 'POST';
-      mockRequest.path = '/api/users';
+      (mockRequest as any).method = 'POST';
+      (mockRequest as any).path = '/api/users';
 
       notFoundHandler(mockRequest as Request, mockResponse as Response, mockNext);
 

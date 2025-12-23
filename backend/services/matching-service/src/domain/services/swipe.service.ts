@@ -7,7 +7,7 @@ import swipeRepository from '../repositories/swipe.repository';
 import matchRepository from '../repositories/match.repository';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
 import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
 import userServiceClient from '../../infrastructure/clients/user-service.client';

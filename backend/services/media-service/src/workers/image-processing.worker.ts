@@ -6,7 +6,7 @@ import imageProcessingService from '../domain/services/image-processing.service'
 import azureStorageService from '../infrastructure/storage/azure-storage.service';
 import mediaRepository from '../domain/repositories/media.repository';
 import { MediaMetadata, ModerationStatus } from '../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('image-processing-worker');
 

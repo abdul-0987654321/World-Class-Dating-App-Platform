@@ -1,5 +1,5 @@
 import logger from '../../utils/logger';
-import { ServiceClient } from '@flamoral/shared';
+import { ServiceClient } from '@flamoral/backend-shared';
 
 interface UpdateSubscriptionDto {
   userId: string;

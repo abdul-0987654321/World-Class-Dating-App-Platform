@@ -11,7 +11,7 @@ import { MatchStatus } from '../../../src/types';
 
 jest.mock('../../../src/domain/repositories/match.repository');
 jest.mock('../../../src/domain/services/match.service');
-jest.mock('@flamoral/shared', () => ({
+jest.mock('@flamoral/backend-shared', () => ({
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

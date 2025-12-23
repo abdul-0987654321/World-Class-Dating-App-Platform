@@ -5,6 +5,9 @@
 
 import type { ErrorCode } from './error-codes';
 
+// Re-export ErrorCode for convenience
+export type { ErrorCode };
+
 /**
  * Standard API error response from backend
  */

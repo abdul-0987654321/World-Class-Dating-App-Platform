@@ -8,7 +8,7 @@ import { testConnection, closePool } from './infrastructure/database/pool';
 import redisCache from './infrastructure/cache/redis';
 import apiRoutes from './api/routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
-import { createValidator, commonValidations } from '@flamoral/shared';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
 dotenv.config();

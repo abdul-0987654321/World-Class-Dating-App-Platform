@@ -5,8 +5,19 @@ import config from '../../config';
 const logger = createLogger('redis');
 
 class RedisClient {
+  private static instance: RedisClient | null = null;
   private client: RedisClientType | null = null;
   private isConnected = false;
+
+  /**
+   * Get singleton instance
+   */
+  static getInstance(): RedisClient {
+    if (!RedisClient.instance) {
+      RedisClient.instance = new RedisClient();
+    }
+    return RedisClient.instance;
+  }
 
   /**
    * Initialize Redis connection
@@ -276,6 +287,17 @@ class RedisClient {
       await this.client?.del(key);
     } catch (error) {
       logger.error('Failed to delete key:', error);
+    }
+  }
+
+  /**
+   * Publish message to a channel
+   */
+  async publish(channel: string, message: string): Promise<void> {
+    try {
+      await this.client?.publish(channel, message);
+    } catch (error) {
+      logger.error('Failed to publish message:', error);
     }
   }
 }

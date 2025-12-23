@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import discoveryService from '../../domain/services/discovery.service';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('discovery-controller');
 

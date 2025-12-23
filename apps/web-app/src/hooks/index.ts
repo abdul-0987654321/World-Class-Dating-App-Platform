@@ -3,7 +3,15 @@
  * Export all custom hooks
  */
 
-export { useAIServices } from './useAIServices';
+export {
+  useFraudCheck,
+  useLocationAnomalyCheck,
+  useSentimentAnalysis,
+  useToxicityDetection,
+  usePhotoAnalysis,
+  useRecommendations,
+  useCompatibility,
+} from './useAIServices';
 export { useAdminUsers } from './useAdminUsers';
 export { usePushNotifications } from './usePushNotifications';
 export { useCsrfToken } from './useCsrfToken';

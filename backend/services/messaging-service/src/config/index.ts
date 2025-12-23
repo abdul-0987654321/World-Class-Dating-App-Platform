@@ -1,9 +1,18 @@
+const isProduction = process.env.NODE_ENV === 'production';
+
+function requireSecret(name: string, devDefault: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (isProduction) throw new Error(`${name} environment variable is required in production`);
+  return devDefault;
+}
+
 export default {
   port: parseInt(process.env.PORT || '3003', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   jwt: {
-    secret: process.env.JWT_ACCESS_SECRET || 'dev-secret-key',
+    secret: requireSecret('JWT_ACCESS_SECRET', 'dev-only-jwt-secret'),
   },
 
   cosmos: {
@@ -29,7 +38,7 @@ export default {
 
   encryption: {
     algorithm: 'aes-256-cbc',
-    key: process.env.ENCRYPTION_KEY || 'dev-encryption-key-32-characters',
+    key: requireSecret('ENCRYPTION_KEY', 'dev-encryption-key-32-characters'),
     ivLength: 16,
   },
 
@@ -53,5 +62,5 @@ export default {
 
   // Realtime service configuration
   realtimeServiceUrl: process.env.REALTIME_SERVICE_URL || 'http://localhost:8081',
-  serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token-change-in-production',
+  serviceToken: requireSecret('SERVICE_TOKEN', 'dev-only-service-token'),
 };

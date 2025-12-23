@@ -2,7 +2,7 @@ import { startImageProcessingWorker } from './image-processing.worker';
 import { startContentModerationWorker } from './content-moderation.worker';
 import { startPhotoVerificationWorker } from './photo-verification.worker';
 import queueManager from '../infrastructure/queue/queue-manager';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('worker-manager');
 

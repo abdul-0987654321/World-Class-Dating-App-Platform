@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import config from '../../config';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('image-processing-service');
 

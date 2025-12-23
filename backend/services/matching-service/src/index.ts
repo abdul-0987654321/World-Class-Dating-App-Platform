@@ -10,7 +10,7 @@ import {
   errorHandlerMiddleware,
   notFoundHandler,
   initializeGlobalErrorHandlers,
-} from '@flamoral/shared';
+} from '@flamoral/backend-shared';
 import swipeRoutes from './api/routes/swipe.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';

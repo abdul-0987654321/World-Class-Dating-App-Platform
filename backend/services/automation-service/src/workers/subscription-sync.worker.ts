@@ -6,7 +6,7 @@
  */
 
 import { Job } from 'bull';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
 import Stripe from 'stripe';
 import {
@@ -26,7 +26,7 @@ const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http:/
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2024-12-18.acacia' as Stripe.LatestApiVersion,
 });
 
 // Subscription status

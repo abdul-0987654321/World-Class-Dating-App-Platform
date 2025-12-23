@@ -13,7 +13,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../config';
 
 const logger = createLogger('csam-detection-middleware');

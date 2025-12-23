@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 import { getOptimizedKnexConfig } from './connection-pool-config';
-import { createLogger } from '@flamoral/shared';
+import createLogger from '../utils/logger';
 
 const logger = createLogger('read-replica');
 

@@ -16,7 +16,7 @@ export { subscriptionSyncWorker, SubscriptionSyncWorker } from './subscription-s
 export { notificationWorker, NotificationWorker } from './notification.worker';
 export { cleanupRetentionWorker, CleanupRetentionWorker } from './cleanup-retention.worker';
 
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 import { discoveryRankingWorker } from './discovery-ranking.worker';
 import { matchCreationWorker } from './match-creation.worker';
 import { messageDeliveryWorker } from './message-delivery.worker';

@@ -1,3 +1,12 @@
+const isProduction = process.env.NODE_ENV === 'production';
+
+function requireSecret(name: string, devDefault: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (isProduction) throw new Error(`${name} environment variable is required in production`);
+  return devDefault;
+}
+
 export default {
   port: parseInt(process.env.PORT || '3009', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -7,11 +16,11 @@ export default {
     port: parseInt(process.env.DB_PORT || '5432', 10),
     name: process.env.DB_NAME || 'matching_service_dev',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    password: requireSecret('DB_PASSWORD', 'postgres'),
   },
 
   jwt: {
-    secret: process.env.JWT_ACCESS_SECRET || 'dev-secret-key',
+    secret: requireSecret('JWT_ACCESS_SECRET', 'dev-only-jwt-secret'),
   },
 
   redis: {

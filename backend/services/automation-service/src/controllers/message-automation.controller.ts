@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MessageAutomationService } from '../services/message-automation.service';
-import { createLogger } from '@flamoral/shared';
+import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('automation-service:message-automation-controller');
 
