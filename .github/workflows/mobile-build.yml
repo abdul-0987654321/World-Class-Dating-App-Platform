@@ -1,14 +1,15 @@
 name: Mobile Build
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/mobile-app/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'apps/mobile-app/**'
+  # DISABLED: Manual trigger only - mobile builds run separately
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'apps/mobile-app/**'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'apps/mobile-app/**'
   workflow_dispatch:
     inputs:
       platform:

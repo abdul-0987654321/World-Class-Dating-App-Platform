@@ -1,18 +1,19 @@
 name: Infrastructure Tests
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'infrastructure/kubernetes/**'
-      - 'infrastructure/helm/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'infrastructure/kubernetes/**'
-      - 'infrastructure/helm/**'
+  # DISABLED: Manual trigger only
+  # push:
+  #   branches: [main, develop]
+  #   paths:
+  #     - 'infrastructure/terraform/**'
+  #     - 'infrastructure/kubernetes/**'
+  #     - 'infrastructure/helm/**'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'infrastructure/terraform/**'
+  #     - 'infrastructure/kubernetes/**'
+  #     - 'infrastructure/helm/**'
   workflow_dispatch:
 
 env:

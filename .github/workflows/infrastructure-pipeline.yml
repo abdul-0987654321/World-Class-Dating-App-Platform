@@ -8,18 +8,19 @@
 name: Infrastructure Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'k8s/**'
-      - 'helm/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'k8s/**'
-      - 'helm/**'
+  # DISABLED: Manual trigger only - infrastructure changes need explicit deployment
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'infrastructure/terraform/**'
+  #     - 'k8s/**'
+  #     - 'helm/**'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'infrastructure/terraform/**'
+  #     - 'k8s/**'
+  #     - 'helm/**'
   workflow_dispatch:
     inputs:
       environment:

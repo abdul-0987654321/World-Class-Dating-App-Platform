@@ -8,17 +8,18 @@
 name: Mobile App CI/CD
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - 'release/**'
-    paths:
-      - 'apps/mobile-app/**'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'apps/mobile-app/**'
+  # DISABLED: Manual trigger only - mobile deployments need explicit approval
+  # push:
+  #   branches:
+  #     - main
+  #     - develop
+  #     - 'release/**'
+  #   paths:
+  #     - 'apps/mobile-app/**'
+  # pull_request:
+  #   branches: [main, develop]
+  #   paths:
+  #     - 'apps/mobile-app/**'
   workflow_dispatch:
     inputs:
       platform:

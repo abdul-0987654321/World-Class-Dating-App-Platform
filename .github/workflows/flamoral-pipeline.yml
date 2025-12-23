@@ -8,13 +8,14 @@
 name: Flamoral CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main           # Production deployment
-      - develop        # Development deployment
-      - 'release/*'    # Staging deployment
-  pull_request:
-    branches: [main, develop]
+  # DISABLED: Using ci-cd.yml as the unified pipeline
+  # push:
+  #   branches:
+  #     - main           # Production deployment
+  #     - develop        # Development deployment
+  #     - 'release/*'    # Staging deployment
+  # pull_request:
+  #   branches: [main, develop]
   workflow_dispatch:
     inputs:
       environment:

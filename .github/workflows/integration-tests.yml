@@ -4,10 +4,11 @@
 name: Integration & E2E Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  # DISABLED: Manual trigger only - run via ci-cd.yml or manually
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
   workflow_dispatch:
 
 env:
