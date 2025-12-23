@@ -18,21 +18,29 @@ COPY backend/services/user-service/package*.json ./backend/services/user-service
 # Install root dependencies
 RUN npm install --legacy-peer-deps || true
 
-# Install and build shared module
+# Build shared module first
 WORKDIR /app/backend/shared
 COPY backend/shared ./
-RUN npm install --legacy-peer-deps && npm run build || echo "Shared build completed"
+RUN npm install --legacy-peer-deps && npm run build
 
 # Install service dependencies
 WORKDIR /app/backend/services/user-service
 RUN npm install --legacy-peer-deps
 
-# Copy service source
+# Link shared module into service node_modules BEFORE building
+RUN mkdir -p node_modules/@flamoral/backend-shared && \
+    cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
+    cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
+
+# Copy service source and config
 COPY backend/services/user-service/src ./src
 COPY backend/services/user-service/tsconfig*.json ./
 
-# Build TypeScript
-RUN npm run build || npx tsc
+# Build TypeScript - fail explicitly if build fails
+RUN npm run build
+
+# Verify dist was created
+RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
 FROM node:20-alpine AS production
@@ -43,13 +51,15 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy shared module
-COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/shared/dist/
-COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/shared/
+# Copy node_modules with shared module already linked
+COPY --from=builder /app/backend/services/user-service/node_modules ./node_modules
+
+# Copy shared module (ensure it's in node_modules)
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/backend-shared/
 
 # Copy built application
 COPY --from=builder /app/backend/services/user-service/dist ./dist
-COPY --from=builder /app/backend/services/user-service/node_modules ./node_modules
 COPY --from=builder /app/backend/services/user-service/package*.json ./
 
 # Set ownership

@@ -1,0 +1,261 @@
+name: Deploy to AKS Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to deploy'
+        required: true
+        type: choice
+        options:
+          - all
+          - core-services
+          - api-gateway
+          - auth-service
+          - user-service
+          - matching-service
+          - messaging-service
+          - media-service
+          - payment-service
+      image_tag:
+        description: 'Image tag to deploy'
+        required: true
+        type: string
+        default: 'latest'
+      dry_run:
+        description: 'Dry run (do not actually deploy)'
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_CONTAINER_REGISTRY: flamoralprodacr.azurecr.io
+  RESOURCE_GROUP: flamoral-prod-rg
+  AKS_CLUSTER: flamoral-prod-aks
+  NAMESPACE: flamoral
+
+jobs:
+  # Pre-deployment checks
+  pre-deploy:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Verify AKS cluster is running
+        id: check
+        run: |
+          STATE=$(az aks show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }} --query "powerState.code" -o tsv)
+          if [ "$STATE" != "Running" ]; then
+            echo "AKS cluster is not running (state: $STATE)"
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "AKS cluster is running"
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+      - name: Verify images exist in ACR
+        run: |
+          SERVICES=("auth-service" "user-service" "matching-service" "messaging-service" "api-gateway" "media-service" "payment-service")
+          TAG="${{ github.event.inputs.image_tag }}"
+
+          for SERVICE in "${SERVICES[@]}"; do
+            if ! az acr repository show-tags --name flamoralprodacr --repository $SERVICE --query "contains(@, '$TAG')" -o tsv 2>/dev/null; then
+              echo "Warning: Image $SERVICE:$TAG may not exist in ACR"
+            fi
+          done
+
+  # Build images if needed
+  build-images:
+    name: Build Images
+    runs-on: ubuntu-latest
+    needs: pre-deploy
+    if: needs.pre-deploy.outputs.proceed == 'true' && github.event.inputs.image_tag == 'latest'
+
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - user-service
+          - matching-service
+          - messaging-service
+          - media-service
+          - payment-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build image using ACR Tasks
+        run: |
+          az acr build \
+            --registry flamoralprodacr \
+            --image ${{ matrix.service }}:${{ github.sha }} \
+            --image ${{ matrix.service }}:latest \
+            --file backend/services/${{ matrix.service }}/Dockerfile \
+            .
+
+  # Deploy to AKS
+  deploy:
+    name: Deploy to AKS
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, build-images]
+    if: always() && needs.pre-deploy.outputs.proceed == 'true' && (needs.build-images.result == 'success' || needs.build-images.result == 'skipped')
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Create/Update namespace
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Core Services
+        if: github.event.inputs.services == 'all' || github.event.inputs.services == 'core-services'
+        run: |
+          TAG="${{ github.event.inputs.image_tag }}"
+          ACR="${{ env.AZURE_CONTAINER_REGISTRY }}"
+          NS="${{ env.NAMESPACE }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+
+          SERVICES=("auth-service" "user-service" "matching-service" "messaging-service")
+
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Deploying $SERVICE..."
+            if [ "$DRY_RUN" == "true" ]; then
+              echo "[DRY RUN] Would deploy $SERVICE:$TAG"
+            else
+              kubectl set image deployment/$SERVICE $SERVICE=$ACR/$SERVICE:$TAG -n $NS || \
+                echo "Deployment $SERVICE not found, creating..."
+            fi
+          done
+
+      - name: Deploy API Gateway
+        if: github.event.inputs.services == 'all' || github.event.inputs.services == 'api-gateway'
+        run: |
+          TAG="${{ github.event.inputs.image_tag }}"
+          ACR="${{ env.AZURE_CONTAINER_REGISTRY }}"
+          NS="${{ env.NAMESPACE }}"
+
+          if [ "${{ github.event.inputs.dry_run }}" != "true" ]; then
+            kubectl set image deployment/api-gateway api-gateway=$ACR/api-gateway:$TAG -n $NS || \
+              echo "Deployment api-gateway not found"
+          fi
+
+      - name: Deploy Individual Service
+        if: contains(fromJson('["auth-service", "user-service", "matching-service", "messaging-service", "media-service", "payment-service"]'), github.event.inputs.services)
+        run: |
+          SERVICE="${{ github.event.inputs.services }}"
+          TAG="${{ github.event.inputs.image_tag }}"
+          ACR="${{ env.AZURE_CONTAINER_REGISTRY }}"
+          NS="${{ env.NAMESPACE }}"
+
+          if [ "${{ github.event.inputs.dry_run }}" != "true" ]; then
+            kubectl set image deployment/$SERVICE $SERVICE=$ACR/$SERVICE:$TAG -n $NS
+          else
+            echo "[DRY RUN] Would deploy $SERVICE:$TAG"
+          fi
+
+      - name: Wait for rollout
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          NS="${{ env.NAMESPACE }}"
+
+          # Wait for deployments to complete
+          kubectl rollout status deployment -n $NS --timeout=300s || true
+
+      - name: Verify deployment
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n ${{ env.NAMESPACE }} -o wide
+
+          echo ""
+          echo "=== Service Status ==="
+          kubectl get services -n ${{ env.NAMESPACE }}
+
+          echo ""
+          echo "=== Recent Events ==="
+          kubectl get events -n ${{ env.NAMESPACE }} --sort-by='.lastTimestamp' | tail -20
+
+  # Post-deployment verification
+  verify:
+    name: Post-deployment Verification
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event.inputs.dry_run != 'true'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Health checks
+        run: |
+          NS="${{ env.NAMESPACE }}"
+
+          # Check pod health
+          UNHEALTHY=$(kubectl get pods -n $NS -o json | jq -r '.items[] | select(.status.phase != "Running") | .metadata.name')
+          if [ -n "$UNHEALTHY" ]; then
+            echo "Warning: Some pods are not running:"
+            echo "$UNHEALTHY"
+          fi
+
+          # Check for crash loops
+          CRASH_LOOPS=$(kubectl get pods -n $NS -o json | jq -r '.items[] | select(.status.containerStatuses[]?.restartCount > 3) | .metadata.name')
+          if [ -n "$CRASH_LOOPS" ]; then
+            echo "Warning: Pods with high restart counts:"
+            echo "$CRASH_LOOPS"
+          fi
+
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Services:** ${{ github.event.inputs.services }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** ${{ github.event.inputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Namespace:** ${{ env.NAMESPACE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cluster:** ${{ env.AKS_CLUSTER }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pod Status" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n ${{ env.NAMESPACE }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

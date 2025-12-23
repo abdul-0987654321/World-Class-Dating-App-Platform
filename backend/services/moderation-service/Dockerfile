@@ -3,18 +3,44 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy root package files
 COPY package*.json ./
-COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
+# Copy shared package files
+COPY backend/shared/package*.json ./backend/shared/
 
-# Copy source code
-COPY src ./src
+# Copy service package files
+COPY backend/services/moderation-service/package*.json ./backend/services/moderation-service/
+
+# Install root dependencies
+RUN npm install --legacy-peer-deps || true
+
+# Build shared module first
+WORKDIR /app/backend/shared
+COPY backend/shared ./
+RUN npm install --legacy-peer-deps && npm run build
+
+# Install service dependencies
+WORKDIR /app/backend/services/moderation-service
+RUN npm install --legacy-peer-deps
+
+# Link shared module into service node_modules BEFORE building
+RUN mkdir -p node_modules/@flamoral/backend-shared && \
+    cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
+    cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
+
+# Copy service source
+COPY backend/services/moderation-service/src ./src
+COPY backend/services/moderation-service/tsconfig*.json ./
 
 # Build TypeScript
 RUN npm run build
+
+# Verify dist was created
+RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
 FROM node:20-alpine
@@ -27,18 +53,26 @@ RUN apk add --no-cache python3 py3-pip
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm install --legacy-peer-deps --only=production && npm cache clean --force
+# Copy node_modules with shared module already linked
+COPY --from=builder /app/backend/services/moderation-service/node_modules ./node_modules
 
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
+# Copy shared module (ensure it's in node_modules)
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/backend-shared/
+
+# Copy built application
+COPY --from=builder /app/backend/services/moderation-service/dist ./dist
+COPY --from=builder /app/backend/services/moderation-service/package*.json ./
 
 # Change ownership to nodejs user
 RUN chown -R nodejs:nodejs /app
 
 # Switch to nodejs user
 USER nodejs
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3007
 
 # Expose port
 EXPOSE 3007

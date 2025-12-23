@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 env:
-  AZURE_CONTAINER_REGISTRY: flamoralacr.azurecr.io
-  RESOURCE_GROUP: flamoral-rg
+  AZURE_CONTAINER_REGISTRY: flamoralprodacr.azurecr.io
+  RESOURCE_GROUP: flamoral-prod-rg
   NODE_VERSION: '20'
 
 jobs:

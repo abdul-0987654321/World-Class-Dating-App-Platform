@@ -1,22 +1,75 @@
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy root package files
 COPY package*.json ./
-COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy shared package files
+COPY backend/shared/package*.json ./backend/shared/
 
-# Copy source code
-COPY src ./src
+# Copy service package files
+COPY backend/services/admin-service/package*.json ./backend/services/admin-service/
+
+# Install root dependencies
+RUN npm install --legacy-peer-deps || true
+
+# Build shared module first
+WORKDIR /app/backend/shared
+COPY backend/shared ./
+RUN npm install --legacy-peer-deps && npm run build
+
+# Install service dependencies
+WORKDIR /app/backend/services/admin-service
+RUN npm install --legacy-peer-deps
+
+# Link shared module into service node_modules BEFORE building
+RUN mkdir -p node_modules/@flamoral/backend-shared && \
+    cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
+    cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
+
+# Copy service source
+COPY backend/services/admin-service/src ./src
+COPY backend/services/admin-service/tsconfig*.json ./
 
 # Build TypeScript
 RUN npm run build
 
+# Verify dist was created
+RUN ls -la dist/ && test -f dist/index.js
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy node_modules with shared module already linked
+COPY --from=builder /app/backend/services/admin-service/node_modules ./node_modules
+
+# Copy shared module (ensure it's in node_modules)
+COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/backend-shared/
+
+# Copy built application
+COPY --from=builder /app/backend/services/admin-service/dist ./dist
+COPY --from=builder /app/backend/services/admin-service/package*.json ./
+
 # Create logs directory
-RUN mkdir -p logs
+RUN mkdir -p logs && chown -R nodejs:nodejs /app
+
+# Switch to nodejs user
+USER nodejs
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3010
 
 # Expose port
 EXPOSE 3010
@@ -25,5 +78,5 @@ EXPOSE 3010
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3010/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start service
-CMD ["npm", "start"]
+# Start application
+CMD ["node", "dist/index.js"]
