@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . ",
+    "lint:fix": "eslint . ",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

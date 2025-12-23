@@ -9,8 +9,8 @@
     "start": "node dist/index.js",
     "test": "jest --coverage",
     "test:unit": "jest --testPathPattern=tests/unit",
-    "lint": "eslint src tests --ext .ts",
-    "lint:fix": "eslint src tests --ext .ts --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "clean": "rm -rf dist"
   },
   "dependencies": {

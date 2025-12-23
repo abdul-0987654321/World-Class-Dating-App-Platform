@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . ",
     "clean": "cd ios && xcodebuild clean && cd ../android && ./gradlew clean",
     "pod-install": "cd ios && pod install"
   },
