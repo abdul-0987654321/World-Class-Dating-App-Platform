@@ -21,8 +21,6 @@
     "@stripe/stripe-js": "^8.5.3",
     "@tanstack/react-query": "^5.8.4",
     "@types/dompurify": "^3.0.5",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^20.19.25",
     "@types/jest": "^29.5.14",
     "@types/node": "^25.0.3",
     "agora-rtc-sdk-ng": "^4.19.0",
@@ -44,6 +42,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.1",
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
