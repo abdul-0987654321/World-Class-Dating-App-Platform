@@ -319,11 +319,12 @@ export class AdminPlatformService {
       riskLevel = 'low';
     }
 
-    const approvals = ADMIN_PLATFORM_AI.changeAssessment.requiredApprovals;
+    const approvals = ADMIN_PLATFORM_AI.changeAssessment.requiredApprovals as Record<string, string[]>;
+    const approvalKey = riskLevel === 'critical' ? 'critical' : `${riskLevel}Risk`;
 
     return {
       riskLevel,
-      requiredApprovals: approvals[riskLevel === 'critical' ? 'critical' : riskLevel + 'Risk'] || ['Engineer'],
+      requiredApprovals: approvals[approvalKey] || ['Engineer'],
       recommendations: [
         ...ADMIN_PLATFORM_AI.changeAssessment.rollbackRequirements.always,
         ...(riskLevel === 'high' || riskLevel === 'critical'
