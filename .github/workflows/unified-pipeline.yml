@@ -110,6 +110,12 @@ jobs:
       - name: Run linting
         run: yarn lint:all || true
 
+      - name: Security audit
+        run: npm audit --audit-level=high || true
+
+      - name: Run security abuse tests
+        run: yarn test:security:abuse || true
+
       - name: Check deployment conditions
         id: check
         run: |

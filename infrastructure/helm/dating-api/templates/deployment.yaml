@@ -8,6 +8,14 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  # Zero-downtime deployment strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  # Retain rollout history for rollback
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       {{- include "dating-api.selectorLabels" . | nindent 6 }}

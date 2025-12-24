@@ -1,7 +1,8 @@
 replicaCount: 3
 
 image:
-  tag: "latest"
+  # NEVER use 'latest' in production - use semantic version or git SHA
+  tag: ""  # Must be set during deployment: --set image.tag=$GITHUB_SHA
 
 resources:
   limits:

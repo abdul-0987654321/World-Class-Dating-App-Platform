@@ -3,7 +3,8 @@ replicaCount: 2
 image:
   repository: ghcr.io/your-org/dating-api
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # NEVER use 'latest' - use semantic version or git SHA
+  tag: ""  # Required: set during deployment with --set image.tag=
 
 imagePullSecrets: []
 nameOverride: ""

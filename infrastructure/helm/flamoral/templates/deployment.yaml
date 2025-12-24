@@ -15,6 +15,12 @@ metadata:
     app.kubernetes.io/component: api-gateway
 spec:
   replicas: {{ .Values.apiGateway.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       {{- $selectorLabels | nindent 6 }}
