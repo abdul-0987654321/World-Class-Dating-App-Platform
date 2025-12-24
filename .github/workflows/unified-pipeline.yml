@@ -161,22 +161,49 @@ jobs:
           - automation-service
           - advertising-service
           - workflow-engine
+          - realtime-service
+        include:
+          # AI Services (separate directory structure)
+          - service: ai-services/recommendation-service
+            dockerfile_path: backend/services/ai-services/recommendation-service/Dockerfile
+          - service: ai-services/dating-coach-service
+            dockerfile_path: backend/services/ai-services/dating-coach-service/Dockerfile
+          - service: ai-services/fraud-detection
+            dockerfile_path: backend/services/ai-services/fraud-detection/Dockerfile
+          - service: ai-services/nlp-service
+            dockerfile_path: backend/services/ai-services/nlp-service/Dockerfile
+          - service: ai-services/photo-analysis
+            dockerfile_path: backend/services/ai-services/photo-analysis/Dockerfile
+          - service: ai-services/content-generator
+            dockerfile_path: backend/services/ai-services/content-generator/Dockerfile
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check if Dockerfile exists
-        id: check
+      - name: Determine Dockerfile path
+        id: dockerfile
         run: |
-          if [ -f "backend/services/${{ matrix.service }}/Dockerfile" ]; then
+          # Use custom path if specified, otherwise default path
+          if [ -n "${{ matrix.dockerfile_path }}" ]; then
+            DOCKERFILE="${{ matrix.dockerfile_path }}"
+          else
+            DOCKERFILE="backend/services/${{ matrix.service }}/Dockerfile"
+          fi
+          echo "path=$DOCKERFILE" >> $GITHUB_OUTPUT
+
+          if [ -f "$DOCKERFILE" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+          # Extract service name for image tag (remove ai-services/ prefix if present)
+          IMAGE_NAME=$(echo "${{ matrix.service }}" | sed 's|ai-services/||')
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
       - name: Login to Azure Container Registry
-        if: steps.check.outputs.exists == 'true'
+        if: steps.dockerfile.outputs.exists == 'true'
         uses: azure/docker-login@v1
         with:
           login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
@@ -184,17 +211,18 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push ${{ matrix.service }}
-        if: steps.check.outputs.exists == 'true'
+        if: steps.dockerfile.outputs.exists == 'true'
         run: |
           VERSION="${{ needs.build-and-test.outputs.version }}"
+          IMAGE_NAME="${{ steps.dockerfile.outputs.image_name }}"
           docker build \
-            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${VERSION} \
-            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${{ github.sha }} \
-            -f backend/services/${{ matrix.service }}/Dockerfile \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${VERSION} \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${{ github.sha }} \
+            -f ${{ steps.dockerfile.outputs.path }} \
             --build-arg VERSION=${VERSION} \
             .
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${VERSION}
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${VERSION}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${{ github.sha }}
 
   # ===========================================================================
   # FRONTEND BUILD
@@ -275,12 +303,21 @@ jobs:
           VERSION="${{ needs.build-and-test.outputs.version }}"
           ENV="${{ github.event.inputs.environment || 'production' }}"
 
-          helm upgrade --install flamoral-platform ./infrastructure/helm/flamoral \
+          # Map environment name to values file suffix
+          case $ENV in
+            production) VALUES_FILE="values-prod.yaml" ;;
+            staging) VALUES_FILE="values-staging.yaml" ;;
+            development) VALUES_FILE="values-dev.yaml" ;;
+            *) VALUES_FILE="values.yaml" ;;
+          esac
+
+          helm upgrade --install flamoral-platform ./infrastructure/helm/flamoral-platform \
             --namespace $NAMESPACE \
             --create-namespace \
             --set global.image.tag=${VERSION} \
+            --set global.imageRegistry=${{ env.AZURE_CONTAINER_REGISTRY }} \
             --set global.environment=${ENV} \
-            --values ./infrastructure/helm/flamoral/values-${ENV}.yaml \
+            --values ./infrastructure/helm/flamoral-platform/${VALUES_FILE} \
             --wait \
             --timeout 15m \
             --atomic

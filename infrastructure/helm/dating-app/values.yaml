@@ -6,13 +6,15 @@ global:
   environment: production
   domain: flamoral.com
   imagePullSecrets: []
-  registry: docker.io
+  # Registry overridden by CI/CD: --set global.registry=...
+  registry: flamoralprodacr.azurecr.io
 
 replicaCount: 3
 
 image:
   pullPolicy: Always
-  tag: "latest"
+  # Tag set by CI/CD pipeline: --set image.tag=...
+  tag: ""
 
 nameOverride: ""
 fullnameOverride: ""

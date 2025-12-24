@@ -1,9 +1,20 @@
 # Production Environment Values
+# These values override the base values.yaml for production deployment
 
 global:
   environment: production
   domain: flamoral.com
   imagePullPolicy: Always
+  # ACR registry for production - also set via CI/CD --set global.imageRegistry=...
+  imageRegistry: flamoralprodacr.azurecr.io
+  # Image tag is set via CI/CD pipeline: --set global.image.tag=<version>
+
+  # Azure Key Vault integration for secrets
+  azureKeyVault:
+    enabled: true
+    name: "flamoral-prod-kv"
+    tenantId: ""  # Set via Terraform output or --set
+    clientId: ""  # Workload Identity client ID
 
 services:
   apiGateway:

@@ -4,17 +4,27 @@
 global:
   environment: production
   namespace: flamoral-dating
-  imageRegistry: docker.io/flamoral
+  # Image registry - overridden by CI/CD pipeline with --set global.imageRegistry=...
+  imageRegistry: flamoralprodacr.azurecr.io
   imagePullPolicy: Always
   storageClass: fast-ssd
   domain: flamoral.com
+  # Image tag - overridden by CI/CD pipeline with --set global.image.tag=...
+  image:
+    tag: ""  # Will be set by CI/CD pipeline (e.g., v1.0.0 or git SHA)
 
-  # Global secrets (use external-secrets in production)
+  # Secrets - Reference Azure Key Vault via External Secrets Operator
+  # These are placeholders - actual secrets are injected via:
+  # 1. Azure Key Vault CSI Driver (SecretProviderClass)
+  # 2. External Secrets Operator (ExternalSecret CRD)
+  # See: infrastructure/kubernetes/secrets/azure-keyvault-secretprovider.yaml
   secrets:
-    jwtSecret: "CHANGE_ME_IN_PRODUCTION"
-    encryptionKey: "CHANGE_ME_IN_PRODUCTION"
-    databasePassword: "CHANGE_ME_IN_PRODUCTION"
-    redisPassword: "CHANGE_ME_IN_PRODUCTION"
+    # ExternalSecret references - not actual values
+    existingSecret: "flamoral-platform-secrets"  # Created by External Secrets Operator
+    jwtSecretKey: "jwt-secret"
+    encryptionKeyKey: "encryption-key"
+    databasePasswordKey: "database-password"
+    redisPasswordKey: "redis-password"
 
 # ============================================================================
 # SERVICES CONFIGURATION
@@ -28,7 +38,7 @@ services:
     replicaCount: 5
     image:
       repository: flamoral/api-gateway
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       type: LoadBalancer
       port: 80
@@ -61,7 +71,7 @@ services:
     replicaCount: 5
     image:
       repository: flamoral/auth-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3002
       targetPort: 3002
@@ -92,7 +102,7 @@ services:
     replicaCount: 3
     image:
       repository: flamoral/user-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3001
       targetPort: 3001
@@ -120,7 +130,7 @@ services:
     replicaCount: 4
     image:
       repository: flamoral/matching-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3003
       targetPort: 3003
@@ -150,7 +160,7 @@ services:
     replicaCount: 5
     image:
       repository: flamoral/messaging-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3004
       targetPort: 3004
@@ -183,7 +193,7 @@ services:
     replicaCount: 4
     image:
       repository: flamoral/media-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3005
       targetPort: 3005
@@ -215,7 +225,7 @@ services:
     replicaCount: 3
     image:
       repository: flamoral/payment-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3006
       targetPort: 3006
@@ -246,7 +256,7 @@ services:
     replicaCount: 3
     image:
       repository: flamoral/notification-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3007
       targetPort: 3007
@@ -277,7 +287,7 @@ services:
     replicaCount: 2
     image:
       repository: flamoral/analytics-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3008
       targetPort: 3008
@@ -305,7 +315,7 @@ services:
     replicaCount: 3
     image:
       repository: flamoral/moderation-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3009
       targetPort: 3009
@@ -335,7 +345,7 @@ services:
     replicaCount: 4
     image:
       repository: flamoral/realtime-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       type: LoadBalancer
       port: 8080
@@ -365,7 +375,7 @@ services:
     replicaCount: 2
     image:
       repository: flamoral/admin-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3011
       targetPort: 3011
@@ -393,7 +403,7 @@ services:
     replicaCount: 2
     image:
       repository: flamoral/advertising-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3012
       targetPort: 3012
@@ -420,7 +430,7 @@ services:
     replicaCount: 2
     image:
       repository: flamoral/automation-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3013
       targetPort: 3013
@@ -447,7 +457,7 @@ services:
     replicaCount: 3
     image:
       repository: flamoral/workflow-engine
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3014
       targetPort: 3014
@@ -482,7 +492,7 @@ aiServices:
     replicaCount: 3
     image:
       repository: flamoral/ai-recommendation-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5000
       targetPort: 5000
@@ -514,7 +524,7 @@ aiServices:
     replicaCount: 3
     image:
       repository: flamoral/dating-coach-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5001
       targetPort: 5001
@@ -541,7 +551,7 @@ aiServices:
     replicaCount: 2
     image:
       repository: flamoral/ai-moderation-service
-      tag: latest
+      tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5002
       targetPort: 5002
@@ -571,9 +581,12 @@ aiServices:
 postgresql:
   enabled: true
   auth:
-    postgresPassword: "CHANGE_ME"
+    # Passwords injected via Azure Key Vault - see existingSecret below
+    existingSecret: "flamoral-postgresql-secret"
+    secretKeys:
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "password"
     username: "flamoral"
-    password: "CHANGE_ME"
     database: "flamoral"
   primary:
     persistence:
@@ -606,7 +619,9 @@ redis:
   architecture: replication
   auth:
     enabled: true
-    password: "CHANGE_ME"
+    # Password injected via Azure Key Vault
+    existingSecret: "flamoral-redis-secret"
+    existingSecretPasswordKey: "redis-password"
   master:
     persistence:
       enabled: true
@@ -639,9 +654,9 @@ mongodb:
   replicaCount: 3
   auth:
     enabled: true
-    rootPassword: "CHANGE_ME"
+    # Passwords injected via Azure Key Vault
+    existingSecret: "flamoral-mongodb-secret"
     username: "flamoral"
-    password: "CHANGE_ME"
     database: "flamoral_messages"
   persistence:
     enabled: true
@@ -717,7 +732,11 @@ monitoring:
 
   grafana:
     enabled: true
-    adminPassword: "CHANGE_ME"
+    # Admin password injected via Azure Key Vault
+    admin:
+      existingSecret: "flamoral-grafana-secret"
+      userKey: "admin-user"
+      passwordKey: "admin-password"
     persistence:
       enabled: true
       size: 10Gi

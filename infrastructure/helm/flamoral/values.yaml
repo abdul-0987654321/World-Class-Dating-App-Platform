@@ -6,8 +6,10 @@
 
 global:
   environment: dev
-  imageRegistry: flamoralacr8eq5eg.azurecr.io
-  imageTag: latest
+  # Production ACR - overridden by CI/CD: --set global.imageRegistry=...
+  imageRegistry: flamoralprodacr.azurecr.io
+  # Tag set by CI/CD pipeline: --set global.imageTag=...
+  imageTag: ""
   imagePullSecrets:
     - name: acr-secret
   slot: blue

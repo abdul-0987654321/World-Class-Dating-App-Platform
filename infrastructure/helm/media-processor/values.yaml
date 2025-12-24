@@ -1,9 +1,11 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/your-org/media-processor
+  # Repository set to production ACR
+  repository: flamoralprodacr.azurecr.io/media-processor
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # Tag set by CI/CD pipeline: --set image.tag=...
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""

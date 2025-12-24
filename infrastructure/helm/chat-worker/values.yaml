@@ -1,9 +1,11 @@
 replicaCount: 3
 
 image:
-  repository: ghcr.io/your-org/chat-worker
+  # Repository set to production ACR
+  repository: flamoralprodacr.azurecr.io/chat-worker
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # Tag set by CI/CD pipeline: --set image.tag=...
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
