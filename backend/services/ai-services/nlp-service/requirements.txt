@@ -13,7 +13,7 @@ sqlalchemy[asyncio]==2.0.25
 # ML and NLP
 numpy==1.26.4
 pandas==2.2.3
-scikit-learn==1.5.2
+scikit-learn==1.8.0
 torch==2.5.1
 transformers==4.46.3
 sentence-transformers==3.3.1
