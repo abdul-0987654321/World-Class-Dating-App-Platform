@@ -3,6 +3,7 @@
  * Unified AI Behavior Rules for FLAMORAL Global Dating Platform
  */
 
+// Core AI Configuration
 export * from './platform-ai-config';
 export { default as PLATFORM_INTELLIGENCE } from './platform-ai-config';
 
@@ -16,7 +17,41 @@ export {
   GLOBALIZATION_AI,
 } from './platform-ai-config';
 
-// Type exports
+// Platform Intelligence Service (API wiring)
+export * from './platform-intelligence.service';
+export {
+  UserSupportService,
+  TrustSafetyService,
+  AdminPlatformService,
+  DiagnosisOpsService,
+  GlobalizationService,
+  PlatformIntelligenceAPI,
+  platformIntelligence,
+} from './platform-intelligence.service';
+
+// Feature Flags
+export * from './feature-flags';
+export {
+  FeatureFlagService,
+  featureFlags,
+  DEFAULT_FEATURE_FLAGS,
+} from './feature-flags';
+export type { FeatureFlag, FeatureFlagConfig } from './feature-flags';
+
+// Self-Healing Service
+export * from './self-healing.service';
+export {
+  SelfHealingService,
+  selfHealing,
+  SELF_HEALING_CONFIG,
+} from './self-healing.service';
+export type {
+  SelfHealingAction,
+  SelfHealingEvent,
+  HealthCheck,
+} from './self-healing.service';
+
+// Type exports from platform-ai-config
 export type {
   UserSupportContext,
   ModerationAction,
