@@ -449,7 +449,7 @@ const FuturisticLandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-base-deep-black text-white">
+    <div className="min-h-screen w-full bg-base-deep-black text-white overflow-x-hidden flex flex-col items-center">
       {/* Feature Modal */}
       <FeatureModal
         isOpen={!!selectedFeature}
@@ -465,8 +465,8 @@ const FuturisticLandingPage: React.FC = () => {
       </AnimatePresence>
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-base-deep-black/80 backdrop-blur-xl z-40 border-b border-base-dark-gray/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="fixed top-0 left-0 right-0 bg-base-deep-black/80 backdrop-blur-xl z-40 border-b border-base-dark-gray/50">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
               <span className="text-2xl font-bold text-gradient-pink-blue font-heading">FLAMORAL</span>
@@ -500,14 +500,14 @@ const FuturisticLandingPage: React.FC = () => {
       <motion.section
         ref={heroRef}
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative min-h-screen pt-32 pb-20 px-4 overflow-hidden"
+        className="relative min-h-screen w-full pt-24 md:pt-32 pb-16 md:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden"
       >
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
-        <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-pink-500/20 rounded-full filter blur-3xl" />
-        <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-blue-500/20 rounded-full filter blur-3xl" />
+        {/* Background Effects - Responsive blur orbs */}
+        <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
+        <div className="absolute top-1/4 left-0 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl pointer-events-none -translate-x-1/2" />
+        <div className="absolute bottom-1/4 right-0 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none translate-x-1/2" />
 
-        <div className="relative max-w-7xl mx-auto">
+        <div className="relative w-full max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -595,8 +595,8 @@ const FuturisticLandingPage: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="relative"
             >
-              <div className="absolute -top-10 -left-10 w-72 h-72 bg-pink-500/20 rounded-full filter blur-3xl animate-pulse" />
-              <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+              <div className="absolute -top-10 -left-10 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl animate-pulse" />
+              <div className="absolute -bottom-10 -right-10 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
 
               <div className="relative bg-base-charcoal/80 backdrop-blur-xl rounded-3xl border border-base-dark-gray p-8 transform hover:scale-[1.02] transition-transform duration-500 shadow-elevation-4">
                 <div className="space-y-6">
@@ -653,9 +653,9 @@ const FuturisticLandingPage: React.FC = () => {
       </motion.section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 relative">
+      <section id="features" className="py-24 relative w-full">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-base-charcoal/50 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -671,7 +671,7 @@ const FuturisticLandingPage: React.FC = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <motion.button
                 key={index}
@@ -680,7 +680,7 @@ const FuturisticLandingPage: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 onClick={() => setSelectedFeature(feature)}
-                className="text-left bg-base-charcoal/50 backdrop-blur-sm rounded-3xl p-8 border border-base-dark-gray hover:border-pink-500/50 hover:shadow-glow-pink-sm transition-all duration-500 hover:scale-[1.02] group"
+                className="text-left bg-base-charcoal/50 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/50 hover:shadow-glow-pink-sm transition-all duration-500 hover:scale-[1.02] group h-full flex flex-col"
               >
                 <div className={`w-14 h-14 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
@@ -698,7 +698,7 @@ const FuturisticLandingPage: React.FC = () => {
           </div>
 
           {/* Additional Features Grid */}
-          <div className="mt-16 grid md:grid-cols-4 gap-6">
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
               { icon: '🎯', title: 'Smart Filters', desc: 'Filter by lifestyle, interests, values' },
               { icon: '⚡', title: 'Super Likes', desc: 'Stand out from the crowd' },
@@ -723,9 +723,9 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-radial-pink opacity-20" />
-        <div className="relative max-w-7xl mx-auto px-4">
+      <section id="how-it-works" className="py-24 w-full relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-radial-pink opacity-20 pointer-events-none" />
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -741,7 +741,7 @@ const FuturisticLandingPage: React.FC = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {howItWorks.map((step, index) => (
               <motion.div
                 key={index}
@@ -752,9 +752,9 @@ const FuturisticLandingPage: React.FC = () => {
                 className="relative"
               >
                 {index < howItWorks.length - 1 && (
-                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-base-dark-gray to-transparent" />
+                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-base-dark-gray to-transparent" />
                 )}
-                <div className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-8 text-center border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500">
+                <div className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-8 text-center border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500 h-full flex flex-col items-center justify-start">
                   <div className={`w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg`}>
                     {step.step}
                   </div>
@@ -786,9 +786,9 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* Safety Section */}
-      <section id="safety" className="py-24 relative">
+      <section id="safety" className="py-24 relative w-full">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-base-charcoal/30 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -838,16 +838,16 @@ const FuturisticLandingPage: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-8 border border-base-dark-gray"
+              className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray"
             >
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center text-center">
                 <div className="w-20 h-20 bg-gradient-blue-green rounded-full flex items-center justify-center mx-auto mb-6 animate-avatar-pulse">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Safety Statistics</h3>
-                <div className="grid grid-cols-2 gap-6 mt-8">
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-8 max-w-md mx-auto">
                   {[
                     { value: '99.2%', label: 'Fake profiles caught' },
                     { value: '<1hr', label: 'Avg. report response' },
@@ -867,9 +867,9 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* Success Stories */}
-      <section id="success" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-radial-blue opacity-10" />
-        <div className="relative max-w-7xl mx-auto px-4">
+      <section id="success" className="py-24 w-full relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-radial-blue opacity-10 pointer-events-none" />
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -883,7 +883,7 @@ const FuturisticLandingPage: React.FC = () => {
             <p className="text-xl text-gray-400">Thousands have found their perfect match on FLAMORAL</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
             {testimonials.map((story, index) => (
               <motion.div
                 key={index}
@@ -891,7 +891,7 @@ const FuturisticLandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
-                className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-8 border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500"
+                className="bg-base-charcoal/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/30 transition-all duration-500 h-full flex flex-col justify-between"
               >
                 <div className="flex items-center space-x-4 mb-6">
                   <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${story.gradient} flex items-center justify-center text-white text-xl font-bold`}>
@@ -936,8 +936,8 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* Pricing Preview */}
-      <section className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="py-24 relative w-full">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -951,14 +951,14 @@ const FuturisticLandingPage: React.FC = () => {
             <p className="text-xl text-gray-400">Start free, upgrade when you are ready</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
             {/* Free Plan */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-base-charcoal/50 rounded-3xl p-8 border border-base-dark-gray"
+              className="bg-base-charcoal/50 rounded-3xl p-6 sm:p-8 border border-base-dark-gray h-full flex flex-col justify-between"
             >
               <h3 className="text-xl font-bold text-white mb-2">Free</h3>
               <p className="text-gray-400 mb-4">Get started with the basics</p>
@@ -984,7 +984,7 @@ const FuturisticLandingPage: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="relative bg-gradient-pink-blue rounded-3xl p-8 transform md:scale-105 shadow-glow-pink"
+              className="relative bg-gradient-pink-blue rounded-3xl p-6 sm:p-8 transform lg:scale-105 origin-center shadow-glow-pink h-full flex flex-col justify-between"
             >
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">MOST POPULAR</span>
@@ -1013,7 +1013,7 @@ const FuturisticLandingPage: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-base-charcoal/50 rounded-3xl p-8 border border-base-dark-gray"
+              className="bg-base-charcoal/50 rounded-3xl p-6 sm:p-8 border border-base-dark-gray h-full flex flex-col justify-between"
             >
               <h3 className="text-xl font-bold text-white mb-2">Platinum</h3>
               <p className="text-gray-400 mb-4">For serious daters</p>
@@ -1043,10 +1043,10 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-24 relative overflow-hidden w-full">
         <div className="absolute inset-0 bg-gradient-pink-blue opacity-90" />
         <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+        <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1070,8 +1070,8 @@ const FuturisticLandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-base-deep-black border-t border-base-dark-gray py-12">
-        <div className="max-w-7xl mx-auto px-4">
+      <footer className="bg-base-deep-black border-t border-base-dark-gray py-12 w-full">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <span className="text-2xl font-bold text-gradient-pink-blue font-heading">FLAMORAL</span>

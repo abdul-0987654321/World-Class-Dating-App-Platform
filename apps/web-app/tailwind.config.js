@@ -1,3 +1,4 @@
+import colors from 'tailwindcss/colors';
 /**
  * FLAMORAL Tailwind Configuration
  * Premium Futuristic Multi-Gradient Design System
@@ -16,6 +17,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Extend default Tailwind colors
+        ...colors,
+
         // Base Colors - Dark Mode First
         base: {
           black: '#000000',
@@ -253,6 +257,20 @@ export default {
             boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
           },
         },
+      },
+
+      // Extended max-width for larger screens (1440px, 1920px)
+      maxWidth: {
+        '7xl': '1400px',    // Increased from default 80rem (1280px)
+        '8xl': '1600px',    // For ultra-wide displays
+        '9xl': '1920px',    // Full ultra-wide support
+      },
+
+      // Custom screens for 1440px and 1920px optimization
+      screens: {
+        'xs': '375px',
+        '3xl': '1440px',
+        '4xl': '1920px',
       },
 
       borderRadius: {
