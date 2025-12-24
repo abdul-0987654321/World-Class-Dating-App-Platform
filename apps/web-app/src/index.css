@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind CSS v4 - Load with v3 config compatibility */
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 :root {
   /* Flamoral Brand Colors */
