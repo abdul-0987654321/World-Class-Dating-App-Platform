@@ -9,9 +9,12 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProxyService } from '../services/proxy.service';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 
 @ApiTags('moderation')
 @ApiBearerAuth('JWT-auth')
@@ -52,8 +55,11 @@ export class ModerationController {
 
   /**
    * Get moderation queue (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Get('queue')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Get moderation queue (admin)' })
   async getModerationQueue(
     @Headers('authorization') authorization: string,
@@ -74,8 +80,11 @@ export class ModerationController {
 
   /**
    * Approve content (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Put('approve/:contentId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Approve content (admin)' })
   async approveContent(
     @Headers('authorization') authorization: string,
@@ -88,8 +97,11 @@ export class ModerationController {
 
   /**
    * Reject content (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Put('reject/:contentId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Reject content (admin)' })
   async rejectContent(
     @Headers('authorization') authorization: string,
@@ -140,8 +152,11 @@ export class ModerationController {
 
   /**
    * Get all reports (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Get('reports')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Get all reports (admin)' })
   async getReports(
     @Headers('authorization') authorization: string,
@@ -164,8 +179,11 @@ export class ModerationController {
 
   /**
    * Get report details (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Get('reports/:reportId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Get report details (admin)' })
   async getReport(
     @Headers('authorization') authorization: string,
@@ -178,8 +196,11 @@ export class ModerationController {
 
   /**
    * Update report status (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Put('reports/:reportId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Update report status (admin)' })
   async updateReport(
     @Headers('authorization') authorization: string,
@@ -192,11 +213,15 @@ export class ModerationController {
   }
 
   // ==================== User Actions Endpoints ====================
+  // SECURITY: All user action endpoints require Role.ADMIN
 
   /**
    * Ban user (admin)
+   * SECURITY: Requires Role.ADMIN only (not moderator)
    */
   @Post('actions/ban')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Ban user (admin)' })
   @HttpCode(HttpStatus.OK)
   async banUser(
@@ -210,8 +235,11 @@ export class ModerationController {
 
   /**
    * Unban user (admin)
+   * SECURITY: Requires Role.ADMIN only (not moderator)
    */
   @Post('actions/unban')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Unban user (admin)' })
   @HttpCode(HttpStatus.OK)
   async unbanUser(
@@ -225,8 +253,11 @@ export class ModerationController {
 
   /**
    * Warn user (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Post('actions/warn')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Warn user (admin)' })
   @HttpCode(HttpStatus.OK)
   async warnUser(
@@ -240,8 +271,11 @@ export class ModerationController {
 
   /**
    * Get user moderation history (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Get('users/:userId/history')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Get user moderation history (admin)' })
   async getUserModerationHistory(
     @Headers('authorization') authorization: string,
@@ -288,8 +322,11 @@ export class ModerationController {
 
   /**
    * Get moderation statistics (admin)
+   * SECURITY: Requires Role.ADMIN or Role.MODERATOR
    */
   @Get('statistics')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Get moderation statistics (admin)' })
   async getStatistics(
     @Headers('authorization') authorization: string,

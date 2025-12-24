@@ -13,15 +13,19 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { DDoSProtectionService } from '../services/ddos-protection.service';
 import { AdvancedRateLimiterMiddleware } from '../middleware/advanced-rate-limiter.middleware';
 import { SkipRateLimit } from '../decorators/rate-limit.decorator';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 
 /**
  * Rate Limit Admin Controller
  * Provides admin endpoints for managing rate limits and bans
- * NOTE: In production, this should be protected by admin authentication
+ * SECURITY: Protected by Role.ADMIN guard - only admin users can access
  */
 @ApiTags('admin', 'rate-limiting')
 @ApiBearerAuth('JWT-auth')
 @Controller('admin/rate-limit')
+@UseGuards(RolesGuard)
+@Roles(Role.ADMIN)
 @SkipRateLimit() // Admin endpoints are not rate limited
 export class RateLimitAdminController {
   constructor(

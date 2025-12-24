@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -22,6 +23,8 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { ProxyService } from '../services/proxy.service';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard, Role } from '../guards/roles.guard';
 import * as multer from 'multer';
 
 /**
@@ -217,12 +220,15 @@ export class VerificationController {
   }
 
   // ==================== Admin Verification Endpoints ====================
+  // SECURITY: All admin endpoints require Role.ADMIN
 
   /**
    * GET /verification/admin/pending
    * Get pending verifications for admin review
    */
   @Get('admin/pending')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get pending verifications for admin review' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results' })
   @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset' })
@@ -256,6 +262,8 @@ export class VerificationController {
    * Approve a verification request
    */
   @Post('admin/:requestId/approve')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve a verification request' })
   @ApiParam({ name: 'requestId', type: String, description: 'Verification request ID' })
@@ -288,6 +296,8 @@ export class VerificationController {
    * Deny a verification request
    */
   @Post('admin/:requestId/deny')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Deny a verification request' })
   @ApiParam({ name: 'requestId', type: String, description: 'Verification request ID' })
