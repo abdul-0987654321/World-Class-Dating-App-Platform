@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:3001';
+// SECURITY: No localhost fallback - production must have VITE_USER_SERVICE_URL configured
+// In production, user service calls route through API gateway at /api/phone
+const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL ||
+  (import.meta.env.PROD ? import.meta.env.VITE_API_URL : 'http://localhost:3001');
 
 interface PhoneVerificationProps {
   onVerificationComplete?: () => void;

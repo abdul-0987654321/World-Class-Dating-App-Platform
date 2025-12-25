@@ -2,7 +2,11 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// SECURITY: No localhost fallback - production must have VITE_API_URL configured
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL && import.meta.env.PROD) {
+  throw new Error('CRITICAL: VITE_API_URL environment variable is required in production');
+}
 
 interface GoogleTokenPayload {
   code?: string;

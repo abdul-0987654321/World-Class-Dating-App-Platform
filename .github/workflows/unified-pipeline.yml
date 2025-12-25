@@ -108,21 +108,43 @@ jobs:
         run: yarn build:all
 
       - name: Run linting
-        run: yarn lint:all || true
+        run: yarn lint:all
+        continue-on-error: true  # Linting warnings don't block deploy
 
+      - name: Run layout regression check
+        run: |
+          cd apps/web-app
+          node scripts/layout-regression-check.cjs
+        continue-on-error: true
+
+      # SECURITY: Audit failures are logged as warnings but critical vulnerabilities fail the build
       - name: Security audit
-        run: npm audit --audit-level=high || true
+        run: |
+          npm audit --audit-level=critical 2>&1 | tee audit-report.txt
+          if grep -q "critical" audit-report.txt; then
+            echo "::error::Critical security vulnerabilities detected!"
+            exit 1
+          fi
+        continue-on-error: false
 
       - name: Run security abuse tests
-        run: yarn test:security:abuse || true
+        run: yarn test:security:abuse
+        continue-on-error: true  # Security tests may need fixtures
 
+      # SECURITY: Production deploys require manual trigger (workflow_dispatch only)
+      # Push to main only triggers build/test, not deploy
       - name: Check deployment conditions
         id: check
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.event.inputs.action }}" == "build-deploy" ]; then
+          # Only deploy if manually triggered with build-deploy action
+          # Push to main builds but does NOT auto-deploy to production
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && \
+             ([ "${{ github.event.inputs.action }}" == "build-deploy" ] || [ "${{ github.event.inputs.action }}" == "release" ]); then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "::notice::Manual deployment triggered for ${{ github.event.inputs.environment || 'production' }}"
           else
             echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "::notice::Build only - deployment requires manual trigger via workflow_dispatch"
           fi
 
       - name: Upload build artifacts
@@ -212,6 +234,7 @@ jobs:
 
       - name: Build and push ${{ matrix.service }}
         if: steps.dockerfile.outputs.exists == 'true'
+        id: docker_build
         run: |
           VERSION="${{ needs.build-and-test.outputs.version }}"
           IMAGE_NAME="${{ steps.dockerfile.outputs.image_name }}"
@@ -223,6 +246,11 @@ jobs:
             .
           docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${VERSION}
           docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${{ github.sha }}
+
+          # SECURITY: Capture image digest for immutable deployment
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ env.AZURE_CONTAINER_REGISTRY }}/${IMAGE_NAME}:${VERSION} | cut -d'@' -f2)
+          echo "Image digest: $DIGEST"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
   # ===========================================================================
   # FRONTEND BUILD
@@ -247,13 +275,45 @@ jobs:
       - name: Build and push frontend
         run: |
           VERSION="${{ needs.build-and-test.outputs.version }}"
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+
+          # Set API URL based on environment
+          case $ENV in
+            production)
+              API_URL="https://api.flamoral.com"
+              WS_URL="wss://api.flamoral.com"
+              ;;
+            staging)
+              API_URL="https://api.staging.flamoral.com"
+              WS_URL="wss://api.staging.flamoral.com"
+              ;;
+            development)
+              API_URL="https://api.dev.flamoral.com"
+              WS_URL="wss://api.dev.flamoral.com"
+              ;;
+            *)
+              API_URL="https://api.flamoral.com"
+              WS_URL="wss://api.flamoral.com"
+              ;;
+          esac
+
+          cd apps/web-app
+          # SECURITY: Only push immutable tags (version + SHA). Never push :latest
+          # CRITICAL: Pass VITE_* environment variables at build time (Vite inlines them)
           docker build \
             -t ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${VERSION} \
             -t ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${{ github.sha }} \
-            -f infrastructure/docker/frontend/Dockerfile \
+            --build-arg CACHE_BUST=$(date +%s) \
+            --build-arg VITE_API_URL=${API_URL} \
+            --build-arg VITE_WS_URL=${WS_URL} \
+            --build-arg VITE_APP_ENV=${ENV} \
             .
           docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${VERSION}
           docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${{ github.sha }}
+
+          # Capture digest for immutable deployment
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ env.AZURE_CONTAINER_REGISTRY }}/web-app:${VERSION} | cut -d'@' -f2)
+          echo "Frontend image digest: $DIGEST"
 
   # ===========================================================================
   # DEPLOY TO PRODUCTION
