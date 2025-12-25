@@ -23,35 +23,47 @@ const ageValidation = (value: Date, helpers: Joi.CustomHelpers) => {
 /**
  * Consent schema - REQUIRED for registration
  * Both terms and privacy must be explicitly accepted
+ * Accepts both snake_case and camelCase field names
  */
 const consentSchema = Joi.object({
   terms: Joi.boolean()
     .valid(true)
-    .required()
     .messages({
       'any.only': 'You must accept the Terms of Service to register',
-      'any.required': 'Terms of Service acceptance is required',
+    }),
+  terms_accepted: Joi.boolean()
+    .valid(true)
+    .messages({
+      'any.only': 'You must accept the Terms of Service to register',
     }),
   privacy: Joi.boolean()
     .valid(true)
-    .required()
     .messages({
       'any.only': 'You must accept the Privacy Policy to register',
-      'any.required': 'Privacy Policy acceptance is required',
+    }),
+  privacy_accepted: Joi.boolean()
+    .valid(true)
+    .messages({
+      'any.only': 'You must accept the Privacy Policy to register',
     }),
   marketing: Joi.boolean()
+    .optional()
+    .default(false),
+  marketing_emails: Joi.boolean()
     .optional()
     .default(false),
   data_sharing: Joi.boolean()
     .optional()
     .default(false),
-}).required().messages({
+}).or('terms', 'terms_accepted').or('privacy', 'privacy_accepted').required().messages({
   'any.required': 'Consent information is required for registration',
+  'object.missing': 'Terms and Privacy acceptance are required',
 });
 
 /**
  * Registration request validation schema
  * SECURITY: Enforces age >= 18 and required consents at validation layer
+ * Accepts both snake_case and camelCase field names for flexibility
  */
 export const registerSchema = Joi.object({
   email: Joi.string()
@@ -70,38 +82,55 @@ export const registerSchema = Joi.object({
       'string.pattern.base': 'Password must contain uppercase, lowercase, number, and special character',
       'any.required': 'Password is required',
     }),
+  // Accept both first_name and firstName
   first_name: Joi.string()
     .min(2)
     .max(50)
-    .required()
     .messages({
       'string.min': 'First name must be at least 2 characters',
       'string.max': 'First name must not exceed 50 characters',
-      'any.required': 'First name is required',
     }),
+  firstName: Joi.string()
+    .min(2)
+    .max(50)
+    .messages({
+      'string.min': 'First name must be at least 2 characters',
+      'string.max': 'First name must not exceed 50 characters',
+    }),
+  // Accept both last_name and lastName
   last_name: Joi.string()
     .min(2)
     .max(50)
-    .required()
     .messages({
       'string.min': 'Last name must be at least 2 characters',
       'string.max': 'Last name must not exceed 50 characters',
-      'any.required': 'Last name is required',
     }),
+  lastName: Joi.string()
+    .max(50)
+    .optional()
+    .messages({
+      'string.max': 'Last name must not exceed 50 characters',
+    }),
+  // Accept both date_of_birth and dateOfBirth
   date_of_birth: Joi.date()
     .max('now')
-    .required()
     .custom(ageValidation)
     .messages({
       'date.max': 'Date of birth cannot be in the future',
-      'any.required': 'Date of birth is required',
+      'date.minAge': 'You must be at least 18 years old to register',
+    }),
+  dateOfBirth: Joi.date()
+    .max('now')
+    .custom(ageValidation)
+    .messages({
+      'date.max': 'Date of birth cannot be in the future',
       'date.minAge': 'You must be at least 18 years old to register',
     }),
   gender: Joi.string()
-    .valid('male', 'female', 'non-binary', 'other')
+    .valid('male', 'female', 'non-binary', 'non_binary', 'other', 'prefer_not_to_say')
     .required()
     .messages({
-      'any.only': 'Gender must be one of: male, female, non-binary, other',
+      'any.only': 'Gender must be one of: male, female, non-binary, other, prefer_not_to_say',
       'any.required': 'Gender is required',
     }),
   phone_number: Joi.string()
@@ -112,7 +141,7 @@ export const registerSchema = Joi.object({
     }),
   // SECURITY: Required consents for legal compliance
   consents: consentSchema,
-});
+}).or('first_name', 'firstName').or('date_of_birth', 'dateOfBirth');
 
 /**
  * Login request validation schema

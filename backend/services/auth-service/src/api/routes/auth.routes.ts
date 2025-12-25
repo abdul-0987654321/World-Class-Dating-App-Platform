@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import authController from '../controllers/auth.controller';
 import { authenticate, internalAuth } from '../middleware/auth.middleware';
 import {
@@ -18,6 +18,38 @@ import {
 } from '../validators/auth.validator';
 
 const router = Router();
+
+/**
+ * Middleware to normalize camelCase request body to snake_case
+ * This allows the frontend to send camelCase while backend uses snake_case
+ */
+const normalizeRegisterBody = (req: Request, _res: Response, next: NextFunction) => {
+  if (req.body) {
+    // Convert camelCase to snake_case
+    if (req.body.firstName && !req.body.first_name) {
+      req.body.first_name = req.body.firstName;
+    }
+    if (req.body.lastName && !req.body.last_name) {
+      req.body.last_name = req.body.lastName;
+    }
+    if (req.body.dateOfBirth && !req.body.date_of_birth) {
+      req.body.date_of_birth = req.body.dateOfBirth;
+    }
+    // Normalize consents
+    if (req.body.consents) {
+      if (req.body.consents.terms_accepted !== undefined && req.body.consents.terms === undefined) {
+        req.body.consents.terms = req.body.consents.terms_accepted;
+      }
+      if (req.body.consents.privacy_accepted !== undefined && req.body.consents.privacy === undefined) {
+        req.body.consents.privacy = req.body.consents.privacy_accepted;
+      }
+      if (req.body.consents.marketing_emails !== undefined && req.body.consents.marketing === undefined) {
+        req.body.consents.marketing = req.body.consents.marketing_emails;
+      }
+    }
+  }
+  next();
+};
 
 /**
  * @swagger
@@ -73,6 +105,7 @@ const router = Router();
 router.post(
   '/register',
   authLimiter,
+  normalizeRegisterBody,
   validate(registerSchema),
   authController.register.bind(authController)
 );
