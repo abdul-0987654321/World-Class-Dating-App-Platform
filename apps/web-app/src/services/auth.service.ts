@@ -106,10 +106,25 @@ class AuthService {
       return response;
     }
 
+    // Transform camelCase to snake_case for backend
+    const backendData = {
+      email: data.email,
+      password: data.password,
+      first_name: data.firstName,
+      last_name: data.lastName || '',
+      date_of_birth: data.dateOfBirth,
+      gender: data.gender,
+      consents: {
+        terms_accepted: true,
+        privacy_accepted: true,
+        marketing_emails: false,
+      },
+    };
+
     // Backend returns { success: true, data: { user, accessToken, refreshToken } }
     const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
       '/api/v1/auth/register',
-      data,
+      backendData,
       { skipAuth: true, skipCsrf: true }
     );
 
