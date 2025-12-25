@@ -70,7 +70,7 @@ export function createRetryableQueryBuilder(db: Knex, logger?: Logger) {
     /**
      * Execute a query builder with retry logic
      */
-    async query<T = any>(queryFn: (qb: Knex) => Knex.QueryBuilder<T>): Promise<T[]> {
+    async query<T extends {} = any>(queryFn: (qb: Knex) => Knex.QueryBuilder<T>): Promise<T[]> {
       return withRetry(
         () => queryFn(db) as any,
         {

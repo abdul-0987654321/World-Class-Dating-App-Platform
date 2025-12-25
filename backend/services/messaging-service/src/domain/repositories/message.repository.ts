@@ -6,10 +6,13 @@ import { Message, MessageStatus } from '../../types';
 const logger = createLogger('message-repository');
 
 export class MessageRepository {
-  private container: Container;
+  private _container: Container | null = null;
 
-  constructor() {
-    this.container = cosmosClient.getMessagesContainer();
+  private get container(): Container {
+    if (!this._container) {
+      this._container = cosmosClient.getMessagesContainer();
+    }
+    return this._container;
   }
 
   /**
@@ -18,9 +21,9 @@ export class MessageRepository {
   async create(message: Message): Promise<Message> {
     try {
       logger.info(`Creating message: ${message.id}`);
-      
+
       const { resource } = await this.container.items.create(message);
-      
+
       logger.info(`Message created: ${message.id}`);
       return resource as Message;
     } catch (error: any) {
@@ -85,7 +88,7 @@ export class MessageRepository {
         };
 
         const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-        
+
         if (resources.length > 0) {
           const message = resources[0];
           await this.update(message.id, message.conversationId, updates);
@@ -109,9 +112,9 @@ export class MessageRepository {
 
       // Query all unread messages in the conversation where receiverId is userId
       const querySpec = {
-        query: `SELECT * FROM c 
-                WHERE c.conversationId = @conversationId 
-                AND c.receiverId = @userId 
+        query: `SELECT * FROM c
+                WHERE c.conversationId = @conversationId
+                AND c.receiverId = @userId
                 AND c.status != @readStatus`,
         parameters: [
           { name: '@conversationId', value: conversationId },
@@ -121,7 +124,7 @@ export class MessageRepository {
       };
 
       const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-      
+
       logger.info(`Found ${resources.length} unread messages to mark as read`);
 
       // Update each message
@@ -190,9 +193,9 @@ export class MessageRepository {
   ): Promise<Message[]> {
     try {
       const querySpec = {
-        query: `SELECT * FROM c 
-                WHERE c.conversationId = @conversationId 
-                ORDER BY c.sentAt DESC 
+        query: `SELECT * FROM c
+                WHERE c.conversationId = @conversationId
+                ORDER BY c.sentAt DESC
                 OFFSET @offset LIMIT @limit`,
         parameters: [
           { name: '@conversationId', value: conversationId },
@@ -240,9 +243,9 @@ export class MessageRepository {
   async getUnreadCount(conversationId: string, userId: string): Promise<number> {
     try {
       const querySpec = {
-        query: `SELECT VALUE COUNT(1) FROM c 
-                WHERE c.conversationId = @conversationId 
-                AND c.receiverId = @userId 
+        query: `SELECT VALUE COUNT(1) FROM c
+                WHERE c.conversationId = @conversationId
+                AND c.receiverId = @userId
                 AND c.status != @readStatus`,
         parameters: [
           { name: '@conversationId', value: conversationId },

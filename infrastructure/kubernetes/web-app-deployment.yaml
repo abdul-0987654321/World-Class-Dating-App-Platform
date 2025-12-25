@@ -1,11 +1,25 @@
 ---
+# FLAMORAL Web App Kubernetes Deployment
+# Image tag uses ${IMAGE_TAG} placeholder - replaced during CI/CD
+# Default: git SHA for immutable deploys, or semantic version for releases
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-app
   namespace: flamoral-prod
+  labels:
+    app: web-app
+    version: "${IMAGE_TAG}"
+  annotations:
+    kubernetes.io/change-cause: "Deploy web-app:${IMAGE_TAG}"
 spec:
-  replicas: 1
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: web-app
@@ -13,32 +27,55 @@ spec:
     metadata:
       labels:
         app: web-app
+        version: "${IMAGE_TAG}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
     spec:
       containers:
       - name: web-app
-        image: flamoralprodacr.azurecr.io/web-app:v1.0.0
-        imagePullPolicy: Always
+        # Use immutable tag (git SHA) for production deploys
+        # CI/CD replaces ${IMAGE_TAG} with actual value
+        image: flamoralprodacr.azurecr.io/web-app:${IMAGE_TAG}
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 80
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
             memory: "128Mi"
             cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /health
             port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 80
           initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
           periodSeconds: 5
+          failureThreshold: 30
+      terminationGracePeriodSeconds: 30
 ---
 apiVersion: v1
 kind: Service

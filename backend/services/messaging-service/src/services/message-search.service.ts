@@ -8,10 +8,13 @@ import { Message, MessageType } from '../types';
 const logger = createLogger('message-search-service');
 
 export class MessageSearchService {
-  private container: Container;
+  private _container: Container | null = null;
 
-  constructor() {
-    this.container = cosmosClient.getMessagesContainer();
+  private get container(): Container {
+    if (!this._container) {
+      this._container = cosmosClient.getMessagesContainer();
+    }
+    return this._container;
   }
 
   /**

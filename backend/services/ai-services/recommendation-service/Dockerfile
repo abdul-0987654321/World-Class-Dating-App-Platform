@@ -13,7 +13,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY backend/services/ai-services/recommendation-service/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
@@ -30,7 +30,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN useradd -m -u 1000 appuser
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser backend/services/ai-services/recommendation-service/app ./app
+COPY --chown=appuser:appuser backend/services/ai-services/recommendation-service/models.py .
+COPY --chown=appuser:appuser backend/services/ai-services/recommendation-service/services ./services
+COPY --chown=appuser:appuser backend/services/ai-services/recommendation-service/config_ml.yaml .
 
 # Switch to non-root user
 USER appuser

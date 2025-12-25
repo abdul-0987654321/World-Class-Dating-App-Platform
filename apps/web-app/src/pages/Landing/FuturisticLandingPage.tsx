@@ -449,7 +449,12 @@ const FuturisticLandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-base-deep-black text-white overflow-x-hidden flex flex-col items-center">
+    <div className="min-h-screen w-full bg-base-deep-black text-white overflow-x-hidden">
+      {/* Skip Navigation Link for Accessibility */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       {/* Feature Modal */}
       <FeatureModal
         isOpen={!!selectedFeature}
@@ -487,9 +492,10 @@ const FuturisticLandingPage: React.FC = () => {
               </Link>
               <Link
                 to="/signup"
-                className="bg-gradient-pink-blue text-white px-6 py-2 rounded-full font-medium hover:shadow-glow-pink hover:scale-105 transition-all duration-300"
+                className="bg-gradient-pink-blue text-white px-6 py-2 rounded-full font-medium hover:shadow-glow-pink hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
+                aria-label="Sign up for free"
               >
-                Start Your Journey
+                Sign Up Free
               </Link>
             </div>
           </div>
@@ -498,22 +504,24 @@ const FuturisticLandingPage: React.FC = () => {
 
       {/* Hero Section */}
       <motion.section
+        id="main-content"
         ref={heroRef}
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative min-h-screen w-full pt-24 md:pt-32 pb-16 md:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden"
+        className="relative w-full min-h-screen flex flex-col justify-center pt-20 pb-16 overflow-hidden"
+        aria-label="Hero section - Find your perfect connection"
       >
-        {/* Background Effects - Responsive blur orbs */}
+        {/* Background Effects - Contained blur orbs */}
         <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
-        <div className="absolute top-1/4 left-0 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl pointer-events-none -translate-x-1/2" />
-        <div className="absolute bottom-1/4 right-0 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none translate-x-1/2" />
+        <div className="absolute top-1/4 left-0 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl pointer-events-none" style={{ left: '-6rem' }} />
+        <div className="absolute bottom-1/4 right-0 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none" style={{ right: '-6rem' }} />
 
-        <div className="relative w-full max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-8"
+              className="space-y-6 lg:space-y-8 text-center lg:text-left"
             >
               <h1 className="text-display-2 lg:text-display-1 font-bold leading-tight font-heading">
                 Find Your Perfect
@@ -522,12 +530,12 @@ const FuturisticLandingPage: React.FC = () => {
                 </span>
               </h1>
               <p className="text-xl text-gray-400 leading-relaxed max-w-xl">
-                Join millions who have found meaningful relationships through our AI-powered matching.
-                Real people, real connections, real love.
+                Join 2M+ verified singles finding real love through AI-powered matching.
+                100% photo-verified profiles. Start free today.
               </p>
 
               {/* Trust Signals */}
-              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-gray-400">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   <span>Photo Verified</span>
@@ -543,27 +551,36 @@ const FuturisticLandingPage: React.FC = () => {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+              <div className="flex flex-col sm:flex-row items-center lg:items-start space-y-4 sm:space-y-0 sm:space-x-4">
                 <Link
                   to="/signup"
-                  className="flex items-center justify-center bg-gradient-pink-blue text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-glow-pink hover:scale-105 transition-all duration-300"
+                  className="flex items-center justify-center bg-gradient-pink-blue text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-glow-pink hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
+                  aria-label="Create free account and start matching"
                 >
-                  Start Your Journey
-                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  Create Free Account
+                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
                 <a
                   href="#how-it-works"
-                  className="flex items-center justify-center border-2 border-pink-500/50 text-pink-400 px-8 py-4 rounded-full text-lg font-semibold hover:bg-pink-500/10 hover:border-pink-500 transition-all duration-300"
+                  className="flex items-center justify-center border-2 border-pink-500/50 text-pink-400 px-8 py-4 rounded-full text-lg font-semibold hover:bg-pink-500/10 hover:border-pink-500 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
+                  aria-label="Learn how FLAMORAL matching works"
                 >
-                  How FLAMORAL Works
+                  See How It Works
                 </a>
               </div>
+              {/* Urgency Microcopy */}
+              <p className="text-sm text-green-400 flex items-center justify-center lg:justify-start">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                No credit card required • Takes 60 seconds to sign up
+              </p>
 
               {/* Social Proof */}
               <div className="pt-6 border-t border-base-dark-gray">
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4">
                   <div className="flex -space-x-3">
                     {['bg-gradient-to-br from-pink-400 to-pink-600', 'bg-gradient-to-br from-blue-400 to-blue-600', 'bg-gradient-to-br from-green-400 to-green-600', 'bg-gradient-to-br from-yellow-400 to-yellow-600', 'bg-gradient-to-br from-pink-400 to-blue-600'].map((bg, i) => (
                       <div
@@ -574,8 +591,8 @@ const FuturisticLandingPage: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div>
-                    <div className="flex text-yellow-400 mb-1">
+                  <div className="text-center sm:text-left">
+                    <div className="flex justify-center sm:justify-start text-yellow-400 mb-1">
                       {[1, 2, 3, 4, 5].map((i) => (
                         <svg key={i} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -593,12 +610,13 @@ const FuturisticLandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative"
+              className="relative flex justify-center lg:justify-end"
             >
-              <div className="absolute -top-10 -left-10 w-48 md:w-72 h-48 md:h-72 bg-pink-500/20 rounded-full filter blur-3xl animate-pulse" />
-              <div className="absolute -bottom-10 -right-10 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+              {/* Contained glow effects behind card */}
+              <div className="absolute top-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-pink-500/30 rounded-full filter blur-3xl animate-pulse pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-32 md:w-48 h-32 md:h-48 bg-blue-500/30 rounded-full filter blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
 
-              <div className="relative bg-base-charcoal/80 backdrop-blur-xl rounded-3xl border border-base-dark-gray p-8 transform hover:scale-[1.02] transition-transform duration-500 shadow-elevation-4">
+              <div className="relative bg-base-charcoal/80 backdrop-blur-xl rounded-3xl border border-base-dark-gray p-6 sm:p-8 transform hover:scale-[1.02] transition-transform duration-500 shadow-elevation-4 w-full max-w-md lg:max-w-lg">
                 <div className="space-y-6">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-pink-blue flex items-center justify-center text-white text-2xl font-bold">E</div>
@@ -680,7 +698,8 @@ const FuturisticLandingPage: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 onClick={() => setSelectedFeature(feature)}
-                className="text-left bg-base-charcoal/50 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/50 hover:shadow-glow-pink-sm transition-all duration-500 hover:scale-[1.02] group h-full flex flex-col"
+                className="text-left bg-base-charcoal/50 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-base-dark-gray hover:border-pink-500/50 hover:shadow-glow-pink-sm transition-all duration-500 hover:scale-[1.02] group h-full flex flex-col focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
+                aria-label={`Learn more about ${feature.title}`}
               >
                 <div className={`w-14 h-14 ${feature.gradient} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
@@ -774,10 +793,11 @@ const FuturisticLandingPage: React.FC = () => {
           >
             <Link
               to="/signup"
-              className="inline-flex items-center bg-gradient-pink-blue text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-glow-pink hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center bg-gradient-pink-blue text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-glow-pink hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-base-deep-black"
+              aria-label="Get started with a free account"
             >
-              Get Started Now - It's Free
-              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              Create Free Account
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
@@ -951,8 +971,8 @@ const FuturisticLandingPage: React.FC = () => {
             <p className="text-xl text-gray-400">Start free, upgrade when you are ready</p>
           </motion.div>
 
-          {/* 6-Tier Subscription Model */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 max-w-7xl mx-auto">
+          {/* 6-Tier Subscription Model - Mobile-first responsive grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5 max-w-7xl mx-auto">
             {/* Free Tier */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1040,7 +1060,7 @@ const FuturisticLandingPage: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="relative bg-gradient-pink-blue rounded-2xl p-4 sm:p-5 transform lg:scale-105 origin-center shadow-glow-pink h-full flex flex-col col-span-2 md:col-span-1"
+              className="relative bg-gradient-pink-blue rounded-2xl p-4 sm:p-5 transform lg:scale-105 origin-center shadow-glow-pink h-full flex flex-col"
             >
               <div className="absolute -top-2 left-1/2 -translate-x-1/2">
                 <span className="bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-[10px] font-bold">MOST POPULAR</span>
@@ -1133,7 +1153,7 @@ const FuturisticLandingPage: React.FC = () => {
       <section className="py-24 relative overflow-hidden w-full">
         <div className="absolute inset-0 bg-gradient-pink-blue opacity-90" />
         <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
-        <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1144,14 +1164,20 @@ const FuturisticLandingPage: React.FC = () => {
             <p className="text-xl text-pink-100 mb-8">Join millions of singles finding meaningful connections every day</p>
             <Link
               to="/signup"
-              className="inline-flex items-center bg-white text-pink-500 px-10 py-4 rounded-full text-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center bg-white text-pink-500 px-10 py-4 rounded-full text-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-500"
+              aria-label="Create your free FLAMORAL account"
             >
-              Create Free Account
-              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              Start Matching Free
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
-            <p className="text-pink-100 text-sm mt-4">No credit card required. Start matching in minutes.</p>
+            <p className="text-pink-100 text-sm mt-4 flex items-center justify-center">
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              No credit card required • Start matching in 60 seconds
+            </p>
           </motion.div>
         </div>
       </section>

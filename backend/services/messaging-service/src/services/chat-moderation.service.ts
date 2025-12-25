@@ -1,15 +1,27 @@
 /**
  * Chat Moderation Service
  * Handles content moderation, spam detection, and safety features for messaging
+ *
+ * Updated: Uses Redis for distributed spam tracking across all pods
  */
 
 import { createLogger } from '../utils/logger';
 import axios from 'axios';
+import { redisClient } from '../infrastructure/cache/redis';
 
 const logger = createLogger('chat-moderation');
 
 // Moderation service URL
 const MODERATION_SERVICE_URL = process.env.MODERATION_SERVICE_URL || 'http://moderation-service:3008';
+
+// Redis key prefixes for spam tracking (distributed across all pods)
+const REDIS_KEYS = {
+  userMessageCount: (userId: string) => `spam:count:${userId}`,
+  recentMessages: (userId: string) => `spam:messages:${userId}`,
+};
+
+// TTL for spam tracking data (2 minutes)
+const SPAM_TRACKING_TTL = 120;
 
 export interface ModerationResult {
   isAllowed: boolean;
@@ -76,9 +88,11 @@ const SPAM_CONFIG = {
   minTimeBetweenMessages: 500, // ms
 };
 
-// Rate limiting map (in production, use Redis)
-const userMessageCounts: Map<string, { count: number; firstMessageTime: number; lastMessageTime: number }> = new Map();
-const recentMessages: Map<string, string[]> = new Map();
+interface UserMessageStats {
+  count: number;
+  firstMessageTime: number;
+  lastMessageTime: number;
+}
 
 class ChatModerationService {
   /**
@@ -92,8 +106,8 @@ class ChatModerationService {
   ): Promise<ModerationResult> {
     const flags: ModerationFlag[] = [];
 
-    // 1. Check spam rate limiting
-    const spamCheck = this.checkSpamRate(senderId, content);
+    // 1. Check spam rate limiting (now async with Redis)
+    const spamCheck = await this.checkSpamRate(senderId, content);
     if (spamCheck) {
       flags.push(spamCheck);
     }
@@ -145,69 +159,84 @@ class ChatModerationService {
   }
 
   /**
-   * Check for spam based on message frequency
+   * Check for spam based on message frequency using Redis for distributed tracking
    */
-  private checkSpamRate(userId: string, content: string): ModerationFlag | null {
+  private async checkSpamRate(userId: string, content: string): Promise<ModerationFlag | null> {
     const now = Date.now();
-    const userStats = userMessageCounts.get(userId);
+    const countKey = REDIS_KEYS.userMessageCount(userId);
+    const messagesKey = REDIS_KEYS.recentMessages(userId);
 
-    if (userStats) {
-      const timeSinceFirstMessage = now - userStats.firstMessageTime;
-      const timeSinceLastMessage = now - userStats.lastMessageTime;
+    try {
+      // Get current user stats from Redis
+      const statsJson = await redisClient.get(countKey);
+      let userStats: UserMessageStats | null = statsJson ? JSON.parse(statsJson) : null;
 
-      // Check message rate
-      if (timeSinceFirstMessage < 60000 && userStats.count >= SPAM_CONFIG.maxMessagesPerMinute) {
-        return {
-          type: 'spam',
-          severity: 'high',
-          details: 'Too many messages sent in a short time',
-        };
+      if (userStats) {
+        const timeSinceFirstMessage = now - userStats.firstMessageTime;
+        const timeSinceLastMessage = now - userStats.lastMessageTime;
+
+        // Check message rate
+        if (timeSinceFirstMessage < 60000 && userStats.count >= SPAM_CONFIG.maxMessagesPerMinute) {
+          return {
+            type: 'spam',
+            severity: 'high',
+            details: 'Too many messages sent in a short time',
+          };
+        }
+
+        // Check for rapid-fire messages
+        if (timeSinceLastMessage < SPAM_CONFIG.minTimeBetweenMessages) {
+          return {
+            type: 'spam',
+            severity: 'medium',
+            details: 'Messages sent too quickly',
+          };
+        }
+
+        // Update stats
+        if (timeSinceFirstMessage >= 60000) {
+          userStats = { count: 1, firstMessageTime: now, lastMessageTime: now };
+        } else {
+          userStats = {
+            count: userStats.count + 1,
+            firstMessageTime: userStats.firstMessageTime,
+            lastMessageTime: now,
+          };
+        }
+      } else {
+        userStats = { count: 1, firstMessageTime: now, lastMessageTime: now };
       }
 
-      // Check for rapid-fire messages
-      if (timeSinceLastMessage < SPAM_CONFIG.minTimeBetweenMessages) {
+      // Save updated stats to Redis with TTL
+      await redisClient.set(countKey, JSON.stringify(userStats), SPAM_TRACKING_TTL);
+
+      // Check for repeated content using Redis list
+      const recentMessagesJson = await redisClient.get(messagesKey);
+      const userRecentMessages: string[] = recentMessagesJson ? JSON.parse(recentMessagesJson) : [];
+      const contentHash = content.toLowerCase().trim();
+      const repeatCount = userRecentMessages.filter((m) => m === contentHash).length;
+
+      if (repeatCount >= SPAM_CONFIG.maxRepeatedContent) {
         return {
           type: 'spam',
           severity: 'medium',
-          details: 'Messages sent too quickly',
+          details: 'Repeated message content detected',
         };
       }
 
-      // Update stats
-      if (timeSinceFirstMessage >= 60000) {
-        userMessageCounts.set(userId, { count: 1, firstMessageTime: now, lastMessageTime: now });
-      } else {
-        userMessageCounts.set(userId, {
-          count: userStats.count + 1,
-          firstMessageTime: userStats.firstMessageTime,
-          lastMessageTime: now,
-        });
+      // Update recent messages (keep last 10)
+      userRecentMessages.push(contentHash);
+      if (userRecentMessages.length > 10) {
+        userRecentMessages.shift();
       }
-    } else {
-      userMessageCounts.set(userId, { count: 1, firstMessageTime: now, lastMessageTime: now });
+      await redisClient.set(messagesKey, JSON.stringify(userRecentMessages), SPAM_TRACKING_TTL);
+
+      return null;
+    } catch (error) {
+      logger.error('Redis spam check failed, allowing message:', error);
+      // Fail open - allow the message if Redis is unavailable
+      return null;
     }
-
-    // Check for repeated content
-    const userRecentMessages = recentMessages.get(userId) || [];
-    const contentHash = content.toLowerCase().trim();
-    const repeatCount = userRecentMessages.filter((m) => m === contentHash).length;
-
-    if (repeatCount >= SPAM_CONFIG.maxRepeatedContent) {
-      return {
-        type: 'spam',
-        severity: 'medium',
-        details: 'Repeated message content detected',
-      };
-    }
-
-    // Update recent messages (keep last 10)
-    userRecentMessages.push(contentHash);
-    if (userRecentMessages.length > 10) {
-      userRecentMessages.shift();
-    }
-    recentMessages.set(userId, userRecentMessages);
-
-    return null;
   }
 
   /**

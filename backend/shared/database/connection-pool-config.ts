@@ -1,5 +1,4 @@
 import { Knex } from 'knex';
-import { PoolConfig } from 'pg';
 
 /**
  * Enhanced Database Connection Pool Configuration
@@ -90,7 +89,7 @@ export function getEnhancedPoolConfig(
  */
 export function getPostgresConfig(
   environment: 'development' | 'test' | 'staging' | 'production'
-): PoolConfig {
+): Knex.PgConnectionConfig {
   const isProd = environment === 'production';
   const isStaging = environment === 'staging';
 

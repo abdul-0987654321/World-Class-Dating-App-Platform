@@ -1,129 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
-import { policyService, Policy } from '../../services';
+import { Link } from 'react-router-dom';
 
 export const PrivacyPolicy: React.FC = () => {
-  const [policy, setPolicy] = useState<Policy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     window.scrollTo(0, 0);
-    loadPolicy();
   }, []);
 
-  const loadPolicy = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Get user's region and language
-      const region = policyService.getUserRegion();
-      const language = policyService.getUserLanguage();
-
-      // Fetch privacy policy from backend
-      const policyData = await policyService.getPrivacyPolicy(region, language);
-      setPolicy(policyData);
-    } catch (err) {
-      console.error('Failed to load privacy policy:', err);
-      setError('Failed to load privacy policy. Please try again later.');
-      // Fallback to static content if API fails
-      setPolicy(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Loading state
-  if (loading) {
-    return (
-      <Container>
-        <Content>
-          <LoadingSpinner>Loading Privacy Policy...</LoadingSpinner>
-        </Content>
-      </Container>
-    );
-  }
-
-  // Error state - show static fallback content
-  if (error || !policy) {
-    return (
-      <Container>
-        <Content>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-          <StaticPrivacyPolicy />
-        </Content>
-      </Container>
-    );
-  }
-
-  // Render dynamic policy from backend
+  // Always render static content immediately - no blocking API calls
   return (
     <Container>
+      <BackLink to="/">← Back to Flamoral</BackLink>
       <Content>
-        <Header>
-          <Title>Privacy Policy</Title>
-          <LastUpdated>Last Updated: {new Date(policy.lastUpdated).toLocaleDateString()}</LastUpdated>
-          <Version>Version {policy.version}</Version>
-        </Header>
-
-        {policy.summary && (
-          <Section>
-            <SummaryBox>
-              <Paragraph>{policy.summary}</Paragraph>
-            </SummaryBox>
-          </Section>
-        )}
-
-        {policy.sections.map((section) => (
-          <Section key={section.id}>
-            <SectionTitle>{section.title}</SectionTitle>
-            <Paragraph style={{ whiteSpace: 'pre-wrap' }}>{section.content}</Paragraph>
-
-            {section.examples && section.examples.length > 0 && (
-              <ExamplesBox>
-                <ExamplesTitle>Examples:</ExamplesTitle>
-                <List>
-                  {section.examples.map((example, idx) => (
-                    <ListItem key={idx}>{example}</ListItem>
-                  ))}
-                </List>
-              </ExamplesBox>
-            )}
-          </Section>
-        ))}
-
-        {policy.userRights && policy.userRights.length > 0 && (
-          <Section>
-            <SectionTitle>Your Rights</SectionTitle>
-            <List>
-              {policy.userRights.map((right, idx) => (
-                <ListItem key={idx}>{right}</ListItem>
-              ))}
-            </List>
-          </Section>
-        )}
-
-        {policy.contactInfo && (
-          <Section>
-            <SectionTitle>Contact Us</SectionTitle>
-            <ContactInfo>
-              <div><Strong>Email:</Strong> {policy.contactInfo.email}</div>
-              {policy.contactInfo.address && (
-                <div><Strong>Address:</Strong> {policy.contactInfo.address}</div>
-              )}
-              {policy.contactInfo.dpo && (
-                <div><Strong>Data Protection Officer:</Strong> {policy.contactInfo.dpo}</div>
-              )}
-            </ContactInfo>
-          </Section>
-        )}
-
-        <Section>
-          <Paragraph style={{ marginTop: '2rem', fontWeight: 500, fontSize: '1.1rem' }}>
-            BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ AND UNDERSTOOD THIS PRIVACY POLICY.
-          </Paragraph>
-        </Section>
+        <StaticPrivacyPolicy />
       </Content>
     </Container>
   );
@@ -205,25 +94,48 @@ const StaticPrivacyPolicy: React.FC = () => {
 // Styled Components
 const Container = styled.div`
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
   padding: 2rem 1rem;
+`;
+
+const BackLink = styled(Link)`
+  display: inline-block;
+  max-width: 900px;
+  margin: 0 auto 1rem;
+  padding: 0 1rem;
+  color: #ec4899;
+  text-decoration: none;
+  font-size: 0.9rem;
+
+  &:hover {
+    color: #f472b6;
+    text-decoration: underline;
+  }
+
+  @media (min-width: 900px) {
+    display: block;
+    padding: 0;
+  }
 `;
 
 const Content = styled.div`
   max-width: 900px;
   margin: 0 auto;
-  background: white;
+  background: rgba(26, 26, 26, 0.9);
+  backdrop-filter: blur(20px);
   padding: 3rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 
   @media (max-width: 768px) {
     padding: 1.5rem;
+    border-radius: 12px;
   }
 `;
 
 const Header = styled.div`
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 1.5rem;
   margin-bottom: 2rem;
 `;
@@ -231,7 +143,10 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0 0 0.5rem 0;
 
   @media (max-width: 768px) {
@@ -241,13 +156,13 @@ const Title = styled.h1`
 
 const LastUpdated = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: #9ca3af;
   margin-top: 0.5rem;
 `;
 
 const Version = styled.div`
   font-size: 0.85rem;
-  color: #888;
+  color: #6b7280;
   margin-top: 0.25rem;
 `;
 
@@ -258,21 +173,21 @@ const Section = styled.section`
 const SectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #f3f4f6;
   margin: 0 0 1rem 0;
 `;
 
 const SubsectionTitle = styled.h3`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #34495e;
+  color: #d1d5db;
   margin: 1.5rem 0 0.75rem 0;
 `;
 
 const Paragraph = styled.p`
   font-size: 1rem;
   line-height: 1.8;
-  color: #333;
+  color: #d1d5db;
   margin: 0 0 1rem 0;
 `;
 
@@ -284,69 +199,31 @@ const List = styled.ul`
 const ListItem = styled.li`
   font-size: 1rem;
   line-height: 1.8;
-  color: #333;
+  color: #d1d5db;
   margin-bottom: 0.5rem;
 `;
 
 const Strong = styled.strong`
   font-weight: 600;
-  color: #2c3e50;
+  color: #f9fafb;
 `;
 
 const ContactInfo = styled.div`
-  background: #f8f9fa;
+  background: rgba(59, 130, 246, 0.1);
   padding: 1.5rem;
-  border-radius: 6px;
-  border-left: 4px solid #007bff;
+  border-radius: 8px;
+  border-left: 4px solid #3B82F6;
   margin-top: 1rem;
 
   div {
     margin-bottom: 0.5rem;
-    color: #333;
+    color: #d1d5db;
     font-size: 1rem;
 
     &:last-child {
       margin-bottom: 0;
     }
   }
-`;
-
-const SummaryBox = styled.div`
-  background: #e3f2fd;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border-left: 4px solid #2196f3;
-`;
-
-const ExamplesBox = styled.div`
-  background: #f0f8f0;
-  padding: 1.25rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border-left: 3px solid #4caf50;
-`;
-
-const ExamplesTitle = styled.div`
-  font-weight: 600;
-  color: #2e7d32;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-`;
-
-const LoadingSpinner = styled.div`
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-  font-size: 1.1rem;
-`;
-
-const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #c62828;
 `;
 
 export default PrivacyPolicy;

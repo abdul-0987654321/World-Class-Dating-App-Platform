@@ -123,9 +123,9 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
   return (
     <div className="w-full mt-6">
       <div className="relative flex items-center justify-center my-6">
-        <div className="border-t border-charcoal-300 flex-grow"></div>
-        <span className="px-4 text-sm text-charcoal-500">Or continue with</span>
-        <div className="border-t border-charcoal-300 flex-grow"></div>
+        <div className="flex-grow" style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}></div>
+        <span className="px-4 text-sm text-gray-400">Or continue with</span>
+        <div className="flex-grow" style={{ height: '1px', background: 'rgba(139, 92, 246, 0.3)' }}></div>
       </div>
 
       <div className="flex justify-center gap-4">
@@ -133,11 +133,24 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
         <button
           onClick={() => handleGoogleLogin()}
           disabled={loading !== null}
-          className="flex items-center justify-center w-14 h-14 rounded-full border border-charcoal-300 bg-white hover:bg-charcoal-50 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          className="flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            boxShadow: '0 0 20px rgba(139, 92, 246, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.5)';
+            e.currentTarget.style.boxShadow = '0 0 30px rgba(236, 72, 153, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.1)';
+          }}
           title="Sign in with Google"
         >
           {loading === 'google' ? (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-flame-500"></div>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-500"></div>
           ) : (
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
@@ -182,7 +195,20 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
             <button
               {...props}
               disabled={loading !== null}
-              className="flex items-center justify-center w-14 h-14 rounded-full border border-charcoal-300 bg-black hover:bg-charcoal-900 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              className="flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+              style={{
+                background: '#000',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 0 20px rgba(139, 92, 246, 0.1)',
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.5)';
+                e.currentTarget.style.boxShadow = '0 0 30px rgba(236, 72, 153, 0.2)';
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.1)';
+              }}
               title="Sign in with Apple"
             >
               {loading === 'apple' ? (
@@ -200,7 +226,20 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
         <button
           onClick={handleFacebookLogin}
           disabled={loading !== null}
-          className="flex items-center justify-center w-14 h-14 rounded-full border border-charcoal-300 bg-[#1877F2] hover:bg-[#166FE5] transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          className="flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+          style={{
+            background: '#1877F2',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            boxShadow: '0 0 20px rgba(139, 92, 246, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.5)';
+            e.currentTarget.style.boxShadow = '0 0 30px rgba(24, 119, 242, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.1)';
+          }}
           title="Sign in with Facebook"
         >
           {loading === 'facebook' ? (

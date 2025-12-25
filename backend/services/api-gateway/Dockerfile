@@ -1,4 +1,4 @@
-# Build stage
+# Build stage - Standalone build without monorepo workspace
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -6,37 +6,49 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy all package files first
-COPY package*.json ./
-COPY backend/shared/package*.json ./backend/shared/
-COPY backend/services/api-gateway/package*.json ./backend/services/api-gateway/
+# First, build the shared module
+WORKDIR /app/shared
+COPY backend/shared/package*.json ./
+COPY backend/shared/tsconfig*.json ./
+COPY backend/shared/types ./types
+COPY backend/shared/utils ./utils
+COPY backend/shared/constants ./constants
+COPY backend/shared/config ./config
+COPY backend/shared/src ./src
+COPY backend/shared/errors ./errors
+COPY backend/shared/middleware ./middleware
+COPY backend/shared/cache ./cache
+COPY backend/shared/database ./database
+COPY backend/shared/index.ts ./
 
-# Install root dependencies
-RUN npm install --legacy-peer-deps || true
-
-# Build shared module first
-WORKDIR /app/backend/shared
-COPY backend/shared ./
+# Install shared dependencies and build
 RUN npm install --legacy-peer-deps && npm run build
 
-# Install service dependencies
-WORKDIR /app/backend/services/api-gateway
-RUN npm install --legacy-peer-deps
+# Now build the api-gateway service
+WORKDIR /app/service
 
-# Link shared module into service node_modules BEFORE building
+# Copy package.json and modify to remove file: reference
+COPY backend/services/api-gateway/package*.json ./
+
+# Remove the file: dependency, install dependencies, and add missing types
+RUN sed -i 's|"@flamoral/backend-shared": "file:../../shared",||' package.json && \
+    npm install --legacy-peer-deps && \
+    npm install --save-dev @types/multer --legacy-peer-deps
+
+# Link the built shared module
 RUN mkdir -p node_modules/@flamoral/backend-shared && \
-    cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
-    cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
+    cp -r /app/shared/dist node_modules/@flamoral/backend-shared/ && \
+    cp /app/shared/package.json node_modules/@flamoral/backend-shared/
 
-# Copy service source
+# Copy source files
 COPY backend/services/api-gateway/src ./src
 COPY backend/services/api-gateway/tsconfig*.json ./
 COPY backend/services/api-gateway/nest-cli.json ./
 
-# Build service
+# Build the service
 RUN npm run build
 
-# Verify dist was created
+# Verify build output
 RUN ls -la dist/ && test -f dist/main.js
 
 # Production stage
@@ -47,32 +59,29 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Copy node_modules with shared module already linked
-COPY --from=builder /app/backend/services/api-gateway/node_modules ./node_modules
+# Copy production dependencies
+COPY --from=builder /app/service/node_modules ./node_modules
 
-# Copy shared module (ensure it's in node_modules)
-COPY --from=builder /app/backend/shared/dist ./node_modules/@flamoral/backend-shared/dist/
-COPY --from=builder /app/backend/shared/package.json ./node_modules/@flamoral/backend-shared/
+# Copy shared module
+COPY --from=builder /app/shared/dist ./node_modules/@flamoral/backend-shared/dist/
+COPY --from=builder /app/shared/package.json ./node_modules/@flamoral/backend-shared/
 
 # Copy built application
-COPY --from=builder /app/backend/services/api-gateway/dist ./dist
+COPY --from=builder /app/service/dist ./dist
 
-# Change ownership to nodejs user
+# Set ownership
 RUN chown -R nodejs:nodejs /app
 
-# Switch to nodejs user
 USER nodejs
 
 # Environment
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=3000
 
-# Expose port
-EXPOSE 4000
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start application
 CMD ["node", "dist/main.js"]

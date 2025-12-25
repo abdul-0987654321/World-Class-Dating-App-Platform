@@ -8,14 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY backend/services/ai-services/nlp-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download NLTK data
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
 
 # Copy application code
-COPY . .
+COPY backend/services/ai-services/nlp-service/app ./app
+COPY backend/services/ai-services/nlp-service/models.py .
+COPY backend/services/ai-services/nlp-service/services ./services
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app

@@ -21,10 +21,13 @@ export interface Conversation {
 }
 
 export class ConversationRepository {
-  private container: Container;
+  private _container: Container | null = null;
 
-  constructor() {
-    this.container = cosmosClient.getConversationsContainer();
+  private get container(): Container {
+    if (!this._container) {
+      this._container = cosmosClient.getConversationsContainer();
+    }
+    return this._container;
   }
 
   /**

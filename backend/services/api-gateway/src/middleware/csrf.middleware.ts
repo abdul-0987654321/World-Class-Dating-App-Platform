@@ -42,11 +42,19 @@ export class CsrfMiddleware implements NestMiddleware {
   // Methods that require CSRF protection
   private readonly protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
-  // Paths excluded from CSRF protection (e.g., webhook endpoints)
+  // Paths excluded from CSRF protection (e.g., webhook endpoints, public auth)
   private readonly excludedPaths = [
     '/api/v1/webhooks',
     '/api/v1/health',
     '/api/v1/metrics',
+    // Public auth endpoints - no CSRF needed for unauthenticated routes
+    '/api/v1/auth/register',
+    '/api/v1/auth/login',
+    '/api/v1/auth/forgot-password',
+    '/api/v1/auth/reset-password',
+    '/api/v1/auth/verify-email',
+    '/api/v1/auth/refresh-token',
+    '/api/v1/csrf/token',
   ];
 
   constructor(private readonly configService: ConfigService) {

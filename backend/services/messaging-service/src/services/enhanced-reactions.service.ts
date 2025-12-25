@@ -9,14 +9,17 @@ import { MessageReaction, ReactionSummary } from '../types/enhanced-types';
 const logger = createLogger('enhanced-reactions-service');
 
 export class EnhancedReactionsService {
-  private container: Container;
+  private _container: Container | null = null;
   private readonly ALLOWED_EMOJIS = [
     '❤️', '😂', '😮', '😢', '😡', '👍', '👎', '🔥', '💯', '🎉',
     '😍', '😘', '🤗', '🤔', '😎', '🥳', '😇', '🤩', '💪', '👏'
   ];
 
-  constructor() {
-    this.container = cosmosClient.getReactionsContainer();
+  private get container(): Container {
+    if (!this._container) {
+      this._container = cosmosClient.getReactionsContainer();
+    }
+    return this._container;
   }
 
   /**

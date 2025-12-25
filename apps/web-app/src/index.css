@@ -111,3 +111,325 @@ body {
 h1, h2, h3, .font-heading {
   font-family: 'Playfair Display', Georgia, serif;
 }
+
+/* ============================================================================
+   LAYOUT CONTAINER SYSTEM
+   Global layout wrapper for consistent max-width + centering
+   ============================================================================ */
+
+.layout-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .layout-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Wider variant for hero sections */
+.layout-container-wide {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .layout-container-wide {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-container-wide {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ============================================================================
+   SECTION SPACING SYSTEM
+   Standardized section padding for consistent vertical rhythm
+   ============================================================================ */
+
+.section-padding {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE SAFETY GUARDRAILS
+   Prevent horizontal overflow and ensure proper sizing
+   ============================================================================ */
+
+/* Ensure images and media don't overflow */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent text from causing horizontal overflow */
+.break-words {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Safe horizontal scroll prevention */
+.overflow-safe {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Grid and flex children should respect container bounds */
+.grid > *, .flex > * {
+  min-width: 0;
+}
+
+/* ============================================================================
+   CENTERED CTA UTILITIES
+   Flexbox-based centering for call-to-action buttons
+   ============================================================================ */
+
+.cta-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .cta-center-row {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* ============================================================================
+   CARD GRID SYSTEM
+   Responsive grid layouts for feature cards
+   ============================================================================ */
+
+.card-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.card-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.card-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* ============================================================================
+   HERO SECTION LAYOUT FIXES
+   Ensure hero section displays correctly with proper viewport height
+   ============================================================================ */
+
+/* Hero container fix for proper centering */
+.hero-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - 4rem); /* Account for navbar */
+  padding-top: 5rem;
+  padding-bottom: 2rem;
+}
+
+/* Ensure hero grid doesn't overflow */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+}
+
+/* Profile card containment */
+.hero-card {
+  width: 100%;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 1024px) {
+  .hero-card {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+/* Navbar space reservation */
+.main-content {
+  padding-top: 4rem; /* Reserve space for fixed navbar */
+}
+
+/* Prevent content shift on load */
+.no-shift {
+  min-height: 100vh;
+  contain: layout;
+}
+
+/* ============================================================================
+   ACCESSIBILITY: FOCUS STATES
+   WCAG 2.1 AA compliant focus indicators
+   ============================================================================ */
+
+/* Global focus reset - visible focus only for keyboard navigation */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--flame-red);
+  outline-offset: 2px;
+}
+
+/* Links and buttons focus states */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--flame-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link for screen readers */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--flame-red);
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Ensure sufficient color contrast for text */
+.high-contrast-text {
+  color: #ffffff;
+}
+
+.high-contrast-text-muted {
+  color: #d1d5db; /* gray-300 - 7:1 contrast ratio on dark backgrounds */
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   Respect user's motion preferences
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   TOUCH TARGET SIZE
+   Minimum 44x44px touch targets for mobile accessibility
+   ============================================================================ */
+
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   SCREEN READER UTILITIES
+   Visually hidden but accessible to screen readers
+   ============================================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}

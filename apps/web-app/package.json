@@ -11,7 +11,10 @@
     "test:e2e": "playwright test",
     "lint": "eslint . ",
     "lint:fix": "eslint . ",
-    "type-check": "tsc --noEmit"
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "lint:layout": "node scripts/layout-regression-check.cjs",
+    "type-check": "tsc --noEmit",
+    "check:all": "npm run type-check && npm run lint && npm run lint:layout"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
@@ -52,7 +55,12 @@
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "glob": "^10.3.10",
     "postcss": "^8.4.32",
+    "postcss-syntax": "^0.36.2",
+    "stylelint": "^16.2.1",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-declaration-strict-value": "^1.10.4",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.3.2",
     "vite": "^7.3.0",

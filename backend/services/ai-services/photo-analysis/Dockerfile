@@ -11,11 +11,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY backend/services/ai-services/photo-analysis/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY backend/services/ai-services/photo-analysis/main.py .
+COPY backend/services/ai-services/photo-analysis/models.py .
+COPY backend/services/ai-services/photo-analysis/services ./services
 
 # Expose port
 EXPOSE 8003

@@ -69,9 +69,9 @@ class AuthService {
 
     // Backend returns { success: true, data: { user, accessToken, refreshToken } }
     const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       { email, password },
-      { skipAuth: true }
+      { skipAuth: true, skipCsrf: true }
     );
 
     // Transform to LoginResponse format
@@ -108,9 +108,9 @@ class AuthService {
 
     // Backend returns { success: true, data: { user, accessToken, refreshToken } }
     const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
-      '/api/auth/register',
+      '/api/v1/auth/register',
       data,
-      { skipAuth: true }
+      { skipAuth: true, skipCsrf: true }
     );
 
     // Transform to LoginResponse format
@@ -133,7 +133,7 @@ class AuthService {
     }
 
     try {
-      await apiClient.post('/api/auth/logout');
+      await apiClient.post('/api/v1/auth/logout');
     } finally {
       this.clearSession();
     }
@@ -145,7 +145,7 @@ class AuthService {
       return mockApi.getCurrentUser();
     }
 
-    return apiClient.get<User>('/api/auth/me');
+    return apiClient.get<User>('/api/v1/auth/me');
   }
 
   /**
@@ -169,7 +169,7 @@ class AuthService {
 
     try {
       const response = await apiClient.get<{ success: boolean; data: SessionResponse }>(
-        '/api/auth/session'
+        '/api/v1/auth/session'
       );
 
       if (response.success && response.data) {
@@ -308,9 +308,9 @@ class AuthService {
     }
 
     const response = await apiClient.post<LoginResponse>(
-      '/api/auth/refresh',
+      '/api/v1/auth/refresh-token',
       { refreshToken },
-      { skipAuth: true }
+      { skipAuth: true, skipCsrf: true }
     );
 
     this.saveSession(response);
@@ -323,7 +323,7 @@ class AuthService {
       return;
     }
 
-    await apiClient.post('/api/auth/forgot-password', { email }, { skipAuth: true });
+    await apiClient.post('/api/v1/auth/forgot-password', { email }, { skipAuth: true, skipCsrf: true });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -333,9 +333,9 @@ class AuthService {
     }
 
     await apiClient.post(
-      '/api/auth/reset-password',
+      '/api/v1/auth/reset-password',
       { token, newPassword },
-      { skipAuth: true }
+      { skipAuth: true, skipCsrf: true }
     );
   }
 
@@ -345,7 +345,7 @@ class AuthService {
       return;
     }
 
-    await apiClient.post('/api/auth/verify-email', { token }, { skipAuth: true });
+    await apiClient.post('/api/v1/auth/verify-email', { token }, { skipAuth: true, skipCsrf: true });
   }
 
   async resendVerificationEmail(): Promise<void> {
@@ -354,7 +354,7 @@ class AuthService {
       return;
     }
 
-    await apiClient.post('/api/auth/resend-verification');
+    await apiClient.post('/api/v1/auth/resend-verification');
   }
 
   isAuthenticated(): boolean {

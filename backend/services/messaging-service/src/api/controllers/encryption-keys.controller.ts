@@ -56,11 +56,13 @@ interface SessionKey {
 }
 
 export class EncryptionKeysController {
-  private keysContainer: Container;
+  private _keysContainer: Container | null = null;
 
-  constructor() {
-    // Initialize after cosmos client is ready
-    this.keysContainer = cosmosClient.getMessagesContainer();
+  private get keysContainer(): Container {
+    if (!this._keysContainer) {
+      this._keysContainer = cosmosClient.getMessagesContainer();
+    }
+    return this._keysContainer;
   }
 
   /**

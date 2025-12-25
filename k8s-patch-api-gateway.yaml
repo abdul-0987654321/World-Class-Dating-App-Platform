@@ -1,0 +1,63 @@
+spec:
+  template:
+    spec:
+      containers:
+      - name: nginx
+        image: flamoralprodacr.azurecr.io/api-gateway:v1.0.7
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: JWT_SECRET
+        - name: JWT_ACCESS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: JWT_ACCESS_SECRET
+        - name: JWT_REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: JWT_REFRESH_SECRET
+        - name: INTERNAL_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: INTERNAL_SERVICE_KEY
+        - name: AUTH_SERVICE_URL
+          value: "http://auth-service:3001"
+        - name: USER_SERVICE_URL
+          value: "http://user-service:3002"
+        - name: MATCHING_SERVICE_URL
+          value: "http://matching-service:3003"
+        - name: MESSAGING_SERVICE_URL
+          value: "http://messaging-service:3004"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts: []
+      volumes: []

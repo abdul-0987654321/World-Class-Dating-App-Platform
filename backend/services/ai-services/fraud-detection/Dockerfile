@@ -8,11 +8,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY backend/services/ai-services/fraud-detection/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY backend/services/ai-services/fraud-detection/main.py .
+COPY backend/services/ai-services/fraud-detection/models.py .
+COPY backend/services/ai-services/fraud-detection/fraud_detector.py .
+COPY backend/services/ai-services/fraud-detection/services ./services
 
 # Expose port
 EXPOSE 8001

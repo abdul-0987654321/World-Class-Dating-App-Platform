@@ -1,0 +1,97 @@
+---
+# ============================================================================
+# FLAMORAL ORIGIN PROTECTION
+# Validates X-Azure-FDID header to ensure traffic comes from Front Door
+# CRITICAL: Block direct backend access without Front Door
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-origin-protection
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: flamoral
+data:
+  # Custom NGINX configuration snippet
+  # Validates Azure Front Door ID header on all requests
+  http-snippet: |
+    # Define map for Front Door ID validation
+    map $http_x_azure_fdid $valid_frontdoor {
+      default 0;
+      "FRONT_DOOR_ID_PLACEHOLDER" 1;  # Replace with actual Front Door ID
+    }
+
+  # Server snippet for origin validation
+  server-snippet: |
+    # Block requests without valid Front Door header
+    # Allow health checks and internal traffic
+    set $deny_request 0;
+
+    # Skip validation for health endpoints
+    if ($uri ~* "^/(health|healthz|ready|readiness|liveness)") {
+      set $deny_request 0;
+    }
+
+    # Skip validation for internal cluster traffic (Kubernetes probes)
+    if ($http_user_agent ~* "kube-probe") {
+      set $deny_request 0;
+    }
+
+    # Validate Front Door header for external requests
+    if ($valid_frontdoor = 0) {
+      set $deny_request 1;
+    }
+
+    # Allow Azure Front Door health probes
+    if ($http_user_agent ~* "Azure.*FrontDoor") {
+      set $deny_request 0;
+    }
+
+    # Return 403 for invalid requests (not from Front Door)
+    if ($deny_request = 1) {
+      return 403 '{"error": "Access denied. Direct backend access is not permitted."}';
+    }
+---
+# Ingress annotation snippet for origin protection
+# Apply to individual ingress resources
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: origin-protection-annotations
+  namespace: flamoral-prod
+  labels:
+    app.kubernetes.io/part-of: flamoral
+data:
+  # Add these annotations to your Ingress resources
+  annotations.yaml: |
+    # Origin protection - validate Front Door header
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Validate X-Azure-FDID header
+      set $fd_valid 0;
+      if ($http_x_azure_fdid = "FRONT_DOOR_ID_PLACEHOLDER") {
+        set $fd_valid 1;
+      }
+
+      # Allow Kubernetes probes
+      if ($http_user_agent ~* "kube-probe") {
+        set $fd_valid 1;
+      }
+
+      # Allow health checks without Front Door header
+      if ($uri ~* "^/health") {
+        set $fd_valid 1;
+      }
+
+      # Block invalid requests
+      if ($fd_valid = 0) {
+        return 403 '{"error":"forbidden","message":"Direct backend access not permitted"}';
+      }
+
+    # Security headers
+    nginx.ingress.kubernetes.io/proxy-hide-headers: "X-Powered-By,Server"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-Frame-Options "DENY" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
