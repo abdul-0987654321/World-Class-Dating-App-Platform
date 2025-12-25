@@ -1,0 +1,27 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.12.10
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 17.17.1
+- name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.18.5
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 22.1.6
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 15.18.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 6.61.2
+- name: jaeger
+  repository: https://jaegertracing.github.io/helm-charts
+  version: 0.74.1
+- name: loki-stack
+  repository: https://grafana.github.io/helm-charts
+  version: 2.10.3
+digest: sha256:6c317ea1f354715b5ebad4d33ecdcc3273703b7e5b29b1ad06a2edcf8c7165ba
+generated: "2025-12-23T21:17:15.7263389-06:00"

@@ -36,15 +36,15 @@
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: https: blob:;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' wss://api.flamoral.com https://api.flamoral.com https://*.sentry.io https://api.stripe.com https://www.google-analytics.com https://vitals.vercel-insights.com;
+      connect-src 'self' ws://api.flamoral.com wss://api.flamoral.com http://api.flamoral.com https://api.flamoral.com https://*.sentry.io https://api.stripe.com https://www.google-analytics.com https://vitals.vercel-insights.com;
       media-src 'self' blob: data: https:;
       object-src 'none';
       frame-src 'self' https://js.stripe.com;
       frame-ancestors 'none';
       base-uri 'self';
       form-action 'self' https://api.flamoral.com;
-      upgrade-insecure-requests;
-      block-all-mixed-content;
+      
+      
     " />
 
     <!-- Permissions Policy: Controls browser features -->

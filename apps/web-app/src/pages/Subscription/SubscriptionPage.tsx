@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface Plan {
   id: string;
@@ -10,6 +10,7 @@ interface Plan {
   interval: string;
   features: string[];
   highlighted?: boolean;
+  bestValue?: boolean;
   color: string;
   icon: string;
 }
@@ -23,109 +24,139 @@ interface Subscription {
 
 export const SubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [highlightedTier, setHighlightedTier] = useState<string | null>(null);
 
+  // Check for tier parameter from landing page
+  useEffect(() => {
+    const tierParam = searchParams.get('tier');
+    if (tierParam) {
+      setHighlightedTier(tierParam.toLowerCase());
+      // Scroll to pricing after a short delay
+      setTimeout(() => {
+        const element = document.getElementById(`plan-${tierParam.toLowerCase()}`);
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
+    }
+  }, [searchParams]);
+
+  // 6-Tier Subscription Model aligned with backend
   const defaultPlans: Plan[] = [
     {
       id: 'free',
       name: 'Free',
-      tier: 'FREE',
+      tier: 'free',
       price: 0,
       currency: 'USD',
       interval: 'monthly',
       color: 'from-gray-400 to-gray-500',
       icon: 'user',
       features: [
-        'Basic matching',
-        '10 daily likes',
+        '50 daily swipes',
         'Basic filters',
-        'View profiles',
+        '1 Super Like/day',
+        'Photo verification',
         'Send messages to matches',
       ],
     },
     {
-      id: 'gold',
-      name: 'Gold',
-      tier: 'GOLD',
-      price: 14.99,
+      id: 'basic',
+      name: 'Basic',
+      tier: 'basic',
+      price: 9.99,
       currency: 'USD',
       interval: 'monthly',
-      color: 'from-yellow-400 to-amber-500',
+      color: 'from-blue-400 to-blue-500',
       icon: 'star',
       features: [
-        'Unlimited likes',
+        'Unlimited swipes',
         'See who likes you',
-        'Advanced filters',
         '5 Super Likes/day',
-        '1 Boost/week',
+        '1 Boost/month',
         'Rewind last swipe',
-        'Priority support',
+        'Basic filters',
       ],
     },
     {
-      id: 'platinum',
-      name: 'Platinum',
-      tier: 'PLATINUM',
-      price: 24.99,
+      id: 'plus',
+      name: 'Plus',
+      tier: 'plus',
+      price: 19.99,
+      currency: 'USD',
+      interval: 'monthly',
+      bestValue: true,
+      color: 'from-green-400 to-emerald-500',
+      icon: 'star',
+      features: [
+        'All Basic features',
+        'Advanced filters',
+        'Read receipts',
+        '10 Super Likes/day',
+        '3 Boosts/month',
+        'Incognito mode',
+        'Priority likes',
+      ],
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      tier: 'premium',
+      price: 29.99,
       currency: 'USD',
       interval: 'monthly',
       highlighted: true,
-      color: 'from-purple-500 to-indigo-600',
+      color: 'from-pink-500 to-purple-600',
       icon: 'crown',
       features: [
-        'Everything in Gold',
-        'Message before matching',
-        'Priority in Discovery',
-        '10 Super Likes/day',
-        '3 Boosts/week',
-        'See read receipts',
-        'Hide ads',
-        'Incognito mode',
+        'All Plus features',
+        'Unlimited Super Likes',
+        'Unlimited Boosts',
+        'Video dating',
+        'AI matchmaking',
+        'AI conversation coach',
+        'Verified badge',
       ],
     },
     {
-      id: 'diamond',
-      name: 'Diamond',
-      tier: 'DIAMOND',
+      id: 'premium_plus',
+      name: 'Premium+',
+      tier: 'premium_plus',
       price: 39.99,
       currency: 'USD',
       interval: 'monthly',
       color: 'from-cyan-400 to-blue-500',
       icon: 'diamond',
       features: [
-        'Everything in Platinum',
-        'Exclusive events access',
-        'Verified badge',
-        'Unlimited Super Likes',
-        'Unlimited Boosts',
+        'All Premium features',
+        'Passport (travel mode)',
+        'Message before match',
+        'Priority support',
+        'Travel mode alerts',
         'Profile highlights',
-        'AI matchmaking insights',
-        'Personal concierge',
-        'Video call priority',
       ],
     },
     {
       id: 'elite',
       name: 'Elite',
-      tier: 'ELITE',
-      price: 99.99,
+      tier: 'elite',
+      price: 59.99,
       currency: 'USD',
       interval: 'monthly',
-      color: 'from-rose-500 to-pink-600',
+      color: 'from-yellow-500 to-amber-600',
       icon: 'elite',
       features: [
-        'Everything in Diamond',
-        'VIP matchmaking service',
-        'Profile written by experts',
-        'Dedicated relationship coach',
-        'Exclusive VIP events',
-        'Priority customer support',
-        'Background-checked matches',
+        'All Premium+ features',
+        'VIP badge',
+        'Dedicated dating coach',
+        'Background-verified matches',
         'Luxury date planning',
+        'Exclusive VIP events',
+        'Concierge service',
       ],
     },
   ];
@@ -373,18 +404,26 @@ export const SubscriptionPage: React.FC = () => {
           </div>
         )}
 
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {/* Plans Grid - 6 Tier Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-12">
           {(plans.length > 0 ? plans : defaultPlans).map((plan) => (
             <div
               key={plan.id}
-              className={`bg-white rounded-2xl shadow-sm overflow-hidden ${
-                plan.highlighted ? 'ring-2 ring-purple-500 transform scale-105' : ''
+              id={`plan-${plan.id}`}
+              className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300 ${
+                plan.highlighted || highlightedTier === plan.id ? 'ring-2 ring-pink-500 transform scale-105 z-10' : ''
+              } ${plan.bestValue ? 'ring-2 ring-green-500' : ''} ${
+                highlightedTier === plan.id ? 'animate-pulse' : ''
               }`}
             >
               {plan.highlighted && (
-                <div className="bg-purple-500 text-white text-center py-2 text-sm font-medium">
-                  Most Popular
+                <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium">
+                  MOST POPULAR
+                </div>
+              )}
+              {plan.bestValue && !plan.highlighted && (
+                <div className="bg-green-500 text-white text-center py-1.5 text-xs font-medium">
+                  BEST VALUE
                 </div>
               )}
               <div className={`bg-gradient-to-br ${plan.color} p-6 text-white`}>
@@ -449,118 +488,69 @@ export const SubscriptionPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Features Comparison */}
+        {/* Features Comparison - 6 Tier */}
         <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Compare Features</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-4 px-3 text-gray-600 text-sm">Feature</th>
-                  <th className="text-center py-4 px-2 text-gray-600 text-sm">Free</th>
-                  <th className="text-center py-4 px-2 text-yellow-600 text-sm">Gold</th>
-                  <th className="text-center py-4 px-2 text-purple-600 text-sm">Platinum</th>
-                  <th className="text-center py-4 px-2 text-cyan-600 text-sm">Diamond</th>
-                  <th className="text-center py-4 px-2 text-rose-600 text-sm">Elite</th>
+                  <th className="text-left py-4 px-2 text-gray-600 text-sm min-w-[140px]">Feature</th>
+                  <th className="text-center py-4 px-1 text-gray-600 text-xs">Free</th>
+                  <th className="text-center py-4 px-1 text-blue-600 text-xs">Basic</th>
+                  <th className="text-center py-4 px-1 text-green-600 text-xs">Plus</th>
+                  <th className="text-center py-4 px-1 text-pink-600 text-xs font-bold">Premium</th>
+                  <th className="text-center py-4 px-1 text-cyan-600 text-xs">Premium+</th>
+                  <th className="text-center py-4 px-1 text-amber-600 text-xs">Elite</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { feature: 'Daily Likes', free: '10', gold: 'Unlimited', platinum: 'Unlimited', diamond: 'Unlimited', elite: 'Unlimited' },
-                  { feature: 'Super Likes', free: '1/day', gold: '5/day', platinum: '10/day', diamond: 'Unlimited', elite: 'Unlimited' },
-                  { feature: 'Boosts', free: '0', gold: '1/week', platinum: '3/week', diamond: 'Unlimited', elite: 'Unlimited' },
-                  { feature: 'See Who Likes You', free: false, gold: true, platinum: true, diamond: true, elite: true },
-                  { feature: 'Advanced Filters', free: false, gold: true, platinum: true, diamond: true, elite: true },
-                  { feature: 'Rewind', free: false, gold: true, platinum: true, diamond: true, elite: true },
-                  { feature: 'Message Before Match', free: false, gold: false, platinum: true, diamond: true, elite: true },
-                  { feature: 'Incognito Mode', free: false, gold: false, platinum: true, diamond: true, elite: true },
-                  { feature: 'Read Receipts', free: false, gold: false, platinum: true, diamond: true, elite: true },
-                  { feature: 'Verified Badge', free: false, gold: false, platinum: false, diamond: true, elite: true },
-                  { feature: 'Exclusive Events', free: false, gold: false, platinum: false, diamond: true, elite: true },
-                  { feature: 'AI Matchmaking', free: false, gold: false, platinum: false, diamond: true, elite: true },
-                  { feature: 'VIP Matchmaking', free: false, gold: false, platinum: false, diamond: false, elite: true },
-                  { feature: 'Dedicated Coach', free: false, gold: false, platinum: false, diamond: false, elite: true },
-                  { feature: 'Profile by Experts', free: false, gold: false, platinum: false, diamond: false, elite: true },
-                ].map((row, idx) => (
-                  <tr key={idx} className="border-b last:border-b-0">
-                    <td className="py-3 px-3 text-gray-800 text-sm">{row.feature}</td>
-                    <td className="text-center py-3 px-2">
-                      {typeof row.free === 'boolean' ? (
-                        row.free ? (
-                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )
+                  { feature: 'Daily Swipes', free: '50', basic: '∞', plus: '∞', premium: '∞', premiumPlus: '∞', elite: '∞' },
+                  { feature: 'Super Likes', free: '1/day', basic: '5/day', plus: '10/day', premium: '∞', premiumPlus: '∞', elite: '∞' },
+                  { feature: 'Boosts', free: '0', basic: '1/mo', plus: '3/mo', premium: '∞', premiumPlus: '∞', elite: '∞' },
+                  { feature: 'See Who Likes You', free: false, basic: true, plus: true, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Rewind', free: false, basic: true, plus: true, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Advanced Filters', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Read Receipts', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Incognito Mode', free: false, basic: false, plus: true, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Video Dating', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'AI Matchmaking', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Verified Badge', free: false, basic: false, plus: false, premium: true, premiumPlus: true, elite: true },
+                  { feature: 'Passport (Travel)', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
+                  { feature: 'Message Before Match', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
+                  { feature: 'Priority Support', free: false, basic: false, plus: false, premium: false, premiumPlus: true, elite: true },
+                  { feature: 'VIP Badge', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
+                  { feature: 'Dedicated Coach', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
+                  { feature: 'Background Verified', free: false, basic: false, plus: false, premium: false, premiumPlus: false, elite: true },
+                ].map((row, idx) => {
+                  const renderCell = (value: boolean | string, colorClass: string) => {
+                    if (typeof value === 'boolean') {
+                      return value ? (
+                        <svg className="w-4 h-4 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
                       ) : (
-                        <span className="text-gray-600 text-xs">{row.free}</span>
-                      )}
-                    </td>
-                    <td className="text-center py-3 px-2">
-                      {typeof row.gold === 'boolean' ? (
-                        row.gold ? (
-                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )
-                      ) : (
-                        <span className="text-yellow-600 font-medium text-xs">{row.gold}</span>
-                      )}
-                    </td>
-                    <td className="text-center py-3 px-2">
-                      {typeof row.platinum === 'boolean' ? (
-                        row.platinum ? (
-                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )
-                      ) : (
-                        <span className="text-purple-600 font-medium text-xs">{row.platinum}</span>
-                      )}
-                    </td>
-                    <td className="text-center py-3 px-2">
-                      {typeof row.diamond === 'boolean' ? (
-                        row.diamond ? (
-                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )
-                      ) : (
-                        <span className="text-cyan-600 font-medium text-xs">{row.diamond}</span>
-                      )}
-                    </td>
-                    <td className="text-center py-3 px-2">
-                      {typeof row.elite === 'boolean' ? (
-                        row.elite ? (
-                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )
-                      ) : (
-                        <span className="text-rose-600 font-medium text-xs">{row.elite}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        <svg className="w-4 h-4 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      );
+                    }
+                    return <span className={`${colorClass} font-medium text-[10px]`}>{value}</span>;
+                  };
+
+                  return (
+                    <tr key={idx} className="border-b last:border-b-0">
+                      <td className="py-2 px-2 text-gray-800 text-xs">{row.feature}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.free, 'text-gray-600')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.basic, 'text-blue-600')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.plus, 'text-green-600')}</td>
+                      <td className="text-center py-2 px-1 bg-pink-50">{renderCell(row.premium, 'text-pink-600')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.premiumPlus, 'text-cyan-600')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.elite, 'text-amber-600')}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
