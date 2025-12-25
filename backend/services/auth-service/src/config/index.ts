@@ -68,13 +68,10 @@ export const config = {
     url: process.env.REDIS_URL || 'redis://localhost:6379',
   },
 
-  // Email
+  // Email - Azure Communication Services
   email: {
-    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    user: process.env.SMTP_USER || 'apikey',
-    password: process.env.SMTP_PASSWORD || '',
-    from: process.env.EMAIL_FROM || 'noreply@flamoral.com',
+    azureConnectionString: process.env.AZURE_COMMUNICATION_CONNECTION_STRING || '',
+    from: process.env.EMAIL_FROM || 'DoNotReply@64af122c-9bbb-4259-8051-a5cf7f3111d4.azurecomm.net',
   },
 
   // CORS
