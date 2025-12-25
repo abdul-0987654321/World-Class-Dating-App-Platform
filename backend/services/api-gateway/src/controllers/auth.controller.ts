@@ -65,7 +65,7 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/register', body);
+    return this.proxyService.post('authService', '/api/v1/auth/register', body);
   }
 
   /**
@@ -75,7 +75,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/login', body);
+    return this.proxyService.post('authService', '/api/v1/auth/login', body);
   }
 
   /**
@@ -84,7 +84,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('authService', '/api/auth/logout', {}, {
+    return this.proxyService.post('authService', '/api/v1/auth/logout', {}, {
       Authorization: authorization,
     });
   }
@@ -96,7 +96,7 @@ export class AuthController {
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   async refreshToken(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/refresh-token', body);
+    return this.proxyService.post('authService', '/api/v1/auth/refresh-token', body);
   }
 
   /**
@@ -106,7 +106,7 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/verify-email', body);
+    return this.proxyService.post('authService', '/api/v1/auth/verify-email', body);
   }
 
   /**
@@ -116,7 +116,7 @@ export class AuthController {
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/resend-verification', body);
+    return this.proxyService.post('authService', '/api/v1/auth/resend-verification', body);
   }
 
   /**
@@ -126,7 +126,7 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/forgot-password', body);
+    return this.proxyService.post('authService', '/api/v1/auth/forgot-password', body);
   }
 
   /**
@@ -136,7 +136,7 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/reset-password', body);
+    return this.proxyService.post('authService', '/api/v1/auth/reset-password', body);
   }
 
   /**
@@ -146,7 +146,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user info' })
   @ApiBearerAuth('JWT-auth')
   async me(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('authService', '/api/auth/me', {
+    return this.proxyService.get('authService', '/api/v1/auth/me', {
       Authorization: authorization,
     });
   }
@@ -223,7 +223,7 @@ export class AuthController {
   ): Promise<SessionResponse> {
     // Fetch user data and subscription info in parallel
     const [userData, subscriptionData, usageData] = await Promise.all([
-      this.proxyService.get('authService', '/api/auth/me', {
+      this.proxyService.get('authService', '/api/v1/auth/me', {
         Authorization: authorization,
       }),
       this.proxyService.get('userService', '/api/subscriptions/current', {

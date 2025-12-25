@@ -33,7 +33,7 @@ export class AuthController {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict' as const,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
-    path: '/api/auth/refresh-token',
+    path: '/api/v1/auth/refresh-token',
   };
 
   /**
@@ -43,7 +43,7 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() body: any, @Res({ passthrough: true }) res: Response) {
-    const response = await this.proxyService.post('authService', '/api/auth/register', body);
+    const response = await this.proxyService.post('authService', '/api/v1/auth/register', body);
 
     // Set tokens in httpOnly cookies
     if (response.data?.accessToken) {
@@ -69,7 +69,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
-    const response = await this.proxyService.post('authService', '/api/auth/login', body);
+    const response = await this.proxyService.post('authService', '/api/v1/auth/login', body);
 
     // Set tokens in httpOnly cookies
     if (response.data?.accessToken) {
@@ -99,9 +99,9 @@ export class AuthController {
   ) {
     // Clear cookies
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh-token' });
+    res.clearCookie('refreshToken', { path: '/api/v1/auth/refresh-token' });
 
-    return this.proxyService.post('authService', '/api/auth/logout', {}, {
+    return this.proxyService.post('authService', '/api/v1/auth/logout', {}, {
       Authorization: authorization,
     });
   }
@@ -124,7 +124,7 @@ export class AuthController {
 
     const response = await this.proxyService.post(
       'authService',
-      '/api/auth/refresh-token',
+      '/api/v1/auth/refresh-token',
       { refreshToken },
     );
 
@@ -153,7 +153,7 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/verify-email', body);
+    return this.proxyService.post('authService', '/api/v1/auth/verify-email', body);
   }
 
   /**
@@ -163,7 +163,7 @@ export class AuthController {
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/resend-verification', body);
+    return this.proxyService.post('authService', '/api/v1/auth/resend-verification', body);
   }
 
   /**
@@ -173,7 +173,7 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/forgot-password', body);
+    return this.proxyService.post('authService', '/api/v1/auth/forgot-password', body);
   }
 
   /**
@@ -183,7 +183,7 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: any) {
-    return this.proxyService.post('authService', '/api/auth/reset-password', body);
+    return this.proxyService.post('authService', '/api/v1/auth/reset-password', body);
   }
 
   /**
@@ -191,7 +191,7 @@ export class AuthController {
    */
   @Get('me')
   async me(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('authService', '/api/auth/me', {
+    return this.proxyService.get('authService', '/api/v1/auth/me', {
       Authorization: authorization,
     });
   }
