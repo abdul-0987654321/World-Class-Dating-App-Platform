@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dating-app-config-production
-  namespace: dating-app
+  namespace: flamoral
   labels:
     environment: production
 data:
@@ -113,7 +113,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: service-discovery-config
-  namespace: dating-app
+  namespace: flamoral
 data:
   services.json: |
     {
@@ -161,7 +161,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: logging-config
-  namespace: dating-app
+  namespace: flamoral
 data:
   log-config.json: |
     {
@@ -198,7 +198,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: feature-flags-config
-  namespace: dating-app
+  namespace: flamoral
 data:
   features.yaml: |
     features:
@@ -277,7 +277,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rate-limiting-config
-  namespace: dating-app
+  namespace: flamoral
 data:
   rate-limits.yaml: |
     rate_limits:
@@ -327,7 +327,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: database-migration-config
-  namespace: dating-app
+  namespace: flamoral
 data:
   flyway.conf: |
     flyway.url=jdbc:postgresql://postgres-service:5432/dating_app_production

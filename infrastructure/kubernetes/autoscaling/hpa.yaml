@@ -5,7 +5,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: api-gateway-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -60,7 +60,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: user-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -100,7 +100,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: matching-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -143,7 +143,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: messaging-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -177,7 +177,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: media-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -209,7 +209,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: notification-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -236,7 +236,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: websocket-service-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -283,7 +283,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: frontend-hpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

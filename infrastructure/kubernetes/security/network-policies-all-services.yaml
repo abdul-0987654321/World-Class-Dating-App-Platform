@@ -9,7 +9,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -21,7 +21,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-egress
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -35,7 +35,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-gateway-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -200,7 +200,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: auth-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -268,7 +268,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: user-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -355,7 +355,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: matching-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -427,7 +427,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: messaging-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -520,7 +520,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: media-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -598,7 +598,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: payment-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -681,7 +681,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: notification-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -764,7 +764,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: analytics-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -836,7 +836,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: moderation-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -937,7 +937,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: admin-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1021,7 +1021,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: realtime-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1092,7 +1092,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: advertising-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1163,7 +1163,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: automation-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1235,7 +1235,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: workflow-engine-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1315,7 +1315,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: policy-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1373,7 +1373,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: verification-service-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1454,7 +1454,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: postgres-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1485,7 +1485,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: redis-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -1519,7 +1519,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scraping
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:

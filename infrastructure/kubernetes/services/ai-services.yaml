@@ -32,8 +32,8 @@ data:
   FLASK_ENV: "production"
   PORT: "5000"
   MODEL_PATH: "/models/recommendation"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_ml"
   METRICS_PORT: "9090"
   BATCH_SIZE: "32"
@@ -184,8 +184,8 @@ metadata:
 data:
   FLASK_ENV: "production"
   PORT: "5001"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_ml"
   METRICS_PORT: "9090"
   OPENAI_MODEL: "gpt-4-turbo"
@@ -301,7 +301,7 @@ data:
   FLASK_ENV: "production"
   PORT: "5002"
   MODEL_PATH: "/models/moderation"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   METRICS_PORT: "9090"
   BATCH_SIZE: "16"
   ENABLE_GPU: "true"
@@ -421,12 +421,12 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: flamoral-dating
+          name: flamoral
   egress:
   - to:
     - namespaceSelector:
         matchLabels:
-          name: flamoral-dating
+          name: flamoral
   - to:
     - namespaceSelector: {}
     ports:

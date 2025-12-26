@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pgbouncer-config
-  namespace: dating-app-production
+  namespace: flamoral
 data:
   pgbouncer.ini: |
     [databases]
@@ -69,7 +69,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgbouncer
-  namespace: dating-app-production
+  namespace: flamoral
   labels:
     app: pgbouncer
     tier: database
@@ -258,7 +258,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pgbouncer
-  namespace: dating-app-production
+  namespace: flamoral
   labels:
     app: pgbouncer
   annotations:
@@ -286,14 +286,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pgbouncer
-  namespace: dating-app-production
+  namespace: flamoral
 ---
 # PgBouncer Pod Disruption Budget
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: pgbouncer-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -305,7 +305,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: pgbouncer-hpa
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -349,7 +349,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: pgbouncer
-  namespace: dating-app-production
+  namespace: flamoral
   labels:
     app: pgbouncer
 spec:

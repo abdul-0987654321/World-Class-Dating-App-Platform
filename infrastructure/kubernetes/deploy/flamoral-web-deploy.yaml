@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: flamoraldevacr.azurecr.io/flamoral-web:v1.0.0
+        image: flamoralprodacr.azurecr.io/flamoral-web:${IMAGE_TAG}
+
         ports:
         - containerPort: 80
         resources:

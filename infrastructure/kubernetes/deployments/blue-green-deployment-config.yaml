@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: blue-green-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   active-version: "blue"
   traffic-split: "100"  # Percentage to active version
@@ -16,7 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway-blue
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
     version: blue
@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: flamoral/api-gateway:v1.0.0  # Current stable version
+        image: flamoralprodacr.azurecr.io/api-gateway:${IMAGE_TAG}  # Current stable version
         ports:
         - containerPort: 3000
           name: http
@@ -75,7 +75,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway-green
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
     version: green
@@ -98,7 +98,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: flamoral/api-gateway:v1.1.0  # New version
+        image: flamoralprodacr.azurecr.io/api-gateway:${IMAGE_TAG}  # New version
         ports:
         - containerPort: 3000
           name: http
@@ -135,7 +135,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway-blue
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
     version: blue
@@ -158,7 +158,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway-green
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
     version: green
@@ -181,7 +181,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
   annotations:
@@ -205,7 +205,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: api-gateway-blue-green
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     nginx.ingress.kubernetes.io/canary: "false"
     nginx.ingress.kubernetes.io/canary-weight: "0"
@@ -229,7 +229,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: api-gateway-canary
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "0"  # Increase gradually (0-100)
@@ -255,7 +255,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: api-gateway-blue
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   selector:
     matchLabels:
@@ -272,7 +272,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: api-gateway-green
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   selector:
     matchLabels:
@@ -289,7 +289,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: blue-green-automated-rollback
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   groups:
   - name: blue-green-deployment
@@ -325,7 +325,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: blue-green-scripts
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   switch-to-green.sh: |
     #!/bin/bash
@@ -335,11 +335,11 @@ data:
 
     # Scale up green deployment
     echo "Scaling up green deployment..."
-    kubectl scale deployment api-gateway-green -n flamoral-dating --replicas=5
+    kubectl scale deployment api-gateway-green -n flamoral --replicas=5
 
     # Wait for green pods to be ready
     echo "Waiting for green pods to be ready..."
-    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-green -n flamoral-dating
+    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-green -n flamoral
 
     # Run smoke tests
     echo "Running smoke tests on green version..."
@@ -349,7 +349,7 @@ data:
     echo "Starting gradual traffic shift..."
     for weight in 10 25 50 75 100; do
       echo "Shifting ${weight}% traffic to green..."
-      kubectl annotate ingress api-gateway-canary -n flamoral-dating \
+      kubectl annotate ingress api-gateway-canary -n flamoral \
         nginx.ingress.kubernetes.io/canary-weight="${weight}" --overwrite
 
       echo "Waiting 5 minutes for metrics..."
@@ -362,14 +362,14 @@ data:
 
     # Update main service to point to green
     echo "Switching main service to green..."
-    kubectl patch service api-gateway -n flamoral-dating -p '{"spec":{"selector":{"version":"green"}}}'
+    kubectl patch service api-gateway -n flamoral -p '{"spec":{"selector":{"version":"green"}}}'
 
     # Scale down blue deployment
     echo "Scaling down blue deployment..."
-    kubectl scale deployment api-gateway-blue -n flamoral-dating --replicas=0
+    kubectl scale deployment api-gateway-blue -n flamoral --replicas=0
 
     # Update active version
-    kubectl patch configmap blue-green-config -n flamoral-dating \
+    kubectl patch configmap blue-green-config -n flamoral \
       --type merge -p '{"data":{"active-version":"green"}}'
 
     echo "Blue-green deployment completed successfully!"
@@ -382,21 +382,21 @@ data:
 
     # Ensure blue deployment is running
     echo "Scaling up blue deployment..."
-    kubectl scale deployment api-gateway-blue -n flamoral-dating --replicas=5
-    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-blue -n flamoral-dating
+    kubectl scale deployment api-gateway-blue -n flamoral --replicas=5
+    kubectl wait --for=condition=available --timeout=300s deployment/api-gateway-blue -n flamoral
 
     # Switch traffic back to blue
     echo "Switching traffic to blue..."
-    kubectl patch service api-gateway -n flamoral-dating -p '{"spec":{"selector":{"version":"blue"}}}'
-    kubectl annotate ingress api-gateway-canary -n flamoral-dating \
+    kubectl patch service api-gateway -n flamoral -p '{"spec":{"selector":{"version":"blue"}}}'
+    kubectl annotate ingress api-gateway-canary -n flamoral \
       nginx.ingress.kubernetes.io/canary-weight="0" --overwrite
 
     # Scale down green deployment
     echo "Scaling down green deployment..."
-    kubectl scale deployment api-gateway-green -n flamoral-dating --replicas=0
+    kubectl scale deployment api-gateway-green -n flamoral --replicas=0
 
     # Update active version
-    kubectl patch configmap blue-green-config -n flamoral-dating \
+    kubectl patch configmap blue-green-config -n flamoral \
       --type merge -p '{"data":{"active-version":"blue"}}'
 
     echo "Rollback completed successfully!"

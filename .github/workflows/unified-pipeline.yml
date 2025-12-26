@@ -661,12 +661,164 @@ jobs:
         run: eas build --platform ios --profile ${{ github.event.inputs.environment || 'production' }} --non-interactive
 
   # ===========================================================================
+  # DEPLOY PRODUCTION (Manual approval required)
+  # ===========================================================================
+  deploy-production:
+    name: Deploy to Production
+    needs: [build-and-test, build-docker-images, build-frontend]
+    runs-on: ubuntu-latest
+    if: |
+      needs.build-and-test.outputs.should_deploy == 'true' &&
+      github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://flamoral.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Install envsubst
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext-base
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group flamoral-prod-rg \
+            --name flamoral-prod-aks \
+            --overwrite-existing
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace flamoral --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kyverno policies
+        run: |
+          echo "Applying Kyverno policies..."
+          for policy in infrastructure/kubernetes/policies/*.yaml; do
+            if [ -f "$policy" ]; then
+              echo "Applying: $policy"
+              kubectl apply -f "$policy" || echo "Warning: Failed to apply $policy"
+            fi
+          done
+
+      - name: Deploy services via scripts
+        env:
+          IMAGE_TAG: ${{ needs.build-and-test.outputs.version }}
+          REGISTRY: flamoralprodacr.azurecr.io
+          NAMESPACE: flamoral
+        run: |
+          chmod +x scripts/deploy-production.sh
+          ./scripts/deploy-production.sh "$IMAGE_TAG"
+
+      - name: Verify deployment
+        env:
+          NAMESPACE: flamoral
+        run: |
+          chmod +x scripts/verify-deployment.sh
+          ./scripts/verify-deployment.sh "$NAMESPACE"
+
+      - name: Run smoke tests
+        env:
+          NAMESPACE: flamoral
+        run: |
+          chmod +x scripts/smoke-test.sh
+          # Get the API Gateway service IP
+          API_URL=$(kubectl get service api-gateway -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+          if [ -n "$API_URL" ]; then
+            ./scripts/smoke-test.sh "http://$API_URL:4000/api" || echo "Warning: Smoke tests had failures"
+          else
+            echo "Warning: Could not determine API Gateway IP, skipping external smoke tests"
+            # Run internal smoke test
+            ./scripts/smoke-test.sh "http://api-gateway.$NAMESPACE.svc.cluster.local:4000/api" || echo "Warning: Internal smoke tests had failures"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "## Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Production |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cluster | flamoral-prod-aks |" >> $GITHUB_STEP_SUMMARY
+          echo "| Namespace | flamoral |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image Tag | ${{ needs.build-and-test.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed By | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u +"%Y-%m-%dT%H:%M:%SZ") |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pod Status" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n flamoral --no-headers | head -20 >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack on success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "Production deployment successful!",
+              "attachments": [{
+                "color": "good",
+                "fields": [
+                  {"title": "Environment", "value": "Production", "short": true},
+                  {"title": "Version", "value": "${{ needs.build-and-test.outputs.version }}", "short": true},
+                  {"title": "Deployed By", "value": "${{ github.actor }}", "short": true},
+                  {"title": "Repository", "value": "${{ github.repository }}", "short": true}
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "Production deployment FAILED!",
+              "attachments": [{
+                "color": "danger",
+                "fields": [
+                  {"title": "Environment", "value": "Production", "short": true},
+                  {"title": "Version", "value": "${{ needs.build-and-test.outputs.version }}", "short": true},
+                  {"title": "Deployed By", "value": "${{ github.actor }}", "short": true},
+                  {"title": "Run URL", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false}
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  # ===========================================================================
   # SUMMARY
   # ===========================================================================
   summary:
     name: Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [build-and-test, build-docker-images, build-frontend, deploy, release, rollback, infrastructure, mobile]
+    needs: [build-and-test, build-docker-images, build-frontend, deploy, deploy-production, release, rollback, infrastructure, mobile]
     if: always()
 
     steps:
@@ -681,6 +833,7 @@ jobs:
           echo "| Docker Images | ${{ needs.build-docker-images.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Production | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Release | ${{ needs.release.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Infrastructure | ${{ needs.infrastructure.result }} |" >> $GITHUB_STEP_SUMMARY

@@ -7,7 +7,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: api-gateway-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -32,7 +32,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: auth-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -57,7 +57,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: user-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -82,7 +82,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: matching-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -107,7 +107,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: messaging-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -132,7 +132,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: realtime-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -157,7 +157,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: media-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -182,7 +182,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: payment-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -207,7 +207,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: notification-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -232,7 +232,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: analytics-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -257,7 +257,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: moderation-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -282,7 +282,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: admin-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -307,7 +307,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: advertising-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -332,7 +332,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: automation-service-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -357,7 +357,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: workflow-engine-vpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1

@@ -27,7 +27,7 @@ apiGateway:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/api-gateway
+    repository: api-gateway
     tag: ""  # Uses global.imageTag if empty
     pullPolicy: IfNotPresent
   service:
@@ -49,7 +49,7 @@ authService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/auth-service
+    repository: auth-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -68,7 +68,7 @@ userService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/user-service
+    repository: user-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -87,7 +87,7 @@ matchingService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/matching-service
+    repository: matching-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -106,7 +106,7 @@ messagingService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/messaging-service
+    repository: messaging-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -125,7 +125,7 @@ mediaService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/media-service
+    repository: media-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -144,7 +144,7 @@ paymentService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/payment-service
+    repository: payment-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -163,7 +163,7 @@ notificationService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/notification-service
+    repository: notification-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -182,7 +182,7 @@ analyticsService:
   enabled: true
   replicaCount: 1
   image:
-    repository: flamoral/analytics-service
+    repository: analytics-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -201,7 +201,7 @@ moderationService:
   enabled: true
   replicaCount: 1
   image:
-    repository: flamoral/moderation-service
+    repository: moderation-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -220,7 +220,7 @@ advertisingService:
   enabled: true
   replicaCount: 1
   image:
-    repository: flamoral/advertising-service
+    repository: advertising-service
     tag: ""
     pullPolicy: IfNotPresent
   service:
@@ -239,7 +239,7 @@ realtimeService:
   enabled: true
   replicaCount: 2
   image:
-    repository: flamoral/realtime-service
+    repository: realtime-service
     tag: ""
     pullPolicy: IfNotPresent
   service:

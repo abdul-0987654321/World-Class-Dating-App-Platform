@@ -5,7 +5,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: dating-api-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -18,7 +18,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: dating-app-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -31,7 +31,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: chat-worker-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   minAvailable: 1
   selector:
@@ -44,7 +44,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: media-processor-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   maxUnavailable: 1
   selector:
@@ -57,7 +57,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: redis-pdb
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   minAvailable: 1
   selector:

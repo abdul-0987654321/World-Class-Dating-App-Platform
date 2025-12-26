@@ -176,7 +176,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: production-mtls
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   mtls:
     mode: STRICT
@@ -187,7 +187,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: staging-mtls
-  namespace: dating-app-staging
+  namespace: flamoral-staging
 spec:
   mtls:
     mode: STRICT
@@ -198,7 +198,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: default-mtls
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   host: "*.dating-app-production.svc.cluster.local"
   trafficPolicy:
@@ -211,7 +211,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: deny-all
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   {}
 
@@ -221,7 +221,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: allow-ingress
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   action: ALLOW
   rules:
@@ -239,7 +239,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: allow-service-to-service
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   action: ALLOW
   rules:
@@ -284,7 +284,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: flamoral-gateway
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   selector:
     istio: ingressgateway
@@ -317,7 +317,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: api-routes
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   hosts:
   - "api.flamoral.com"
@@ -373,7 +373,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
 metadata:
   name: postgres-external
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   hosts:
   - "*.postgres.database.azure.com"
@@ -390,7 +390,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
 metadata:
   name: redis-external
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   hosts:
   - "*.redis.cache.windows.net"
@@ -407,7 +407,7 @@ apiVersion: security.istio.io/v1beta1
 kind: RequestAuthentication
 metadata:
   name: jwt-auth
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   selector:
     matchLabels:
@@ -424,7 +424,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: require-jwt
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   selector:
     matchLabels:
@@ -463,7 +463,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: ProxyConfig
 metadata:
   name: security-proxy-config
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   concurrency: 2
   image:

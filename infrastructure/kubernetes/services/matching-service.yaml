@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: matching-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: matching-service
     component: backend
@@ -13,16 +13,16 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: matching-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: matching-service
 data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   PORT: "3003"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   REDIS_PORT: "6379"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "flamoral_matching"
   JAEGER_AGENT_HOST: "jaeger-agent.monitoring.svc.cluster.local"
@@ -40,7 +40,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: matching-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: matching-service
 type: Opaque
@@ -55,7 +55,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: matching-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: matching-service
     version: v1
@@ -161,7 +161,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: matching-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: matching-service
   annotations:
@@ -186,7 +186,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: matching-service-pdb
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -198,7 +198,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: matching-service-network-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -210,7 +210,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: flamoral-dating
+          name: flamoral
     ports:
     - protocol: TCP
       port: 3003

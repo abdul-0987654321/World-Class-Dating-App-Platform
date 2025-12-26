@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: flamoral-production-config
-  namespace: flamoral-prod
+  namespace: flamoral
   labels:
     app: flamoral
     environment: production

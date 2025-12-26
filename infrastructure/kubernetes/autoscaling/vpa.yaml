@@ -5,7 +5,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: api-gateway-vpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -31,7 +31,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: matching-service-vpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -57,7 +57,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: postgres-vpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -83,7 +83,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: redis-vpa
-  namespace: dating-app
+  namespace: flamoral
 spec:
   targetRef:
     apiVersion: apps/v1

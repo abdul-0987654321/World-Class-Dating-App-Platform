@@ -5,7 +5,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-ingress
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -16,7 +16,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-egress
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -27,7 +27,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-to-postgres
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -55,7 +55,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-to-redis
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -76,7 +76,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: ingress-to-api
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -97,7 +97,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: ingress-to-web
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -118,7 +118,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: web-to-api
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -150,7 +150,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-to-external
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -172,7 +172,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: prometheus-scraping
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -198,7 +198,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: chat-worker-policy
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -242,7 +242,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: media-processor-policy
-  namespace: dating-app-production
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:

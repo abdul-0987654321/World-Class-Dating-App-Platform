@@ -40,7 +40,7 @@ apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
   name: azure-keyvault-secrets
-  namespace: dating-app
+  namespace: flamoral
 spec:
   provider: azure
   parameters:
@@ -83,7 +83,7 @@ apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentity
 metadata:
   name: dating-app-identity
-  namespace: dating-app
+  namespace: flamoral
 spec:
   type: 0
   resourceID: /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/dating-app-identity
@@ -94,7 +94,7 @@ apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentityBinding
 metadata:
   name: dating-app-identity-binding
-  namespace: dating-app
+  namespace: flamoral
 spec:
   azureIdentity: dating-app-identity
   selector: dating-app
@@ -114,7 +114,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: azure-managed-disk
-  namespace: dating-app
+  namespace: flamoral
 spec:
   accessModes:
   - ReadWriteOnce

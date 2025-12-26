@@ -37,7 +37,7 @@ services:
     name: api-gateway
     replicaCount: 5
     image:
-      repository: flamoral/api-gateway
+      repository: api-gateway
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       type: LoadBalancer
@@ -70,7 +70,7 @@ services:
     name: auth-service
     replicaCount: 5
     image:
-      repository: flamoral/auth-service
+      repository: auth-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3002
@@ -101,7 +101,7 @@ services:
     name: user-service
     replicaCount: 3
     image:
-      repository: flamoral/user-service
+      repository: user-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3001
@@ -129,7 +129,7 @@ services:
     name: matching-service
     replicaCount: 4
     image:
-      repository: flamoral/matching-service
+      repository: matching-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3003
@@ -159,7 +159,7 @@ services:
     name: messaging-service
     replicaCount: 5
     image:
-      repository: flamoral/messaging-service
+      repository: messaging-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3004
@@ -192,7 +192,7 @@ services:
     name: media-service
     replicaCount: 4
     image:
-      repository: flamoral/media-service
+      repository: media-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3005
@@ -224,7 +224,7 @@ services:
     name: payment-service
     replicaCount: 3
     image:
-      repository: flamoral/payment-service
+      repository: payment-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3006
@@ -255,7 +255,7 @@ services:
     name: notification-service
     replicaCount: 3
     image:
-      repository: flamoral/notification-service
+      repository: notification-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3007
@@ -286,7 +286,7 @@ services:
     name: analytics-service
     replicaCount: 2
     image:
-      repository: flamoral/analytics-service
+      repository: analytics-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3008
@@ -314,7 +314,7 @@ services:
     name: moderation-service
     replicaCount: 3
     image:
-      repository: flamoral/moderation-service
+      repository: moderation-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3009
@@ -344,7 +344,7 @@ services:
     name: realtime-service
     replicaCount: 4
     image:
-      repository: flamoral/realtime-service
+      repository: realtime-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       type: LoadBalancer
@@ -374,7 +374,7 @@ services:
     name: admin-service
     replicaCount: 2
     image:
-      repository: flamoral/admin-service
+      repository: admin-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3011
@@ -402,7 +402,7 @@ services:
     name: advertising-service
     replicaCount: 2
     image:
-      repository: flamoral/advertising-service
+      repository: advertising-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3012
@@ -429,7 +429,7 @@ services:
     name: automation-service
     replicaCount: 2
     image:
-      repository: flamoral/automation-service
+      repository: automation-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3013
@@ -456,7 +456,7 @@ services:
     name: workflow-engine
     replicaCount: 3
     image:
-      repository: flamoral/workflow-engine
+      repository: workflow-engine
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 3014
@@ -491,7 +491,7 @@ aiServices:
     name: ai-recommendation-service
     replicaCount: 3
     image:
-      repository: flamoral/ai-recommendation-service
+      repository: ai-recommendation-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5000
@@ -523,7 +523,7 @@ aiServices:
     name: dating-coach-service
     replicaCount: 3
     image:
-      repository: flamoral/dating-coach-service
+      repository: dating-coach-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5001
@@ -550,7 +550,7 @@ aiServices:
     name: ai-moderation-service
     replicaCount: 2
     image:
-      repository: flamoral/ai-moderation-service
+      repository: ai-moderation-service
       tag: ""  # Set via global.image.tag or CI/CD --set
     service:
       port: 5002

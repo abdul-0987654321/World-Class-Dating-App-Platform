@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: flamoral-dating
+  name: flamoral
   labels:
-    name: flamoral-dating
+    name: flamoral
     environment: production
 
 ---
@@ -12,7 +12,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: user-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: user-service
     component: backend
@@ -23,16 +23,16 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: user-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: user-service
 data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   PORT: "3001"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   REDIS_PORT: "6379"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "flamoral_users"
   JAEGER_AGENT_HOST: "jaeger-agent.monitoring.svc.cluster.local"
@@ -44,7 +44,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: user-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: user-service
 type: Opaque
@@ -60,7 +60,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: user-service
     version: v1
@@ -166,7 +166,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: user-service
   annotations:
@@ -191,7 +191,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: user-service-pdb
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   minAvailable: 1
   selector:
@@ -203,7 +203,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: user-service-network-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -215,7 +215,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: flamoral-dating
+          name: flamoral
     - podSelector:
         matchLabels:
           app: api-gateway

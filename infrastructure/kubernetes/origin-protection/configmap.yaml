@@ -59,7 +59,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: origin-protection-annotations
-  namespace: flamoral-prod
+  namespace: flamoral
   labels:
     app.kubernetes.io/part-of: flamoral
 data:

@@ -31,7 +31,7 @@ spec:
       serviceAccountName: automation-service
       containers:
         - name: automation-service
-          image: flamoral/automation-service:latest
+          image: flamoralprodacr.azurecr.io/automation-service:\
           imagePullPolicy: Always
           ports:
             - name: http

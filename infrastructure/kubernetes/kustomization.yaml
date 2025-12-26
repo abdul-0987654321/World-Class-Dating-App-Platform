@@ -5,11 +5,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: flamoral-dating
+namespace: flamoral
 
 # Common labels applied to all resources
 commonLabels:
-  app.kubernetes.io/part-of: flamoral-dating
+  app.kubernetes.io/part-of: flamoral
   app.kubernetes.io/managed-by: kustomize
 
 # Common annotations
@@ -32,6 +32,12 @@ resources:
 
   # All other services (combined manifest)
   - services/all-services-manifests.yaml
+
+  # Kyverno Policies (admission control)
+  - policies/kyverno-policies.yaml
+
+  # Self-healing CronJobs
+  - jobs/self-healing-cronjob.yaml
 
   # Autoscaling
   - autoscaling/hpa-all-services.yaml
@@ -63,55 +69,55 @@ resources:
 # Images to use (override with actual ACR images)
 images:
   - name: flamoral/api-gateway
-    newName: flamoralacr.azurecr.io/api-gateway
+    newName: flamoralprodacr.azurecr.io/api-gateway
     newTag: latest
   - name: flamoral/auth-service
-    newName: flamoralacr.azurecr.io/auth-service
+    newName: flamoralprodacr.azurecr.io/auth-service
     newTag: latest
   - name: flamoral/user-service
-    newName: flamoralacr.azurecr.io/user-service
+    newName: flamoralprodacr.azurecr.io/user-service
     newTag: latest
   - name: flamoral/matching-service
-    newName: flamoralacr.azurecr.io/matching-service
+    newName: flamoralprodacr.azurecr.io/matching-service
     newTag: latest
   - name: flamoral/messaging-service
-    newName: flamoralacr.azurecr.io/messaging-service
+    newName: flamoralprodacr.azurecr.io/messaging-service
     newTag: latest
   - name: flamoral/media-service
-    newName: flamoralacr.azurecr.io/media-service
+    newName: flamoralprodacr.azurecr.io/media-service
     newTag: latest
   - name: flamoral/payment-service
-    newName: flamoralacr.azurecr.io/payment-service
+    newName: flamoralprodacr.azurecr.io/payment-service
     newTag: latest
   - name: flamoral/notification-service
-    newName: flamoralacr.azurecr.io/notification-service
+    newName: flamoralprodacr.azurecr.io/notification-service
     newTag: latest
   - name: flamoral/moderation-service
-    newName: flamoralacr.azurecr.io/moderation-service
+    newName: flamoralprodacr.azurecr.io/moderation-service
     newTag: latest
   - name: flamoral/analytics-service
-    newName: flamoralacr.azurecr.io/analytics-service
+    newName: flamoralprodacr.azurecr.io/analytics-service
     newTag: latest
   - name: flamoral/admin-service
-    newName: flamoralacr.azurecr.io/admin-service
+    newName: flamoralprodacr.azurecr.io/admin-service
     newTag: latest
   - name: flamoral/realtime-service
-    newName: flamoralacr.azurecr.io/realtime-service
+    newName: flamoralprodacr.azurecr.io/realtime-service
     newTag: latest
   - name: flamoral/advertising-service
-    newName: flamoralacr.azurecr.io/advertising-service
+    newName: flamoralprodacr.azurecr.io/advertising-service
     newTag: latest
   - name: flamoral/automation-service
-    newName: flamoralacr.azurecr.io/automation-service
+    newName: flamoralprodacr.azurecr.io/automation-service
     newTag: latest
   - name: flamoral/workflow-engine
-    newName: flamoralacr.azurecr.io/workflow-engine
+    newName: flamoralprodacr.azurecr.io/workflow-engine
     newTag: latest
   - name: flamoral/policy-service
-    newName: flamoralacr.azurecr.io/policy-service
+    newName: flamoralprodacr.azurecr.io/policy-service
     newTag: latest
   - name: flamoral/verification-service
-    newName: flamoralacr.azurecr.io/verification-service
+    newName: flamoralprodacr.azurecr.io/verification-service
     newTag: latest
 
 # ConfigMap generators
@@ -154,7 +160,7 @@ patches:
           cpu: "2000m"
     target:
       kind: Deployment
-      labelSelector: "app.kubernetes.io/part-of=flamoral-dating"
+      labelSelector: "app.kubernetes.io/part-of=flamoral"
 
 # Replacements for environment-specific values
 replacements:

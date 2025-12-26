@@ -6,7 +6,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-ingress
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -18,7 +18,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all-egress
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:
@@ -30,7 +30,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-gateway-ingress
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -107,7 +107,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: user-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -165,7 +165,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: matching-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -218,7 +218,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: media-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -276,7 +276,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: messaging-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -336,7 +336,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: notification-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -403,7 +403,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: websocket-service-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -449,7 +449,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: postgres-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -493,7 +493,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: redis-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -543,7 +543,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: frontend-policy
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -575,7 +575,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scraping
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -604,7 +604,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-fluentd-logging
-  namespace: dating-app
+  namespace: flamoral
 spec:
   podSelector: {}
   policyTypes:

@@ -9,7 +9,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-api-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     # Ingress Class
     kubernetes.io/ingress.class: "nginx"
@@ -120,7 +120,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-websocket-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -186,7 +186,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-media-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -247,7 +247,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-admin-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -299,7 +299,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-webhooks-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -356,7 +356,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flamoral-web-ingress
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"

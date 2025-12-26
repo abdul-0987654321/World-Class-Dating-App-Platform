@@ -10,7 +10,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: notification-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: notification-service
 
@@ -19,12 +19,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: notification-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3007"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_notifications"
   METRICS_PORT: "9090"
   FCM_ENABLED: "true"
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: notification-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -56,7 +56,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: notification-service
     version: v1
@@ -113,7 +113,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: notification-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -134,7 +134,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: media-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: media-service
 
@@ -143,12 +143,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: media-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3005"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_media"
   METRICS_PORT: "9090"
   S3_BUCKET: "flamoral-media-production"
@@ -164,7 +164,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: media-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -177,7 +177,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: media-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: media-service
     version: v1
@@ -241,7 +241,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: media-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -262,7 +262,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: payment-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: payment-service
 
@@ -271,12 +271,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: payment-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3006"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_payments"
   METRICS_PORT: "9090"
   STRIPE_WEBHOOK_PATH: "/webhooks/stripe"
@@ -288,7 +288,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: payment-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -302,7 +302,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: payment-service
     version: v1
@@ -365,7 +365,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: payment-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -383,7 +383,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: payment-service-pdb
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   minAvailable: 1
   selector:
@@ -398,7 +398,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: analytics-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: analytics-service
 
@@ -407,24 +407,24 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: analytics-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3008"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_analytics"
-  CLICKHOUSE_HOST: "clickhouse.flamoral-dating.svc.cluster.local"
+  CLICKHOUSE_HOST: "clickhouse.flamoral.svc.cluster.local"
   CLICKHOUSE_PORT: "9000"
   METRICS_PORT: "9090"
-  KAFKA_BROKERS: "kafka-0.kafka-headless.flamoral-dating.svc.cluster.local:9092"
+  KAFKA_BROKERS: "kafka-0.kafka-headless.flamoral.svc.cluster.local:9092"
 
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: analytics-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -435,7 +435,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: analytics-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: analytics-service
     version: v1
@@ -492,7 +492,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: analytics-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -513,7 +513,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: moderation-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: moderation-service
 
@@ -522,12 +522,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: moderation-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3009"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_moderation"
   METRICS_PORT: "9090"
   AI_MODERATION_ENDPOINT: "http://ai-moderation-service:5001"
@@ -539,7 +539,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: moderation-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -551,7 +551,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: moderation-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: moderation-service
     version: v1
@@ -608,7 +608,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: moderation-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -629,7 +629,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: api-gateway
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
 
@@ -638,11 +638,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: api-gateway-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3000"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   METRICS_PORT: "9090"
   RATE_LIMIT_WINDOW: "900000"
   RATE_LIMIT_MAX_REQUESTS: "100"
@@ -660,7 +660,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: api-gateway-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   JWT_SECRET: "CHANGE_ME"
@@ -671,7 +671,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: api-gateway
     version: v1
@@ -728,7 +728,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 spec:
@@ -751,7 +751,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: api-gateway-pdb
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -766,7 +766,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: realtime-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: realtime-service
 
@@ -775,12 +775,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: realtime-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3010"
   WS_PORT: "8080"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   METRICS_PORT: "9090"
   MAX_CONNECTIONS_PER_POD: "10000"
 
@@ -789,7 +789,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: realtime-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   JWT_SECRET: "CHANGE_ME"
@@ -800,7 +800,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: realtime-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: realtime-service
     version: v1
@@ -859,7 +859,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: realtime-service
-  namespace: flamoral-dating
+  namespace: flamoral
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 spec:
@@ -886,7 +886,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: admin-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: admin-service
 
@@ -895,12 +895,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: admin-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3011"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_admin"
   METRICS_PORT: "9090"
 
@@ -909,7 +909,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: admin-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -920,7 +920,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: admin-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: admin-service
     version: v1
@@ -977,7 +977,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: admin-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -998,7 +998,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: advertising-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: advertising-service
 
@@ -1007,12 +1007,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: advertising-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
 data:
   NODE_ENV: "production"
   PORT: "3012"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_DB: "flamoral_advertising"
   METRICS_PORT: "9090"
 
@@ -1021,7 +1021,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: advertising-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "CHANGE_ME"
@@ -1032,7 +1032,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: advertising-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: advertising-service
     version: v1
@@ -1077,7 +1077,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: advertising-service
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   type: ClusterIP
   ports:
@@ -1090,201 +1090,8 @@ spec:
   selector:
     app: advertising-service
 
----
 # ============================================================================
-# AUTOMATION SERVICE
+# NOTE: automation-service and workflow-engine are defined in:
+#   backend/services/automation-service/k8s/
+#   backend/services/workflow-engine/k8s/
 # ============================================================================
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: automation-service
-  namespace: flamoral-dating
-  labels:
-    app: automation-service
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: automation-service-config
-  namespace: flamoral-dating
-data:
-  NODE_ENV: "production"
-  PORT: "3013"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
-  POSTGRES_DB: "flamoral_automation"
-  METRICS_PORT: "9090"
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: automation-service-secrets
-  namespace: flamoral-dating
-type: Opaque
-stringData:
-  POSTGRES_PASSWORD: "CHANGE_ME"
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: automation-service
-  namespace: flamoral-dating
-  labels:
-    app: automation-service
-    version: v1
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: automation-service
-  template:
-    metadata:
-      labels:
-        app: automation-service
-        version: v1
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9090"
-    spec:
-      serviceAccountName: automation-service
-      containers:
-      - name: automation-service
-        image: flamoralprodacr.azurecr.io/automation-service:${IMAGE_TAG}
-        ports:
-        - containerPort: 3013
-          name: http
-        - containerPort: 9090
-          name: metrics
-        envFrom:
-        - configMapRef:
-            name: automation-service-config
-        - secretRef:
-            name: automation-service-secrets
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: automation-service
-  namespace: flamoral-dating
-spec:
-  type: ClusterIP
-  ports:
-  - port: 3013
-    targetPort: 3013
-    name: http
-  - port: 9090
-    targetPort: 9090
-    name: metrics
-  selector:
-    app: automation-service
-
----
-# ============================================================================
-# WORKFLOW ENGINE SERVICE
-# ============================================================================
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: workflow-engine
-  namespace: flamoral-dating
-  labels:
-    app: workflow-engine
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: workflow-engine-config
-  namespace: flamoral-dating
-data:
-  NODE_ENV: "production"
-  PORT: "3014"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
-  POSTGRES_DB: "flamoral_workflows"
-  METRICS_PORT: "9090"
-  TEMPORAL_SERVER: "temporal-frontend.flamoral-dating.svc.cluster.local:7233"
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: workflow-engine-secrets
-  namespace: flamoral-dating
-type: Opaque
-stringData:
-  POSTGRES_PASSWORD: "CHANGE_ME"
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: workflow-engine
-  namespace: flamoral-dating
-  labels:
-    app: workflow-engine
-    version: v1
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: workflow-engine
-  template:
-    metadata:
-      labels:
-        app: workflow-engine
-        version: v1
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9090"
-    spec:
-      serviceAccountName: workflow-engine
-      containers:
-      - name: workflow-engine
-        image: flamoralprodacr.azurecr.io/workflow-engine:${IMAGE_TAG}
-        ports:
-        - containerPort: 3014
-          name: http
-        - containerPort: 9090
-          name: metrics
-        envFrom:
-        - configMapRef:
-            name: workflow-engine-config
-        - secretRef:
-            name: workflow-engine-secrets
-        resources:
-          requests:
-            memory: "768Mi"
-            cpu: "500m"
-          limits:
-            memory: "1.5Gi"
-            cpu: "1500m"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: workflow-engine
-  namespace: flamoral-dating
-spec:
-  type: ClusterIP
-  ports:
-  - port: 3014
-    targetPort: 3014
-    name: http
-  - port: 9090
-    targetPort: 9090
-    name: metrics
-  selector:
-    app: workflow-engine

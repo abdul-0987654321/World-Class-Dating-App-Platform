@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: messaging-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: messaging-service
     component: backend
@@ -13,25 +13,25 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: messaging-service-config
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: messaging-service
 data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   PORT: "3004"
-  REDIS_HOST: "redis-cluster.flamoral-dating.svc.cluster.local"
+  REDIS_HOST: "redis-cluster.flamoral.svc.cluster.local"
   REDIS_PORT: "6379"
-  POSTGRES_HOST: "postgres-primary.flamoral-dating.svc.cluster.local"
+  POSTGRES_HOST: "postgres-primary.flamoral.svc.cluster.local"
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "flamoral_messaging"
-  MONGODB_HOST: "mongodb.flamoral-dating.svc.cluster.local"
+  MONGODB_HOST: "mongodb.flamoral.svc.cluster.local"
   MONGODB_PORT: "27017"
   MONGODB_DB: "flamoral_messages"
   JAEGER_AGENT_HOST: "jaeger-agent.monitoring.svc.cluster.local"
   JAEGER_AGENT_PORT: "6831"
   METRICS_PORT: "9090"
-  KAFKA_BROKERS: "kafka-0.kafka-headless.flamoral-dating.svc.cluster.local:9092,kafka-1.kafka-headless.flamoral-dating.svc.cluster.local:9092"
+  KAFKA_BROKERS: "kafka-0.kafka-headless.flamoral.svc.cluster.local:9092,kafka-1.kafka-headless.flamoral.svc.cluster.local:9092"
   MAX_MESSAGE_LENGTH: "2000"
   MESSAGE_RETENTION_DAYS: "90"
 
@@ -40,7 +40,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: messaging-service-secrets
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: messaging-service
 type: Opaque
@@ -57,7 +57,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: messaging-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: messaging-service
     version: v1
@@ -163,7 +163,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: messaging-service
-  namespace: flamoral-dating
+  namespace: flamoral
   labels:
     app: messaging-service
   annotations:
@@ -188,7 +188,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: messaging-service-pdb
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   minAvailable: 2
   selector:
@@ -200,7 +200,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: messaging-service-network-policy
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   podSelector:
     matchLabels:
@@ -212,7 +212,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: flamoral-dating
+          name: flamoral
     ports:
     - protocol: TCP
       port: 3004

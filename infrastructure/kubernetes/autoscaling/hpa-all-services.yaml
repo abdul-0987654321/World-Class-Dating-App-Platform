@@ -7,7 +7,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: api-gateway-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -63,7 +63,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: auth-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -111,7 +111,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: user-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -148,7 +148,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: matching-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -192,7 +192,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: messaging-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -232,7 +232,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: realtime-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -276,7 +276,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: media-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -316,7 +316,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: payment-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -353,7 +353,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: notification-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -388,7 +388,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: analytics-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -416,7 +416,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: moderation-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -451,7 +451,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: admin-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -479,7 +479,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: advertising-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -507,7 +507,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: automation-service-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -535,7 +535,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: workflow-engine-hpa
-  namespace: flamoral-dating
+  namespace: flamoral
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

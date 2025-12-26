@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: database-migration
-  namespace: dating-app
+  namespace: flamoral
   labels:
     app: flamoral
     component: migration
@@ -65,7 +65,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: database-migration-rollback
-  namespace: dating-app
+  namespace: flamoral
   labels:
     app: flamoral
     component: migration-rollback
