@@ -16,11 +16,17 @@ const config = {
   clientId: process.env.AUTOMATION_CLIENT_ID,
   clientSecret: process.env.AUTOMATION_CLIENT_SECRET,
   groups: {
-    free: process.env.GROUP_ID_FREE,
-    premium: process.env.GROUP_ID_PREMIUM,
-    verified: process.env.GROUP_ID_VERIFIED,
-    moderator: process.env.GROUP_ID_MODERATOR,
-    admin: process.env.GROUP_ID_ADMIN,
+    // Subscription tiers (saas-* naming convention)
+    'saas-free': process.env.GROUP_ID_SAAS_FREE,
+    'saas-standard': process.env.GROUP_ID_SAAS_STANDARD,
+    'saas-premium': process.env.GROUP_ID_SAAS_PREMIUM,
+    // Feature/status groups
+    'saas-verified': process.env.GROUP_ID_SAAS_VERIFIED,
+    // Role groups
+    'saas-moderator': process.env.GROUP_ID_SAAS_MODERATOR,
+    'saas-operator': process.env.GROUP_ID_SAAS_OPERATOR,
+    'saas-admin': process.env.GROUP_ID_SAAS_ADMIN,
+    // Special status
     banned: process.env.GROUP_ID_BANNED
   }
 };
@@ -200,91 +206,183 @@ async function isUserInGroup(userId, groupId) {
 async function onUserSignup(userId) {
   console.log(`Processing signup for user ${userId}`);
 
-  if (!config.groups.free) {
-    throw new Error('GROUP_ID_FREE not configured');
+  if (!config.groups['saas-free']) {
+    throw new Error('GROUP_ID_SAAS_FREE not configured');
   }
 
-  const result = await addUserToGroup(userId, config.groups.free);
+  const result = await addUserToGroup(userId, config.groups['saas-free']);
 
   // Audit log
   await logAuditEvent({
     action: 'USER_SIGNUP',
     userId,
-    groupId: config.groups.free,
+    groupId: config.groups['saas-free'],
     result
   });
 
-  return { success: result.success, results: { addToFree: result } };
+  return { success: result.success, results: { addToSaasFree: result } };
 }
 
 /**
- * Handle subscription upgrade to premium
+ * Handle subscription upgrade to standard tier (free -> standard)
  * @param {string} userId - User Object ID
  * @returns {Promise<{success: boolean, results: object}>}
  */
-async function onPremiumUpgrade(userId) {
-  console.log(`Processing premium upgrade for user ${userId}`);
+async function onStandardUpgrade(userId) {
+  console.log(`Processing standard upgrade for user ${userId}`);
 
-  if (!config.groups.free || !config.groups.premium) {
-    throw new Error('GROUP_ID_FREE or GROUP_ID_PREMIUM not configured');
+  if (!config.groups['saas-free'] || !config.groups['saas-standard']) {
+    throw new Error('GROUP_ID_SAAS_FREE or GROUP_ID_SAAS_STANDARD not configured');
   }
 
   // Remove from free tier
-  const removeResult = await removeUserFromGroup(userId, config.groups.free);
+  const removeResult = await removeUserFromGroup(userId, config.groups['saas-free']);
 
-  // Add to premium tier
-  const addResult = await addUserToGroup(userId, config.groups.premium);
+  // Add to standard tier
+  const addResult = await addUserToGroup(userId, config.groups['saas-standard']);
 
   const results = {
-    removeFromFree: removeResult,
-    addToPremium: addResult
+    removeFromSaasFree: removeResult,
+    addToSaasStandard: addResult
   };
+
+  // Audit log
+  await logAuditEvent({
+    action: 'STANDARD_UPGRADE',
+    userId,
+    results
+  });
+
+  return {
+    success: removeResult.success && addResult.success,
+    results
+  };
+}
+
+/**
+ * Handle subscription downgrade from standard tier (standard -> free)
+ * @param {string} userId - User Object ID
+ * @returns {Promise<{success: boolean, results: object}>}
+ */
+async function onStandardDowngrade(userId) {
+  console.log(`Processing standard downgrade for user ${userId}`);
+
+  if (!config.groups['saas-free'] || !config.groups['saas-standard']) {
+    throw new Error('GROUP_ID_SAAS_FREE or GROUP_ID_SAAS_STANDARD not configured');
+  }
+
+  // Remove from standard tier
+  const removeResult = await removeUserFromGroup(userId, config.groups['saas-standard']);
+
+  // Add back to free tier
+  const addResult = await addUserToGroup(userId, config.groups['saas-free']);
+
+  const results = {
+    removeFromSaasStandard: removeResult,
+    addToSaasFree: addResult
+  };
+
+  // Audit log
+  await logAuditEvent({
+    action: 'STANDARD_DOWNGRADE',
+    userId,
+    results
+  });
+
+  return {
+    success: removeResult.success && addResult.success,
+    results
+  };
+}
+
+/**
+ * Handle subscription upgrade to premium tier (standard -> premium or free -> premium)
+ * @param {string} userId - User Object ID
+ * @param {string} fromTier - The tier upgrading from ('saas-free' or 'saas-standard')
+ * @returns {Promise<{success: boolean, results: object}>}
+ */
+async function onPremiumUpgrade(userId, fromTier = 'saas-standard') {
+  console.log(`Processing premium upgrade for user ${userId} from ${fromTier}`);
+
+  if (!config.groups['saas-premium']) {
+    throw new Error('GROUP_ID_SAAS_PREMIUM not configured');
+  }
+
+  const results = {};
+  let allSuccess = true;
+
+  // Remove from source tier (standard or free)
+  if (fromTier === 'saas-standard' && config.groups['saas-standard']) {
+    const removeStandard = await removeUserFromGroup(userId, config.groups['saas-standard']);
+    results.removeFromSaasStandard = removeStandard;
+    if (!removeStandard.success) allSuccess = false;
+  } else if (fromTier === 'saas-free' && config.groups['saas-free']) {
+    const removeFree = await removeUserFromGroup(userId, config.groups['saas-free']);
+    results.removeFromSaasFree = removeFree;
+    if (!removeFree.success) allSuccess = false;
+  }
+
+  // Add to premium tier
+  const addResult = await addUserToGroup(userId, config.groups['saas-premium']);
+  results.addToSaasPremium = addResult;
+  if (!addResult.success) allSuccess = false;
 
   // Audit log
   await logAuditEvent({
     action: 'PREMIUM_UPGRADE',
     userId,
+    fromTier,
     results
   });
 
   return {
-    success: removeResult.success && addResult.success,
+    success: allSuccess,
     results
   };
 }
 
 /**
- * Handle subscription downgrade from premium
+ * Handle subscription downgrade from premium (premium -> standard or premium -> free)
  * @param {string} userId - User Object ID
+ * @param {string} toTier - The tier downgrading to ('saas-standard' or 'saas-free')
  * @returns {Promise<{success: boolean, results: object}>}
  */
-async function onPremiumDowngrade(userId) {
-  console.log(`Processing premium downgrade for user ${userId}`);
+async function onPremiumDowngrade(userId, toTier = 'saas-standard') {
+  console.log(`Processing premium downgrade for user ${userId} to ${toTier}`);
 
-  if (!config.groups.free || !config.groups.premium) {
-    throw new Error('GROUP_ID_FREE or GROUP_ID_PREMIUM not configured');
+  if (!config.groups['saas-premium']) {
+    throw new Error('GROUP_ID_SAAS_PREMIUM not configured');
   }
 
+  const results = {};
+  let allSuccess = true;
+
   // Remove from premium tier
-  const removeResult = await removeUserFromGroup(userId, config.groups.premium);
+  const removeResult = await removeUserFromGroup(userId, config.groups['saas-premium']);
+  results.removeFromSaasPremium = removeResult;
+  if (!removeResult.success) allSuccess = false;
 
-  // Add back to free tier
-  const addResult = await addUserToGroup(userId, config.groups.free);
-
-  const results = {
-    removeFromPremium: removeResult,
-    addToFree: addResult
-  };
+  // Add to destination tier (standard or free)
+  if (toTier === 'saas-standard' && config.groups['saas-standard']) {
+    const addStandard = await addUserToGroup(userId, config.groups['saas-standard']);
+    results.addToSaasStandard = addStandard;
+    if (!addStandard.success) allSuccess = false;
+  } else if (toTier === 'saas-free' && config.groups['saas-free']) {
+    const addFree = await addUserToGroup(userId, config.groups['saas-free']);
+    results.addToSaasFree = addFree;
+    if (!addFree.success) allSuccess = false;
+  }
 
   // Audit log
   await logAuditEvent({
     action: 'PREMIUM_DOWNGRADE',
     userId,
+    toTier,
     results
   });
 
   return {
-    success: removeResult.success && addResult.success,
+    success: allSuccess,
     results
   };
 }
@@ -297,21 +395,21 @@ async function onPremiumDowngrade(userId) {
 async function onVerificationApproved(userId) {
   console.log(`Processing verification for user ${userId}`);
 
-  if (!config.groups.verified) {
-    throw new Error('GROUP_ID_VERIFIED not configured');
+  if (!config.groups['saas-verified']) {
+    throw new Error('GROUP_ID_SAAS_VERIFIED not configured');
   }
 
-  const result = await addUserToGroup(userId, config.groups.verified);
+  const result = await addUserToGroup(userId, config.groups['saas-verified']);
 
   // Audit log
   await logAuditEvent({
     action: 'VERIFICATION_APPROVED',
     userId,
-    groupId: config.groups.verified,
+    groupId: config.groups['saas-verified'],
     result
   });
 
-  return { success: result.success, results: { addToVerified: result } };
+  return { success: result.success, results: { addToSaasVerified: result } };
 }
 
 /**
@@ -322,21 +420,21 @@ async function onVerificationApproved(userId) {
 async function onVerificationRevoked(userId) {
   console.log(`Processing verification revocation for user ${userId}`);
 
-  if (!config.groups.verified) {
-    throw new Error('GROUP_ID_VERIFIED not configured');
+  if (!config.groups['saas-verified']) {
+    throw new Error('GROUP_ID_SAAS_VERIFIED not configured');
   }
 
-  const result = await removeUserFromGroup(userId, config.groups.verified);
+  const result = await removeUserFromGroup(userId, config.groups['saas-verified']);
 
   // Audit log
   await logAuditEvent({
     action: 'VERIFICATION_REVOKED',
     userId,
-    groupId: config.groups.verified,
+    groupId: config.groups['saas-verified'],
     result
   });
 
-  return { success: result.success, results: { removeFromVerified: result } };
+  return { success: result.success, results: { removeFromSaasVerified: result } };
 }
 
 /**
@@ -388,19 +486,19 @@ async function onUserBanned(userId, reason) {
 async function onBanLifted(userId) {
   console.log(`Lifting ban for user ${userId}`);
 
-  if (!config.groups.banned || !config.groups.free) {
-    throw new Error('GROUP_ID_BANNED or GROUP_ID_FREE not configured');
+  if (!config.groups.banned || !config.groups['saas-free']) {
+    throw new Error('GROUP_ID_BANNED or GROUP_ID_SAAS_FREE not configured');
   }
 
   // Remove from banned
   const removeResult = await removeUserFromGroup(userId, config.groups.banned);
 
   // Add to free tier (default after ban lift)
-  const addResult = await addUserToGroup(userId, config.groups.free);
+  const addResult = await addUserToGroup(userId, config.groups['saas-free']);
 
   const results = {
     removeFromBanned: removeResult,
-    addToFree: addResult
+    addToSaasFree: addResult
   };
 
   // Audit log
@@ -423,7 +521,7 @@ async function onBanLifted(userId) {
 /**
  * Reconcile a single user's groups with their expected state
  * @param {string} userId - User Object ID
- * @param {string} expectedTier - Expected subscription tier ('free' or 'premium')
+ * @param {string} expectedTier - Expected subscription tier ('saas-free', 'saas-standard', or 'saas-premium')
  * @param {boolean} isVerified - Whether user is verified
  * @param {boolean} isBanned - Whether user is banned
  * @returns {Promise<{userId: string, status: string, changes: Array}>}
@@ -434,6 +532,9 @@ async function reconcileUser(userId, expectedTier, isVerified, isBanned) {
   const currentGroups = await getUserGroups(userId);
   const currentGroupIds = currentGroups.map(g => g.id);
   const changes = [];
+
+  // Define all subscription tier groups
+  const tierGroups = ['saas-free', 'saas-standard', 'saas-premium'];
 
   // If banned, ensure only in banned group
   if (isBanned) {
@@ -449,28 +550,31 @@ async function reconcileUser(userId, expectedTier, isVerified, isBanned) {
     return { userId, status: 'reconciled_banned', changes };
   }
 
-  // Ensure correct tier group
-  const tierGroup = expectedTier === 'premium'
-    ? config.groups.premium
-    : config.groups.free;
-  const otherTierGroup = expectedTier === 'premium'
-    ? config.groups.free
-    : config.groups.premium;
+  // Ensure correct tier group (user should only be in one tier)
+  const expectedTierGroup = config.groups[expectedTier];
 
-  if (tierGroup && !currentGroupIds.includes(tierGroup)) {
-    changes.push(await addUserToGroup(userId, tierGroup));
+  // Add to expected tier if not already member
+  if (expectedTierGroup && !currentGroupIds.includes(expectedTierGroup)) {
+    changes.push(await addUserToGroup(userId, expectedTierGroup));
   }
-  if (otherTierGroup && currentGroupIds.includes(otherTierGroup)) {
-    changes.push(await removeUserFromGroup(userId, otherTierGroup));
+
+  // Remove from other tier groups
+  for (const tier of tierGroups) {
+    if (tier !== expectedTier) {
+      const otherTierGroup = config.groups[tier];
+      if (otherTierGroup && currentGroupIds.includes(otherTierGroup)) {
+        changes.push(await removeUserFromGroup(userId, otherTierGroup));
+      }
+    }
   }
 
   // Handle verification status
-  if (config.groups.verified) {
-    if (isVerified && !currentGroupIds.includes(config.groups.verified)) {
-      changes.push(await addUserToGroup(userId, config.groups.verified));
+  if (config.groups['saas-verified']) {
+    if (isVerified && !currentGroupIds.includes(config.groups['saas-verified'])) {
+      changes.push(await addUserToGroup(userId, config.groups['saas-verified']));
     }
-    if (!isVerified && currentGroupIds.includes(config.groups.verified)) {
-      changes.push(await removeUserFromGroup(userId, config.groups.verified));
+    if (!isVerified && currentGroupIds.includes(config.groups['saas-verified'])) {
+      changes.push(await removeUserFromGroup(userId, config.groups['saas-verified']));
     }
   }
 
@@ -560,12 +664,20 @@ module.exports = {
   getUserGroups,
   isUserInGroup,
 
-  // FLAMORAL operations
+  // FLAMORAL operations - User lifecycle
   onUserSignup,
-  onPremiumUpgrade,
-  onPremiumDowngrade,
+
+  // FLAMORAL operations - Tier transitions
+  onStandardUpgrade,    // free -> standard
+  onStandardDowngrade,  // standard -> free
+  onPremiumUpgrade,     // standard/free -> premium
+  onPremiumDowngrade,   // premium -> standard/free
+
+  // FLAMORAL operations - Verification
   onVerificationApproved,
   onVerificationRevoked,
+
+  // FLAMORAL operations - Moderation
   onUserBanned,
   onBanLifted,
 

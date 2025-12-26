@@ -77,7 +77,7 @@ spec:
       serviceAccountName: notification-service
       containers:
       - name: notification-service
-        image: flamoral/notification-service:latest
+        image: flamoralprodacr.azurecr.io/notification-service:${IMAGE_TAG}
         ports:
         - containerPort: 3007
           name: http
@@ -198,7 +198,7 @@ spec:
       serviceAccountName: media-service
       containers:
       - name: media-service
-        image: flamoral/media-service:latest
+        image: flamoralprodacr.azurecr.io/media-service:${IMAGE_TAG}
         ports:
         - containerPort: 3005
           name: http
@@ -326,7 +326,7 @@ spec:
         runAsUser: 1000
       containers:
       - name: payment-service
-        image: flamoral/payment-service:latest
+        image: flamoralprodacr.azurecr.io/payment-service:${IMAGE_TAG}
         ports:
         - containerPort: 3006
           name: http
@@ -456,7 +456,7 @@ spec:
       serviceAccountName: analytics-service
       containers:
       - name: analytics-service
-        image: flamoral/analytics-service:latest
+        image: flamoralprodacr.azurecr.io/analytics-service:${IMAGE_TAG}
         ports:
         - containerPort: 3008
           name: http
@@ -572,7 +572,7 @@ spec:
       serviceAccountName: moderation-service
       containers:
       - name: moderation-service
-        image: flamoral/moderation-service:latest
+        image: flamoralprodacr.azurecr.io/moderation-service:${IMAGE_TAG}
         ports:
         - containerPort: 3009
           name: http
@@ -692,7 +692,7 @@ spec:
       serviceAccountName: api-gateway
       containers:
       - name: api-gateway
-        image: flamoral/api-gateway:latest
+        image: flamoralprodacr.azurecr.io/api-gateway:${IMAGE_TAG}
         ports:
         - containerPort: 3000
           name: http
@@ -821,7 +821,7 @@ spec:
       serviceAccountName: realtime-service
       containers:
       - name: realtime-service
-        image: flamoral/realtime-service:latest
+        image: flamoralprodacr.azurecr.io/realtime-service:${IMAGE_TAG}
         ports:
         - containerPort: 3010
           name: http
@@ -941,7 +941,7 @@ spec:
       serviceAccountName: admin-service
       containers:
       - name: admin-service
-        image: flamoral/admin-service:latest
+        image: flamoralprodacr.azurecr.io/admin-service:${IMAGE_TAG}
         ports:
         - containerPort: 3011
           name: http
@@ -1053,7 +1053,7 @@ spec:
       serviceAccountName: advertising-service
       containers:
       - name: advertising-service
-        image: flamoral/advertising-service:latest
+        image: flamoralprodacr.azurecr.io/advertising-service:${IMAGE_TAG}
         ports:
         - containerPort: 3012
           name: http
@@ -1152,7 +1152,7 @@ spec:
       serviceAccountName: automation-service
       containers:
       - name: automation-service
-        image: flamoral/automation-service:latest
+        image: flamoralprodacr.azurecr.io/automation-service:${IMAGE_TAG}
         ports:
         - containerPort: 3013
           name: http
@@ -1252,7 +1252,7 @@ spec:
       serviceAccountName: workflow-engine
       containers:
       - name: workflow-engine
-        image: flamoral/workflow-engine:latest
+        image: flamoralprodacr.azurecr.io/workflow-engine:${IMAGE_TAG}
         ports:
         - containerPort: 3014
           name: http

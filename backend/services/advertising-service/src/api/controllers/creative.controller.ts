@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { creativeService } from '../../domain/services/creative.service';
 import logger from '../../utils/logger';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 export class CreativeController {
   // Feature 1: Dynamic Dating Scene Personalization
@@ -27,14 +28,28 @@ export class CreativeController {
   }
 
   // Feature 2: Emotion-Based Creative Selection
-  async selectEmotionBasedCreative(req: Request, res: Response): Promise<Response> {
+  // SECURITY: This endpoint supports two authentication modes:
+  // 1. User JWT auth (req.user.id) - for direct user access
+  // 2. Service-to-service auth (req.body.userId) - only with valid service API key
+  async selectEmotionBasedCreative(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
-      const { userId, context } = req.body;
+      // SECURITY: Get userId from JWT if user-authenticated, otherwise from body (for service-to-service calls)
+      // Service-to-service calls are secured by authenticateService middleware which validates the service API key
+      const userId = req.user?.id || req.body.userId;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not authenticated',
+          code: 'UNAUTHORIZED',
+        });
+      }
 
-      if (!userId || !context) {
+      const { context } = req.body;
+
+      if (!context) {
         return res.status(400).json({
           success: false,
-          message: 'User ID and context are required',
+          message: 'Context is required',
         });
       }
 

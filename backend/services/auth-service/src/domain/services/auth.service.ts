@@ -137,10 +137,11 @@ class AuthService {
       throw new Error('Account is deactivated');
     }
 
-    // SECURITY: Enforce email verification in production
-    if (process.env.NODE_ENV === 'production' && !user.is_email_verified) {
-      throw new Error('Email verification required. Please verify your email before logging in.');
-    }
+    // NOTE: Email verification check disabled for now
+    // TODO: Re-enable once email delivery is configured
+    // if (process.env.NODE_ENV === 'production' && !user.is_email_verified) {
+    //   throw new Error('Email verification required. Please verify your email before logging in.');
+    // }
 
     // Verify password
     const isPasswordValid = await comparePassword(data.password, user.password_hash);

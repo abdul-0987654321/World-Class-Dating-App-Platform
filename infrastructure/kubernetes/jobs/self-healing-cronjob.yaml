@@ -1,0 +1,539 @@
+# =============================================================================
+# FLAMORAL SELF-HEALING CRONJOB
+# Kubernetes CronJob for continuous health monitoring and auto-remediation
+# =============================================================================
+# Runs inside the cluster to:
+# - Execute health checks against all services
+# - Trigger kubectl remediation for detected issues
+# - Report status to external monitoring (Prometheus, Slack)
+# =============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: self-healing-sa
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: self-healing-role
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+rules:
+  # Pod management for restarts
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "delete"]
+  # Pod logs for diagnostics
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # Exec into pods for health checks
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  # Service checks
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list"]
+  # Deployment scaling
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "patch", "update"]
+  # ReplicaSet management
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list"]
+  # HPA management for scaling
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "patch", "update"]
+  # Job management for cleanup
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "delete"]
+  # Events for diagnostics
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list"]
+  # ConfigMaps for configuration
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+  # Secrets (read-only for health checks)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  # PVC checks
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  # Ingress checks
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
+  # Network policies
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: self-healing-rolebinding
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: self-healing-role
+subjects:
+  - kind: ServiceAccount
+    name: self-healing-sa
+    namespace: flamoral-prod
+---
+# ConfigMap for self-healing configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: self-healing-config
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+data:
+  # Health check configuration
+  DOMAIN: "flamoral.com"
+  API_ENDPOINT: "http://api-gateway.flamoral-prod.svc.cluster.local"
+  INTERNAL_API_ENDPOINT: "http://api-gateway:4000"
+
+  # Remediation settings
+  ENABLE_REMEDIATION: "true"
+  DRY_RUN: "false"
+  MAX_POD_RESTARTS: "3"
+  POD_RESTART_BACKOFF_SECONDS: "60"
+  SCALE_UP_THRESHOLD: "80"
+
+  # Services to check
+  SERVICES: "api-gateway,auth-service,user-service,matching-service,messaging-service,media-service,payment-service,notification-service,analytics-service"
+
+  # Thresholds
+  MEMORY_PRESSURE_THRESHOLD: "85"
+  CPU_PRESSURE_THRESHOLD: "80"
+  QUEUE_BACKLOG_THRESHOLD: "1000"
+
+  # Self-healing scenarios
+  RESTART_ON_CRASHLOOP: "true"
+  SCALE_ON_PRESSURE: "true"
+  CLEAR_STUCK_JOBS: "true"
+  RESET_CONNECTIONS: "true"
+---
+# Main CronJob for health checks and remediation
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: self-healing-monitor
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  concurrencyPolicy: Forbid  # Don't run concurrent health checks
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 10
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    metadata:
+      labels:
+        app: flamoral
+        component: self-healing
+        job-type: health-check
+    spec:
+      ttlSecondsAfterFinished: 3600  # Clean up after 1 hour
+      backoffLimit: 2
+      activeDeadlineSeconds: 600  # 10 minute timeout
+      template:
+        metadata:
+          labels:
+            app: flamoral
+            component: self-healing
+            job-type: health-check
+        spec:
+          serviceAccountName: self-healing-sa
+          restartPolicy: OnFailure
+
+          containers:
+            - name: health-checker
+              image: bitnami/kubectl:1.28
+              imagePullPolicy: IfNotPresent
+
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+
+                  echo "============================================"
+                  echo "  FLAMORAL SELF-HEALING MONITOR"
+                  echo "============================================"
+                  echo "Namespace: $NAMESPACE"
+                  echo "Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+                  echo "============================================"
+
+                  PASSED=0
+                  FAILED=0
+                  WARNINGS=0
+                  REMEDIATED=0
+
+                  log_pass() { echo "[PASS] $1"; ((PASSED++)); }
+                  log_fail() { echo "[FAIL] $1"; ((FAILED++)); }
+                  log_warn() { echo "[WARN] $1"; ((WARNINGS++)); }
+                  log_info() { echo "[INFO] $1"; }
+                  log_action() { echo "[ACTION] $1"; ((REMEDIATED++)); }
+
+                  # ========================================
+                  # CHECK POD HEALTH
+                  # ========================================
+                  log_info "Checking pod health..."
+
+                  UNHEALTHY_PODS=$(kubectl get pods -n $NAMESPACE --no-headers 2>/dev/null | grep -v "Running\|Completed" || echo "")
+                  UNHEALTHY_COUNT=$(echo "$UNHEALTHY_PODS" | grep -c . 2>/dev/null || echo "0")
+
+                  if [[ "$UNHEALTHY_COUNT" -eq 0 ]] || [[ -z "$UNHEALTHY_PODS" ]]; then
+                      log_pass "All pods healthy"
+                  else
+                      log_fail "$UNHEALTHY_COUNT unhealthy pods detected"
+                      echo "$UNHEALTHY_PODS"
+
+                      # Remediate CrashLoopBackOff pods
+                      if [[ "$RESTART_ON_CRASHLOOP" == "true" ]]; then
+                          CRASHLOOP=$(kubectl get pods -n $NAMESPACE --no-headers | grep "CrashLoopBackOff" | awk '{print $1}' || echo "")
+                          for pod in $CRASHLOOP; do
+                              RESTARTS=$(kubectl get pod $pod -n $NAMESPACE -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null || echo "0")
+                              if [[ "$RESTARTS" -lt "$MAX_POD_RESTARTS" ]]; then
+                                  log_action "Restarting pod: $pod (restarts: $RESTARTS)"
+                                  kubectl delete pod $pod -n $NAMESPACE --grace-period=30 || true
+                              else
+                                  log_warn "Pod $pod has too many restarts ($RESTARTS) - skipping"
+                              fi
+                          done
+                      fi
+                  fi
+
+                  # ========================================
+                  # CHECK SERVICE ENDPOINTS
+                  # ========================================
+                  log_info "Checking service endpoints..."
+
+                  IFS=',' read -ra SERVICES_ARRAY <<< "$SERVICES"
+                  for service in "${SERVICES_ARRAY[@]}"; do
+                      ENDPOINT=$(kubectl get endpoints $service -n $NAMESPACE -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || echo "")
+                      if [[ -n "$ENDPOINT" ]]; then
+                          log_pass "Service $service has endpoints"
+                      else
+                          log_fail "Service $service has no endpoints"
+                      fi
+                  done
+
+                  # ========================================
+                  # CHECK INTERNAL API HEALTH
+                  # ========================================
+                  log_info "Checking internal API health..."
+
+                  # Check API gateway health
+                  if command -v curl &> /dev/null; then
+                      API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$INTERNAL_API_ENDPOINT/health" --max-time 10 2>/dev/null || echo "000")
+                      if [[ "$API_STATUS" == "200" ]]; then
+                          log_pass "API Gateway health OK"
+                      else
+                          log_fail "API Gateway health: $API_STATUS"
+                      fi
+                  fi
+
+                  # ========================================
+                  # CHECK HPA STATUS
+                  # ========================================
+                  log_info "Checking HPA status..."
+
+                  HPA_JSON=$(kubectl get hpa -n $NAMESPACE -o json 2>/dev/null || echo '{"items":[]}')
+                  HPA_COUNT=$(echo "$HPA_JSON" | jq '.items | length' 2>/dev/null || echo "0")
+
+                  if [[ "$HPA_COUNT" -gt 0 ]]; then
+                      HPA_AT_MAX=$(echo "$HPA_JSON" | jq -r '.items[] | select(.status.currentReplicas >= .spec.maxReplicas) | .metadata.name' 2>/dev/null || echo "")
+                      if [[ -n "$HPA_AT_MAX" ]]; then
+                          for hpa in $HPA_AT_MAX; do
+                              log_warn "HPA $hpa at max replicas"
+
+                              if [[ "$SCALE_ON_PRESSURE" == "true" ]]; then
+                                  CURRENT_MAX=$(kubectl get hpa $hpa -n $NAMESPACE -o jsonpath='{.spec.maxReplicas}' 2>/dev/null || echo "5")
+                                  NEW_MAX=$((CURRENT_MAX + 2))
+                                  if [[ $NEW_MAX -le 20 ]]; then
+                                      log_action "Scaling HPA $hpa max from $CURRENT_MAX to $NEW_MAX"
+                                      kubectl patch hpa $hpa -n $NAMESPACE --type merge -p "{\"spec\":{\"maxReplicas\":$NEW_MAX}}" || true
+                                  fi
+                              fi
+                          done
+                      else
+                          log_pass "No HPAs at max capacity"
+                      fi
+                  fi
+
+                  # ========================================
+                  # CHECK NODE PRESSURE
+                  # ========================================
+                  log_info "Checking node resource pressure..."
+
+                  MEMORY_PRESSURE=$(kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="MemoryPressure")].status}' 2>/dev/null | grep -c "True" || echo "0")
+                  DISK_PRESSURE=$(kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="DiskPressure")].status}' 2>/dev/null | grep -c "True" || echo "0")
+
+                  if [[ "$MEMORY_PRESSURE" -gt 0 ]]; then
+                      log_fail "Memory pressure on $MEMORY_PRESSURE node(s)"
+                  else
+                      log_pass "No memory pressure"
+                  fi
+
+                  if [[ "$DISK_PRESSURE" -gt 0 ]]; then
+                      log_fail "Disk pressure on $DISK_PRESSURE node(s)"
+                  else
+                      log_pass "No disk pressure"
+                  fi
+
+                  # ========================================
+                  # CLEAR STUCK JOBS
+                  # ========================================
+                  if [[ "$CLEAR_STUCK_JOBS" == "true" ]]; then
+                      log_info "Checking for stuck jobs..."
+
+                      # Find jobs running > 30 minutes
+                      STUCK_JOBS=$(kubectl get jobs -n $NAMESPACE -o json 2>/dev/null | \
+                          jq -r '.items[] | select(.status.active > 0) | select((.status.startTime | fromdateiso8601) < (now - 1800)) | .metadata.name' 2>/dev/null || echo "")
+
+                      for job in $STUCK_JOBS; do
+                          if [[ -n "$job" ]]; then
+                              log_action "Deleting stuck job: $job"
+                              kubectl delete job $job -n $NAMESPACE --force --grace-period=0 || true
+                          fi
+                      done
+
+                      # Clean up completed jobs older than 1 hour
+                      OLD_JOBS=$(kubectl get jobs -n $NAMESPACE -o json 2>/dev/null | \
+                          jq -r '.items[] | select(.status.succeeded > 0 or .status.failed > 0) | select((.status.completionTime | fromdateiso8601) < (now - 3600)) | .metadata.name' 2>/dev/null || echo "")
+
+                      for job in $OLD_JOBS; do
+                          if [[ -n "$job" ]]; then
+                              log_info "Cleaning up old job: $job"
+                              kubectl delete job $job -n $NAMESPACE || true
+                          fi
+                      done
+                  fi
+
+                  # ========================================
+                  # CHECK DATABASE PODS
+                  # ========================================
+                  log_info "Checking database pods..."
+
+                  PG_STATUS=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=postgresql -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "Unknown")
+                  REDIS_STATUS=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=redis -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "Unknown")
+
+                  [[ "$PG_STATUS" == "Running" ]] && log_pass "PostgreSQL running" || log_fail "PostgreSQL: $PG_STATUS"
+                  [[ "$REDIS_STATUS" == "Running" ]] && log_pass "Redis running" || log_fail "Redis: $REDIS_STATUS"
+
+                  # ========================================
+                  # CHECK REDIS QUEUES
+                  # ========================================
+                  if [[ "$REDIS_STATUS" == "Running" ]]; then
+                      REDIS_POD=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=redis -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                      if [[ -n "$REDIS_POD" ]]; then
+                          # Check queue lengths
+                          for queue in notification-queue email-queue matching-queue; do
+                              QUEUE_LEN=$(kubectl exec $REDIS_POD -n $NAMESPACE -- redis-cli llen $queue 2>/dev/null || echo "0")
+                              if [[ "$QUEUE_LEN" -gt "$QUEUE_BACKLOG_THRESHOLD" ]]; then
+                                  log_warn "Queue $queue has $QUEUE_LEN items (threshold: $QUEUE_BACKLOG_THRESHOLD)"
+                              fi
+                          done
+                      fi
+                  fi
+
+                  # ========================================
+                  # REPORT TO PROMETHEUS PUSHGATEWAY
+                  # ========================================
+                  if [[ -n "${PROMETHEUS_PUSHGATEWAY_URL:-}" ]]; then
+                      log_info "Pushing metrics to Prometheus..."
+
+                      cat <<METRICS | curl --data-binary @- "$PROMETHEUS_PUSHGATEWAY_URL/metrics/job/self_healing/instance/cronjob" 2>/dev/null || true
+                  # HELP flamoral_self_healing_checks_total Total health checks
+                  # TYPE flamoral_self_healing_checks_total gauge
+                  flamoral_self_healing_checks_total $((PASSED + FAILED))
+
+                  # HELP flamoral_self_healing_checks_passed Passed health checks
+                  # TYPE flamoral_self_healing_checks_passed gauge
+                  flamoral_self_healing_checks_passed $PASSED
+
+                  # HELP flamoral_self_healing_checks_failed Failed health checks
+                  # TYPE flamoral_self_healing_checks_failed gauge
+                  flamoral_self_healing_checks_failed $FAILED
+
+                  # HELP flamoral_self_healing_remediated Remediation actions taken
+                  # TYPE flamoral_self_healing_remediated gauge
+                  flamoral_self_healing_remediated $REMEDIATED
+                  METRICS
+                  fi
+
+                  # ========================================
+                  # SEND ALERTS IF FAILURES
+                  # ========================================
+                  if [[ "$FAILED" -gt 0 ]] && [[ -n "${SLACK_WEBHOOK_URL:-}" ]]; then
+                      log_info "Sending Slack alert..."
+
+                      curl -s -X POST "$SLACK_WEBHOOK_URL" \
+                          -H 'Content-Type: application/json' \
+                          -d "{\"text\":\"Self-Healing Alert: $FAILED checks failed, $REMEDIATED remediated in $NAMESPACE\"}" \
+                          2>/dev/null || true
+                  fi
+
+                  # ========================================
+                  # SUMMARY
+                  # ========================================
+                  echo ""
+                  echo "============================================"
+                  echo "  SELF-HEALING SUMMARY"
+                  echo "============================================"
+                  echo "Passed:     $PASSED"
+                  echo "Failed:     $FAILED"
+                  echo "Warnings:   $WARNINGS"
+                  echo "Remediated: $REMEDIATED"
+                  echo "============================================"
+
+                  # Exit with error if critical failures
+                  [[ "$FAILED" -gt 5 ]] && exit 1
+                  exit 0
+
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: DOMAIN
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: DOMAIN
+                - name: API_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: API_ENDPOINT
+                - name: INTERNAL_API_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: INTERNAL_API_ENDPOINT
+                - name: ENABLE_REMEDIATION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: ENABLE_REMEDIATION
+                - name: DRY_RUN
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: DRY_RUN
+                - name: MAX_POD_RESTARTS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: MAX_POD_RESTARTS
+                - name: SERVICES
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: SERVICES
+                - name: QUEUE_BACKLOG_THRESHOLD
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: QUEUE_BACKLOG_THRESHOLD
+                - name: RESTART_ON_CRASHLOOP
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: RESTART_ON_CRASHLOOP
+                - name: SCALE_ON_PRESSURE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: SCALE_ON_PRESSURE
+                - name: CLEAR_STUCK_JOBS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: self-healing-config
+                      key: CLEAR_STUCK_JOBS
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: self-healing-secrets
+                      key: SLACK_WEBHOOK_URL
+                      optional: true
+                - name: PROMETHEUS_PUSHGATEWAY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: self-healing-secrets
+                      key: PROMETHEUS_PUSHGATEWAY_URL
+                      optional: true
+
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "50m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "200m"
+
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+---
+# Secrets template for self-healing
+apiVersion: v1
+kind: Secret
+metadata:
+  name: self-healing-secrets
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+type: Opaque
+stringData:
+  # Populate these secrets in production
+  SLACK_WEBHOOK_URL: ""
+  PROMETHEUS_PUSHGATEWAY_URL: ""
+  PAGERDUTY_ROUTING_KEY: ""
+---
+# PodDisruptionBudget to ensure self-healing jobs can run
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: self-healing-pdb
+  namespace: flamoral-prod
+  labels:
+    app: flamoral
+    component: self-healing
+spec:
+  minAvailable: 0
+  selector:
+    matchLabels:
+      component: self-healing
+      job-type: health-check

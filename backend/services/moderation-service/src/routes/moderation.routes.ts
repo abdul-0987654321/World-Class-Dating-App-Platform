@@ -2,15 +2,32 @@ import { Router, Request, Response } from 'express';
 import moderationService from '../services/moderation.service';
 import { ModerateImageRequest, ModerateTextRequest } from '../types';
 import { createLogger } from '../utils/logger';
+import {
+  authenticateJWT,
+  requireModerator,
+  requireAdmin,
+  AuthenticatedRequest,
+} from '../middleware/auth.middleware';
+import db from '../infrastructure/database/connection';
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger('moderation-routes');
 const router = Router();
 
 /**
+ * SECURITY: All moderation routes require authentication.
+ * Apply JWT authentication to all routes in this router.
+ */
+router.use(authenticateJWT);
+
+/**
  * POST /api/moderation/image
  * Moderate an image
+ *
+ * SECURITY: Requires moderator access to trigger manual image moderation.
+ * For automated moderation, use internal service routes.
  */
-router.post('/image', async (req: Request, res: Response) => {
+router.post('/image', requireModerator, async (req: Request, res: Response) => {
   try {
     const request: ModerateImageRequest = req.body;
 
@@ -40,8 +57,11 @@ router.post('/image', async (req: Request, res: Response) => {
 /**
  * POST /api/moderation/text
  * Moderate text content
+ *
+ * SECURITY: Requires moderator access to trigger manual text moderation.
+ * For automated moderation, use internal service routes.
  */
-router.post('/text', async (req: Request, res: Response) => {
+router.post('/text', requireModerator, async (req: Request, res: Response) => {
   try {
     const request: ModerateTextRequest = req.body;
 
@@ -71,8 +91,10 @@ router.post('/text', async (req: Request, res: Response) => {
 /**
  * GET /api/moderation/user/:userId/status
  * Get user moderation status
+ *
+ * SECURITY: Requires moderator access to view user moderation records.
  */
-router.get('/user/:userId/status', async (req: Request, res: Response) => {
+router.get('/user/:userId/status', requireModerator, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
@@ -99,8 +121,10 @@ router.get('/user/:userId/status', async (req: Request, res: Response) => {
 /**
  * GET /api/moderation/user/:userId/restricted
  * Check if user is restricted (banned/suspended)
+ *
+ * SECURITY: Requires moderator access to view restriction status.
  */
-router.get('/user/:userId/restricted', async (req: Request, res: Response) => {
+router.get('/user/:userId/restricted', requireModerator, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
@@ -118,8 +142,10 @@ router.get('/user/:userId/restricted', async (req: Request, res: Response) => {
 /**
  * GET /api/moderation/user/:userId/violations
  * Get user violation history
+ *
+ * SECURITY: Requires moderator access to view violation history.
  */
-router.get('/user/:userId/violations', async (req: Request, res: Response) => {
+router.get('/user/:userId/violations', requireModerator, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
@@ -142,17 +168,24 @@ router.get('/user/:userId/violations', async (req: Request, res: Response) => {
 /**
  * POST /api/moderation/admin/suspend
  * Admin: Manually suspend a user
- * Body: { userId, suspensionDays, reason, adminId }
+ * Body: { targetUserId, suspensionDays, reason }
+ *
+ * SECURITY: Admin ID is extracted from authenticated JWT token, NOT from request body.
+ * This prevents admin impersonation attacks where an attacker could specify
+ * another admin's ID in the request body.
  */
-router.post('/admin/suspend', async (req: Request, res: Response) => {
+router.post('/admin/suspend', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { userId, suspensionDays, reason, adminId } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const adminId = authReq.user.id; // SECURE: From authenticated JWT, not request body
+
+    const { targetUserId, suspensionDays, reason } = req.body;
 
     // Validate request
-    if (!userId || !suspensionDays || !reason || !adminId) {
+    if (!targetUserId || !suspensionDays || !reason) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, suspensionDays, reason, adminId',
+        error: 'Missing required fields: targetUserId, suspensionDays, reason',
       });
     }
 
@@ -163,11 +196,31 @@ router.post('/admin/suspend', async (req: Request, res: Response) => {
       });
     }
 
-    await moderationService.adminSuspendUser(userId, suspensionDays, reason, adminId);
+    // Prevent self-suspension
+    if (targetUserId === adminId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot suspend yourself',
+      });
+    }
+
+    await moderationService.adminSuspendUser(targetUserId, suspensionDays, reason, adminId);
+
+    // Audit log the action
+    await logModerationAction({
+      action: 'admin_suspend_user',
+      adminId,
+      targetUserId,
+      details: { suspensionDays, reason },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
+    logger.info(`Admin ${adminId} suspended user ${targetUserId} for ${suspensionDays} days`);
 
     res.json({
       success: true,
-      message: `User ${userId} suspended for ${suspensionDays} days`,
+      message: `User ${targetUserId} suspended for ${suspensionDays} days`,
     });
   } catch (error: any) {
     logger.error('Admin suspend error:', error);
@@ -181,25 +234,42 @@ router.post('/admin/suspend', async (req: Request, res: Response) => {
 /**
  * POST /api/moderation/admin/unsuspend
  * Admin: Manually unsuspend a user
- * Body: { userId, adminId, reason }
+ * Body: { targetUserId, reason }
+ *
+ * SECURITY: Admin ID is extracted from authenticated JWT token, NOT from request body.
  */
-router.post('/admin/unsuspend', async (req: Request, res: Response) => {
+router.post('/admin/unsuspend', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { userId, adminId, reason } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const adminId = authReq.user.id; // SECURE: From authenticated JWT, not request body
+
+    const { targetUserId, reason } = req.body;
 
     // Validate request
-    if (!userId || !adminId || !reason) {
+    if (!targetUserId || !reason) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, adminId, reason',
+        error: 'Missing required fields: targetUserId, reason',
       });
     }
 
-    await moderationService.adminUnsuspendUser(userId, adminId, reason);
+    await moderationService.adminUnsuspendUser(targetUserId, adminId, reason);
+
+    // Audit log the action
+    await logModerationAction({
+      action: 'admin_unsuspend_user',
+      adminId,
+      targetUserId,
+      details: { reason },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
+    logger.info(`Admin ${adminId} unsuspended user ${targetUserId}`);
 
     res.json({
       success: true,
-      message: `User ${userId} unsuspended`,
+      message: `User ${targetUserId} unsuspended`,
     });
   } catch (error: any) {
     logger.error('Admin unsuspend error:', error);
@@ -213,25 +283,50 @@ router.post('/admin/unsuspend', async (req: Request, res: Response) => {
 /**
  * POST /api/moderation/admin/ban
  * Admin: Permanently ban a user
- * Body: { userId, reason, adminId }
+ * Body: { targetUserId, reason }
+ *
+ * SECURITY: Admin ID is extracted from authenticated JWT token, NOT from request body.
  */
-router.post('/admin/ban', async (req: Request, res: Response) => {
+router.post('/admin/ban', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { userId, reason, adminId } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const adminId = authReq.user.id; // SECURE: From authenticated JWT, not request body
+
+    const { targetUserId, reason } = req.body;
 
     // Validate request
-    if (!userId || !reason || !adminId) {
+    if (!targetUserId || !reason) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, reason, adminId',
+        error: 'Missing required fields: targetUserId, reason',
       });
     }
 
-    await moderationService.adminBanUser(userId, reason, adminId);
+    // Prevent self-ban
+    if (targetUserId === adminId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot ban yourself',
+      });
+    }
+
+    await moderationService.adminBanUser(targetUserId, reason, adminId);
+
+    // Audit log the action
+    await logModerationAction({
+      action: 'admin_ban_user',
+      adminId,
+      targetUserId,
+      details: { reason },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
+    logger.info(`Admin ${adminId} permanently banned user ${targetUserId}`);
 
     res.json({
       success: true,
-      message: `User ${userId} permanently banned`,
+      message: `User ${targetUserId} permanently banned`,
     });
   } catch (error: any) {
     logger.error('Admin ban error:', error);
@@ -245,25 +340,42 @@ router.post('/admin/ban', async (req: Request, res: Response) => {
 /**
  * POST /api/moderation/admin/unban
  * Admin: Unban a user
- * Body: { userId, adminId, reason }
+ * Body: { targetUserId, reason }
+ *
+ * SECURITY: Admin ID is extracted from authenticated JWT token, NOT from request body.
  */
-router.post('/admin/unban', async (req: Request, res: Response) => {
+router.post('/admin/unban', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { userId, adminId, reason } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const adminId = authReq.user.id; // SECURE: From authenticated JWT, not request body
+
+    const { targetUserId, reason } = req.body;
 
     // Validate request
-    if (!userId || !adminId || !reason) {
+    if (!targetUserId || !reason) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, adminId, reason',
+        error: 'Missing required fields: targetUserId, reason',
       });
     }
 
-    await moderationService.adminUnbanUser(userId, adminId, reason);
+    await moderationService.adminUnbanUser(targetUserId, adminId, reason);
+
+    // Audit log the action
+    await logModerationAction({
+      action: 'admin_unban_user',
+      adminId,
+      targetUserId,
+      details: { reason },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
+    logger.info(`Admin ${adminId} unbanned user ${targetUserId}`);
 
     res.json({
       success: true,
-      message: `User ${userId} unbanned`,
+      message: `User ${targetUserId} unbanned`,
     });
   } catch (error: any) {
     logger.error('Admin unban error:', error);
@@ -273,5 +385,36 @@ router.post('/admin/unban', async (req: Request, res: Response) => {
     });
   }
 });
+
+/**
+ * Audit log helper function
+ * Records all moderation actions for security and compliance purposes.
+ */
+interface AuditLogEntry {
+  action: string;
+  adminId: string;
+  targetUserId: string;
+  details: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+async function logModerationAction(entry: AuditLogEntry): Promise<void> {
+  try {
+    await db('moderation_audit_logs').insert({
+      id: uuidv4(),
+      action: entry.action,
+      admin_id: entry.adminId,
+      target_user_id: entry.targetUserId,
+      details: JSON.stringify(entry.details),
+      ip_address: entry.ipAddress || null,
+      user_agent: entry.userAgent || null,
+      created_at: new Date(),
+    });
+  } catch (error: any) {
+    // Log error but don't fail the operation - audit logging is non-critical
+    logger.error('Failed to write audit log:', error);
+  }
+}
 
 export default router;

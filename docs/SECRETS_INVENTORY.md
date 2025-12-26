@@ -126,6 +126,27 @@ This document catalogs all secrets, API keys, and sensitive configuration requir
 | `ACR_PASSWORD` | Azure Container Registry password | CI/CD | 90 days |
 | `KUBECONFIG` | Kubernetes cluster config | CI/CD | On rotation |
 
+### 10. Azure AD B2C & Group Authorization
+
+| Secret Name | Description | Required By | Rotation Policy |
+|-------------|-------------|-------------|-----------------|
+| `B2C_TENANT_NAME` | B2C tenant name (e.g., flamoralb2c) | auth-service, api-gateway | Static |
+| `B2C_TENANT_ID` | B2C tenant ID (GUID) | auth-service, group-sync | Static |
+| `B2C_CLIENT_ID` | B2C application client ID | auth-service, api-gateway | Static |
+| `B2C_POLICY_NAME` | B2C sign-up/sign-in policy | auth-service | Static |
+| `AUTOMATION_CLIENT_ID` | Service principal for group sync | group-sync-service | Static |
+| `AUTOMATION_CLIENT_SECRET` | Service principal secret | group-sync-service | 90 days |
+| `GROUP_ID_SAAS_FREE` | Azure AD group ID - Free tier | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_STANDARD` | Azure AD group ID - Standard tier | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_PREMIUM` | Azure AD group ID - Premium tier | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_VERIFIED` | Azure AD group ID - Verified users | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_MODERATOR` | Azure AD group ID - Moderators | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_OPERATOR` | Azure AD group ID - Operators | auth-service, api-gateway | Static |
+| `GROUP_ID_SAAS_ADMIN` | Azure AD group ID - Administrators | auth-service, api-gateway | Static |
+| `GROUP_ID_BANNED` | Azure AD group ID - Banned users | auth-service, api-gateway | Static |
+
+**Note**: Group IDs are provisioned using `scripts/provision-ad-groups.sh`. See [GROUP_PROVISIONING.md](./identity/GROUP_PROVISIONING.md) for details.
+
 ---
 
 ## Azure Key Vault Configuration

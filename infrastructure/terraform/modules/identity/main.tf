@@ -3,6 +3,15 @@
 # Microsoft Entra ID B2C Configuration
 # Group-Driven Authorization Model
 # ============================================================================
+#
+# This module manages Azure AD B2C identity resources including:
+# - Security groups for SAAS tier-based authorization
+# - App registrations for backend API, web app, and automation
+# - OAuth2 scopes and app roles
+#
+# Groups follow the saas-* naming convention for consistency with the
+# group-driven authorization model used across the platform.
+# ============================================================================
 
 terraform {
   required_providers {
@@ -28,19 +37,183 @@ resource "random_uuid" "messages_send" {}
 resource "random_uuid" "messages_read" {}
 resource "random_uuid" "premium_access" {}
 resource "random_uuid" "role_free" {}
+resource "random_uuid" "role_standard" {}
 resource "random_uuid" "role_premium" {}
 resource "random_uuid" "role_verified" {}
 resource "random_uuid" "role_moderator" {}
+resource "random_uuid" "role_operator" {}
 resource "random_uuid" "role_admin" {}
 
 # ============================================================================
-# APP REGISTRATION: FLAMORAL WEB (SPA/Mobile)
-# Consumer-facing application
+# AZURE AD SECURITY GROUPS - SAAS TIERS
+# Group-Driven Authorization Model
+# ============================================================================
+#
+# Group Hierarchy (mutually exclusive subscription tiers):
+# - saas-free: Default tier for all new signups
+# - saas-standard: Entry-level paid subscription
+# - saas-premium: Full premium subscription
+#
+# Additive Groups (can be combined with subscription tiers):
+# - saas-verified: Identity-verified users
+#
+# Staff Groups (internal use only):
+# - saas-moderator: Content moderators
+# - saas-operator: Platform operators (customer support, analytics)
+# - saas-admin: Full platform administrators
+#
+# Restriction Group:
+# - banned: Users with revoked access
 # ============================================================================
 
-resource "azuread_application" "flamoral_web" {
+# FREE TIER - Default group for all new signups
+resource "azuread_group" "saas_free" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-free-${var.environment}"
+  description             = "FLAMORAL Free tier users - basic matching, limited likes (10/day), standard messaging, ad-supported experience"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-free-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  # Security settings - no external members allowed
+  dynamic "dynamic_membership" {
+    for_each = var.enable_dynamic_membership ? [1] : []
+    content {
+      enabled = false
+      rule    = ""
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [members] # Members managed by automation/group-sync
+  }
+}
+
+# STANDARD TIER - Entry-level paid subscription
+resource "azuread_group" "saas_standard" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-standard-${var.environment}"
+  description             = "FLAMORAL Standard tier users - unlimited likes, basic filters, no ads, standard support"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-standard-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# PREMIUM TIER - Full premium subscription
+resource "azuread_group" "saas_premium" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-premium-${var.environment}"
+  description             = "FLAMORAL Premium tier users - unlimited likes, see who liked you, priority matching, read receipts, advanced filters, profile boosts, priority support"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-premium-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# VERIFIED - Identity-verified users (additive, can combine with any tier)
+resource "azuread_group" "saas_verified" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-verified-${var.environment}"
+  description             = "FLAMORAL Verified users - identity verified badge, higher trust score, access to verified-only features, enhanced profile visibility"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-verified-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# MODERATOR - Internal staff with content review access
+resource "azuread_group" "saas_moderator" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-moderator-${var.environment}"
+  description             = "FLAMORAL Content moderators (internal staff only) - review reports, issue warnings, temporary suspensions, content moderation queue access"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-moderator-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# OPERATOR - Internal staff with operational access
+resource "azuread_group" "saas_operator" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-operator-${var.environment}"
+  description             = "FLAMORAL Platform operators (internal staff only) - customer support access, analytics dashboards, user lookup, subscription management"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-operator-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# ADMIN - Internal staff with full platform access
+resource "azuread_group" "saas_admin" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "${var.group_name_prefix}-admin-${var.environment}"
+  description             = "FLAMORAL Platform administrators (internal staff only) - full access, user management, system configuration, deployment access, audit logs"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "${var.group_name_prefix}-admin-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = true
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# BANNED - Users with revoked access
+resource "azuread_group" "banned" {
+  count                   = var.create_security_groups ? 1 : 0
+  display_name            = "banned-${var.environment}"
+  description             = "FLAMORAL Banned users - no API access, tokens rejected at validation, login blocked"
+  security_enabled        = true
+  mail_enabled            = false
+  mail_nickname           = "banned-${var.environment}"
+  prevent_duplicate_names = true
+  assignable_to_role      = false # Cannot be assigned to roles
+
+  lifecycle {
+    ignore_changes = [members]
+  }
+}
+
+# ============================================================================
+# APP REGISTRATION: FLAMORAL WEB (SPA/Mobile)
+# Consumer-facing application for web and mobile clients
+# ============================================================================
+
+resource "azuread_application" "web_app" {
   display_name     = "flamoral-web-${var.environment}"
   sign_in_audience = "AzureADandPersonalMicrosoftAccount"
+
+  # Owners for management
+  owners = var.app_owners
 
   web {
     redirect_uris = var.web_app_redirect_uris
@@ -61,7 +234,7 @@ resource "azuread_application" "flamoral_web" {
 
   # Request access to FLAMORAL API
   required_resource_access {
-    resource_app_id = azuread_application.flamoral_api.application_id
+    resource_app_id = azuread_application.backend_api.application_id
 
     resource_access {
       id   = random_uuid.user_impersonation.result
@@ -74,16 +247,26 @@ resource "azuread_application" "flamoral_web" {
     }
 
     resource_access {
+      id   = random_uuid.profile_write.result
+      type = "Scope"
+    }
+
+    resource_access {
       id   = random_uuid.messages_send.result
+      type = "Scope"
+    }
+
+    resource_access {
+      id   = random_uuid.messages_read.result
       type = "Scope"
     }
   }
 
-  tags = [var.environment, "flamoral", "consumer-app", "web"]
+  tags = [var.environment, "flamoral", "consumer-app", "web", "spa"]
 }
 
-resource "azuread_service_principal" "flamoral_web" {
-  application_id = azuread_application.flamoral_web.application_id
+resource "azuread_service_principal" "web_app" {
+  client_id = azuread_application.web_app.client_id
 }
 
 # ============================================================================
@@ -91,10 +274,13 @@ resource "azuread_service_principal" "flamoral_web" {
 # Exposes scopes and roles for authorization
 # ============================================================================
 
-resource "azuread_application" "flamoral_api" {
+resource "azuread_application" "backend_api" {
   display_name     = "flamoral-api-${var.environment}"
   identifier_uris  = [var.api_app_identifier]
   sign_in_audience = "AzureADandPersonalMicrosoftAccount"
+
+  # Owners for management
+  owners = var.app_owners
 
   api {
     requested_access_token_version = 2
@@ -184,6 +370,15 @@ resource "azuread_application" "flamoral_api" {
 
   app_role {
     allowed_member_types = ["User"]
+    description          = "Standard tier user with enhanced features"
+    display_name         = "Standard User"
+    enabled              = true
+    id                   = random_uuid.role_standard.result
+    value                = "User.Standard"
+  }
+
+  app_role {
+    allowed_member_types = ["User"]
     description          = "Premium tier user with full consumer features"
     display_name         = "Premium User"
     enabled              = true
@@ -207,6 +402,15 @@ resource "azuread_application" "flamoral_api" {
     enabled              = true
     id                   = random_uuid.role_moderator.result
     value                = "Moderator"
+  }
+
+  app_role {
+    allowed_member_types = ["User"]
+    description          = "Platform operator (internal staff only)"
+    display_name         = "Operator"
+    enabled              = true
+    id                   = random_uuid.role_operator.result
+    value                = "Operator"
   }
 
   app_role {
@@ -248,17 +452,20 @@ resource "azuread_application" "flamoral_api" {
   tags = [var.environment, "flamoral", "api", "backend"]
 }
 
-resource "azuread_service_principal" "flamoral_api" {
-  application_id = azuread_application.flamoral_api.application_id
+resource "azuread_service_principal" "backend_api" {
+  client_id = azuread_application.backend_api.client_id
 }
 
 # ============================================================================
 # APP REGISTRATION: FLAMORAL AUTOMATION (Graph API Access)
-# Daemon/service for group management automation
+# Daemon/service for group management automation and group-sync
 # ============================================================================
 
-resource "azuread_application" "flamoral_automation" {
+resource "azuread_application" "automation" {
   display_name = "flamoral-automation-${var.environment}"
+
+  # Owners for management
+  owners = var.app_owners
 
   required_resource_access {
     resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
@@ -286,98 +493,69 @@ resource "azuread_application" "flamoral_automation" {
     }
   }
 
-  tags = [var.environment, "flamoral", "automation", "internal-only", "daemon"]
+  tags = [var.environment, "flamoral", "automation", "internal-only", "daemon", "group-sync"]
 }
 
-resource "azuread_service_principal" "flamoral_automation" {
-  application_id = azuread_application.flamoral_automation.application_id
+resource "azuread_service_principal" "automation" {
+  client_id = azuread_application.automation.client_id
 }
 
-resource "azuread_application_password" "flamoral_automation" {
-  application_object_id = azuread_application.flamoral_automation.object_id
-  display_name          = "automation-secret-${var.environment}"
-  end_date_relative     = "8760h" # 1 year
+resource "azuread_application_password" "automation" {
+  application_id = azuread_application.automation.id
+  display_name   = "automation-secret-${var.environment}"
+  end_date_relative = "8760h" # 1 year
 }
 
 # ============================================================================
-# SECURITY GROUPS
-# Group-Driven Authorization Model
+# GROUP TO APP ROLE ASSIGNMENTS
+# Map security groups to application roles for group-driven authorization
 # ============================================================================
 
-# FREE TIER - Default group for all new signups
-resource "azuread_group" "flamoral_free" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-free-${var.environment}"
-  description             = "FLAMORAL Free tier users - basic matching, limited likes, standard messaging"
-  security_enabled        = true
-  prevent_duplicate_names = true
-
-  lifecycle {
-    ignore_changes = [members] # Members managed by automation
-  }
+resource "azuread_app_role_assignment" "free_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_free.result
+  principal_object_id = azuread_group.saas_free[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }
 
-# PREMIUM TIER - Paid subscription users
-resource "azuread_group" "flamoral_premium" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-premium-${var.environment}"
-  description             = "FLAMORAL Premium tier users - unlimited likes, see who liked you, priority matching, read receipts"
-  security_enabled        = true
-  prevent_duplicate_names = true
-
-  lifecycle {
-    ignore_changes = [members]
-  }
+resource "azuread_app_role_assignment" "standard_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_standard.result
+  principal_object_id = azuread_group.saas_standard[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }
 
-# VERIFIED - Identity-verified users (additive, can combine with Free or Premium)
-resource "azuread_group" "flamoral_verified" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-verified-${var.environment}"
-  description             = "FLAMORAL Verified users - verified badge, higher trust score, verified-only features"
-  security_enabled        = true
-  prevent_duplicate_names = true
-
-  lifecycle {
-    ignore_changes = [members]
-  }
+resource "azuread_app_role_assignment" "premium_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_premium.result
+  principal_object_id = azuread_group.saas_premium[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }
 
-# MODERATOR - Internal staff with content review access
-resource "azuread_group" "flamoral_moderator" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-moderator-${var.environment}"
-  description             = "FLAMORAL Content moderators (internal staff only) - review reports, issue warnings, temp suspensions"
-  security_enabled        = true
-  prevent_duplicate_names = true
-
-  lifecycle {
-    ignore_changes = [members]
-  }
+resource "azuread_app_role_assignment" "verified_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_verified.result
+  principal_object_id = azuread_group.saas_verified[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }
 
-# ADMIN - Internal staff with full platform access
-resource "azuread_group" "flamoral_admin" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-admin-${var.environment}"
-  description             = "FLAMORAL Platform administrators (internal staff only) - full access, user management, system config"
-  security_enabled        = true
-  prevent_duplicate_names = true
-
-  lifecycle {
-    ignore_changes = [members]
-  }
+resource "azuread_app_role_assignment" "moderator_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_moderator.result
+  principal_object_id = azuread_group.saas_moderator[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }
 
-# BANNED - Users with revoked access
-resource "azuread_group" "flamoral_banned" {
-  count                   = var.create_security_groups ? 1 : 0
-  display_name            = "flamoral-banned-${var.environment}"
-  description             = "FLAMORAL Banned users - no API access, tokens rejected at validation"
-  security_enabled        = true
-  prevent_duplicate_names = true
+resource "azuread_app_role_assignment" "operator_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_operator.result
+  principal_object_id = azuread_group.saas_operator[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
+}
 
-  lifecycle {
-    ignore_changes = [members]
-  }
+resource "azuread_app_role_assignment" "admin_to_api" {
+  count               = var.create_security_groups && var.enable_role_assignments ? 1 : 0
+  app_role_id         = random_uuid.role_admin.result
+  principal_object_id = azuread_group.saas_admin[0].object_id
+  resource_object_id  = azuread_service_principal.backend_api.object_id
 }

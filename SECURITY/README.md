@@ -7,13 +7,14 @@ This document outlines the security architecture, policies, and requirements for
 ## Table of Contents
 
 1. [Security Architecture](#security-architecture)
-2. [DTO Policy](#dto-policy)
-3. [Authorization Policy](#authorization-policy)
-4. [Tenant Isolation](#tenant-isolation)
-5. [Approval Workflow Security](#approval-workflow-security)
-6. [Audit Logging](#audit-logging)
-7. [Running Security Checks](#running-security-checks)
-8. [Contributing Securely](#contributing-securely)
+2. [Container Image Signing](#container-image-signing)
+3. [DTO Policy](#dto-policy)
+4. [Authorization Policy](#authorization-policy)
+5. [Tenant Isolation](#tenant-isolation)
+6. [Approval Workflow Security](#approval-workflow-security)
+7. [Audit Logging](#audit-logging)
+8. [Running Security Checks](#running-security-checks)
+9. [Contributing Securely](#contributing-securely)
 
 ---
 
@@ -53,6 +54,56 @@ This document outlines the security architecture, policies, and requirements for
 │  - Audit Event Logging                                      │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Container Image Signing
+
+### Overview
+
+All container images deployed to the Flamoral platform are cryptographically signed using [cosign](https://github.com/sigstore/cosign) with Sigstore keyless signing. This ensures supply chain integrity by verifying that images were built by our official CI/CD pipeline.
+
+### How It Works
+
+1. **Signing (CI/CD Pipeline)**: After each Docker image is built and pushed to Azure Container Registry, the unified pipeline signs the image using cosign with GitHub OIDC keyless signing.
+
+2. **Verification (Kubernetes Admission)**: A Kyverno ClusterPolicy (`verify-image-signatures`) validates that all images deployed to the `flamoral` namespace have valid signatures before allowing Pod creation.
+
+### Keyless Signing with GitHub OIDC
+
+We use Sigstore's keyless signing which:
+- Uses GitHub Actions OIDC tokens for identity
+- Records signatures in the Rekor transparency log
+- Eliminates the need to manage signing keys
+- Ties image provenance to specific GitHub workflow runs
+
+### Verification Policy
+
+The Kyverno policy verifies:
+- **Issuer**: `https://token.actions.githubusercontent.com` (GitHub Actions)
+- **Subject**: `https://github.com/flamoral/*` (Flamoral organization)
+- **Rekor**: Signatures are recorded in the public transparency log
+
+### Policy Location
+
+- **Kyverno Policy**: `infrastructure/kubernetes/policies/verify-image-signatures.yaml`
+- **CI/CD Integration**: `.github/workflows/unified-pipeline.yml`
+
+### Manual Verification
+
+To manually verify an image signature:
+
+```bash
+# Verify a signed image
+cosign verify \
+  --certificate-identity-regexp="https://github.com/flamoral/.*" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  flamoralprodacr.azurecr.io/api-gateway:v1.0.0
+```
+
+### Trusted Base Images
+
+External base images (nginx, redis, postgres, mcr.microsoft.com) are allowed without signature verification as they are trusted upstream images.
 
 ---
 

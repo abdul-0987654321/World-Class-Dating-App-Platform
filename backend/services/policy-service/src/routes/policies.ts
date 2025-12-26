@@ -10,7 +10,15 @@ import { body, param, query, validationResult } from 'express-validator';
 import { PolicyController } from '../controllers/policyController';
 import { VersionController } from '../controllers/versionController';
 import { UpdateController } from '../controllers/updateController';
-import { authMiddleware, apiKeyMiddleware } from '../middleware/auth';
+import {
+  authMiddleware,
+  apiKeyMiddleware,
+  authenticateJWT,
+  internalApiKeyAuth,
+  requireAdmin,
+  optionalAuth,
+  AuthenticatedRequest
+} from '../middleware/auth';
 import { rateLimitMiddleware } from '../middleware/rateLimit';
 import { cacheMiddleware } from '../middleware/cache';
 import { logger } from '../utils/logger';
@@ -263,17 +271,19 @@ router.get(
 
 /**
  * ADMINISTRATIVE ENDPOINTS
- * Require API key authentication
+ * Require API key authentication for internal services
+ * or JWT authentication with admin role for admin users
  */
 
 /**
  * POST /api/policies/update
  *
  * Trigger a policy update (manual or automated)
+ * Requires internal API key authentication
  */
 router.post(
   '/policies/update',
-  apiKeyMiddleware,
+  internalApiKeyAuth,
   [
     body('source').isIn(['manual', 'automated']).withMessage('Invalid source'),
     body('legalChange').optional().isObject(),
@@ -311,10 +321,11 @@ router.post(
  * GET /api/policies/monitoring/status
  *
  * Get monitoring status for all legal sources
+ * Requires internal API key authentication
  */
 router.get(
   '/policies/monitoring/status',
-  apiKeyMiddleware,
+  internalApiKeyAuth,
   rateLimitMiddleware({ windowMs: 60000, max: 30 }),
   asyncHandler(async (req: Request, res: Response) => {
     const status = await updateController.getMonitoringStatus();
@@ -330,10 +341,11 @@ router.get(
  * POST /api/policies/validate
  *
  * Validate policy content against schema
+ * Requires internal API key authentication
  */
 router.post(
   '/policies/validate',
-  apiKeyMiddleware,
+  internalApiKeyAuth,
   [
     body('content').isString().notEmpty(),
     body('region').isString().notEmpty(),
@@ -354,11 +366,12 @@ router.post(
  * POST /api/policies/publish
  *
  * Publish a reviewed and approved policy update
+ * Requires JWT authentication with admin role
  */
 router.post(
   '/policies/publish',
-  apiKeyMiddleware,
-  authMiddleware, // Requires authenticated user with admin role
+  authenticateJWT,
+  requireAdmin,
   [
     body('policyId').isString().notEmpty(),
     body('version').matches(/^\d+\.\d+\.\d+$/),
@@ -388,11 +401,12 @@ router.post(
  * GET /api/policies/pending
  *
  * Get all policies pending review
+ * Requires JWT authentication with admin role
  */
 router.get(
   '/policies/pending',
-  apiKeyMiddleware,
-  authMiddleware,
+  authenticateJWT,
+  requireAdmin,
   rateLimitMiddleware({ windowMs: 60000, max: 50 }),
   asyncHandler(async (req: Request, res: Response) => {
     const pending = await updateController.getPendingPolicies();
@@ -408,11 +422,12 @@ router.get(
  * POST /api/policies/review
  *
  * Submit review for a policy update
+ * Requires JWT authentication with admin role
  */
 router.post(
   '/policies/review',
-  apiKeyMiddleware,
-  authMiddleware,
+  authenticateJWT,
+  requireAdmin,
   [
     body('policyId').isString().notEmpty(),
     body('version').matches(/^\d+\.\d+\.\d+$/),
@@ -442,11 +457,12 @@ router.post(
  * GET /api/policies/audit-log
  *
  * Get audit log of all policy changes
+ * Requires JWT authentication with admin role
  */
 router.get(
   '/policies/audit-log',
-  apiKeyMiddleware,
-  authMiddleware,
+  authenticateJWT,
+  requireAdmin,
   [
     query('region').optional().isString(),
     query('policyType').optional().isString(),
@@ -471,11 +487,12 @@ router.get(
  * POST /api/policies/translation/request
  *
  * Request translation for a policy
+ * Requires JWT authentication with admin role
  */
 router.post(
   '/policies/translation/request',
-  apiKeyMiddleware,
-  authMiddleware,
+  authenticateJWT,
+  requireAdmin,
   [
     body('policyId').isString().notEmpty(),
     body('version').matches(/^\d+\.\d+\.\d+$/),
@@ -504,11 +521,12 @@ router.post(
  * GET /api/policies/translation/status
  *
  * Get status of translation requests
+ * Requires JWT authentication with admin role
  */
 router.get(
   '/policies/translation/status',
-  apiKeyMiddleware,
-  authMiddleware,
+  authenticateJWT,
+  requireAdmin,
   rateLimitMiddleware({ windowMs: 60000, max: 50 }),
   asyncHandler(async (req: Request, res: Response) => {
     const status = await updateController.getTranslationStatus();

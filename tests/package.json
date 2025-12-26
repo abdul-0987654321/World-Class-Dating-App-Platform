@@ -22,6 +22,7 @@
     "test:contract:verify": "cd contract && npm run pact:verify",
     "test:performance": "cd performance && npm run benchmark",
     "test:chaos": "cd chaos && npm run chaos",
+    "test:e2e:assets": "cd .. && playwright test tests/e2e/asset-verification.spec.ts",
     "test:a11y": "cd ../apps/web-app && npx cypress run --spec 'cypress/e2e/accessibility.cy.ts'",
     "test:visual": "cd visual && npm run backstop:test",
     "test:visual:reference": "cd visual && npm run backstop:reference",

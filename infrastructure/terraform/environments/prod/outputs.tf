@@ -196,3 +196,120 @@ output "godaddy_dns_instructions" {
     =============================================================================
   EOT
 }
+
+# =============================================================================
+# Identity Module Outputs - Azure AD B2C
+# =============================================================================
+
+# App Registration Outputs
+output "identity_web_app_client_id" {
+  description = "Web application client ID for frontend configuration"
+  value       = module.identity.web_app_client_id
+}
+
+output "identity_backend_api_client_id" {
+  description = "Backend API client ID"
+  value       = module.identity.backend_api_client_id
+}
+
+output "identity_backend_api_identifier_uri" {
+  description = "Backend API identifier URI for token validation"
+  value       = module.identity.backend_api_identifier_uri
+}
+
+output "identity_automation_client_id" {
+  description = "Automation app client ID for group-sync operations"
+  value       = module.identity.automation_app_client_id
+}
+
+# Security Group IDs - for CI/CD pipelines
+output "identity_group_ids" {
+  description = "Map of security group names to Object IDs (use in CI/CD)"
+  value       = module.identity.group_ids
+}
+
+output "identity_group_id_free" {
+  description = "Object ID of the saas-free security group"
+  value       = module.identity.group_id_free
+}
+
+output "identity_group_id_standard" {
+  description = "Object ID of the saas-standard security group"
+  value       = module.identity.group_id_standard
+}
+
+output "identity_group_id_premium" {
+  description = "Object ID of the saas-premium security group"
+  value       = module.identity.group_id_premium
+}
+
+output "identity_group_id_verified" {
+  description = "Object ID of the saas-verified security group"
+  value       = module.identity.group_id_verified
+}
+
+output "identity_group_id_moderator" {
+  description = "Object ID of the saas-moderator security group"
+  value       = module.identity.group_id_moderator
+}
+
+output "identity_group_id_operator" {
+  description = "Object ID of the saas-operator security group"
+  value       = module.identity.group_id_operator
+}
+
+output "identity_group_id_admin" {
+  description = "Object ID of the saas-admin security group"
+  value       = module.identity.group_id_admin
+}
+
+output "identity_group_id_banned" {
+  description = "Object ID of the banned security group"
+  value       = module.identity.group_id_banned
+}
+
+# Security Group Names
+output "identity_group_names" {
+  description = "Map of security group roles to display names"
+  value       = module.identity.group_names
+}
+
+# App Role IDs
+output "identity_role_ids" {
+  description = "Application role IDs for authorization"
+  value       = module.identity.role_ids
+}
+
+# Scope IDs
+output "identity_scope_ids" {
+  description = "OAuth2 scope IDs"
+  value       = module.identity.scope_ids
+}
+
+# B2C Configuration
+output "identity_b2c_issuer_url" {
+  description = "B2C Token Issuer URL for token validation"
+  value       = module.identity.b2c_issuer_url
+}
+
+output "identity_b2c_jwks_uri" {
+  description = "B2C JWKS URI for token signature verification"
+  value       = module.identity.b2c_jwks_uri
+}
+
+output "identity_b2c_authority" {
+  description = "B2C Authority URL for MSAL configuration"
+  value       = module.identity.b2c_authority
+}
+
+# CI/CD Pipeline Configuration
+output "identity_cicd_config" {
+  description = "JSON configuration for CI/CD pipelines"
+  value       = module.identity.cicd_config
+}
+
+# Summary
+output "identity_summary" {
+  description = "Human-readable summary of identity resources"
+  value       = module.identity.identity_summary
+}

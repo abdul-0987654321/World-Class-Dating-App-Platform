@@ -722,3 +722,61 @@ resource "azurerm_cdn_frontdoor_security_policy" "main" {
     }
   }
 }
+
+# =============================================================================
+# Identity Module - Azure AD B2C Configuration
+# =============================================================================
+# This module manages all Azure AD B2C identity resources including:
+# - Security groups for SAAS tier-based authorization (saas-*)
+# - App registrations for backend API, web app, and automation
+# - OAuth2 scopes and app roles
+# =============================================================================
+
+module "identity" {
+  source = "../../modules/identity"
+
+  # Required variables
+  tenant_id          = var.tenant_id
+  environment        = "prod"
+  api_app_identifier = "api://flamoral-api-prod"
+
+  # Group naming configuration
+  group_name_prefix = "saas"
+
+  # B2C configuration (optional - set if using B2C)
+  b2c_tenant_name = var.b2c_tenant_name
+
+  # App registration redirect URIs
+  web_app_redirect_uris = [
+    "https://flamoral.com/auth/callback",
+    "https://www.flamoral.com/auth/callback"
+  ]
+
+  spa_redirect_uris = [
+    "https://flamoral.com",
+    "https://www.flamoral.com",
+    "https://flamoral.com/silent-refresh.html",
+    "https://www.flamoral.com/silent-refresh.html"
+  ]
+
+  # App owners (Terraform service principal)
+  app_owners = [data.azuread_service_principal.terraform_sp.object_id]
+
+  # Security group settings
+  create_security_groups    = true
+  enable_dynamic_membership = false
+  enable_role_assignments   = true
+
+  tags = local.common_tags
+}
+
+# =============================================================================
+# Store Automation App Secret in Key Vault
+# =============================================================================
+resource "azurerm_key_vault_secret" "automation_client_secret" {
+  name         = "identity-automation-client-secret"
+  value        = module.identity.automation_app_secret
+  key_vault_id = azurerm_key_vault.main.id
+
+  depends_on = [azurerm_role_assignment.kv_terraform_sp]
+}

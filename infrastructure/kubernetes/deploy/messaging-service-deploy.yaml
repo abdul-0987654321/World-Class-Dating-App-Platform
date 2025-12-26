@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: messaging-service
-        image: flamoraldevacr.azurecr.io/messaging-service:latest
+        image: flamoralprodacr.azurecr.io/messaging-service:${IMAGE_TAG}
         ports:
         - containerPort: 3003
         env:

@@ -102,7 +102,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: policy-service
-        image: flamoralacr.azurecr.io/policy-service:latest
+        image: flamoralprodacr.azurecr.io/policy-service:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
         - name: http

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: ${DOCKER_REGISTRY}/dating-app-api-gateway:latest
+        image: flamoralprodacr.azurecr.io/api-gateway:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
         - containerPort: 4000

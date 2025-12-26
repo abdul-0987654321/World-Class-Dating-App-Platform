@@ -112,7 +112,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: verification-service
-        image: flamoralacr.azurecr.io/verification-service:latest
+        image: flamoralprodacr.azurecr.io/verification-service:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
         - name: http

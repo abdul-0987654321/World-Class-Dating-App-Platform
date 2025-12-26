@@ -1,0 +1,143 @@
+# =============================================================================
+# Kyverno Policy: Verify Container Image Signatures
+# =============================================================================
+# This policy verifies that all container images deployed to the flamoral
+# namespace have been signed using cosign with Sigstore keyless signing.
+# Images without valid signatures will be rejected.
+# =============================================================================
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Verify Container Image Signatures
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: critical
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/minversion: 1.9.0
+    policies.kyverno.io/description: >-
+      Verifies that all container images in the flamoral namespace are signed
+      using cosign with Sigstore keyless signing (GitHub OIDC). Only images
+      signed by the official Flamoral CI/CD pipeline are allowed.
+spec:
+  validationFailureAction: Audit  # Start in Audit mode, switch to Enforce after validation
+  webhookTimeoutSeconds: 30
+  background: false
+  rules:
+    # Rule 1: Verify signatures on main containers
+    - name: verify-container-signatures
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+                - flamoral-prod
+                - flamoral-staging
+                - flamoral-dev
+      verifyImages:
+        - imageReferences:
+            - "flamoralprodacr.azurecr.io/*"
+          attestors:
+            - entries:
+                - keyless:
+                    # Sigstore keyless verification using GitHub OIDC
+                    issuer: "https://token.actions.githubusercontent.com"
+                    subject: "https://github.com/flamoral/*"
+                    rekor:
+                      url: "https://rekor.sigstore.dev"
+                  annotations:
+                    # Optional: Additional verification constraints
+                    cosign.sigstore.dev/oidcIssuer: "https://token.actions.githubusercontent.com"
+          mutateDigest: true
+          verifyDigest: true
+          required: true
+
+    # Rule 2: Verify signatures on init containers
+    - name: verify-init-container-signatures
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+                - flamoral-prod
+                - flamoral-staging
+                - flamoral-dev
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.initContainers[] || `[]` | length(@) }}"
+            operator: GreaterThan
+            value: 0
+      verifyImages:
+        - imageReferences:
+            - "flamoralprodacr.azurecr.io/*"
+          attestors:
+            - entries:
+                - keyless:
+                    issuer: "https://token.actions.githubusercontent.com"
+                    subject: "https://github.com/flamoral/*"
+                    rekor:
+                      url: "https://rekor.sigstore.dev"
+          mutateDigest: true
+          verifyDigest: true
+          required: true
+
+---
+# =============================================================================
+# Policy Exception for System Images
+# =============================================================================
+# Some base images (nginx, redis, postgres) from external registries
+# do not require signature verification as they are trusted upstream images.
+# =============================================================================
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: allow-trusted-base-images
+  annotations:
+    policies.kyverno.io/title: Allow Trusted Base Images
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Allows specific trusted base images from known registries without
+      signature verification. These are upstream images that we trust.
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: allow-base-images
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral
+                - flamoral-prod
+                - flamoral-staging
+                - flamoral-dev
+      validate:
+        message: >-
+          Images from external registries must be from the approved list:
+          nginx, redis, postgres, or Microsoft Container Registry.
+        foreach:
+          - list: "request.object.spec.containers"
+            deny:
+              conditions:
+                all:
+                  # Only allow specific trusted external images
+                  - key: "{{ element.image }}"
+                    operator: AnyNotIn
+                    value:
+                      - "flamoralprodacr.azurecr.io/*"
+                      - "nginx:*"
+                      - "redis:*"
+                      - "postgres:*"
+                      - "mcr.microsoft.com/*"
+                      - "docker.io/library/nginx:*"
+                      - "docker.io/library/redis:*"
+                      - "docker.io/library/postgres:*"

@@ -83,7 +83,7 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: ai-recommendation
-        image: flamoral/ai-recommendation-service:latest
+        image: flamoralprodacr.azurecr.io/ai-recommendation-service:${IMAGE_TAG}
         ports:
         - containerPort: 5000
           name: http
@@ -230,7 +230,7 @@ spec:
       serviceAccountName: dating-coach-service
       containers:
       - name: dating-coach
-        image: flamoral/dating-coach-service:latest
+        image: flamoralprodacr.azurecr.io/dating-coach-service:${IMAGE_TAG}
         ports:
         - containerPort: 5001
           name: http
@@ -344,7 +344,7 @@ spec:
         workload-type: ml
       containers:
       - name: ai-moderation
-        image: flamoral/ai-moderation-service:latest
+        image: flamoralprodacr.azurecr.io/ai-moderation-service:${IMAGE_TAG}
         ports:
         - containerPort: 5002
           name: http

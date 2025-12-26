@@ -115,7 +115,7 @@ spec:
 
       containers:
       - name: app
-        image: example-image:latest
+        image: flamoralprodacr.azurecr.io/example-image:${IMAGE_TAG}
 
         # Security context at container level
         securityContext:

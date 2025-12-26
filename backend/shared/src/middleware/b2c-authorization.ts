@@ -20,11 +20,17 @@ interface B2CConfig {
   policyName: string;
   clientId: string;
   groups: {
-    free: string;
-    premium: string;
-    verified: string;
-    moderator: string;
-    admin: string;
+    // Subscription tiers (saas-* naming convention)
+    'saas-free': string;
+    'saas-standard': string;
+    'saas-premium': string;
+    // Feature/status groups
+    'saas-verified': string;
+    // Role groups
+    'saas-moderator': string;
+    'saas-operator': string;
+    'saas-admin': string;
+    // Special status
     banned: string;
   };
 }
@@ -34,11 +40,17 @@ const config: B2CConfig = {
   policyName: process.env.B2C_POLICY_NAME || 'B2C_1_SignUpSignIn',
   clientId: process.env.B2C_CLIENT_ID || '',
   groups: {
-    free: process.env.GROUP_ID_FREE || '',
-    premium: process.env.GROUP_ID_PREMIUM || '',
-    verified: process.env.GROUP_ID_VERIFIED || '',
-    moderator: process.env.GROUP_ID_MODERATOR || '',
-    admin: process.env.GROUP_ID_ADMIN || '',
+    // Subscription tiers (saas-* naming convention)
+    'saas-free': process.env.GROUP_ID_SAAS_FREE || '',
+    'saas-standard': process.env.GROUP_ID_SAAS_STANDARD || '',
+    'saas-premium': process.env.GROUP_ID_SAAS_PREMIUM || '',
+    // Feature/status groups
+    'saas-verified': process.env.GROUP_ID_SAAS_VERIFIED || '',
+    // Role groups
+    'saas-moderator': process.env.GROUP_ID_SAAS_MODERATOR || '',
+    'saas-operator': process.env.GROUP_ID_SAAS_OPERATOR || '',
+    'saas-admin': process.env.GROUP_ID_SAAS_ADMIN || '',
+    // Special status
     banned: process.env.GROUP_ID_BANNED || ''
   }
 };
@@ -68,7 +80,7 @@ function getJwksClient(): JwksClient {
 // TYPES
 // ============================================================================
 
-export type SubscriptionTier = 'free' | 'premium';
+export type SubscriptionTier = 'free' | 'standard' | 'premium';
 
 export interface FlamoralUser {
   id: string;  // Required by base Express.Request.user type
@@ -80,6 +92,7 @@ export interface FlamoralUser {
   subscriptionTier: SubscriptionTier;
   isVerified: boolean;
   isModerator: boolean;
+  isOperator: boolean;
   isAdmin: boolean;
   isBanned: boolean;
   rawClaims: JwtPayload;
@@ -138,17 +151,19 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
   // Groups come from the 'groups' claim (configured in B2C)
   const groups: string[] = payload.groups || [];
 
-  // Determine subscription tier based on group membership
-  const isPremium = groups.includes(config.groups.premium);
-  const subscriptionTier: SubscriptionTier = isPremium ? 'premium' : 'free';
+  // Determine subscription tier based on group membership (check in order: premium > standard > free)
+  const isPremium = groups.includes(config.groups['saas-premium']);
+  const isStandard = groups.includes(config.groups['saas-standard']);
+  const subscriptionTier: SubscriptionTier = isPremium ? 'premium' : isStandard ? 'standard' : 'free';
 
   // Extract user ID (B2C uses 'sub' or 'oid' claims)
   const userId = payload.sub || payload.oid || '';
 
   // Determine role based on group membership
-  const isAdmin = groups.includes(config.groups.admin);
-  const isModerator = groups.includes(config.groups.moderator);
-  const role = isAdmin ? 'admin' : isModerator ? 'moderator' : 'user';
+  const isAdmin = groups.includes(config.groups['saas-admin']);
+  const isOperator = groups.includes(config.groups['saas-operator']);
+  const isModerator = groups.includes(config.groups['saas-moderator']);
+  const role = isAdmin ? 'admin' : isOperator ? 'operator' : isModerator ? 'moderator' : 'user';
 
   return {
     id: userId,  // Required by Express.Request.user base type
@@ -158,8 +173,9 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
     role,
     groups,
     subscriptionTier,
-    isVerified: groups.includes(config.groups.verified),
+    isVerified: groups.includes(config.groups['saas-verified']),
     isModerator,
+    isOperator,
     isAdmin,
     isBanned: groups.includes(config.groups.banned),
     rawClaims: payload
@@ -251,6 +267,13 @@ export async function authenticateB2C(
 // MIDDLEWARE: REQUIRE SUBSCRIPTION TIER
 // ============================================================================
 
+// Tier hierarchy for comparison
+const tierHierarchy: Record<SubscriptionTier, number> = {
+  free: 0,
+  standard: 1,
+  premium: 2
+};
+
 export function requireTier(tier: SubscriptionTier) {
   return (req: AuthRequest, res: Response, next: NextFunction): void | Response => {
     if (!req.user) {
@@ -262,12 +285,16 @@ export function requireTier(tier: SubscriptionTier) {
       });
     }
 
-    if (tier === 'premium' && req.user.subscriptionTier !== 'premium') {
+    const requiredLevel = tierHierarchy[tier];
+    const userLevel = tierHierarchy[req.user.subscriptionTier];
+
+    if (userLevel < requiredLevel) {
+      const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
       return res.status(403).json({
         success: false,
         error: 'forbidden',
-        message: 'Premium subscription required',
-        code: 'PREMIUM_REQUIRED',
+        message: `${tierName} subscription required`,
+        code: `${tier.toUpperCase()}_REQUIRED`,
         upgradeUrl: '/subscription/upgrade',
         correlationId: req.correlationId
       });
@@ -277,7 +304,8 @@ export function requireTier(tier: SubscriptionTier) {
   };
 }
 
-// Convenience middleware for premium tier
+// Convenience middleware for subscription tiers
+export const requireStandard = requireTier('standard');
 export const requirePremium = requireTier('premium');
 
 // ============================================================================
@@ -342,6 +370,43 @@ export function requireModerator(
       error: 'forbidden',
       message: 'Moderator access required',
       code: 'MODERATOR_REQUIRED',
+      correlationId: req.correlationId
+    });
+  }
+
+  return next();
+}
+
+// ============================================================================
+// MIDDLEWARE: REQUIRE OPERATOR (Operations Staff Only)
+// ============================================================================
+
+export function requireOperator(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void | Response {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'unauthorized',
+      message: 'Authentication required',
+      correlationId: req.correlationId
+    });
+  }
+
+  // Admins have all operator permissions
+  if (!req.user.isOperator && !req.user.isAdmin) {
+    logger.warn(`Non-operator access attempt: ${req.user.userId}`, {
+      correlationId: req.correlationId,
+      path: req.path
+    });
+
+    return res.status(403).json({
+      success: false,
+      error: 'forbidden',
+      message: 'Operator access required',
+      code: 'OPERATOR_REQUIRED',
       correlationId: req.correlationId
     });
   }
@@ -420,6 +485,11 @@ export function requireGroup(groupId: string) {
 
 type FeatureCheck = (user: FlamoralUser) => boolean;
 
+// Helper to check if user has at least a certain tier level
+const hasTierLevel = (user: FlamoralUser, minTier: SubscriptionTier): boolean => {
+  return tierHierarchy[user.subscriptionTier] >= tierHierarchy[minTier];
+};
+
 const featureMatrix: Record<string, FeatureCheck> = {
   // Free features (all authenticated users)
   'basic_matching': () => true,
@@ -428,15 +498,21 @@ const featureMatrix: Record<string, FeatureCheck> = {
   'limited_likes': () => true,
   'report_user': () => true,
 
-  // Premium features
+  // Standard features (standard tier and above)
+  'extended_likes': (u) => hasTierLevel(u, 'standard'),
+  'rewind_swipe': (u) => hasTierLevel(u, 'standard'),
+  'basic_filters': (u) => hasTierLevel(u, 'standard'),
+  'reduced_ads': (u) => hasTierLevel(u, 'standard'),
+
+  // Premium features (premium tier only)
   'unlimited_likes': (u) => u.subscriptionTier === 'premium',
   'see_who_liked': (u) => u.subscriptionTier === 'premium',
   'read_receipts': (u) => u.subscriptionTier === 'premium',
   'priority_matching': (u) => u.subscriptionTier === 'premium',
   'boost_profile': (u) => u.subscriptionTier === 'premium',
-  'rewind_swipe': (u) => u.subscriptionTier === 'premium',
   'advanced_filters': (u) => u.subscriptionTier === 'premium',
   'no_ads': (u) => u.subscriptionTier === 'premium',
+  'incognito_mode': (u) => u.subscriptionTier === 'premium',
 
   // Verified features
   'verified_badge': (u) => u.isVerified,
@@ -444,17 +520,24 @@ const featureMatrix: Record<string, FeatureCheck> = {
   'higher_trust_score': (u) => u.isVerified,
 
   // Moderator features (internal staff)
-  'review_reports': (u) => u.isModerator || u.isAdmin,
-  'issue_warnings': (u) => u.isModerator || u.isAdmin,
-  'temp_suspend': (u) => u.isModerator || u.isAdmin,
-  'view_user_history': (u) => u.isModerator || u.isAdmin,
+  'review_reports': (u) => u.isModerator || u.isOperator || u.isAdmin,
+  'issue_warnings': (u) => u.isModerator || u.isOperator || u.isAdmin,
+  'temp_suspend': (u) => u.isModerator || u.isOperator || u.isAdmin,
+  'view_user_history': (u) => u.isModerator || u.isOperator || u.isAdmin,
+
+  // Operator features (operations staff)
+  'view_system_health': (u) => u.isOperator || u.isAdmin,
+  'manage_deployments': (u) => u.isOperator || u.isAdmin,
+  'view_metrics': (u) => u.isOperator || u.isAdmin,
+  'manage_feature_flags': (u) => u.isOperator || u.isAdmin,
 
   // Admin features (internal staff)
   'perm_ban': (u) => u.isAdmin,
   'manage_users': (u) => u.isAdmin,
   'view_analytics': (u) => u.isAdmin,
   'system_config': (u) => u.isAdmin,
-  'manage_moderators': (u) => u.isAdmin
+  'manage_moderators': (u) => u.isAdmin,
+  'manage_operators': (u) => u.isAdmin
 };
 
 export function canAccessFeature(user: FlamoralUser, feature: string): boolean {

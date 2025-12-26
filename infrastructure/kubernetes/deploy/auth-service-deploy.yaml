@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: flamoraldevacr.azurecr.io/auth-service:latest
+        image: flamoralprodacr.azurecr.io/auth-service:${IMAGE_TAG}
         ports:
         - containerPort: 3011
         env:

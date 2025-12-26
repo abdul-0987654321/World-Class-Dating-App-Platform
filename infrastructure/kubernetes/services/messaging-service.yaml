@@ -103,7 +103,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: messaging-service
-        image: flamoral/messaging-service:latest
+        image: flamoralprodacr.azurecr.io/messaging-service:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
         - name: http

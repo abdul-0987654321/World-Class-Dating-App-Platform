@@ -18,7 +18,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migration
-          image: flamoralacr8eq5eg.azurecr.io/flamoral/migration:latest
+          image: flamoralprodacr.azurecr.io/migration:${IMAGE_TAG}
           imagePullPolicy: Always
           command: ["npm", "run", "migrate:latest"]
           env:
@@ -81,7 +81,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: migration-rollback
-          image: flamoralacr8eq5eg.azurecr.io/flamoral/migration:latest
+          image: flamoralprodacr.azurecr.io/migration:${IMAGE_TAG}
           imagePullPolicy: Always
           command: ["npm", "run", "migrate:rollback"]
           env:

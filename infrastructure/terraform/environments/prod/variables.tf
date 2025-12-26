@@ -286,3 +286,12 @@ variable "signalr_capacity" {
   type        = number
   default     = 1
 }
+
+# =============================================================================
+# Identity / Azure AD B2C Configuration
+# =============================================================================
+variable "b2c_tenant_name" {
+  description = "Azure AD B2C tenant name (e.g., flamoralb2c)"
+  type        = string
+  default     = "flamoralb2c"
+}

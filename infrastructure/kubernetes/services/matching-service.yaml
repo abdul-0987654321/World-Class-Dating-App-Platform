@@ -101,7 +101,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: matching-service
-        image: flamoral/matching-service:latest
+        image: flamoralprodacr.azurecr.io/matching-service:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
         - name: http

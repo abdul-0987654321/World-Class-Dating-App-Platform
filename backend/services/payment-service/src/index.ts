@@ -9,6 +9,7 @@ import { db } from './infrastructure/database/connection';
 // Import routes
 import paymentRoutes from './api/routes/payment.routes';
 import webhookRoutes from './api/routes/webhook.routes';
+import iapRoutes from './api/routes/iap.routes';
 
 // Load environment variables
 dotenv.config();
@@ -62,6 +63,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Mount payment routes
 app.use('/api/v1/payments', paymentRoutes);
+
+// Mount IAP routes (Apple/Google Play in-app purchases)
+app.use('/api/v1/iap', iapRoutes);
 
 // Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {
