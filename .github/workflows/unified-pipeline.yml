@@ -12,6 +12,11 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: production
   workflow_dispatch:
     inputs:
       action:
@@ -813,12 +818,45 @@ jobs:
         continue-on-error: true
 
   # ===========================================================================
+  # AKS HEALTH CHECK (Self-healing gate)
+  # ===========================================================================
+  aks-health-check:
+    name: AKS Health Check
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    if: needs.deploy-production.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials --resource-group flamoral-prod-rg --name flamoral-prod-aks
+
+      - name: Run AKS Diagnostics
+        run: |
+          chmod +x scripts/aks-diagnostics.sh
+          ./scripts/aks-diagnostics.sh
+
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: aks-diagnostics
+          path: ./aks-diagnostics-*
+
+  # ===========================================================================
   # SUMMARY
   # ===========================================================================
   summary:
     name: Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [build-and-test, build-docker-images, build-frontend, deploy, deploy-production, release, rollback, infrastructure, mobile]
+    needs: [build-and-test, build-docker-images, build-frontend, deploy, deploy-production, aks-health-check, release, rollback, infrastructure, mobile]
     if: always()
 
     steps:
@@ -834,6 +872,7 @@ jobs:
           echo "| Frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy Production | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AKS Health Check | ${{ needs.aks-health-check.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Release | ${{ needs.release.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Infrastructure | ${{ needs.infrastructure.result }} |" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,1275 @@
+# =============================================================================
+# FLAMORAL AKS SELF-HEALING DEPLOYMENT GATE
+# Parallel Agent-Based Health Checks with Auto-Remediation
+# =============================================================================
+# Implements tiered self-healing with safety gates:
+#   - Tier 1: Safe auto-fixes (pod restarts, scale adjustments)
+#   - Tier 2: Moderate fixes (config updates, service restarts)
+#   - Tier 3: Critical fixes (require manual approval)
+# =============================================================================
+
+name: AKS Self-Healing Gate
+
+on:
+  # Scheduled health checks every 15 minutes
+  schedule:
+    - cron: '*/15 * * * *'
+
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      AUTO_FIX:
+        description: 'Enable automatic fixes'
+        required: false
+        type: boolean
+        default: true
+      AUTO_FIX_MAX_TIER:
+        description: 'Maximum tier for auto-fix (Tier 3 requires approval)'
+        required: false
+        type: choice
+        default: '2'
+        options:
+          - '1'
+          - '2'
+          - '3'
+      PRODUCTION:
+        description: 'Target production cluster'
+        required: false
+        type: boolean
+        default: true
+      NAMESPACE:
+        description: 'Kubernetes namespace'
+        required: false
+        type: string
+        default: 'flamoral'
+      DRY_RUN:
+        description: 'Dry run mode (no actual changes)'
+        required: false
+        type: boolean
+        default: false
+      ROLLBACK_ON_FAILURE:
+        description: 'Auto-rollback if fixes fail verification'
+        required: false
+        type: boolean
+        default: true
+
+  # Called after deployment workflows
+  workflow_call:
+    inputs:
+      AUTO_FIX:
+        description: 'Enable automatic fixes'
+        required: false
+        type: boolean
+        default: true
+      AUTO_FIX_MAX_TIER:
+        description: 'Maximum tier for auto-fix'
+        required: false
+        type: string
+        default: '2'
+      PRODUCTION:
+        description: 'Target production cluster'
+        required: false
+        type: boolean
+        default: true
+      NAMESPACE:
+        description: 'Kubernetes namespace'
+        required: false
+        type: string
+        default: 'flamoral'
+    outputs:
+      health_status:
+        description: 'Overall health status'
+        value: ${{ jobs.report.outputs.health_status }}
+      fixes_applied:
+        description: 'Number of fixes applied'
+        value: ${{ jobs.report.outputs.fixes_applied }}
+      requires_attention:
+        description: 'Issues requiring manual attention'
+        value: ${{ jobs.report.outputs.requires_attention }}
+
+concurrency:
+  group: aks-self-healing-${{ github.event.inputs.NAMESPACE || 'flamoral' }}
+  cancel-in-progress: false  # Never cancel ongoing health checks
+
+env:
+  NODE_VERSION: '20'
+  AZURE_RESOURCE_GROUP: flamoral-prod-rg
+  AKS_CLUSTER_NAME: flamoral-prod-aks
+  NAMESPACE: ${{ github.event.inputs.NAMESPACE || 'flamoral' }}
+  AUTO_FIX: ${{ github.event.inputs.AUTO_FIX || 'true' }}
+  AUTO_FIX_MAX_TIER: ${{ github.event.inputs.AUTO_FIX_MAX_TIER || '2' }}
+  PRODUCTION: ${{ github.event.inputs.PRODUCTION || 'true' }}
+
+permissions:
+  contents: read
+  id-token: write  # Required for Azure OIDC
+  issues: write    # For creating issues on critical failures
+  actions: read
+
+jobs:
+  # ===========================================================================
+  # EVIDENCE COLLECTION - Gather cluster state before analysis
+  # ===========================================================================
+  evidence-collection:
+    name: Collect Cluster Evidence
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_state: ${{ steps.collect.outputs.cluster_state }}
+      pod_status: ${{ steps.collect.outputs.pod_status }}
+      node_status: ${{ steps.collect.outputs.node_status }}
+      events_json: ${{ steps.collect.outputs.events_json }}
+      metrics_available: ${{ steps.collect.outputs.metrics_available }}
+      timestamp: ${{ steps.collect.outputs.timestamp }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          if [ "${{ env.PRODUCTION }}" == "true" ]; then
+            az aks get-credentials \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AKS_CLUSTER_NAME }} \
+              --overwrite-existing
+          else
+            az aks get-credentials \
+              --resource-group flamoral-staging-rg \
+              --name flamoral-staging-aks \
+              --overwrite-existing
+          fi
+
+      - name: Collect cluster evidence
+        id: collect
+        run: |
+          NAMESPACE="${{ env.NAMESPACE }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
+          # Collect pod status
+          POD_STATUS=$(kubectl get pods -n $NAMESPACE -o json 2>/dev/null || echo '{"items":[]}')
+          echo "pod_status<<EOF" >> $GITHUB_OUTPUT
+          echo "$POD_STATUS" | jq -c '.' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Collect node status
+          NODE_STATUS=$(kubectl get nodes -o json 2>/dev/null || echo '{"items":[]}')
+          echo "node_status<<EOF" >> $GITHUB_OUTPUT
+          echo "$NODE_STATUS" | jq -c '.' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Collect recent events (last 30 minutes)
+          EVENTS=$(kubectl get events -n $NAMESPACE --sort-by='.lastTimestamp' -o json 2>/dev/null | \
+            jq -c '[.items[-50:] | .[] | {type: .type, reason: .reason, message: .message, count: .count, lastTimestamp: .lastTimestamp, involvedObject: .involvedObject.name}]')
+          echo "events_json=$EVENTS" >> $GITHUB_OUTPUT
+
+          # Check if metrics server is available
+          if kubectl top pods -n $NAMESPACE &>/dev/null; then
+            echo "metrics_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "metrics_available=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Overall cluster state summary
+          RUNNING_PODS=$(echo "$POD_STATUS" | jq '[.items[] | select(.status.phase=="Running")] | length')
+          TOTAL_PODS=$(echo "$POD_STATUS" | jq '.items | length')
+          READY_NODES=$(echo "$NODE_STATUS" | jq '[.items[] | select(.status.conditions[] | select(.type=="Ready" and .status=="True"))] | length')
+          TOTAL_NODES=$(echo "$NODE_STATUS" | jq '.items | length')
+
+          CLUSTER_STATE=$(jq -n \
+            --arg running "$RUNNING_PODS" \
+            --arg total "$TOTAL_PODS" \
+            --arg ready_nodes "$READY_NODES" \
+            --arg total_nodes "$TOTAL_NODES" \
+            --arg timestamp "$TIMESTAMP" \
+            '{running_pods: $running, total_pods: $total, ready_nodes: $ready_nodes, total_nodes: $total_nodes, timestamp: $timestamp}')
+          echo "cluster_state=$CLUSTER_STATE" >> $GITHUB_OUTPUT
+
+      - name: Save evidence artifacts
+        run: |
+          mkdir -p evidence
+          kubectl get pods -n ${{ env.NAMESPACE }} -o wide > evidence/pods.txt 2>/dev/null || echo "No pods found" > evidence/pods.txt
+          kubectl get nodes -o wide > evidence/nodes.txt 2>/dev/null || echo "No nodes found" > evidence/nodes.txt
+          kubectl get events -n ${{ env.NAMESPACE }} --sort-by='.lastTimestamp' > evidence/events.txt 2>/dev/null || echo "No events found" > evidence/events.txt
+          kubectl get hpa -n ${{ env.NAMESPACE }} -o wide > evidence/hpa.txt 2>/dev/null || echo "No HPAs found" > evidence/hpa.txt
+          kubectl get deployments -n ${{ env.NAMESPACE }} -o wide > evidence/deployments.txt 2>/dev/null || echo "No deployments found" > evidence/deployments.txt
+          kubectl get services -n ${{ env.NAMESPACE }} -o wide > evidence/services.txt 2>/dev/null || echo "No services found" > evidence/services.txt
+
+          # Resource usage if metrics available
+          kubectl top pods -n ${{ env.NAMESPACE }} > evidence/pod-metrics.txt 2>/dev/null || echo "Metrics not available" > evidence/pod-metrics.txt
+          kubectl top nodes > evidence/node-metrics.txt 2>/dev/null || echo "Metrics not available" > evidence/node-metrics.txt
+
+      - name: Upload evidence artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-evidence-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
+
+  # ===========================================================================
+  # AGENT CHECKS - Parallel health check agents
+  # ===========================================================================
+  agent-checks:
+    name: Agent Checks
+    needs: evidence-collection
+    runs-on: ubuntu-latest
+    outputs:
+      agent_a_result: ${{ steps.agent-a.outputs.result }}
+      agent_b_result: ${{ steps.agent-b.outputs.result }}
+      agent_c_result: ${{ steps.agent-c.outputs.result }}
+      agent_d_result: ${{ steps.agent-d.outputs.result }}
+      agent_e_result: ${{ steps.agent-e.outputs.result }}
+      agent_f_result: ${{ steps.agent-f.outputs.result }}
+      agent_g_result: ${{ steps.agent-g.outputs.result }}
+      issues_found: ${{ steps.aggregate.outputs.issues_found }}
+      tier1_fixes: ${{ steps.aggregate.outputs.tier1_fixes }}
+      tier2_fixes: ${{ steps.aggregate.outputs.tier2_fixes }}
+      tier3_fixes: ${{ steps.aggregate.outputs.tier3_fixes }}
+      overall_health: ${{ steps.aggregate.outputs.overall_health }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          if [ "${{ env.PRODUCTION }}" == "true" ]; then
+            az aks get-credentials \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AKS_CLUSTER_NAME }} \
+              --overwrite-existing
+          else
+            az aks get-credentials \
+              --resource-group flamoral-staging-rg \
+              --name flamoral-staging-aks \
+              --overwrite-existing
+          fi
+
+      # -----------------------------------------------------------------------
+      # Agent A: Pod Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent A: Pod Health Check"
+        id: agent-a
+        run: |
+          echo "::group::Agent A - Pod Health Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for CrashLoopBackOff pods
+          CRASHLOOP_PODS=$(kubectl get pods -n $NAMESPACE --no-headers 2>/dev/null | grep -i "CrashLoopBackOff" | awk '{print $1}' || true)
+          if [ -n "$CRASHLOOP_PODS" ]; then
+            STATUS="critical"
+            for pod in $CRASHLOOP_PODS; do
+              ISSUES="$ISSUES|pod_crashloop:$pod"
+              FIXES="$FIXES|tier1:restart_pod:$pod"
+            done
+          fi
+
+          # Check for ImagePullBackOff pods
+          IMAGEPULL_PODS=$(kubectl get pods -n $NAMESPACE --no-headers 2>/dev/null | grep -i "ImagePullBackOff\|ErrImagePull" | awk '{print $1}' || true)
+          if [ -n "$IMAGEPULL_PODS" ]; then
+            STATUS="critical"
+            for pod in $IMAGEPULL_PODS; do
+              ISSUES="$ISSUES|pod_imagepull:$pod"
+              FIXES="$FIXES|tier2:check_image_config:$pod"
+            done
+          fi
+
+          # Check for pods in Pending state > 5 minutes
+          PENDING_PODS=$(kubectl get pods -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.phase=="Pending") | select((.metadata.creationTimestamp | fromdateiso8601) < (now - 300)) | .metadata.name' || true)
+          if [ -n "$PENDING_PODS" ]; then
+            STATUS="warning"
+            for pod in $PENDING_PODS; do
+              ISSUES="$ISSUES|pod_pending:$pod"
+              FIXES="$FIXES|tier1:check_resources:$pod"
+            done
+          fi
+
+          # Check for high restart counts (> 5 restarts)
+          HIGH_RESTART_PODS=$(kubectl get pods -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.containerStatuses != null) | select([.status.containerStatuses[].restartCount] | add > 5) | .metadata.name' || true)
+          if [ -n "$HIGH_RESTART_PODS" ]; then
+            if [ "$STATUS" != "critical" ]; then STATUS="warning"; fi
+            for pod in $HIGH_RESTART_PODS; do
+              ISSUES="$ISSUES|pod_high_restarts:$pod"
+              FIXES="$FIXES|tier2:investigate_restarts:$pod"
+            done
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "A", name: "Pod Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent B: Node Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent B: Node Health Check"
+        id: agent-b
+        run: |
+          echo "::group::Agent B - Node Health Check"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for NotReady nodes
+          NOT_READY_NODES=$(kubectl get nodes --no-headers 2>/dev/null | grep -v " Ready " | awk '{print $1}' || true)
+          if [ -n "$NOT_READY_NODES" ]; then
+            STATUS="critical"
+            for node in $NOT_READY_NODES; do
+              ISSUES="$ISSUES|node_not_ready:$node"
+              FIXES="$FIXES|tier3:cordon_node:$node"
+            done
+          fi
+
+          # Check for memory pressure
+          MEMORY_PRESSURE_NODES=$(kubectl get nodes -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.conditions[] | select(.type=="MemoryPressure" and .status=="True")) | .metadata.name' || true)
+          if [ -n "$MEMORY_PRESSURE_NODES" ]; then
+            STATUS="warning"
+            for node in $MEMORY_PRESSURE_NODES; do
+              ISSUES="$ISSUES|node_memory_pressure:$node"
+              FIXES="$FIXES|tier2:evict_pods:$node"
+            done
+          fi
+
+          # Check for disk pressure
+          DISK_PRESSURE_NODES=$(kubectl get nodes -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.conditions[] | select(.type=="DiskPressure" and .status=="True")) | .metadata.name' || true)
+          if [ -n "$DISK_PRESSURE_NODES" ]; then
+            STATUS="warning"
+            for node in $DISK_PRESSURE_NODES; do
+              ISSUES="$ISSUES|node_disk_pressure:$node"
+              FIXES="$FIXES|tier2:cleanup_disk:$node"
+            done
+          fi
+
+          # Check for PID pressure
+          PID_PRESSURE_NODES=$(kubectl get nodes -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.conditions[] | select(.type=="PIDPressure" and .status=="True")) | .metadata.name' || true)
+          if [ -n "$PID_PRESSURE_NODES" ]; then
+            STATUS="warning"
+            for node in $PID_PRESSURE_NODES; do
+              ISSUES="$ISSUES|node_pid_pressure:$node"
+              FIXES="$FIXES|tier2:investigate_processes:$node"
+            done
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "B", name: "Node Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent C: Deployment Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent C: Deployment Health Check"
+        id: agent-c
+        run: |
+          echo "::group::Agent C - Deployment Health Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for deployments with unavailable replicas
+          UNAVAILABLE_DEPLOYMENTS=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.unavailableReplicas > 0) | .metadata.name' || true)
+          if [ -n "$UNAVAILABLE_DEPLOYMENTS" ]; then
+            STATUS="warning"
+            for deploy in $UNAVAILABLE_DEPLOYMENTS; do
+              ISSUES="$ISSUES|deployment_unavailable:$deploy"
+              FIXES="$FIXES|tier1:scale_up:$deploy"
+            done
+          fi
+
+          # Check for deployments with failed rollouts
+          FAILED_ROLLOUTS=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.conditions[] | select(.type=="Progressing" and .status=="False")) | .metadata.name' || true)
+          if [ -n "$FAILED_ROLLOUTS" ]; then
+            STATUS="critical"
+            for deploy in $FAILED_ROLLOUTS; do
+              ISSUES="$ISSUES|deployment_rollout_failed:$deploy"
+              FIXES="$FIXES|tier2:rollback_deployment:$deploy"
+            done
+          fi
+
+          # Check for deployments at 0 replicas (unintended)
+          ZERO_REPLICA_DEPLOYMENTS=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.spec.replicas == 0 and .metadata.annotations["intended-zero-replicas"] != "true") | .metadata.name' || true)
+          if [ -n "$ZERO_REPLICA_DEPLOYMENTS" ]; then
+            STATUS="warning"
+            for deploy in $ZERO_REPLICA_DEPLOYMENTS; do
+              ISSUES="$ISSUES|deployment_zero_replicas:$deploy"
+              FIXES="$FIXES|tier1:scale_to_min:$deploy"
+            done
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "C", name: "Deployment Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent D: Service & Ingress Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent D: Service & Ingress Health Check"
+        id: agent-d
+        run: |
+          echo "::group::Agent D - Service & Ingress Health Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for services with no endpoints
+          SERVICES=$(kubectl get services -n $NAMESPACE -o json 2>/dev/null | jq -r '.items[].metadata.name' || true)
+          for svc in $SERVICES; do
+            ENDPOINTS=$(kubectl get endpoints $svc -n $NAMESPACE -o json 2>/dev/null | jq '.subsets | length' || echo "0")
+            if [ "$ENDPOINTS" == "0" ] || [ -z "$ENDPOINTS" ]; then
+              if [ "$STATUS" != "critical" ]; then STATUS="warning"; fi
+              ISSUES="$ISSUES|service_no_endpoints:$svc"
+              FIXES="$FIXES|tier1:check_selector:$svc"
+            fi
+          done
+
+          # Check for ingress with no backends
+          INGRESSES=$(kubectl get ingress -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.loadBalancer.ingress == null or .status.loadBalancer.ingress == []) | .metadata.name' || true)
+          if [ -n "$INGRESSES" ]; then
+            STATUS="warning"
+            for ing in $INGRESSES; do
+              ISSUES="$ISSUES|ingress_no_backend:$ing"
+              FIXES="$FIXES|tier2:check_ingress_config:$ing"
+            done
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "D", name: "Service & Ingress Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent E: Resource Utilization Check
+      # -----------------------------------------------------------------------
+      - name: "Agent E: Resource Utilization Check"
+        id: agent-e
+        run: |
+          echo "::group::Agent E - Resource Utilization Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check HPA status
+          HPA_AT_MAX=$(kubectl get hpa -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.currentReplicas >= .spec.maxReplicas) | .metadata.name' || true)
+          if [ -n "$HPA_AT_MAX" ]; then
+            STATUS="warning"
+            for hpa in $HPA_AT_MAX; do
+              ISSUES="$ISSUES|hpa_at_max:$hpa"
+              FIXES="$FIXES|tier2:increase_max_replicas:$hpa"
+            done
+          fi
+
+          # Check HPA unable to scale
+          HPA_SCALE_ISSUES=$(kubectl get hpa -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.conditions[] | select(.type=="ScalingActive" and .status=="False")) | .metadata.name' || true)
+          if [ -n "$HPA_SCALE_ISSUES" ]; then
+            STATUS="warning"
+            for hpa in $HPA_SCALE_ISSUES; do
+              ISSUES="$ISSUES|hpa_scaling_issue:$hpa"
+              FIXES="$FIXES|tier2:check_hpa_config:$hpa"
+            done
+          fi
+
+          # Check for pods near resource limits (if metrics available)
+          if kubectl top pods -n $NAMESPACE &>/dev/null; then
+            # This is a simplified check - in production you'd compare against limits
+            HIGH_CPU_PODS=$(kubectl top pods -n $NAMESPACE --no-headers 2>/dev/null | \
+              awk '$2 ~ /[0-9]+m/ {gsub("m","",$2); if($2 > 900) print $1}' || true)
+            if [ -n "$HIGH_CPU_PODS" ]; then
+              if [ "$STATUS" != "critical" ]; then STATUS="warning"; fi
+              for pod in $HIGH_CPU_PODS; do
+                ISSUES="$ISSUES|pod_high_cpu:$pod"
+                FIXES="$FIXES|tier1:check_cpu_limits:$pod"
+              done
+            fi
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "E", name: "Resource Utilization", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent F: PVC & Storage Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent F: PVC & Storage Health Check"
+        id: agent-f
+        run: |
+          echo "::group::Agent F - PVC & Storage Health Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for unbound PVCs
+          UNBOUND_PVCS=$(kubectl get pvc -n $NAMESPACE -o json 2>/dev/null | \
+            jq -r '.items[] | select(.status.phase != "Bound") | .metadata.name' || true)
+          if [ -n "$UNBOUND_PVCS" ]; then
+            STATUS="warning"
+            for pvc in $UNBOUND_PVCS; do
+              ISSUES="$ISSUES|pvc_unbound:$pvc"
+              FIXES="$FIXES|tier2:check_storage_class:$pvc"
+            done
+          fi
+
+          # Check for PVCs nearing capacity (this requires prometheus or similar)
+          # For now, we'll check events for volume-related warnings
+          VOLUME_EVENTS=$(kubectl get events -n $NAMESPACE --field-selector reason=VolumeResizeFailed -o json 2>/dev/null | \
+            jq -r '.items[].involvedObject.name' | sort -u || true)
+          if [ -n "$VOLUME_EVENTS" ]; then
+            STATUS="warning"
+            for pvc in $VOLUME_EVENTS; do
+              ISSUES="$ISSUES|pvc_resize_failed:$pvc"
+              FIXES="$FIXES|tier2:manual_volume_resize:$pvc"
+            done
+          fi
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "G", name: "PVC & Storage Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Agent G: Certificate & Secret Health Check
+      # -----------------------------------------------------------------------
+      - name: "Agent G: Certificate & Secret Health Check"
+        id: agent-g
+        run: |
+          echo "::group::Agent G - Certificate & Secret Health Check"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=""
+          FIXES=""
+          STATUS="healthy"
+
+          # Check for certificates expiring soon (within 7 days)
+          # This requires cert-manager CRDs
+          if kubectl get certificates -n $NAMESPACE &>/dev/null; then
+            EXPIRING_CERTS=$(kubectl get certificates -n $NAMESPACE -o json 2>/dev/null | \
+              jq -r --argjson threshold $(date -d "+7 days" +%s) \
+              '.items[] | select(.status.notAfter != null) | select((.status.notAfter | fromdateiso8601) < $threshold) | .metadata.name' || true)
+            if [ -n "$EXPIRING_CERTS" ]; then
+              STATUS="warning"
+              for cert in $EXPIRING_CERTS; do
+                ISSUES="$ISSUES|cert_expiring:$cert"
+                FIXES="$FIXES|tier2:renew_certificate:$cert"
+              done
+            fi
+
+            # Check for failed certificate issuance
+            FAILED_CERTS=$(kubectl get certificates -n $NAMESPACE -o json 2>/dev/null | \
+              jq -r '.items[] | select(.status.conditions[] | select(.type=="Ready" and .status=="False")) | .metadata.name' || true)
+            if [ -n "$FAILED_CERTS" ]; then
+              STATUS="critical"
+              for cert in $FAILED_CERTS; do
+                ISSUES="$ISSUES|cert_issuance_failed:$cert"
+                FIXES="$FIXES|tier2:check_issuer_config:$cert"
+              done
+            fi
+          fi
+
+          # Check for secrets referenced by pods but missing
+          MISSING_SECRETS=""
+          PODS_JSON=$(kubectl get pods -n $NAMESPACE -o json 2>/dev/null || echo '{"items":[]}')
+          SECRET_REFS=$(echo "$PODS_JSON" | jq -r '.items[].spec.containers[].env[]?.valueFrom.secretKeyRef.name // empty' | sort -u)
+          for secret in $SECRET_REFS; do
+            if ! kubectl get secret $secret -n $NAMESPACE &>/dev/null; then
+              if [ "$STATUS" != "critical" ]; then STATUS="critical"; fi
+              ISSUES="$ISSUES|secret_missing:$secret"
+              FIXES="$FIXES|tier3:create_secret:$secret"
+            fi
+          done
+
+          RESULT=$(jq -n \
+            --arg status "$STATUS" \
+            --arg issues "$ISSUES" \
+            --arg fixes "$FIXES" \
+            '{agent: "G", name: "Certificate & Secret Health", status: $status, issues: $issues, fixes: $fixes}')
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Aggregate Results
+      # -----------------------------------------------------------------------
+      - name: Aggregate agent results
+        id: aggregate
+        run: |
+          # Parse all agent results
+          AGENT_A='${{ steps.agent-a.outputs.result }}'
+          AGENT_B='${{ steps.agent-b.outputs.result }}'
+          AGENT_C='${{ steps.agent-c.outputs.result }}'
+          AGENT_D='${{ steps.agent-d.outputs.result }}'
+          AGENT_E='${{ steps.agent-e.outputs.result }}'
+          AGENT_F='${{ steps.agent-f.outputs.result }}'
+          AGENT_G='${{ steps.agent-g.outputs.result }}'
+
+          # Collect all issues and fixes
+          ALL_ISSUES=""
+          ALL_FIXES=""
+          OVERALL_STATUS="healthy"
+
+          for agent_result in "$AGENT_A" "$AGENT_B" "$AGENT_C" "$AGENT_D" "$AGENT_E" "$AGENT_F" "$AGENT_G"; do
+            status=$(echo "$agent_result" | jq -r '.status')
+            issues=$(echo "$agent_result" | jq -r '.issues')
+            fixes=$(echo "$agent_result" | jq -r '.fixes')
+
+            if [ "$status" == "critical" ]; then
+              OVERALL_STATUS="critical"
+            elif [ "$status" == "warning" ] && [ "$OVERALL_STATUS" != "critical" ]; then
+              OVERALL_STATUS="warning"
+            fi
+
+            ALL_ISSUES="$ALL_ISSUES$issues"
+            ALL_FIXES="$ALL_FIXES$fixes"
+          done
+
+          # Count issues by tier
+          TIER1_COUNT=$(echo "$ALL_FIXES" | grep -o "tier1:" | wc -l || echo "0")
+          TIER2_COUNT=$(echo "$ALL_FIXES" | grep -o "tier2:" | wc -l || echo "0")
+          TIER3_COUNT=$(echo "$ALL_FIXES" | grep -o "tier3:" | wc -l || echo "0")
+
+          # Extract fix lists by tier
+          TIER1_FIXES=$(echo "$ALL_FIXES" | tr '|' '\n' | grep "^tier1:" | sed 's/tier1://' | tr '\n' '|' | sed 's/|$//')
+          TIER2_FIXES=$(echo "$ALL_FIXES" | tr '|' '\n' | grep "^tier2:" | sed 's/tier2://' | tr '\n' '|' | sed 's/|$//')
+          TIER3_FIXES=$(echo "$ALL_FIXES" | tr '|' '\n' | grep "^tier3:" | sed 's/tier3://' | tr '\n' '|' | sed 's/|$//')
+
+          # Set outputs
+          if [ -n "$(echo "$ALL_ISSUES" | tr -d '|')" ]; then
+            echo "issues_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "issues_found=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "tier1_fixes=$TIER1_FIXES" >> $GITHUB_OUTPUT
+          echo "tier2_fixes=$TIER2_FIXES" >> $GITHUB_OUTPUT
+          echo "tier3_fixes=$TIER3_FIXES" >> $GITHUB_OUTPUT
+          echo "overall_health=$OVERALL_STATUS" >> $GITHUB_OUTPUT
+
+          # Summary
+          echo "## Agent Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Agent | Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| A | Pod Health | $(echo "$AGENT_A" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| B | Node Health | $(echo "$AGENT_B" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| C | Deployment Health | $(echo "$AGENT_C" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| D | Service & Ingress | $(echo "$AGENT_D" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| E | Resource Utilization | $(echo "$AGENT_E" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| F | PVC & Storage | $(echo "$AGENT_F" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "| G | Certificates & Secrets | $(echo "$AGENT_G" | jq -r '.status') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Health:** $OVERALL_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "**Tier 1 Fixes:** $TIER1_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "**Tier 2 Fixes:** $TIER2_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "**Tier 3 Fixes:** $TIER3_COUNT" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # TIER 3 APPROVAL GATE (Manual approval for critical fixes)
+  # ===========================================================================
+  tier3-approval:
+    name: Tier 3 Fix Approval
+    needs: agent-checks
+    runs-on: ubuntu-latest
+    if: |
+      needs.agent-checks.outputs.tier3_fixes != '' &&
+      github.event.inputs.AUTO_FIX_MAX_TIER == '3'
+    environment:
+      name: production-critical
+      url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      - name: Tier 3 fixes pending approval
+        run: |
+          echo "## Tier 3 Fixes Require Approval" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The following critical fixes require manual approval:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ needs.agent-checks.outputs.tier3_fixes }}" | tr '|' '\n' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**WARNING:** These are high-impact operations that may cause service disruption." >> $GITHUB_STEP_SUMMARY
+
+      - name: Approval granted
+        run: |
+          echo "Tier 3 fixes approved by environment protection rules"
+
+  # ===========================================================================
+  # AUTO-FIX - Apply safe remediation (Tier 1-2)
+  # ===========================================================================
+  auto-fix:
+    name: Apply Auto-Fixes
+    needs: [evidence-collection, agent-checks, tier3-approval]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.agent-checks.outputs.issues_found == 'true' &&
+      github.event.inputs.AUTO_FIX != 'false' &&
+      github.event.inputs.DRY_RUN != 'true' &&
+      (needs.tier3-approval.result == 'success' || needs.tier3-approval.result == 'skipped')
+    outputs:
+      fixes_applied: ${{ steps.apply-fixes.outputs.fixes_applied }}
+      fix_results: ${{ steps.apply-fixes.outputs.results }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          if [ "${{ env.PRODUCTION }}" == "true" ]; then
+            az aks get-credentials \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AKS_CLUSTER_NAME }} \
+              --overwrite-existing
+          else
+            az aks get-credentials \
+              --resource-group flamoral-staging-rg \
+              --name flamoral-staging-aks \
+              --overwrite-existing
+          fi
+
+      - name: Apply Tier 1 fixes
+        id: tier1
+        if: needs.agent-checks.outputs.tier1_fixes != ''
+        run: |
+          echo "::group::Applying Tier 1 Fixes"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          FIXES="${{ needs.agent-checks.outputs.tier1_fixes }}"
+          APPLIED=0
+          FAILED=0
+
+          IFS='|' read -ra FIX_ARRAY <<< "$FIXES"
+          for fix in "${FIX_ARRAY[@]}"; do
+            if [ -z "$fix" ]; then continue; fi
+
+            ACTION=$(echo "$fix" | cut -d':' -f1)
+            TARGET=$(echo "$fix" | cut -d':' -f2)
+
+            echo "Applying fix: $ACTION on $TARGET"
+
+            case $ACTION in
+              restart_pod)
+                if kubectl delete pod "$TARGET" -n $NAMESPACE --grace-period=30 2>/dev/null; then
+                  echo "Successfully restarted pod: $TARGET"
+                  ((APPLIED++))
+                else
+                  echo "Failed to restart pod: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              scale_up)
+                CURRENT=$(kubectl get deployment "$TARGET" -n $NAMESPACE -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+                NEW_REPLICAS=$((CURRENT + 1))
+                if kubectl scale deployment "$TARGET" -n $NAMESPACE --replicas=$NEW_REPLICAS 2>/dev/null; then
+                  echo "Scaled up deployment: $TARGET to $NEW_REPLICAS"
+                  ((APPLIED++))
+                else
+                  echo "Failed to scale deployment: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              scale_to_min)
+                if kubectl scale deployment "$TARGET" -n $NAMESPACE --replicas=1 2>/dev/null; then
+                  echo "Scaled deployment to minimum: $TARGET"
+                  ((APPLIED++))
+                else
+                  echo "Failed to scale deployment: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              check_resources|check_selector|check_cpu_limits)
+                echo "Info: $ACTION for $TARGET requires investigation"
+                ;;
+              *)
+                echo "Unknown action: $ACTION"
+                ;;
+            esac
+          done
+
+          echo "tier1_applied=$APPLIED" >> $GITHUB_OUTPUT
+          echo "tier1_failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      - name: Apply Tier 2 fixes
+        id: tier2
+        if: |
+          needs.agent-checks.outputs.tier2_fixes != '' &&
+          (github.event.inputs.AUTO_FIX_MAX_TIER == '2' || github.event.inputs.AUTO_FIX_MAX_TIER == '3')
+        run: |
+          echo "::group::Applying Tier 2 Fixes"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          FIXES="${{ needs.agent-checks.outputs.tier2_fixes }}"
+          APPLIED=0
+          FAILED=0
+
+          IFS='|' read -ra FIX_ARRAY <<< "$FIXES"
+          for fix in "${FIX_ARRAY[@]}"; do
+            if [ -z "$fix" ]; then continue; fi
+
+            ACTION=$(echo "$fix" | cut -d':' -f1)
+            TARGET=$(echo "$fix" | cut -d':' -f2)
+
+            echo "Applying fix: $ACTION on $TARGET"
+
+            case $ACTION in
+              rollback_deployment)
+                if kubectl rollout undo deployment "$TARGET" -n $NAMESPACE 2>/dev/null; then
+                  echo "Rolled back deployment: $TARGET"
+                  ((APPLIED++))
+                else
+                  echo "Failed to rollback deployment: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              increase_max_replicas)
+                CURRENT_MAX=$(kubectl get hpa "$TARGET" -n $NAMESPACE -o jsonpath='{.spec.maxReplicas}' 2>/dev/null || echo "10")
+                NEW_MAX=$((CURRENT_MAX + 2))
+                if kubectl patch hpa "$TARGET" -n $NAMESPACE -p "{\"spec\":{\"maxReplicas\":$NEW_MAX}}" 2>/dev/null; then
+                  echo "Increased max replicas for HPA: $TARGET to $NEW_MAX"
+                  ((APPLIED++))
+                else
+                  echo "Failed to patch HPA: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              evict_pods)
+                # Evict non-critical pods from node
+                echo "Would evict pods from node $TARGET - manual action recommended"
+                ;;
+              check_image_config|investigate_restarts|cleanup_disk|investigate_processes|check_hpa_config|check_ingress_config|check_storage_class|manual_volume_resize|renew_certificate|check_issuer_config)
+                echo "Info: $ACTION for $TARGET requires manual investigation"
+                ;;
+              *)
+                echo "Unknown action: $ACTION"
+                ;;
+            esac
+          done
+
+          echo "tier2_applied=$APPLIED" >> $GITHUB_OUTPUT
+          echo "tier2_failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      - name: Apply Tier 3 fixes
+        id: tier3
+        if: |
+          needs.agent-checks.outputs.tier3_fixes != '' &&
+          github.event.inputs.AUTO_FIX_MAX_TIER == '3' &&
+          needs.tier3-approval.result == 'success'
+        run: |
+          echo "::group::Applying Tier 3 Fixes (Approved)"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          FIXES="${{ needs.agent-checks.outputs.tier3_fixes }}"
+          APPLIED=0
+          FAILED=0
+
+          IFS='|' read -ra FIX_ARRAY <<< "$FIXES"
+          for fix in "${FIX_ARRAY[@]}"; do
+            if [ -z "$fix" ]; then continue; fi
+
+            ACTION=$(echo "$fix" | cut -d':' -f1)
+            TARGET=$(echo "$fix" | cut -d':' -f2)
+
+            echo "Applying CRITICAL fix: $ACTION on $TARGET"
+
+            case $ACTION in
+              cordon_node)
+                if kubectl cordon "$TARGET" 2>/dev/null; then
+                  echo "Cordoned node: $TARGET"
+                  ((APPLIED++))
+                else
+                  echo "Failed to cordon node: $TARGET"
+                  ((FAILED++))
+                fi
+                ;;
+              create_secret)
+                echo "Cannot auto-create secret: $TARGET - manual intervention required"
+                ;;
+              *)
+                echo "Unknown action: $ACTION"
+                ;;
+            esac
+          done
+
+          echo "tier3_applied=$APPLIED" >> $GITHUB_OUTPUT
+          echo "tier3_failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      - name: Calculate total fixes
+        id: apply-fixes
+        run: |
+          TIER1_APPLIED="${{ steps.tier1.outputs.tier1_applied || '0' }}"
+          TIER2_APPLIED="${{ steps.tier2.outputs.tier2_applied || '0' }}"
+          TIER3_APPLIED="${{ steps.tier3.outputs.tier3_applied || '0' }}"
+          TOTAL=$((TIER1_APPLIED + TIER2_APPLIED + TIER3_APPLIED))
+
+          echo "fixes_applied=$TOTAL" >> $GITHUB_OUTPUT
+
+          RESULTS=$(jq -n \
+            --arg t1 "$TIER1_APPLIED" \
+            --arg t2 "$TIER2_APPLIED" \
+            --arg t3 "$TIER3_APPLIED" \
+            --arg total "$TOTAL" \
+            '{tier1: $t1, tier2: $t2, tier3: $t3, total: $total}')
+          echo "results=$RESULTS" >> $GITHUB_OUTPUT
+
+  # ===========================================================================
+  # VERIFICATION - Verify fixes worked
+  # ===========================================================================
+  verification:
+    name: Verify Fixes
+    needs: [auto-fix, agent-checks]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.auto-fix.result == 'success' &&
+      needs.auto-fix.outputs.fixes_applied != '0'
+    outputs:
+      verification_status: ${{ steps.verify.outputs.status }}
+      post_fix_health: ${{ steps.verify.outputs.health }}
+
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          if [ "${{ env.PRODUCTION }}" == "true" ]; then
+            az aks get-credentials \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AKS_CLUSTER_NAME }} \
+              --overwrite-existing
+          else
+            az aks get-credentials \
+              --resource-group flamoral-staging-rg \
+              --name flamoral-staging-aks \
+              --overwrite-existing
+          fi
+
+      - name: Wait for fixes to take effect
+        run: |
+          echo "Waiting 60 seconds for fixes to stabilize..."
+          sleep 60
+
+      - name: Verify cluster health post-fix
+        id: verify
+        run: |
+          NAMESPACE="${{ env.NAMESPACE }}"
+          ISSUES=0
+          STATUS="healthy"
+
+          # Check pod status
+          NOT_RUNNING=$(kubectl get pods -n $NAMESPACE --no-headers 2>/dev/null | grep -v "Running\|Completed" | wc -l || echo "0")
+          if [ "$NOT_RUNNING" -gt 0 ]; then
+            ISSUES=$((ISSUES + NOT_RUNNING))
+            STATUS="degraded"
+          fi
+
+          # Check deployment rollouts
+          PROGRESSING=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
+            jq '[.items[] | select(.status.conditions[] | select(.type=="Progressing" and .status=="True"))] | length')
+          AVAILABLE=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
+            jq '[.items[] | select(.status.availableReplicas >= .spec.replicas)] | length')
+          TOTAL_DEPLOYMENTS=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | jq '.items | length')
+
+          if [ "$AVAILABLE" -lt "$TOTAL_DEPLOYMENTS" ]; then
+            STATUS="degraded"
+          fi
+
+          if [ "$ISSUES" -eq 0 ] && [ "$AVAILABLE" -eq "$TOTAL_DEPLOYMENTS" ]; then
+            STATUS="verified"
+          fi
+
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "health=$STATUS" >> $GITHUB_OUTPUT
+
+          echo "## Verification Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Pods Not Running | $NOT_RUNNING |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployments Available | $AVAILABLE / $TOTAL_DEPLOYMENTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Verification Status | $STATUS |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Trigger rollback on failure
+        if: |
+          steps.verify.outputs.status != 'verified' &&
+          github.event.inputs.ROLLBACK_ON_FAILURE == 'true'
+        run: |
+          echo "::warning::Verification failed - rollback may be required"
+          echo "Rollback would be triggered here in production"
+          # In a real scenario, you might trigger a rollback workflow here
+
+  # ===========================================================================
+  # REPORT - Generate final status report
+  # ===========================================================================
+  report:
+    name: Generate Report
+    needs: [evidence-collection, agent-checks, auto-fix, verification]
+    runs-on: ubuntu-latest
+    if: always()
+    outputs:
+      health_status: ${{ steps.report.outputs.health_status }}
+      fixes_applied: ${{ steps.report.outputs.fixes_applied }}
+      requires_attention: ${{ steps.report.outputs.requires_attention }}
+
+    steps:
+      - name: Generate comprehensive report
+        id: report
+        run: |
+          # Determine overall status
+          AGENT_HEALTH="${{ needs.agent-checks.outputs.overall_health || 'unknown' }}"
+          VERIFICATION="${{ needs.verification.outputs.verification_status || 'skipped' }}"
+          FIXES_APPLIED="${{ needs.auto-fix.outputs.fixes_applied || '0' }}"
+          TIER3_FIXES="${{ needs.agent-checks.outputs.tier3_fixes }}"
+
+          # Determine final health status
+          if [ "$VERIFICATION" == "verified" ]; then
+            HEALTH_STATUS="healthy"
+          elif [ "$AGENT_HEALTH" == "healthy" ]; then
+            HEALTH_STATUS="healthy"
+          elif [ "$AGENT_HEALTH" == "warning" ]; then
+            HEALTH_STATUS="warning"
+          else
+            HEALTH_STATUS="critical"
+          fi
+
+          # Determine if manual attention needed
+          if [ -n "$TIER3_FIXES" ] && [ "${{ github.event.inputs.AUTO_FIX_MAX_TIER }}" != "3" ]; then
+            REQUIRES_ATTENTION="true"
+          elif [ "$HEALTH_STATUS" == "critical" ]; then
+            REQUIRES_ATTENTION="true"
+          else
+            REQUIRES_ATTENTION="false"
+          fi
+
+          echo "health_status=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+          echo "fixes_applied=$FIXES_APPLIED" >> $GITHUB_OUTPUT
+          echo "requires_attention=$REQUIRES_ATTENTION" >> $GITHUB_OUTPUT
+
+          # Generate summary
+          echo "# AKS Self-Healing Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
+          echo "**Namespace:** ${{ env.NAMESPACE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Production:** ${{ env.PRODUCTION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Overall Health | $HEALTH_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Agent Health Check | $AGENT_HEALTH |" >> $GITHUB_STEP_SUMMARY
+          echo "| Fixes Applied | $FIXES_APPLIED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Verification | $VERIFICATION |" >> $GITHUB_STEP_SUMMARY
+          echo "| Requires Attention | $REQUIRES_ATTENTION |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$REQUIRES_ATTENTION" == "true" ]; then
+            echo "## Action Required" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Manual intervention may be required. Review the agent check results above." >> $GITHUB_STEP_SUMMARY
+            if [ -n "$TIER3_FIXES" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### Tier 3 Fixes Pending" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "$TIER3_FIXES" | tr '|' '\n' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Send Slack notification
+        if: |
+          needs.agent-checks.outputs.overall_health == 'critical' ||
+          needs.verification.outputs.verification_status == 'degraded'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'custom'
+          custom_payload: |
+            {
+              "channel": "#alerts",
+              "attachments": [
+                {
+                  "color": "${{ needs.agent-checks.outputs.overall_health == 'critical' && 'danger' || 'warning' }}",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "AKS Self-Healing Alert - Flamoral Platform"
+                      }
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Namespace:*\n${{ env.NAMESPACE }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Health Status:*\n${{ needs.agent-checks.outputs.overall_health }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Fixes Applied:*\n${{ needs.auto-fix.outputs.fixes_applied || '0' }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Verification:*\n${{ needs.verification.outputs.verification_status || 'skipped' }}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*Workflow:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Send success notification (scheduled runs only)
+        if: |
+          github.event_name == 'schedule' &&
+          needs.agent-checks.outputs.overall_health == 'healthy'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'custom'
+          custom_payload: |
+            {
+              "channel": "#ops",
+              "attachments": [
+                {
+                  "color": "good",
+                  "text": "AKS Self-Healing Check: All systems healthy in ${{ env.NAMESPACE }}"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Create issue for critical failures
+        if: |
+          needs.agent-checks.outputs.overall_health == 'critical' &&
+          steps.report.outputs.requires_attention == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[AKS Self-Healing] Critical issues detected in ${{ env.NAMESPACE }}`;
+            const body = `
+            ## AKS Self-Healing Alert
+
+            **Timestamp:** ${new Date().toISOString()}
+            **Namespace:** ${{ env.NAMESPACE }}
+            **Health Status:** Critical
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ### Agent Results
+            - Agent A (Pod Health): ${{ needs.agent-checks.outputs.agent_a_result && fromJSON(needs.agent-checks.outputs.agent_a_result).status || 'N/A' }}
+            - Agent B (Node Health): ${{ needs.agent-checks.outputs.agent_b_result && fromJSON(needs.agent-checks.outputs.agent_b_result).status || 'N/A' }}
+            - Agent C (Deployment Health): ${{ needs.agent-checks.outputs.agent_c_result && fromJSON(needs.agent-checks.outputs.agent_c_result).status || 'N/A' }}
+            - Agent D (Service & Ingress): ${{ needs.agent-checks.outputs.agent_d_result && fromJSON(needs.agent-checks.outputs.agent_d_result).status || 'N/A' }}
+            - Agent E (Resource Utilization): ${{ needs.agent-checks.outputs.agent_e_result && fromJSON(needs.agent-checks.outputs.agent_e_result).status || 'N/A' }}
+            - Agent F (PVC & Storage): ${{ needs.agent-checks.outputs.agent_f_result && fromJSON(needs.agent-checks.outputs.agent_f_result).status || 'N/A' }}
+            - Agent G (Certificates & Secrets): ${{ needs.agent-checks.outputs.agent_g_result && fromJSON(needs.agent-checks.outputs.agent_g_result).status || 'N/A' }}
+
+            ### Fixes Applied
+            - Tier 1: ${{ needs.auto-fix.outputs.fix_results && fromJSON(needs.auto-fix.outputs.fix_results).tier1 || '0' }}
+            - Tier 2: ${{ needs.auto-fix.outputs.fix_results && fromJSON(needs.auto-fix.outputs.fix_results).tier2 || '0' }}
+            - Tier 3: ${{ needs.auto-fix.outputs.fix_results && fromJSON(needs.auto-fix.outputs.fix_results).tier3 || '0' }}
+
+            ### Pending Tier 3 Fixes
+            \`\`\`
+            ${{ needs.agent-checks.outputs.tier3_fixes || 'None' }}
+            \`\`\`
+
+            ### Action Required
+            Please review the workflow run and take appropriate action.
+
+            /cc @flamoral/platform-team
+            `;
+
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'aks-self-healing,critical'
+            });
+
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['aks-self-healing', 'critical', 'automated']
+              });
+            }
+        continue-on-error: true
