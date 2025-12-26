@@ -229,7 +229,7 @@ jobs:
 
       - name: Login to Azure Container Registry
         if: steps.dockerfile.outputs.exists == 'true'
-        uses: azure/docker-login@v1
+        uses: azure/docker-login@v2
         with:
           login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
           username: ${{ secrets.ACR_USERNAME }}
@@ -300,7 +300,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Login to Azure Container Registry
-        uses: azure/docker-login@v1
+        uses: azure/docker-login@v2
         with:
           login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
           username: ${{ secrets.ACR_USERNAME }}
