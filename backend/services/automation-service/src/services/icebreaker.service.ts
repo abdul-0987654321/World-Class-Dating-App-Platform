@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
+import { createLogger } from '@flamoral/backend-shared';
 import db from '../infrastructure/database/knex';
 import { cache } from '../infrastructure/cache/redis';
 import { TABLES, IcebreakerSuggestion } from '../models';
@@ -11,6 +12,8 @@ import {
 } from '../dtos';
 import config from '../config';
 import { ServiceClient } from './service-client';
+
+const logger = createLogger('automation-service:icebreaker');
 
 /**
  * Icebreaker Service
@@ -96,7 +99,7 @@ export class IcebreakerService {
 
       return response;
     } catch (error: any) {
-      console.error('[IcebreakerService] Generation failed:', error.message);
+      logger.error('Generation failed', { error: error.message });
       throw error;
     }
   }
@@ -153,7 +156,7 @@ Format your response as a JSON array of objects with: message, category (questio
         reasoning: s.reasoning,
       }));
     } catch (error: any) {
-      console.error('[IcebreakerService] AI generation failed:', error.message);
+      logger.error('AI generation failed', { error: error.message });
 
       // Fallback to template-based suggestions
       return this.generateTemplateSuggestions(dto, user, matchUser, sharedInterests);

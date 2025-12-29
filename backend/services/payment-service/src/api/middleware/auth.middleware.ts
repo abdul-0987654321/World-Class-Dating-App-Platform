@@ -7,7 +7,10 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { createLogger } from '@flamoral/backend-shared';
 import * as jwt from 'jsonwebtoken';
+
+const logger = createLogger('payment-auth-middleware');
 
 /**
  * Authenticated user data extracted from JWT token
@@ -52,7 +55,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     const secret = process.env.JWT_ACCESS_SECRET;
     
     if (!secret) {
-      console.error('[PaymentAuth] JWT_ACCESS_SECRET not configured');
+      logger.error('[PaymentAuth] JWT_ACCESS_SECRET not configured');
       res.status(500).json({
         success: false,
         error: 'Server configuration error',
@@ -110,7 +113,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
       return;
     }
   } catch (error) {
-    console.error('[PaymentAuth] Authentication error:', error);
+    logger.error('[PaymentAuth] Authentication error:', error);
     res.status(500).json({
       success: false,
       error: 'Authentication failed',

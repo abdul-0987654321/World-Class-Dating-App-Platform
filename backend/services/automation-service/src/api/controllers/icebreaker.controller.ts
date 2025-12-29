@@ -1,8 +1,10 @@
 import { Response } from 'express';
+import { createLogger } from '@flamoral/backend-shared';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { IcebreakerService } from '../../services/icebreaker.service';
 import { GenerateIcebreakerDto } from '../../dtos';
 
+const logger = createLogger('automation-service:icebreaker-controller');
 const icebreakerService = new IcebreakerService();
 
 /**
@@ -32,7 +34,7 @@ export const generateIcebreakers = async (
       data: result,
     });
   } catch (error: any) {
-    console.error('[IcebreakerController] Generate failed:', error.message);
+    logger.error('Generate failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -57,7 +59,7 @@ export const markIcebreakerUsed = async (
       message: 'Icebreaker marked as used',
     });
   } catch (error: any) {
-    console.error('[IcebreakerController] Mark used failed:', error.message);
+    logger.error('Mark used failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,

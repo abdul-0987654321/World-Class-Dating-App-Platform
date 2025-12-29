@@ -3,6 +3,10 @@
  * Client-side tracking using gtag.js
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('ga4-gtag');
+
 declare global {
   interface Window {
     dataLayer: any[];
@@ -15,13 +19,13 @@ declare global {
  */
 export function initializeGA4(measurementId: string): void {
   if (typeof window === 'undefined') {
-    console.warn('GA4: Window object not available (server-side)');
+    logger.warn('GA4: Window object not available (server-side)');
     return;
   }
 
   // Check if gtag already initialized
   if (window.gtag) {
-    console.log('GA4 already initialized');
+    logger.info('GA4 already initialized');
     return;
   }
 
@@ -48,7 +52,7 @@ export function initializeGA4(measurementId: string): void {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
   document.head.appendChild(script);
 
-  console.log('GA4 initialized:', measurementId);
+  logger.info('GA4 initialized:', measurementId);
 }
 
 /**
@@ -59,12 +63,12 @@ export function trackGA4Event(
   eventParams: Record<string, any> = {}
 ): void {
   if (typeof window === 'undefined' || !window.gtag) {
-    console.warn('GA4 not initialized');
+    logger.warn('GA4 not initialized');
     return;
   }
 
   window.gtag('event', eventName, eventParams);
-  console.log('GA4 event tracked:', eventName, eventParams);
+  logger.info('GA4 event tracked:', eventName, eventParams);
 }
 
 /**
@@ -208,7 +212,7 @@ export function setGA4UserId(userId: string): void {
   }
 
   window.gtag('set', 'user_id', userId);
-  console.log('GA4 user ID set:', userId);
+  logger.info('GA4 user ID set:', userId);
 }
 
 /**
@@ -222,7 +226,7 @@ export function setGA4UserProperties(properties: {
   }
 
   window.gtag('set', 'user_properties', properties);
-  console.log('GA4 user properties set:', properties);
+  logger.info('GA4 user properties set:', properties);
 }
 
 /**
@@ -279,7 +283,7 @@ export function trackGA4EnhancedConversion(data: {
   }
 
   window.gtag('set', 'user_data', enhancedConversionData);
-  console.log('GA4 enhanced conversion data set');
+  logger.info('GA4 enhanced conversion data set');
 }
 
 /**
@@ -324,7 +328,7 @@ export function disableGA4Tracking(measurementId: string): void {
 
   // Set window property to disable GA
   (window as any)[`ga-disable-${measurementId}`] = true;
-  console.log('GA4 tracking disabled');
+  logger.info('GA4 tracking disabled');
 }
 
 /**
@@ -337,7 +341,7 @@ export function enableGA4Tracking(measurementId: string): void {
 
   // Remove disable property
   delete (window as any)[`ga-disable-${measurementId}`];
-  console.log('GA4 tracking enabled');
+  logger.info('GA4 tracking enabled');
 }
 
 /**

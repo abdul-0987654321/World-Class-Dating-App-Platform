@@ -1,6 +1,9 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { rabbitmqClient } from './rabbitmq-client';
 import { GhostingDetectionService } from '../services/ghosting-detection.service';
 import config from '../config';
+
+const logger = createLogger('automation-service:message-events');
 
 /**
  * Message Events Consumer
@@ -24,9 +27,9 @@ export class MessageEventsConsumer {
         this.handleMessageEvent.bind(this)
       );
 
-      console.log('[MessageEventsConsumer] Started listening to message events');
+      logger.info('Started listening to message events');
     } catch (error: any) {
-      console.error('[MessageEventsConsumer] Failed to start:', error.message);
+      logger.error('Failed to start', { error: error.message });
       throw error;
     }
   }
@@ -36,7 +39,7 @@ export class MessageEventsConsumer {
    */
   private async handleMessageEvent(event: any): Promise<void> {
     try {
-      console.log('[MessageEventsConsumer] Received event:', event.type);
+      logger.info('Received event', { eventType: event.type });
 
       switch (event.type) {
         case 'message.sent':
@@ -49,10 +52,10 @@ export class MessageEventsConsumer {
           await this.handleConversationUpdated(event.data);
           break;
         default:
-          console.warn('[MessageEventsConsumer] Unknown event type:', event.type);
+          logger.warn('Unknown event type', { eventType: event.type });
       }
     } catch (error: any) {
-      console.error('[MessageEventsConsumer] Event handling failed:', error.message);
+      logger.error('Event handling failed', { error: error.message });
       throw error;
     }
   }
@@ -68,7 +71,7 @@ export class MessageEventsConsumer {
       try {
         await this.ghostingService.markReEngagementSuccessful(conversationId);
       } catch (error: any) {
-        console.error('[MessageEventsConsumer] Ghosting resolution failed:', error.message);
+        logger.error('Ghosting resolution failed', { error: error.message });
       }
     }
   }
@@ -94,7 +97,7 @@ export class MessageEventsConsumer {
       try {
         await this.ghostingService.detectGhosting(conversationId);
       } catch (error: any) {
-        console.error('[MessageEventsConsumer] Ghosting detection failed:', error.message);
+        logger.error('Ghosting detection failed', { error: error.message });
       }
     }
   }

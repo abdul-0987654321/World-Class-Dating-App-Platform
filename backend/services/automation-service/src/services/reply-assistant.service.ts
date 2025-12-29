@@ -1,8 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
+import { createLogger } from '@flamoral/backend-shared';
 import { GenerateReplyDto, ReplyAssistantResponseDto, ReplySuggestionDto } from '../dtos';
 import config from '../config';
 import { ServiceClient } from './service-client';
+
+const logger = createLogger('automation-service:reply-assistant');
 
 /**
  * Reply Assistant Service
@@ -42,7 +45,7 @@ export class ReplyAssistantService {
         generatedAt: new Date(),
       };
     } catch (error: any) {
-      console.error('[ReplyAssistant] Generation failed:', error.message);
+      logger.error('Generation failed', { error: error.message });
       throw error;
     }
   }
@@ -105,7 +108,7 @@ Format as JSON array with: message, tone, score (0-1), sentiment (positive/neutr
         reasoning: s.reasoning,
       }));
     } catch (error: any) {
-      console.error('[ReplyAssistant] AI generation failed:', error.message);
+      logger.error('AI generation failed', { error: error.message });
 
       // Fallback suggestions
       return this.generateFallbackReplies(dto, context);

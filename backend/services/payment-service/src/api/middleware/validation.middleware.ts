@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import { createLogger } from '@flamoral/backend-shared';
 import Joi from 'joi';
+
+const logger = createLogger('payment-validation-middleware');
 
 type ValidationType = 'body' | 'params' | 'query';
 
@@ -18,7 +21,7 @@ export const validate = (schema: Joi.ObjectSchema, type: ValidationType = 'body'
         message: detail.message,
       }));
 
-      console.warn(`Validation error (${type}):`, errors);
+      logger.warn(`Validation error (${type}):`, errors);
 
       return res.status(400).json({
         success: false,

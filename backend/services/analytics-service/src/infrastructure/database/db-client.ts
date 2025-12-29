@@ -4,6 +4,9 @@
 
 import { Pool, PoolClient, QueryResult } from 'pg';
 import config from '../../config';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('db-client');
 
 class DatabaseClient {
   private pool: Pool | null = null;
@@ -18,7 +21,7 @@ class DatabaseClient {
     }
 
     try {
-      console.log('Initializing PostgreSQL connection pool...');
+      logger.info('Initializing PostgreSQL connection pool...');
 
       this.pool = new Pool({
         host: config.database.host,
@@ -43,9 +46,9 @@ class DatabaseClient {
       }
 
       this.initialized = true;
-      console.log('PostgreSQL connection pool initialized successfully');
+      logger.info('PostgreSQL connection pool initialized successfully');
     } catch (error: any) {
-      console.error('Failed to initialize database connection:', error);
+      logger.error('Failed to initialize database connection:', error);
       throw error;
     }
   }
@@ -55,7 +58,7 @@ class DatabaseClient {
    */
   private async enableTimescaleDB(): Promise<void> {
     try {
-      console.log('Enabling TimescaleDB extension...');
+      logger.info('Enabling TimescaleDB extension...');
 
       await this.query('CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE');
 
@@ -72,7 +75,7 @@ class DatabaseClient {
             migrate_data => TRUE
           )
         `);
-        console.log('tracking_events table converted to TimescaleDB hypertable');
+        logger.info('tracking_events table converted to TimescaleDB hypertable');
       }
 
       // Create retention policy for old data
@@ -83,9 +86,9 @@ class DatabaseClient {
         )
       `);
 
-      console.log('TimescaleDB extension enabled successfully');
+      logger.info('TimescaleDB extension enabled successfully');
     } catch (error: any) {
-      console.warn('TimescaleDB setup warning:', error.message);
+      logger.warn('TimescaleDB setup warning:', error.message);
       // Don't throw - TimescaleDB is optional
     }
   }
@@ -102,7 +105,7 @@ class DatabaseClient {
       const result = await this.pool.query<T>(text, params);
       return result;
     } catch (error: any) {
-      console.error('Query error:', error);
+      logger.error('Query error:', error);
       throw error;
     }
   }
@@ -142,7 +145,7 @@ class DatabaseClient {
    */
   async runMigrations(): Promise<void> {
     try {
-      console.log('Running database migrations...');
+      logger.info('Running database migrations...');
 
       // Check if migrations table exists
       const { rows } = await this.query(`
@@ -161,7 +164,7 @@ class DatabaseClient {
             executed_at TIMESTAMP DEFAULT NOW()
           )
         `);
-        console.log('Created migrations table');
+        logger.info('Created migrations table');
       }
 
       // Check if main migration has run
@@ -170,14 +173,14 @@ class DatabaseClient {
       );
 
       if (migrationResult.rows.length === 0) {
-        console.log('Migration 001_create_tracking_tables not found. Please run manually.');
+        logger.info('Migration 001_create_tracking_tables not found. Please run manually.');
         // In production, you would read and execute the SQL file here
         // For now, we'll just log that it needs to be run
       } else {
-        console.log('Database migrations are up to date');
+        logger.info('Database migrations are up to date');
       }
     } catch (error: any) {
-      console.error('Migration error:', error);
+      logger.error('Migration error:', error);
       // Don't throw - allow service to start even if migrations fail
     }
   }
@@ -203,11 +206,11 @@ class DatabaseClient {
    */
   async close(): Promise<void> {
     if (this.pool) {
-      console.log('Closing database connection pool...');
+      logger.info('Closing database connection pool...');
       await this.pool.end();
       this.pool = null;
       this.initialized = false;
-      console.log('Database connection closed');
+      logger.info('Database connection closed');
     }
   }
 

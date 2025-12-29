@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import cron from 'node-cron';
+import { createLogger } from '@flamoral/backend-shared';
 import db from '../infrastructure/database/knex';
 import { TABLES, ScheduledMessage } from '../models';
 import {
@@ -11,6 +12,8 @@ import {
 } from '../dtos';
 import config from '../config';
 import { ServiceClient } from './service-client';
+
+const logger = createLogger('automation-service:scheduled-message');
 
 /**
  * Scheduled Message Service
@@ -71,7 +74,7 @@ export class ScheduledMessageService {
 
       return this.mapToDto(scheduledMessage);
     } catch (error: any) {
-      console.error('[ScheduledMessage] Create failed:', error.message);
+      logger.error('Create failed', { error: error.message });
       throw error;
     }
   }
@@ -106,7 +109,7 @@ export class ScheduledMessageService {
 
       return this.mapToDto(updated);
     } catch (error: any) {
-      console.error('[ScheduledMessage] Update failed:', error.message);
+      logger.error('Update failed', { error: error.message });
       throw error;
     }
   }
@@ -170,7 +173,7 @@ export class ScheduledMessageService {
         this.activeCronJobs.set(message.id, { type: 'cron', task });
       }
     } catch (error: any) {
-      console.error('[ScheduledMessage] Schedule job failed:', error.message);
+      logger.error('Schedule job failed', { error: error.message });
     }
   }
 
@@ -233,7 +236,7 @@ export class ScheduledMessageService {
 
       await db(TABLES.SCHEDULED_MESSAGES).where({ id: messageId }).update(updates);
     } catch (error: any) {
-      console.error('[ScheduledMessage] Send failed:', error.message);
+      logger.error('Send failed', { error: error.message });
 
       await db(TABLES.SCHEDULED_MESSAGES)
         .where({ id: messageId })
@@ -257,9 +260,9 @@ export class ScheduledMessageService {
         await this.scheduleJob(message);
       }
 
-      console.log(`[ScheduledMessage] Initialized ${pendingMessages.length} scheduled jobs`);
+      logger.info(`Initialized ${pendingMessages.length} scheduled jobs`);
     } catch (error: any) {
-      console.error('[ScheduledMessage] Initialize jobs failed:', error.message);
+      logger.error('Initialize jobs failed', { error: error.message });
     }
   }
 

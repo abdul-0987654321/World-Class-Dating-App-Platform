@@ -4,6 +4,9 @@
  */
 
 import crypto from 'crypto';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('meta-capi');
 
 interface MetaCAPIConfig {
   pixelId: string;
@@ -150,7 +153,7 @@ export class MetaConversionsAPI {
       const result = await response.json();
 
       if (!response.ok) {
-        console.error('Meta CAPI error:', result);
+        logger.error('Meta CAPI error:', result);
         return {
           success: false,
           eventId: eventData.eventId,
@@ -158,13 +161,13 @@ export class MetaConversionsAPI {
         };
       }
 
-      console.log('Meta CAPI event sent successfully:', eventData.eventName);
+      logger.info('Meta CAPI event sent successfully:', eventData.eventName);
       return {
         success: true,
         eventId: eventData.eventId,
       };
     } catch (error: any) {
-      console.error('Meta CAPI request failed:', error);
+      logger.error('Meta CAPI request failed:', error);
       return {
         success: false,
         eventId: eventData.eventId,

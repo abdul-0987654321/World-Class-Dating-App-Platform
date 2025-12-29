@@ -1,4 +1,7 @@
 import { Knex } from 'knex';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('csam-tables-migration');
 
 /**
  * CSAM Detection System Database Migration
@@ -327,7 +330,7 @@ export async function up(knex: Knex): Promise<void> {
     table.index('stat_date');
   });
 
-  console.log('CSAM detection tables created successfully');
+  logger.info('CSAM detection tables created successfully');
 }
 
 export async function down(knex: Knex): Promise<void> {
@@ -353,5 +356,5 @@ export async function down(knex: Knex): Promise<void> {
     table.dropColumn('csam_flagged_at');
   });
 
-  console.log('CSAM detection tables dropped successfully');
+  logger.info('CSAM detection tables dropped successfully');
 }

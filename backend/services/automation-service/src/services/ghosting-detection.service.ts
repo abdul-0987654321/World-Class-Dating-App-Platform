@@ -1,9 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@flamoral/backend-shared';
 import db from '../infrastructure/database/knex';
 import { TABLES, GhostingDetection, ReEngagementAttempt } from '../models';
 import { GhostingDetectionDto, ReEngagementFlowDto } from '../dtos';
 import config from '../config';
 import { ServiceClient } from './service-client';
+
+const logger = createLogger('automation-service:ghosting-detection');
 
 /**
  * Ghosting Detection Service
@@ -77,7 +80,7 @@ export class GhostingDetectionService {
 
       return this.mapToDto(detection);
     } catch (error: any) {
-      console.error('[GhostingDetection] Detection failed:', error.message);
+      logger.error('Detection failed', { error: error.message });
       return null;
     }
   }
@@ -91,7 +94,7 @@ export class GhostingDetectionService {
       const previousAttempts = await this.getReEngagementAttempts(detection.id);
 
       if (previousAttempts.length >= config.ghosting.maxReEngagementAttempts) {
-        console.log('[GhostingDetection] Max re-engagement attempts reached');
+        logger.info('Max re-engagement attempts reached');
         return;
       }
 
@@ -127,7 +130,7 @@ export class GhostingDetectionService {
       // Schedule notification
       await this.scheduleReEngagementNotification(attempt, message);
     } catch (error: any) {
-      console.error('[GhostingDetection] Failed to trigger re-engagement:', error.message);
+      logger.error('Failed to trigger re-engagement', { error: error.message });
     }
   }
 

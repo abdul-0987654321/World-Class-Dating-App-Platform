@@ -10,6 +10,9 @@ import {
   getStoredUtmParameters,
   getStoredClickIds,
 } from './gtm-data-layer';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('analytics-client');
 
 interface AnalyticsConfig {
   apiUrl: string; // Analytics service API URL
@@ -72,10 +75,10 @@ class AnalyticsClient {
       });
 
       if (!response.ok) {
-        console.error('Analytics API error:', response.statusText);
+        logger.error('Analytics API error:', response.statusText);
       }
     } catch (error) {
-      console.error('Failed to send analytics event:', error);
+      logger.error('Failed to send analytics event:', error);
     }
   }
 

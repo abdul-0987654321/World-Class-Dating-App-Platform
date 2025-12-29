@@ -3,6 +3,9 @@ import { authenticateService } from '../middleware/service-auth.middleware';
 import moderationService from '../services/moderation.service';
 import db from '../infrastructure/database/connection';
 import { ContentType } from '../types';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('internal-routes');
 
 const router = Router();
 
@@ -87,7 +90,7 @@ router.post('/moderate', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Moderate content error:', error);
+    logger.error('[InternalAPI] Moderate content error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to moderate content',
@@ -136,7 +139,7 @@ router.get('/status/:contentId', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get moderation status error:', error);
+    logger.error('[InternalAPI] Get moderation status error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get moderation status',
@@ -225,7 +228,7 @@ router.post('/flag', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Flag content error:', error);
+    logger.error('[InternalAPI] Flag content error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to flag content',
@@ -319,7 +322,7 @@ router.post('/moderate-bulk', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Bulk moderate error:', error);
+    logger.error('[InternalAPI] Bulk moderate error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to bulk moderate content',
@@ -380,7 +383,7 @@ router.get('/users/:userId/history', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get user moderation history error:', error);
+    logger.error('[InternalAPI] Get user moderation history error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get user moderation history',
@@ -430,7 +433,7 @@ router.get('/users/:userId/restrictions', async (req: Request, res: Response) =>
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get user restrictions error:', error);
+    logger.error('[InternalAPI] Get user restrictions error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get user restrictions',

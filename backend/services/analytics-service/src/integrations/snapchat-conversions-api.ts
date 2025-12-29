@@ -5,6 +5,9 @@
  */
 
 import crypto from 'crypto';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('snapchat-conversions-api');
 
 interface SnapchatCAPIConfig {
   pixelId: string;
@@ -167,20 +170,20 @@ export class SnapchatConversionsAPI {
       const result: any = await response.json();
 
       if (!response.ok) {
-        console.error('Snapchat CAPI error:', result);
+        logger.error('Snapchat CAPI error:', result);
         return {
           success: false,
           error: result.message || 'Unknown error',
         };
       }
 
-      console.log('Snapchat CAPI event sent successfully:', eventData.eventType);
+      logger.info('Snapchat CAPI event sent successfully:', eventData.eventType);
       return {
         success: true,
         eventId: eventData.userData.clientDeduplicationId,
       };
     } catch (error: any) {
-      console.error('Snapchat CAPI request failed:', error);
+      logger.error('Snapchat CAPI request failed:', error);
       return {
         success: false,
         error: error.message,

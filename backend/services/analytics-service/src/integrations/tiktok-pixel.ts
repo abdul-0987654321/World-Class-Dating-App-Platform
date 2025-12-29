@@ -3,6 +3,10 @@
  * Client-side pixel tracking for TikTok ads
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('tiktok-pixel');
+
 declare global {
   interface Window {
     ttq: any;
@@ -14,13 +18,13 @@ declare global {
  */
 export function initializeTikTokPixel(pixelId: string): void {
   if (typeof window === 'undefined') {
-    console.warn('TikTok Pixel: Window object not available (server-side)');
+    logger.warn('TikTok Pixel: Window object not available (server-side)');
     return;
   }
 
   // Check if pixel already initialized
   if (window.ttq) {
-    console.log('TikTok Pixel already initialized');
+    logger.info('TikTok Pixel already initialized');
     return;
   }
 
@@ -70,7 +74,7 @@ export function initializeTikTokPixel(pixelId: string): void {
   ttq.load(pixelId);
   ttq.page();
 
-  console.log('TikTok Pixel initialized:', pixelId);
+  logger.info('TikTok Pixel initialized:', pixelId);
 }
 
 /**
@@ -81,12 +85,12 @@ export function trackTikTokPixelEvent(
   properties: Record<string, any> = {}
 ): void {
   if (typeof window === 'undefined' || !window.ttq) {
-    console.warn('TikTok Pixel not initialized');
+    logger.warn('TikTok Pixel not initialized');
     return;
   }
 
   window.ttq.track(eventName, properties);
-  console.log('TikTok Pixel event tracked:', eventName, properties);
+  logger.info('TikTok Pixel event tracked:', eventName, properties);
 }
 
 /**

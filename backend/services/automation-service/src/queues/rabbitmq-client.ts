@@ -1,5 +1,8 @@
 import amqp, { Channel, ConsumeMessage } from 'amqplib';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../config';
+
+const logger = createLogger('automation-service:rabbitmq');
 
 /**
  * RabbitMQ Client
@@ -27,18 +30,18 @@ export class RabbitMQClient {
         durable: true,
       });
 
-      console.log('[RabbitMQ] Connected successfully');
+      logger.info('Connected successfully');
 
       // Handle connection events
       this.connection.on('error', (err) => {
-        console.error('[RabbitMQ] Connection error:', err);
+        logger.error('Connection error', { error: err });
       });
 
       this.connection.on('close', () => {
-        console.log('[RabbitMQ] Connection closed');
+        logger.info('Connection closed');
       });
     } catch (error: any) {
-      console.error('[RabbitMQ] Connection failed:', error.message);
+      logger.error('Connection failed', { error: error.message });
       throw error;
     }
   }
@@ -59,7 +62,7 @@ export class RabbitMQClient {
         timestamp: Date.now(),
       });
     } catch (error: any) {
-      console.error('[RabbitMQ] Publish failed:', error.message);
+      logger.error('Publish failed', { error: error.message });
       return false;
     }
   }
@@ -102,7 +105,7 @@ export class RabbitMQClient {
             // Acknowledge message
             this.channel?.ack(msg);
           } catch (error: any) {
-            console.error('[RabbitMQ] Message handler error:', error.message);
+            logger.error('Message handler error', { error: error.message });
 
             // Reject message and requeue
             this.channel?.nack(msg, false, true);
@@ -111,9 +114,9 @@ export class RabbitMQClient {
         { noAck: false }
       );
 
-      console.log(`[RabbitMQ] Subscribed to queue: ${queueName}`);
+      logger.info(`Subscribed to queue: ${queueName}`);
     } catch (error: any) {
-      console.error('[RabbitMQ] Subscribe failed:', error.message);
+      logger.error('Subscribe failed', { error: error.message });
       throw error;
     }
   }
@@ -129,9 +132,9 @@ export class RabbitMQClient {
       if (this.connection) {
         await this.connection.close();
       }
-      console.log('[RabbitMQ] Connection closed');
+      logger.info('Connection closed');
     } catch (error: any) {
-      console.error('[RabbitMQ] Close error:', error.message);
+      logger.error('Close error', { error: error.message });
     }
   }
 

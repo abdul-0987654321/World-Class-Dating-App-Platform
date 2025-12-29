@@ -5,7 +5,10 @@
  * Prices are stored in database and can be updated via admin API.
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { SubscriptionTier } from './payment.service';
+
+const logger = createLogger('pricing-config-service');
 
 // Billing cycle types
 export type BillingCycle = 'monthly' | '3_months' | '6_months' | 'yearly';
@@ -151,7 +154,7 @@ export class PricingConfigService {
       this.boostPackages.set(pkg.sku, pkg);
     }
 
-    console.log('Pricing configuration loaded');
+    logger.info('Pricing configuration loaded');
   }
 
   /**
@@ -163,7 +166,7 @@ export class PricingConfigService {
     // For now, use defaults
     this.loadDefaultPricing();
     this.lastRefresh = new Date();
-    console.log('Pricing configuration refreshed at', this.lastRefresh);
+    logger.info('Pricing configuration refreshed at', this.lastRefresh);
   }
 
   /**
@@ -277,7 +280,7 @@ export class PricingConfigService {
     }
 
     // In production: save to database here
-    console.log(`Updated price for ${key}: ${amount / 100} ${currency}`);
+    logger.info(`Updated price for ${key}: ${amount / 100} ${currency}`);
     return true;
   }
 
@@ -291,7 +294,7 @@ export class PricingConfigService {
       }
     }
     // In production: save to database
-    console.log(`Set tier ${tier} active: ${isActive}`);
+    logger.info(`Set tier ${tier} active: ${isActive}`);
     return true;
   }
 

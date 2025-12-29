@@ -1,8 +1,10 @@
 import { Response } from 'express';
+import { createLogger } from '@flamoral/backend-shared';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { ScheduledMessageService } from '../../services/scheduled-message.service';
 import { CreateScheduledMessageDto, UpdateScheduledMessageDto } from '../../dtos';
 
+const logger = createLogger('automation-service:scheduled-message-controller');
 const scheduledMessageService = new ScheduledMessageService();
 
 /**
@@ -25,7 +27,7 @@ export const createScheduledMessage = async (
       data: result,
     });
   } catch (error: any) {
-    console.error('[ScheduledMessageController] Create failed:', error.message);
+    logger.error('Create failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -51,7 +53,7 @@ export const updateScheduledMessage = async (
       data: result,
     });
   } catch (error: any) {
-    console.error('[ScheduledMessageController] Update failed:', error.message);
+    logger.error('Update failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -76,7 +78,7 @@ export const deleteScheduledMessage = async (
       message: 'Scheduled message deleted',
     });
   } catch (error: any) {
-    console.error('[ScheduledMessageController] Delete failed:', error.message);
+    logger.error('Delete failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -104,7 +106,7 @@ export const createMatchWarmupSequence = async (
       data: result,
     });
   } catch (error: any) {
-    console.error('[ScheduledMessageController] Warmup sequence failed:', error.message);
+    logger.error('Warmup sequence failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,

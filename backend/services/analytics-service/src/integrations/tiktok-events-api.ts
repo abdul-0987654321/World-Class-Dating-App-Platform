@@ -4,6 +4,9 @@
  */
 
 import crypto from 'crypto';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('tiktok-events-api');
 
 interface TikTokEventsAPIConfig {
   pixelId: string;
@@ -123,7 +126,7 @@ export class TikTokEventsAPI {
       const result: any = await response.json();
 
       if (!response.ok || result.code !== 0) {
-        console.error('TikTok Events API error:', result);
+        logger.error('TikTok Events API error:', result);
         return {
           success: false,
           eventId: eventData.eventId,
@@ -131,13 +134,13 @@ export class TikTokEventsAPI {
         };
       }
 
-      console.log('TikTok Events API event sent successfully:', eventData.event);
+      logger.info('TikTok Events API event sent successfully:', eventData.event);
       return {
         success: true,
         eventId: eventData.eventId,
       };
     } catch (error: any) {
-      console.error('TikTok Events API request failed:', error);
+      logger.error('TikTok Events API request failed:', error);
       return {
         success: false,
         eventId: eventData.eventId,

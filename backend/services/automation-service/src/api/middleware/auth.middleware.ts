@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../../config';
+
+const logger = createLogger('automation-service:auth');
 
 /**
  * Extended Request with user information
@@ -53,7 +56,7 @@ export const authenticateUser = (
       });
     }
   } catch (error: any) {
-    console.error('[Auth] Authentication error:', error.message);
+    logger.error('Authentication error', { error: error.message });
     return res.status(500).json({
       success: false,
       error: 'Authentication failed',

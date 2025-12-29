@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@flamoral/backend-shared';
 import { authenticateService } from '../middleware/service-auth.middleware';
 import { messageRepository } from '../../domain/repositories/message.repository';
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
@@ -7,6 +8,7 @@ import { messageEventsService } from '../../domain/services/message-events.servi
 import { redisClient } from '../../infrastructure/cache/redis';
 import { Message, MessageType, MessageStatus } from '../../types';
 
+const logger = createLogger('internal-routes');
 const router = Router();
 
 // All internal routes require service authentication
@@ -106,7 +108,7 @@ router.post('/send-system', async (req: Request, res: Response) => {
       data: createdMessage,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Send system message error:', error);
+    logger.error('[InternalAPI] Send system message error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send system message',
@@ -194,7 +196,7 @@ router.get('/conversation', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get conversation error:', error);
+    logger.error('[InternalAPI] Get conversation error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get conversation',
@@ -303,7 +305,7 @@ router.delete('/conversation/:conversationId', async (req: Request, res: Respons
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Delete conversation error:', error);
+    logger.error('[InternalAPI] Delete conversation error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to delete conversation',
@@ -384,7 +386,7 @@ router.get('/users/:userId/conversations', async (req: Request, res: Response) =
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get user conversations error:', error);
+    logger.error('[InternalAPI] Get user conversations error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get user conversations',
@@ -473,7 +475,7 @@ router.post('/block', async (req: Request, res: Response) => {
           },
         });
       } catch (error: any) {
-        console.error('[InternalAPI] Block user error:', error);
+        logger.error('[InternalAPI] Block user error:', error);
         return res.status(500).json({
           success: false,
           error: 'Failed to block user',
@@ -508,7 +510,7 @@ router.post('/block', async (req: Request, res: Response) => {
           },
         });
       } catch (error: any) {
-        console.error('[InternalAPI] Unblock user error:', error);
+        logger.error('[InternalAPI] Unblock user error:', error);
         return res.status(500).json({
           success: false,
           error: 'Failed to unblock user',
@@ -526,7 +528,7 @@ router.post('/block', async (req: Request, res: Response) => {
       message: 'action must be either "block" or "unblock"',
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Block/Unblock error:', error);
+    logger.error('[InternalAPI] Block/Unblock error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to block/unblock user',

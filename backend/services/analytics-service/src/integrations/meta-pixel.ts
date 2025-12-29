@@ -3,6 +3,10 @@
  * Client-side pixel tracking
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('meta-pixel');
+
 declare global {
   interface Window {
     fbq: any;
@@ -15,13 +19,13 @@ declare global {
  */
 export function initializeMetaPixel(pixelId: string): void {
   if (typeof window === 'undefined') {
-    console.warn('Meta Pixel: Window object not available (server-side)');
+    logger.warn('Meta Pixel: Window object not available (server-side)');
     return;
   }
 
   // Check if pixel already initialized
   if (window.fbq) {
-    console.log('Meta Pixel already initialized');
+    logger.info('Meta Pixel already initialized');
     return;
   }
 
@@ -54,7 +58,7 @@ export function initializeMetaPixel(pixelId: string): void {
   fbq('init', pixelId);
   fbq('track', 'PageView');
 
-  console.log('Meta Pixel initialized:', pixelId);
+  logger.info('Meta Pixel initialized:', pixelId);
 }
 
 /**
@@ -65,12 +69,12 @@ export function trackMetaPixelEvent(
   parameters: Record<string, any> = {}
 ): void {
   if (typeof window === 'undefined' || !window.fbq) {
-    console.warn('Meta Pixel not initialized');
+    logger.warn('Meta Pixel not initialized');
     return;
   }
 
   window.fbq('track', eventName, parameters);
-  console.log('Meta Pixel event tracked:', eventName, parameters);
+  logger.info('Meta Pixel event tracked:', eventName, parameters);
 }
 
 /**
@@ -81,12 +85,12 @@ export function trackMetaPixelCustomEvent(
   parameters: Record<string, any> = {}
 ): void {
   if (typeof window === 'undefined' || !window.fbq) {
-    console.warn('Meta Pixel not initialized');
+    logger.warn('Meta Pixel not initialized');
     return;
   }
 
   window.fbq('trackCustom', eventName, parameters);
-  console.log('Meta Pixel custom event tracked:', eventName, parameters);
+  logger.info('Meta Pixel custom event tracked:', eventName, parameters);
 }
 
 /**

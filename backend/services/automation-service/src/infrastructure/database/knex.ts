@@ -1,5 +1,8 @@
 import knex, { Knex } from 'knex';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../../config';
+
+const logger = createLogger('automation-service:database');
 
 /**
  * Knex database connection configuration
@@ -33,7 +36,7 @@ export async function initializeDatabase(): Promise<void> {
   try {
     // Test connection
     await db.raw('SELECT 1');
-    console.log('[Database] PostgreSQL connection established');
+    logger.info('PostgreSQL connection established');
 
     // Import table creation scripts
     const {
@@ -61,9 +64,9 @@ export async function initializeDatabase(): Promise<void> {
     await db.raw(createGhostingDetectionsTable);
     await db.raw(createReEngagementAttemptsTable);
 
-    console.log('[Database] Tables initialized successfully');
+    logger.info('Tables initialized successfully');
   } catch (error: any) {
-    console.error('[Database] Initialization failed:', error.message);
+    logger.error('Initialization failed', { error: error.message });
     throw error;
   }
 }
@@ -74,9 +77,9 @@ export async function initializeDatabase(): Promise<void> {
 export async function closeDatabase(): Promise<void> {
   try {
     await db.destroy();
-    console.log('[Database] Connection closed');
+    logger.info('Connection closed');
   } catch (error: any) {
-    console.error('[Database] Error closing connection:', error.message);
+    logger.error('Error closing connection', { error: error.message });
   }
 }
 

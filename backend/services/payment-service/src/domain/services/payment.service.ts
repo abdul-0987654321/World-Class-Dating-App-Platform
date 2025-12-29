@@ -1,6 +1,9 @@
 import Stripe from 'stripe';
+import { createLogger } from '@flamoral/backend-shared';
 import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
 import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
+
+const logger = createLogger('payment-service');
 
 // Initialize Stripe with API key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -442,7 +445,7 @@ export class PaymentService {
           break;
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          logger.info(`Unhandled event type: ${event.type}`);
       }
     } catch (error: any) {
       throw new Error(`Failed to process webhook event: ${error.message}`);
@@ -453,7 +456,7 @@ export class PaymentService {
    * Handle successful payment intent
    */
   private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-    console.log('Payment succeeded:', paymentIntent.id);
+    logger.info('Payment succeeded:', paymentIntent.id);
 
     try {
       const metadata = paymentIntent.metadata;
@@ -461,7 +464,7 @@ export class PaymentService {
       const type = metadata.type;
 
       if (!userId) {
-        console.error('No userId in payment intent metadata');
+        logger.error('No userId in payment intent metadata');
         return;
       }
 
@@ -507,10 +510,10 @@ export class PaymentService {
           break;
 
         default:
-          console.log(`Payment type ${type} handled by other webhook events`);
+          logger.info(`Payment type ${type} handled by other webhook events`);
       }
     } catch (error: any) {
-      console.error('Error handling payment intent succeeded:', error.message);
+      logger.error('Error handling payment intent succeeded:', error.message);
     }
   }
 
@@ -543,7 +546,7 @@ export class PaymentService {
    * Handle failed payment intent
    */
   private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-    console.log('Payment failed:', paymentIntent.id);
+    logger.info('Payment failed:', paymentIntent.id);
 
     try {
       const userId = paymentIntent.metadata.userId;
@@ -556,7 +559,7 @@ export class PaymentService {
         });
       }
     } catch (error: any) {
-      console.error('Error handling payment intent failed:', error.message);
+      logger.error('Error handling payment intent failed:', error.message);
     }
   }
 
@@ -564,7 +567,7 @@ export class PaymentService {
    * Handle subscription update
    */
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
-    console.log('Subscription updated:', subscription.id);
+    logger.info('Subscription updated:', subscription.id);
 
     try {
       const userId = subscription.metadata.userId;
@@ -572,7 +575,7 @@ export class PaymentService {
       const billingCycle = subscription.metadata.billingCycle as BillingCycle || 'monthly';
 
       if (!userId) {
-        console.error('No userId in subscription metadata');
+        logger.error('No userId in subscription metadata');
         return;
       }
 
@@ -611,7 +614,7 @@ export class PaymentService {
         body: `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`
       });
     } catch (error: any) {
-      console.error('Error handling subscription updated:', error.message);
+      logger.error('Error handling subscription updated:', error.message);
     }
   }
 
@@ -619,13 +622,13 @@ export class PaymentService {
    * Handle subscription deletion
    */
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
-    console.log('Subscription deleted:', subscription.id);
+    logger.info('Subscription deleted:', subscription.id);
 
     try {
       const userId = subscription.metadata.userId;
 
       if (!userId) {
-        console.error('No userId in subscription metadata');
+        logger.error('No userId in subscription metadata');
         return;
       }
 
@@ -644,7 +647,7 @@ export class PaymentService {
         body: 'Your subscription has been canceled. You have been downgraded to the free tier.'
       });
     } catch (error: any) {
-      console.error('Error handling subscription deleted:', error.message);
+      logger.error('Error handling subscription deleted:', error.message);
     }
   }
 
@@ -652,7 +655,7 @@ export class PaymentService {
    * Handle successful invoice payment
    */
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-    console.log('Invoice payment succeeded:', invoice.id);
+    logger.info('Invoice payment succeeded:', invoice.id);
 
     try {
       if (!invoice.subscription) {
@@ -675,7 +678,7 @@ export class PaymentService {
         });
       }
     } catch (error: any) {
-      console.error('Error handling invoice payment succeeded:', error.message);
+      logger.error('Error handling invoice payment succeeded:', error.message);
     }
   }
 
@@ -683,7 +686,7 @@ export class PaymentService {
    * Handle failed invoice payment
    */
   private async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-    console.log('Invoice payment failed:', invoice.id);
+    logger.info('Invoice payment failed:', invoice.id);
 
     try {
       if (!invoice.subscription) {
@@ -720,7 +723,7 @@ export class PaymentService {
         body: 'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.'
       });
     } catch (error: any) {
-      console.error('Error handling invoice payment failed:', error.message);
+      logger.error('Error handling invoice payment failed:', error.message);
     }
   }
 

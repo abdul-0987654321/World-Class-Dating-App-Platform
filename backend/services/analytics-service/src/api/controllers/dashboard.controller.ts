@@ -9,6 +9,9 @@ import engagementRepository from '../../domain/repositories/engagement.repositor
 import matchSuccessRepository from '../../domain/repositories/match-success.repository';
 import revenueRepository from '../../domain/repositories/revenue.repository';
 import timeSeriesRepository from '../../domain/repositories/time-series.repository';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('dashboard-controller');
 
 /**
  * Get dashboard overview
@@ -58,7 +61,7 @@ export async function getDashboardOverview(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get dashboard overview error:', error);
+    logger.error('Get dashboard overview error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get dashboard overview',
@@ -113,7 +116,7 @@ export async function getEngagementAnalytics(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get engagement analytics error:', error);
+    logger.error('Get engagement analytics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get engagement analytics',
@@ -157,7 +160,7 @@ export async function getMatchSuccessAnalytics(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get match success analytics error:', error);
+    logger.error('Get match success analytics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get match success analytics',
@@ -210,7 +213,7 @@ export async function getRevenueAnalytics(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get revenue analytics error:', error);
+    logger.error('Get revenue analytics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get revenue analytics',
@@ -252,7 +255,7 @@ export async function getUserBehaviorAnalytics(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get user behavior analytics error:', error);
+    logger.error('Get user behavior analytics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get user behavior analytics',
@@ -295,7 +298,7 @@ export async function getTimeSeriesData(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get time-series data error:', error);
+    logger.error('Get time-series data error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get time-series data',
@@ -330,7 +333,7 @@ export async function getComparisonMetrics(req: Request, res: Response) {
       data: comparison,
     });
   } catch (error: any) {
-    console.error('Get comparison metrics error:', error);
+    logger.error('Get comparison metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get comparison metrics',
@@ -351,7 +354,7 @@ export async function getRealTimeMetrics(req: Request, res: Response) {
       data: metrics,
     });
   } catch (error: any) {
-    console.error('Get real-time metrics error:', error);
+    logger.error('Get real-time metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get real-time metrics',
@@ -393,7 +396,7 @@ export async function getUserActivitySummary(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    console.error('Get user activity summary error:', error);
+    logger.error('Get user activity summary error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get user activity summary',
@@ -437,7 +440,7 @@ export async function trackEventFromDashboard(req: Request, res: Response) {
       message: 'Event tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track event from dashboard error:', error);
+    logger.error('Track event from dashboard error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track event',
@@ -481,7 +484,7 @@ export async function aggregateMetrics(req: Request, res: Response) {
       message: 'Metrics aggregated successfully',
     });
   } catch (error: any) {
-    console.error('Aggregate metrics error:', error);
+    logger.error('Aggregate metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to aggregate metrics',
@@ -515,7 +518,7 @@ export async function backfillMetrics(req: Request, res: Response) {
       message: `Successfully backfilled ${count} days of metrics`,
     });
   } catch (error: any) {
-    console.error('Backfill metrics error:', error);
+    logger.error('Backfill metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to backfill metrics',
@@ -541,7 +544,7 @@ export async function getDailyMetrics(req: Request, res: Response) {
       data: metrics,
     });
   } catch (error: any) {
-    console.error('Get daily metrics error:', error);
+    logger.error('Get daily metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get daily metrics',
@@ -567,7 +570,7 @@ export async function getHourlyMetrics(req: Request, res: Response) {
       data: metrics,
     });
   } catch (error: any) {
-    console.error('Get hourly metrics error:', error);
+    logger.error('Get hourly metrics error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get hourly metrics',

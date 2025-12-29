@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@flamoral/backend-shared';
 import db from '../infrastructure/database/knex';
 import { TABLES, AutomationFlow, FlowExecution } from '../models';
 import {
@@ -11,6 +12,8 @@ import {
 import { IcebreakerService } from './icebreaker.service';
 import { ServiceClient } from './service-client';
 import config from '../config';
+
+const logger = createLogger('automation-service:workflow-engine');
 
 /**
  * Workflow Engine Service
@@ -108,7 +111,7 @@ export class WorkflowEngineService {
           results[`action_${index}`] = actionResult;
           actionsExecuted++;
         } catch (error: any) {
-          console.error(`[WorkflowEngine] Action ${index} failed:`, error.message);
+          logger.error(`Action ${index} failed`, { error: error.message });
           results[`action_${index}`] = { error: error.message };
           actionsFailed++;
 
@@ -146,7 +149,7 @@ export class WorkflowEngineService {
         results,
       };
     } catch (error: any) {
-      console.error('[WorkflowEngine] Flow execution failed:', error.message);
+      logger.error('Flow execution failed', { error: error.message });
 
       await this.updateExecution(executionId, {
         status: 'failed',
@@ -192,7 +195,7 @@ export class WorkflowEngineService {
       case ConditionType.USER_ACTIVITY:
         return this.evaluateUserActivity(condition, executionDto);
       default:
-        console.warn(`[WorkflowEngine] Unknown condition type: ${condition.type}`);
+        logger.warn(`Unknown condition type: ${condition.type}`);
         return true;
     }
   }
@@ -213,7 +216,7 @@ export class WorkflowEngineService {
       case ActionType.WAIT:
         return this.delay(action.parameters.durationMs || 0);
       default:
-        console.warn(`[WorkflowEngine] Unknown action type: ${action.type}`);
+        logger.warn(`Unknown action type: ${action.type}`);
         return { skipped: true };
     }
   }

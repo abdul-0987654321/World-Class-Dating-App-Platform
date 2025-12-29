@@ -1,8 +1,10 @@
 import { Response } from 'express';
+import { createLogger } from '@flamoral/backend-shared';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { ReplyAssistantService } from '../../services/reply-assistant.service';
 import { GenerateReplyDto } from '../../dtos';
 
+const logger = createLogger('automation-service:reply-assistant-controller');
 const replyAssistantService = new ReplyAssistantService();
 
 /**
@@ -31,7 +33,7 @@ export const generateReplies = async (
       data: result,
     });
   } catch (error: any) {
-    console.error('[ReplyAssistantController] Generate failed:', error.message);
+    logger.error('Generate failed', { error: error.message });
     res.status(500).json({
       success: false,
       error: error.message,

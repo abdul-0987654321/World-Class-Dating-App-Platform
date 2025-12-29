@@ -307,12 +307,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('[AutomationService] Uncaught exception:', error);
+  logger.error('Uncaught exception', { error });
   gracefulShutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[AutomationService] Unhandled rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled rejection', { promise, reason });
   gracefulShutdown('unhandledRejection');
 });
 

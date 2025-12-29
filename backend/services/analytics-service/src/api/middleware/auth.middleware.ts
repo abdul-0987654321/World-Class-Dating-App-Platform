@@ -11,6 +11,9 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import config from '../../config';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('auth-middleware');
 
 /**
  * User roles for RBAC
@@ -110,7 +113,7 @@ export const authenticate = async (
       });
     }
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error('Authentication error:', error);
     return res.status(500).json({
       success: false,
       error: 'Authentication error',
@@ -146,7 +149,7 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
 
     // Check if user has one of the allowed roles
     if (!allowedRoles.includes(userRole)) {
-      console.warn(
+      logger.warn(
         `[Auth] Role access denied: user ${req.user.userId} with role ${userRole} tried to access resource requiring ${allowedRoles.join(', ')}`
       );
       return res.status(403).json({
@@ -207,7 +210,7 @@ export const authenticateInternal = (
 
   // Validate service key exists in config
   if (!expectedKey) {
-    console.error('[ServiceAuth] SERVICE_API_KEY not configured');
+    logger.error('[ServiceAuth] SERVICE_API_KEY not configured');
     return res.status(500).json({
       success: false,
       error: 'Service authentication not configured',
@@ -217,7 +220,7 @@ export const authenticateInternal = (
 
   // Validate service key is provided in request
   if (!serviceKey) {
-    console.warn(`[ServiceAuth] Missing X-Service-Key header - ${req.method} ${req.path}`);
+    logger.warn(`[ServiceAuth] Missing X-Service-Key header - ${req.method} ${req.path}`);
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -228,7 +231,7 @@ export const authenticateInternal = (
 
   // Validate request ID (for tracing)
   if (!requestId) {
-    console.warn(`[ServiceAuth] Missing X-Request-ID header - ${req.method} ${req.path}`);
+    logger.warn(`[ServiceAuth] Missing X-Request-ID header - ${req.method} ${req.path}`);
     return res.status(401).json({
       success: false,
       error: 'Request ID required',
@@ -241,7 +244,7 @@ export const authenticateInternal = (
   const isValid = timingSafeEqual(serviceKey, expectedKey);
 
   if (!isValid) {
-    console.warn(
+    logger.warn(
       `[ServiceAuth] Invalid service key from ${sourceService || 'unknown'} - ${req.method} ${req.path}`
     );
     return res.status(403).json({
@@ -258,7 +261,7 @@ export const authenticateInternal = (
 
   // Log successful authentication
   const duration = Date.now() - startTime;
-  console.info(
+  logger.info(
     `[ServiceAuth] Authenticated: ${req.serviceId} - ${req.method} ${req.path} - RequestID: ${req.requestId} (${duration}ms)`
   );
 

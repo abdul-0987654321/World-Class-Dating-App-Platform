@@ -7,6 +7,9 @@ import { Request, Response } from 'express';
 import eventsRepository from '../../domain/repositories/events.repository';
 import matchSuccessRepository from '../../domain/repositories/match-success.repository';
 import revenueRepository from '../../domain/repositories/revenue.repository';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('events-controller');
 
 /**
  * Track a swipe event
@@ -38,7 +41,7 @@ export async function trackSwipe(req: Request, res: Response) {
       message: 'Swipe tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track swipe error:', error);
+    logger.error('Track swipe error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track swipe',
@@ -75,7 +78,7 @@ export async function trackMatch(req: Request, res: Response) {
       message: 'Match tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track match error:', error);
+    logger.error('Track match error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track match',
@@ -122,7 +125,7 @@ export async function trackMessage(req: Request, res: Response) {
       message: 'Message tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track message error:', error);
+    logger.error('Track message error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track message',
@@ -177,7 +180,7 @@ export async function trackSession(req: Request, res: Response) {
       message: 'Session tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track session error:', error);
+    logger.error('Track session error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track session',
@@ -213,7 +216,7 @@ export async function trackDateArrangement(req: Request, res: Response) {
       message: 'Date arrangement tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track date arrangement error:', error);
+    logger.error('Track date arrangement error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track date arrangement',
@@ -245,7 +248,7 @@ export async function updateDateArrangementStatus(req: Request, res: Response) {
       message: 'Date arrangement status updated successfully',
     });
   } catch (error: any) {
-    console.error('Update date arrangement status error:', error);
+    logger.error('Update date arrangement status error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to update date arrangement status',
@@ -296,7 +299,7 @@ export async function trackRevenue(req: Request, res: Response) {
       message: 'Revenue transaction tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track revenue error:', error);
+    logger.error('Track revenue error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track revenue',
@@ -328,7 +331,7 @@ export async function updateTransactionStatus(req: Request, res: Response) {
       message: 'Transaction status updated successfully',
     });
   } catch (error: any) {
-    console.error('Update transaction status error:', error);
+    logger.error('Update transaction status error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to update transaction status',
@@ -356,7 +359,7 @@ export async function getUserSwipeStats(req: Request, res: Response) {
       data: stats,
     });
   } catch (error: any) {
-    console.error('Get user swipe stats error:', error);
+    logger.error('Get user swipe stats error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get user swipe stats',
@@ -379,7 +382,7 @@ export async function getUserMatchSuccess(req: Request, res: Response) {
       data: stats,
     });
   } catch (error: any) {
-    console.error('Get user match success error:', error);
+    logger.error('Get user match success error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get user match success',

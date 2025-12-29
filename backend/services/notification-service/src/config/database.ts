@@ -4,6 +4,9 @@
 
 import knex from 'knex';
 import { config } from './index';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('database');
 
 export const db = knex({
   client: 'postgresql',
@@ -22,10 +25,10 @@ export const db = knex({
 export async function testConnection(): Promise<boolean> {
   try {
     await db.raw('SELECT 1');
-    console.log('Database connection successful');
+    logger.info('Database connection successful');
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    logger.error('Database connection failed:', error);
     return false;
   }
 }

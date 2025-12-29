@@ -1,7 +1,10 @@
 import knex, { Knex } from 'knex';
+import { createLogger } from '@flamoral/backend-shared';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const logger = createLogger('payment-db-connection');
 
 /**
  * Retry utility with exponential backoff for database operations
@@ -27,7 +30,7 @@ async function withRetry<T>(
                           error.message?.toLowerCase().includes('network');
 
       if (!isRetryable || attempt === maxRetries) {
-        console.error(`[DB] Operation failed (non-retryable or max retries reached)`, {
+        logger.error(`[DB] Operation failed (non-retryable or max retries reached)`, {
           attempt,
           error: error.message,
           code: error.code,
@@ -39,7 +42,7 @@ async function withRetry<T>(
       const jitter = Math.random() * 0.5 * delay; // Add jitter to prevent thundering herd
       const finalDelay = Math.min(delay + jitter, 30000);
 
-      console.warn(`[DB] Operation failed, retrying in ${Math.round(finalDelay)}ms`, {
+      logger.warn(`[DB] Operation failed, retrying in ${Math.round(finalDelay)}ms`, {
         attempt,
         maxRetries,
         error: error.message,
@@ -110,7 +113,7 @@ export async function initializeDatabase(): Promise<Knex> {
     // Test the connection
     await dbInstance.raw('SELECT 1');
 
-    console.log('[DB] Payment service database connected successfully');
+    logger.info('[DB] Payment service database connected successfully');
     return dbInstance;
   }, 5, 1000);
 }
@@ -205,9 +208,9 @@ export async function closeDatabase(timeoutMs = 5000): Promise<void> {
 
     await Promise.race([close, timeout]);
     dbInstance = null;
-    console.log('[DB] Database connection closed gracefully');
+    logger.info('[DB] Database connection closed gracefully');
   } catch (error) {
-    console.error('[DB] Error closing database connection', error);
+    logger.error('[DB] Error closing database connection', error);
     throw error;
   }
 }

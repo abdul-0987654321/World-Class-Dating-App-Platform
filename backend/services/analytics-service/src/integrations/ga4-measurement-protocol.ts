@@ -4,6 +4,10 @@
  * Bypasses ad blockers and provides more accurate data
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('ga4-measurement-protocol');
+
 interface GA4Config {
   measurementId: string; // GA4 Measurement ID (G-XXXXXXXXXX)
   apiSecret: string; // API Secret from GA4 Admin
@@ -92,7 +96,7 @@ export class GA4MeasurementProtocol {
 
       if (options?.validate) {
         const result = await response.json();
-        console.log('GA4 Validation Result:', result);
+        logger.info('GA4 Validation Result:', result);
         return {
           success: result.validationMessages?.length === 0,
           validationMessages: result.validationMessages,
@@ -100,17 +104,17 @@ export class GA4MeasurementProtocol {
       }
 
       if (!response.ok) {
-        console.error('GA4 Measurement Protocol error:', response.statusText);
+        logger.error('GA4 Measurement Protocol error:', response.statusText);
         return {
           success: false,
           error: response.statusText,
         };
       }
 
-      console.log('GA4 events sent successfully:', events.map((e) => e.name).join(', '));
+      logger.info('GA4 events sent successfully:', events.map((e) => e.name).join(', '));
       return { success: true };
     } catch (error: any) {
-      console.error('GA4 Measurement Protocol request failed:', error);
+      logger.error('GA4 Measurement Protocol request failed:', error);
       return {
         success: false,
         error: error.message,

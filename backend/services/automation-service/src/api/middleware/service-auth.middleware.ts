@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('automation-service:service-auth');
 
 /**
  * Extended Request interface with service authentication metadata
@@ -29,7 +32,7 @@ export const authenticateService = (
 
   // Validate service key exists
   if (!expectedKey) {
-    console.error('[ServiceAuth] SERVICE_API_KEY not configured in environment');
+    logger.error('SERVICE_API_KEY not configured in environment');
     return res.status(500).json({
       success: false,
       error: 'Service authentication not configured',
@@ -39,7 +42,7 @@ export const authenticateService = (
 
   // Validate service key is provided
   if (!serviceKey) {
-    console.warn(`[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`);
+    logger.warn('Authentication failed: Missing X-Service-Key header', { method: req.method, path: req.path });
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -50,7 +53,7 @@ export const authenticateService = (
 
   // Validate request ID
   if (!requestId) {
-    console.warn(`[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`);
+    logger.warn('Authentication failed: Missing X-Request-ID header', { method: req.method, path: req.path });
     return res.status(401).json({
       success: false,
       error: 'Request ID required',
@@ -63,9 +66,7 @@ export const authenticateService = (
   const isValid = timingSafeEqual(serviceKey, expectedKey);
 
   if (!isValid) {
-    console.warn(
-      `[ServiceAuth] Authentication failed: Invalid service key from ${sourceService || 'unknown'} - ${req.method} ${req.path}`
-    );
+    logger.warn('Authentication failed: Invalid service key', { sourceService: sourceService || 'unknown', method: req.method, path: req.path });
     return res.status(403).json({
       success: false,
       error: 'Invalid service credentials',
@@ -80,9 +81,7 @@ export const authenticateService = (
 
   // Log successful authentication
   const duration = Date.now() - startTime;
-  console.info(
-    `[ServiceAuth] Service authenticated: ${req.serviceId} - ${req.method} ${req.path} - RequestID: ${req.requestId} (${duration}ms)`
-  );
+  logger.info('Service authenticated', { serviceId: req.serviceId, method: req.method, path: req.path, requestId: req.requestId, duration });
 
   // Continue to next middleware
   next();

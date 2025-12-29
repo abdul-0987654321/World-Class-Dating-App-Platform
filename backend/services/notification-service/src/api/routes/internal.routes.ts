@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { authenticateService } from '../../middleware/service-auth.middleware';
 import { NotificationService } from '../../services/notification.service';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('internal-routes');
 
 const router = Router();
 
@@ -83,7 +86,7 @@ router.post('/send', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Send notification error:', error);
+    logger.error('[InternalAPI] Send notification error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send notification',
@@ -194,7 +197,7 @@ router.post('/send-bulk', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Send bulk notifications error:', error);
+    logger.error('[InternalAPI] Send bulk notifications error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send bulk notifications',
@@ -220,7 +223,7 @@ router.get('/preferences/:userId', async (req: Request, res: Response) => {
       data: preferences,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get notification preferences error:', error);
+    logger.error('[InternalAPI] Get notification preferences error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get notification preferences',

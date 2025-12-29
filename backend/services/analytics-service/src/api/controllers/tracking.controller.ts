@@ -13,6 +13,9 @@ import {
   UpdateFunnelStepRequest,
   ApiResponse,
 } from '../../types';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('tracking-controller');
 
 /**
  * Track a single event
@@ -39,7 +42,7 @@ export async function trackEvent(req: Request, res: Response) {
       message: 'Event tracked successfully',
     });
   } catch (error: any) {
-    console.error('Track event error:', error);
+    logger.error('Track event error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track event',
@@ -81,7 +84,7 @@ export async function trackEventBatch(req: Request, res: Response) {
       message: `${count} events tracked successfully`,
     });
   } catch (error: any) {
-    console.error('Track events batch error:', error);
+    logger.error('Track events batch error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track events',
@@ -114,7 +117,7 @@ export async function createOrUpdateAttribution(req: Request, res: Response) {
       message: 'Attribution tracked successfully',
     });
   } catch (error: any) {
-    console.error('Attribution tracking error:', error);
+    logger.error('Attribution tracking error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to track attribution',
@@ -149,7 +152,7 @@ export async function markRegistration(req: Request, res: Response) {
       message: 'Registration marked in attribution',
     });
   } catch (error: any) {
-    console.error('Mark registration error:', error);
+    logger.error('Mark registration error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to mark registration',
@@ -186,7 +189,7 @@ export async function createSession(req: Request, res: Response) {
       message: 'Session created successfully',
     });
   } catch (error: any) {
-    console.error('Create session error:', error);
+    logger.error('Create session error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to create session',
@@ -208,7 +211,7 @@ export async function updateSession(req: Request, res: Response) {
       message: 'Session updated successfully',
     });
   } catch (error: any) {
-    console.error('Update session error:', error);
+    logger.error('Update session error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to update session',
@@ -241,7 +244,7 @@ export async function updateFunnelStep(req: Request, res: Response) {
       message: `Funnel step ${data.step} updated successfully`,
     });
   } catch (error: any) {
-    console.error('Update funnel step error:', error);
+    logger.error('Update funnel step error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to update funnel step',

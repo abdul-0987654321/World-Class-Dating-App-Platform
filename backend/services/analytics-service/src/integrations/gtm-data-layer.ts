@@ -3,6 +3,10 @@
  * Client-side tracking helper for pushing events to GTM
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('gtm-data-layer');
+
 // Extend Window interface for dataLayer
 declare global {
   interface Window {
@@ -15,12 +19,12 @@ declare global {
  */
 export function initializeDataLayer(): void {
   if (typeof window === 'undefined') {
-    console.warn('GTM: Window object not available (server-side)');
+    logger.warn('GTM: Window object not available (server-side)');
     return;
   }
 
   window.dataLayer = window.dataLayer || [];
-  console.log('GTM Data Layer initialized');
+  logger.info('GTM Data Layer initialized');
 }
 
 /**
@@ -28,7 +32,7 @@ export function initializeDataLayer(): void {
  */
 export function pushToDataLayer(event: string, data: Record<string, any> = {}): void {
   if (typeof window === 'undefined') {
-    console.warn('GTM: Window object not available');
+    logger.warn('GTM: Window object not available');
     return;
   }
 
@@ -43,7 +47,7 @@ export function pushToDataLayer(event: string, data: Record<string, any> = {}): 
   };
 
   window.dataLayer.push(eventData);
-  console.log('GTM Event pushed:', event, eventData);
+  logger.info('GTM Event pushed:', event, eventData);
 }
 
 /**
@@ -301,7 +305,7 @@ export function initializeGTMTracking(): void {
   // Track initial page view
   trackPageView(window.location.pathname, document.title);
 
-  console.log('GTM Tracking initialized');
+  logger.info('GTM Tracking initialized');
 }
 
 // Export all tracking functions

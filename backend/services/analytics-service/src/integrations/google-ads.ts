@@ -4,6 +4,10 @@
  * Uses gtag.js (same as GA4)
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('google-ads');
+
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
@@ -29,19 +33,19 @@ interface GoogleAdsConfig {
  */
 export function initializeGoogleAds(config: GoogleAdsConfig): void {
   if (typeof window === 'undefined') {
-    console.warn('Google Ads: Window object not available (server-side)');
+    logger.warn('Google Ads: Window object not available (server-side)');
     return;
   }
 
   if (!window.gtag) {
-    console.warn('Google Ads: gtag not initialized. Initialize GA4 first.');
+    logger.warn('Google Ads: gtag not initialized. Initialize GA4 first.');
     return;
   }
 
   // Configure Google Ads
   window.gtag('config', config.conversionId);
 
-  console.log('Google Ads initialized:', config.conversionId);
+  logger.info('Google Ads initialized:', config.conversionId);
 }
 
 /**
@@ -55,7 +59,7 @@ export function trackGoogleAdsConversion(data: {
   transactionId?: string;
 }): void {
   if (typeof window === 'undefined' || !window.gtag) {
-    console.warn('Google Ads not initialized');
+    logger.warn('Google Ads not initialized');
     return;
   }
 
@@ -68,7 +72,7 @@ export function trackGoogleAdsConversion(data: {
     transaction_id: data.transactionId,
   });
 
-  console.log('Google Ads conversion tracked:', sendTo);
+  logger.info('Google Ads conversion tracked:', sendTo);
 }
 
 /**
@@ -191,7 +195,7 @@ export function setGoogleAdsEnhancedConversion(data: {
   }
 
   window.gtag('set', 'user_data', enhancedConversionData);
-  console.log('Google Ads enhanced conversion data set');
+  logger.info('Google Ads enhanced conversion data set');
 }
 
 /**
@@ -240,7 +244,7 @@ export function trackGoogleAdsCustomEvent(data: {
     ...data.parameters,
   });
 
-  console.log('Google Ads custom event tracked:', data.eventName);
+  logger.info('Google Ads custom event tracked:', data.eventName);
 }
 
 /**
@@ -308,7 +312,7 @@ export function trackGoogleAdsCallConversion(data: {
     phone_number: data.phoneNumber,
   });
 
-  console.log('Google Ads call conversion tracked');
+  logger.info('Google Ads call conversion tracked');
 }
 
 /**
@@ -403,7 +407,7 @@ export function disableGoogleAdsTracking(conversionId: string): void {
 
   // Set window property to disable Google Ads
   (window as any)[`google_conversion_${conversionId}`] = null;
-  console.log('Google Ads tracking disabled');
+  logger.info('Google Ads tracking disabled');
 }
 
 export default {

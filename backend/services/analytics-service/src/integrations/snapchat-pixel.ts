@@ -3,6 +3,10 @@
  * Client-side pixel tracking for Snapchat ads
  */
 
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('snapchat-pixel');
+
 declare global {
   interface Window {
     snaptr: any;
@@ -14,13 +18,13 @@ declare global {
  */
 export function initializeSnapchatPixel(pixelId: string): void {
   if (typeof window === 'undefined') {
-    console.warn('Snapchat Pixel: Window object not available (server-side)');
+    logger.warn('Snapchat Pixel: Window object not available (server-side)');
     return;
   }
 
   // Check if pixel already initialized
   if (window.snaptr) {
-    console.log('Snapchat Pixel already initialized');
+    logger.info('Snapchat Pixel already initialized');
     return;
   }
 
@@ -47,7 +51,7 @@ export function initializeSnapchatPixel(pixelId: string): void {
   // Track page view
   window.snaptr('track', 'PAGE_VIEW');
 
-  console.log('Snapchat Pixel initialized:', pixelId);
+  logger.info('Snapchat Pixel initialized:', pixelId);
 }
 
 /**
@@ -58,12 +62,12 @@ export function trackSnapchatPixelEvent(
   parameters: Record<string, any> = {}
 ): void {
   if (typeof window === 'undefined' || !window.snaptr) {
-    console.warn('Snapchat Pixel not initialized');
+    logger.warn('Snapchat Pixel not initialized');
     return;
   }
 
   window.snaptr('track', eventName, parameters);
-  console.log('Snapchat Pixel event tracked:', eventName, parameters);
+  logger.info('Snapchat Pixel event tracked:', eventName, parameters);
 }
 
 /**
@@ -264,7 +268,7 @@ export function setSnapchatUserEmail(email: string): void {
     user_email: email,
   });
 
-  console.log('Snapchat user email set');
+  logger.info('Snapchat user email set');
 }
 
 /**
@@ -279,7 +283,7 @@ export function setSnapchatUserPhone(phoneNumber: string): void {
     user_phone_number: phoneNumber,
   });
 
-  console.log('Snapchat user phone set');
+  logger.info('Snapchat user phone set');
 }
 
 /**
@@ -294,7 +298,7 @@ export function setSnapchatUserHashedEmail(hashedEmail: string): void {
     user_hashed_email: hashedEmail,
   });
 
-  console.log('Snapchat user hashed email set');
+  logger.info('Snapchat user hashed email set');
 }
 
 /**

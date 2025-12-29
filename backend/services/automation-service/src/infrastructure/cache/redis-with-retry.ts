@@ -1,20 +1,8 @@
 import { createClient, RedisClientType } from 'redis';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../../config';
 
-/**
- * Logger interface for retry operations
- */
-interface Logger {
-  info: (message: string, meta?: any) => void;
-  warn: (message: string, meta?: any) => void;
-  error: (message: string, meta?: any) => void;
-}
-
-const logger: Logger = {
-  info: (message: string, meta?: any) => console.log(`[Redis] ${message}`, meta || ''),
-  warn: (message: string, meta?: any) => console.warn(`[Redis] ${message}`, meta || ''),
-  error: (message: string, meta?: any) => console.error(`[Redis] ${message}`, meta || ''),
-};
+const logger = createLogger('automation-service:redis-retry');
 
 /**
  * Retry utility with exponential backoff for Redis operations

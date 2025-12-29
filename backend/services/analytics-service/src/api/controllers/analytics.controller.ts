@@ -7,6 +7,9 @@ import { Request, Response } from 'express';
 import trackingEventRepository from '../../domain/repositories/tracking-event.repository';
 import attributionRepository from '../../domain/repositories/attribution.repository';
 import funnelRepository from '../../domain/repositories/funnel.repository';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('analytics-controller');
 
 /**
  * Get funnel conversion rates
@@ -30,7 +33,7 @@ export async function getFunnelConversionRates(req: Request, res: Response) {
       data: conversionRates,
     });
   } catch (error: any) {
-    console.error('Get funnel conversion rates error:', error);
+    logger.error('Get funnel conversion rates error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get conversion rates',
@@ -59,7 +62,7 @@ export async function getAttributionSummary(req: Request, res: Response) {
       data: attributionSummary,
     });
   } catch (error: any) {
-    console.error('Get attribution summary error:', error);
+    logger.error('Get attribution summary error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get attribution summary',
@@ -88,7 +91,7 @@ export async function getEventsBySource(req: Request, res: Response) {
       data: eventsBySource,
     });
   } catch (error: any) {
-    console.error('Get events by source error:', error);
+    logger.error('Get events by source error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get events by source',
@@ -113,7 +116,7 @@ export async function getDropoffAnalysis(req: Request, res: Response) {
       data: dropoffAnalysis,
     });
   } catch (error: any) {
-    console.error('Get drop-off analysis error:', error);
+    logger.error('Get drop-off analysis error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get drop-off analysis',
@@ -138,7 +141,7 @@ export async function getAverageTimings(req: Request, res: Response) {
       data: timings,
     });
   } catch (error: any) {
-    console.error('Get average timings error:', error);
+    logger.error('Get average timings error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get average timings',

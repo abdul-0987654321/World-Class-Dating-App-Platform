@@ -1,5 +1,8 @@
 import { createClient, RedisClientType } from 'redis';
+import { createLogger } from '@flamoral/backend-shared';
 import config from '../../config';
+
+const logger = createLogger('automation-service:redis');
 
 /**
  * Redis client instance
@@ -21,23 +24,23 @@ export async function initializeRedis(): Promise<RedisClientType> {
     });
 
     redisClient.on('error', (err) => {
-      console.error('[Redis] Connection error:', err);
+      logger.error('Connection error', { error: err });
     });
 
     redisClient.on('connect', () => {
-      console.log('[Redis] Connected successfully');
+      logger.info('Connected successfully');
     });
 
     redisClient.on('reconnecting', () => {
-      console.log('[Redis] Reconnecting...');
+      logger.info('Reconnecting...');
     });
 
     await redisClient.connect();
-    console.log('[Redis] Connection established');
+    logger.info('Connection established');
 
     return redisClient;
   } catch (error: any) {
-    console.error('[Redis] Initialization failed:', error.message);
+    logger.error('Initialization failed', { error: error.message });
     throw error;
   }
 }
@@ -59,9 +62,9 @@ export async function closeRedis(): Promise<void> {
   if (redisClient) {
     try {
       await redisClient.quit();
-      console.log('[Redis] Connection closed');
+      logger.info('Connection closed');
     } catch (error: any) {
-      console.error('[Redis] Error closing connection:', error.message);
+      logger.error('Error closing connection', { error: error.message });
     }
   }
 }
@@ -76,7 +79,7 @@ export const cache = {
       const value = await client.get(key);
       return value ? (JSON.parse(value as string) as T) : null;
     } catch (error) {
-      console.error('[Redis] Error getting key:', error);
+      logger.error('Error getting key', { error });
       return null;
     }
   },
@@ -91,7 +94,7 @@ export const cache = {
         await client.set(key, serialized);
       }
     } catch (error) {
-      console.error('[Redis] Error setting key:', error);
+      logger.error('Error setting key', { error });
     }
   },
 
@@ -100,7 +103,7 @@ export const cache = {
       const client = getRedisClient();
       await client.del(key);
     } catch (error) {
-      console.error('[Redis] Error deleting key:', error);
+      logger.error('Error deleting key', { error });
     }
   },
 
@@ -110,7 +113,7 @@ export const cache = {
       const result = await client.exists(key);
       return result === 1;
     } catch (error) {
-      console.error('[Redis] Error checking key existence:', error);
+      logger.error('Error checking key existence', { error });
       return false;
     }
   },
@@ -120,7 +123,7 @@ export const cache = {
       const client = getRedisClient();
       await client.expire(key, ttlSeconds);
     } catch (error) {
-      console.error('[Redis] Error setting expiration:', error);
+      logger.error('Error setting expiration', { error });
     }
   },
 };

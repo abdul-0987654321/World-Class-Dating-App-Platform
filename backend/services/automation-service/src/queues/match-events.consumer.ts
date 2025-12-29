@@ -1,3 +1,4 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { rabbitmqClient } from './rabbitmq-client';
 import { WorkflowEngineService } from '../services/workflow-engine.service';
 import { IcebreakerService } from '../services/icebreaker.service';
@@ -5,6 +6,8 @@ import { FlowExecutionDto, TriggerType } from '../dtos';
 import db from '../infrastructure/database/knex';
 import { TABLES } from '../models';
 import config from '../config';
+
+const logger = createLogger('automation-service:match-events');
 
 /**
  * Match Events Consumer
@@ -30,9 +33,9 @@ export class MatchEventsConsumer {
         this.handleMatchEvent.bind(this)
       );
 
-      console.log('[MatchEventsConsumer] Started listening to match events');
+      logger.info('Started listening to match events');
     } catch (error: any) {
-      console.error('[MatchEventsConsumer] Failed to start:', error.message);
+      logger.error('Failed to start', { error: error.message });
       throw error;
     }
   }
@@ -42,7 +45,7 @@ export class MatchEventsConsumer {
    */
   private async handleMatchEvent(event: any): Promise<void> {
     try {
-      console.log('[MatchEventsConsumer] Received event:', event.type);
+      logger.info('Received event', { eventType: event.type });
 
       switch (event.type) {
         case 'match.created':
@@ -55,10 +58,10 @@ export class MatchEventsConsumer {
           await this.handleMatchAnniversary(event.data);
           break;
         default:
-          console.warn('[MatchEventsConsumer] Unknown event type:', event.type);
+          logger.warn('Unknown event type', { eventType: event.type });
       }
     } catch (error: any) {
-      console.error('[MatchEventsConsumer] Event handling failed:', error.message);
+      logger.error('Event handling failed', { error: error.message });
       throw error;
     }
   }
@@ -99,7 +102,7 @@ export class MatchEventsConsumer {
         try {
           await this.workflowEngine.executeFlow(executionDto);
         } catch (error: any) {
-          console.error('[MatchEventsConsumer] Flow execution failed:', error.message);
+          logger.error('Flow execution failed', { error: error.message });
         }
       }
     }
@@ -119,7 +122,7 @@ export class MatchEventsConsumer {
           matchId,
         });
       } catch (error: any) {
-        console.error('[MatchEventsConsumer] Icebreaker generation failed:', error.message);
+        logger.error('Icebreaker generation failed', { error: error.message });
       }
     }
   }
@@ -149,7 +152,7 @@ export class MatchEventsConsumer {
       try {
         await this.workflowEngine.executeFlow(executionDto);
       } catch (error: any) {
-        console.error('[MatchEventsConsumer] Super like flow failed:', error.message);
+        logger.error('Super like flow failed', { error: error.message });
       }
     }
   }
@@ -181,7 +184,7 @@ export class MatchEventsConsumer {
         try {
           await this.workflowEngine.executeFlow(executionDto);
         } catch (error: any) {
-          console.error('[MatchEventsConsumer] Anniversary flow failed:', error.message);
+          logger.error('Anniversary flow failed', { error: error.message });
         }
       }
     }

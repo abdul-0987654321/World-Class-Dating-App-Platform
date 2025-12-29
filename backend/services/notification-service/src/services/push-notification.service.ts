@@ -7,6 +7,9 @@
 import admin from 'firebase-admin';
 import { db } from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('push-notification-service');
 
 // Initialize Firebase Admin SDK
 let firebaseApp: admin.app.App;
@@ -21,7 +24,7 @@ export const initializeFirebase = (serviceAccountPath?: string) => {
           : null;
 
       if (!serviceAccount) {
-        console.warn('Firebase service account not configured. Push notifications disabled.');
+        logger.warn('Firebase service account not configured. Push notifications disabled.');
         return;
       }
 
@@ -29,9 +32,9 @@ export const initializeFirebase = (serviceAccountPath?: string) => {
         credential: admin.credential.cert(serviceAccount),
       });
 
-      console.log('Firebase Admin SDK initialized successfully');
+      logger.info('Firebase Admin SDK initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize Firebase:', error);
+      logger.error('Failed to initialize Firebase:', error);
     }
   }
   return firebaseApp;
@@ -117,7 +120,7 @@ export class PushNotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error registering FCM token:', error);
+      logger.error('Error registering FCM token:', error);
       return { success: false, error: 'Failed to register device token' };
     }
   }
@@ -136,7 +139,7 @@ export class PushNotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error unregistering FCM token:', error);
+      logger.error('Error unregistering FCM token:', error);
       return { success: false, error: 'Failed to unregister device token' };
     }
   }
@@ -152,7 +155,7 @@ export class PushNotificationService {
 
       return tokens;
     } catch (error) {
-      console.error('Error fetching user tokens:', error);
+      logger.error('Error fetching user tokens:', error);
       return [];
     }
   }
@@ -264,7 +267,7 @@ export class PushNotificationService {
         failed: response.failureCount,
       };
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      logger.error('Error sending push notification:', error);
       return { success: false, sent: 0, failed: 0, error: 'Failed to send notification' };
     }
   }
@@ -310,7 +313,7 @@ export class PushNotificationService {
         created_at: new Date(),
       });
     } catch (error) {
-      console.error('Error saving notification history:', error);
+      logger.error('Error saving notification history:', error);
     }
   }
 
@@ -345,7 +348,7 @@ export class PushNotificationService {
         total: parseInt(count as string),
       };
     } catch (error) {
-      console.error('Error fetching notification history:', error);
+      logger.error('Error fetching notification history:', error);
       return { success: false, error: 'Failed to fetch notifications' };
     }
   }
@@ -368,7 +371,7 @@ export class PushNotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read:', error);
       return { success: false, error: 'Failed to mark notification as read' };
     }
   }
@@ -384,7 +387,7 @@ export class PushNotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read:', error);
       return { success: false, error: 'Failed to mark notifications as read' };
     }
   }
@@ -400,7 +403,7 @@ export class PushNotificationService {
 
       return { success: true, count: parseInt(count as string) };
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      logger.error('Error fetching unread count:', error);
       return { success: false, error: 'Failed to fetch unread count' };
     }
   }
@@ -419,7 +422,7 @@ export class PushNotificationService {
 
       return { success: true, deleted };
     } catch (error) {
-      console.error('Error deleting old notifications:', error);
+      logger.error('Error deleting old notifications:', error);
       return { success: false, error: 'Failed to delete old notifications' };
     }
   }
