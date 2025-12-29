@@ -703,7 +703,12 @@
       "Bash(MSYS_NO_PATHCONV=1 az aks get-credentials:*)",
       "Bash(npm pkg set:*)",
       "Bash(yarn install)",
-      "Bash(yarn tsc:*)"
+      "Bash(yarn tsc:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr close:*)",
+      "Bash(git remote prune:*)"
     ],
     "deny": [],
     "ask": []

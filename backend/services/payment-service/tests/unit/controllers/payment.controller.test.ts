@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 // Mock the payment service before importing controller
 jest.mock('../../../src/domain/services/payment.service');
-jest.mock('../../../user-service/src/utils/logger', () => ({
+jest.mock('../../../src/utils/logger', () => ({
   __esModule: true,
   default: {
     info: jest.fn(),

@@ -3,10 +3,12 @@
  * Tests swipe actions, likes, stats, and undo functionality
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { SwipeController } from '../../../src/api/controllers/swipe.controller';
 import swipeService from '../../../src/domain/services/swipe.service';
 import { SwipeAction } from '../../../src/types';
+
+const mockNext: NextFunction = jest.fn();
 
 jest.mock('../../../src/domain/services/swipe.service');
 jest.mock('@flamoral/backend-shared', () => ({
@@ -16,6 +18,12 @@ jest.mock('@flamoral/backend-shared', () => ({
     warn: jest.fn(),
     debug: jest.fn(),
   }),
+  ServiceClient: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  })),
 }));
 
 describe('SwipeController', () => {
@@ -63,7 +71,7 @@ describe('SwipeController', () => {
 
       (swipeService.processSwipe as jest.Mock).mockResolvedValue(swipeResult);
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).toHaveBeenCalledWith({
         userId,
@@ -81,22 +89,22 @@ describe('SwipeController', () => {
       const swipeResult = {
         matched: false,
         swipeId: 'swipe-123',
-        action: SwipeAction.SUPERLIKE,
+        action: SwipeAction.SUPER_LIKE,
       };
 
       mockRequest.body = {
         targetUserId,
-        action: SwipeAction.SUPERLIKE,
+        action: SwipeAction.SUPER_LIKE,
       };
 
       (swipeService.processSwipe as jest.Mock).mockResolvedValue(swipeResult);
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).toHaveBeenCalledWith({
         userId,
         targetUserId,
-        action: SwipeAction.SUPERLIKE,
+        action: SwipeAction.SUPER_LIKE,
       });
       expect(statusMock).toHaveBeenCalledWith(200);
     });
@@ -115,7 +123,7 @@ describe('SwipeController', () => {
 
       (swipeService.processSwipe as jest.Mock).mockResolvedValue(swipeResult);
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).toHaveBeenCalledWith({
         userId,
@@ -140,7 +148,7 @@ describe('SwipeController', () => {
 
       (swipeService.processSwipe as jest.Mock).mockResolvedValue(swipeResult);
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
@@ -157,7 +165,7 @@ describe('SwipeController', () => {
         action: 'INVALID_ACTION',
       };
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
       expect(statusMock).toHaveBeenCalledWith(400);
@@ -172,7 +180,7 @@ describe('SwipeController', () => {
         action: SwipeAction.LIKE,
       };
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
       expect(statusMock).toHaveBeenCalledWith(400);
@@ -188,7 +196,7 @@ describe('SwipeController', () => {
         action: SwipeAction.LIKE,
       };
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
       expect(statusMock).toHaveBeenCalledWith(400);
@@ -208,7 +216,7 @@ describe('SwipeController', () => {
         new Error('Database connection failed')
       );
 
-      await swipeController.swipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({
@@ -223,7 +231,7 @@ describe('SwipeController', () => {
       const userIds = ['user-1', 'user-2', 'user-3'];
       (swipeService.getUsersWhoLikedMe as jest.Mock).mockResolvedValue(userIds);
 
-      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response);
+      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.getUsersWhoLikedMe).toHaveBeenCalledWith(userId);
       expect(statusMock).toHaveBeenCalledWith(200);
@@ -239,7 +247,7 @@ describe('SwipeController', () => {
     it('should return empty list if no likes', async () => {
       (swipeService.getUsersWhoLikedMe as jest.Mock).mockResolvedValue([]);
 
-      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response);
+      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(200);
       expect(jsonMock).toHaveBeenCalledWith({
@@ -256,7 +264,7 @@ describe('SwipeController', () => {
         new Error('Database error')
       );
 
-      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response);
+      await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({
@@ -280,7 +288,7 @@ describe('SwipeController', () => {
 
       (swipeService.getSwipeStats as jest.Mock).mockResolvedValue(stats);
 
-      await swipeController.getStats(mockRequest as Request, mockResponse as Response);
+      await swipeController.getStats(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.getSwipeStats).toHaveBeenCalledWith(userId);
       expect(statusMock).toHaveBeenCalledWith(200);
@@ -293,7 +301,7 @@ describe('SwipeController', () => {
     it('should handle errors', async () => {
       (swipeService.getSwipeStats as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      await swipeController.getStats(mockRequest as Request, mockResponse as Response);
+      await swipeController.getStats(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({
@@ -307,7 +315,7 @@ describe('SwipeController', () => {
     it('should undo last swipe successfully', async () => {
       (swipeService.undoLastSwipe as jest.Mock).mockResolvedValue(true);
 
-      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.undoLastSwipe).toHaveBeenCalledWith(userId);
       expect(statusMock).toHaveBeenCalledWith(200);
@@ -320,7 +328,7 @@ describe('SwipeController', () => {
     it('should return 400 if cannot undo swipe', async () => {
       (swipeService.undoLastSwipe as jest.Mock).mockResolvedValue(false);
 
-      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(400);
       expect(jsonMock).toHaveBeenCalledWith({
@@ -332,7 +340,7 @@ describe('SwipeController', () => {
     it('should handle errors', async () => {
       (swipeService.undoLastSwipe as jest.Mock).mockRejectedValue(new Error('Service error'));
 
-      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response);
+      await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({

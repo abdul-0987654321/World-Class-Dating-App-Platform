@@ -18,6 +18,12 @@ jest.mock('@flamoral/backend-shared', () => ({
     warn: jest.fn(),
     debug: jest.fn(),
   }),
+  ServiceClient: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  })),
 }));
 
 describe('MatchController', () => {
