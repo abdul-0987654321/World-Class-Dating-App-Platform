@@ -1,4 +1,7 @@
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('azure-storage');
 
 interface AzureStorageConfig {
   accountName: string;

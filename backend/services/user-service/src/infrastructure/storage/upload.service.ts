@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@flamoral/backend-shared';
 import { azureStorage } from './azure-storage.config';
 import { imageProcessor, ProcessedImage } from './image-processor';
+
+const logger = createLogger('upload-service');
 
 export interface UploadResult {
   photoId: string;

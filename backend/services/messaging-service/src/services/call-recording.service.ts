@@ -5,6 +5,7 @@
 
 import axios from 'axios';
 import { createLogger } from '../utils/logger';
+import { callRecordingRepository } from '../domain/repositories/call-recording.repository';
 
 const logger = createLogger('call-recording-service');
 import { VideoCallService } from './video-call.service';
@@ -92,7 +93,7 @@ export class CallRecordingService {
   /**
    * Stop cloud recording
    */
-  async stopRecording(recordingId: string): Promise<RecordingSession> {
+  async stopRecording(recordingId: string, userId?: string): Promise<RecordingSession> {
     try {
       const recording = this.recordings.get(recordingId);
       if (!recording) {
@@ -110,20 +111,73 @@ export class CallRecordingService {
       recording.fileList = fileList;
       recording.status = 'stopped';
 
+      const duration = (recording.endTime - recording.startTime) / 1000;
+
       logger.info('Recording stopped', {
         recordingId,
         callId: recording.callId,
-        duration: (recording.endTime - recording.startTime) / 1000,
+        duration,
         fileCount: fileList.length,
       });
 
-      // TODO: Save recording metadata to database
-      // await this.saveRecordingToDatabase(recording);
+      // Save recording metadata to database
+      await this.saveRecordingToDatabase(recording, userId);
 
       return recording;
     } catch (error) {
       logger.error('Failed to stop recording', { error, recordingId });
       throw error;
+    }
+  }
+
+  /**
+   * Save recording metadata to database
+   */
+  private async saveRecordingToDatabase(
+    recording: RecordingSession,
+    userId?: string
+  ): Promise<void> {
+    try {
+      // Get user ID from call session if not provided
+      let recordingUserId = userId;
+      if (!recordingUserId) {
+        const callSession = await this.videoCallService.getCallSession(recording.callId);
+        if (callSession) {
+          // Use the caller ID as the primary user for the recording
+          recordingUserId = callSession.callerId;
+        }
+      }
+
+      if (!recordingUserId) {
+        logger.warn('No user ID available for recording metadata', {
+          recordingId: recording.recordingId,
+        });
+        recordingUserId = 'unknown';
+      }
+
+      // Construct storage URL from file list
+      const storageUrl = recording.fileList && recording.fileList.length > 0
+        ? recording.fileList[0]
+        : undefined;
+
+      await callRecordingRepository.save(
+        recording,
+        recordingUserId,
+        storageUrl
+      );
+
+      logger.info('Recording metadata saved to database', {
+        recordingId: recording.recordingId,
+        callId: recording.callId,
+        userId: recordingUserId,
+      });
+    } catch (error) {
+      // Log error but don't throw - we don't want to fail the recording stop
+      // if database save fails
+      logger.error('Failed to save recording metadata to database', {
+        error,
+        recordingId: recording.recordingId,
+      });
     }
   }
 
@@ -299,11 +353,65 @@ export class CallRecordingService {
   /**
    * Delete recording
    */
-  async deleteRecording(recordingId: string): Promise<void> {
+  async deleteRecording(recordingId: string, callId?: string): Promise<void> {
     // TODO: Implement deletion from cloud storage
     // This depends on your storage provider (S3, Azure Blob, etc.)
+
+    // Delete from in-memory cache
     this.recordings.delete(recordingId);
+
+    // Delete from database if callId is provided
+    if (callId) {
+      try {
+        await callRecordingRepository.delete(recordingId, callId);
+      } catch (error) {
+        logger.error('Failed to delete recording from database', {
+          error,
+          recordingId,
+        });
+      }
+    }
+
     logger.info('Recording deleted', { recordingId });
+  }
+
+  /**
+   * Get recordings from database for a user
+   */
+  async getRecordingsForUser(
+    userId: string,
+    limit: number = 50,
+    offset: number = 0
+  ) {
+    return callRecordingRepository.getRecordingsByUserId(userId, limit, offset);
+  }
+
+  /**
+   * Get recordings from database for a call
+   */
+  async getRecordingsForCall(callId: string) {
+    return callRecordingRepository.getRecordingsByCallId(callId);
+  }
+
+  /**
+   * Get recording metadata from database
+   */
+  async getRecordingMetadata(recordingId: string, callId: string) {
+    return callRecordingRepository.findById(recordingId, callId);
+  }
+
+  /**
+   * Get total recording duration for a user
+   */
+  async getTotalRecordingDuration(userId: string): Promise<number> {
+    return callRecordingRepository.getTotalDurationForUser(userId);
+  }
+
+  /**
+   * Get recording count for a user
+   */
+  async getRecordingCount(userId: string): Promise<number> {
+    return callRecordingRepository.getRecordingCountForUser(userId);
   }
 }
 

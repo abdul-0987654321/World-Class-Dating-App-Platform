@@ -288,7 +288,7 @@ export class ReportService {
         resolved++;
       } catch (error) {
         // Continue with other reports
-        logger.error('Failed to resolve report ${reportId}:`, error);
+        logger.error(`Failed to resolve report ${reportId}:`, error);
       }
     }
 

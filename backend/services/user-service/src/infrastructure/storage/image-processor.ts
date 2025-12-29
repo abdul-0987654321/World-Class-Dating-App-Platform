@@ -1,4 +1,7 @@
 import sharp from 'sharp';
+import { createLogger } from '@flamoral/backend-shared';
+
+const logger = createLogger('image-processor');
 
 export interface ImageProcessingOptions {
   maxWidth?: number;

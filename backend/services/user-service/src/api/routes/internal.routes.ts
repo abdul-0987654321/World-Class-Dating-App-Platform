@@ -132,7 +132,7 @@ router.post('/notifications/send', async (req: Request, res: Response) => {
 
     // For now, just log the notification
     // In production, this would integrate with a notification service
-    logger.info('Notification for ${userId} [${type}]: ${message}`);
+    logger.info(`Notification for ${userId} [${type}]: ${message}`);
 
     return res.status(200).json({
       success: true,

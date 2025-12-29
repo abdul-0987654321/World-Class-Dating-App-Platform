@@ -7,6 +7,7 @@ import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
 import { v4 as uuidv4 } from 'uuid';
 import { RedisClient } from '../infrastructure/cache/redis';
 import { createLogger } from '../utils/logger';
+import { callHistoryRepository } from '../domain/repositories/call-history.repository';
 
 const logger = createLogger('video-call-service');
 
@@ -217,6 +218,9 @@ export class VideoCallService {
         calleeId,
         reason,
       });
+
+      // Save rejected call to database for history/analytics
+      await this.saveCallToDatabase(callSession);
     } catch (error) {
       logger.error('Failed to reject call', { error, callId });
       throw error;
@@ -256,11 +260,33 @@ export class VideoCallService {
         duration: callSession.duration,
       });
 
-      // TODO: Save call to database for history/analytics
-      // await this.saveCallToDatabase(callSession);
+      // Save call to database for history/analytics
+      await this.saveCallToDatabase(callSession);
     } catch (error) {
       logger.error('Failed to end call', { error, callId });
       throw error;
+    }
+  }
+
+  /**
+   * Save call session to database for history/analytics
+   */
+  private async saveCallToDatabase(callSession: CallSession): Promise<void> {
+    try {
+      await callHistoryRepository.save(callSession);
+      logger.info('Call saved to database', {
+        callId: callSession.callId,
+        callerId: callSession.callerId,
+        calleeId: callSession.calleeId,
+        duration: callSession.duration,
+        status: callSession.status,
+      });
+    } catch (error) {
+      // Log error but don't throw - call history save failure shouldn't block call end
+      logger.error('Failed to save call to database', {
+        error,
+        callId: callSession.callId,
+      });
     }
   }
 
@@ -286,6 +312,9 @@ export class VideoCallService {
       );
 
       logger.info('Call marked as missed', { callId });
+
+      // Save missed call to database for history/analytics
+      await this.saveCallToDatabase(callSession);
     } catch (error) {
       logger.error('Failed to mark call as missed', { error, callId });
     }
@@ -385,30 +414,38 @@ export class VideoCallService {
   }
 
   /**
-   * Get user's call history
+   * Get user's call history from database
    */
   async getCallHistory(userId: string, limit: number = 50): Promise<CallSession[]> {
     try {
-      // This is a simple implementation - in production, you'd query from database
-      const keys = await this.redis.keys(`${this.CALL_SESSION_PREFIX}*`);
-      const history: CallSession[] = [];
-
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const session = JSON.parse(data) as CallSession;
-          if (session.callerId === userId || session.calleeId === userId) {
-            history.push(session);
-          }
-        }
-      }
-
-      // Sort by start time (newest first)
-      history.sort((a, b) => b.startTime - a.startTime);
-
-      return history.slice(0, limit);
+      const history = await callHistoryRepository.getHistoryForUser(userId, 'all', limit);
+      return history;
     } catch (error) {
       logger.error('Failed to get call history', { error, userId });
+      return [];
+    }
+  }
+
+  /**
+   * Get call statistics for a user
+   */
+  async getCallStatistics(userId: string) {
+    try {
+      return await callHistoryRepository.getStatisticsForUser(userId);
+    } catch (error) {
+      logger.error('Failed to get call statistics', { error, userId });
+      throw error;
+    }
+  }
+
+  /**
+   * Get calls between two users
+   */
+  async getCallsBetweenUsers(userId1: string, userId2: string, limit: number = 50): Promise<CallSession[]> {
+    try {
+      return await callHistoryRepository.getCallsBetweenUsers(userId1, userId2, limit);
+    } catch (error) {
+      logger.error('Failed to get calls between users', { error, userId1, userId2 });
       return [];
     }
   }

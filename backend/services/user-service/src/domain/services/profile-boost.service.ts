@@ -1,4 +1,5 @@
 import logger from '../../utils/logger';
+import db from '../../infrastructure/database/connection';
 
 export interface ProfileBoost {
   id: string;
@@ -149,24 +150,65 @@ class ProfileBoostService {
    * Get active boost for user
    */
   async getActiveBoost(userId: string): Promise<ProfileBoost | null> {
-    // TODO: Implement database query for active boost
-    return null;
+    try {
+      const boost = await db('boosts')
+        .where({ user_id: userId, status: 'active' })
+        .where('expires_at', '>', new Date())
+        .first();
+
+      if (!boost) {
+        return null;
+      }
+
+      return this.mapDbRowToProfileBoost(boost);
+    } catch (error) {
+      logger.error('Error fetching active boost', { userId, error });
+      throw error;
+    }
   }
 
   /**
    * Get scheduled boosts for user
    */
   async getScheduledBoosts(userId: string): Promise<ProfileBoost[]> {
-    // TODO: Implement database query for scheduled boosts
-    return [];
+    try {
+      // 'pending' status in the database corresponds to 'scheduled' in ProfileBoost
+      const boosts = await db('boosts')
+        .where({ user_id: userId, status: 'pending' })
+        .where('started_at', '>', new Date())
+        .orderBy('started_at', 'asc')
+        .select('*');
+
+      return boosts.map((boost: any) => this.mapDbRowToProfileBoost(boost));
+    } catch (error) {
+      logger.error('Error fetching scheduled boosts', { userId, error });
+      throw error;
+    }
   }
 
   /**
    * Get boost history
    */
-  async getBoostHistory(userId: string): Promise<ProfileBoost[]> {
-    // TODO: Implement database query for boost history
-    return [];
+  async getBoostHistory(
+    userId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<ProfileBoost[]> {
+    try {
+      const limit = options?.limit ?? 50;
+      const offset = options?.offset ?? 0;
+
+      const boosts = await db('boosts')
+        .where({ user_id: userId })
+        .orderBy('created_at', 'desc')
+        .limit(limit)
+        .offset(offset)
+        .select('*');
+
+      return boosts.map((boost: any) => this.mapDbRowToProfileBoost(boost));
+    } catch (error) {
+      logger.error('Error fetching boost history', { userId, error });
+      throw error;
+    }
   }
 
   /**
@@ -326,6 +368,43 @@ class ProfileBoostService {
 
   private generateBoostId(): string {
     return `boost_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Map database row to ProfileBoost interface
+   */
+  private mapDbRowToProfileBoost(row: any): ProfileBoost {
+    // Map database status to ProfileBoost status
+    const statusMap: { [key: string]: ProfileBoost['status'] } = {
+      pending: 'scheduled',
+      active: 'active',
+      completed: 'completed',
+      expired: 'completed',
+      canceled: 'cancelled',
+    };
+
+    // Map database boost type to ProfileBoost boost type
+    const typeMap: { [key: string]: ProfileBoost['boostType'] } = {
+      standard: 'standard',
+      prime_time: 'premium',
+      spotlight: 'super',
+    };
+
+    return {
+      id: row.id,
+      userId: row.user_id,
+      startTime: row.started_at ? new Date(row.started_at) : new Date(row.created_at),
+      endTime: row.expires_at ? new Date(row.expires_at) : new Date(row.created_at),
+      duration: row.duration_minutes,
+      isActive: row.status === 'active',
+      status: statusMap[row.status] || 'completed',
+      boostType: typeMap[row.type] || 'standard',
+      multiplier: parseFloat(row.visibility_multiplier) || 1,
+      impressions: row.impressions_gained || 0,
+      likes: row.likes_gained || 0,
+      matches: row.matches_gained || 0,
+      createdAt: new Date(row.created_at),
+    };
   }
 
   private async storeBoost(boost: ProfileBoost): Promise<void> {
