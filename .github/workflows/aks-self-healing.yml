@@ -207,7 +207,7 @@ jobs:
           kubectl top nodes > evidence/node-metrics.txt 2>/dev/null || echo "Metrics not available" > evidence/node-metrics.txt
 
       - name: Upload evidence artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cluster-evidence-${{ github.run_id }}
           path: evidence/

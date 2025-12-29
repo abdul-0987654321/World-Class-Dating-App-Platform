@@ -151,7 +151,7 @@ jobs:
           fi
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-artifacts
           path: |
@@ -281,7 +281,7 @@ jobs:
 
       - name: Upload SBOM
         if: steps.dockerfile.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sbom-${{ steps.dockerfile.outputs.image_name }}
           path: sbom-${{ steps.dockerfile.outputs.image_name }}.spdx.json
@@ -372,7 +372,7 @@ jobs:
           output-file: sbom-web-app.spdx.json
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sbom-web-app
           path: sbom-web-app.spdx.json
@@ -845,7 +845,7 @@ jobs:
           ./scripts/aks-diagnostics.sh
 
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: aks-diagnostics
           path: ./aks-diagnostics-*
