@@ -1218,7 +1218,7 @@ jobs:
         if: |
           needs.agent-checks.outputs.overall_health == 'critical' &&
           steps.report.outputs.requires_attention == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const title = `[AKS Self-Healing] Critical issues detected in ${{ env.NAMESPACE }}`;
