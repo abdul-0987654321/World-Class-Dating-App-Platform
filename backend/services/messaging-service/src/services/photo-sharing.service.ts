@@ -1,14 +1,29 @@
 import { createLogger } from '../utils/logger';
 import axios from 'axios';
+import sharp from 'sharp';
 import { PhotoMetadata } from '../types/enhanced-types';
+import config from '../config';
 
 const logger = createLogger('photo-sharing-service');
 
 export class PhotoSharingService {
-  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  private readonly MAX_FILE_SIZE: number;
   private readonly SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  private readonly THUMBNAIL_WIDTH = 300;
-  private readonly THUMBNAIL_HEIGHT = 300;
+  private readonly THUMBNAIL_WIDTH: number;
+  private readonly THUMBNAIL_HEIGHT: number;
+  private readonly MAX_IMAGE_WIDTH: number;
+  private readonly MAX_IMAGE_HEIGHT: number;
+  private readonly COMPRESSION_QUALITY: number;
+
+  constructor() {
+    const imageConfig = config.mediaProcessing.image;
+    this.MAX_FILE_SIZE = imageConfig.maxFileSize;
+    this.THUMBNAIL_WIDTH = imageConfig.thumbnailWidth;
+    this.THUMBNAIL_HEIGHT = imageConfig.thumbnailHeight;
+    this.MAX_IMAGE_WIDTH = imageConfig.maxWidth;
+    this.MAX_IMAGE_HEIGHT = imageConfig.maxHeight;
+    this.COMPRESSION_QUALITY = imageConfig.compressionQuality;
+  }
 
   /**
    * Validate photo file
@@ -37,15 +52,14 @@ export class PhotoSharingService {
   }
 
   /**
-   * Get image dimensions
+   * Get image dimensions using sharp
    */
   async getImageDimensions(imageBuffer: Buffer): Promise<{ width: number; height: number }> {
     try {
-      // In production, use a library like 'sharp' or 'image-size'
-      // For now, return mock dimensions
+      const metadata = await sharp(imageBuffer).metadata();
       return {
-        width: 1920,
-        height: 1080,
+        width: metadata.width || 0,
+        height: metadata.height || 0,
       };
     } catch (error: any) {
       logger.error('Failed to get image dimensions:', error);
@@ -54,17 +68,23 @@ export class PhotoSharingService {
   }
 
   /**
-   * Generate thumbnail
+   * Generate thumbnail using sharp
    */
   async generateThumbnail(
     imageBuffer: Buffer,
     mimeType: string
   ): Promise<{ buffer: Buffer; width: number; height: number }> {
     try {
-      // In production, use 'sharp' library for image processing
-      // For now, return the original buffer (no thumbnail generation)
+      const thumbnail = await sharp(imageBuffer)
+        .resize(this.THUMBNAIL_WIDTH, this.THUMBNAIL_HEIGHT, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 80 })
+        .toBuffer();
+
       return {
-        buffer: imageBuffer,
+        buffer: thumbnail,
         width: this.THUMBNAIL_WIDTH,
         height: this.THUMBNAIL_HEIGHT,
       };
@@ -124,18 +144,43 @@ export class PhotoSharingService {
   }
 
   /**
-   * Compress image for storage optimization
+   * Compress image for storage optimization using sharp
    */
   async compressImage(
     imageBuffer: Buffer,
     mimeType: string,
-    quality: number = 85
+    quality: number = this.COMPRESSION_QUALITY
   ): Promise<Buffer> {
     try {
-      // In production, use 'sharp' for compression
-      // For now, return the original buffer
-      logger.debug('Image compression not yet implemented');
-      return imageBuffer;
+      let sharpInstance = sharp(imageBuffer);
+
+      // Apply compression based on mime type
+      switch (mimeType) {
+        case 'image/jpeg':
+          sharpInstance = sharpInstance.jpeg({ quality, mozjpeg: true });
+          break;
+        case 'image/png':
+          sharpInstance = sharpInstance.png({ compressionLevel: 9, adaptiveFiltering: true });
+          break;
+        case 'image/webp':
+          sharpInstance = sharpInstance.webp({ quality });
+          break;
+        case 'image/gif':
+          // GIF compression is limited, return as-is
+          return imageBuffer;
+        default:
+          sharpInstance = sharpInstance.jpeg({ quality, mozjpeg: true });
+      }
+
+      const compressedBuffer = await sharpInstance.toBuffer();
+
+      logger.debug('Image compressed', {
+        originalSize: imageBuffer.length,
+        compressedSize: compressedBuffer.length,
+        reduction: `${Math.round((1 - compressedBuffer.length / imageBuffer.length) * 100)}%`,
+      });
+
+      return compressedBuffer;
     } catch (error: any) {
       logger.error('Failed to compress image:', error);
       throw error;
@@ -143,22 +188,70 @@ export class PhotoSharingService {
   }
 
   /**
-   * Optimize image for web delivery
+   * Optimize image for web delivery using sharp
+   * - Resizes to max dimensions if larger
+   * - Compresses with quality setting
+   * - Converts to WebP format for better compression
    */
   async optimizeForWeb(
     imageBuffer: Buffer,
     mimeType: string,
-    maxWidth: number = 1920,
-    maxHeight: number = 1080
-  ): Promise<Buffer> {
+    maxWidth: number = this.MAX_IMAGE_WIDTH,
+    maxHeight: number = this.MAX_IMAGE_HEIGHT,
+    convertToWebP: boolean = true
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
     try {
-      // In production:
-      // 1. Resize to max dimensions if larger
-      // 2. Compress with quality setting
-      // 3. Convert to WebP if browser supports it
-      // For now, return the original buffer
-      logger.debug('Image optimization not yet implemented');
-      return imageBuffer;
+      const metadata = await sharp(imageBuffer).metadata();
+      const currentWidth = metadata.width || 0;
+      const currentHeight = metadata.height || 0;
+
+      let sharpInstance = sharp(imageBuffer);
+
+      // Only resize if image is larger than max dimensions
+      if (currentWidth > maxWidth || currentHeight > maxHeight) {
+        sharpInstance = sharpInstance.resize(maxWidth, maxHeight, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
+
+        logger.debug('Image resized', {
+          originalWidth: currentWidth,
+          originalHeight: currentHeight,
+          maxWidth,
+          maxHeight,
+        });
+      }
+
+      // Convert to WebP for better compression if requested
+      let outputMimeType = mimeType;
+      if (convertToWebP && mimeType !== 'image/gif') {
+        sharpInstance = sharpInstance.webp({ quality: this.COMPRESSION_QUALITY });
+        outputMimeType = 'image/webp';
+      } else {
+        // Compress in original format
+        switch (mimeType) {
+          case 'image/jpeg':
+            sharpInstance = sharpInstance.jpeg({ quality: this.COMPRESSION_QUALITY, mozjpeg: true });
+            break;
+          case 'image/png':
+            sharpInstance = sharpInstance.png({ compressionLevel: 9, adaptiveFiltering: true });
+            break;
+          case 'image/gif':
+            // Keep GIF as-is
+            break;
+        }
+      }
+
+      const optimizedBuffer = await sharpInstance.toBuffer();
+
+      logger.debug('Image optimized for web', {
+        originalSize: imageBuffer.length,
+        optimizedSize: optimizedBuffer.length,
+        reduction: `${Math.round((1 - optimizedBuffer.length / imageBuffer.length) * 100)}%`,
+        outputMimeType,
+      });
+
+      return { buffer: optimizedBuffer, mimeType: outputMimeType };
     } catch (error: any) {
       logger.error('Failed to optimize image:', error);
       throw error;
@@ -166,18 +259,74 @@ export class PhotoSharingService {
   }
 
   /**
-   * Extract EXIF data and remove sensitive information
+   * Extract EXIF data and remove sensitive information for privacy
+   * Uses sharp to strip all metadata except orientation
    */
   async sanitizeExifData(imageBuffer: Buffer): Promise<Buffer> {
     try {
-      // In production, use 'exif-parser' or 'sharp' to:
-      // 1. Remove GPS coordinates
-      // 2. Remove device information
-      // 3. Keep only basic metadata like orientation
-      logger.debug('EXIF sanitization not yet implemented');
-      return imageBuffer;
+      // Get original metadata to preserve orientation
+      const metadata = await sharp(imageBuffer).metadata();
+      const orientation = metadata.orientation;
+
+      // Remove all EXIF data but preserve orientation if present
+      let sharpInstance = sharp(imageBuffer).rotate(); // Auto-rotate based on EXIF orientation
+
+      // Determine output format based on original format
+      switch (metadata.format) {
+        case 'jpeg':
+          sharpInstance = sharpInstance.jpeg({ quality: 95 });
+          break;
+        case 'png':
+          sharpInstance = sharpInstance.png();
+          break;
+        case 'webp':
+          sharpInstance = sharpInstance.webp({ quality: 95 });
+          break;
+        case 'gif':
+          // GIF doesn't typically contain sensitive EXIF
+          return imageBuffer;
+        default:
+          sharpInstance = sharpInstance.jpeg({ quality: 95 });
+      }
+
+      const sanitizedBuffer = await sharpInstance.toBuffer();
+
+      logger.debug('EXIF data sanitized', {
+        originalSize: imageBuffer.length,
+        sanitizedSize: sanitizedBuffer.length,
+        hadOrientation: !!orientation,
+      });
+
+      return sanitizedBuffer;
     } catch (error: any) {
       logger.error('Failed to sanitize EXIF data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get image metadata including format, dimensions, and other properties
+   */
+  async getImageMetadata(imageBuffer: Buffer): Promise<{
+    format: string;
+    width: number;
+    height: number;
+    hasAlpha: boolean;
+    orientation?: number;
+    space?: string;
+  }> {
+    try {
+      const metadata = await sharp(imageBuffer).metadata();
+      return {
+        format: metadata.format || 'unknown',
+        width: metadata.width || 0,
+        height: metadata.height || 0,
+        hasAlpha: metadata.hasAlpha || false,
+        orientation: metadata.orientation,
+        space: metadata.space,
+      };
+    } catch (error: any) {
+      logger.error('Failed to get image metadata:', error);
       throw error;
     }
   }

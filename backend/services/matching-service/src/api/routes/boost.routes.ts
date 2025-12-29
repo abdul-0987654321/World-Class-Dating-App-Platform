@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import boostController from '../controllers/boost.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { validateBody, validateQuery } from '../middleware/validation.middleware';
+import { ActivateBoostDto, CancelBoostDto, BoostHistoryQueryDto } from '../../dto';
 
 const router = Router();
 
@@ -8,7 +10,7 @@ const router = Router();
 router.use(authMiddleware);
 
 // Activate boost
-router.post('/activate', boostController.activateBoost.bind(boostController));
+router.post('/activate', validateBody(ActivateBoostDto), boostController.activateBoost.bind(boostController));
 
 // Get active boost
 router.get('/active', boostController.getActiveBoost.bind(boostController));
@@ -17,9 +19,9 @@ router.get('/active', boostController.getActiveBoost.bind(boostController));
 router.get('/stats', boostController.getBoostStats.bind(boostController));
 
 // Get boost history
-router.get('/history', boostController.getBoostHistory.bind(boostController));
+router.get('/history', validateQuery(BoostHistoryQueryDto), boostController.getBoostHistory.bind(boostController));
 
 // Cancel active boost
-router.post('/cancel', boostController.cancelBoost.bind(boostController));
+router.post('/cancel', validateBody(CancelBoostDto), boostController.cancelBoost.bind(boostController));
 
 export default router;

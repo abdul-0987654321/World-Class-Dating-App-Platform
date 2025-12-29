@@ -1,7 +1,7 @@
 /**
  * In-App Purchase Routes
  * Handles Apple and Google Play purchase validation endpoints
- * 
+ *
  * SECURITY: All IAP routes require JWT authentication.
  * User identity is extracted from the verified JWT token,
  * not from request body, to prevent impersonation attacks.
@@ -9,12 +9,12 @@
 
 import { Router } from 'express';
 import { IAPController } from '../controllers/iap.controller';
-import { validate } from '../middleware/validation.middleware';
 import { authenticate } from '../middleware/auth.middleware';
 import {
-  validateReceiptSchema,
-  restorePurchasesSchema,
-} from '../validators/iap.validator';
+  validateBody,
+  ValidateReceiptDto,
+  RestorePurchasesDto,
+} from '../../dto';
 
 const router = Router();
 const iapController = new IAPController();
@@ -25,14 +25,14 @@ router.use(authenticate);
 // Validate IAP receipt (Apple or Google Play)
 router.post(
   '/validate',
-  validate(validateReceiptSchema),
+  validateBody(ValidateReceiptDto),
   iapController.validateReceipt.bind(iapController)
 );
 
 // Restore purchases
 router.post(
   '/restore',
-  validate(restorePurchasesSchema),
+  validateBody(RestorePurchasesDto),
   iapController.restorePurchases.bind(iapController)
 );
 

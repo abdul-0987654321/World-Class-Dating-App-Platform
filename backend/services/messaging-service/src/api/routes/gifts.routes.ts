@@ -145,18 +145,20 @@ router.post('/send', authenticate, async (req: Request, res: Response) => {
 /**
  * GET /api/gifts/history
  * Get gift transaction history for current user
+ * Supports pagination with limit and offset query parameters
  */
 router.get('/history', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const type = (req.query.type as 'sent' | 'received' | 'all') || 'all';
-    const limit = parseInt(req.query.limit as string) || 50;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100); // Cap at 100
+    const offset = parseInt(req.query.offset as string) || 0;
 
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    const transactions = await virtualGiftsService.getUserGiftHistory(userId, type, limit);
+    const transactions = await virtualGiftsService.getUserGiftHistory(userId, type, limit, offset);
 
     // Enrich transactions with gift details
     const enrichedTransactions = transactions.map(txn => ({
@@ -167,6 +169,11 @@ router.get('/history', authenticate, async (req: Request, res: Response) => {
     res.json({
       success: true,
       transactions: enrichedTransactions,
+      pagination: {
+        limit,
+        offset,
+        hasMore: transactions.length === limit,
+      },
     });
   } catch (error: any) {
     logger.error('Failed to get gift history:', error);
@@ -195,6 +202,49 @@ router.get('/stats', authenticate, async (req: Request, res: Response) => {
   } catch (error: any) {
     logger.error('Failed to get gift stats:', error);
     res.status(500).json({ success: false, error: 'Failed to get gift statistics' });
+  }
+});
+
+/**
+ * GET /api/gifts/conversation/:conversationId
+ * Get gifts exchanged in a specific conversation
+ */
+router.get('/conversation/:conversationId', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { conversationId } = req.params;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    // Verify user is participant in conversation
+    const conversation = await conversationRepository.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ success: false, error: 'Conversation not found' });
+    }
+
+    const isParticipant = conversation.participant1Id === userId || conversation.participant2Id === userId;
+    if (!isParticipant) {
+      return res.status(403).json({ success: false, error: 'Not a participant in this conversation' });
+    }
+
+    const gifts = await virtualGiftsService.getConversationGifts(conversationId, limit);
+
+    // Enrich with gift details
+    const enrichedGifts = gifts.map(txn => ({
+      ...txn,
+      gift: virtualGiftsService.getGiftById(txn.giftId),
+    }));
+
+    res.json({
+      success: true,
+      gifts: enrichedGifts,
+    });
+  } catch (error: any) {
+    logger.error('Failed to get conversation gifts:', error);
+    res.status(500).json({ success: false, error: 'Failed to get conversation gifts' });
   }
 });
 

@@ -10,6 +10,7 @@ class CosmosDBClient {
   private messagesContainer: Container | null = null;
   private conversationsContainer: Container | null = null;
   private reactionsContainer: Container | null = null;
+  private giftTransactionsContainer: Container | null = null;
   private initialized = false;
 
   constructor() {
@@ -79,6 +80,30 @@ class CosmosDBClient {
       this.reactionsContainer = reactionsContainer;
       logger.info('Container "reactions" ready');
 
+      // Get or create GiftTransactions container
+      const { container: giftTransactionsContainer } = await database.containers.createIfNotExists({
+        id: 'GiftTransactions',
+        partitionKey: '/recipientId',
+        indexingPolicy: {
+          automatic: true,
+          indexingMode: 'consistent',
+          includedPaths: [{ path: '/*' }],
+          excludedPaths: [{ path: '/"_etag"/?' }],
+          compositeIndexes: [
+            [
+              { path: '/senderId', order: 'ascending' },
+              { path: '/createdAt', order: 'descending' },
+            ],
+            [
+              { path: '/recipientId', order: 'ascending' },
+              { path: '/createdAt', order: 'descending' },
+            ],
+          ],
+        },
+      });
+      this.giftTransactionsContainer = giftTransactionsContainer;
+      logger.info('Container "GiftTransactions" ready');
+
       this.initialized = true;
       logger.info('Cosmos DB initialization complete');
     } catch (error: any) {
@@ -115,6 +140,16 @@ class CosmosDBClient {
       throw new Error('Cosmos DB not initialized. Call initialize() first.');
     }
     return this.reactionsContainer;
+  }
+
+  /**
+   * Get GiftTransactions container
+   */
+  getGiftTransactionsContainer(): Container {
+    if (!this.giftTransactionsContainer) {
+      throw new Error('Cosmos DB not initialized. Call initialize() first.');
+    }
+    return this.giftTransactionsContainer;
   }
 
   /**

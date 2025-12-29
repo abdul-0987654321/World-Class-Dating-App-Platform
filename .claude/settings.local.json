@@ -689,7 +689,21 @@
       "Bash(do sed -i 's/namespace: dating-app/namespace: flamoral/g; s/namespace: flamoral-prod/namespace: flamoral/g' \"$file\")",
       "Bash(do sed -i 's/namespace: flamoral-prod/namespace: flamoral/g' \"$file\")",
       "Bash(do sed -i 's/namespace: dating-app-production/namespace: flamoral/g' \"$file\")",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix\\(k8s\\): Resolve pod conflicts, standardize namespaces, add deployment scripts\n\n## Pod Conflict Resolution\n- Delete 8 duplicate deployment files that caused conflicts\n- Removed: api-gateway-deployment.yaml, core-services-deployment.yaml\n- Removed: deploy/api-gateway-deploy.yaml, auth-service-deploy.yaml\n- Removed: deploy/auth-service-complete.yaml, backend-services-prod.yaml\n- Removed: deploy/messaging-service-deploy.yaml, base/api-gateway-deployment.yaml\n\n## Namespace Standardization\n- Unified all namespaces to ''flamoral''\n- Replaced: flamoral-dating, flamoral-prod, dating-app, dating-app-production\n- Updated 50+ manifest files for consistency\n\n## Port Assignments Standardized\n- api-gateway: 3000, user-service: 3001, auth-service: 3002\n- matching-service: 3003, messaging-service: 3004, media-service: 3005\n- payment-service: 3006, notification-service: 3007, analytics-service: 3008\n- moderation-service: 3009, realtime-service: 3010, admin-service: 3011\n- advertising-service: 3012, automation-service: 3013, workflow-engine: 3014\n- policy-service: 3015, verification-service: 3016\n\n## Production Deployment Scripts\n- Add scripts/deploy-production.sh - Main AKS deployment script\n- Add scripts/verify-deployment.sh - Post-deployment verification\n- Update unified-pipeline.yml with deploy-production job\n- Add manual approval gate for production deployments\n\n## Service DNS Updates\n- Update all internal service URLs to *.flamoral.svc.cluster.local\n- Consistent REDIS_HOST, POSTGRES_HOST, MONGODB_HOST references\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix\\(k8s\\): Resolve pod conflicts, standardize namespaces, add deployment scripts\n\n## Pod Conflict Resolution\n- Delete 8 duplicate deployment files that caused conflicts\n- Removed: api-gateway-deployment.yaml, core-services-deployment.yaml\n- Removed: deploy/api-gateway-deploy.yaml, auth-service-deploy.yaml\n- Removed: deploy/auth-service-complete.yaml, backend-services-prod.yaml\n- Removed: deploy/messaging-service-deploy.yaml, base/api-gateway-deployment.yaml\n\n## Namespace Standardization\n- Unified all namespaces to ''flamoral''\n- Replaced: flamoral-dating, flamoral-prod, dating-app, dating-app-production\n- Updated 50+ manifest files for consistency\n\n## Port Assignments Standardized\n- api-gateway: 3000, user-service: 3001, auth-service: 3002\n- matching-service: 3003, messaging-service: 3004, media-service: 3005\n- payment-service: 3006, notification-service: 3007, analytics-service: 3008\n- moderation-service: 3009, realtime-service: 3010, admin-service: 3011\n- advertising-service: 3012, automation-service: 3013, workflow-engine: 3014\n- policy-service: 3015, verification-service: 3016\n\n## Production Deployment Scripts\n- Add scripts/deploy-production.sh - Main AKS deployment script\n- Add scripts/verify-deployment.sh - Post-deployment verification\n- Update unified-pipeline.yml with deploy-production job\n- Add manual approval gate for production deployments\n\n## Service DNS Updates\n- Update all internal service URLs to *.flamoral.svc.cluster.local\n- Consistent REDIS_HOST, POSTGRES_HOST, MONGODB_HOST references\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(MSYS_NO_PATHCONV=1 az resource list:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az resource move:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az aks show:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az communication create:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az lock list:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az group show:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az provider show:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az provider register:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az group list:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az tag create:*)",
+      "Bash(MSYS_NO_PATHCONV=1 az aks get-credentials:*)",
+      "Bash(npm pkg set:*)",
+      "Bash(yarn install)",
+      "Bash(yarn tsc:*)"
     ],
     "deny": [],
     "ask": []

@@ -5,6 +5,7 @@
 
 import { createLogger } from '../utils/logger';
 import axios from 'axios';
+import { giftTransactionRepository, GiftTransactionDocument, GiftStatistics } from '../domain/repositories/gift-transaction.repository';
 
 const logger = createLogger('virtual-gifts-service');
 
@@ -127,20 +128,27 @@ class VirtualGiftsService {
 
       // 2. Create gift transaction record
       const transactionId = `gift-txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const transaction: GiftTransaction = {
+      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      const transactionDoc: GiftTransactionDocument = {
         id: transactionId,
         giftId: gift.id,
         senderId,
         receiverId,
+        recipientId: receiverId, // Partition key
         conversationId,
-        messageId: '', // Will be updated after message creation
+        messageId,
         price: gift.price,
         createdAt: new Date(),
         status: 'completed',
+        giftName: gift.name,
+        giftEmoji: gift.emoji,
+        giftCategory: gift.category,
       };
 
-      // TODO: Store transaction in Cosmos DB
-      throw new Error('Gift transaction storage not implemented - requires Cosmos DB integration');
+      // Store transaction in Cosmos DB
+      await giftTransactionRepository.create(transactionDoc);
+      logger.info(`Gift transaction stored: ${transactionId}`);
 
       // 3. Credit a portion to receiver (gift economy - 70% to receiver)
       const receiverShare = Math.floor(gift.price * 0.7);
@@ -149,7 +157,6 @@ class VirtualGiftsService {
       }
 
       // 4. Create gift message
-      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const giftMessage: GiftMessage = {
         id: messageId,
         conversationId,
@@ -257,23 +264,69 @@ class VirtualGiftsService {
   async getUserGiftHistory(
     userId: string,
     type: 'sent' | 'received' | 'all' = 'all',
-    limit: number = 50
+    limit: number = 50,
+    offset: number = 0
   ): Promise<GiftTransaction[]> {
-    // TODO: Query gift transaction history from Cosmos DB
-    throw new Error('Gift history not implemented - requires Cosmos DB integration');
+    try {
+      logger.info(`Fetching gift history for user ${userId}, type: ${type}, limit: ${limit}, offset: ${offset}`);
+
+      const transactions = await giftTransactionRepository.getGiftHistory(userId, type, limit, offset);
+
+      logger.info(`Found ${transactions.length} gift transactions for user ${userId}`);
+
+      return transactions;
+    } catch (error: any) {
+      logger.error('Failed to get gift history:', error);
+      throw new Error('Failed to retrieve gift history');
+    }
   }
 
   /**
    * Get gift statistics for a user
    */
-  async getUserGiftStats(userId: string): Promise<{
-    totalSent: number;
-    totalReceived: number;
-    coinsSpent: number;
-    coinsEarned: number;
-  }> {
-    // TODO: Query gift statistics from Cosmos DB
-    throw new Error('Gift statistics not implemented - requires Cosmos DB integration');
+  async getUserGiftStats(userId: string): Promise<GiftStatistics> {
+    try {
+      logger.info(`Fetching gift statistics for user ${userId}`);
+
+      const statistics = await giftTransactionRepository.getGiftStatistics(userId);
+
+      logger.info(`Gift statistics for user ${userId}: sent=${statistics.totalSent}, received=${statistics.totalReceived}`);
+
+      return statistics;
+    } catch (error: any) {
+      logger.error('Failed to get gift statistics:', error);
+      throw new Error('Failed to retrieve gift statistics');
+    }
+  }
+
+  /**
+   * Get gifts exchanged in a specific conversation
+   */
+  async getConversationGifts(conversationId: string, limit: number = 50): Promise<GiftTransaction[]> {
+    try {
+      logger.info(`Fetching gifts for conversation ${conversationId}`);
+
+      const transactions = await giftTransactionRepository.getGiftsByConversation(conversationId, limit);
+
+      logger.info(`Found ${transactions.length} gift transactions in conversation ${conversationId}`);
+
+      return transactions;
+    } catch (error: any) {
+      logger.error('Failed to get conversation gifts:', error);
+      throw new Error('Failed to retrieve conversation gifts');
+    }
+  }
+
+  /**
+   * Get total gift count for a user
+   */
+  async getGiftCount(userId: string, type: 'sent' | 'received'): Promise<number> {
+    try {
+      return await giftTransactionRepository.getGiftCount(userId, type);
+    } catch (error: any) {
+      logger.error('Failed to get gift count:', error);
+      throw new Error('Failed to retrieve gift count');
+    }
   }
 }
 
