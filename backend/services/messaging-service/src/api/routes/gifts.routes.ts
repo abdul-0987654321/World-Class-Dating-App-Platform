@@ -11,6 +11,12 @@ import conversationRepository from '../../domain/repositories/conversation.repos
 import { createLogger } from '../../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageType, MessageStatus } from '../../types';
+import {
+  validateBody,
+  validateQuery,
+  SendGiftDto,
+  GiftHistoryQueryDto,
+} from '../../dto';
 
 const router = Router();
 const logger = createLogger('gifts-routes');
@@ -61,7 +67,7 @@ router.get('/:giftId', async (req: Request, res: Response) => {
  * POST /api/gifts/send
  * Send a virtual gift to another user in a conversation
  */
-router.post('/send', authenticate, async (req: Request, res: Response) => {
+router.post('/send', authenticate, validateBody(SendGiftDto), async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const { conversationId, giftId, message: giftMessage } = req.body;
@@ -124,7 +130,7 @@ router.post('/send', authenticate, async (req: Request, res: Response) => {
     await conversationRepository.updateLastMessage(
       conversationId,
       messageData.sentAt,
-      `🎁 Sent a ${gift?.name || 'gift'}`
+      `Sent a ${gift?.name || 'gift'}`
     );
 
     logger.info(`Gift sent successfully: ${giftId} from ${userId} to ${receiverId}`);
@@ -147,7 +153,7 @@ router.post('/send', authenticate, async (req: Request, res: Response) => {
  * Get gift transaction history for current user
  * Supports pagination with limit and offset query parameters
  */
-router.get('/history', authenticate, async (req: Request, res: Response) => {
+router.get('/history', authenticate, validateQuery(GiftHistoryQueryDto), async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const type = (req.query.type as 'sent' | 'received' | 'all') || 'all';

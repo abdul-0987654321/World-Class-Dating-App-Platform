@@ -1,3 +1,6 @@
+import { createLogger } from '../../utils/logger';
+const encryptionLogger = createLogger('EncryptionService');
+
 import crypto from 'crypto';
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
@@ -49,7 +52,7 @@ export class EncryptionService {
         throw new Error('CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use Azure Key Vault or AWS KMS.');
       }
       // Development only: generate a consistent dev key (NOT random, so messages persist across restarts)
-      console.warn('WARNING: Using development encryption key. DO NOT use in production!');
+      encryptionLogger.warn('WARNING: Using development encryption key. DO NOT use in production!');
       this.MASTER_KEY = Buffer.from('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', 'hex');
     } else {
       if (masterKeyHex.length !== 64) {

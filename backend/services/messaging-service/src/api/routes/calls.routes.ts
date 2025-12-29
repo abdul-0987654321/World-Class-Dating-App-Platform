@@ -6,6 +6,15 @@
 import { Router } from 'express';
 import { callsController } from '../controllers/calls.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import {
+  validateBody,
+  validateQuery,
+  RequestCallDto,
+  AcceptCallDto,
+  RejectCallDto,
+  EndCallDto,
+  CallHistoryQueryDto,
+} from '../../dto';
 
 const router = Router();
 
@@ -18,7 +27,7 @@ router.use(authenticate);
  *
  * Body: { calleeId: string, callType: 'video' | 'audio' }
  */
-router.post('/request', callsController.requestCall.bind(callsController));
+router.post('/request', validateBody(RequestCallDto), callsController.requestCall.bind(callsController));
 
 /**
  * POST /api/v1/calls/accept
@@ -26,7 +35,7 @@ router.post('/request', callsController.requestCall.bind(callsController));
  *
  * Body: { callId: string }
  */
-router.post('/accept', callsController.acceptCall.bind(callsController));
+router.post('/accept', validateBody(AcceptCallDto), callsController.acceptCall.bind(callsController));
 
 /**
  * POST /api/v1/calls/reject
@@ -34,7 +43,7 @@ router.post('/accept', callsController.acceptCall.bind(callsController));
  *
  * Body: { callId: string, reason?: string }
  */
-router.post('/reject', callsController.rejectCall.bind(callsController));
+router.post('/reject', validateBody(RejectCallDto), callsController.rejectCall.bind(callsController));
 
 /**
  * POST /api/v1/calls/end
@@ -42,7 +51,7 @@ router.post('/reject', callsController.rejectCall.bind(callsController));
  *
  * Body: { callId: string, duration?: number }
  */
-router.post('/end', callsController.endCall.bind(callsController));
+router.post('/end', validateBody(EndCallDto), callsController.endCall.bind(callsController));
 
 /**
  * GET /api/v1/calls/history
@@ -50,7 +59,7 @@ router.post('/end', callsController.endCall.bind(callsController));
  *
  * Query: limit?, offset?
  */
-router.get('/history', callsController.getCallHistory.bind(callsController));
+router.get('/history', validateQuery(CallHistoryQueryDto), callsController.getCallHistory.bind(callsController));
 
 /**
  * GET /api/v1/calls/availability/:userId

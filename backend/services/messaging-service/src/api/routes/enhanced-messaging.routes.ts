@@ -1,6 +1,15 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { enhancedMessagingController } from '../controllers/enhanced-messaging.controller';
+import {
+  validateBody,
+  validateQuery,
+  AddReactionDto,
+  RemoveReactionDto,
+  SearchMessagesDto,
+  GetSharedMediaQueryDto,
+  ExportChatDto,
+} from '../../dto';
 
 const router = Router();
 
@@ -51,6 +60,7 @@ const router = Router();
 router.post(
   '/messages/:messageId/reactions',
   authenticate,
+  validateBody(AddReactionDto),
   enhancedMessagingController.addReaction.bind(enhancedMessagingController)
 );
 
@@ -66,6 +76,7 @@ router.post(
 router.delete(
   '/messages/:messageId/reactions',
   authenticate,
+  validateBody(RemoveReactionDto),
   enhancedMessagingController.removeReaction.bind(enhancedMessagingController)
 );
 
@@ -181,6 +192,7 @@ router.get(
 router.post(
   '/messages/search',
   authenticate,
+  validateBody(SearchMessagesDto),
   enhancedMessagingController.searchMessages.bind(enhancedMessagingController)
 );
 
@@ -196,6 +208,7 @@ router.post(
 router.get(
   '/conversations/:conversationId/media',
   authenticate,
+  validateQuery(GetSharedMediaQueryDto),
   enhancedMessagingController.getSharedMedia.bind(enhancedMessagingController)
 );
 
@@ -301,6 +314,7 @@ router.get(
 router.post(
   '/conversations/:conversationId/export',
   authenticate,
+  validateBody(ExportChatDto),
   enhancedMessagingController.exportChat.bind(enhancedMessagingController)
 );
 

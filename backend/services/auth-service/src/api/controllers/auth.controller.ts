@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import authService from '../../domain/services/auth.service';
+import twoFactorService from '../../domain/services/two-factor.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../../utils/logger';
 
@@ -333,6 +334,252 @@ class AuthController {
     }
 
     return req.ip || req.socket.remoteAddress || 'unknown';
+  }
+
+  // ==================== Two-Factor Authentication (2FA) Methods ====================
+
+  /**
+   * GET /api/auth/2fa/status
+   * Get 2FA status for the authenticated user
+   */
+  async get2FAStatus(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user!.userId;
+      const status = await twoFactorService.get2FAStatus(userId);
+
+      return res.status(200).json({
+        success: true,
+        data: status,
+      });
+    } catch (error: any) {
+      logger.error('Failed to get 2FA status', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to get 2FA status',
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/2fa/setup
+   * Start 2FA setup process
+   * SECURITY: Requires password verification before generating secret
+   */
+  async setup2FA(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user!.userId;
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Password is required to setup 2FA',
+        });
+      }
+
+      const result = await twoFactorService.setup2FA({ userId, password });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Scan the QR code with your authenticator app, then verify with a code',
+        data: result,
+      });
+    } catch (error: any) {
+      logger.error('2FA setup failed', error);
+
+      // Return 401 Unauthorized for password verification failures
+      if (error.message === 'Invalid password') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid password',
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        error: error.message || '2FA setup failed',
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/2fa/verify
+   * Verify 2FA token and enable 2FA
+   */
+  async verify2FA(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user!.userId;
+      const { token, tempSecret } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          error: 'Verification token is required',
+        });
+      }
+
+      const result = await twoFactorService.verifyAndEnable2FA({
+        userId,
+        token,
+        tempSecret,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.message,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      logger.error('2FA verification failed', error);
+      return res.status(400).json({
+        success: false,
+        error: error.message || '2FA verification failed',
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/2fa/disable
+   * Disable 2FA for the authenticated user
+   * SECURITY: Requires password verification AND valid 2FA token/backup code
+   */
+  async disable2FA(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user!.userId;
+      const { password, token } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Password is required to disable 2FA',
+        });
+      }
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          error: 'Verification code or backup code is required',
+        });
+      }
+
+      const result = await twoFactorService.disable2FA({
+        userId,
+        password,
+        token,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.message,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      logger.error('2FA disable failed', error);
+
+      // Return 401 Unauthorized for password verification failures
+      if (error.message === 'Invalid password') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid password',
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        error: error.message || '2FA disable failed',
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/2fa/validate
+   * Validate 2FA token during login (for 2FA-enabled accounts)
+   */
+  async validate2FA(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, token } = req.body;
+
+      if (!userId || !token) {
+        return res.status(400).json({
+          success: false,
+          error: 'User ID and verification code are required',
+        });
+      }
+
+      const result = await twoFactorService.validate2FALogin({ userId, token });
+
+      if (!result.success) {
+        return res.status(401).json({
+          success: false,
+          error: result.message,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      logger.error('2FA validation failed', error);
+      return res.status(400).json({
+        success: false,
+        error: error.message || '2FA validation failed',
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/2fa/backup-codes/regenerate
+   * Regenerate backup codes
+   * SECURITY: Requires password verification before regenerating
+   */
+  async regenerateBackupCodes(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const userId = req.user!.userId;
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Password is required to regenerate backup codes',
+        });
+      }
+
+      const backupCodes = await twoFactorService.regenerateBackupCodes(userId, password);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Backup codes regenerated successfully. Please store them securely.',
+        data: { backupCodes },
+      });
+    } catch (error: any) {
+      logger.error('Backup codes regeneration failed', error);
+
+      // Return 401 Unauthorized for password verification failures
+      if (error.message === 'Invalid password') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid password',
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to regenerate backup codes',
+      });
+    }
   }
 }
 

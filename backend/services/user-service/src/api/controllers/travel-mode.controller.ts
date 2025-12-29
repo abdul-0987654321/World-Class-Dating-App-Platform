@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import { createLogger } from '../../utils/logger';
 import { TravelModeService } from '../../domain/services/travel-mode.service';
 import { Knex } from 'knex';
+
+const logger = createLogger('TravelModeController');
 
 export class TravelModeController {
   private travelModeService: TravelModeService;
@@ -22,7 +25,7 @@ export class TravelModeController {
       const status = await this.travelModeService.getTravelModeStatus(userId);
       res.json(status);
     } catch (error) {
-      console.error('Get travel mode status error:', error);
+      logger.error('Get travel mode status error:', { error });
       res.status(500).json({ error: 'Failed to get travel mode status' });
     }
   };
@@ -89,7 +92,7 @@ export class TravelModeController {
 
       res.status(201).json(destination);
     } catch (error: any) {
-      console.error('Create travel destination error:', error);
+      logger.error('Create travel destination error:', { error });
       res.status(400).json({ error: error.message || 'Failed to create travel destination' });
     }
   };
@@ -107,7 +110,7 @@ export class TravelModeController {
       const destinations = await this.travelModeService.getTravelDestinations(userId);
       res.json(destinations);
     } catch (error) {
-      console.error('Get travel destinations error:', error);
+      logger.error('Get travel destinations error:', { error });
       res.status(500).json({ error: 'Failed to get travel destinations' });
     }
   };
@@ -125,7 +128,7 @@ export class TravelModeController {
       const destination = await this.travelModeService.getActiveTravelDestination(userId);
       res.json(destination);
     } catch (error) {
-      console.error('Get active travel destination error:', error);
+      logger.error('Get active travel destination error:', { error });
       res.status(500).json({ error: 'Failed to get active travel destination' });
     }
   };
@@ -165,7 +168,7 @@ export class TravelModeController {
 
       res.json(updated);
     } catch (error: any) {
-      console.error('Update travel destination error:', error);
+      logger.error('Update travel destination error:', { error });
       res.status(400).json({ error: error.message || 'Failed to update travel destination' });
     }
   };
@@ -184,7 +187,7 @@ export class TravelModeController {
       await this.travelModeService.cancelTravelDestination(destinationId, userId);
       res.json({ message: 'Travel destination cancelled successfully' });
     } catch (error: any) {
-      console.error('Cancel travel destination error:', error);
+      logger.error('Cancel travel destination error:', { error });
       res.status(400).json({ error: error.message || 'Failed to cancel travel destination' });
     }
   };
@@ -202,7 +205,7 @@ export class TravelModeController {
       const settings = await this.travelModeService.getTravelModeSettings(userId);
       res.json(settings);
     } catch (error) {
-      console.error('Get travel mode settings error:', error);
+      logger.error('Get travel mode settings error:', { error });
       res.status(500).json({ error: 'Failed to get travel mode settings' });
     }
   };
@@ -237,7 +240,7 @@ export class TravelModeController {
 
       res.json(settings);
     } catch (error) {
-      console.error('Update travel mode settings error:', error);
+      logger.error('Update travel mode settings error:', { error });
       res.status(500).json({ error: 'Failed to update travel mode settings' });
     }
   };
@@ -269,7 +272,7 @@ export class TravelModeController {
 
       res.json({ message: 'Location changed successfully' });
     } catch (error: any) {
-      console.error('Change location with passport error:', error);
+      logger.error('Change location with passport error:', { error });
       res.status(400).json({ error: error.message || 'Failed to change location' });
     }
   };
@@ -288,7 +291,7 @@ export class TravelModeController {
       const history = await this.travelModeService.getLocationHistory(userId, limit);
       res.json(history);
     } catch (error) {
-      console.error('Get location history error:', error);
+      logger.error('Get location history error:', { error });
       res.status(500).json({ error: 'Failed to get location history' });
     }
   };
@@ -306,7 +309,7 @@ export class TravelModeController {
       const history = await this.travelModeService.getTravelHistory(userId);
       res.json(history);
     } catch (error) {
-      console.error('Get travel history error:', error);
+      logger.error('Get travel history error:', { error });
       res.status(500).json({ error: 'Failed to get travel history' });
     }
   };
@@ -318,7 +321,7 @@ export class TravelModeController {
       const destinations = await this.travelModeService.getPopularDestinations(limit);
       res.json(destinations);
     } catch (error) {
-      console.error('Get popular destinations error:', error);
+      logger.error('Get popular destinations error:', { error });
       res.status(500).json({ error: 'Failed to get popular destinations' });
     }
   };
@@ -336,7 +339,7 @@ export class TravelModeController {
       const preferences = await this.travelModeService.getTravelBuddyPreferences(userId);
       res.json(preferences);
     } catch (error) {
-      console.error('Get travel buddy preferences error:', error);
+      logger.error('Get travel buddy preferences error:', { error });
       res.status(500).json({ error: 'Failed to get travel buddy preferences' });
     }
   };
@@ -374,7 +377,7 @@ export class TravelModeController {
 
       res.json(preferences);
     } catch (error) {
-      console.error('Update travel buddy preferences error:', error);
+      logger.error('Update travel buddy preferences error:', { error });
       res.status(500).json({ error: 'Failed to update travel buddy preferences' });
     }
   };
@@ -392,7 +395,7 @@ export class TravelModeController {
       const features = await this.travelModeService.getPremiumTravelFeatures(userId);
       res.json(features);
     } catch (error) {
-      console.error('Get premium travel features error:', error);
+      logger.error('Get premium travel features error:', { error });
       res.status(500).json({ error: 'Failed to get premium travel features' });
     }
   };

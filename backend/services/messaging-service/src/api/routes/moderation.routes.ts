@@ -8,6 +8,11 @@ import { authenticate } from '../middleware/auth.middleware';
 import { chatModerationService, ReportReason } from '../../services/chat-moderation.service';
 import conversationRepository from '../../domain/repositories/conversation.repository';
 import { createLogger } from '../../utils/logger';
+import {
+  validateBody,
+  ReportContentDto,
+  BlockUserDto,
+} from '../../dto';
 
 const router = Router();
 const logger = createLogger('moderation-routes');
@@ -16,7 +21,7 @@ const logger = createLogger('moderation-routes');
  * POST /api/moderation/report
  * Report a message or conversation
  */
-router.post('/report', authenticate, async (req: Request, res: Response) => {
+router.post('/report', authenticate, validateBody(ReportContentDto), async (req: Request, res: Response) => {
   try {
     const reporterId = (req as any).user?.id;
     const { conversationId, messageIds, reason, details, reportedUserId } = req.body;
@@ -87,7 +92,7 @@ router.post('/report', authenticate, async (req: Request, res: Response) => {
  * POST /api/moderation/block
  * Block a user from messaging
  */
-router.post('/block', authenticate, async (req: Request, res: Response) => {
+router.post('/block', authenticate, validateBody(BlockUserDto), async (req: Request, res: Response) => {
   try {
     const blockerId = (req as any).user?.id;
     const { userId: blockedId, conversationId } = req.body;

@@ -64,7 +64,7 @@ class ImageProcessor {
         size: buffer.length,
       };
     } catch (error) {
-      console.error('Error processing image:', error);
+      logger.error('Error processing image:', error);
       throw new Error('Failed to process image');
     }
   }
@@ -98,7 +98,7 @@ class ImageProcessor {
 
       return { thumbnail, medium, large };
     } catch (error) {
-      console.error('Error creating multiple sizes:', error);
+      logger.error('Error creating multiple sizes:', error);
       throw new Error('Failed to create multiple image sizes');
     }
   }
@@ -167,7 +167,7 @@ class ImageProcessor {
     try {
       return await sharp(imageBuffer).metadata();
     } catch (error) {
-      console.error('Error getting image metadata:', error);
+      logger.error('Error getting image metadata:', error);
       throw new Error('Failed to get image metadata');
     }
   }

@@ -1,3 +1,6 @@
+import { createLogger } from '../../utils/logger';
+const logger = createLogger('InternalRoutes');
+
 import { Router } from 'express';
 import { SubscriptionService } from '../../domain/services/subscription.service';
 import { CoinService } from '../../domain/services/coin.service';
@@ -31,7 +34,7 @@ router.put('/subscriptions/update', async (req: Request, res: Response) => {
       data: subscription,
     });
   } catch (error: any) {
-    console.error('Internal subscription update error:', error);
+    logger.error('Internal subscription update error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to update subscription',
@@ -64,7 +67,7 @@ router.post('/coins/add', async (req: Request, res: Response) => {
       data: { balance },
     });
   } catch (error: any) {
-    console.error('Internal add coins error:', error);
+    logger.error('Internal add coins error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to add coins',
@@ -89,7 +92,7 @@ router.post('/coins/subtract', async (req: Request, res: Response) => {
       data: { balance },
     });
   } catch (error: any) {
-    console.error('Internal subtract coins error:', error);
+    logger.error('Internal subtract coins error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to subtract coins',
@@ -112,7 +115,7 @@ router.post('/boosts/activate', async (req: Request, res: Response) => {
       data: boost,
     });
   } catch (error: any) {
-    console.error('Internal activate boost error:', error);
+    logger.error('Internal activate boost error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to activate boost',
@@ -129,14 +132,14 @@ router.post('/notifications/send', async (req: Request, res: Response) => {
 
     // For now, just log the notification
     // In production, this would integrate with a notification service
-    console.log(`Notification for ${userId} [${type}]: ${message}`);
+    logger.info('Notification for ${userId} [${type}]: ${message}`);
 
     return res.status(200).json({
       success: true,
       message: 'Notification sent',
     });
   } catch (error: any) {
-    console.error('Internal notification error:', error);
+    logger.error('Internal notification error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to send notification',
@@ -182,7 +185,7 @@ router.get('/users/:userId', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('Internal get user error:', error);
+    logger.error('Internal get user error:', { error });
     return res.status(500).json({
       success: false,
       message: error.message || 'Failed to get user',

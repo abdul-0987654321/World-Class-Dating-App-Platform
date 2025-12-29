@@ -4,8 +4,11 @@
  */
 
 import { Request, Response } from 'express';
+import { createLogger } from '../../utils/logger';
 import { RewardsService } from '../../services/rewards.service';
 import { Pool } from 'pg';
+
+const logger = createLogger('RewardsController');
 
 export class RewardsController {
   private rewardsService: RewardsService;
@@ -34,7 +37,7 @@ export class RewardsController {
         data: streakStatus,
       });
     } catch (error) {
-      console.error('Error getting streak status:', error);
+      logger.error('Error getting streak status:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get streak status',
@@ -69,7 +72,7 @@ export class RewardsController {
         },
       });
     } catch (error) {
-      console.error('Error recording login:', error);
+      logger.error('Error recording login:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to record login',
@@ -111,7 +114,7 @@ export class RewardsController {
         },
       });
     } catch (error) {
-      console.error('Error claiming daily reward:', error);
+      logger.error('Error claiming daily reward:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to claim reward',
@@ -158,7 +161,7 @@ export class RewardsController {
         },
       });
     } catch (error) {
-      console.error('Error getting reward calendar:', error);
+      logger.error('Error getting reward calendar:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get reward calendar',
@@ -200,7 +203,7 @@ export class RewardsController {
         },
       });
     } catch (error) {
-      console.error('Error getting reward history:', error);
+      logger.error('Error getting reward history:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get reward history',
@@ -243,7 +246,7 @@ export class RewardsController {
         },
       });
     } catch (error) {
-      console.error('Error getting reward stats:', error);
+      logger.error('Error getting reward stats:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get reward stats',

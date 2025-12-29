@@ -7,6 +7,9 @@ import { Request, Response } from 'express';
 import { AchievementsService } from '../../services/achievements.service';
 import { Pool } from 'pg';
 import { AchievementCategory, AchievementTier } from '../../domain/entities/Achievement.entity';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('AchievementsController');
 
 export class AchievementsController {
   private achievementsService: AchievementsService;
@@ -46,7 +49,7 @@ export class AchievementsController {
         data: achievements,
       });
     } catch (error) {
-      console.error('Error getting achievements:', error);
+      logger.error('Error getting achievements:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get achievements',
@@ -77,7 +80,7 @@ export class AchievementsController {
         data: achievement,
       });
     } catch (error) {
-      console.error('Error getting achievement:', error);
+      logger.error('Error getting achievement:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get achievement',
@@ -110,7 +113,7 @@ export class AchievementsController {
         data: achievements,
       });
     } catch (error) {
-      console.error('Error getting user achievements:', error);
+      logger.error('Error getting user achievements:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get user achievements',
@@ -138,7 +141,7 @@ export class AchievementsController {
         data: achievements,
       });
     } catch (error) {
-      console.error('Error getting unlocked achievements:', error);
+      logger.error('Error getting unlocked achievements:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get unlocked achievements',
@@ -166,7 +169,7 @@ export class AchievementsController {
         data: achievements,
       });
     } catch (error) {
-      console.error('Error getting showcase achievements:', error);
+      logger.error('Error getting showcase achievements:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get showcase achievements',
@@ -189,7 +192,7 @@ export class AchievementsController {
         data: achievements,
       });
     } catch (error) {
-      console.error('Error getting user showcase:', error);
+      logger.error('Error getting user showcase:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get user showcase',
@@ -241,7 +244,7 @@ export class AchievementsController {
           : 'Achievement removed from showcase',
       });
     } catch (error: any) {
-      console.error('Error toggling showcase:', error);
+      logger.error('Error toggling showcase:', { error });
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to toggle showcase',
@@ -269,7 +272,7 @@ export class AchievementsController {
         data: stats,
       });
     } catch (error) {
-      console.error('Error getting achievement stats:', error);
+      logger.error('Error getting achievement stats:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to get achievement stats',
@@ -308,7 +311,7 @@ export class AchievementsController {
         },
       });
     } catch (error) {
-      console.error('Error updating progress:', error);
+      logger.error('Error updating progress:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to update progress',
@@ -331,7 +334,7 @@ export class AchievementsController {
         message: 'User achievements initialized',
       });
     } catch (error) {
-      console.error('Error initializing achievements:', error);
+      logger.error('Error initializing achievements:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to initialize achievements',
@@ -354,7 +357,7 @@ export class AchievementsController {
         data: achievement,
       });
     } catch (error) {
-      console.error('Error creating achievement:', error);
+      logger.error('Error creating achievement:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to create achievement',
@@ -386,7 +389,7 @@ export class AchievementsController {
         data: achievement,
       });
     } catch (error) {
-      console.error('Error updating achievement:', error);
+      logger.error('Error updating achievement:', { error });
       res.status(500).json({
         success: false,
         error: 'Failed to update achievement',

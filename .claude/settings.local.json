@@ -708,7 +708,8 @@
       "Bash(gh pr view:*)",
       "Bash(git pull:*)",
       "Bash(gh pr close:*)",
-      "Bash(git remote prune:*)"
+      "Bash(git remote prune:*)",
+      "Bash(git stash drop:*)"
     ],
     "deny": [],
     "ask": []

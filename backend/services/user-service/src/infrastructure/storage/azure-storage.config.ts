@@ -31,9 +31,9 @@ class AzureStorageService {
       await this.containerClient.createIfNotExists({
         access: 'blob', // Public read access for blobs
       });
-      console.log(`Container "${this.containerName}" is ready`);
+      logger.info(`Container "${this.containerName}" is ready`);
     } catch (error) {
-      console.error('Error initializing container:', error);
+      logger.error('Error initializing container:', error);
       throw error;
     }
   }
@@ -59,7 +59,7 @@ class AzureStorageService {
       // Return the URL of the uploaded blob
       return blockBlobClient.url;
     } catch (error) {
-      console.error('Error uploading file:', error);
+      logger.error('Error uploading file:', error);
       throw new Error('Failed to upload file to Azure Blob Storage');
     }
   }
@@ -72,7 +72,7 @@ class AzureStorageService {
       const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
       await blockBlobClient.deleteIfExists();
     } catch (error) {
-      console.error('Error deleting file:', error);
+      logger.error('Error deleting file:', error);
       throw new Error('Failed to delete file from Azure Blob Storage');
     }
   }
@@ -93,7 +93,7 @@ class AzureStorageService {
       const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
       return await blockBlobClient.exists();
     } catch (error) {
-      console.error('Error checking file existence:', error);
+      logger.error('Error checking file existence:', error);
       return false;
     }
   }

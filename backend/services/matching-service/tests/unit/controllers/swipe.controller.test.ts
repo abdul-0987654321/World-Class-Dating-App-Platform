@@ -24,6 +24,23 @@ jest.mock('@flamoral/backend-shared', () => ({
     put: jest.fn(),
     delete: jest.fn(),
   })),
+  ApiError: class ApiError extends Error {
+    code: string;
+    details?: any;
+    constructor(options: { code: string; message: string; details?: any }) {
+      super(options.message);
+      this.code = options.code;
+      this.details = options.details;
+    }
+  },
+  ValidationErrorCode: {
+    VALIDATION_FAILED: 'VALIDATION_FAILED',
+    FIELD_REQUIRED: 'FIELD_REQUIRED',
+  },
+  MatchingErrorCode: {
+    SELF_ACTION_NOT_ALLOWED: 'SELF_ACTION_NOT_ALLOWED',
+    UNDO_NOT_ALLOWED: 'UNDO_NOT_ALLOWED',
+  },
 }));
 
 describe('SwipeController', () => {
@@ -159,7 +176,7 @@ describe('SwipeController', () => {
       });
     });
 
-    it('should return 400 for invalid swipe action', async () => {
+    it('should call next with error for invalid swipe action', async () => {
       mockRequest.body = {
         targetUserId,
         action: 'INVALID_ACTION',
@@ -168,14 +185,14 @@ describe('SwipeController', () => {
       await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
-      expect(statusMock).toHaveBeenCalledWith(400);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invalid swipe action',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Invalid swipe action'),
+        })
+      );
     });
 
-    it('should return 400 if targetUserId is missing', async () => {
+    it('should call next with error if targetUserId is missing', async () => {
       mockRequest.body = {
         action: SwipeAction.LIKE,
       };
@@ -183,14 +200,14 @@ describe('SwipeController', () => {
       await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
-      expect(statusMock).toHaveBeenCalledWith(400);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Target user ID is required',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Target user ID is required',
+        })
+      );
     });
 
-    it('should return 400 when trying to swipe on self', async () => {
+    it('should call next with error when trying to swipe on self', async () => {
       mockRequest.body = {
         targetUserId: userId, // same as logged-in user
         action: SwipeAction.LIKE,
@@ -199,14 +216,14 @@ describe('SwipeController', () => {
       await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(swipeService.processSwipe).not.toHaveBeenCalled();
-      expect(statusMock).toHaveBeenCalledWith(400);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Cannot swipe on yourself',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Cannot swipe on yourself',
+        })
+      );
     });
 
-    it('should handle service errors gracefully', async () => {
+    it('should call next with error on service failure', async () => {
       mockRequest.body = {
         targetUserId,
         action: SwipeAction.LIKE,
@@ -218,11 +235,11 @@ describe('SwipeController', () => {
 
       await swipeController.swipe(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(statusMock).toHaveBeenCalledWith(500);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to process swipe',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Database connection failed',
+        })
+      );
     });
   });
 
@@ -259,18 +276,18 @@ describe('SwipeController', () => {
       });
     });
 
-    it('should handle errors', async () => {
+    it('should call next with error on failure', async () => {
       (swipeService.getUsersWhoLikedMe as jest.Mock).mockRejectedValue(
         new Error('Database error')
       );
 
       await swipeController.getWhoLikedMe(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(statusMock).toHaveBeenCalledWith(500);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to retrieve likes',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Database error',
+        })
+      );
     });
   });
 
@@ -298,16 +315,16 @@ describe('SwipeController', () => {
       });
     });
 
-    it('should handle errors', async () => {
+    it('should call next with error on failure', async () => {
       (swipeService.getSwipeStats as jest.Mock).mockRejectedValue(new Error('Database error'));
 
       await swipeController.getStats(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(statusMock).toHaveBeenCalledWith(500);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to retrieve statistics',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Database error',
+        })
+      );
     });
   });
 
@@ -325,28 +342,28 @@ describe('SwipeController', () => {
       });
     });
 
-    it('should return 400 if cannot undo swipe', async () => {
+    it('should call next with error if cannot undo swipe', async () => {
       (swipeService.undoLastSwipe as jest.Mock).mockResolvedValue(false);
 
       await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(statusMock).toHaveBeenCalledWith(400);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Cannot undo swipe',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Cannot undo swipe'),
+        })
+      );
     });
 
-    it('should handle errors', async () => {
+    it('should call next with error on failure', async () => {
       (swipeService.undoLastSwipe as jest.Mock).mockRejectedValue(new Error('Service error'));
 
       await swipeController.undoSwipe(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(statusMock).toHaveBeenCalledWith(500);
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to undo swipe',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Service error',
+        })
+      );
     });
   });
 });

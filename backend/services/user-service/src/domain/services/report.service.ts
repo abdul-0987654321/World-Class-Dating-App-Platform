@@ -1,3 +1,6 @@
+import { createLogger } from '../../utils/logger';
+const logger = createLogger('ReportService');
+
 import { ReportRepository } from '../repositories/report.repository';
 import { ReportCategoryRepository } from '../repositories/report-category.repository';
 import {
@@ -285,7 +288,7 @@ export class ReportService {
         resolved++;
       } catch (error) {
         // Continue with other reports
-        console.error(`Failed to resolve report ${reportId}:`, error);
+        logger.error('Failed to resolve report ${reportId}:`, error);
       }
     }
 

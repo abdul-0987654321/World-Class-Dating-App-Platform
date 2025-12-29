@@ -17,6 +17,11 @@ export interface User {
   last_login_at?: Date;
   created_at: Date;
   updated_at: Date;
+  // Two-Factor Authentication fields
+  two_factor_enabled?: boolean;
+  two_factor_secret?: string;
+  two_factor_temp_secret?: string;
+  two_factor_backup_codes?: string[];
 }
 
 export interface CreateUserDto {
@@ -94,6 +99,11 @@ export class UserRepository {
       last_login_at: row.last_login_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      // Two-Factor Authentication fields
+      two_factor_enabled: row.two_factor_enabled || false,
+      two_factor_secret: row.two_factor_secret,
+      two_factor_temp_secret: row.two_factor_temp_secret,
+      two_factor_backup_codes: row.two_factor_backup_codes,
     };
   }
 
@@ -236,6 +246,141 @@ export class UserRepository {
       logger.info(`User reactivated: ${userId}`);
     } catch (error) {
       logger.error(`Failed to reactivate user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  // ==================== Two-Factor Authentication Methods ====================
+
+  /**
+   * Store temporary 2FA secret during setup
+   */
+  async storeTempTwoFactorSecret(
+    userId: string,
+    tempSecret: string,
+    backupCodes: string[]
+  ): Promise<void> {
+    const query = `
+      UPDATE users
+      SET two_factor_temp_secret = $1,
+          two_factor_backup_codes = $2,
+          updated_at = $3
+      WHERE id = $4
+    `;
+
+    try {
+      await pool.query(query, [tempSecret, backupCodes, new Date(), userId]);
+      logger.info(`Temp 2FA secret stored for user: ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to store temp 2FA secret for user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enable 2FA for user - moves temp secret to permanent
+   */
+  async enable2FA(userId: string, secret: string): Promise<void> {
+    const query = `
+      UPDATE users
+      SET two_factor_enabled = true,
+          two_factor_secret = $1,
+          two_factor_temp_secret = NULL,
+          updated_at = $2
+      WHERE id = $3
+    `;
+
+    try {
+      await pool.query(query, [secret, new Date(), userId]);
+      logger.info(`2FA enabled for user: ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to enable 2FA for user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Disable 2FA for user - clears all 2FA data
+   */
+  async disable2FA(userId: string): Promise<void> {
+    const query = `
+      UPDATE users
+      SET two_factor_enabled = false,
+          two_factor_secret = NULL,
+          two_factor_temp_secret = NULL,
+          two_factor_backup_codes = NULL,
+          updated_at = $1
+      WHERE id = $2
+    `;
+
+    try {
+      await pool.query(query, [new Date(), userId]);
+      logger.info(`2FA disabled for user: ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to disable 2FA for user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify and consume a backup code
+   * Returns true if the code was valid and has been consumed
+   */
+  async verifyAndConsumeBackupCode(userId: string, code: string): Promise<boolean> {
+    const user = await this.findById(userId);
+
+    if (!user || !user.two_factor_backup_codes) {
+      return false;
+    }
+
+    // Normalize the code for comparison
+    const normalizedCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const formattedCode = `${normalizedCode.slice(0, 4)}-${normalizedCode.slice(4)}`;
+
+    // Check if the code exists in backup codes
+    const codeIndex = user.two_factor_backup_codes.findIndex(
+      (c) => c === formattedCode || c.replace(/-/g, '') === normalizedCode
+    );
+
+    if (codeIndex === -1) {
+      return false;
+    }
+
+    // Remove the used code from the array
+    const updatedCodes = [...user.two_factor_backup_codes];
+    updatedCodes.splice(codeIndex, 1);
+
+    const query = `
+      UPDATE users
+      SET two_factor_backup_codes = $1, updated_at = $2
+      WHERE id = $3
+    `;
+
+    try {
+      await pool.query(query, [updatedCodes, new Date(), userId]);
+      logger.info(`Backup code consumed for user: ${userId}. Remaining codes: ${updatedCodes.length}`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to consume backup code for user: ${userId}`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Update backup codes for user
+   */
+  async updateBackupCodes(userId: string, backupCodes: string[]): Promise<void> {
+    const query = `
+      UPDATE users
+      SET two_factor_backup_codes = $1, updated_at = $2
+      WHERE id = $3
+    `;
+
+    try {
+      await pool.query(query, [backupCodes, new Date(), userId]);
+      logger.info(`Backup codes updated for user: ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to update backup codes for user: ${userId}`, error);
       throw error;
     }
   }

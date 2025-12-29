@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { messageController } from '../controllers/message.controller';
+import {
+  validateBody,
+  SendMessageDto,
+  UpdateMessageDto,
+  DeleteMessageDto,
+  UpdateMessageStatusDto,
+} from '../../dto';
 
 const router = Router();
 
@@ -71,6 +78,7 @@ const router = Router();
 router.post(
   '/',
   authenticate,
+  validateBody(SendMessageDto),
   messageController.sendMessage.bind(messageController)
 );
 
@@ -169,6 +177,7 @@ router.get(
 router.put(
   '/:messageId',
   authenticate,
+  validateBody(UpdateMessageDto),
   messageController.updateMessage.bind(messageController)
 );
 
@@ -214,6 +223,7 @@ router.put(
 router.delete(
   '/:messageId',
   authenticate,
+  validateBody(DeleteMessageDto),
   messageController.deleteMessage.bind(messageController)
 );
 
@@ -259,6 +269,7 @@ router.delete(
 router.put(
   '/:messageId/status',
   authenticate,
+  validateBody(UpdateMessageStatusDto),
   messageController.updateMessageStatus.bind(messageController)
 );
 

@@ -15,6 +15,11 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   resendVerificationSchema,
+  setup2FASchema,
+  verify2FASchema,
+  disable2FASchema,
+  validate2FASchema,
+  regenerateBackupCodesSchema,
 } from '../validators/auth.validator';
 
 const router = Router();
@@ -364,6 +369,227 @@ router.post(
   '/validate-token',
   internalAuth,
   authController.validateToken.bind(authController)
+);
+
+// ==================== Two-Factor Authentication (2FA) Routes ====================
+
+/**
+ * @swagger
+ * /api/auth/2fa/status:
+ *   get:
+ *     summary: Get 2FA status for authenticated user
+ *     tags: [Two-Factor Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 2FA status retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  '/2fa/status',
+  authenticate,
+  authController.get2FAStatus.bind(authController)
+);
+
+/**
+ * @swagger
+ * /api/auth/2fa/setup:
+ *   post:
+ *     summary: Start 2FA setup process
+ *     description: |
+ *       SECURITY: Requires password verification before generating 2FA secret.
+ *       Returns QR code and backup codes for authenticator app setup.
+ *     tags: [Two-Factor Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Current account password for verification
+ *     responses:
+ *       200:
+ *         description: 2FA setup initiated, returns QR code and backup codes
+ *       400:
+ *         description: 2FA already enabled or validation error
+ *       401:
+ *         description: Invalid password or unauthorized
+ */
+router.post(
+  '/2fa/setup',
+  authenticate,
+  authLimiter,
+  validate(setup2FASchema),
+  authController.setup2FA.bind(authController)
+);
+
+/**
+ * @swagger
+ * /api/auth/2fa/verify:
+ *   post:
+ *     summary: Verify 2FA token and enable 2FA
+ *     description: Verifies the TOTP code from authenticator app and enables 2FA
+ *     tags: [Two-Factor Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: 6-digit TOTP code from authenticator app
+ *               tempSecret:
+ *                 type: string
+ *                 description: Optional temporary secret (from setup response)
+ *     responses:
+ *       200:
+ *         description: 2FA enabled successfully
+ *       400:
+ *         description: Invalid verification code or no setup in progress
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  '/2fa/verify',
+  authenticate,
+  authLimiter,
+  validate(verify2FASchema),
+  authController.verify2FA.bind(authController)
+);
+
+/**
+ * @swagger
+ * /api/auth/2fa/disable:
+ *   post:
+ *     summary: Disable 2FA for authenticated user
+ *     description: |
+ *       SECURITY: Requires both password verification AND valid 2FA token or backup code.
+ *       This ensures the user has full control of their account before disabling 2FA.
+ *     tags: [Two-Factor Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *               - token
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Current account password for verification
+ *               token:
+ *                 type: string
+ *                 description: 6-digit TOTP code or backup code
+ *     responses:
+ *       200:
+ *         description: 2FA disabled successfully
+ *       400:
+ *         description: Invalid verification code or 2FA not enabled
+ *       401:
+ *         description: Invalid password or unauthorized
+ */
+router.post(
+  '/2fa/disable',
+  authenticate,
+  authLimiter,
+  validate(disable2FASchema),
+  authController.disable2FA.bind(authController)
+);
+
+/**
+ * @swagger
+ * /api/auth/2fa/validate:
+ *   post:
+ *     summary: Validate 2FA token during login
+ *     description: Used during login flow for accounts with 2FA enabled
+ *     tags: [Two-Factor Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - token
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *               token:
+ *                 type: string
+ *                 description: 6-digit TOTP code or backup code
+ *     responses:
+ *       200:
+ *         description: 2FA validation successful
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Invalid verification code
+ */
+router.post(
+  '/2fa/validate',
+  authLimiter,
+  validate(validate2FASchema),
+  authController.validate2FA.bind(authController)
+);
+
+/**
+ * @swagger
+ * /api/auth/2fa/backup-codes/regenerate:
+ *   post:
+ *     summary: Regenerate backup codes
+ *     description: |
+ *       SECURITY: Requires password verification before regenerating backup codes.
+ *       Previous backup codes will be invalidated.
+ *     tags: [Two-Factor Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Current account password for verification
+ *     responses:
+ *       200:
+ *         description: Backup codes regenerated, returns new codes
+ *       400:
+ *         description: 2FA not enabled or validation error
+ *       401:
+ *         description: Invalid password or unauthorized
+ */
+router.post(
+  '/2fa/backup-codes/regenerate',
+  authenticate,
+  authLimiter,
+  validate(regenerateBackupCodesSchema),
+  authController.regenerateBackupCodes.bind(authController)
 );
 
 export default router;

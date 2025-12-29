@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { encryptionKeysController } from '../controllers/encryption-keys.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import {
+  validateBody,
+  UploadKeysDto,
+  ClaimPreKeysDto,
+  CreateSessionKeyDto,
+  UpdateSessionKeyDto,
+} from '../../dto';
 
 const router = Router();
 
@@ -20,6 +27,7 @@ router.post(
 router.post(
   '/upload',
   authenticate,
+  validateBody(UploadKeysDto),
   encryptionKeysController.uploadKeys.bind(encryptionKeysController)
 );
 
@@ -34,6 +42,7 @@ router.get(
 router.post(
   '/claim',
   authenticate,
+  validateBody(ClaimPreKeysDto),
   encryptionKeysController.claimPreKeys.bind(encryptionKeysController)
 );
 
@@ -41,6 +50,7 @@ router.post(
 router.post(
   '/session',
   authenticate,
+  validateBody(CreateSessionKeyDto),
   encryptionKeysController.createSessionKey.bind(encryptionKeysController)
 );
 
@@ -53,6 +63,7 @@ router.get(
 router.put(
   '/session/:conversationId',
   authenticate,
+  validateBody(UpdateSessionKeyDto),
   encryptionKeysController.updateSessionKey.bind(encryptionKeysController)
 );
 

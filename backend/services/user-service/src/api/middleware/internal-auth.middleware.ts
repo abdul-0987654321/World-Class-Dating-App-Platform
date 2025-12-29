@@ -1,3 +1,6 @@
+import { createLogger } from '../../utils/logger';
+const logger = createLogger('ServiceAuth');
+
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 
@@ -39,7 +42,7 @@ export const authenticateInternal = (
 
   // Validate service key exists
   if (!expectedKey) {
-    console.error('[ServiceAuth] SERVICE_API_KEY not configured in environment');
+    logger.error('[ServiceAuth] SERVICE_API_KEY not configured in environment');
     return res.status(500).json({
       success: false,
       error: 'Service authentication not configured',
@@ -49,7 +52,7 @@ export const authenticateInternal = (
 
   // Validate service key is provided
   if (!serviceKey) {
-    console.warn(`[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`);
+    logger.warn('[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`);
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -60,7 +63,7 @@ export const authenticateInternal = (
 
   // Validate request ID
   if (!requestId) {
-    console.warn(`[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`);
+    logger.warn('[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`);
     return res.status(401).json({
       success: false,
       error: 'Request ID required',
@@ -73,7 +76,7 @@ export const authenticateInternal = (
   const isValid = timingSafeEqual(serviceKey, expectedKey);
 
   if (!isValid) {
-    console.warn(
+    logger.warn(
       `[ServiceAuth] Authentication failed: Invalid service key from ${sourceService || 'unknown'} - ${req.method} ${req.path}`
     );
     return res.status(403).json({
@@ -90,7 +93,7 @@ export const authenticateInternal = (
 
   // Log successful authentication
   const duration = Date.now() - startTime;
-  console.info(
+  logger.info(
     `[ServiceAuth] Service authenticated: ${req.serviceId} - ${req.method} ${req.path} - RequestID: ${req.requestId} (${duration}ms)`
   );
 

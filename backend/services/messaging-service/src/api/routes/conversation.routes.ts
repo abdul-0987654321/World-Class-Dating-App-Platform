@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { conversationController } from '../controllers/conversation.controller';
+import {
+  validateBody,
+  validateQuery,
+  CreateConversationDto,
+  ConversationPaginationDto,
+} from '../../dto';
 
 const router = Router();
 
@@ -41,6 +47,7 @@ const router = Router();
 router.get(
   '/',
   authenticate,
+  validateQuery(ConversationPaginationDto),
   conversationController.getConversations.bind(conversationController)
 );
 
@@ -77,6 +84,7 @@ router.get(
 router.post(
   '/',
   authenticate,
+  validateBody(CreateConversationDto),
   conversationController.createConversation.bind(conversationController)
 );
 

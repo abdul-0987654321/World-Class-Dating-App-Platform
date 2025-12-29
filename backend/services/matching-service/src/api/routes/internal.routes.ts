@@ -1,3 +1,6 @@
+import { createLogger } from '@flamoral/backend-shared';
+const logger = createLogger('InternalRoutes');
+
 import { Router, Request, Response } from 'express';
 import { authenticateService } from '../middleware/service-auth.middleware';
 import { MatchRepository } from '../../domain/repositories/match.repository';
@@ -71,7 +74,7 @@ router.post('/create', async (req: Request, res: Response) => {
       data: match,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Create match error:', error);
+    logger.error('[InternalAPI] Create match error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to create match',
@@ -124,7 +127,7 @@ router.get('/users/:userId/matches', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get user matches error:', error);
+    logger.error('[InternalAPI] Get user matches error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get user matches',
@@ -158,7 +161,7 @@ router.get('/:matchId', async (req: Request, res: Response) => {
       data: match,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get match error:', error);
+    logger.error('[InternalAPI] Get match error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get match',
@@ -205,7 +208,7 @@ router.get('/find', async (req: Request, res: Response) => {
       data: match,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Find match error:', error);
+    logger.error('[InternalAPI] Find match error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to find match',
@@ -263,7 +266,7 @@ router.patch('/:matchId/conversation', async (req: Request, res: Response) => {
       data: updatedMatch,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Update match conversation error:', error);
+    logger.error('[InternalAPI] Update match conversation error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to update match conversation status',
@@ -315,7 +318,7 @@ router.post('/unmatch', async (req: Request, res: Response) => {
       data: match,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Unmatch error:', error);
+    logger.error('[InternalAPI] Unmatch error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to unmatch users',
@@ -375,7 +378,7 @@ router.post('/swipes/record', async (req: Request, res: Response) => {
       data: swipe,
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Record swipe error:', error);
+    logger.error('[InternalAPI] Record swipe error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to record swipe',
@@ -426,7 +429,7 @@ router.get('/users/:userId/swipes', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('[InternalAPI] Get user swipes error:', error);
+    logger.error('[InternalAPI] Get user swipes error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get user swipes',

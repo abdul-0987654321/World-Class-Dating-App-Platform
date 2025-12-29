@@ -6,6 +6,7 @@ import giftsRoutes from './gifts.routes';
 import moderationRoutes from './moderation.routes';
 import { messageController } from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { validateQuery, GetMessagesQueryDto } from '../../dto';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use('/moderation', moderationRoutes);
 router.get(
   '/conversations/:conversationId/messages',
   authenticate,
+  validateQuery(GetMessagesQueryDto),
   messageController.getMessages.bind(messageController)
 );
 

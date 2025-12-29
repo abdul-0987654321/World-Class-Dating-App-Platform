@@ -94,7 +94,7 @@ class UploadService {
         size: large.size,
       };
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      logger.error('Error uploading photo:', error);
       throw error instanceof Error ? error : new Error('Failed to upload photo');
     }
   }
@@ -125,7 +125,7 @@ class UploadService {
         azureStorage.deleteFile(`${baseFileName}-thumb`),
       ]);
     } catch (error) {
-      console.error('Error deleting photo:', error);
+      logger.error('Error deleting photo:', error);
       throw new Error('Failed to delete photo');
     }
   }
@@ -137,9 +137,9 @@ class UploadService {
     try {
       // In a production environment, you would list all blobs with the userId prefix
       // and delete them. For now, we'll rely on the database to track photos
-      console.log(`Deleting all photos for user ${userId}`);
+      logger.info(`Deleting all photos for user ${userId}`);
     } catch (error) {
-      console.error('Error deleting user photos:', error);
+      logger.error('Error deleting user photos:', error);
       throw new Error('Failed to delete user photos');
     }
   }
@@ -151,7 +151,7 @@ class UploadService {
     try {
       await azureStorage.initializeContainer();
     } catch (error) {
-      console.error('Error initializing upload service:', error);
+      logger.error('Error initializing upload service:', error);
       // Don't throw - allow service to start even if Azure is not configured
       // This is useful for local development without Azure
     }

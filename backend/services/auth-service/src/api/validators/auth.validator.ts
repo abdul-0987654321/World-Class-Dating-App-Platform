@@ -228,3 +228,81 @@ export const resendVerificationSchema = Joi.object({
       'any.required': 'Email is required',
     }),
 });
+
+// ==================== Two-Factor Authentication (2FA) Validation Schemas ====================
+
+/**
+ * 2FA setup request validation schema
+ * SECURITY: Password is required to initiate 2FA setup
+ */
+export const setup2FASchema = Joi.object({
+  password: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Password is required to setup 2FA',
+    }),
+});
+
+/**
+ * 2FA verification request validation schema
+ */
+export const verify2FASchema = Joi.object({
+  token: Joi.string()
+    .length(6)
+    .pattern(/^\d+$/)
+    .required()
+    .messages({
+      'string.length': 'Verification code must be 6 digits',
+      'string.pattern.base': 'Verification code must contain only digits',
+      'any.required': 'Verification code is required',
+    }),
+  tempSecret: Joi.string()
+    .optional(),
+});
+
+/**
+ * 2FA disable request validation schema
+ * SECURITY: Both password and 2FA token/backup code are required
+ */
+export const disable2FASchema = Joi.object({
+  password: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Password is required to disable 2FA',
+    }),
+  token: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Verification code or backup code is required to disable 2FA',
+    }),
+});
+
+/**
+ * 2FA login validation request schema
+ */
+export const validate2FASchema = Joi.object({
+  userId: Joi.string()
+    .uuid()
+    .required()
+    .messages({
+      'string.guid': 'Invalid user ID format',
+      'any.required': 'User ID is required',
+    }),
+  token: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Verification code is required',
+    }),
+});
+
+/**
+ * Backup codes regeneration request validation schema
+ * SECURITY: Password is required to regenerate backup codes
+ */
+export const regenerateBackupCodesSchema = Joi.object({
+  password: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Password is required to regenerate backup codes',
+    }),
+});
