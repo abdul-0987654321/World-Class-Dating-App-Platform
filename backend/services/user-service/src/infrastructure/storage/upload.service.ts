@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
-import { azureStorage } from './azure-storage.config';
+import { s3Storage } from './s3-storage.config';
 import { imageProcessor, ProcessedImage } from './image-processor';
 
 const logger = createLogger('upload-service');
@@ -79,7 +79,7 @@ class UploadService {
         file.buffer
       );
 
-      // Upload all versions to Azure Blob Storage
+      // Upload all versions to S3
       const [largeUrl, mediumUrl, thumbnailUrl] = await Promise.all([
         this.uploadProcessedImage(`${baseFileName}-large`, large),
         this.uploadProcessedImage(`${baseFileName}-medium`, medium),
@@ -110,7 +110,7 @@ class UploadService {
     image: ProcessedImage
   ): Promise<string> {
     const contentType = `image/${image.format}`;
-    return await azureStorage.uploadFile(fileName, image.buffer, contentType);
+    return await s3Storage.uploadFile(fileName, image.buffer, contentType);
   }
 
   /**
@@ -123,9 +123,9 @@ class UploadService {
 
       // Delete all variants
       await Promise.all([
-        azureStorage.deleteFile(`${baseFileName}-large`),
-        azureStorage.deleteFile(`${baseFileName}-medium`),
-        azureStorage.deleteFile(`${baseFileName}-thumb`),
+        s3Storage.deleteFile(`${baseFileName}-large`),
+        s3Storage.deleteFile(`${baseFileName}-medium`),
+        s3Storage.deleteFile(`${baseFileName}-thumb`),
       ]);
     } catch (error) {
       logger.error('Error deleting photo:', error);
@@ -138,7 +138,7 @@ class UploadService {
    */
   async deleteUserPhotos(userId: string): Promise<void> {
     try {
-      // In a production environment, you would list all blobs with the userId prefix
+      // In a production environment, you would list all objects with the userId prefix
       // and delete them. For now, we'll rely on the database to track photos
       logger.info(`Deleting all photos for user ${userId}`);
     } catch (error) {
@@ -148,15 +148,15 @@ class UploadService {
   }
 
   /**
-   * Initialize Azure Storage (create container if needed)
+   * Initialize S3 Storage
    */
   async initialize(): Promise<void> {
     try {
-      await azureStorage.initializeContainer();
+      logger.info('S3 upload service initialized');
     } catch (error) {
       logger.error('Error initializing upload service:', error);
-      // Don't throw - allow service to start even if Azure is not configured
-      // This is useful for local development without Azure
+      // Don't throw - allow service to start even if S3 is not configured
+      // This is useful for local development without AWS
     }
   }
 }

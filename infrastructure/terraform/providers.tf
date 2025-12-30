@@ -1,34 +1,70 @@
-# Additional Provider Configurations
-# Note: terraform block and azurerm provider are defined in main.tf
+################################################################################
+# AWS Terraform Provider Configuration
+# AZURE IS FORBIDDEN - AWS ONLY
+################################################################################
 
-provider "kubernetes" {
-  host                   = try(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.host, null)
-  client_certificate     = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.client_certificate), null)
-  client_key             = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.client_key), null)
-  cluster_ca_certificate = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.cluster_ca_certificate), null)
-}
+terraform {
+  required_version = ">= 1.6.0"
 
-provider "helm" {
-  kubernetes {
-    host                   = try(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.host, null)
-    client_certificate     = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.client_certificate), null)
-    client_key             = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.client_key), null)
-    cluster_ca_certificate = try(base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config.0.cluster_ca_certificate), null)
+  required_providers {
+    # AWS Provider - PRIMARY AND ONLY CLOUD PROVIDER
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+
+    # Kubernetes Provider - For EKS integration
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23"
+    }
+
+    # Helm Provider - For Kubernetes package management
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.12"
+    }
+
+    # Random Provider - For generating random values
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+
+    # TLS Provider - For certificate generation
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+
+    # Null Provider - For null resources
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
+
+    # Time Provider - For time-based resources
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.10"
+    }
+
+    # Archive Provider - For Lambda packaging
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
+    }
   }
 }
 
-# Data source for existing AKS cluster (if creating kubernetes/helm resources)
-data "azurerm_kubernetes_cluster" "aks" {
-  count               = var.enable_aks ? 1 : 0
-  name                = "${var.prefix}-${var.env}-aks"
-  resource_group_name = "${var.prefix}-${var.env}-rg"
-}
-
-# Note: Variables subscription_id, tenant_id, prefix, env are defined in variables.tf
-# to avoid duplicate declarations
-
-variable "enable_aks" {
-  description = "Whether AKS is enabled (for kubernetes/helm providers)"
-  type        = bool
-  default     = false
-}
+################################################################################
+# PROVIDER RESTRICTIONS
+# The following providers are EXPLICITLY FORBIDDEN:
+# - azurerm (Azure Resource Manager)
+# - azuread (Azure Active Directory)
+# - azurestack
+# - Any Azure-related providers
+#
+# This infrastructure is AWS-ONLY.
+# Any attempt to add Azure providers will fail validation.
+################################################################################

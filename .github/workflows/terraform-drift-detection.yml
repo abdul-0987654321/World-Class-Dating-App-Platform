@@ -1,0 +1,275 @@
+# =============================================================================
+# TERRAFORM DRIFT DETECTION - Scheduled Infrastructure Validation
+# =============================================================================
+# Runs daily to detect configuration drift
+# Alerts on any differences between Terraform state and actual infrastructure
+# =============================================================================
+
+name: Terraform Drift Detection
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: false
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - dev
+          - staging
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: '1.6.0'
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+jobs:
+  drift-check:
+    name: Check Drift - ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ github.event.inputs.environment == 'all' && fromJSON('["dev", "staging"]') || fromJSON(format('["{0}"]', github.event.inputs.environment || 'dev')) }}
+
+    outputs:
+      drift_detected: ${{ steps.plan.outputs.drift }}
+      drift_summary: ${{ steps.plan.outputs.summary }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: terraform init
+
+      - name: Terraform Plan (Drift Check)
+        id: plan
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: |
+          set +e
+          terraform plan -detailed-exitcode -out=drift-check.tfplan 2>&1 | tee plan-output.txt
+          EXITCODE=$?
+          set -e
+
+          if [ $EXITCODE -eq 0 ]; then
+            echo "drift=false" >> $GITHUB_OUTPUT
+            echo "summary=No drift detected" >> $GITHUB_OUTPUT
+            echo "No drift detected in ${{ matrix.environment }}"
+          elif [ $EXITCODE -eq 2 ]; then
+            echo "drift=true" >> $GITHUB_OUTPUT
+
+            # Extract summary of changes
+            ADDS=$(grep -c "will be created" plan-output.txt || echo "0")
+            CHANGES=$(grep -c "will be updated" plan-output.txt || echo "0")
+            DESTROYS=$(grep -c "will be destroyed" plan-output.txt || echo "0")
+
+            SUMMARY="Drift detected: +$ADDS ~$CHANGES -$DESTROYS"
+            echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+
+            echo "::warning::$SUMMARY in ${{ matrix.environment }}"
+          else
+            echo "drift=error" >> $GITHUB_OUTPUT
+            echo "summary=Terraform plan failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Generate Drift Report
+        if: steps.plan.outputs.drift == 'true'
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: |
+          echo "# Drift Report - ${{ matrix.environment }}" > drift-report.md
+          echo "" >> drift-report.md
+          echo "**Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> drift-report.md
+          echo "" >> drift-report.md
+          echo "## Summary" >> drift-report.md
+          echo "${{ steps.plan.outputs.summary }}" >> drift-report.md
+          echo "" >> drift-report.md
+          echo "## Detailed Changes" >> drift-report.md
+          echo '```hcl' >> drift-report.md
+          terraform show -no-color drift-check.tfplan >> drift-report.md
+          echo '```' >> drift-report.md
+
+      - name: Upload Drift Report
+        if: steps.plan.outputs.drift == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report-${{ matrix.environment }}-${{ github.run_number }}
+          path: infrastructure/terraform/aws/environments/${{ matrix.environment }}/drift-report.md
+          retention-days: 30
+
+      - name: Create Issue for Drift
+        if: steps.plan.outputs.drift == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Terraform Drift Detected: ${{ matrix.environment }}`;
+            const body = `## Drift Detection Alert
+
+            **Environment:** ${{ matrix.environment }}
+            **Detected:** ${new Date().toISOString()}
+            **Summary:** ${{ steps.plan.outputs.summary }}
+
+            ### Action Required
+            Review the drift and either:
+            1. Apply Terraform to fix drift (if infrastructure was modified manually)
+            2. Update Terraform code (if the change was intentional)
+
+            ### Artifacts
+            - [Drift Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            ### Commands
+            \`\`\`bash
+            cd infrastructure/terraform/aws/environments/${{ matrix.environment }}
+            terraform init
+            terraform plan
+            \`\`\`
+
+            ---
+            *This issue was automatically created by the drift detection workflow.*
+            `;
+
+            // Check if similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'terraform-drift,${{ matrix.environment }}'
+            });
+
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['terraform-drift', '${{ matrix.environment }}', 'infrastructure']
+              });
+              console.log('Created new drift issue');
+            } else {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `## Updated Drift Detection\n\n**Time:** ${new Date().toISOString()}\n**Summary:** ${{ steps.plan.outputs.summary }}\n\nSee [latest run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
+              });
+              console.log('Updated existing drift issue');
+            }
+
+  prod-plan-only:
+    name: Production Plan (Read-Only)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-readonly-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/aws/environments/prod
+        run: terraform init
+
+      - name: Production Drift Check (Plan Only)
+        working-directory: infrastructure/terraform/aws/environments/prod
+        run: |
+          echo "::notice::Production environment - Plan only (no apply allowed)"
+          set +e
+          terraform plan -detailed-exitcode 2>&1 | tee prod-plan.txt
+          EXITCODE=$?
+          set -e
+
+          if [ $EXITCODE -eq 2 ]; then
+            echo "::warning::DRIFT DETECTED IN PRODUCTION"
+            echo "Production changes require manual review and GitOps deployment"
+          fi
+
+      - name: Upload Production Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-plan-${{ github.run_number }}
+          path: infrastructure/terraform/aws/environments/prod/prod-plan.txt
+          retention-days: 7
+
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [drift-check, prod-plan-only]
+    if: always()
+
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "Terraform Drift Detection Complete",
+              "attachments": [{
+                "color": "${{ contains(needs.drift-check.outputs.drift_detected, 'true') && 'warning' || 'good' }}",
+                "fields": [
+                  {"title": "Status", "value": "${{ contains(needs.drift-check.outputs.drift_detected, 'true') && 'Drift Detected!' || 'No Drift' }}", "short": true},
+                  {"title": "Run", "value": "<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>", "short": true}
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  summary:
+    name: Drift Detection Summary
+    runs-on: ubuntu-latest
+    needs: [drift-check, prod-plan-only]
+    if: always()
+
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# Terraform Drift Detection Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Time:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Environment Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Status | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dev | ${{ needs.drift-check.result }} | Check artifacts |" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging | ${{ needs.drift-check.result }} | Check artifacts |" >> $GITHUB_STEP_SUMMARY
+          echo "| Prod | ${{ needs.prod-plan-only.result }} | Plan only (no apply) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Policy Reminders" >> $GITHUB_STEP_SUMMARY
+          echo "- Dev/Staging: Auto-remediation available" >> $GITHUB_STEP_SUMMARY
+          echo "- Production: Manual review required, no auto-apply" >> $GITHUB_STEP_SUMMARY
+          echo "- All changes must go through PR review" >> $GITHUB_STEP_SUMMARY

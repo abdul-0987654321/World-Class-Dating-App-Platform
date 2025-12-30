@@ -1,46 +1,51 @@
-# Azure Staging Environment Variables
+################################################################################
+# Staging Environment Terraform Variables
+################################################################################
 
-# Network Configuration
-vnet_address_space        = "10.2.0.0/16"
-enable_nat_gateway        = true
-enable_bastion            = false
-enable_network_monitoring = true
+# General
+aws_region   = "us-east-1"
+project_name = "dating-app"
+environment  = "staging"
+cost_center  = "staging"
+owner        = "platform-team"
 
-# AKS Configuration
-kubernetes_version     = "1.28.3"
-system_node_size       = "Standard_D2s_v3"
-system_node_count      = 2
-system_node_min_count  = 2
-system_node_max_count  = 3
-system_node_disk_size  = 128
+# Networking
+vpc_cidr = "10.1.0.0/16"
+availability_zones = [
+  "us-east-1a",
+  "us-east-1b",
+  "us-east-1c"
+]
 
-user_node_size        = "Standard_D4s_v3"
-user_node_count       = 2
-user_node_min_count   = 2
-user_node_max_count   = 6
-user_node_disk_size   = 256
+# EKS
+eks_cluster_version = "1.28"
 
-enable_spot_instances = false
+# RDS
+rds_engine_version = "15.6"
 
-# PostgreSQL Configuration
-postgres_sku_name              = "GP_Standard_D4s_v3"
-postgres_storage_mb            = 131072 # 128 GB
-postgres_backup_retention_days = 14
-postgres_geo_redundant_backup  = true
-postgres_high_availability     = true
+# Cognito
+cognito_callback_urls = [
+  "https://staging.dating-app.example.com/callback"
+]
 
-# Redis Configuration
-redis_sku_name  = "Standard"
-redis_family    = "C"
-redis_capacity  = 2
-redis_replicas  = 1
+cognito_logout_urls = [
+  "https://staging.dating-app.example.com"
+]
 
-# Storage Configuration
-storage_account_replication_type = "GRS"
-enable_geo_replication           = true
+cognito_mobile_callback_urls = [
+  "datingapp://callback"
+]
 
-# Container Registry
-acr_sku = "Standard"
+cognito_mobile_logout_urls = [
+  "datingapp://logout"
+]
+
+# S3 CORS
+allowed_origins = [
+  "https://staging.dating-app.example.com"
+]
 
 # Monitoring
-log_analytics_retention_days = 60
+alarm_email_endpoints = [
+  # Add email addresses for alarm notifications
+]

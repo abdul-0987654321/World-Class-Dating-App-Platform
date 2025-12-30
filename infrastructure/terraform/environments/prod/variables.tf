@@ -1,297 +1,190 @@
-# =============================================================================
-# Flamoral Dating Platform - Production Environment Variables
-# =============================================================================
+################################################################################
+# Production Environment Variables
+################################################################################
 
-# =============================================================================
-# Azure Subscription & Authentication
-# =============================================================================
-variable "subscription_id" {
-  description = "Azure Subscription ID"
+variable "project_name" {
+  description = "Project name"
   type        = string
-  default     = "ba233460-2dbe-4603-a594-68f93ec9deb3"
+  default     = "dating"
 }
 
-variable "tenant_id" {
-  description = "Azure AD Tenant ID"
+variable "environment" {
+  description = "Environment name"
   type        = string
+  default     = "prod"
 }
 
-variable "location" {
-  description = "Azure region for all resources"
+variable "aws_region" {
+  description = "AWS region"
   type        = string
-  default     = "westus2"
+  default     = "us-east-1"
 }
 
-variable "resource_group_name" {
-  description = "Name of the resource group"
+variable "dr_region" {
+  description = "Disaster recovery region"
   type        = string
-  default     = "flamoral-prod-rg"
+  default     = "us-west-2"
 }
 
-# =============================================================================
-# Service Principal Configuration
-# =============================================================================
-variable "terraform_sp_name" {
-  description = "Service Principal name"
+variable "assume_role_arn" {
+  description = "IAM role ARN to assume (for cross-account access)"
   type        = string
-  default     = "terraform-datingapp-sp"
+  default     = null
 }
 
-variable "terraform_sp_client_id" {
-  description = "Service Principal Client ID"
+################################################################################
+# Tags
+################################################################################
+
+variable "cost_center" {
+  description = "Cost center for billing"
   type        = string
-  default     = "a85e4029-4e37-4399-9390-6e18922b38e7"
+  default     = "production"
 }
 
-# =============================================================================
-# Shared Resources
-# =============================================================================
-variable "shared_acr_name" {
-  description = "Name of shared ACR"
+variable "owner" {
+  description = "Owner of the infrastructure"
   type        = string
-  default     = "flamoralacr"
+  default     = "platform-team"
 }
 
-variable "shared_resource_group_name" {
-  description = "Resource group containing shared resources"
+################################################################################
+# Networking
+################################################################################
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block"
   type        = string
-  default     = "flamoral-shared-rg"
+  default     = "10.30.0.0/16"
 }
 
-# =============================================================================
-# Domain Configuration
-# =============================================================================
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
+}
+
+################################################################################
+# EKS
+################################################################################
+
+variable "eks_cluster_version" {
+  description = "EKS cluster version"
+  type        = string
+  default     = "1.29"
+}
+
+variable "allowed_cidr_blocks" {
+  description = "CIDR blocks allowed to access EKS API (not used in prod - private only)"
+  type        = list(string)
+  default     = []
+}
+
+################################################################################
+# RDS
+################################################################################
+
+variable "rds_engine_version" {
+  description = "RDS PostgreSQL engine version"
+  type        = string
+  default     = "15.4"
+}
+
+################################################################################
+# Cognito
+################################################################################
+
+variable "cognito_callback_urls" {
+  description = "Cognito web callback URLs"
+  type        = list(string)
+  default     = ["https://flamoral.com/auth/callback"]
+}
+
+variable "cognito_logout_urls" {
+  description = "Cognito web logout URLs"
+  type        = list(string)
+  default     = ["https://flamoral.com"]
+}
+
+variable "cognito_mobile_callback_urls" {
+  description = "Cognito mobile callback URLs"
+  type        = list(string)
+  default     = ["flamoral://auth/callback"]
+}
+
+variable "cognito_mobile_logout_urls" {
+  description = "Cognito mobile logout URLs"
+  type        = list(string)
+  default     = ["flamoral://"]
+}
+
+################################################################################
+# S3 / CloudFront
+################################################################################
+
+variable "allowed_origins" {
+  description = "Allowed CORS origins"
+  type        = list(string)
+  default     = ["https://flamoral.com", "https://www.flamoral.com", "https://api.flamoral.com"]
+}
+
+################################################################################
+# Monitoring
+################################################################################
+
+variable "alarm_email_endpoints" {
+  description = "Email addresses for alarm notifications"
+  type        = list(string)
+  default     = []
+}
+
+################################################################################
+# Domain / DNS
+################################################################################
+
 variable "domain_name" {
   description = "Primary domain name"
   type        = string
   default     = "flamoral.com"
 }
 
-variable "ingress_public_ip" {
-  description = "Public IP for ingress (set after initial deployment)"
-  type        = string
-  default     = ""
-}
-
-# =============================================================================
-# Tags
-# =============================================================================
-variable "tags" {
-  description = "Common tags applied to all resources"
-  type        = map(string)
-  default = {
-    Project     = "Flamoral"
-    Environment = "production"
-    ManagedBy   = "Terraform"
-    Owner       = "Engineering"
-    Application = "Dating Platform"
-    Domain      = "flamoral.com"
-    CostCenter  = "Production"
-    AccessLevel = "Public"
-    Compliance  = "GDPR"
-  }
-}
-
-# =============================================================================
-# Network Configuration
-# =============================================================================
-variable "vnet_address_space" {
-  description = "Address space for the virtual network"
+variable "domain_names" {
+  description = "All domain names for CloudFront"
   type        = list(string)
-  default     = ["10.30.0.0/16"]
+  default     = ["flamoral.com", "www.flamoral.com", "api.flamoral.com"]
 }
 
-variable "aks_subnet_prefix" {
-  description = "Address prefix for AKS subnet"
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN (must be in us-east-1)"
   type        = string
-  default     = "10.30.1.0/24"
+  default     = null
 }
 
-variable "db_subnet_prefix" {
-  description = "Address prefix for database subnet"
-  type        = string
-  default     = "10.30.2.0/24"
-}
-
-variable "redis_subnet_prefix" {
-  description = "Address prefix for Redis subnet"
-  type        = string
-  default     = "10.30.3.0/24"
-}
-
-variable "private_endpoints_subnet_prefix" {
-  description = "Address prefix for private endpoints subnet"
-  type        = string
-  default     = "10.30.4.0/24"
-}
-
-variable "appgw_subnet_prefix" {
-  description = "Address prefix for Application Gateway subnet"
-  type        = string
-  default     = "10.30.5.0/24"
-}
-
-# =============================================================================
-# AKS Configuration
-# =============================================================================
-variable "kubernetes_version" {
-  description = "Kubernetes version"
-  type        = string
-  default     = "1.28.3"
-}
-
-variable "system_node_size" {
-  description = "VM size for system node pool"
-  type        = string
-  default     = "Standard_D4s_v3"
-}
-
-variable "system_node_count" {
-  description = "Initial node count"
-  type        = number
-  default     = 3
-}
-
-variable "system_node_min_count" {
-  description = "Minimum nodes"
-  type        = number
-  default     = 3
-}
-
-variable "system_node_max_count" {
-  description = "Maximum nodes"
-  type        = number
-  default     = 5
-}
-
-variable "system_node_disk_size" {
-  description = "OS disk size in GB"
-  type        = number
-  default     = 128
-}
-
-variable "user_node_size" {
-  description = "VM size for user node pool"
-  type        = string
-  default     = "Standard_D8s_v3"
-}
-
-variable "user_node_count" {
-  description = "Initial user node count"
-  type        = number
-  default     = 3
-}
-
-variable "user_node_min_count" {
-  description = "Minimum user nodes"
-  type        = number
-  default     = 3
-}
-
-variable "user_node_max_count" {
-  description = "Maximum user nodes"
-  type        = number
-  default     = 20
-}
-
-variable "user_node_disk_size" {
-  description = "User node OS disk size in GB"
-  type        = number
-  default     = 256
-}
-
-# =============================================================================
-# PostgreSQL Configuration - Production Grade
-# =============================================================================
-variable "postgres_version" {
-  description = "PostgreSQL version"
-  type        = string
-  default     = "15"
-}
-
-variable "postgres_sku_name" {
-  description = "PostgreSQL SKU"
-  type        = string
-  default     = "GP_Standard_D4s_v3"
-}
-
-variable "postgres_storage_mb" {
-  description = "PostgreSQL storage in MB"
-  type        = number
-  default     = 262144 # 256 GB
-}
-
-variable "postgres_backup_retention_days" {
-  description = "Backup retention days"
-  type        = number
-  default     = 35
-}
-
-variable "postgres_geo_redundant_backup" {
-  description = "Enable geo-redundant backups"
+variable "create_route53_zone" {
+  description = "Create Route53 hosted zone (set to false if zone already exists)"
   type        = bool
   default     = true
 }
 
-# =============================================================================
-# Redis Configuration - Premium
-# =============================================================================
-variable "redis_sku_name" {
-  description = "Redis SKU"
+variable "dnssec_kms_key_arn" {
+  description = "KMS key ARN for DNSSEC (must be in us-east-1)"
   type        = string
-  default     = "Premium"
+  default     = null
 }
 
-variable "redis_family" {
-  description = "Redis family"
+################################################################################
+# Security
+################################################################################
+
+variable "origin_verify_header" {
+  description = "Secret header value for CloudFront origin verification"
   type        = string
-  default     = "P"
+  sensitive   = true
+  default     = ""
 }
 
-variable "redis_capacity" {
-  description = "Redis capacity"
-  type        = number
-  default     = 1
-}
-
-# =============================================================================
-# Storage Configuration - GRS
-# =============================================================================
-variable "storage_replication_type" {
-  description = "Storage replication type"
-  type        = string
-  default     = "GRS"
-}
-
-# =============================================================================
-# Monitoring Configuration
-# =============================================================================
-variable "log_analytics_retention_days" {
-  description = "Log retention days"
-  type        = number
-  default     = 90
-}
-
-# =============================================================================
-# SignalR Configuration - Premium
-# =============================================================================
-variable "signalr_sku" {
-  description = "SignalR SKU"
-  type        = string
-  default     = "Premium_P1"
-}
-
-variable "signalr_capacity" {
-  description = "SignalR capacity"
-  type        = number
-  default     = 1
-}
-
-# =============================================================================
-# Identity / Azure AD B2C Configuration
-# =============================================================================
-variable "b2c_tenant_name" {
-  description = "Azure AD B2C tenant name (e.g., flamoralb2c)"
-  type        = string
-  default     = "flamoralb2c"
+variable "blocked_countries" {
+  description = "Country codes to block in WAF"
+  type        = list(string)
+  default     = []
 }

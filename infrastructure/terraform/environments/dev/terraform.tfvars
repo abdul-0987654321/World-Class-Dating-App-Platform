@@ -1,48 +1,54 @@
-# Azure Development Environment Variables
+################################################################################
+# Development Environment Terraform Variables
+################################################################################
 
-# Network Configuration
-vnet_address_space        = "10.1.0.0/16"
-enable_nat_gateway        = false # Save costs in dev
-enable_bastion            = false
-enable_network_monitoring = false
+# General
+aws_region   = "us-east-1"
+project_name = "dating-app"
+environment  = "dev"
+cost_center  = "development"
+owner        = "platform-team"
 
-# AKS Configuration
-kubernetes_version     = "1.28.3"
-system_node_size       = "Standard_B4ms"
-system_node_count      = 1
-system_node_min_count  = 1
-system_node_max_count  = 2
-system_node_disk_size  = 64
+# Networking
+vpc_cidr = "10.0.0.0/16"
+availability_zones = [
+  "us-east-1a",
+  "us-east-1b",
+  "us-east-1c"
+]
 
-user_node_size        = "Standard_D4s_v3"
-user_node_count       = 1
-user_node_min_count   = 1
-user_node_max_count   = 3
-user_node_disk_size   = 128
+# EKS
+eks_cluster_version = "1.28"
 
-enable_spot_instances = true
-spot_node_min_count   = 0
-spot_node_max_count   = 2
+# RDS
+rds_engine_version = "15.6"
 
-# PostgreSQL Configuration
-postgres_sku_name              = "B_Standard_B1ms"
-postgres_storage_mb            = 32768 # 32 GB
-postgres_backup_retention_days = 7
-postgres_geo_redundant_backup  = false
-postgres_high_availability     = false
+# Cognito
+cognito_callback_urls = [
+  "http://localhost:3000/callback",
+  "https://dev.dating-app.example.com/callback"
+]
 
-# Redis Configuration
-redis_sku_name  = "Basic"
-redis_family    = "C"
-redis_capacity  = 0
-redis_replicas  = 0
+cognito_logout_urls = [
+  "http://localhost:3000",
+  "https://dev.dating-app.example.com"
+]
 
-# Storage Configuration
-storage_account_replication_type = "LRS"
-enable_geo_replication           = false
+cognito_mobile_callback_urls = [
+  "datingapp://callback"
+]
 
-# Container Registry
-acr_sku = "Basic"
+cognito_mobile_logout_urls = [
+  "datingapp://logout"
+]
+
+# S3 CORS
+allowed_origins = [
+  "http://localhost:3000",
+  "https://dev.dating-app.example.com"
+]
 
 # Monitoring
-log_analytics_retention_days = 30
+alarm_email_endpoints = [
+  # Add email addresses for alarm notifications
+]

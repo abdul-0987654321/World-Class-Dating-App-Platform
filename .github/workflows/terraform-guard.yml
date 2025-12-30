@@ -1,0 +1,245 @@
+# =============================================================================
+# TERRAFORM PROVIDER GUARD - Block Azure Forever
+# =============================================================================
+# This workflow BLOCKS any attempt to introduce Azure providers
+# Runs on every PR and push that touches Terraform files
+# =============================================================================
+
+name: Terraform Provider Guard
+
+on:
+  push:
+    paths:
+      - 'infrastructure/terraform/**/*.tf'
+      - 'infrastructure/terraform/**/*.tfvars'
+  pull_request:
+    paths:
+      - 'infrastructure/terraform/**/*.tf'
+      - 'infrastructure/terraform/**/*.tfvars'
+
+jobs:
+  azure-provider-check:
+    name: Block Azure Providers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for forbidden Azure providers
+        id: azure_check
+        run: |
+          echo "Scanning Terraform files for Azure providers..."
+          echo ""
+
+          FORBIDDEN_PATTERNS=(
+            "azurerm"
+            "azuread"
+            "azurestack"
+            "azure/azapi"
+            "provider.*azure"
+            "source.*hashicorp/azurerm"
+            "source.*hashicorp/azuread"
+            "ARM_CLIENT_ID"
+            "ARM_CLIENT_SECRET"
+            "ARM_TENANT_ID"
+            "ARM_SUBSCRIPTION_ID"
+            "azurerm_"
+            "azuread_"
+            "data.azurerm"
+            "data.azuread"
+          )
+
+          VIOLATIONS=""
+          EXIT_CODE=0
+
+          for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
+            echo "Checking pattern: $pattern"
+            MATCHES=$(grep -rlE "$pattern" infrastructure/terraform/aws/ 2>/dev/null || true)
+            if [ -n "$MATCHES" ]; then
+              echo "::error::FORBIDDEN PATTERN DETECTED: $pattern"
+              VIOLATIONS="$VIOLATIONS\n- Pattern '$pattern' found in:\n$MATCHES"
+              EXIT_CODE=1
+            fi
+          done
+
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo ""
+            echo "=========================================="
+            echo "AZURE PROVIDERS ARE FORBIDDEN"
+            echo "=========================================="
+            echo -e "$VIOLATIONS"
+            echo ""
+            echo "This infrastructure is AWS-ONLY."
+            echo "Remove all Azure references and try again."
+            echo "=========================================="
+            exit 1
+          fi
+
+          echo ""
+          echo "No Azure providers detected in AWS Terraform"
+
+      - name: Verify AWS-only providers in AWS directory
+        run: |
+          echo "Verifying AWS Terraform uses only allowed providers..."
+
+          ALLOWED_PROVIDERS=(
+            "hashicorp/aws"
+            "hashicorp/kubernetes"
+            "hashicorp/helm"
+            "hashicorp/random"
+            "hashicorp/tls"
+            "hashicorp/null"
+            "hashicorp/time"
+            "hashicorp/archive"
+            "hashicorp/local"
+            "hashicorp/external"
+          )
+
+          # Find all provider declarations
+          PROVIDERS=$(grep -rhE "source\s*=\s*\"[^\"]+\"" infrastructure/terraform/aws/ 2>/dev/null | \
+            grep -oE "\"[^\"]+\"" | tr -d '"' | sort -u || true)
+
+          echo "Detected providers:"
+          echo "$PROVIDERS"
+          echo ""
+
+          INVALID_PROVIDERS=""
+          while IFS= read -r provider; do
+            if [ -z "$provider" ]; then
+              continue
+            fi
+
+            VALID=false
+            for allowed in "${ALLOWED_PROVIDERS[@]}"; do
+              if [[ "$provider" == *"$allowed"* ]]; then
+                VALID=true
+                break
+              fi
+            done
+
+            if [ "$VALID" = false ]; then
+              echo "::error::Invalid provider detected: $provider"
+              INVALID_PROVIDERS="$INVALID_PROVIDERS\n- $provider"
+            fi
+          done <<< "$PROVIDERS"
+
+          if [ -n "$INVALID_PROVIDERS" ]; then
+            echo ""
+            echo "=========================================="
+            echo "INVALID PROVIDERS DETECTED"
+            echo "=========================================="
+            echo -e "$INVALID_PROVIDERS"
+            echo ""
+            echo "Only AWS and HashiCorp utility providers are allowed."
+            echo "=========================================="
+            exit 1
+          fi
+
+          echo "All providers are valid for AWS-only infrastructure"
+
+      - name: Check for Azure backend configurations
+        run: |
+          echo "Checking for Azure backend configurations..."
+
+          # Check for Azure storage backend
+          if grep -rE "backend\s*\"azurerm\"" infrastructure/terraform/aws/ 2>/dev/null; then
+            echo "::error::Azure backend detected! Use S3 backend only."
+            exit 1
+          fi
+
+          # Check for Azure-specific backend settings
+          AZURE_BACKEND_PATTERNS=(
+            "storage_account_name"
+            "container_name.*tfstate"
+            "resource_group_name.*tf"
+          )
+
+          for pattern in "${AZURE_BACKEND_PATTERNS[@]}"; do
+            if grep -rE "$pattern" infrastructure/terraform/aws/ 2>/dev/null; then
+              echo "::warning::Potential Azure backend setting detected: $pattern"
+            fi
+          done
+
+          echo "No Azure backend configurations found"
+
+      - name: Verify S3 backend in all environments
+        run: |
+          echo "Verifying S3 backend configuration..."
+
+          for env_dir in infrastructure/terraform/aws/environments/*/; do
+            if [ -d "$env_dir" ]; then
+              ENV_NAME=$(basename "$env_dir")
+              echo "Checking $ENV_NAME environment..."
+
+              # Check for S3 backend
+              if ! grep -qE "backend\s*\"s3\"" "$env_dir"*.tf 2>/dev/null; then
+                echo "::error::Environment $ENV_NAME missing S3 backend configuration"
+                exit 1
+              fi
+
+              # Verify DynamoDB locking
+              if ! grep -qE "dynamodb_table" "$env_dir"*.tf 2>/dev/null; then
+                echo "::warning::Environment $ENV_NAME may be missing DynamoDB state locking"
+              fi
+
+              echo "$ENV_NAME: S3 backend configured correctly"
+            fi
+          done
+
+          echo ""
+          echo "All environments use S3 backend"
+
+  terraform-validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+    needs: azure-provider-check
+
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.0'
+
+      - name: Terraform Format Check
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init (no backend)
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: terraform validate
+
+  summary:
+    name: Guard Summary
+    runs-on: ubuntu-latest
+    needs: [azure-provider-check, terraform-validate]
+    if: always()
+
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# Terraform Provider Guard Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Checks Performed" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Azure Provider Block | ${{ needs.azure-provider-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Validation | ${{ needs.terraform-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Policy" >> $GITHUB_STEP_SUMMARY
+          echo "- Azure providers are **FORBIDDEN**" >> $GITHUB_STEP_SUMMARY
+          echo "- Only AWS and HashiCorp utility providers allowed" >> $GITHUB_STEP_SUMMARY
+          echo "- All environments must use S3 backend" >> $GITHUB_STEP_SUMMARY
+          echo "- State locking via DynamoDB required" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,199 @@
+# ============================================================================
+# FLAMORAL IDENTITY AUDIT WORKFLOW
+# Daily reconciliation and group verification
+# ============================================================================
+name: Identity Audit
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  workflow_dispatch:
+    inputs:
+      full_reconciliation:
+        description: 'Run full reconciliation (sync all users)'
+        required: false
+        default: 'false'
+        type: boolean
+      environment:
+        description: 'Environment to audit'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================================================
+  # AUDIT SECURITY GROUPS
+  # ============================================================================
+  audit-groups:
+    runs-on: ubuntu-latest
+    name: Audit Security Groups
+    environment: ${{ github.event.inputs.environment || 'prod' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: identity/automation/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd identity/automation
+          npm ci
+
+      - name: Verify security groups exist
+        id: verify-groups
+        run: |
+          cd identity/automation
+          node -e "
+            const groups = require('./group-sync.js');
+            groups.validateConfig();
+            console.log('Configuration validated successfully');
+          "
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          AUTOMATION_CLIENT_ID: ${{ secrets.AUTOMATION_CLIENT_ID }}
+          AUTOMATION_CLIENT_SECRET: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
+          GROUP_ID_SAAS_FREE: ${{ secrets.GROUP_ID_SAAS_FREE }}
+          GROUP_ID_SAAS_STANDARD: ${{ secrets.GROUP_ID_SAAS_STANDARD }}
+          GROUP_ID_SAAS_PREMIUM: ${{ secrets.GROUP_ID_SAAS_PREMIUM }}
+          GROUP_ID_SAAS_VERIFIED: ${{ secrets.GROUP_ID_SAAS_VERIFIED }}
+          GROUP_ID_SAAS_MODERATOR: ${{ secrets.GROUP_ID_SAAS_MODERATOR }}
+          GROUP_ID_SAAS_OPERATOR: ${{ secrets.GROUP_ID_SAAS_OPERATOR }}
+          GROUP_ID_SAAS_ADMIN: ${{ secrets.GROUP_ID_SAAS_ADMIN }}
+          GROUP_ID_BANNED: ${{ secrets.GROUP_ID_BANNED }}
+
+      - name: Generate audit report
+        run: |
+          echo "# Identity Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Security Groups (saas-* naming convention)" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-free tier group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-standard tier group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-premium tier group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-verified group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-moderator group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-operator group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- saas-admin group: Configured" >> $GITHUB_STEP_SUMMARY
+          echo "- banned group: Configured" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # RECONCILE SUBSCRIPTIONS
+  # ============================================================================
+  reconcile-subscriptions:
+    runs-on: ubuntu-latest
+    name: Reconcile Subscription Groups
+    needs: audit-groups
+    if: github.event.inputs.full_reconciliation == 'true'
+    environment: ${{ github.event.inputs.environment || 'prod' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: identity/automation/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd identity/automation
+          npm ci
+
+      - name: Run reconciliation
+        run: |
+          echo "Full reconciliation would run here"
+          echo "This connects to the database to get subscription states"
+          echo "Then syncs with B2C groups via Graph API"
+          echo "Supports 3-tier system: saas-free, saas-standard, saas-premium"
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          AUTOMATION_CLIENT_ID: ${{ secrets.AUTOMATION_CLIENT_ID }}
+          AUTOMATION_CLIENT_SECRET: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
+          GROUP_ID_SAAS_FREE: ${{ secrets.GROUP_ID_SAAS_FREE }}
+          GROUP_ID_SAAS_STANDARD: ${{ secrets.GROUP_ID_SAAS_STANDARD }}
+          GROUP_ID_SAAS_PREMIUM: ${{ secrets.GROUP_ID_SAAS_PREMIUM }}
+          GROUP_ID_SAAS_VERIFIED: ${{ secrets.GROUP_ID_SAAS_VERIFIED }}
+          GROUP_ID_SAAS_MODERATOR: ${{ secrets.GROUP_ID_SAAS_MODERATOR }}
+          GROUP_ID_SAAS_OPERATOR: ${{ secrets.GROUP_ID_SAAS_OPERATOR }}
+          GROUP_ID_SAAS_ADMIN: ${{ secrets.GROUP_ID_SAAS_ADMIN }}
+          GROUP_ID_BANNED: ${{ secrets.GROUP_ID_BANNED }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Report reconciliation results
+        run: |
+          echo "## Reconciliation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Full reconciliation completed." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # INFRASTRUCTURE VALIDATION
+  # ============================================================================
+  validate-infrastructure:
+    runs-on: ubuntu-latest
+    name: Validate Infrastructure
+    environment: ${{ github.event.inputs.environment || 'prod' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group flamoral-${{ github.event.inputs.environment || 'prod' }}-rg \
+            --name flamoral-${{ github.event.inputs.environment || 'prod' }}-aks \
+            --overwrite-existing
+
+      - name: Run self-healing checks
+        run: |
+          chmod +x scripts/self-healing-checks.sh
+          ./scripts/self-healing-checks.sh || true
+        env:
+          DOMAIN: flamoral.com
+          API_ENDPOINT: https://api.flamoral.com
+          B2C_TENANT: flamoralb2c
+          ENVIRONMENT: ${{ github.event.inputs.environment || 'prod' }}
+
+      - name: Generate infrastructure report
+        run: |
+          echo "## Infrastructure Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Self-healing validation completed." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # NOTIFY ON FAILURE
+  # ============================================================================
+  notify-failure:
+    runs-on: ubuntu-latest
+    name: Notify on Failure
+    needs: [audit-groups, validate-infrastructure]
+    if: failure()
+
+    steps:
+      - name: Send failure notification
+        run: |
+          echo "Identity audit failed - notification would be sent here"
+          echo "Integrate with Slack, Teams, PagerDuty, etc."

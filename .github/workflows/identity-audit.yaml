@@ -1,6 +1,6 @@
 # ============================================================================
-# FLAMORAL IDENTITY AUDIT WORKFLOW
-# Daily reconciliation and group verification
+# FLAMORAL IDENTITY AUDIT WORKFLOW (AWS)
+# Daily reconciliation and Cognito group verification
 # ============================================================================
 name: Identity Audit
 
@@ -26,19 +26,30 @@ on:
 
 env:
   NODE_VERSION: '20'
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   # ============================================================================
-  # AUDIT SECURITY GROUPS
+  # AUDIT COGNITO USER GROUPS
   # ============================================================================
   audit-groups:
     runs-on: ubuntu-latest
-    name: Audit Security Groups
+    name: Audit Cognito Groups
     environment: ${{ github.event.inputs.environment || 'prod' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,36 +63,37 @@ jobs:
           cd identity/automation
           npm ci
 
-      - name: Verify security groups exist
+      - name: Verify Cognito groups exist
         id: verify-groups
         run: |
-          cd identity/automation
-          node -e "
-            const groups = require('./group-sync.js');
-            groups.validateConfig();
-            console.log('Configuration validated successfully');
-          "
-        env:
-          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
-          AUTOMATION_CLIENT_ID: ${{ secrets.AUTOMATION_CLIENT_ID }}
-          AUTOMATION_CLIENT_SECRET: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
-          GROUP_ID_SAAS_FREE: ${{ secrets.GROUP_ID_SAAS_FREE }}
-          GROUP_ID_SAAS_STANDARD: ${{ secrets.GROUP_ID_SAAS_STANDARD }}
-          GROUP_ID_SAAS_PREMIUM: ${{ secrets.GROUP_ID_SAAS_PREMIUM }}
-          GROUP_ID_SAAS_VERIFIED: ${{ secrets.GROUP_ID_SAAS_VERIFIED }}
-          GROUP_ID_SAAS_MODERATOR: ${{ secrets.GROUP_ID_SAAS_MODERATOR }}
-          GROUP_ID_SAAS_OPERATOR: ${{ secrets.GROUP_ID_SAAS_OPERATOR }}
-          GROUP_ID_SAAS_ADMIN: ${{ secrets.GROUP_ID_SAAS_ADMIN }}
-          GROUP_ID_BANNED: ${{ secrets.GROUP_ID_BANNED }}
+          # List Cognito user pool groups
+          GROUPS=$(aws cognito-idp list-groups \
+            --user-pool-id ${{ secrets.COGNITO_USER_POOL_ID }} \
+            --query 'Groups[].GroupName' \
+            --output text)
+
+          echo "Found groups: $GROUPS"
+
+          # Verify required groups exist
+          REQUIRED_GROUPS="saas-free saas-standard saas-premium saas-verified saas-moderator saas-operator saas-admin banned"
+
+          for group in $REQUIRED_GROUPS; do
+            if echo "$GROUPS" | grep -q "$group"; then
+              echo "✓ Group $group exists"
+            else
+              echo "✗ Group $group NOT FOUND"
+              exit 1
+            fi
+          done
 
       - name: Generate audit report
         run: |
-          echo "# Identity Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "# Identity Audit Report (AWS Cognito)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
           echo "**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Security Groups (saas-* naming convention)" >> $GITHUB_STEP_SUMMARY
+          echo "## Cognito User Groups" >> $GITHUB_STEP_SUMMARY
           echo "- saas-free tier group: Configured" >> $GITHUB_STEP_SUMMARY
           echo "- saas-standard tier group: Configured" >> $GITHUB_STEP_SUMMARY
           echo "- saas-premium tier group: Configured" >> $GITHUB_STEP_SUMMARY
@@ -105,6 +117,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -121,20 +139,10 @@ jobs:
         run: |
           echo "Full reconciliation would run here"
           echo "This connects to the database to get subscription states"
-          echo "Then syncs with B2C groups via Graph API"
+          echo "Then syncs with Cognito groups"
           echo "Supports 3-tier system: saas-free, saas-standard, saas-premium"
         env:
-          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
-          AUTOMATION_CLIENT_ID: ${{ secrets.AUTOMATION_CLIENT_ID }}
-          AUTOMATION_CLIENT_SECRET: ${{ secrets.AUTOMATION_CLIENT_SECRET }}
-          GROUP_ID_SAAS_FREE: ${{ secrets.GROUP_ID_SAAS_FREE }}
-          GROUP_ID_SAAS_STANDARD: ${{ secrets.GROUP_ID_SAAS_STANDARD }}
-          GROUP_ID_SAAS_PREMIUM: ${{ secrets.GROUP_ID_SAAS_PREMIUM }}
-          GROUP_ID_SAAS_VERIFIED: ${{ secrets.GROUP_ID_SAAS_VERIFIED }}
-          GROUP_ID_SAAS_MODERATOR: ${{ secrets.GROUP_ID_SAAS_MODERATOR }}
-          GROUP_ID_SAAS_OPERATOR: ${{ secrets.GROUP_ID_SAAS_OPERATOR }}
-          GROUP_ID_SAAS_ADMIN: ${{ secrets.GROUP_ID_SAAS_ADMIN }}
-          GROUP_ID_BANNED: ${{ secrets.GROUP_ID_BANNED }}
+          COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Report reconciliation results
@@ -155,33 +163,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get AKS Credentials
+      - name: Update kubeconfig for EKS
         run: |
-          az aks get-credentials \
-            --resource-group flamoral-${{ github.event.inputs.environment || 'prod' }}-rg \
-            --name flamoral-${{ github.event.inputs.environment || 'prod' }}-aks \
-            --overwrite-existing
+          aws eks update-kubeconfig \
+            --name flamoral-${{ github.event.inputs.environment || 'prod' }}-eks \
+            --region ${{ env.AWS_REGION }}
 
-      - name: Run self-healing checks
+      - name: Run infrastructure checks
         run: |
-          chmod +x scripts/self-healing-checks.sh
-          ./scripts/self-healing-checks.sh || true
-        env:
-          DOMAIN: flamoral.com
-          API_ENDPOINT: https://api.flamoral.com
-          B2C_TENANT: flamoralb2c
-          ENVIRONMENT: ${{ github.event.inputs.environment || 'prod' }}
+          # Check EKS cluster status
+          kubectl get nodes
+          kubectl get pods -n flamoral-${{ github.event.inputs.environment || 'prod' }}
+        continue-on-error: true
 
       - name: Generate infrastructure report
         run: |
-          echo "## Infrastructure Status" >> $GITHUB_STEP_SUMMARY
+          echo "## Infrastructure Status (AWS)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Self-healing validation completed." >> $GITHUB_STEP_SUMMARY
+          echo "EKS cluster validation completed." >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # NOTIFY ON FAILURE
