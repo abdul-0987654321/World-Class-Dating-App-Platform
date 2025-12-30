@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Frontend (Production)
 
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ COPY apps/web-app ./apps/web-app
 RUN yarn workspace @flamoral/web build
 
 # Stage 2: Production with Nginx
-FROM nginx:alpine
+FROM nginx:alpine@sha256:a45ee5d042aaa9e81e013f97ae40c3dda26fbe98f22b6251acdf28e579560d55
 
 # Copy custom nginx configuration
 COPY infrastructure/docker/nginx/nginx.conf /etc/nginx/nginx.conf

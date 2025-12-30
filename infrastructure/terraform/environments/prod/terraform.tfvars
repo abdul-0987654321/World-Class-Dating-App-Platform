@@ -19,8 +19,8 @@ availability_zones = [
   "us-east-1c"
 ]
 
-# EKS Configuration
-eks_cluster_version = "1.29"
+# EKS Configuration - Upgraded from 1.29 to 1.31 (1.29 past standard support)
+eks_cluster_version = "1.31"
 
 # RDS Configuration
 rds_engine_version = "15.6"

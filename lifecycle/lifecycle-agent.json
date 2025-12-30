@@ -1,0 +1,203 @@
+{
+  "name": "Flamoral Lifecycle Intelligence Agent",
+  "version": "1.0.0",
+  "description": "Automated EOL/EOS monitoring and proactive remediation agent for AWS infrastructure",
+  "enabled": true,
+  "schedule": {
+    "eol_check": "0 6 * * 1",
+    "drift_detection": "0 */6 * * *",
+    "security_scan": "0 2 * * *",
+    "cost_analysis": "0 0 1 * *"
+  },
+  "monitoring": {
+    "aws_services": {
+      "eks": {
+        "current_version": "1.31",
+        "eol_date": "2025-11-28",
+        "extended_support_end": "2026-11-28",
+        "alert_threshold_days": 90,
+        "auto_upgrade_enabled": false,
+        "upgrade_window": "Sunday 02:00-06:00 UTC"
+      },
+      "aurora_postgresql": {
+        "current_version": "15.6",
+        "eol_date": "2028-01-01",
+        "alert_threshold_days": 180
+      },
+      "elasticache_redis": {
+        "current_version": "7.0",
+        "eol_date": "2026-06-01",
+        "alert_threshold_days": 90
+      },
+      "lambda_runtime": {
+        "nodejs": "20.x",
+        "python": "3.11",
+        "alert_threshold_days": 60
+      }
+    },
+    "docker_base_images": {
+      "node": {
+        "current_tag": "20-alpine",
+        "pinned_digest": "sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10",
+        "update_frequency": "monthly",
+        "auto_update": false
+      },
+      "python": {
+        "current_tag": "3.11-slim",
+        "pinned_digest": "sha256:87f0a12eedb9fdc5ae29f4d0a287e3f5e85a87e07d09e86b5cd5c4bb3c6b8d3e",
+        "update_frequency": "monthly",
+        "auto_update": false
+      },
+      "nginx": {
+        "current_tag": "alpine",
+        "pinned_digest": "sha256:a45ee5d042aaa9e81e013f97ae40c3dda26fbe98f22b6251acdf28e579560d55",
+        "update_frequency": "monthly",
+        "auto_update": false
+      },
+      "golang": {
+        "current_tag": "1.21-alpine",
+        "pinned_digest": "sha256:39ad4ed1c6e89c8d27098a1c1cf7a0b22f3b7c2b5e0f5e0f3f4c3b2a1a0b1c2d",
+        "update_frequency": "monthly",
+        "auto_update": false
+      },
+      "alpine": {
+        "current_tag": "3.19",
+        "pinned_digest": "sha256:c5b1261d6d3e43071626931fc004f70149baeba2c8ec672bd4f27761f8e1ad6b",
+        "update_frequency": "monthly",
+        "auto_update": false
+      }
+    },
+    "npm_packages": {
+      "critical_packages": [
+        "react",
+        "express",
+        "fastify",
+        "@nestjs/core",
+        "stripe",
+        "jsonwebtoken",
+        "bcrypt"
+      ],
+      "vulnerability_threshold": "high",
+      "auto_patch_enabled": true,
+      "breaking_change_alert": true
+    }
+  },
+  "alerts": {
+    "channels": [
+      {
+        "type": "slack",
+        "webhook_env": "SLACK_LIFECYCLE_WEBHOOK",
+        "severity_filter": ["critical", "high"]
+      },
+      {
+        "type": "email",
+        "recipients_env": "LIFECYCLE_ALERT_EMAILS",
+        "severity_filter": ["critical"]
+      },
+      {
+        "type": "pagerduty",
+        "integration_key_env": "PAGERDUTY_LIFECYCLE_KEY",
+        "severity_filter": ["critical"]
+      },
+      {
+        "type": "github_issue",
+        "auto_create": true,
+        "labels": ["lifecycle", "infrastructure", "automated"],
+        "severity_filter": ["critical", "high", "medium"]
+      }
+    ],
+    "severity_levels": {
+      "critical": {
+        "description": "Immediate action required - EOL within 30 days or security vulnerability",
+        "response_sla": "4 hours"
+      },
+      "high": {
+        "description": "Action required soon - EOL within 90 days",
+        "response_sla": "48 hours"
+      },
+      "medium": {
+        "description": "Plan upgrade - EOL within 180 days",
+        "response_sla": "1 week"
+      },
+      "low": {
+        "description": "Awareness only - EOL beyond 180 days",
+        "response_sla": "1 month"
+      }
+    }
+  },
+  "remediation": {
+    "auto_remediation_enabled": false,
+    "require_approval": true,
+    "approval_channels": ["infrastructure-team", "security-team"],
+    "rollback_enabled": true,
+    "testing_required": {
+      "unit_tests": true,
+      "integration_tests": true,
+      "security_scan": true,
+      "performance_baseline": true
+    },
+    "deployment_strategy": {
+      "type": "canary",
+      "canary_percentage": 10,
+      "promotion_interval": "30m",
+      "auto_rollback_on_failure": true
+    }
+  },
+  "reporting": {
+    "weekly_digest": {
+      "enabled": true,
+      "day": "Monday",
+      "time": "09:00 UTC",
+      "include": [
+        "eol_summary",
+        "pending_upgrades",
+        "security_vulnerabilities",
+        "cost_optimization"
+      ]
+    },
+    "monthly_executive_report": {
+      "enabled": true,
+      "day": 1,
+      "include": [
+        "platform_health_score",
+        "technical_debt_metrics",
+        "compliance_status",
+        "upcoming_maintenance"
+      ]
+    }
+  },
+  "integrations": {
+    "aws": {
+      "regions": ["us-east-1"],
+      "accounts": ["992382449461"],
+      "assume_role": "arn:aws:iam::992382449461:role/lifecycle-agent-role"
+    },
+    "github": {
+      "repository": "flamoral/dating-app",
+      "actions_enabled": true,
+      "dependabot_enabled": true,
+      "renovate_enabled": true
+    },
+    "snyk": {
+      "enabled": true,
+      "organization": "flamoral",
+      "fail_on_severity": "high"
+    },
+    "trivy": {
+      "enabled": true,
+      "scan_on_push": true,
+      "ignore_unfixed": true
+    }
+  },
+  "compliance": {
+    "frameworks": ["SOC2", "GDPR", "PCI-DSS"],
+    "audit_trail_retention_days": 365,
+    "change_management_required": true
+  },
+  "metadata": {
+    "created": "2025-12-30T00:00:00Z",
+    "last_updated": "2025-12-30T00:00:00Z",
+    "maintainers": ["infrastructure-team@flamoral.com"],
+    "documentation": "https://docs.flamoral.com/lifecycle-agent"
+  }
+}

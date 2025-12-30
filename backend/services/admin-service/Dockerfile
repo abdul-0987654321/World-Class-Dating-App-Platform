@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS builder
 
 WORKDIR /app
 
@@ -43,7 +43,7 @@ RUN npm run build
 RUN ls -la dist/ && test -f dist/index.js
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10
 
 WORKDIR /app
 

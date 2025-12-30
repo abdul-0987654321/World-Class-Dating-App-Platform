@@ -4,7 +4,7 @@
 # ============================================
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS dependencies
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS dependencies
 
 LABEL maintainer="Flamoral Team"
 LABEL description="Flamoral Backend - REST + GraphQL + WebSocket"
@@ -20,7 +20,7 @@ RUN npm ci --only=production && \
     npm cache clean --force
 
 # Stage 2: Build
-FROM node:20-alpine AS build
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS build
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ COPY src ./src
 RUN npm run build
 
 # Stage 3: Runtime
-FROM node:20-alpine AS runtime
+FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS runtime
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init

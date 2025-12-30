@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "generated_at": "2025-12-30T00:00:00Z",
+  "generated_by": "Lifecycle Intelligence Agent",
+
+  "critical_alerts": [
+    {
+      "resource": "EKS Cluster dating-app-dev-eks",
+      "current_version": "1.29",
+      "platform_version": "eks.58",
+      "standard_support_end": "03/23/2025",
+      "extended_support_end": "03/23/2026",
+      "status": "CRITICAL - PAST STANDARD SUPPORT",
+      "action_required": "UPGRADE TO 1.31 IMMEDIATELY",
+      "days_past_standard": 282,
+      "days_until_extended_end": 83
+    }
+  ],
+
+  "eks_versions": {
+    "1.32": {
+      "release_date": "12/03/2025",
+      "standard_support_end": "12/03/2026",
+      "extended_support_end": "12/03/2027",
+      "status": "current"
+    },
+    "1.31": {
+      "release_date": "09/24/2025",
+      "standard_support_end": "11/26/2025",
+      "extended_support_end": "11/26/2026",
+      "status": "current"
+    },
+    "1.30": {
+      "release_date": "05/21/2024",
+      "standard_support_end": "07/23/2025",
+      "extended_support_end": "07/23/2026",
+      "status": "approaching_end"
+    },
+    "1.29": {
+      "release_date": "01/23/2024",
+      "standard_support_end": "03/23/2025",
+      "extended_support_end": "03/23/2026",
+      "status": "PAST_STANDARD_SUPPORT",
+      "notes": "Currently deployed - requires immediate upgrade"
+    }
+  },
+
+  "rds_aurora_postgresql": {
+    "15.6": {
+      "engine": "aurora-postgresql",
+      "release_date": "2024",
+      "standard_support_end": "11/01/2027",
+      "extended_support_available": true,
+      "status": "current",
+      "deployed": ["dating-app-dev-aurora", "dating-app-staging-aurora"]
+    },
+    "15.x_family": {
+      "major_version_end_of_standard": "11/01/2027",
+      "notes": "Aurora PostgreSQL 15 family has long-term support"
+    }
+  },
+
+  "node_runtimes": {
+    "20": {
+      "lts_start": "10/24/2023",
+      "lts_end": "04/30/2026",
+      "maintenance_end": "04/30/2026",
+      "status": "LTS_ACTIVE",
+      "deployed_in": "All Dockerfiles (node:20-alpine)"
+    },
+    "22": {
+      "lts_start": "10/29/2024",
+      "lts_end": "04/30/2027",
+      "maintenance_end": "04/30/2027",
+      "status": "LTS_ACTIVE",
+      "notes": "Consider upgrading for longer support window"
+    }
+  },
+
+  "lambda_runtimes": {
+    "nodejs20.x": {
+      "deprecation_date": "TBD",
+      "block_create_date": "TBD",
+      "block_update_date": "TBD",
+      "status": "active"
+    },
+    "python3.12": {
+      "deprecation_date": "TBD",
+      "block_create_date": "TBD",
+      "block_update_date": "TBD",
+      "status": "active"
+    }
+  },
+
+  "amazon_linux": {
+    "AL2": {
+      "end_of_standard_support": "06/30/2025",
+      "end_of_extended_support": "06/30/2026",
+      "status": "approaching_end",
+      "notes": "EKS node AMIs may be affected"
+    },
+    "AL2023": {
+      "end_of_standard_support": "03/15/2028",
+      "status": "current",
+      "recommended": true
+    }
+  },
+
+  "aws_services_sunset": {
+    "Amazon_FinSpace": {
+      "no_new_customers": "10/07/2025",
+      "end_of_support": "10/07/2026",
+      "impact": "none - not in use"
+    },
+    "AWS_IoT_Greengrass_v1": {
+      "end_of_support": "10/01/2026",
+      "impact": "none - not in use"
+    },
+    "AWS_Proton": {
+      "end_of_support": "10/07/2026",
+      "impact": "none - not in use"
+    }
+  },
+
+  "elasticache_redis": {
+    "7.0": {
+      "engine_version": "7.0",
+      "status": "current",
+      "deployed": ["dating-app-dev", "dating-app-staging"]
+    }
+  },
+
+  "inventory_scan_results": {
+    "scan_date": "2025-12-30",
+    "eks_clusters": [
+      {
+        "name": "dating-app-dev-eks",
+        "version": "1.29",
+        "platform_version": "eks.58",
+        "status": "ACTIVE",
+        "lifecycle_status": "PAST_STANDARD_SUPPORT"
+      }
+    ],
+    "rds_clusters": [
+      {
+        "identifier": "dating-app-dev-aurora",
+        "engine": "aurora-postgresql",
+        "version": "15.6",
+        "status": "stopped",
+        "lifecycle_status": "OK"
+      },
+      {
+        "identifier": "dating-app-staging-aurora",
+        "engine": "aurora-postgresql",
+        "version": "15.6",
+        "status": "stopped",
+        "lifecycle_status": "OK"
+      }
+    ],
+    "ecr_repositories": 22,
+    "ecr_images_pushed": 0
+  },
+
+  "remediation_plan": {
+    "immediate_priority": [
+      {
+        "resource": "EKS dating-app-dev-eks",
+        "action": "Upgrade from 1.29 to 1.31",
+        "reason": "Past standard support since 03/23/2025",
+        "steps": [
+          "1. Review EKS 1.30 and 1.31 release notes for breaking changes",
+          "2. Update Terraform eks_cluster_version variable to 1.31",
+          "3. Test addon compatibility (VPC CNI, CoreDNS, kube-proxy)",
+          "4. Run terraform plan to verify changes",
+          "5. Apply upgrade in dev environment first",
+          "6. Validate all workloads after upgrade",
+          "7. Repeat for staging and prod"
+        ],
+        "estimated_downtime": "10-15 minutes per cluster",
+        "rollback_strategy": "EKS does not support version downgrade - ensure thorough testing"
+      }
+    ],
+    "medium_priority": [
+      {
+        "resource": "Dockerfiles",
+        "action": "Pin base images to specific digest",
+        "reason": "All 46 Dockerfile references use mutable node:20-alpine tag",
+        "steps": [
+          "1. Identify current node:20-alpine digest",
+          "2. Update all Dockerfiles to use pinned digest",
+          "3. Document digest in lifecycle registry",
+          "4. Set up automated digest update process"
+        ]
+      }
+    ],
+    "future_planning": [
+      {
+        "resource": "Amazon Linux 2",
+        "timeline": "Before 06/30/2025",
+        "action": "Migrate EKS node groups to AL2023 AMIs",
+        "notes": "Required before AL2 end of standard support"
+      }
+    ]
+  },
+
+  "monitoring_schedule": {
+    "eks_version_check": "weekly",
+    "rds_version_check": "monthly",
+    "lambda_runtime_check": "monthly",
+    "node_runtime_check": "quarterly",
+    "aws_service_announcements": "continuous"
+  }
+}

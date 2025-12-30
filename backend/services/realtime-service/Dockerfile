@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.21-alpine@sha256:39ad4ed1c6e89c8d27098a1c1cf7a0b22f3b7c2b5e0f5e0f3f4c3b2a1a0b1c2d AS builder
 
 # Install required packages
 RUN apk add --no-cache git ca-certificates tzdata
@@ -23,7 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     ./cmd/server
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.19@sha256:c5b1261d6d3e43071626931fc004f70149baeba2c8ec672bd4f27761f8e1ad6b
 
 # Install ca-certificates and timezone data
 RUN apk --no-cache add ca-certificates tzdata
