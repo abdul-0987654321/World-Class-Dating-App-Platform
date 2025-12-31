@@ -19,66 +19,78 @@ phases:
       - source /tmp/env.sh || export IMAGE_TAG=latest
       - echo "Build started on $(date) with tag $IMAGE_TAG"
 
-      # Build and push each service sequentially
+      # Build and push each service sequentially (continue on failure)
       - echo "Building api-gateway..."
-      - docker build -t $REGISTRY/flamoral/api-gateway:$IMAGE_TAG -t $REGISTRY/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
-      - docker push $REGISTRY/flamoral/api-gateway:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/api-gateway:latest
+      - |
+        docker build -t $REGISTRY/flamoral/api-gateway:$IMAGE_TAG -t $REGISTRY/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile . && \
+        docker push $REGISTRY/flamoral/api-gateway:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/api-gateway:latest || echo "FAILED: api-gateway"
 
       - echo "Building auth-service..."
-      - docker build -t $REGISTRY/flamoral/auth-service:$IMAGE_TAG -t $REGISTRY/flamoral/auth-service:latest -f backend/services/auth-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/auth-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/auth-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/auth-service:$IMAGE_TAG -t $REGISTRY/flamoral/auth-service:latest -f backend/services/auth-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/auth-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/auth-service:latest || echo "FAILED: auth-service"
 
       - echo "Building user-service..."
-      - docker build -t $REGISTRY/flamoral/user-service:$IMAGE_TAG -t $REGISTRY/flamoral/user-service:latest -f backend/services/user-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/user-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/user-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/user-service:$IMAGE_TAG -t $REGISTRY/flamoral/user-service:latest -f backend/services/user-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/user-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/user-service:latest || echo "FAILED: user-service"
 
       - echo "Building matching-service..."
-      - docker build -t $REGISTRY/flamoral/matching-service:$IMAGE_TAG -t $REGISTRY/flamoral/matching-service:latest -f backend/services/matching-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/matching-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/matching-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/matching-service:$IMAGE_TAG -t $REGISTRY/flamoral/matching-service:latest -f backend/services/matching-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/matching-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/matching-service:latest || echo "FAILED: matching-service"
 
       - echo "Building messaging-service..."
-      - docker build -t $REGISTRY/flamoral/messaging-service:$IMAGE_TAG -t $REGISTRY/flamoral/messaging-service:latest -f backend/services/messaging-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/messaging-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/messaging-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/messaging-service:$IMAGE_TAG -t $REGISTRY/flamoral/messaging-service:latest -f backend/services/messaging-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/messaging-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/messaging-service:latest || echo "FAILED: messaging-service"
 
       - echo "Building notification-service..."
-      - docker build -t $REGISTRY/flamoral/notification-service:$IMAGE_TAG -t $REGISTRY/flamoral/notification-service:latest -f backend/services/notification-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/notification-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/notification-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/notification-service:$IMAGE_TAG -t $REGISTRY/flamoral/notification-service:latest -f backend/services/notification-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/notification-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/notification-service:latest || echo "FAILED: notification-service"
 
       - echo "Building media-service..."
-      - docker build -t $REGISTRY/flamoral/media-service:$IMAGE_TAG -t $REGISTRY/flamoral/media-service:latest -f backend/services/media-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/media-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/media-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/media-service:$IMAGE_TAG -t $REGISTRY/flamoral/media-service:latest -f backend/services/media-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/media-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/media-service:latest || echo "FAILED: media-service"
 
       - echo "Building payment-service..."
-      - docker build -t $REGISTRY/flamoral/payment-service:$IMAGE_TAG -t $REGISTRY/flamoral/payment-service:latest -f backend/services/payment-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/payment-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/payment-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/payment-service:$IMAGE_TAG -t $REGISTRY/flamoral/payment-service:latest -f backend/services/payment-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/payment-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/payment-service:latest || echo "FAILED: payment-service"
 
       - echo "Building moderation-service..."
-      - docker build -t $REGISTRY/flamoral/moderation-service:$IMAGE_TAG -t $REGISTRY/flamoral/moderation-service:latest -f backend/services/moderation-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/moderation-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/moderation-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/moderation-service:$IMAGE_TAG -t $REGISTRY/flamoral/moderation-service:latest -f backend/services/moderation-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/moderation-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/moderation-service:latest || echo "FAILED: moderation-service"
 
       - echo "Building analytics-service..."
-      - docker build -t $REGISTRY/flamoral/analytics-service:$IMAGE_TAG -t $REGISTRY/flamoral/analytics-service:latest -f backend/services/analytics-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/analytics-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/analytics-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/analytics-service:$IMAGE_TAG -t $REGISTRY/flamoral/analytics-service:latest -f backend/services/analytics-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/analytics-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/analytics-service:latest || echo "FAILED: analytics-service"
 
       - echo "Building admin-service..."
-      - docker build -t $REGISTRY/flamoral/admin-service:$IMAGE_TAG -t $REGISTRY/flamoral/admin-service:latest -f backend/services/admin-service/Dockerfile .
-      - docker push $REGISTRY/flamoral/admin-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/admin-service:latest
+      - |
+        docker build -t $REGISTRY/flamoral/admin-service:$IMAGE_TAG -t $REGISTRY/flamoral/admin-service:latest -f backend/services/admin-service/Dockerfile . && \
+        docker push $REGISTRY/flamoral/admin-service:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/admin-service:latest || echo "FAILED: admin-service"
 
       - echo "Building web-app..."
-      - docker build -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/
-      - docker push $REGISTRY/flamoral/web-app:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/web-app:latest
+      - |
+        docker build -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/ && \
+        docker push $REGISTRY/flamoral/web-app:$IMAGE_TAG && \
+        docker push $REGISTRY/flamoral/web-app:latest || echo "FAILED: web-app"
 
   post_build:
     commands:
