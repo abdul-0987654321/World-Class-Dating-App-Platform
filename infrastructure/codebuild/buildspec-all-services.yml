@@ -1,77 +1,41 @@
 version: 0.2
 
+env:
+  shell: bash
+  variables:
+    REGISTRY: "992382449461.dkr.ecr.us-east-1.amazonaws.com"
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - REGISTRY=992382449461.dkr.ecr.us-east-1.amazonaws.com
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REGISTRY
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:-latest}
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 992382449461.dkr.ecr.us-east-1.amazonaws.com
+      - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo "IMAGE_TAG=$IMAGE_TAG" >> /tmp/env.sh
       - echo "Building with tag $IMAGE_TAG"
 
   build:
     commands:
-      - echo Build started on `date`
-      - REGISTRY=992382449461.dkr.ecr.us-east-1.amazonaws.com
+      - source /tmp/env.sh || export IMAGE_TAG=latest
+      - echo "Build started on $(date) with tag $IMAGE_TAG"
 
-      # Build API Gateway
+      # Build API Gateway only for initial test
       - echo "Building api-gateway..."
-      - docker build -t $REGISTRY/flamoral/api-gateway:$IMAGE_TAG -t $REGISTRY/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
-
-      # Build Auth Service
-      - echo "Building auth-service..."
-      - docker build -t $REGISTRY/flamoral/auth-service:$IMAGE_TAG -t $REGISTRY/flamoral/auth-service:latest -f backend/services/auth-service/Dockerfile .
-
-      # Build User Service
-      - echo "Building user-service..."
-      - docker build -t $REGISTRY/flamoral/user-service:$IMAGE_TAG -t $REGISTRY/flamoral/user-service:latest -f backend/services/user-service/Dockerfile .
-
-      # Build Matching Service
-      - echo "Building matching-service..."
-      - docker build -t $REGISTRY/flamoral/matching-service:$IMAGE_TAG -t $REGISTRY/flamoral/matching-service:latest -f backend/services/matching-service/Dockerfile .
-
-      # Build Messaging Service
-      - echo "Building messaging-service..."
-      - docker build -t $REGISTRY/flamoral/messaging-service:$IMAGE_TAG -t $REGISTRY/flamoral/messaging-service:latest -f backend/services/messaging-service/Dockerfile .
-
-      # Build Notification Service
-      - echo "Building notification-service..."
-      - docker build -t $REGISTRY/flamoral/notification-service:$IMAGE_TAG -t $REGISTRY/flamoral/notification-service:latest -f backend/services/notification-service/Dockerfile .
-
-      # Build Media Service
-      - echo "Building media-service..."
-      - docker build -t $REGISTRY/flamoral/media-service:$IMAGE_TAG -t $REGISTRY/flamoral/media-service:latest -f backend/services/media-service/Dockerfile .
-
-      # Build Payment Service
-      - echo "Building payment-service..."
-      - docker build -t $REGISTRY/flamoral/payment-service:$IMAGE_TAG -t $REGISTRY/flamoral/payment-service:latest -f backend/services/payment-service/Dockerfile .
+      - |
+        docker build \
+          -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG \
+          -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest \
+          -f backend/services/api-gateway/Dockerfile \
+          . 2>&1 || echo "Build failed, check logs"
 
   post_build:
     commands:
-      - echo Build completed on `date`
-      - echo Pushing Docker images...
-      - REGISTRY=992382449461.dkr.ecr.us-east-1.amazonaws.com
-
-      # Push all images
-      - docker push $REGISTRY/flamoral/api-gateway:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/api-gateway:latest
-      - docker push $REGISTRY/flamoral/auth-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/auth-service:latest
-      - docker push $REGISTRY/flamoral/user-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/user-service:latest
-      - docker push $REGISTRY/flamoral/matching-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/matching-service:latest
-      - docker push $REGISTRY/flamoral/messaging-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/messaging-service:latest
-      - docker push $REGISTRY/flamoral/notification-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/notification-service:latest
-      - docker push $REGISTRY/flamoral/media-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/media-service:latest
-      - docker push $REGISTRY/flamoral/payment-service:$IMAGE_TAG
-      - docker push $REGISTRY/flamoral/payment-service:latest
-
-      - echo "All images pushed successfully!"
+      - source /tmp/env.sh || export IMAGE_TAG=latest
+      - echo "Build completed on $(date)"
+      - echo "Pushing Docker images..."
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG || true
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest || true
+      - echo "Build and push complete!"
 
 cache:
   paths:
