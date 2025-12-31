@@ -24,7 +24,7 @@ export class PaginationDto {
  */
 export class IdParamDto {
   @IsUUID()
-  id: string;
+  id!: string;
 }
 
 /**

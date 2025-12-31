@@ -5,18 +5,18 @@ import { IsEmail, IsString, MinLength, Matches } from 'class-validator';
  */
 export class RegisterDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(8)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message: 'Password must contain uppercase, lowercase, and number',
   })
-  password: string;
+  password!: string;
 
   @IsString()
   @MinLength(2)
-  displayName: string;
+  displayName!: string;
 }
 
 /**
@@ -24,8 +24,8 @@ export class RegisterDto {
  */
 export class LoginDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
-  password: string;
+  password!: string;
 }
