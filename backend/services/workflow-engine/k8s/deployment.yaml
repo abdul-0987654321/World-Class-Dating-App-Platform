@@ -36,7 +36,7 @@ spec:
 
       containers:
       - name: workflow-engine
-        image: flamoralprodacr.azurecr.io/workflow-engine:\
+        image: 992382449461.dkr.ecr.us-east-1.amazonaws.com/dating-app/workflow-engine:latest
         imagePullPolicy: Always
         ports:
         - name: http

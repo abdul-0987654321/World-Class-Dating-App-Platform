@@ -137,11 +137,16 @@ class AuthService {
       throw new Error('Account is deactivated');
     }
 
-    // NOTE: Email verification check disabled for now
-    // TODO: Re-enable once email delivery is configured
-    // if (process.env.NODE_ENV === 'production' && !user.is_email_verified) {
-    //   throw new Error('Email verification required. Please verify your email before logging in.');
-    // }
+    // Email verification check - configurable via environment variable
+    // Set REQUIRE_EMAIL_VERIFICATION=true in production when email service is configured
+    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
+    if (requireEmailVerification && !user.is_email_verified) {
+      // Allow resending verification email
+      this.sendVerificationEmail(user)
+        .catch(error => logger.warn('Failed to resend verification email', error));
+
+      throw new Error('Email verification required. Please check your inbox for the verification link. A new verification email has been sent.');
+    }
 
     // Verify password
     const isPasswordValid = await comparePassword(data.password, user.password_hash);
@@ -543,6 +548,8 @@ class AuthService {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
+      subscriptionTier: user.subscription_tier || 'free',
+      subscriptionStatus: user.subscription_status || 'inactive',
     };
 
     return jwtUtils.generateTokenPair(payload);

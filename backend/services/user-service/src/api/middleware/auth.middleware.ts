@@ -23,6 +23,8 @@ export interface AuthRequest extends Request {
     email: string;
     role?: UserRole;
     status?: UserStatus;
+    subscriptionTier?: string;
+    subscriptionStatus?: string;
   };
   correlationId?: string;
 }
@@ -89,6 +91,10 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         req.user = {
           ...payload,
           status: user.is_active ? 'active' : 'banned',
+          // SECURITY: Use subscription tier from JWT token (set during login)
+          // Falls back to 'free' if not present for safety
+          subscriptionTier: payload.subscriptionTier || user.subscription_tier || 'free',
+          subscriptionStatus: payload.subscriptionStatus || 'inactive',
         };
       } catch (dbError) {
         // If database check fails, log but still allow request (fail open for availability)

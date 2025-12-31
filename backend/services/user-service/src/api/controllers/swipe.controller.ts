@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { SwipeService } from '../../domain/services/swipe.service';
-import subscriptionService from '../../domain/services/subscription.service';
 import logger from '../../utils/logger';
 
 export class SwipeController {
@@ -12,27 +11,14 @@ export class SwipeController {
   }
 
   /**
-   * SECURITY: Get user subscription tier - server-side enforcement
-   * Returns 'free' if no subscription or error
+   * SECURITY: Get subscription tier from JWT token
+   * This is the authoritative source set during login/token refresh
+   * Falls back to 'free' if not present for safety
    */
-  private async getUserSubscriptionTier(userId: string): Promise<string> {
-    try {
-      const subscription = await subscriptionService.getUserSubscription(userId);
-
-      if (!subscription) {
-        return 'free';
-      }
-
-      // Check if subscription is active
-      if (subscription.status !== 'active' && subscription.status !== 'trialing') {
-        return 'free';
-      }
-
-      return subscription.tier || 'free';
-    } catch (error) {
-      logger.error('Error getting subscription tier:', error);
-      return 'free'; // Default to free on error for safety
-    }
+  private getSubscriptionTierFromToken(req: AuthRequest): string {
+    // SECURITY: Use subscription tier from authenticated JWT token
+    // This was set by auth-service during login based on user's actual subscription
+    return req.user?.subscriptionTier || 'free';
   }
 
   async like(req: AuthRequest, res: Response): Promise<Response> {
@@ -47,8 +33,8 @@ export class SwipeController {
         });
       }
 
-      // SECURITY: Get subscription tier server-side for limit enforcement
-      const subscriptionTier = await this.getUserSubscriptionTier(userId);
+      // SECURITY: Get subscription tier from JWT token for limit enforcement
+      const subscriptionTier = this.getSubscriptionTierFromToken(req);
       const result = await this.swipeService.like(userId, target_user_id, subscriptionTier);
 
       return res.status(200).json({
@@ -115,8 +101,8 @@ export class SwipeController {
         });
       }
 
-      // SECURITY: Get subscription tier server-side for limit enforcement
-      const subscriptionTier = await this.getUserSubscriptionTier(userId);
+      // SECURITY: Get subscription tier from JWT token for limit enforcement
+      const subscriptionTier = this.getSubscriptionTierFromToken(req);
       const result = await this.swipeService.superLike(userId, target_user_id, subscriptionTier);
 
       return res.status(200).json({

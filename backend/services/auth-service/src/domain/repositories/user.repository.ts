@@ -17,6 +17,9 @@ export interface User {
   last_login_at?: Date;
   created_at: Date;
   updated_at: Date;
+  // Subscription fields
+  subscription_tier?: string;
+  subscription_status?: string;
   // Two-Factor Authentication fields
   two_factor_enabled?: boolean;
   two_factor_secret?: string;
@@ -99,6 +102,9 @@ export class UserRepository {
       last_login_at: row.last_login_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      // Subscription fields
+      subscription_tier: row.subscription_tier || 'free',
+      subscription_status: row.subscription_status || 'inactive',
       // Two-Factor Authentication fields
       two_factor_enabled: row.two_factor_enabled || false,
       two_factor_secret: row.two_factor_secret,

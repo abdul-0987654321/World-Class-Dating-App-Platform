@@ -10,6 +10,8 @@ import {
   generateSecureBackupCode,
   getKeyVersion,
 } from '../../utils/encryption';
+import twilioService from '../../infrastructure/sms/twilio.service';
+import emailService from '../../infrastructure/email/email.service';
 
 export interface TwoFactorAuthConfig {
   userId: string;
@@ -352,8 +354,13 @@ export class TwoFactorAuthService {
         created_at: new Date(),
       });
 
-      // TODO: Send SMS via Twilio
-      logger.info(`SMS 2FA code sent to user ${userId}`);
+      // Send SMS via Twilio
+      const smsResult = await twilioService.sendVerificationCode(phoneNumber, code);
+      if (!smsResult.success) {
+        logger.error(`Failed to send SMS 2FA code: ${smsResult.error}`);
+        throw new Error(smsResult.error || 'Failed to send SMS code');
+      }
+      logger.info(`SMS 2FA code sent to user ${userId}`, { messageId: smsResult.messageId });
     } catch (error) {
       logger.error('Error sending SMS code:', error);
       throw new Error('Failed to send SMS code');
@@ -414,7 +421,27 @@ export class TwoFactorAuthService {
         created_at: new Date(),
       });
 
-      // TODO: Send email via SendGrid
+      // Send email via SendGrid/SMTP
+      const user = await db('users').where({ id: userId }).first();
+      const firstName = user?.first_name || 'User';
+
+      await emailService.sendEmail({
+        to: email,
+        subject: 'Your Flamoral Verification Code',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #667eea;">Verification Code</h1>
+            <p>Hi ${firstName},</p>
+            <p>Your verification code is:</p>
+            <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px; margin: 20px 0;">
+              ${code}
+            </div>
+            <p>This code will expire in <strong>10 minutes</strong>.</p>
+            <p style="color: #999; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
+          </div>
+        `,
+        text: `Your Flamoral verification code is: ${code}. This code expires in 10 minutes.`,
+      });
       logger.info(`Email 2FA code sent to user ${userId}`);
     } catch (error) {
       logger.error('Error sending email code:', error);

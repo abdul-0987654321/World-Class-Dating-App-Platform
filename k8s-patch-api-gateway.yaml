@@ -3,7 +3,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: flamoralprodacr.azurecr.io/api-gateway:v1.0.7
+        image: 992382449461.dkr.ecr.us-east-1.amazonaws.com/dating-app/api-gateway:latest
         ports:
         - containerPort: 3000
           protocol: TCP

@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import { TwoFactorAuthService } from '../../domain/services/two-factor-auth.service';
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
+import { comparePassword } from '../../utils/encryption';
 
 export class TwoFactorAuthController {
   private twoFactorAuthService: TwoFactorAuthService;
@@ -165,7 +166,22 @@ export class TwoFactorAuthController {
         });
       }
 
-      // TODO: Verify password before disabling 2FA
+      // Verify password before disabling 2FA
+      const user = await this.db('users').where({ id: userId }).first();
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      const isPasswordValid = await comparePassword(password, user.password_hash);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid password. Please enter your current password to disable 2FA.',
+        });
+      }
 
       await this.twoFactorAuthService.disableTwoFactorAuth(userId, method);
 
@@ -416,7 +432,22 @@ export class TwoFactorAuthController {
         });
       }
 
-      // TODO: Verify password before regenerating backup codes
+      // Verify password before regenerating backup codes
+      const user = await this.db('users').where({ id: userId }).first();
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      const isPasswordValid = await comparePassword(password, user.password_hash);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid password. Please enter your current password to regenerate backup codes.',
+        });
+      }
 
       const backupCodes = await this.twoFactorAuthService.generateBackupCodes(userId);
 

@@ -21,7 +21,7 @@ export interface EnvironmentConfig {
   database: DatabaseConfig;
   redis: RedisConfig;
   jwt: JwtConfig;
-  azure: AzureConfig;
+  aws: AwsConfig;
   email: EmailConfig;
 }
 
@@ -51,14 +51,14 @@ export interface JwtConfig {
   refreshTokenExpiresIn: string;
 }
 
-export interface AzureConfig {
-  storageAccountName: string;
-  storageAccountKey: string;
-  blobContainerName: string;
-  cosmosDbEndpoint: string;
-  cosmosDbKey: string;
-  cognitiveServicesKey: string;
-  cognitiveServicesEndpoint: string;
+export interface AwsConfig {
+  region: string;
+  s3Bucket: string;
+  s3MediaBucket: string;
+  cognitoUserPoolId: string;
+  cognitoClientId: string;
+  secretsManagerSecretId: string;
+  rekognitionEnabled: boolean;
 }
 
 export interface EmailConfig {
@@ -96,14 +96,14 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
       accessTokenExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h',
       refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
     },
-    azure: {
-      storageAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || '',
-      storageAccountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY || '',
-      blobContainerName: process.env.AZURE_BLOB_CONTAINER_NAME || 'media',
-      cosmosDbEndpoint: process.env.AZURE_COSMOS_ENDPOINT || '',
-      cosmosDbKey: process.env.AZURE_COSMOS_KEY || '',
-      cognitiveServicesKey: process.env.AZURE_COGNITIVE_KEY || '',
-      cognitiveServicesEndpoint: process.env.AZURE_COGNITIVE_ENDPOINT || '',
+    aws: {
+      region: process.env.AWS_REGION || 'us-east-1',
+      s3Bucket: process.env.AWS_S3_BUCKET || 'flamoral-media',
+      s3MediaBucket: process.env.AWS_S3_MEDIA_BUCKET || 'flamoral-media',
+      cognitoUserPoolId: process.env.AWS_COGNITO_USER_POOL_ID || '',
+      cognitoClientId: process.env.AWS_COGNITO_CLIENT_ID || '',
+      secretsManagerSecretId: process.env.AWS_SECRETS_MANAGER_SECRET_ID || 'flamoral-secrets',
+      rekognitionEnabled: process.env.AWS_REKOGNITION_ENABLED === 'true',
     },
     email: {
       apiKey: process.env.SENDGRID_API_KEY || '',

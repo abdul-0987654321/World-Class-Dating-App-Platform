@@ -16,8 +16,32 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(helmet());
+
+// SECURITY: CORS configuration - NO wildcard fallback in production
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',').filter(Boolean) || [];
+if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
+  logger.error('CRITICAL: CORS_ORIGINS not configured in production! Defaulting to strict mode.');
+}
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, server-to-server)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    // Check if origin is in allowed list
+    if (allowedOrigins.length === 0 && process.env.NODE_ENV !== 'production') {
+      // Development mode without explicit origins - allow all
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());

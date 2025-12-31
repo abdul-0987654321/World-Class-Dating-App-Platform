@@ -5,6 +5,8 @@ import { config } from '../config';
 export interface JwtPayload {
   userId: string;
   email: string;
+  subscriptionTier?: string;
+  subscriptionStatus?: string;
   iat?: number;
   exp?: number;
   iss?: string;
