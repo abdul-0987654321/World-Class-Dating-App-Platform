@@ -29,7 +29,9 @@
     "knex": "^3.1.0",
     "pg": "^8.11.3",
     "redis": "^4.7.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "speakeasy": "^2.0.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -40,6 +42,8 @@
     "@types/node": "^20.10.5",
     "@types/pg": "^8.10.9",
     "@types/uuid": "^9.0.7",
+    "@types/speakeasy": "^2.0.10",
+    "@types/qrcode": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
