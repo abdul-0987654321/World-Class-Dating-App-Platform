@@ -9,7 +9,8 @@ metadata:
     app: nlp-service-enhanced
     version: v2.0
 spec:
-  replicas: 2
+  # Scale to 0 by default for cost optimization - HPA will scale up when needed
+  replicas: 0
   selector:
     matchLabels:
       app: nlp-service-enhanced
@@ -92,7 +93,8 @@ metadata:
     app: photo-analysis-enhanced
     version: v2.0
 spec:
-  replicas: 2
+  # Scale to 0 by default for cost optimization
+  replicas: 0
   selector:
     matchLabels:
       app: photo-analysis-enhanced
@@ -155,7 +157,8 @@ metadata:
     app: content-generator
     version: v1.0
 spec:
-  replicas: 2
+  # Scale to 0 by default for cost optimization
+  replicas: 0
   selector:
     matchLabels:
       app: content-generator
@@ -224,7 +227,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: nlp-service-enhanced
-  minReplicas: 2
+  minReplicas: 0
   maxReplicas: 10
   metrics:
   - type: Resource
@@ -251,7 +254,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: photo-analysis-enhanced
-  minReplicas: 2
+  minReplicas: 0
   maxReplicas: 8
   metrics:
   - type: Resource
@@ -278,7 +281,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: content-generator
-  minReplicas: 2
+  minReplicas: 0
   maxReplicas: 6
   metrics:
   - type: Resource
