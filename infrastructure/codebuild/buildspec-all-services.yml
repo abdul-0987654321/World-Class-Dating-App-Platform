@@ -27,6 +27,10 @@ phases:
       - echo "Building api-gateway..."
       - docker build -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
 
+      # Build Web App
+      - echo "Building web-app..."
+      - docker build -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:$IMAGE_TAG -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/
+
   post_build:
     commands:
       - source /tmp/env.sh || export IMAGE_TAG=latest
@@ -34,6 +38,8 @@ phases:
       - echo "Pushing Docker images..."
       - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG
       - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:$IMAGE_TAG
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:latest
       - echo "Build and push complete!"
       - docker images
 
