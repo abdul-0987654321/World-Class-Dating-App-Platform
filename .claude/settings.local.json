@@ -788,7 +788,8 @@
       "Bash(aws cloudfront update-distribution:*)",
       "Bash(aws wafv2 update-web-acl:*)",
       "Bash(aws wafv2 get-regex-pattern-set:*)",
-      "Bash(aws codebuild list-projects:*)"
+      "Bash(aws codebuild list-projects:*)",
+      "Bash(aws secretsmanager:*)"
     ],
     "deny": [],
     "ask": []

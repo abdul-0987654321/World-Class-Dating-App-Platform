@@ -43,6 +43,10 @@ spec:
               value: "false"
             - name: TRUSTED_PROXIES
               value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service.flamoral.svc.cluster.local:3001"
+            - name: USER_SERVICE_URL
+              value: "http://user-service.flamoral.svc.cluster.local:3002"
           envFrom:
             - secretRef:
                 name: api-gateway-secrets
