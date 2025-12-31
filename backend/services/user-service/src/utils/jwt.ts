@@ -7,6 +7,8 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role?: 'user' | 'admin' | 'moderator';
+  subscriptionTier?: string;
+  subscriptionStatus?: string;
   iat?: number;
   exp?: number;
   iss?: string;
