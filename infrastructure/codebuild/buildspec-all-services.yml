@@ -86,9 +86,10 @@ phases:
         docker push $REGISTRY/flamoral/admin-service:$IMAGE_TAG && \
         docker push $REGISTRY/flamoral/admin-service:latest || echo "FAILED: admin-service"
 
-      - echo "Building web-app..."
+      - echo "Building web-app with fresh cache..."
       - |
-        docker build --no-cache -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/ && \
+        rm -rf apps/web-app/node_modules apps/web-app/.vite apps/web-app/dist && \
+        docker build --no-cache --pull --build-arg CACHE_BUST_TIMESTAMP=$(date +%s) -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/ && \
         docker push $REGISTRY/flamoral/web-app:$IMAGE_TAG && \
         docker push $REGISTRY/flamoral/web-app:latest || echo "FAILED: web-app"
 
@@ -97,6 +98,4 @@ phases:
       - echo "All services built and pushed successfully!"
       - docker images | grep flamoral
 
-cache:
-  paths:
-    - '/root/.npm/**/*'
+# No cache - ensure fresh builds every time

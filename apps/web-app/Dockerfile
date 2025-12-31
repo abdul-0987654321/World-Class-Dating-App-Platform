@@ -1,8 +1,9 @@
 # Multi-stage Dockerfile for Flamoral Web App
 FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 
-# Cache buster - increment to force full rebuild
-ARG CACHE_BUST=v5-force-rebuild
+# Cache buster - timestamp forces complete rebuild every time
+ARG CACHE_BUST_TIMESTAMP
+ARG CACHE_BUST=v6
 
 # CRITICAL: Vite requires environment variables at BUILD time, not runtime
 # These are inlined into the JavaScript bundle during compilation
@@ -19,8 +20,11 @@ ENV VITE_APP_ENV=${VITE_APP_ENV}
 
 WORKDIR /app
 
-# Force cache bust at earliest layer
-RUN echo "Build version: $CACHE_BUST - $(date)" > /tmp/build-version.txt
+# Force cache bust at earliest layer - timestamp ensures uniqueness
+RUN echo "Build version: $CACHE_BUST - $CACHE_BUST_TIMESTAMP - $(date)" > /tmp/build-version.txt
+
+# Clear any existing cache/build artifacts
+RUN rm -rf .vite dist node_modules/.cache node_modules/.vite
 
 # Copy package files first (for better caching when deps don't change)
 COPY package*.json ./
