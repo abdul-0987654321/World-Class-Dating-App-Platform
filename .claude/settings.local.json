@@ -793,7 +793,8 @@
       "Bash(for repo in auth-service user-service matching-service messaging-service notification-service media-service payment-service moderation-service analytics-service admin-service)",
       "Bash(do echo -n \"$repo: \")",
       "Bash(aws logs describe-log-streams:*)",
-      "Bash(aws ec2 describe-security-groups:*)"
+      "Bash(aws ec2 describe-security-groups:*)",
+      "Bash(aws cloudfront get-invalidation:*)"
     ],
     "deny": [],
     "ask": []
