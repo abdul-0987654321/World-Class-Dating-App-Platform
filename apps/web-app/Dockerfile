@@ -2,7 +2,7 @@
 FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 
 # Cache buster - increment to force full rebuild
-ARG CACHE_BUST=v4
+ARG CACHE_BUST=v5-force-rebuild
 
 # CRITICAL: Vite requires environment variables at BUILD time, not runtime
 # These are inlined into the JavaScript bundle during compilation
