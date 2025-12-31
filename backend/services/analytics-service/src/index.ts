@@ -1,7 +1,7 @@
 /**
  * Analytics Service - Main Entry Point
  */
-
+import 'reflect-metadata';
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
