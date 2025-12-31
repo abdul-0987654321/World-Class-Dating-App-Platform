@@ -130,6 +130,9 @@ export const RATE_LIMITS = {
  * DDoS Protection Configuration
  */
 export const DDOS_PROTECTION = {
+  // Enable/disable DDoS protection (useful for development/testing)
+  enabled: process.env.DDOS_PROTECTION_ENABLED !== 'false',
+
   // IP-based protection
   ip: {
     // Burst protection
@@ -277,12 +280,46 @@ export function getRateLimitRule(
 }
 
 /**
- * Check if IP is whitelisted
+ * Check if IP is whitelisted or is a private/internal IP
  * @param ip - IP address
  * @returns True if whitelisted
  */
 export function isWhitelisted(ip: string): boolean {
-  return DDOS_PROTECTION.whitelist.includes(ip);
+  // Check explicit whitelist
+  if (DDOS_PROTECTION.whitelist.includes(ip)) {
+    return true;
+  }
+
+  // Allow private/internal IPs (Kubernetes internal traffic)
+  const cleanIp = ip.replace('::ffff:', ''); // Remove IPv6 prefix
+
+  // Check private IP ranges
+  if (
+    cleanIp.startsWith('10.') ||           // 10.0.0.0/8
+    cleanIp.startsWith('172.16.') ||       // 172.16.0.0/12
+    cleanIp.startsWith('172.17.') ||
+    cleanIp.startsWith('172.18.') ||
+    cleanIp.startsWith('172.19.') ||
+    cleanIp.startsWith('172.20.') ||
+    cleanIp.startsWith('172.21.') ||
+    cleanIp.startsWith('172.22.') ||
+    cleanIp.startsWith('172.23.') ||
+    cleanIp.startsWith('172.24.') ||
+    cleanIp.startsWith('172.25.') ||
+    cleanIp.startsWith('172.26.') ||
+    cleanIp.startsWith('172.27.') ||
+    cleanIp.startsWith('172.28.') ||
+    cleanIp.startsWith('172.29.') ||
+    cleanIp.startsWith('172.30.') ||
+    cleanIp.startsWith('172.31.') ||
+    cleanIp.startsWith('192.168.') ||      // 192.168.0.0/16
+    cleanIp === '127.0.0.1' ||             // localhost
+    cleanIp === 'localhost'
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

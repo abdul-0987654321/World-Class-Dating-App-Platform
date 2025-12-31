@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import {
   DDOS_PROTECTION,
   parseTimeWindow,
+  isWhitelisted,
 } from '../config/rate-limit.config';
 import { Request } from 'express';
 
@@ -59,6 +60,16 @@ export class DDoSProtectionService {
    */
   async checkRequest(req: Request, clientIp: string): Promise<DDoSCheckResult> {
     try {
+      // Check if DDoS protection is disabled
+      if (!DDOS_PROTECTION.enabled) {
+        return { allowed: true };
+      }
+
+      // Check if IP is whitelisted (internal/private IPs)
+      if (isWhitelisted(clientIp)) {
+        return { allowed: true };
+      }
+
       // Check if IP is permanently banned
       const permanentBan = await this.isPermanentlyBanned(clientIp);
       if (permanentBan) {
