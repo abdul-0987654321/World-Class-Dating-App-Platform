@@ -83,7 +83,7 @@ metadata:
     app: flamoral
     component: messaging-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: flamoral
@@ -158,7 +158,7 @@ metadata:
     app: flamoral
     component: notification-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: flamoral
@@ -233,7 +233,7 @@ metadata:
     app: flamoral
     component: media-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: flamoral
@@ -308,7 +308,7 @@ metadata:
     app: flamoral
     component: payment-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: flamoral
@@ -383,7 +383,7 @@ metadata:
     app: flamoral
     component: moderation-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: flamoral

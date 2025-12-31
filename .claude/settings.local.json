@@ -794,7 +794,16 @@
       "Bash(do echo -n \"$repo: \")",
       "Bash(aws logs describe-log-streams:*)",
       "Bash(aws ec2 describe-security-groups:*)",
-      "Bash(aws cloudfront get-invalidation:*)"
+      "Bash(aws cloudfront get-invalidation:*)",
+      "Bash(aws ec2 describe-instances:*)",
+      "Bash(aws rds stop-db-cluster:*)",
+      "Bash(aws eks list-nodegroups:*)",
+      "Bash(for ng in application spot system)",
+      "Bash(aws eks describe-nodegroup:*)",
+      "Bash(LIFECYCLE_POLICY='{\n  \"\"rules\"\": [\n    {\n      \"\"rulePriority\"\": 1,\n      \"\"description\"\": \"\"Keep only last 5 images\"\",\n      \"\"selection\"\": {\n        \"\"tagStatus\"\": \"\"any\"\",\n        \"\"countType\"\": \"\"imageCountMoreThan\"\",\n        \"\"countNumber\"\": 5\n      },\n      \"\"action\"\": {\n        \"\"type\"\": \"\"expire\"\"\n      }\n    }\n  ]\n}')",
+      "Bash(__NEW_LINE__ for repo in api-gateway auth-service user-service matching-service messaging-service notification-service media-service payment-service moderation-service analytics-service admin-service web-app)",
+      "Bash(aws ecr put-lifecycle-policy:*)",
+      "Bash(aws eks delete-cluster:*)"
     ],
     "deny": [],
     "ask": []
