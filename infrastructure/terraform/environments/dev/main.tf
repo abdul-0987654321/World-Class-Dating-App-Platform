@@ -228,7 +228,7 @@ module "rds" {
   serverless_min_capacity = 0.5
   serverless_max_capacity = 4
 
-  database_name   = "dating"
+  database_name   = "flamoral"
   master_username = "dbadmin"
 
   backup_retention_period = 7

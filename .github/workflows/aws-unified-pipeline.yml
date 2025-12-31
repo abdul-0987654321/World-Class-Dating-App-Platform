@@ -57,9 +57,10 @@ env:
   # AWS Configuration - NO AZURE REFERENCES
   AWS_REGION: us-east-1
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-  EKS_CLUSTER_DEV: dating-dev-eks
-  EKS_CLUSTER_STAGING: dating-staging-eks
-  EKS_CLUSTER_PROD: dating-prod-eks
+  ECR_IMAGE_PREFIX: flamoral
+  EKS_CLUSTER_DEV: flamoral-dev-eks
+  EKS_CLUSTER_STAGING: flamoral-staging-eks
+  EKS_CLUSTER_PROD: flamoral-prod-eks
   NODE_VERSION: '20'
   TERRAFORM_VERSION: '1.6.0'
 
@@ -241,20 +242,24 @@ jobs:
         run: |
           VERSION="${{ needs.build-and-test.outputs.version }}"
           IMAGE_NAME="${{ steps.dockerfile.outputs.image_name }}"
+          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/${IMAGE_NAME}"
 
           docker build \
-            -t ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}:${VERSION} \
-            -t ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}:${{ github.sha }} \
+            -t ${FULL_IMAGE}:${VERSION} \
+            -t ${FULL_IMAGE}:${{ github.sha }} \
+            -t ${FULL_IMAGE}:latest \
             -f ${{ steps.dockerfile.outputs.path }} \
             --build-arg VERSION=${VERSION} \
             .
 
-          docker push ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}:${VERSION}
-          docker push ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}:${{ github.sha }}
+          docker push ${FULL_IMAGE}:${VERSION}
+          docker push ${FULL_IMAGE}:${{ github.sha }}
+          docker push ${FULL_IMAGE}:latest
 
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}:${VERSION} | cut -d'@' -f2)
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${VERSION} | cut -d'@' -f2)
           echo "Image digest: $DIGEST"
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Install cosign
         if: steps.dockerfile.outputs.exists == 'true'
@@ -265,16 +270,16 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
-          IMAGE_NAME="${{ steps.dockerfile.outputs.image_name }}"
+          FULL_IMAGE="${{ steps.docker_build.outputs.full_image }}"
           DIGEST="${{ steps.docker_build.outputs.digest }}"
-          echo "Signing image: ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}@${DIGEST}"
-          cosign sign --yes ${{ env.ECR_REGISTRY }}/${IMAGE_NAME}@${DIGEST}
+          echo "Signing image: ${FULL_IMAGE}@${DIGEST}"
+          cosign sign --yes ${FULL_IMAGE}@${DIGEST}
 
       - name: Generate SBOM
         if: steps.dockerfile.outputs.exists == 'true'
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.ECR_REGISTRY }}/${{ steps.dockerfile.outputs.image_name }}:${{ needs.build-and-test.outputs.version }}
+          image: ${{ steps.docker_build.outputs.full_image }}:${{ needs.build-and-test.outputs.version }}
           artifact-name: sbom-${{ steps.dockerfile.outputs.image_name }}
           output-file: sbom-${{ steps.dockerfile.outputs.image_name }}.spdx.json
 
@@ -312,6 +317,7 @@ jobs:
         run: |
           VERSION="${{ needs.build-and-test.outputs.version }}"
           ENV="${{ github.event.inputs.environment || 'production' }}"
+          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/web-app"
 
           case $ENV in
             production)
@@ -334,19 +340,22 @@ jobs:
 
           cd apps/web-app
           docker build \
-            -t ${{ env.ECR_REGISTRY }}/web-app:${VERSION} \
-            -t ${{ env.ECR_REGISTRY }}/web-app:${{ github.sha }} \
+            -t ${FULL_IMAGE}:${VERSION} \
+            -t ${FULL_IMAGE}:${{ github.sha }} \
+            -t ${FULL_IMAGE}:latest \
             --build-arg CACHE_BUST=$(date +%s) \
             --build-arg VITE_API_URL=${API_URL} \
             --build-arg VITE_WS_URL=${WS_URL} \
             --build-arg VITE_APP_ENV=${ENV} \
             .
-          docker push ${{ env.ECR_REGISTRY }}/web-app:${VERSION}
-          docker push ${{ env.ECR_REGISTRY }}/web-app:${{ github.sha }}
+          docker push ${FULL_IMAGE}:${VERSION}
+          docker push ${FULL_IMAGE}:${{ github.sha }}
+          docker push ${FULL_IMAGE}:latest
 
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ env.ECR_REGISTRY }}/web-app:${VERSION} | cut -d'@' -f2)
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${VERSION} | cut -d'@' -f2)
           echo "Frontend image digest: $DIGEST"
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -355,14 +364,15 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
+          FULL_IMAGE="${{ steps.frontend_build.outputs.full_image }}"
           DIGEST="${{ steps.frontend_build.outputs.digest }}"
-          echo "Signing image: ${{ env.ECR_REGISTRY }}/web-app@${DIGEST}"
-          cosign sign --yes ${{ env.ECR_REGISTRY }}/web-app@${DIGEST}
+          echo "Signing image: ${FULL_IMAGE}@${DIGEST}"
+          cosign sign --yes ${FULL_IMAGE}@${DIGEST}
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.ECR_REGISTRY }}/web-app:${{ needs.build-and-test.outputs.version }}
+          image: ${{ steps.frontend_build.outputs.full_image }}:${{ needs.build-and-test.outputs.version }}
           artifact-name: sbom-web-app
           output-file: sbom-web-app.spdx.json
 

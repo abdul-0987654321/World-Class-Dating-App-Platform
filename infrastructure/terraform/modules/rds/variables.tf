@@ -123,7 +123,7 @@ variable "serverless_max_capacity" {
 variable "database_name" {
   description = "Name of the database to create"
   type        = string
-  default     = "dating"
+  default     = "flamoral"
 }
 
 variable "master_username" {

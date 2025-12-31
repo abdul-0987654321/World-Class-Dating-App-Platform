@@ -45,17 +45,17 @@ Before running Terraform, create the state backend:
 ```bash
 # Create S3 bucket for state
 aws s3api create-bucket \
-  --bucket dating-app-terraform-state \
+  --bucket flamoral-terraform-state \
   --region us-east-1
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-  --bucket dating-app-terraform-state \
+  --bucket flamoral-terraform-state \
   --versioning-configuration Status=Enabled
 
 # Enable encryption
 aws s3api put-bucket-encryption \
-  --bucket dating-app-terraform-state \
+  --bucket flamoral-terraform-state \
   --server-side-encryption-configuration '{
     "Rules": [{
       "ApplyServerSideEncryptionByDefault": {

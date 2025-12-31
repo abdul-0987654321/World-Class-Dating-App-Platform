@@ -94,10 +94,21 @@ resource "aws_s3_bucket_ownership_controls" "main" {
   bucket = aws_s3_bucket.main[each.key].id
 
   rule {
-    object_ownership = "BucketOwnerEnforced"
+    # Use BucketOwnerPreferred for buckets needing ACL access (e.g., CloudFront logs)
+    object_ownership = each.value.enable_acl ? "BucketOwnerPreferred" : "BucketOwnerEnforced"
   }
 
   depends_on = [aws_s3_bucket_public_access_block.main]
+}
+
+# ACL for buckets that need it (e.g., logs bucket for CloudFront)
+resource "aws_s3_bucket_acl" "main" {
+  for_each = { for k, v in var.buckets : k => v if v.enable_acl }
+
+  bucket = aws_s3_bucket.main[each.key].id
+  acl    = "log-delivery-write"
+
+  depends_on = [aws_s3_bucket_ownership_controls.main]
 }
 
 ################################################################################
@@ -115,14 +126,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
       id     = rule.value.id
       status = rule.value.enabled ? "Enabled" : "Disabled"
 
-      dynamic "filter" {
-        for_each = rule.value.prefix != null || rule.value.tags != null ? [1] : []
-        content {
-          and {
-            prefix = rule.value.prefix
-            tags   = rule.value.tags
-          }
-        }
+      # Filter is always required in newer AWS provider versions
+      filter {
+        prefix = rule.value.prefix != null ? rule.value.prefix : ""
       }
 
       dynamic "expiration" {

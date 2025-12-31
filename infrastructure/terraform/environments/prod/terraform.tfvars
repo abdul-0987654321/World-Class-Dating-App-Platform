@@ -2,7 +2,7 @@
 # WARNING: Terraform apply is DISABLED for production
 # Changes must be reviewed and applied via Kubernetes GitOps
 
-project_name = "dating"
+project_name = "flamoral"
 environment  = "prod"
 aws_region   = "us-east-1"
 dr_region    = "us-west-2"

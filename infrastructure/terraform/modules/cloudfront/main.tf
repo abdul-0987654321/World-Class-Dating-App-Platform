@@ -143,14 +143,15 @@ resource "aws_cloudfront_distribution" "main" {
   tags = var.tags
 }
 
-# API Cache Policy
+# API Cache Policy (using managed CachingDisabled policy is recommended for APIs)
+# Since we want no caching, use minimal config
 resource "aws_cloudfront_cache_policy" "api" {
   count = var.api_cache_policy_id == null ? 1 : 0
 
   name        = "${var.project_name}-${var.environment}-api-cache"
-  comment     = "Cache policy for API responses"
+  comment     = "Cache policy for API responses - no caching"
   default_ttl = 0
-  max_ttl     = 0
+  max_ttl     = 1    # Must be at least 1 when using header_behavior none
   min_ttl     = 0
 
   parameters_in_cache_key_and_forwarded_to_origin {
@@ -158,10 +159,7 @@ resource "aws_cloudfront_cache_policy" "api" {
       cookie_behavior = "none"
     }
     headers_config {
-      header_behavior = "whitelist"
-      headers {
-        items = ["Authorization", "Accept", "Accept-Language"]
-      }
+      header_behavior = "none"  # Must be none when caching is essentially disabled
     }
     query_strings_config {
       query_string_behavior = "all"
@@ -197,6 +195,8 @@ resource "aws_cloudfront_cache_policy" "media" {
 }
 
 # API Origin Request Policy
+# Note: Authorization header is not allowed in origin request policies
+# It's passed through automatically when using viewer request
 resource "aws_cloudfront_origin_request_policy" "api" {
   count = var.api_origin_request_policy_id == null ? 1 : 0
 
@@ -212,7 +212,6 @@ resource "aws_cloudfront_origin_request_policy" "api" {
       items = [
         "Accept",
         "Accept-Language",
-        "Authorization",
         "Content-Type",
         "Origin",
         "Referer",

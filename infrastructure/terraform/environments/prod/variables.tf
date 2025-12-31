@@ -5,7 +5,7 @@
 variable "project_name" {
   description = "Project name"
   type        = string
-  default     = "dating"
+  default     = "flamoral"
 }
 
 variable "environment" {

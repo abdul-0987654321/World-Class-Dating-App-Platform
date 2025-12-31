@@ -11,7 +11,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "dating-app"
+  default     = "flamoral"
 }
 
 variable "environment" {
@@ -93,13 +93,13 @@ variable "cognito_logout_urls" {
 variable "cognito_mobile_callback_urls" {
   description = "Callback URLs for mobile client"
   type        = list(string)
-  default     = ["datingapp://callback"]
+  default     = ["flamoral://callback"]
 }
 
 variable "cognito_mobile_logout_urls" {
   description = "Logout URLs for mobile client"
   type        = list(string)
-  default     = ["datingapp://logout"]
+  default     = ["flamoral://logout"]
 }
 
 ################################################################################

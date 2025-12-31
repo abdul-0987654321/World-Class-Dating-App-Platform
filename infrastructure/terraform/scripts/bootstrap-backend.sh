@@ -7,10 +7,10 @@
 set -e
 
 # Configuration
-BUCKET_NAME="dating-app-terraform-state"
+BUCKET_NAME="flamoral-terraform-state"
 DYNAMODB_TABLE="terraform-state-lock"
 REGION="us-east-1"
-PROJECT="dating"
+PROJECT="flamoral"
 
 echo "=============================================="
 echo "AWS Terraform Backend Bootstrap"

@@ -131,6 +131,8 @@ locals {
     logs = {
       purpose            = "Application and access logs"
       versioning_enabled = false
+      enable_acl         = true  # Required for CloudFront logging
+      use_kms_encryption = false # CloudFront logs require AES256 encryption
       lifecycle_rules = [{
         id              = "log-lifecycle"
         enabled         = true
@@ -155,7 +157,7 @@ module "networking" {
   cluster_name       = "${var.project_name}-${var.environment}-eks"
 
   enable_nat_gateway   = true
-  single_nat_gateway   = false # HA for staging
+  single_nat_gateway   = true  # Cost optimization: Single NAT (saves ~$65/month, fits EIP quota)
   enable_flow_logs     = true
   enable_vpc_endpoints = true
 
@@ -240,7 +242,7 @@ module "rds" {
   serverless_min_capacity = 0.5   # Minimum ACU (scales to zero-ish)
   serverless_max_capacity = 4     # Max ACU for staging
 
-  database_name   = "dating"
+  database_name   = "flamoral"
   master_username = "dbadmin"
 
   backup_retention_period = 7     # Reduced from 14 days
@@ -343,7 +345,7 @@ module "cognito" {
   create_identity_pool             = true
   allow_unauthenticated_identities = false
 
-  deletion_protection = "ACTIVE"
+  deletion_protection = "INACTIVE"  # Allow deletion in staging
 
   tags = local.common_tags
 }

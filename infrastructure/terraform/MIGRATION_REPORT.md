@@ -205,7 +205,7 @@ env:
 ```yaml
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-  EKS_CLUSTER_PROD: dating-prod-eks
+  EKS_CLUSTER_PROD: flamoral-prod-eks
 
 - uses: aws-actions/configure-aws-credentials@v4
 - uses: aws-actions/amazon-ecr-login@v2

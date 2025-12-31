@@ -183,6 +183,8 @@ locals {
     logs = {
       purpose            = "Application and access logs"
       versioning_enabled = false
+      enable_acl         = true  # Required for CloudFront logging
+      use_kms_encryption = false # CloudFront logs require AES256 encryption
       lifecycle_rules = [{
         id              = "log-lifecycle"
         enabled         = true
@@ -260,7 +262,7 @@ module "networking" {
   cluster_name       = "${var.project_name}-${var.environment}-eks"
 
   enable_nat_gateway   = true
-  single_nat_gateway   = false # HA for production
+  single_nat_gateway   = true  # Temporarily single NAT due to EIP quota limit (5 max, 4 used by dev/staging)
   enable_flow_logs     = true
   enable_vpc_endpoints = true
 
@@ -404,7 +406,7 @@ module "rds" {
   # instance_class = "db.r6g.large"    # 50% cheaper than xlarge
   # instance_count = 2                  # 1 writer + 1 reader
 
-  database_name   = "dating"
+  database_name   = "flamoral"
   master_username = "dbadmin"
 
   backup_retention_period      = 14        # Reduced from 35 (still sufficient for prod)
@@ -431,7 +433,7 @@ module "rds" {
 
 ################################################################################
 # ElastiCache Module (Redis)
-# Cost Optimization: Right-sized for typical dating app workload
+# Cost Optimization: Right-sized for typical Flamoral app workload
 ################################################################################
 
 module "elasticache" {

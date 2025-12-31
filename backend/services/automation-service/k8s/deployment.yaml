@@ -31,7 +31,7 @@ spec:
       serviceAccountName: automation-service
       containers:
         - name: automation-service
-          image: 992382449461.dkr.ecr.us-east-1.amazonaws.com/dating-app/automation-service:latest
+          image: 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/automation-service:latest
           imagePullPolicy: Always
           ports:
             - name: http

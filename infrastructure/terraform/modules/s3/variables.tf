@@ -32,6 +32,9 @@ variable "buckets" {
     # Public access
     block_public_access = optional(bool, true)
 
+    # ACL access (required for CloudFront logs bucket)
+    enable_acl = optional(bool, false)
+
     # Lifecycle rules
     lifecycle_rules = optional(list(object({
       id                                     = string

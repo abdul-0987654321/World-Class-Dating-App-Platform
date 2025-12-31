@@ -4,7 +4,7 @@
 
 # General
 aws_region   = "us-east-1"
-project_name = "dating-app"
+project_name = "flamoral"
 environment  = "staging"
 cost_center  = "staging"
 owner        = "platform-team"
@@ -25,24 +25,24 @@ rds_engine_version = "15.6"
 
 # Cognito
 cognito_callback_urls = [
-  "https://staging.dating-app.example.com/callback"
+  "https://staging.flamoral.com/callback"
 ]
 
 cognito_logout_urls = [
-  "https://staging.dating-app.example.com"
+  "https://staging.flamoral.com"
 ]
 
 cognito_mobile_callback_urls = [
-  "datingapp://callback"
+  "flamoral://callback"
 ]
 
 cognito_mobile_logout_urls = [
-  "datingapp://logout"
+  "flamoral://logout"
 ]
 
 # S3 CORS
 allowed_origins = [
-  "https://staging.dating-app.example.com"
+  "https://staging.flamoral.com"
 ]
 
 # Monitoring
