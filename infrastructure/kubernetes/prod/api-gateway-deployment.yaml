@@ -33,6 +33,8 @@ spec:
               value: "api-gateway"
             - name: REDIS_HOST
               value: "redis.flamoral.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
             - name: REDIS_URL
               value: "redis://redis.flamoral.svc.cluster.local:6379"
             - name: DDOS_PROTECTION_ENABLED
