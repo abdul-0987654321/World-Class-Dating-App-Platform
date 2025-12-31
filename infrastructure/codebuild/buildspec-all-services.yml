@@ -13,29 +13,29 @@ phases:
       - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo "IMAGE_TAG=$IMAGE_TAG" >> /tmp/env.sh
       - echo "Building with tag $IMAGE_TAG"
+      - ls -la backend/services/api-gateway/
 
   build:
     commands:
       - source /tmp/env.sh || export IMAGE_TAG=latest
       - echo "Build started on $(date) with tag $IMAGE_TAG"
+      - echo "Current directory and contents:"
+      - pwd
+      - ls -la
 
-      # Build API Gateway only for initial test
+      # Build API Gateway
       - echo "Building api-gateway..."
-      - |
-        docker build \
-          -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG \
-          -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest \
-          -f backend/services/api-gateway/Dockerfile \
-          . 2>&1 || echo "Build failed, check logs"
+      - docker build -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG -t 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
 
   post_build:
     commands:
       - source /tmp/env.sh || export IMAGE_TAG=latest
       - echo "Build completed on $(date)"
       - echo "Pushing Docker images..."
-      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG || true
-      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest || true
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:$IMAGE_TAG
+      - docker push 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:latest
       - echo "Build and push complete!"
+      - docker images
 
 cache:
   paths:
