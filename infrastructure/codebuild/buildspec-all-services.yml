@@ -19,82 +19,70 @@ phases:
       - source /tmp/env.sh || export IMAGE_TAG=latest
       - echo "Build started on $(date) with tag $IMAGE_TAG"
 
-      # Build all backend services in parallel using background processes
-      - echo "Building all services..."
-
-      # API Gateway
-      - docker build -t $REGISTRY/flamoral/api-gateway:$IMAGE_TAG -t $REGISTRY/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile . &
-
-      # Auth Service
-      - docker build -t $REGISTRY/flamoral/auth-service:$IMAGE_TAG -t $REGISTRY/flamoral/auth-service:latest -f backend/services/auth-service/Dockerfile . &
-
-      # User Service
-      - docker build -t $REGISTRY/flamoral/user-service:$IMAGE_TAG -t $REGISTRY/flamoral/user-service:latest -f backend/services/user-service/Dockerfile . &
-
-      # Matching Service
-      - docker build -t $REGISTRY/flamoral/matching-service:$IMAGE_TAG -t $REGISTRY/flamoral/matching-service:latest -f backend/services/matching-service/Dockerfile . &
-
-      # Messaging Service
-      - docker build -t $REGISTRY/flamoral/messaging-service:$IMAGE_TAG -t $REGISTRY/flamoral/messaging-service:latest -f backend/services/messaging-service/Dockerfile . &
-
-      # Notification Service
-      - docker build -t $REGISTRY/flamoral/notification-service:$IMAGE_TAG -t $REGISTRY/flamoral/notification-service:latest -f backend/services/notification-service/Dockerfile . &
-
-      # Media Service
-      - docker build -t $REGISTRY/flamoral/media-service:$IMAGE_TAG -t $REGISTRY/flamoral/media-service:latest -f backend/services/media-service/Dockerfile . &
-
-      # Payment Service
-      - docker build -t $REGISTRY/flamoral/payment-service:$IMAGE_TAG -t $REGISTRY/flamoral/payment-service:latest -f backend/services/payment-service/Dockerfile . &
-
-      # Moderation Service
-      - docker build -t $REGISTRY/flamoral/moderation-service:$IMAGE_TAG -t $REGISTRY/flamoral/moderation-service:latest -f backend/services/moderation-service/Dockerfile . &
-
-      # Analytics Service
-      - docker build -t $REGISTRY/flamoral/analytics-service:$IMAGE_TAG -t $REGISTRY/flamoral/analytics-service:latest -f backend/services/analytics-service/Dockerfile . &
-
-      # Admin Service
-      - docker build -t $REGISTRY/flamoral/admin-service:$IMAGE_TAG -t $REGISTRY/flamoral/admin-service:latest -f backend/services/admin-service/Dockerfile . &
-
-      # Wait for all background builds to complete
-      - wait
-      - echo "All backend services built successfully"
-
-      # Build Web App (separate build context)
-      - docker build -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/
-
-  post_build:
-    commands:
-      - source /tmp/env.sh || export IMAGE_TAG=latest
-      - echo "Build completed on $(date)"
-      - echo "Pushing all Docker images..."
-
-      # Push all images
+      # Build and push each service sequentially
+      - echo "Building api-gateway..."
+      - docker build -t $REGISTRY/flamoral/api-gateway:$IMAGE_TAG -t $REGISTRY/flamoral/api-gateway:latest -f backend/services/api-gateway/Dockerfile .
       - docker push $REGISTRY/flamoral/api-gateway:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/api-gateway:latest
+
+      - echo "Building auth-service..."
+      - docker build -t $REGISTRY/flamoral/auth-service:$IMAGE_TAG -t $REGISTRY/flamoral/auth-service:latest -f backend/services/auth-service/Dockerfile .
       - docker push $REGISTRY/flamoral/auth-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/auth-service:latest
+
+      - echo "Building user-service..."
+      - docker build -t $REGISTRY/flamoral/user-service:$IMAGE_TAG -t $REGISTRY/flamoral/user-service:latest -f backend/services/user-service/Dockerfile .
       - docker push $REGISTRY/flamoral/user-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/user-service:latest
+
+      - echo "Building matching-service..."
+      - docker build -t $REGISTRY/flamoral/matching-service:$IMAGE_TAG -t $REGISTRY/flamoral/matching-service:latest -f backend/services/matching-service/Dockerfile .
       - docker push $REGISTRY/flamoral/matching-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/matching-service:latest
+
+      - echo "Building messaging-service..."
+      - docker build -t $REGISTRY/flamoral/messaging-service:$IMAGE_TAG -t $REGISTRY/flamoral/messaging-service:latest -f backend/services/messaging-service/Dockerfile .
       - docker push $REGISTRY/flamoral/messaging-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/messaging-service:latest
+
+      - echo "Building notification-service..."
+      - docker build -t $REGISTRY/flamoral/notification-service:$IMAGE_TAG -t $REGISTRY/flamoral/notification-service:latest -f backend/services/notification-service/Dockerfile .
       - docker push $REGISTRY/flamoral/notification-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/notification-service:latest
+
+      - echo "Building media-service..."
+      - docker build -t $REGISTRY/flamoral/media-service:$IMAGE_TAG -t $REGISTRY/flamoral/media-service:latest -f backend/services/media-service/Dockerfile .
       - docker push $REGISTRY/flamoral/media-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/media-service:latest
+
+      - echo "Building payment-service..."
+      - docker build -t $REGISTRY/flamoral/payment-service:$IMAGE_TAG -t $REGISTRY/flamoral/payment-service:latest -f backend/services/payment-service/Dockerfile .
       - docker push $REGISTRY/flamoral/payment-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/payment-service:latest
+
+      - echo "Building moderation-service..."
+      - docker build -t $REGISTRY/flamoral/moderation-service:$IMAGE_TAG -t $REGISTRY/flamoral/moderation-service:latest -f backend/services/moderation-service/Dockerfile .
       - docker push $REGISTRY/flamoral/moderation-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/moderation-service:latest
+
+      - echo "Building analytics-service..."
+      - docker build -t $REGISTRY/flamoral/analytics-service:$IMAGE_TAG -t $REGISTRY/flamoral/analytics-service:latest -f backend/services/analytics-service/Dockerfile .
       - docker push $REGISTRY/flamoral/analytics-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/analytics-service:latest
+
+      - echo "Building admin-service..."
+      - docker build -t $REGISTRY/flamoral/admin-service:$IMAGE_TAG -t $REGISTRY/flamoral/admin-service:latest -f backend/services/admin-service/Dockerfile .
       - docker push $REGISTRY/flamoral/admin-service:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/admin-service:latest
+
+      - echo "Building web-app..."
+      - docker build -t $REGISTRY/flamoral/web-app:$IMAGE_TAG -t $REGISTRY/flamoral/web-app:latest -f apps/web-app/Dockerfile apps/web-app/
       - docker push $REGISTRY/flamoral/web-app:$IMAGE_TAG
       - docker push $REGISTRY/flamoral/web-app:latest
 
-      - echo "All images pushed successfully!"
+  post_build:
+    commands:
+      - echo "All services built and pushed successfully!"
       - docker images | grep flamoral
 
 cache:

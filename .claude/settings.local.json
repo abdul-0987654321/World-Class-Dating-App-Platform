@@ -789,7 +789,9 @@
       "Bash(aws wafv2 update-web-acl:*)",
       "Bash(aws wafv2 get-regex-pattern-set:*)",
       "Bash(aws codebuild list-projects:*)",
-      "Bash(aws secretsmanager:*)"
+      "Bash(aws secretsmanager:*)",
+      "Bash(for repo in auth-service user-service matching-service messaging-service notification-service media-service payment-service moderation-service analytics-service admin-service)",
+      "Bash(do echo -n \"$repo: \")"
     ],
     "deny": [],
     "ask": []
