@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Flamoral Web App
-FROM node:20-alpine AS builder
+FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 
 # Cache buster - increment to force full rebuild
 ARG CACHE_BUST=v3
@@ -44,7 +44,7 @@ RUN echo "Building with VITE_API_URL=${VITE_API_URL}" && vite build
 RUN ls -la dist/assets/ && cat dist/index.html | head -20
 
 # Stage 2: Production with Nginx
-FROM nginx:alpine@sha256:a45ee5d042aaa9e81e013f97ae40c3dda26fbe98f22b6251acdf28e579560d55
+FROM public.ecr.aws/docker/library/nginx:alpine
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf

@@ -1,4 +1,4 @@
-FROM python:3.11-slim@sha256:87f0a12eedb9fdc5ae29f4d0a287e3f5e85a87e07d09e86b5cd5c4bb3c6b8d3e
+FROM public.ecr.aws/docker/library/python:3.11-slim
 
 WORKDIR /app
 
