@@ -765,7 +765,16 @@
       "Bash(aws iam put-role-policy:*)",
       "Bash(aws codebuild create-project:*)",
       "Bash(aws iam create-open-id-connect-provider:*)",
-      "Bash(aws ecr create-repository:*)"
+      "Bash(aws ecr create-repository:*)",
+      "Bash(aws iam update-assume-role-policy:*)",
+      "Bash(aws codebuild start-build:*)",
+      "Bash(aws codebuild batch-get-builds:*)",
+      "Bash(aws logs get-log-events:*)",
+      "Bash(aws ecr describe-images:*)",
+      "Bash(aws ecr list-images:*)",
+      "Bash(aws ecr describe-repositories:*)",
+      "Bash(for repo in api-gateway auth-service user-service matching-service messaging-service notification-service media-service payment-service web-app)",
+      "Bash(aws ecr put-image-tag-mutability:*)"
     ],
     "deny": [],
     "ask": []

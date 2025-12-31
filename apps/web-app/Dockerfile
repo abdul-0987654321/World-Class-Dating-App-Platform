@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Flamoral Web App
-FROM node:20-alpine@sha256:c58e70281669d9a30f8d4abbe7f29d3078b8e00ee7cf24e6dc1b7ac74f45dc10 AS builder
+FROM node:20-alpine AS builder
 
 # Cache buster - increment to force full rebuild
 ARG CACHE_BUST=v3
