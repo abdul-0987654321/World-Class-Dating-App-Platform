@@ -81,14 +81,14 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AvatarProvider>
         <Routes>
-          {/* Landing page - public */}
+          {/* Landing page - public (premium calm design) */}
           <Route path="/" element={
-            isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
+            isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
           } />
 
-        {/* Old Landing page - fallback */}
+        {/* Legacy Landing page - fallback */}
         <Route path="/landing-old" element={
-          isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
+          isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
         } />
 
         {/* Public routes */}
