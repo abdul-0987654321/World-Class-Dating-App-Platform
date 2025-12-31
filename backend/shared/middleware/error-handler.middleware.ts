@@ -30,6 +30,12 @@ const logger = createLogger('error-handler');
  */
 export interface RequestWithCorrelationId extends Request {
   correlationId?: string;
+  user?: {
+    id?: string;
+    userId?: string;
+    email?: string;
+    [key: string]: any;
+  };
 }
 
 /**

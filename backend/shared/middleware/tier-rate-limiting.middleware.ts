@@ -213,6 +213,12 @@ export class RedisRateLimitStore implements RateLimitStore {
 
 // Extended request interface
 export interface RateLimitedRequest extends Request {
+  user?: {
+    id?: string;
+    userId?: string;
+    email?: string;
+    [key: string]: any;
+  };
   subscription?: {
     tier: string;
     isActive: boolean;

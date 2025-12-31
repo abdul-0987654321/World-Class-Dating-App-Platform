@@ -120,6 +120,12 @@ export const TIER_DAILY_LIMITS: Record<SubscriptionTier, {
 
 // Extended request interface with subscription info
 export interface SubscriptionRequest extends Request {
+  user?: {
+    id?: string;
+    userId?: string;
+    email?: string;
+    [key: string]: any;
+  };
   subscription?: {
     tier: SubscriptionTier;
     status: 'active' | 'canceled' | 'past_due' | 'grace_period' | 'expired';

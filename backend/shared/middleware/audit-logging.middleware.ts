@@ -185,6 +185,12 @@ function getClientIp(req: Request): string {
  */
 export interface AuditRequest extends Request {
   correlationId?: string;
+  user?: {
+    id?: string;
+    userId?: string;
+    email?: string;
+    [key: string]: any;
+  };
   auditContext?: {
     eventType?: AuditEventType | string;
     resourceType?: string;
