@@ -24,9 +24,14 @@ export const validationSchema = Joi.object({
 
   // Redis
   REDIS_HOST: Joi.string().default('localhost'),
-  REDIS_PORT: Joi.number().default(6379),
-  REDIS_PASSWORD: Joi.string().optional(),
-  REDIS_DB: Joi.number().default(0),
+  REDIS_PORT: Joi.alternatives()
+    .try(Joi.number(), Joi.string().pattern(/^\d+$/))
+    .default(6379),
+  REDIS_PASSWORD: Joi.string().optional().allow(''),
+  REDIS_DB: Joi.alternatives()
+    .try(Joi.number(), Joi.string().pattern(/^\d+$/))
+    .default(0),
+  REDIS_URL: Joi.string().optional().allow(''),
 
   // Rate limiting
   THROTTLE_TTL: Joi.number().default(60000),

@@ -778,7 +778,17 @@
       "Bash(aws eks describe-cluster:*)",
       "Bash(aws eks update-cluster-config:*)",
       "Bash(aws eks describe-update:*)",
-      "Bash(aws elbv2 describe-load-balancers:*)"
+      "Bash(aws elbv2 describe-load-balancers:*)",
+      "Bash(aws cloudfront list-distributions:*)",
+      "Bash(aws cloudfront get-distribution-config:*)",
+      "Bash(aws wafv2 get-web-acl:*)",
+      "Bash(aws wafv2 get-sampled-requests:*)",
+      "Bash(aws cloudfront create-invalidation:*)",
+      "Bash(aws cloudfront get-distribution:*)",
+      "Bash(aws cloudfront update-distribution:*)",
+      "Bash(aws wafv2 update-web-acl:*)",
+      "Bash(aws wafv2 get-regex-pattern-set:*)",
+      "Bash(aws codebuild list-projects:*)"
     ],
     "deny": [],
     "ask": []
