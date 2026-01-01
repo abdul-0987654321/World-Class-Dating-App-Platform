@@ -30,3 +30,17 @@ export {
 
 // Middleware - Enhanced middleware components
 export * from './middleware';
+
+// DTOs and validation (re-exported from src/dto for convenience)
+export {
+  PaginationDto,
+  IdParamDto,
+  SERVER_OWNED_FIELDS,
+  UpdateProfileDto,
+  RegisterDto,
+  LoginDto,
+  globalValidationPipe,
+  RejectServerOwnedFields,
+  IsStrongPassword,
+} from './src/dto';
+export type { ServerOwnedField } from './src/dto';

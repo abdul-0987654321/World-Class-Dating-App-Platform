@@ -94,6 +94,8 @@ spec:
         app: flamoral
         component: messaging-service
     spec:
+      # Allow graceful shutdown with enough time
+      terminationGracePeriodSeconds: 30
       containers:
         - name: messaging-service
           image: 992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/messaging-service:latest
@@ -111,6 +113,9 @@ spec:
               value: "redis.flamoral.svc.cluster.local"
             - name: REDIS_PORT
               value: "6379"
+            # Shutdown timeout should be less than terminationGracePeriodSeconds
+            - name: SHUTDOWN_TIMEOUT_MS
+              value: "25000"
           envFrom:
             - secretRef:
                 name: backend-secrets
@@ -121,18 +126,42 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          # Liveness probe: Check if the process is alive
+          # Uses /health endpoint which responds quickly even during startup
           livenessProbe:
             httpGet:
               path: /health
               port: 3004
-            initialDelaySeconds: 30
-            periodSeconds: 30
+            # Give service time to start HTTP server (increased from 30)
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          # Readiness probe: Check if service can handle traffic
+          # Uses /ready endpoint which checks DB connectivity
           readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3004
+            # Allow more time for Cosmos DB initialization
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          # Startup probe: Give more time for initial startup
+          # This prevents liveness probe from killing during slow startup
+          startupProbe:
             httpGet:
               path: /health
               port: 3004
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            # Allow up to 120 seconds for initial startup (30 * 4 seconds)
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 24
+            successThreshold: 1
 ---
 apiVersion: v1
 kind: Service

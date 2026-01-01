@@ -24,4 +24,4 @@ export {
 } from './validation.middleware';
 
 // Re-export shared DTOs for convenience
-export { PaginationDto, IdParamDto, SERVER_OWNED_FIELDS } from '@flamoral/shared/src/dto';
+export { PaginationDto, IdParamDto, SERVER_OWNED_FIELDS } from '@flamoral/backend-shared';
