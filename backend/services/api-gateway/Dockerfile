@@ -35,6 +35,9 @@ RUN sed -i 's|"@flamoral/backend-shared": "file:../../shared",||' package.json &
     npm install --legacy-peer-deps && \
     npm install --save-dev @types/multer --legacy-peer-deps
 
+# Merge shared module's node_modules into service's node_modules
+RUN cp -rn /app/shared/node_modules/* ./node_modules/ 2>/dev/null || true
+
 # Link the built shared module
 RUN mkdir -p node_modules/@flamoral/backend-shared && \
     cp -r /app/shared/dist node_modules/@flamoral/backend-shared/ && \
