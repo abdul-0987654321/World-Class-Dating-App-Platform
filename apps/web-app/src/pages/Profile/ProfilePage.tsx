@@ -19,20 +19,22 @@ export const ProfilePage: React.FC = () => {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        // Merge with profile data format
+        // Merge with profile data format - use actual user data, no defaults
         setUser({
           id: userData.id,
-          name: userData.firstName || userData.name,
-          age: 28, // Default age
+          name: userData.firstName || userData.name || '',
+          age: userData.age || userData.dateOfBirth ? calculateAge(userData.dateOfBirth) : null,
           email: userData.email,
-          bio: userData.bio || 'Tell us about yourself...',
-          occupation: userData.occupation || 'Not specified',
-          location: { city: userData.city || 'Not specified', state: '' },
-          photos: userData.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'],
-          interests: userData.interests || ['Travel', 'Music', 'Food'],
+          bio: userData.bio || '',
+          occupation: userData.occupation || '',
+          location: { city: userData.city || '', state: userData.state || '' },
+          photos: userData.photos || (userData.photoUrl ? [userData.photoUrl] : []),
+          interests: userData.interests || [],
           verified: { photo: userData.isVerified },
-          coinBalance: userData.coinBalance || 100,
-          premiumTier: userData.premiumTier || userData.subscription || 'FREE',
+          coinBalance: userData.coinBalance || 0,
+          matchCount: userData.matchCount || 0,
+          likesReceived: userData.likesReceived || 0,
+          premiumTier: userData.premiumTier || userData.subscriptionTier || 'FREE',
         });
         setEditedBio(userData.bio || '');
       } else {
@@ -40,17 +42,19 @@ export const ProfilePage: React.FC = () => {
         const data = await authService.getCurrentUser();
         setUser({
           id: data.id,
-          name: data.firstName,
-          age: 28,
+          name: data.firstName || '',
+          age: data.age || (data.dateOfBirth ? calculateAge(data.dateOfBirth) : null),
           email: data.email,
-          bio: '',
-          occupation: '',
-          location: { city: '', state: '' },
-          photos: [data.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'],
-          interests: [],
+          bio: data.bio || '',
+          occupation: data.occupation || '',
+          location: { city: data.city || '', state: data.state || '' },
+          photos: data.photos || (data.photoUrl ? [data.photoUrl] : []),
+          interests: data.interests || [],
           verified: { photo: data.isVerified },
           coinBalance: data.coinBalance || 0,
-          premiumTier: data.premiumTier || 'FREE',
+          matchCount: data.matchCount || 0,
+          likesReceived: data.likesReceived || 0,
+          premiumTier: data.premiumTier || data.subscriptionTier || 'FREE',
         });
       }
     } catch (err) {
@@ -59,6 +63,19 @@ export const ProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper to calculate age from date of birth
+  const calculateAge = (dateOfBirth: string): number | null => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   const handleLogout = async () => {
@@ -129,11 +146,17 @@ export const ProfilePage: React.FC = () => {
           <div className="h-32" style={{ background: 'var(--accent-gradient)' }} />
           <div className="px-6 pb-6">
             <div className="relative -mt-16 mb-4">
-              <img
-                src={user.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'}
-                alt={user.name}
-                className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
-              />
+              {user.photos?.[0] ? (
+                <img
+                  src={user.photos[0]}
+                  alt={user.name}
+                  className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg flex items-center justify-center" style={{ background: 'var(--accent-gradient)' }}>
+                  <span className="text-4xl font-bold text-white">{user.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                </div>
+              )}
               <button className="absolute bottom-2 right-2 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white shadow-lg">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -143,7 +166,7 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{user.name}, {user.age}</h2>
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{user.name}{user.age ? `, ${user.age}` : ''}</h2>
               {user.verified?.photo && (
                 <span className="text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'var(--accent-cyan)' }}>
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -154,29 +177,37 @@ export const ProfilePage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {user.location?.city}, {user.location?.state}
-              </span>
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {user.occupation}
-              </span>
-            </div>
+            {(user.location?.city || user.occupation) && (
+              <div className="flex items-center gap-4 text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                {user.location?.city && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {user.location.city}{user.location.state ? `, ${user.location.state}` : ''}
+                  </span>
+                )}
+                {user.occupation && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {user.occupation}
+                  </span>
+                )}
+              </div>
+            )}
 
-            {/* Subscription Badge */}
-            <div className="inline-flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: 'linear-gradient(135deg, var(--coin-primary) 0%, #C77A45 100%)' }}>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Premium Member
-            </div>
+            {/* Subscription Badge - only show for paid tiers */}
+            {user.premiumTier && user.premiumTier !== 'FREE' && (
+              <div className="inline-flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: 'linear-gradient(135deg, var(--coin-primary) 0%, #C77A45 100%)' }}>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                {user.premiumTier.charAt(0) + user.premiumTier.slice(1).toLowerCase()} Member
+              </div>
+            )}
           </div>
         </div>
 
@@ -210,7 +241,9 @@ export const ProfilePage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <p style={{ color: 'var(--text-secondary)' }}>{user.bio}</p>
+            <p style={{ color: user.bio ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
+              {user.bio || 'Add a bio to tell others about yourself...'}
+            </p>
           )}
         </div>
 
@@ -218,15 +251,19 @@ export const ProfilePage: React.FC = () => {
         <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--surface-card)' }}>
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Interests</h3>
           <div className="flex flex-wrap gap-2">
-            {user.interests?.map((interest: string, idx: number) => (
-              <span
-                key={idx}
-                className="px-4 py-2 rounded-full text-sm font-medium"
-                style={{ background: 'rgba(255, 46, 147, 0.2)', color: 'var(--accent-pink)' }}
-              >
-                {interest}
-              </span>
-            ))}
+            {user.interests?.length > 0 ? (
+              user.interests.map((interest: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="px-4 py-2 rounded-full text-sm font-medium"
+                  style={{ background: 'rgba(255, 46, 147, 0.2)', color: 'var(--accent-pink)' }}
+                >
+                  {interest}
+                </span>
+              ))
+            ) : (
+              <p style={{ color: 'var(--text-muted)' }}>Add interests to help find better matches...</p>
+            )}
           </div>
         </div>
 
@@ -239,11 +276,11 @@ export const ProfilePage: React.FC = () => {
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Coins</p>
             </div>
             <div className="rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <p className="text-2xl font-bold" style={{ color: 'var(--accent-purple)' }}>12</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--accent-purple)' }}>{user.matchCount || 0}</p>
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Matches</p>
             </div>
             <div className="rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <p className="text-2xl font-bold" style={{ color: 'var(--accent-cyan)' }}>48</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--accent-cyan)' }}>{user.likesReceived || 0}</p>
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Likes</p>
             </div>
           </div>
