@@ -20,6 +20,7 @@
     "dotenv": "^16.3.1",
     "@azure/cognitiveservices-contentmoderator": "^5.0.0",
     "@aws-sdk/client-rekognition": "^3.490.0",
+    "@aws-sdk/client-comprehend": "^3.490.0",
     "axios": "^1.7.9",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",

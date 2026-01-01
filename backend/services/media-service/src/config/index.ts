@@ -6,7 +6,14 @@ export const config = {
   port: parseInt(process.env.PORT || '3004', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  // Azure Storage
+  // AWS S3 Storage
+  aws: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    s3Bucket: process.env.AWS_S3_BUCKET_MEDIA || 'flamoral-media',
+    cdnUrl: process.env.AWS_CDN_URL || '',
+  },
+
+  // Azure Storage (deprecated - kept for migration compatibility)
   azure: {
     storageAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || '',
     storageAccountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY || '',

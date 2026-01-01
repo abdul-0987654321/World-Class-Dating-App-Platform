@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "reflect-metadata": "^0.2.2",
+    "@aws-sdk/client-s3": "^3.445.0",
+    "@aws-sdk/s3-request-presigner": "^3.445.0",
     "@azure/cognitiveservices-computervision": "^8.2.0",
     "@azure/cognitiveservices-face": "^5.0.0",
     "@azure/ms-rest-azure-js": "^2.1.0",
