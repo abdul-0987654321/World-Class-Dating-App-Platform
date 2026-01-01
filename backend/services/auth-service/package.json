@@ -15,6 +15,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@flamoral/backend-shared": "file:../../shared",
+    "@nestjs/common": "^10.3.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.1",
     "@azure/communication-email": "^1.0.0",
     "@azure/identity": "^4.0.0",
     "@azure/keyvault-secrets": "^4.7.0",
