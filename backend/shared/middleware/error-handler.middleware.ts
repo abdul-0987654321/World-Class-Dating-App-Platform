@@ -28,7 +28,7 @@ const logger = createLogger('error-handler');
 /**
  * Extended Request interface with correlation ID
  */
-export interface RequestWithCorrelationId extends Request {
+export interface RequestWithCorrelationId extends Omit<Request, 'user'> {
   correlationId?: string;
   user?: {
     id?: string;
@@ -167,7 +167,7 @@ function getCorrelationId(req: RequestWithCorrelationId): string {
 /**
  * Extract client IP address
  */
-function getClientIp(req: Request): string {
+function getClientIp(req: RequestWithCorrelationId): string {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     const ips = (forwarded as string).split(',');

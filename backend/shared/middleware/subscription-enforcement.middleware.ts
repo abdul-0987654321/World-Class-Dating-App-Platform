@@ -119,7 +119,7 @@ export const TIER_DAILY_LIMITS: Record<SubscriptionTier, {
 };
 
 // Extended request interface with subscription info
-export interface SubscriptionRequest extends Request {
+export interface SubscriptionRequest extends Omit<Request, 'user'> {
   user?: {
     id?: string;
     userId?: string;

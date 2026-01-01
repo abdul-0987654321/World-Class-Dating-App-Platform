@@ -155,7 +155,7 @@ export function getAuditLogger(): AuditLogger {
 /**
  * Generate correlation ID if not present
  */
-function getOrCreateCorrelationId(req: Request): string {
+function getOrCreateCorrelationId(req: AuditRequest): string {
   const existing = req.headers['x-correlation-id'] as string;
   if (existing) return existing;
 
@@ -165,7 +165,7 @@ function getOrCreateCorrelationId(req: Request): string {
 /**
  * Extract client IP address
  */
-function getClientIp(req: Request): string {
+function getClientIp(req: AuditRequest): string {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     const ips = (forwarded as string).split(',');
@@ -183,7 +183,7 @@ function getClientIp(req: Request): string {
 /**
  * Extended request interface with audit context
  */
-export interface AuditRequest extends Request {
+export interface AuditRequest extends Omit<Request, 'user'> {
   correlationId?: string;
   user?: {
     id?: string;
@@ -256,7 +256,7 @@ export function auditLoggingMiddleware(
 /**
  * Determine audit event type from request path and method
  */
-function determineEventType(req: Request): string {
+function determineEventType(req: AuditRequest): string {
   const path = req.path.toLowerCase();
   const method = req.method;
 

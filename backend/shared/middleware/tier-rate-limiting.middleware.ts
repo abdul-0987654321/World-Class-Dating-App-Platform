@@ -212,7 +212,7 @@ export class RedisRateLimitStore implements RateLimitStore {
 }
 
 // Extended request interface
-export interface RateLimitedRequest extends Request {
+export interface RateLimitedRequest extends Omit<Request, 'user'> {
   user?: {
     id?: string;
     userId?: string;
