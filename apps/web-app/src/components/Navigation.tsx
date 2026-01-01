@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { FlamoralLogo } from './Logo';
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
@@ -100,25 +101,12 @@ export const Navigation: React.FC = () => {
   return (
     <header className="bg-[#111318] border-b border-white/8 sticky top-0 z-40 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo - Brand colors: Pink #FF2E93, Purple #7B61FF, Blue #2ED4FF */}
+        {/* Logo */}
         <div
           onClick={() => navigate('/discover')}
-          className="flex items-center gap-2 cursor-pointer"
+          className="cursor-pointer"
         >
-          <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-            <defs>
-              <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF2E93"/>
-                <stop offset="50%" stopColor="#7B61FF"/>
-                <stop offset="100%" stopColor="#2ED4FF"/>
-              </linearGradient>
-            </defs>
-            <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#navLogoGrad)"/>
-            <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFFFFF" opacity="0.85"/>
-          </svg>
-          <h1 className="text-2xl font-heading font-bold text-gradient-flamoral">
-            Flamoral
-          </h1>
+          <FlamoralLogo variant="horizontal" size="sm" />
         </div>
 
         <nav className="flex items-center gap-1">

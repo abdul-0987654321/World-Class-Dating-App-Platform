@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flamoral Logo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rose-red: #E63946;
+      --coral: #FF6B6B;
+      --soft-pink: #FFB4B4;
+      --blush: #FFDDD2;
+      --deep-rose: #C1121F;
+      --warm-white: #FFF5F5;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a0a0f 0%, #2d1520 50%, #1a0a0f 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+      padding: 60px 20px;
+      font-family: 'Playfair Display', serif;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(230, 57, 70, 0.15) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: ambientPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes ambientPulse {
+      0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    /* Section Labels */
+    .section-label {
+      color: rgba(255, 180, 180, 0.5);
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    /* ============ PRIMARY VERTICAL LOGO ============ */
+    .logo-primary {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+    }
+
+    .logo-icon {
+      width: 120px;
+      height: 120px;
+      position: relative;
+      filter: drop-shadow(0 0 30px rgba(230, 57, 70, 0.5));
+    }
+
+    .logo-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Flame Animation */
+    .flame-outer {
+      animation: flicker 0.8s ease-in-out infinite alternate;
+      transform-origin: bottom center;
+    }
+
+    .flame-inner {
+      animation: flicker 0.6s ease-in-out infinite alternate-reverse;
+      transform-origin: bottom center;
+    }
+
+    .flame-core {
+      animation: flicker 0.4s ease-in-out infinite alternate;
+      transform-origin: bottom center;
+    }
+
+    @keyframes flicker {
+      0% { transform: scaleY(1) scaleX(1); }
+      25% { transform: scaleY(0.97) scaleX(1.02); }
+      50% { transform: scaleY(1.03) scaleX(0.98); }
+      75% { transform: scaleY(0.98) scaleX(1.01); }
+      100% { transform: scaleY(1.02) scaleX(0.99); }
+    }
+
+    /* Petals Animation */
+    .petal {
+      animation: petalSway 3s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    .petal:nth-child(2) { animation-delay: -0.5s; }
+    .petal:nth-child(3) { animation-delay: -1s; }
+    .petal:nth-child(4) { animation-delay: -1.5s; }
+    .petal:nth-child(5) { animation-delay: -2s; }
+
+    @keyframes petalSway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    /* Sparkles */
+    .sparkles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--soft-pink);
+      border-radius: 50%;
+      animation: sparkle 2s ease-in-out infinite;
+      box-shadow: 0 0 6px var(--soft-pink);
+    }
+
+    .sparkle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 5%; left: 70%; animation-delay: 0.4s; }
+    .sparkle:nth-child(3) { top: 30%; left: 90%; animation-delay: 0.8s; }
+    .sparkle:nth-child(4) { top: 60%; left: 85%; animation-delay: 1.2s; }
+    .sparkle:nth-child(5) { top: 70%; left: 15%; animation-delay: 1.6s; }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0) translateY(0); }
+      50% { opacity: 1; transform: scale(1) translateY(-10px); }
+    }
+
+    /* Wordmark */
+    .wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 600;
+      font-style: italic;
+      background: linear-gradient(135deg, var(--soft-pink) 0%, var(--coral) 50%, var(--rose-red) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      letter-spacing: 4px;
+    }
+
+    .wordmark::after {
+      content: 'Flamoral';
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 100%;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Tagline */
+    .tagline {
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: var(--soft-pink);
+      text-transform: uppercase;
+      opacity: 0.8;
+      animation: fadeInUp 1s ease-out 0.5s both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 0.8; transform: translateY(0); }
+    }
+
+    /* ============ HORIZONTAL LOGO ============ */
+    .logo-horizontal {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-horizontal .logo-icon {
+      width: 60px;
+      height: 60px;
+    }
+
+    .logo-horizontal .wordmark {
+      font-size: 36px;
+    }
+
+    /* ============ MONOGRAM ============ */
+    .logo-monogram {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      filter: drop-shadow(0 0 20px rgba(230, 57, 70, 0.4));
+    }
+
+    .monogram-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(230, 57, 70, 0.3) 0%, transparent 70%);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+
+    /* ============ LIGHT MODE VARIANT ============ */
+    .light-mode {
+      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #ffeaea 100%);
+      padding: 60px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(230, 57, 70, 0.1);
+    }
+
+    .light-mode .wordmark {
+      background: linear-gradient(135deg, var(--deep-rose) 0%, var(--rose-red) 50%, var(--coral) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .light-mode .wordmark::after {
+      content: 'Flamoral';
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 100%;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    .light-mode .tagline {
+      color: var(--rose-red);
+    }
+
+    /* Logo variations container */
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* All Variants Display */
+    .variants-row {
+      display: flex;
+      gap: 80px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Primary Vertical Logo -->
+  <div class="logo-container">
+    <div class="section-label">Primary Logo</div>
+    <div class="logo-primary">
+      <div class="logo-icon">
+        <div class="sparkles">
+          <div class="sparkle"></div>
+          <div class="sparkle"></div>
+          <div class="sparkle"></div>
+          <div class="sparkle"></div>
+          <div class="sparkle"></div>
+        </div>
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="flameGrad" x1="50%" y1="100%" x2="50%" y2="0%">
+              <stop offset="0%" stop-color="#E63946"/>
+              <stop offset="50%" stop-color="#FF6B6B"/>
+              <stop offset="100%" stop-color="#FFB4B4"/>
+            </linearGradient>
+            <linearGradient id="petalGrad" x1="50%" y1="100%" x2="50%" y2="0%">
+              <stop offset="0%" stop-color="#C1121F"/>
+              <stop offset="100%" stop-color="#E63946"/>
+            </linearGradient>
+            <radialGradient id="coreGrad" cx="50%" cy="70%" r="50%">
+              <stop offset="0%" stop-color="#FFF5F5"/>
+              <stop offset="100%" stop-color="#FFB4B4"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Outer Flame / Petals -->
+          <g class="petal">
+            <path d="M50 15 C35 35, 25 55, 30 70 C35 85, 50 90, 50 90 C50 90, 65 85, 70 70 C75 55, 65 35, 50 15Z" fill="url(#flameGrad)" class="flame-outer"/>
+          </g>
+
+          <!-- Left Petal -->
+          <g class="petal">
+            <path d="M30 45 C15 55, 20 75, 35 80 C40 72, 38 60, 30 45Z" fill="url(#petalGrad)" opacity="0.8"/>
+          </g>
+
+          <!-- Right Petal -->
+          <g class="petal">
+            <path d="M70 45 C85 55, 80 75, 65 80 C60 72, 62 60, 70 45Z" fill="url(#petalGrad)" opacity="0.8"/>
+          </g>
+
+          <!-- Inner Flame -->
+          <path d="M50 30 C40 45, 35 60, 40 72 C45 82, 50 85, 50 85 C50 85, 55 82, 60 72 C65 60, 60 45, 50 30Z" fill="url(#flameGrad)" class="flame-inner" opacity="0.9"/>
+
+          <!-- Core Glow -->
+          <ellipse cx="50" cy="70" rx="12" ry="15" fill="url(#coreGrad)" class="flame-core" opacity="0.7"/>
+
+          <!-- Small flower detail at center -->
+          <circle cx="50" cy="72" r="4" fill="#FFF5F5" opacity="0.9"/>
+          <circle cx="46" cy="68" r="2" fill="#FFB4B4" opacity="0.7"/>
+          <circle cx="54" cy="68" r="2" fill="#FFB4B4" opacity="0.7"/>
+          <circle cx="50" cy="64" r="2" fill="#FFB4B4" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="wordmark">Flamoral</div>
+      <div class="tagline">Where Hearts Bloom</div>
+    </div>
+  </div>
+
+  <!-- Horizontal Logo -->
+  <div class="logo-container">
+    <div class="section-label">Horizontal Logo</div>
+    <div class="logo-horizontal">
+      <div class="logo-icon">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="flameGrad2" x1="50%" y1="100%" x2="50%" y2="0%">
+              <stop offset="0%" stop-color="#E63946"/>
+              <stop offset="50%" stop-color="#FF6B6B"/>
+              <stop offset="100%" stop-color="#FFB4B4"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 15 C35 35, 25 55, 30 70 C35 85, 50 90, 50 90 C50 90, 65 85, 70 70 C75 55, 65 35, 50 15Z" fill="url(#flameGrad2)" class="flame-outer"/>
+          <path d="M30 45 C15 55, 20 75, 35 80 C40 72, 38 60, 30 45Z" fill="#C1121F" opacity="0.8"/>
+          <path d="M70 45 C85 55, 80 75, 65 80 C60 72, 62 60, 70 45Z" fill="#C1121F" opacity="0.8"/>
+          <ellipse cx="50" cy="70" rx="12" ry="15" fill="#FFF5F5" opacity="0.6"/>
+          <circle cx="50" cy="72" r="4" fill="#FFF5F5" opacity="0.9"/>
+        </svg>
+      </div>
+      <div class="wordmark">Flamoral</div>
+    </div>
+  </div>
+
+  <!-- Monogram -->
+  <div class="logo-container">
+    <div class="section-label">Monogram</div>
+    <div class="logo-monogram">
+      <div class="monogram-glow"></div>
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="monoGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#E63946"/>
+            <stop offset="50%" stop-color="#FF6B6B"/>
+            <stop offset="100%" stop-color="#FFB4B4"/>
+          </linearGradient>
+        </defs>
+        <!-- Stylized F with flame/floral elements -->
+        <path d="M30 85 L30 25 C30 20, 35 15, 45 15 L70 15 L70 25 L45 25 C40 25, 40 28, 40 30 L40 45 L65 45 L65 55 L40 55 L40 85 Z" fill="url(#monoGrad)"/>
+        <!-- Flame accent on top -->
+        <path d="M55 15 C52 8, 58 5, 60 10 C62 5, 68 8, 65 15" fill="url(#monoGrad)" class="flame-outer"/>
+        <!-- Small petal accent -->
+        <circle cx="70" cy="35" r="5" fill="#FFB4B4" opacity="0.7"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Light Mode Variant -->
+  <div class="logo-container">
+    <div class="section-label">Light Mode</div>
+    <div class="light-mode">
+      <div class="logo-primary">
+        <div class="logo-icon">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="flameGradLight" x1="50%" y1="100%" x2="50%" y2="0%">
+                <stop offset="0%" stop-color="#C1121F"/>
+                <stop offset="50%" stop-color="#E63946"/>
+                <stop offset="100%" stop-color="#FF6B6B"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 15 C35 35, 25 55, 30 70 C35 85, 50 90, 50 90 C50 90, 65 85, 70 70 C75 55, 65 35, 50 15Z" fill="url(#flameGradLight)" class="flame-outer"/>
+            <path d="M30 45 C15 55, 20 75, 35 80 C40 72, 38 60, 30 45Z" fill="#C1121F" opacity="0.7"/>
+            <path d="M70 45 C85 55, 80 75, 65 80 C60 72, 62 60, 70 45Z" fill="#C1121F" opacity="0.7"/>
+            <ellipse cx="50" cy="70" rx="12" ry="15" fill="#FFFFFF" opacity="0.8"/>
+            <circle cx="50" cy="72" r="4" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <div class="wordmark">Flamoral</div>
+        <div class="tagline">Where Hearts Bloom</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
