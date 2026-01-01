@@ -26,7 +26,7 @@
     "redis": "^4.6.11",
     "knex": "^3.1.0",
     "axios": "^1.7.9",
-    "@flamoral/backend-shared": "file:../../shared/backend-shared"
+    "@flamoral/backend-shared": "file:../../shared"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
