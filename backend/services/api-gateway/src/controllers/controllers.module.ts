@@ -14,6 +14,7 @@ import { AuditController } from './audit.controller';
 import { CallsController } from './calls.controller';
 import { VerificationController } from './verification.controller';
 import { SafetyController } from './safety.controller';
+import { GemController } from './gem.controller';
 
 @Module({
   controllers: [
@@ -32,6 +33,7 @@ import { SafetyController } from './safety.controller';
     CallsController,
     VerificationController,
     SafetyController,
+    GemController,
   ],
 })
 export class ControllersModule {}

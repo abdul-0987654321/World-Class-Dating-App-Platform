@@ -27,6 +27,7 @@ import usageLimitRoutes from './api/routes/usage-limit.routes';
 import internalRoutes from './api/routes/internal.routes';
 import achievementsRoutes from './api/routes/achievements.routes';
 import badgeRoutes from './api/routes/interestIntentionBadge.routes';
+import gemRoutes from './api/routes/gem.routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
@@ -160,6 +161,7 @@ app.get('/', (_req: Request, res: Response) => {
       internal: '/api/v1/internal',
       badges: '/api/v1/badges',
       achievements: '/api/v1/achievements',
+      gems: '/api/v1/gems',
     },
   });
 });
@@ -190,6 +192,7 @@ app.use('/api/v1/usage-limits', usageLimitRoutes);
 app.use('/api/v1/badges', badgeRoutes);
 // Gamification routes
 app.use('/api/v1/achievements', achievementsRoutes);
+app.use('/api/v1/gems', gemRoutes);
 
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/v1/internal', internalRoutes);
