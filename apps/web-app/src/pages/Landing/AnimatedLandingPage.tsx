@@ -865,7 +865,20 @@ const AnimatedLandingPage: React.FC = () => {
         {/* Navigation */}
         <nav className="nav">
           <div className="container nav-inner">
-            <Link to="/" className="nav-logo">Flamoral</Link>
+            <Link to="/" className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="animNavLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FF2E93"/>
+                    <stop offset="50%" stopColor="#7B61FF"/>
+                    <stop offset="100%" stopColor="#2ED4FF"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#animNavLogoGrad)"/>
+                <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFFFFF" opacity="0.85"/>
+              </svg>
+              Flamoral
+            </Link>
             <div className="nav-links">
               <Link to="/login" className="nav-link">Log in</Link>
               <Link to="/signup" className="btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>
@@ -1142,7 +1155,20 @@ const AnimatedLandingPage: React.FC = () => {
           </div>
 
           <div className="footer-bottom">
-            <Link to="/" className="footer-logo">Flamoral</Link>
+            <Link to="/" className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="animFooterLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FF2E93"/>
+                    <stop offset="50%" stopColor="#7B61FF"/>
+                    <stop offset="100%" stopColor="#2ED4FF"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#animFooterLogoGrad)"/>
+                <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFFFFF" opacity="0.85"/>
+              </svg>
+              Flamoral
+            </Link>
             <p className="footer-copyright">© {new Date().getFullYear()} Flamoral. All rights reserved.</p>
           </div>
         </div>
