@@ -98,9 +98,9 @@ export const Navigation: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-40">
+    <header className="bg-[#111318] border-b border-white/8 sticky top-0 z-40 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo - Brand colors: Pink #FF2E93, Purple #7B61FF, Blue #2ED4FF */}
         <div
           onClick={() => navigate('/discover')}
           className="flex items-center gap-2 cursor-pointer"
@@ -108,12 +108,13 @@ export const Navigation: React.FC = () => {
           <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
             <defs>
               <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#D62839"/>
-                <stop offset="100%" stopColor="#FF6E35"/>
+                <stop offset="0%" stopColor="#FF2E93"/>
+                <stop offset="50%" stopColor="#7B61FF"/>
+                <stop offset="100%" stopColor="#2ED4FF"/>
               </linearGradient>
             </defs>
             <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#navLogoGrad)"/>
-            <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFF6EE" opacity="0.85"/>
+            <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFFFFF" opacity="0.85"/>
           </svg>
           <h1 className="text-2xl font-heading font-bold text-gradient-flamoral">
             Flamoral
@@ -128,8 +129,8 @@ export const Navigation: React.FC = () => {
               onClick={() => navigate(item.path)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 isActive(item.path)
-                  ? 'bg-flame-50 text-flame-500 font-medium'
-                  : 'text-charcoal-600 hover:bg-charcoal-50 hover:text-flame-500'
+                  ? 'bg-[#FF2E93]/20 text-[#FF2E93] font-medium'
+                  : 'text-white/70 hover:bg-white/5 hover:text-[#FF2E93]'
               }`}
             >
               {getIcon(item.icon)}
@@ -143,22 +144,22 @@ export const Navigation: React.FC = () => {
               onClick={() => setShowMoreMenu(!showMoreMenu)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 moreNavItems.some(item => isActive(item.path))
-                  ? 'bg-flame-50 text-flame-500 font-medium'
-                  : 'text-charcoal-600 hover:bg-charcoal-50 hover:text-flame-500'
+                  ? 'bg-[#FF2E93]/20 text-[#FF2E93] font-medium'
+                  : 'text-white/70 hover:bg-white/5 hover:text-[#FF2E93]'
               }`}
             >
               {getIcon('more')}
               <span className="hidden md:inline">More</span>
             </button>
 
-            {/* Dropdown */}
+            {/* Dropdown - Dark theme */}
             {showMoreMenu && (
               <>
                 <div
                   className="fixed inset-0"
                   onClick={() => setShowMoreMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-charcoal-100 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-[#1A1D24] rounded-xl shadow-lg border border-white/10 py-2 z-50">
                   {moreNavItems.map((item) => (
                     <button
                       key={item.path}
@@ -168,11 +169,11 @@ export const Navigation: React.FC = () => {
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
                         isActive(item.path)
-                          ? 'bg-flame-50 text-flame-500'
-                          : 'text-charcoal-700 hover:bg-charcoal-50'
+                          ? 'bg-[#FF2E93]/20 text-[#FF2E93]'
+                          : 'text-white/80 hover:bg-white/5'
                       }`}
                     >
-                      <span className={isActive(item.path) ? 'text-flame-500' : item.color}>
+                      <span className={isActive(item.path) ? 'text-[#FF2E93]' : item.color}>
                         {getIcon(item.icon)}
                       </span>
                       <span>{item.label}</span>

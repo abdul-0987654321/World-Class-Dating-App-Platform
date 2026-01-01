@@ -96,7 +96,13 @@ export class DiscoveryService {
       .leftJoin('profiles', 'users.id', 'profiles.user_id')
       .whereNotIn('users.id', excludedUserIds)
       .where('users.is_active', true)
-      .where('users.is_verified', true);
+      .where('users.is_verified', true)
+      // SECURITY: Exclude test email domains from production discovery
+      .whereNot('users.email', 'like', '%@example.com')
+      .whereNot('users.email', 'like', '%@test.com')
+      .whereNot('users.email', 'like', '%@demo.%')
+      .whereNot('users.email', 'like', '%@localhost%')
+      .whereNot('users.email', 'like', 'loadtest%');
 
     // Apply age filters
     if (filters?.age_min) {

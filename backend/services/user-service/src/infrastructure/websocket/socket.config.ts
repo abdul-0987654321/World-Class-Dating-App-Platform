@@ -13,9 +13,21 @@ export class SocketServer {
   private onlineUsers: Set<string>;
 
   constructor(httpServer: HttpServer) {
+    // SECURITY: Never default to '*' for CORS - require explicit origins
+    const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
+      'https://flamoral.com',
+      'https://www.flamoral.com',
+      'https://app.flamoral.com',
+    ];
+
+    // Only allow localhost in development
+    if (process.env.NODE_ENV !== 'production') {
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:5173');
+    }
+
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.CORS_ORIGINS?.split(',') || '*',
+        origin: allowedOrigins,
         credentials: true,
       },
     });
