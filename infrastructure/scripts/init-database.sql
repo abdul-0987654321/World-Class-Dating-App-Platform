@@ -74,3 +74,68 @@ CREATE TABLE IF NOT EXISTS knex_migrations_lock (
 );
 
 INSERT INTO knex_migrations_lock (is_locked) VALUES (0) ON CONFLICT DO NOTHING;
+
+-- Create matches table
+CREATE TABLE IF NOT EXISTS matches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user1_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user2_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    matched_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP,
+    expired BOOLEAN DEFAULT FALSE,
+    first_message_sent BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) DEFAULT 'active',
+    compatibility_score INTEGER,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_matches_user1 ON matches(user1_id);
+CREATE INDEX IF NOT EXISTS idx_matches_user2 ON matches(user2_id);
+CREATE INDEX IF NOT EXISTS idx_matches_expires ON matches(expires_at);
+CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status);
+
+-- Create swipes table
+CREATE TABLE IF NOT EXISTS swipes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    swiper_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    swiped_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action VARCHAR(20) NOT NULL CHECK (action IN ('like', 'pass', 'super_like')),
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(swiper_id, swiped_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_swipes_swiper ON swipes(swiper_id);
+CREATE INDEX IF NOT EXISTS idx_swipes_swiped ON swipes(swiped_id);
+
+-- Create call_history table for video calls
+CREATE TABLE IF NOT EXISTS call_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    call_id VARCHAR(255) NOT NULL UNIQUE,
+    caller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    callee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    call_type VARCHAR(20) NOT NULL CHECK (call_type IN ('video', 'audio')),
+    status VARCHAR(50) NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
+    duration INTEGER,
+    recording_enabled BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_call_history_caller ON call_history(caller_id);
+CREATE INDEX IF NOT EXISTS idx_call_history_callee ON call_history(callee_id);
+
+-- Create messages table
+CREATE TABLE IF NOT EXISTS messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    content_type VARCHAR(50) DEFAULT 'text',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_match ON messages(match_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
