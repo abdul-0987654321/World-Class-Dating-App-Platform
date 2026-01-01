@@ -1,3 +1,6 @@
+// Import reflect-metadata first for decorator support
+import 'reflect-metadata';
+
 // Types
 export * from './types/user.types';
 export * from './types/match.types';
