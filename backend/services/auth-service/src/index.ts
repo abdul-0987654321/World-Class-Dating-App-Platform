@@ -45,10 +45,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
-app.use(generalLimiter);
-
-// Health check endpoint
+// Health check endpoint - MUST be before rate limiting for K8s probes
 app.get('/health', async (req: Request, res: Response) => {
   const checks = {
     database: false,
@@ -97,6 +94,9 @@ app.get('/', (req: Request, res: Response) => {
     },
   });
 });
+
+// Rate limiting - applied after health check endpoints for K8s probes
+app.use(generalLimiter);
 
 // Mount API routes
 app.use('/api/v1', apiRoutes);
