@@ -1,37 +1,66 @@
 /**
  * Theme configuration for styled-components
+ * Flamoral Dark Theme - Rose Red, Coral, Soft Pink palette
  */
 
 export const theme = {
   colors: {
-    primary: '#ff6b6b',
-    primaryLight: '#ff8a8a',
-    primaryDark: '#e55555',
-    primaryHover: '#e55555',
-    secondary: '#4ecdc4',
-    secondaryHover: '#3dbdb4',
-    gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
-    gradientHover: 'linear-gradient(135deg, #ff5555 0%, #ff7a3f 100%)',
-    white: '#ffffff',
+    // Primary Brand Colors - Flamoral Flame-Floral palette
+    primary: '#E63946',      // Rose Red
+    primaryLight: '#FF6B6B', // Coral
+    primaryDark: '#C1121F',  // Deep Rose
+    primaryHover: '#FF6B6B',
+    secondary: '#FFB4B4',    // Soft Pink
+    secondaryHover: '#FFDDD2',
+    gradient: 'linear-gradient(135deg, #E63946 0%, #FF6B6B 50%, #FFB4B4 100%)',
+    gradientHover: 'linear-gradient(135deg, #C1121F 0%, #E63946 50%, #FF6B6B 100%)',
+
+    // Dark Theme Surfaces
+    white: '#1A1D24',        // Dark surface (replaces white)
     black: '#000000',
-    text: '#333333',
-    textSecondary: '#666666',
-    textTertiary: '#999999',
-    textLight: '#aaaaaa',
-    background: '#ffffff',
-    backgroundSecondary: '#f8f9fa',
-    backgroundTertiary: '#f0f0f0',
-    border: '#e0e0e0',
-    success: '#4caf50',
-    warning: '#ff9800',
-    error: '#f44336',
-    errorLight: '#ffebee',
-    info: '#2196f3',
-    // Additional colors for coach and UI components
-    purple: '#9c27b0',
-    blue: '#2196f3',
-    green: '#4caf50',
-    pink: '#e91e63',
+    background: '#0B0B0F',   // Darkest background
+    backgroundSecondary: '#111318', // Card backgrounds
+    backgroundTertiary: '#1A1D24',  // Elevated surfaces
+    surface: '#111318',
+    surfaceElevated: '#1A1D24',
+    surfaceOverlay: 'rgba(0, 0, 0, 0.7)',
+
+    // Text Colors for Dark Theme
+    text: '#FFFFFF',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#B5B8C5',
+    textTertiary: '#8A8F9E',
+    textMuted: '#6B7280',
+    textLight: '#9CA3AF',
+
+    // Border Colors
+    border: 'rgba(255, 255, 255, 0.1)',
+    borderSubtle: 'rgba(255, 255, 255, 0.05)',
+    borderStrong: 'rgba(255, 255, 255, 0.2)',
+
+    // Status Colors
+    success: '#10B981',
+    successLight: 'rgba(16, 185, 129, 0.1)',
+    warning: '#F59E0B',
+    warningLight: 'rgba(245, 158, 11, 0.1)',
+    error: '#EF4444',
+    errorLight: 'rgba(239, 68, 68, 0.1)',
+    info: '#3B82F6',
+    infoLight: 'rgba(59, 130, 246, 0.1)',
+
+    // Accent Colors
+    pink: '#E63946',
+    coral: '#FF6B6B',
+    softPink: '#FFB4B4',
+    purple: '#9333EA',
+    blue: '#3B82F6',
+    cyan: '#06B6D4',
+    green: '#10B981',
+    gold: '#D9A657',
+
+    // Coin/Premium Colors
+    coinPrimary: '#D9A657',
+    coinSecondary: '#C77A45',
   },
   spacing: {
     xs: '4px',
@@ -70,11 +99,13 @@ export const theme = {
     full: '9999px',
   },
   shadows: {
-    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    md: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
-    xl: '0 20px 25px rgba(0, 0, 0, 0.15)',
-    '2xl': '0 25px 50px rgba(0, 0, 0, 0.25)',
+    sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.4)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
+    xl: '0 20px 25px rgba(0, 0, 0, 0.6)',
+    '2xl': '0 25px 50px rgba(0, 0, 0, 0.7)',
+    glow: '0 0 20px rgba(230, 57, 70, 0.3)',
+    glowStrong: '0 0 40px rgba(230, 57, 70, 0.5)',
   },
   transitions: {
     fast: '0.15s ease',

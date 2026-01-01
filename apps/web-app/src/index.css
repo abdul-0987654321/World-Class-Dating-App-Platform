@@ -106,12 +106,7 @@ body {
   box-shadow: 0 4px 24px rgba(217, 166, 87, 0.35);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #1A1A1A;
-    background-color: #FFF6EE;
-  }
-}
+/* Dark theme only - no light mode fallback */
 
 /* Heading Font */
 h1, h2, h3, .font-heading {
@@ -438,4 +433,118 @@ button:focus-visible {
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* ============================================================================
+   GLOBAL DARK THEME OVERRIDES
+   Force dark theme on all components - override Tailwind bg-white classes
+   ============================================================================ */
+
+/* Override all white backgrounds to dark surfaces */
+.bg-white,
+[class*="bg-white"] {
+  background-color: var(--surface-card, #111318) !important;
+}
+
+.bg-gray-50,
+.bg-gray-100,
+[class*="bg-gray-50"],
+[class*="bg-gray-100"] {
+  background-color: var(--surface-elevated, #1A1D24) !important;
+}
+
+/* Override light text colors for dark backgrounds */
+.text-gray-900,
+.text-gray-800,
+.text-gray-700,
+[class*="text-gray-900"],
+[class*="text-gray-800"],
+[class*="text-gray-700"] {
+  color: var(--text-primary, #FFFFFF) !important;
+}
+
+.text-gray-600,
+.text-gray-500,
+[class*="text-gray-600"],
+[class*="text-gray-500"] {
+  color: var(--text-secondary, #B5B8C5) !important;
+}
+
+/* Override light borders */
+.border-gray-200,
+.border-gray-300,
+[class*="border-gray-200"],
+[class*="border-gray-300"] {
+  border-color: var(--border-subtle, rgba(255, 255, 255, 0.1)) !important;
+}
+
+/* Force dark backgrounds on common components */
+[class*="rounded-xl"][class*="shadow"],
+[class*="rounded-2xl"][class*="shadow"],
+[class*="rounded-lg"][class*="shadow"] {
+  background-color: var(--surface-card, #111318);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+}
+
+/* Modal and overlay backgrounds */
+[class*="fixed"][class*="inset-0"],
+[class*="absolute"][class*="inset-0"] {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Modal content */
+[class*="modal"],
+[class*="Modal"] {
+  background-color: var(--surface-card, #111318) !important;
+  color: var(--text-primary, #FFFFFF) !important;
+}
+
+/* Input and form elements */
+input, textarea, select {
+  background-color: var(--surface-elevated, #1A1D24) !important;
+  color: var(--text-primary, #FFFFFF) !important;
+  border-color: var(--border-subtle, rgba(255, 255, 255, 0.1)) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted, #6B7280) !important;
+}
+
+/* Card components */
+[class*="card"],
+[class*="Card"] {
+  background-color: var(--surface-card, #111318);
+  color: var(--text-primary, #FFFFFF);
+}
+
+/* Hover states for dark theme */
+.hover\:bg-gray-50:hover,
+.hover\:bg-gray-100:hover {
+  background-color: var(--surface-elevated, #1A1D24) !important;
+}
+
+/* Focus states */
+input:focus, textarea:focus, select:focus, button:focus {
+  outline: 2px solid var(--accent-pink, #E63946);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page-solid, #0B0B0F);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong, rgba(255, 255, 255, 0.2));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted, #6B7280);
 }
