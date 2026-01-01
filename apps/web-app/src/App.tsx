@@ -6,6 +6,7 @@ import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
 import FuturisticLandingPage from './pages/Landing/FuturisticLandingPage';
+import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
@@ -81,12 +82,15 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AvatarProvider>
         <Routes>
-          {/* Landing page - public (premium calm design) */}
+          {/* Landing page - public (animated premium design) */}
           <Route path="/" element={
-            isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
+            isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
           } />
 
-        {/* Legacy Landing page - fallback */}
+        {/* Legacy Landing pages - fallback */}
+        <Route path="/landing-simple" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPage />
+        } />
         <Route path="/landing-old" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
         } />

@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/backend-shared';
+import verificationRoutes from './api/routes/verification.routes';
 
 // Load environment variables
 dotenv.config();
@@ -107,6 +108,9 @@ app.get('/api/v1', (req: Request, res: Response) => {
     },
   });
 });
+
+// Verification routes for deployment validation
+app.use('/api/v1/verify', verificationRoutes);
 
 // Start server
 app.listen(PORT, () => {
