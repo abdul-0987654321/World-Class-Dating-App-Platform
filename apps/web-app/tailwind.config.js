@@ -20,6 +20,52 @@ export default {
         // Extend default Tailwind colors
         ...colors,
 
+        // ============================================================================
+        // FLAMORAL DESIGN SYSTEM TOKENS (fm namespace)
+        // Maps to CSS variables in design-system.css
+        // ============================================================================
+        fm: {
+          // Backgrounds
+          bg: {
+            0: 'var(--bg-page-solid, #08080c)',
+            1: 'var(--surface-card, #111318)',
+            2: 'var(--surface-elevated, #1A1D24)',
+          },
+          // Surfaces
+          surface: {
+            card: 'var(--surface-card, #111318)',
+            elevated: 'var(--surface-elevated, #1A1D24)',
+            overlay: 'var(--surface-overlay, rgba(11, 11, 15, 0.95))',
+          },
+          // Text
+          text: {
+            DEFAULT: 'var(--text-primary, #FFFFFF)',
+            muted: 'var(--text-muted, #8A8D9F)',
+            secondary: 'var(--text-secondary, #B5B8C5)',
+            disabled: 'var(--text-disabled, #5A5D6F)',
+          },
+          // Borders
+          border: {
+            DEFAULT: 'var(--border-default, rgba(255, 255, 255, 0.12))',
+            subtle: 'var(--border-subtle, rgba(255, 255, 255, 0.08))',
+            strong: 'var(--border-strong, rgba(255, 255, 255, 0.20))',
+          },
+          // Brand Accent Colors (Romantic Aurora)
+          pink: 'var(--accent-pink, #d4587a)',
+          violet: 'var(--accent-purple, #7B61FF)',
+          cyan: 'var(--accent-cyan, #2ED4FF)',
+          mint: '#2EE89A',
+          gold: '#D4A574',
+          // Semantic
+          danger: 'var(--error, #EF4444)',
+          warning: 'var(--warning, #F59E0B)',
+          success: 'var(--success, #10B981)',
+          info: 'var(--info, #3B82F6)',
+          // Economy
+          coin: 'var(--coin-primary, #F59E0B)',
+          gem: 'var(--gem-primary, #3B82F6)',
+        },
+
         // Base Colors - Dark Mode First
         base: {
           black: '#000000',
@@ -97,6 +143,24 @@ export default {
       },
 
       backgroundImage: {
+        // ============================================================================
+        // FLAMORAL GLOBAL BACKGROUNDS
+        // ============================================================================
+        // App background - layered gradients for depth
+        'fm-app': `
+          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 88, 122, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse 60% 40% at 100% 50%, rgba(91, 127, 184, 0.1) 0%, transparent 50%),
+          linear-gradient(180deg, #08080c 0%, #0d0d14 50%, #08080c 100%)
+        `,
+        // Romantic Aurora gradient (pink → violet → cyan)
+        'fm-romance': 'linear-gradient(135deg, #d4587a 0%, #7B61FF 50%, #2ED4FF 100%)',
+        // Trust gradient (navy → blue → cyan)
+        'fm-trust': 'linear-gradient(135deg, #1a2744 0%, #3B82F6 50%, #2ED4FF 100%)',
+        // Elite/Luxury gradient (bronze → gold)
+        'fm-elite': 'linear-gradient(135deg, #8B6914 0%, #D4A574 50%, #F5D68A 100%)',
+        // Glass surface overlay
+        'fm-glass': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+
         // Primary Gradients
         'gradient-pink-blue': 'linear-gradient(135deg, #EC4899 0%, #3B82F6 100%)',
         'gradient-blue-green': 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
@@ -141,6 +205,18 @@ export default {
       },
 
       boxShadow: {
+        // ============================================================================
+        // FLAMORAL SHADOW SYSTEM
+        // ============================================================================
+        // Card shadow (premium feel)
+        'fm-card': '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1)',
+        // Glow effects for accent colors
+        'fm-glow-pink': '0 0 30px rgba(212, 88, 122, 0.4), 0 0 60px rgba(212, 88, 122, 0.2)',
+        'fm-glow-cyan': '0 0 30px rgba(46, 212, 255, 0.4), 0 0 60px rgba(46, 212, 255, 0.2)',
+        'fm-glow-mint': '0 0 30px rgba(46, 232, 154, 0.4), 0 0 60px rgba(46, 232, 154, 0.2)',
+        'fm-glow-gold': '0 0 30px rgba(212, 165, 116, 0.4), 0 0 60px rgba(212, 165, 116, 0.2)',
+        'fm-glow-violet': '0 0 30px rgba(123, 97, 255, 0.4), 0 0 60px rgba(123, 97, 255, 0.2)',
+
         // Glow Shadows
         'glow-pink': '0 0 40px rgba(236, 72, 153, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)',
         'glow-blue': '0 0 40px rgba(59, 130, 246, 0.4), 0 0 80px rgba(59, 130, 246, 0.2)',
@@ -276,6 +352,22 @@ export default {
       borderRadius: {
         '4xl': '2rem',
         '5xl': '2.5rem',
+        // Flamoral tokens
+        'fm-card': '20px',
+        'fm-chip': '9999px',
+        'fm-modal': '24px',
+      },
+
+      // Flamoral spacing scale
+      spacing: {
+        'fm-2': '8px',
+        'fm-3': '12px',
+        'fm-4': '16px',
+        'fm-5': '20px',
+        'fm-6': '24px',
+        'fm-8': '32px',
+        'fm-10': '40px',
+        'fm-12': '48px',
       },
 
       backdropBlur: {
@@ -287,11 +379,17 @@ export default {
         '600': '600ms',
         '800': '800ms',
         '2000': '2000ms',
+        // Flamoral motion tokens
+        'fm-fast': '150ms',
+        'fm-base': '250ms',
+        'fm-slow': '450ms',
       },
 
       transitionTimingFunction: {
         'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
         'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        // Flamoral premium easing
+        'fm': 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
   },

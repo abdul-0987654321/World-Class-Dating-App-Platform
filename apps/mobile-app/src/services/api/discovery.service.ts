@@ -47,30 +47,33 @@ class DiscoveryService {
 
   /**
    * Swipe left (pass) on a profile
+   * POST /api/v1/discovery/pass
    */
   async swipeLeft(profileId: string): Promise<ApiResponse<SwipeResponse>> {
-    return httpClient.post<SwipeResponse>(`${this.baseUrl}/swipe/pass`, {
-      profileId,
+    return httpClient.post<SwipeResponse>(`${this.baseUrl}/pass`, {
+      target_user_id: profileId,
       timestamp: new Date().toISOString(),
     });
   }
 
   /**
    * Swipe right (like) on a profile
+   * POST /api/v1/discovery/like
    */
   async swipeRight(profileId: string): Promise<ApiResponse<SwipeResponse>> {
-    return httpClient.post<SwipeResponse>(`${this.baseUrl}/swipe/like`, {
-      profileId,
+    return httpClient.post<SwipeResponse>(`${this.baseUrl}/like`, {
+      target_user_id: profileId,
       timestamp: new Date().toISOString(),
     });
   }
 
   /**
    * Super like a profile
+   * POST /api/v1/discovery/super-like
    */
   async superLike(profileId: string): Promise<ApiResponse<SwipeResponse>> {
-    return httpClient.post<SwipeResponse>(`${this.baseUrl}/swipe/super-like`, {
-      profileId,
+    return httpClient.post<SwipeResponse>(`${this.baseUrl}/super-like`, {
+      target_user_id: profileId,
       timestamp: new Date().toISOString(),
     });
   }

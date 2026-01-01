@@ -73,8 +73,48 @@ export const SafetyCenterPage: React.FC = () => {
   ];
 
   const getDefaultCrisisResources = (): CrisisResource[] => [
-    { name: 'National Domestic Violence Hotline', contact: '1-800-799-7233', description: '24/7 support for domestic violence', hours: '24/7' },
-    { name: 'RAINN Sexual Assault Hotline', contact: '1-800-656-4673', description: 'Support for sexual assault survivors', hours: '24/7' },
+    {
+      name: 'National Domestic Violence Hotline',
+      contact: '1-800-799-7233',
+      description: '24/7 confidential support for domestic violence survivors',
+      hours: '24/7',
+      website: 'https://www.thehotline.org',
+    },
+    {
+      name: 'RAINN Sexual Assault Hotline',
+      contact: '1-800-656-4673',
+      description: 'Free, confidential support for sexual assault survivors',
+      hours: '24/7',
+      website: 'https://www.rainn.org',
+    },
+    {
+      name: 'National Suicide Prevention Lifeline',
+      contact: '988',
+      description: 'Free and confidential emotional support for people in crisis',
+      hours: '24/7',
+      website: 'https://988lifeline.org',
+    },
+    {
+      name: 'Crisis Text Line',
+      contact: 'Text HOME to 741741',
+      description: 'Free crisis counseling via text message',
+      hours: '24/7',
+      website: 'https://www.crisistextline.org',
+    },
+    {
+      name: 'National Human Trafficking Hotline',
+      contact: '1-888-373-7888',
+      description: 'Anti-trafficking hotline for reporting tips and seeking help',
+      hours: '24/7',
+      website: 'https://humantraffickinghotline.org',
+    },
+    {
+      name: 'Trans Lifeline',
+      contact: '1-877-565-8860',
+      description: 'Peer support for transgender people in crisis',
+      hours: '24/7',
+      website: 'https://translifeline.org',
+    },
   ];
 
   const loadData = async () => {
@@ -909,42 +949,81 @@ const ResourcesTab: React.FC<{
       {/* Crisis Resources */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Crisis Resources</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          If you or someone you know is in immediate danger, please call 911.
+        </p>
         <div className="grid gap-4">
-          {resources.map((resource, idx) => (
-            <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-800">{resource.name}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{resource.description}</p>
-                  {resource.hours && (
-                    <p className="text-xs text-gray-500 mt-1">Hours: {resource.hours}</p>
-                  )}
+          {resources.map((resource, idx) => {
+            // Check if contact is a phone number (starts with digit or 1-)
+            const isPhoneNumber = /^[0-9\-\(\)\s\+]+$/.test(resource.contact.replace(/\s/g, ''));
+            // Format phone for tel: link (remove non-digits except +)
+            const telLink = resource.contact.replace(/[^\d+]/g, '');
+
+            return (
+              <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-pink-300 transition">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800 text-lg">{resource.name}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{resource.description}</p>
+                    {resource.hours && (
+                      <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        Available {resource.hours}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    {isPhoneNumber ? (
+                      <a
+                        href={`tel:${telLink}`}
+                        className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        Call {resource.contact}
+                      </a>
+                    ) : (
+                      <a
+                        href={`sms:741741&body=HOME`}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        {resource.contact}
+                      </a>
+                    )}
+                    {resource.website && (
+                      <a
+                        href={resource.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pink-500 hover:text-pink-600 text-sm inline-flex items-center justify-center gap-1 py-1"
+                      >
+                        Visit website
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <a
-                  href={`tel:${resource.contact}`}
-                  className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 shrink-0"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {resource.contact}
-                </a>
               </div>
-              {resource.website && (
-                <a
-                  href={resource.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-500 hover:text-pink-600 text-sm mt-2 inline-flex items-center gap-1"
-                >
-                  Visit website
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              )}
-            </div>
-          ))}
+            );
+          })}
+        </div>
+
+        {/* Additional help text */}
+        <div className="mt-6 p-4 bg-pink-50 rounded-lg border border-pink-200">
+          <p className="text-sm text-gray-700">
+            <strong>Remember:</strong> Your safety is our priority. If you encounter any concerning behavior on Flamoral, please use the in-app reporting tools or contact our safety team at{' '}
+            <a href="mailto:safety@flamoral.com" className="text-pink-500 hover:text-pink-600 font-medium">
+              safety@flamoral.com
+            </a>
+          </p>
         </div>
       </div>
     </div>

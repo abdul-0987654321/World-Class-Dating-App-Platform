@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
+import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -73,51 +74,8 @@ export const LoginPage: React.FC = () => {
         <div className="p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="relative">
-                <svg className="w-12 h-12" viewBox="0 0 32 32" fill="none">
-                  <defs>
-                    <linearGradient id="logoGradLogin" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#ec4899"/>
-                      <stop offset="50%" stopColor="#8b5cf6"/>
-                      <stop offset="100%" stopColor="#3b82f6"/>
-                    </linearGradient>
-                    <filter id="glow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                      <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <path
-                    d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z"
-                    fill="url(#logoGradLogin)"
-                    filter="url(#glow)"
-                  />
-                  <path
-                    d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z"
-                    fill="white"
-                    opacity="0.9"
-                  />
-                </svg>
-                {/* Glow effect behind logo */}
-                <div
-                  className="absolute inset-0 rounded-full filter blur-xl opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #ec4899, #8b5cf6)' }}
-                />
-              </div>
-              <h1
-                className="text-4xl font-bold font-heading"
-                style={{
-                  background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                FLAMORAL
-              </h1>
+            <div className="flex items-center justify-center mb-3">
+              <FlamoralLogo variant="horizontal" size="lg" />
             </div>
             <p className="text-gray-400 text-sm tracking-wide">Where Passion Meets Connection.</p>
           </div>

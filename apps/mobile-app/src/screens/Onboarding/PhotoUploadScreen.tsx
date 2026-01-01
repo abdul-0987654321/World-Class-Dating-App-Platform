@@ -17,6 +17,7 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import axios from 'axios';
 import { OnboardingStackParamList } from './OnboardingNavigator';
 
 type PhotoUploadScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'PhotoUpload'>;
@@ -128,23 +129,51 @@ const PhotoUploadScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
+  const uploadPhotoToServer = async (uri: string, index: number): Promise<string> => {
+    const formData = new FormData();
+    formData.append('photo', {
+      uri,
+      type: 'image/jpeg',
+      name: `photo_${index}.jpg`,
+    } as any);
+
+    const response = await axios.post(
+      `${process.env.API_URL}/api/photos/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return response.data.url;
+  };
+
   const handleContinue = async () => {
     if (photos.length < MIN_PHOTOS) return;
 
     setUploading(true);
 
-    // In production, upload photos to server and get URLs
-    // For now, we'll pass the local URIs
-    setTimeout(() => {
-      setUploading(false);
+    try {
+      // Upload all photos to the server
+      const uploadedUrls = await Promise.all(
+        photos.map((photoUri, index) => uploadPhotoToServer(photoUri, index))
+      );
+
       navigation.navigate('Location', {
         name,
         birthday,
         gender,
         interestedIn,
-        photos,
+        photos: uploadedUrls,
       });
-    }, 500);
+    } catch (error) {
+      console.error('Failed to upload photos:', error);
+      Alert.alert('Upload Failed', 'Failed to upload photos. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const renderPhotoSlot = (index: number) => {

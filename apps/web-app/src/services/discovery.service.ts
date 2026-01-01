@@ -55,7 +55,7 @@ export interface SwipeResult {
 }
 
 class DiscoveryService {
-  private baseUrl = '/api/discovery';
+  private baseUrl = '/api/v1/discovery';
 
   async getRecommendations(cursor?: string): Promise<RecommendationsResponse> {
     // In mock mode, return mock data
@@ -85,7 +85,7 @@ class DiscoveryService {
       };
     }
 
-    // Use /feed endpoint instead of /recommendations
+    // Use /feed endpoint
     const url = cursor
       ? `${this.baseUrl}/feed?cursor=${cursor}`
       : `${this.baseUrl}/feed`;
@@ -101,9 +101,36 @@ class DiscoveryService {
       throw new Error('Failed to fetch discovery feed');
     }
 
-    // Backend returns { success: true, data: { profiles, nextCursor, remainingToday } }
+    // Backend returns { success: true, data: { items, next_cursor } }
+    // Map to frontend expected format { profiles, nextCursor, remainingToday }
     const json = await response.json();
-    return json.data || json;
+    const data = json.data || json;
+
+    // Transform backend items to frontend DiscoveryProfile format
+    const profiles: DiscoveryProfile[] = (data.items || []).map((item: any) => ({
+      user_id: item.user_id,
+      first_name: item.profile_preview?.display_name || 'User',
+      age: item.profile_preview?.age || 0,
+      bio: item.profile_preview?.bio,
+      occupation: item.profile_preview?.occupation,
+      city: item.profile_preview?.city,
+      distance: item.profile_preview?.distance,
+      photos: (item.profile_preview?.photos || []).map((photo: any, i: number) => ({
+        url: typeof photo === 'string' ? photo : photo.url,
+        is_primary: i === 0,
+      })),
+      prompts: item.profile_preview?.prompts || [],
+      interests: item.profile_preview?.interests || [],
+      is_verified: item.profile_preview?.is_verified || false,
+      premium_tier: item.profile_preview?.premium_tier,
+      compatibility_score: item.profile_preview?.compatibility_score,
+    }));
+
+    return {
+      profiles,
+      nextCursor: data.next_cursor || null,
+      remainingToday: data.remaining_today ?? 50, // Default to 50 if not provided
+    };
   }
 
   // Alias for getRecommendations to match new API naming
@@ -135,20 +162,130 @@ class DiscoveryService {
       };
     }
 
-    const response = await fetch(`${this.baseUrl}/swipe`, {
+    // Route to appropriate endpoint based on action
+    // Backend uses separate endpoints: /like, /pass, /super-like
+    switch (action) {
+      case 'like':
+        return this.like(targetUserId);
+      case 'pass':
+        return this.pass(targetUserId);
+      case 'super_like':
+        return this.superLike(targetUserId);
+      default:
+        throw new Error(`Unknown swipe action: ${action}`);
+    }
+  }
+
+  /**
+   * Like a user
+   * POST /api/v1/discovery/like
+   */
+  async like(targetUserId: string): Promise<SwipeResult> {
+    const response = await fetch(`${this.baseUrl}/like`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ targetUserId, action }),
+      body: JSON.stringify({ target_user_id: targetUserId }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to swipe');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to like');
     }
 
-    return response.json();
+    // Backend returns { success: true, data: { liked, match_created, match } }
+    const json = await response.json();
+    const data = json.data || json;
+
+    return {
+      isMatch: data.match_created || false,
+      match: data.match ? {
+        id: data.match.id,
+        matchedUser: {
+          id: data.match.matched_user_id || data.match.matchedUserId,
+          name: data.match.matched_user_name || data.match.name || 'Match',
+          photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
+          isOnline: data.match.is_online || false,
+        },
+        matchedAt: data.match.created_at || new Date().toISOString(),
+      } : undefined,
+      remainingLikes: data.remaining_likes ?? 50,
+      remainingSuperLikes: data.remaining_super_likes ?? 5,
+    };
+  }
+
+  /**
+   * Pass on a user
+   * POST /api/v1/discovery/pass
+   */
+  async pass(targetUserId: string): Promise<SwipeResult> {
+    const response = await fetch(`${this.baseUrl}/pass`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    });
+
+    // Backend returns 204 No Content for pass
+    if (!response.ok && response.status !== 204) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to pass');
+    }
+
+    // Pass never results in a match
+    return {
+      isMatch: false,
+      remainingLikes: 50, // Pass doesn't affect like count
+      remainingSuperLikes: 5,
+    };
+  }
+
+  /**
+   * Super-like a user
+   * POST /api/v1/discovery/super-like
+   */
+  async superLike(targetUserId: string): Promise<SwipeResult> {
+    const response = await fetch(`${this.baseUrl}/super-like`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      // Handle tier restriction error
+      if (response.status === 402) {
+        throw new Error('Super-like requires Plus or Premium subscription');
+      }
+      throw new Error(errorData.error || 'Failed to super-like');
+    }
+
+    // Backend returns { success: true, data: { super_liked: true } }
+    const json = await response.json();
+    const data = json.data || json;
+
+    return {
+      isMatch: data.match_created || false,
+      match: data.match ? {
+        id: data.match.id,
+        matchedUser: {
+          id: data.match.matched_user_id || data.match.matchedUserId,
+          name: data.match.matched_user_name || data.match.name || 'Match',
+          photoUrl: data.match.matched_user_photo || data.match.photoUrl || '',
+          isOnline: data.match.is_online || false,
+        },
+        matchedAt: data.match.created_at || new Date().toISOString(),
+      } : undefined,
+      remainingLikes: data.remaining_likes ?? 50,
+      remainingSuperLikes: data.remaining_super_likes ?? 4, // Decremented after super-like
+    };
   }
 
   async getStats(): Promise<{
@@ -175,7 +312,18 @@ class DiscoveryService {
       throw new Error('Failed to fetch stats');
     }
 
-    return response.json();
+    // Backend returns { success: true, data: { ... } }
+    const json = await response.json();
+    const data = json.data || json;
+
+    // Map backend snake_case to frontend camelCase
+    return {
+      remainingLikes: data.remaining_likes ?? data.remainingLikes ?? 50,
+      remainingSuperLikes: data.remaining_super_likes ?? data.remainingSuperLikes ?? 5,
+      remainingBoosts: data.remaining_boosts ?? data.remainingBoosts ?? 1,
+      likesResetAt: data.likes_reset_at ?? data.likesResetAt ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      isPremium: data.is_premium ?? data.isPremium ?? false,
+    };
   }
 }
 

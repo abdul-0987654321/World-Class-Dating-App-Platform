@@ -116,7 +116,7 @@ const EditProfileScreen: React.FC = () => {
       } as any);
       formData.append('index', index.toString());
 
-      await axios.post(`${process.env.API_URL}/api/users/photos`, formData, {
+      await axios.post(`${process.env.API_URL}/api/photos/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

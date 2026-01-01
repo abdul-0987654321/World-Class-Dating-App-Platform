@@ -5,12 +5,47 @@ type TypingHandler = (data: { conversationId: string; userId: string; isTyping: 
 type OnlineStatusHandler = (data: { userId: string; isOnline: boolean }) => void;
 type MatchHandler = (match: any) => void;
 
+// Reward event types
+type CoinUpdateHandler = (data: {
+  newBalance: number;
+  change: number;
+  reason: string;
+  transactionId?: string;
+  timestamp: string;
+}) => void;
+
+type StreakUpdateHandler = (data: {
+  currentStreak: number;
+  longestStreak: number;
+  lastCheckIn: string;
+  streakBonus?: number;
+  timestamp: string;
+}) => void;
+
+type RewardClaimedHandler = (data: {
+  rewardId: string;
+  rewardType: string;
+  userId: string;
+  timestamp: string;
+}) => void;
+
+type RewardMilestoneHandler = (data: {
+  milestone: string;
+  reward: { type: string; amount: number };
+  message: string;
+  timestamp: string;
+}) => void;
+
 class SocketService {
   private socket: Socket | null = null;
   private messageHandlers: Map<string, MessageHandler[]> = new Map();
   private typingHandlers: TypingHandler[] = [];
   private onlineStatusHandlers: OnlineStatusHandler[] = [];
   private matchHandlers: MatchHandler[] = [];
+  private coinUpdateHandlers: CoinUpdateHandler[] = [];
+  private streakUpdateHandlers: StreakUpdateHandler[] = [];
+  private rewardClaimedHandlers: RewardClaimedHandler[] = [];
+  private rewardMilestoneHandlers: RewardMilestoneHandler[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
@@ -87,6 +122,27 @@ class SocketService {
         this.matchHandlers.forEach(handler => handler(match));
       });
 
+      // Reward event handlers (real-time balance & streak updates)
+      this.socket.on('coins:updated', (data) => {
+        console.log('Coins updated:', data);
+        this.coinUpdateHandlers.forEach(handler => handler(data));
+      });
+
+      this.socket.on('streak:updated', (data) => {
+        console.log('Streak updated:', data);
+        this.streakUpdateHandlers.forEach(handler => handler(data));
+      });
+
+      this.socket.on('reward:claimed', (data) => {
+        console.log('Reward claimed:', data);
+        this.rewardClaimedHandlers.forEach(handler => handler(data));
+      });
+
+      this.socket.on('reward:milestone', (data) => {
+        console.log('Reward milestone:', data);
+        this.rewardMilestoneHandlers.forEach(handler => handler(data));
+      });
+
       // Error handling
       this.socket.on('error', (error) => {
         console.error('Socket error:', error);
@@ -103,6 +159,10 @@ class SocketService {
     this.typingHandlers = [];
     this.onlineStatusHandlers = [];
     this.matchHandlers = [];
+    this.coinUpdateHandlers = [];
+    this.streakUpdateHandlers = [];
+    this.rewardClaimedHandlers = [];
+    this.rewardMilestoneHandlers = [];
   }
 
   isConnected(): boolean {
@@ -208,6 +268,75 @@ class SocketService {
   requestOnlineStatus(userIds: string[]): void {
     if (this.socket?.connected) {
       this.socket.emit('get_online_status', { userIds });
+    }
+  }
+
+  // ==========================================
+  // Reward Event Subscriptions
+  // ==========================================
+
+  // Subscribe to coin balance updates
+  onCoinUpdate(handler: CoinUpdateHandler): () => void {
+    this.coinUpdateHandlers.push(handler);
+    return () => {
+      const index = this.coinUpdateHandlers.indexOf(handler);
+      if (index > -1) {
+        this.coinUpdateHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  // Subscribe to streak updates
+  onStreakUpdate(handler: StreakUpdateHandler): () => void {
+    this.streakUpdateHandlers.push(handler);
+    return () => {
+      const index = this.streakUpdateHandlers.indexOf(handler);
+      if (index > -1) {
+        this.streakUpdateHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  // Subscribe to reward claimed events
+  onRewardClaimed(handler: RewardClaimedHandler): () => void {
+    this.rewardClaimedHandlers.push(handler);
+    return () => {
+      const index = this.rewardClaimedHandlers.indexOf(handler);
+      if (index > -1) {
+        this.rewardClaimedHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  // Subscribe to reward milestone events
+  onRewardMilestone(handler: RewardMilestoneHandler): () => void {
+    this.rewardMilestoneHandlers.push(handler);
+    return () => {
+      const index = this.rewardMilestoneHandlers.indexOf(handler);
+      if (index > -1) {
+        this.rewardMilestoneHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  // Subscribe to reward updates (joins rewards room)
+  subscribeToRewards(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('reward:subscribe');
+    }
+  }
+
+  // Unsubscribe from reward updates
+  unsubscribeFromRewards(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('reward:unsubscribe');
+    }
+  }
+
+  // Claim a reward via WebSocket
+  claimReward(rewardId: string, rewardType: string, csrfToken: string): void {
+    if (this.socket?.connected) {
+      this.socket.emit('reward:claim', { rewardId, rewardType, csrfToken });
     }
   }
 }

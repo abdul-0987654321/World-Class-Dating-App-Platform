@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services';
+import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
 
 interface FormData {
   firstName: string;
@@ -205,18 +206,8 @@ export const SignupPage: React.FC = () => {
         >
           {/* Logo */}
           <div className="text-center mb-6">
-            <Link to="/" className="inline-flex items-center justify-center gap-2 mb-2">
-              <svg className="w-10 h-10" viewBox="0 0 32 32" fill="none">
-                <defs>
-                  <linearGradient id="logoGradSignup" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#EC4899"/>
-                    <stop offset="100%" stopColor="#3B82F6"/>
-                  </linearGradient>
-                </defs>
-                <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#logoGradSignup)"/>
-                <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#fff" opacity="0.85"/>
-              </svg>
-              <span className="text-3xl font-bold text-gradient-pink-blue">Flamoral</span>
+            <Link to="/" className="inline-flex items-center justify-center mb-2">
+              <FlamoralLogo variant="horizontal" size="lg" />
             </Link>
             <p className="text-gray-400 text-sm">
               {tierParam ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}` : 'Create your account'}

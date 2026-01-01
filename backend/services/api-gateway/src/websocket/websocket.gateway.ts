@@ -473,6 +473,102 @@ export class WebsocketGateway
   }
 
   // ==========================================
+  // Reward Events (real-time balance & streak updates)
+  // ==========================================
+
+  @SubscribeMessage('reward:claim')
+  async handleRewardClaim(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { rewardId: string; rewardType: string; csrfToken?: string },
+  ) {
+    const { rewardId, rewardType, csrfToken } = data;
+
+    // Validate CSRF token for reward claim (sensitive operation)
+    if (!this.validateOperationCsrf(client, csrfToken)) {
+      throw new WsException('Invalid CSRF token');
+    }
+
+    // Emit reward claimed event to user
+    this.server.to(`user:${client.userId}`).emit('reward:claimed', {
+      rewardId,
+      rewardType,
+      userId: client.userId,
+      timestamp: new Date().toISOString(),
+    });
+
+    return { success: true, rewardId };
+  }
+
+  /**
+   * Emit coin balance update to a user (called from rewards service)
+   */
+  emitCoinUpdate(userId: string, data: {
+    newBalance: number;
+    change: number;
+    reason: string;
+    transactionId?: string;
+  }): void {
+    this.server.to(`user:${userId}`).emit('coins:updated', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Emit streak update to a user (called from rewards service)
+   */
+  emitStreakUpdate(userId: string, data: {
+    currentStreak: number;
+    longestStreak: number;
+    lastCheckIn: string;
+    streakBonus?: number;
+  }): void {
+    this.server.to(`user:${userId}`).emit('streak:updated', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Emit reward milestone notification
+   */
+  emitRewardMilestone(userId: string, data: {
+    milestone: string;
+    reward: {
+      type: string;
+      amount: number;
+    };
+    message: string;
+  }): void {
+    this.server.to(`user:${userId}`).emit('reward:milestone', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  @SubscribeMessage('reward:subscribe')
+  async handleRewardSubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    // Join user's reward update room
+    client.join(`rewards:${client.userId}`);
+    this.logger.log(`User ${client.userId} subscribed to reward updates`);
+
+    return { success: true, subscribed: true };
+  }
+
+  @SubscribeMessage('reward:unsubscribe')
+  async handleRewardUnsubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    // Leave reward update room
+    client.leave(`rewards:${client.userId}`);
+    this.logger.log(`User ${client.userId} unsubscribed from reward updates`);
+
+    return { success: true, subscribed: false };
+  }
+
+  // ==========================================
   // CSRF Token Refresh
   // ==========================================
 
