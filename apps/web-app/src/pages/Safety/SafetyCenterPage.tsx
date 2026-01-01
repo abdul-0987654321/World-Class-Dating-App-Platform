@@ -29,10 +29,58 @@ export const SafetyCenterPage: React.FC = () => {
     loadData();
   }, []);
 
+  // Default fallback data when API fails
+  const getDefaultVerificationStatus = (): VerificationStatus => ({
+    emailVerified: true,
+    phoneVerified: false,
+    governmentIdVerified: false,
+    selfieVerified: false,
+    livenessVerified: false,
+    videoVerified: false,
+    biometricVerified: false,
+    socialMediaVerified: [],
+    verificationScore: 20,
+    overallVerificationLevel: 'basic',
+  });
+
+  const getDefaultSecuritySettings = (): SecuritySettings => ({
+    two_factor_enabled: false,
+    two_factor_method: null,
+    login_alerts_enabled: true,
+    new_device_alerts_enabled: true,
+    suspicious_activity_alerts_enabled: true,
+    trusted_devices: [],
+  });
+
+  const getDefaultPrivacySettings = (): PrivacySettings => ({
+    profile_visibility: 'public',
+    show_online_status: true,
+    show_last_active: true,
+    show_distance: true,
+    show_age: true,
+    incognito_mode: false,
+    hide_from_search: false,
+    block_contacts: false,
+    allow_screenshots: true,
+  });
+
+  const getDefaultSafetyTips = (): SafetyTip[] => [
+    { tip: 'Video chat before meeting in person', category: 'before', priority: 'high' },
+    { tip: 'Tell a friend where you\'re going', category: 'before', priority: 'high' },
+    { tip: 'Meet in a public place', category: 'during', priority: 'high' },
+    { tip: 'Trust your instincts', category: 'during', priority: 'medium' },
+    { tip: 'Check in with friends after the date', category: 'after', priority: 'medium' },
+  ];
+
+  const getDefaultCrisisResources = (): CrisisResource[] => [
+    { name: 'National Domestic Violence Hotline', contact: '1-800-799-7233', description: '24/7 support for domestic violence', hours: '24/7' },
+    { name: 'RAINN Sexual Assault Hotline', contact: '1-800-656-4673', description: 'Support for sexual assault survivors', hours: '24/7' },
+  ];
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [verification, security, privacy, contacts, tips, resources] = await Promise.all([
+      const results = await Promise.allSettled([
         safetyService.getVerificationStatus(),
         safetyService.getSecuritySettings(),
         safetyService.getPrivacySettings(),
@@ -40,14 +88,23 @@ export const SafetyCenterPage: React.FC = () => {
         safetyService.getSafetyTips(),
         safetyService.getCrisisResources(),
       ]);
-      setVerificationStatus(verification);
-      setSecuritySettings(security);
-      setPrivacySettings(privacy);
-      setEmergencyContacts(contacts);
-      setSafetyTips(tips);
-      setCrisisResources(resources);
+
+      // Use results or fallbacks
+      setVerificationStatus(results[0].status === 'fulfilled' ? results[0].value : getDefaultVerificationStatus());
+      setSecuritySettings(results[1].status === 'fulfilled' ? results[1].value : getDefaultSecuritySettings());
+      setPrivacySettings(results[2].status === 'fulfilled' ? results[2].value : getDefaultPrivacySettings());
+      setEmergencyContacts(results[3].status === 'fulfilled' ? results[3].value : []);
+      setSafetyTips(results[4].status === 'fulfilled' ? results[4].value : getDefaultSafetyTips());
+      setCrisisResources(results[5].status === 'fulfilled' ? results[5].value : getDefaultCrisisResources());
     } catch (err) {
       console.error('Failed to load safety data:', err);
+      // Set all defaults on complete failure
+      setVerificationStatus(getDefaultVerificationStatus());
+      setSecuritySettings(getDefaultSecuritySettings());
+      setPrivacySettings(getDefaultPrivacySettings());
+      setEmergencyContacts([]);
+      setSafetyTips(getDefaultSafetyTips());
+      setCrisisResources(getDefaultCrisisResources());
     } finally {
       setLoading(false);
     }
@@ -164,34 +221,34 @@ export const SafetyCenterPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-page)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-subtle)' }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient-flamoral">
+          <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Flamoral
           </h1>
           <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/discover')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Discover
             </button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/matches')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Matches
             </button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/messages')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Messages
             </button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/profile')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Profile
             </button>
-            <button onClick={() => navigate('/safety')} className="text-pink-500 font-medium">
+            <button onClick={() => navigate('/safety')} style={{ color: 'var(--accent-pink)' }} className="font-medium">
               Safety
             </button>
           </nav>
@@ -202,17 +259,17 @@ export const SafetyCenterPage: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Page Title */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Safety Center</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Safety Center</h2>
+          <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>
             Manage your verification, security, privacy settings, and access safety resources.
           </p>
         </div>
 
         {/* SOS Button */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div className="rounded-xl p-4 mb-6 flex items-center justify-between" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
           <div>
-            <h3 className="font-semibold text-red-800">Emergency SOS</h3>
-            <p className="text-sm text-red-600">Instantly alert your emergency contacts</p>
+            <h3 className="font-semibold text-red-400">Emergency SOS</h3>
+            <p className="text-sm text-red-300">Instantly alert your emergency contacts</p>
           </div>
           <button
             onClick={handleTriggerSOS}
@@ -226,17 +283,20 @@ export const SafetyCenterPage: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
-          <div className="flex border-b">
+        <div className="rounded-xl mb-6 overflow-hidden" style={{ background: 'var(--surface-card)' }}>
+          <div className="flex" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 transition ${
-                  activeTab === tab.id
-                    ? 'border-b-2 border-pink-500 text-pink-500 bg-pink-50'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  activeTab === tab.id ? 'border-b-2' : ''
                 }`}
+                style={{
+                  borderColor: activeTab === tab.id ? 'var(--accent-pink)' : 'transparent',
+                  color: activeTab === tab.id ? 'var(--accent-pink)' : 'var(--text-secondary)',
+                  background: activeTab === tab.id ? 'rgba(255, 46, 147, 0.1)' : 'transparent'
+                }}
               >
                 {tab.icon}
                 <span className="font-medium">{tab.label}</span>

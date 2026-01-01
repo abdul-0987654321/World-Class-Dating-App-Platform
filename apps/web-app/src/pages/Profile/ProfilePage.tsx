@@ -84,8 +84,8 @@ export const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-page)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }}></div>
       </div>
     );
   }
@@ -95,27 +95,27 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-subtle)' }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient-flamoral">
+          <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Flamoral
           </h1>
           <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/discover')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Discover
             </button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/matches')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Matches
             </button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/messages')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Messages
             </button>
-            <button onClick={() => navigate('/profile')} className="text-pink-500 font-medium">
+            <button onClick={() => navigate('/profile')} style={{ color: 'var(--accent-pink)' }} className="font-medium">
               Profile
             </button>
-            <button onClick={() => navigate('/safety')} className="text-gray-600 hover:text-pink-500">
+            <button onClick={() => navigate('/safety')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">
               Safety
             </button>
           </nav>
@@ -125,8 +125,8 @@ export const ProfilePage: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-          <div className="h-32 bg-gradient-to-r from-pink-500 to-purple-600" />
+        <div className="rounded-2xl overflow-hidden mb-6" style={{ background: 'var(--surface-card)' }}>
+          <div className="h-32" style={{ background: 'var(--accent-gradient)' }} />
           <div className="px-6 pb-6">
             <div className="relative -mt-16 mb-4">
               <img
@@ -143,9 +143,9 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">{user.name}, {user.age}</h2>
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{user.name}, {user.age}</h2>
               {user.verified?.photo && (
-                <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'var(--accent-cyan)' }}>
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -154,7 +154,7 @@ export const ProfilePage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+            <div className="flex items-center gap-4 text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -171,7 +171,7 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Subscription Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: 'linear-gradient(135deg, var(--coin-primary) 0%, #C77A45 100%)' }}>
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
@@ -181,12 +181,13 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* Bio Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--surface-card)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">About Me</h3>
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>About Me</h3>
             <button
               onClick={() => setEditing(!editing)}
-              className="text-pink-500 hover:text-pink-600 text-sm font-medium"
+              className="text-sm font-medium"
+              style={{ color: 'var(--accent-pink)' }}
             >
               {editing ? 'Cancel' : 'Edit'}
             </button>
@@ -196,29 +197,32 @@ export const ProfilePage: React.FC = () => {
               <textarea
                 value={editedBio}
                 onChange={(e) => setEditedBio(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full p-3 rounded-lg focus:ring-2 focus:outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
                 rows={4}
               />
               <button
                 onClick={handleSaveBio}
-                className="mt-3 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                className="mt-3 px-4 py-2 text-white rounded-lg transition hover:opacity-90"
+                style={{ background: 'var(--accent-gradient)' }}
               >
                 Save
               </button>
             </div>
           ) : (
-            <p className="text-gray-600">{user.bio}</p>
+            <p style={{ color: 'var(--text-secondary)' }}>{user.bio}</p>
           )}
         </div>
 
         {/* Interests */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Interests</h3>
+        <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--surface-card)' }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Interests</h3>
           <div className="flex flex-wrap gap-2">
             {user.interests?.map((interest: string, idx: number) => (
               <span
                 key={idx}
-                className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full text-sm font-medium"
+                className="px-4 py-2 rounded-full text-sm font-medium"
+                style={{ background: 'rgba(255, 46, 147, 0.2)', color: 'var(--accent-pink)' }}
               >
                 {interest}
               </span>
@@ -227,80 +231,80 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* Stats */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Stats</h3>
+        <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--surface-card)' }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Your Stats</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-2xl font-bold text-pink-500">{user.coinBalance}</p>
-              <p className="text-sm text-gray-500">Coins</p>
+            <div className="rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--coin-primary)' }}>{user.coinBalance}</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Coins</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-2xl font-bold text-purple-500">12</p>
-              <p className="text-sm text-gray-500">Matches</p>
+            <div className="rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--accent-purple)' }}>12</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Matches</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-2xl font-bold text-blue-500">48</p>
-              <p className="text-sm text-gray-500">Likes</p>
+            <div className="rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--accent-cyan)' }}>48</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Likes</p>
             </div>
           </div>
         </div>
 
         {/* Settings */}
-        <div className="bg-white rounded-xl shadow-sm divide-y mb-6">
-          <button onClick={() => navigate('/settings')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800 flex items-center gap-2">
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl overflow-hidden mb-6" style={{ background: 'var(--surface-card)' }}>
+          <button onClick={() => navigate('/settings')} className="w-full p-4 flex items-center justify-between text-left transition hover:bg-white/5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Account Settings
             </span>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button onClick={() => navigate('/safety')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800 flex items-center gap-2">
-              <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={() => navigate('/safety')} className="w-full p-4 flex items-center justify-between text-left transition hover:bg-white/5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-5 h-5" style={{ color: 'var(--accent-pink)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               Safety Center
             </span>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button onClick={() => navigate('/privacy')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800 flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={() => navigate('/privacy')} className="w-full p-4 flex items-center justify-between text-left transition hover:bg-white/5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-5 h-5" style={{ color: 'var(--accent-purple)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
               Privacy Settings
             </span>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button onClick={() => navigate('/notifications')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={() => navigate('/notifications')} className="w-full p-4 flex items-center justify-between text-left transition hover:bg-white/5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-5 h-5" style={{ color: 'var(--accent-cyan)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               Notification Settings
             </span>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <button onClick={() => navigate('/help')} className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition">
-            <span className="text-gray-800 flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={() => navigate('/help')} className="w-full p-4 flex items-center justify-between text-left transition hover:bg-white/5">
+            <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Help & Support
             </span>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -309,7 +313,8 @@ export const ProfilePage: React.FC = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="w-full py-3 text-red-500 font-medium hover:bg-red-50 rounded-xl transition"
+          className="w-full py-3 text-red-400 font-medium rounded-xl transition"
+          style={{ background: 'rgba(239, 68, 68, 0.1)' }}
         >
           Sign Out
         </button>

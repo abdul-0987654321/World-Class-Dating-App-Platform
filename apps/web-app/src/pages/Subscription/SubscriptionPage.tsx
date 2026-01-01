@@ -312,26 +312,26 @@ export const SubscriptionPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-page)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--accent-pink)' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-subtle)' }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient-flamoral">
+          <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Flamoral
           </h1>
           <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">Discover</button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">Matches</button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">Messages</button>
-            <button onClick={() => navigate('/subscription')} className="text-pink-500 font-medium">Subscription</button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">Profile</button>
+            <button onClick={() => navigate('/discover')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Discover</button>
+            <button onClick={() => navigate('/matches')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Matches</button>
+            <button onClick={() => navigate('/messages')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Messages</button>
+            <button onClick={() => navigate('/subscription')} style={{ color: 'var(--accent-pink)' }} className="font-medium">Subscription</button>
+            <button onClick={() => navigate('/profile')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Profile</button>
           </nav>
         </div>
       </header>
@@ -339,32 +339,32 @@ export const SubscriptionPage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">
+          <h2 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Unlock Your Perfect Match
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl mb-8" style={{ color: 'var(--text-secondary)' }}>
             Upgrade to premium and discover more meaningful connections
           </p>
 
           {/* Interval Toggle */}
-          <div className="inline-flex items-center bg-gray-200 rounded-full p-1">
+          <div className="inline-flex items-center rounded-full p-1" style={{ background: 'var(--surface-card)' }}>
             <button
               onClick={() => setSelectedInterval('monthly')}
-              className={`px-6 py-2 rounded-full transition ${
-                selectedInterval === 'monthly'
-                  ? 'bg-white text-gray-800 shadow'
-                  : 'text-gray-600'
-              }`}
+              className="px-6 py-2 rounded-full transition"
+              style={{
+                background: selectedInterval === 'monthly' ? 'var(--accent-gradient)' : 'transparent',
+                color: selectedInterval === 'monthly' ? 'white' : 'var(--text-secondary)'
+              }}
             >
               Monthly
             </button>
             <button
               onClick={() => setSelectedInterval('yearly')}
-              className={`px-6 py-2 rounded-full transition flex items-center gap-2 ${
-                selectedInterval === 'yearly'
-                  ? 'bg-white text-gray-800 shadow'
-                  : 'text-gray-600'
-              }`}
+              className="px-6 py-2 rounded-full transition flex items-center gap-2"
+              style={{
+                background: selectedInterval === 'yearly' ? 'var(--accent-gradient)' : 'transparent',
+                color: selectedInterval === 'yearly' ? 'white' : 'var(--text-secondary)'
+              }}
             >
               Yearly
               <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">Save 20%</span>
@@ -374,12 +374,12 @@ export const SubscriptionPage: React.FC = () => {
 
         {/* Current Subscription Banner */}
         {currentSubscription && currentSubscription.tier !== 'FREE' && (
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl p-6 text-white mb-8">
+          <div className="rounded-xl p-6 text-white mb-8" style={{ background: 'var(--accent-gradient)' }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-pink-100 text-sm">Current Plan</p>
+                <p className="text-white/70 text-sm">Current Plan</p>
                 <h3 className="text-2xl font-bold">{currentSubscription.tier}</h3>
-                <p className="text-pink-100">
+                <p className="text-white/70">
                   {currentSubscription.status === 'active' ? 'Active' : 'Cancelled'}
                   {currentSubscription.expiresAt && ` - Expires ${new Date(currentSubscription.expiresAt).toLocaleDateString()}`}
                 </p>
@@ -387,7 +387,8 @@ export const SubscriptionPage: React.FC = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => navigate('/subscription/manage')}
-                  className="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition"
+                  className="px-4 py-2 rounded-lg transition"
+                  style={{ background: 'rgba(255,255,255,0.2)' }}
                 >
                   Manage
                 </button>
@@ -410,11 +411,12 @@ export const SubscriptionPage: React.FC = () => {
             <div
               key={plan.id}
               id={`plan-${plan.id}`}
-              className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300 ${
+              className={`rounded-2xl overflow-hidden transition-all duration-300 ${
                 plan.highlighted || highlightedTier === plan.id ? 'ring-2 ring-pink-500 transform scale-105 z-10' : ''
               } ${plan.bestValue ? 'ring-2 ring-green-500' : ''} ${
                 highlightedTier === plan.id ? 'animate-pulse' : ''
               }`}
+              style={{ background: 'var(--surface-card)' }}
             >
               {plan.highlighted && (
                 <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium">
@@ -449,23 +451,24 @@ export const SubscriptionPage: React.FC = () => {
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-gray-600 text-sm">{feature}</span>
+                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <button
                   onClick={() => handleSubscribe(plan)}
                   disabled={processingPlan === plan.id || currentSubscription?.tier === plan.tier}
-                  className={`w-full py-3 rounded-xl font-medium transition ${
-                    currentSubscription?.tier === plan.tier
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                      : plan.price === 0
-                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      : `bg-gradient-to-r ${plan.color} text-white hover:opacity-90`
-                  }`}
+                  className="w-full py-3 rounded-xl font-medium transition"
+                  style={{
+                    background: currentSubscription?.tier === plan.tier || plan.price === 0
+                      ? 'rgba(255,255,255,0.1)'
+                      : `linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%)`,
+                    color: currentSubscription?.tier === plan.tier ? 'var(--text-muted)' : 'white',
+                    cursor: currentSubscription?.tier === plan.tier ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {processingPlan === plan.id ? (
                     <span className="flex items-center justify-center gap-2">
@@ -489,19 +492,19 @@ export const SubscriptionPage: React.FC = () => {
         </div>
 
         {/* Features Comparison - 6 Tier */}
-        <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Compare Features</h3>
+        <div className="rounded-2xl p-8 mb-8" style={{ background: 'var(--surface-card)' }}>
+          <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>Compare Features</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-4 px-2 text-gray-600 text-sm min-w-[140px]">Feature</th>
-                  <th className="text-center py-4 px-1 text-gray-600 text-xs">Free</th>
-                  <th className="text-center py-4 px-1 text-blue-600 text-xs">Basic</th>
-                  <th className="text-center py-4 px-1 text-green-600 text-xs">Plus</th>
-                  <th className="text-center py-4 px-1 text-pink-600 text-xs font-bold">Premium</th>
-                  <th className="text-center py-4 px-1 text-cyan-600 text-xs">Premium+</th>
-                  <th className="text-center py-4 px-1 text-amber-600 text-xs">Elite</th>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <th className="text-left py-4 px-2 text-sm min-w-[140px]" style={{ color: 'var(--text-secondary)' }}>Feature</th>
+                  <th className="text-center py-4 px-1 text-xs" style={{ color: 'var(--text-muted)' }}>Free</th>
+                  <th className="text-center py-4 px-1 text-xs text-blue-400">Basic</th>
+                  <th className="text-center py-4 px-1 text-xs text-green-400">Plus</th>
+                  <th className="text-center py-4 px-1 text-xs font-bold" style={{ color: 'var(--accent-pink)' }}>Premium</th>
+                  <th className="text-center py-4 px-1 text-xs" style={{ color: 'var(--accent-cyan)' }}>Premium+</th>
+                  <th className="text-center py-4 px-1 text-xs text-amber-400">Elite</th>
                 </tr>
               </thead>
               <tbody>
@@ -527,11 +530,11 @@ export const SubscriptionPage: React.FC = () => {
                   const renderCell = (value: boolean | string, colorClass: string) => {
                     if (typeof value === 'boolean') {
                       return value ? (
-                        <svg className="w-4 h-4 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-green-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       ) : (
-                        <svg className="w-4 h-4 text-gray-300 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 mx-auto" style={{ color: 'var(--text-muted)' }} fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       );
@@ -540,14 +543,14 @@ export const SubscriptionPage: React.FC = () => {
                   };
 
                   return (
-                    <tr key={idx} className="border-b last:border-b-0">
-                      <td className="py-2 px-2 text-gray-800 text-xs">{row.feature}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.free, 'text-gray-600')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.basic, 'text-blue-600')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.plus, 'text-green-600')}</td>
-                      <td className="text-center py-2 px-1 bg-pink-50">{renderCell(row.premium, 'text-pink-600')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.premiumPlus, 'text-cyan-600')}</td>
-                      <td className="text-center py-2 px-1">{renderCell(row.elite, 'text-amber-600')}</td>
+                    <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td className="py-2 px-2 text-xs" style={{ color: 'var(--text-primary)' }}>{row.feature}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.free, 'text-gray-400')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.basic, 'text-blue-400')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.plus, 'text-green-400')}</td>
+                      <td className="text-center py-2 px-1" style={{ background: 'rgba(255, 46, 147, 0.1)' }}>{renderCell(row.premium, 'text-pink-400')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.premiumPlus, 'text-cyan-400')}</td>
+                      <td className="text-center py-2 px-1">{renderCell(row.elite, 'text-amber-400')}</td>
                     </tr>
                   );
                 })}
@@ -557,24 +560,24 @@ export const SubscriptionPage: React.FC = () => {
         </div>
 
         {/* FAQ */}
-        <div className="bg-white rounded-2xl shadow-sm p-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Frequently Asked Questions</h3>
+        <div className="rounded-2xl p-8" style={{ background: 'var(--surface-card)' }}>
+          <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>Frequently Asked Questions</h3>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Can I cancel anytime?</h4>
-              <p className="text-gray-600 text-sm">Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Can I cancel anytime?</h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">What payment methods do you accept?</h4>
-              <p className="text-gray-600 text-sm">We accept all major credit cards, Apple Pay/Google Pay for mobile payments, and regional options like Paystack and Flutterwave for African markets.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>What payment methods do you accept?</h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>We accept all major credit cards, Apple Pay/Google Pay for mobile payments, and regional options like Paystack and Flutterwave for African markets.</p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Can I upgrade or downgrade my plan?</h4>
-              <p className="text-gray-600 text-sm">Absolutely! You can change your plan anytime. Upgrades take effect immediately, downgrades at your next billing cycle.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Can I upgrade or downgrade my plan?</h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Absolutely! You can change your plan anytime. Upgrades take effect immediately, downgrades at your next billing cycle.</p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Is there a free trial?</h4>
-              <p className="text-gray-600 text-sm">New users get a 7-day free trial of Platinum features. Cancel before the trial ends to avoid any charges.</p>
+              <h4 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Is there a free trial?</h4>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>New users get a 7-day free trial of Platinum features. Cancel before the trial ends to avoid any charges.</p>
             </div>
           </div>
         </div>
