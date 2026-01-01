@@ -16,7 +16,8 @@ tests
 *.spec.ts
 .eslintrc.js
 .prettierrc
-tsconfig.json
+# Only exclude root tsconfig, not nested ones needed for builds
+/tsconfig.json
 docker-compose.yml
 Dockerfile
 .dockerignore
