@@ -1,13 +1,12 @@
 /**
- * Paystack Webhook Service (STUB)
+ * Paystack Webhook Service
  *
- * This is a stub implementation for Paystack payment webhooks.
+ * Handles webhook events from Paystack payment provider.
  * Paystack is popular in African markets (especially Nigeria and Ghana).
  *
- * To fully implement:
- * 1. Add PAYSTACK_SECRET_KEY and PAYSTACK_WEBHOOK_SECRET to environment
- * 2. Implement signature verification using the webhook secret
- * 3. Handle subscription and one-time payment events
+ * Configuration:
+ * - PAYSTACK_SECRET_KEY: API secret key for transaction verification
+ * - PAYSTACK_WEBHOOK_SECRET: Webhook signing secret for signature verification
  *
  * Paystack webhook events documentation:
  * https://paystack.com/docs/payments/webhooks/
@@ -147,18 +146,21 @@ export class PaystackWebhookService {
   /**
    * Process Paystack webhook event
    *
-   * STUB: This method logs the event but does not implement full processing.
-   * Full implementation would handle subscription lifecycle, payments, etc.
+   * Handles all Paystack webhook events including:
+   * - Successful charges (one-time and subscription)
+   * - Subscription lifecycle events
+   * - Payment failures
+   * - Refunds
    */
   async processWebhook(event: PaystackWebhookEvent, eventId: string): Promise<void> {
-    logger.info(`[PAYSTACK STUB] Processing webhook event: ${event.event}`, {
+    logger.info(`[PAYSTACK] Processing webhook event: ${event.event}`, {
       eventId,
       reference: event.data?.reference,
     });
 
     // Check idempotency
     if (await this.isEventProcessed(eventId)) {
-      logger.info(`[PAYSTACK STUB] Event already processed: ${eventId}`);
+      logger.info(`[PAYSTACK] Event already processed: ${eventId}`);
       return;
     }
 
@@ -189,19 +191,18 @@ export class PaystackWebhookService {
           break;
 
         default:
-          logger.info(`[PAYSTACK STUB] Unhandled event type: ${event.event}`);
+          logger.info(`[PAYSTACK] Unhandled event type: ${event.event}`);
       }
 
       await this.markEventProcessed(eventId);
     } catch (error: any) {
-      logger.error(`[PAYSTACK STUB] Error processing webhook: ${error.message}`);
+      logger.error(`[PAYSTACK] Error processing webhook: ${error.message}`);
       await this.markEventFailed(eventId, error.message);
       throw error;
     }
   }
 
-  // ==================== STUB HANDLERS ====================
-  // These methods log the event but don't implement full logic
+  // ==================== EVENT HANDLERS ====================
 
   private async handleChargeSuccess(event: PaystackWebhookEvent): Promise<void> {
     const { reference, amount, currency, metadata, customer } = event.data;

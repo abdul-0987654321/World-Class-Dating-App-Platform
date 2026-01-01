@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import express from 'express';
 import { WebhookController } from '../controllers/webhook.controller';
+import paystackWebhookService from '../../domain/services/paystack-webhook.service';
+import flutterwaveWebhookService from '../../domain/services/flutterwave-webhook.service';
 import logger from '../../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 const webhookController = new WebhookController();
@@ -94,6 +97,99 @@ router.get('/health', (req, res) => {
 router.post('/test', express.json(), async (req, res) => {
   logger.info('Test webhook received:', req.body);
   res.status(200).json({ received: true, message: 'Test webhook received' });
+});
+
+/**
+ * Paystack Webhook Endpoint
+ *
+ * Receives webhook events from Paystack for African payments.
+ * Used primarily in Nigeria and Ghana.
+ *
+ * Paystack Webhook Configuration:
+ * 1. Go to Paystack Dashboard > Settings > API Keys & Webhooks
+ * 2. Add webhook URL: https://yourdomain.com/api/payments/webhooks/paystack
+ * 3. Copy the webhook secret to PAYSTACK_WEBHOOK_SECRET env var
+ *
+ * Events handled:
+ * - charge.success
+ * - subscription.create
+ * - subscription.disable
+ * - subscription.not_renew
+ * - invoice.payment_failed
+ * - refund.processed
+ */
+router.post('/paystack', express.json(), async (req, res) => {
+  try {
+    const signature = req.headers['x-paystack-signature'] as string;
+    const payload = JSON.stringify(req.body);
+
+    // Verify webhook signature
+    if (!paystackWebhookService.verifySignature(payload, signature)) {
+      logger.warn('[PAYSTACK] Invalid webhook signature');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    // Generate event ID for idempotency
+    const eventId = req.body.data?.reference || req.body.data?.id?.toString() || uuidv4();
+
+    // Process the webhook asynchronously
+    paystackWebhookService.processWebhook(req.body, eventId)
+      .catch((error) => {
+        logger.error('[PAYSTACK] Async webhook processing error:', error.message);
+      });
+
+    // Respond immediately to Paystack
+    res.status(200).json({ received: true });
+  } catch (error: any) {
+    logger.error('[PAYSTACK] Webhook route error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Flutterwave Webhook Endpoint
+ *
+ * Receives webhook events from Flutterwave for African payments.
+ * Operates across Nigeria, Ghana, Kenya, South Africa, and more.
+ *
+ * Flutterwave Webhook Configuration:
+ * 1. Go to Flutterwave Dashboard > Settings > Webhooks
+ * 2. Add webhook URL: https://yourdomain.com/api/payments/webhooks/flutterwave
+ * 3. Set a secret hash and add it to FLUTTERWAVE_WEBHOOK_SECRET env var
+ *
+ * Events handled:
+ * - charge.completed
+ * - subscription.created
+ * - subscription.cancelled
+ * - transfer.completed
+ * - transfer.failed
+ * - payment.refund.completed
+ */
+router.post('/flutterwave', express.json(), async (req, res) => {
+  try {
+    const signature = req.headers['verif-hash'] as string;
+
+    // Verify webhook signature
+    if (!flutterwaveWebhookService.verifySignature(signature)) {
+      logger.warn('[FLUTTERWAVE] Invalid webhook signature');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    // Generate event ID for idempotency
+    const eventId = req.body.data?.tx_ref || req.body.data?.id?.toString() || uuidv4();
+
+    // Process the webhook asynchronously
+    flutterwaveWebhookService.processWebhook(req.body, eventId)
+      .catch((error) => {
+        logger.error('[FLUTTERWAVE] Async webhook processing error:', error.message);
+      });
+
+    // Respond immediately to Flutterwave
+    res.status(200).json({ received: true });
+  } catch (error: any) {
+    logger.error('[FLUTTERWAVE] Webhook route error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;

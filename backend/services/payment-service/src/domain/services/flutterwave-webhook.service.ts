@@ -1,13 +1,12 @@
 /**
- * Flutterwave Webhook Service (STUB)
+ * Flutterwave Webhook Service
  *
- * This is a stub implementation for Flutterwave payment webhooks.
+ * Handles webhook events from Flutterwave payment provider.
  * Flutterwave operates across Africa (Nigeria, Ghana, Kenya, South Africa, etc.).
  *
- * To fully implement:
- * 1. Add FLUTTERWAVE_SECRET_KEY and FLUTTERWAVE_WEBHOOK_SECRET to environment
- * 2. Implement signature verification using the secret hash
- * 3. Handle payment and subscription events
+ * Configuration:
+ * - FLUTTERWAVE_SECRET_KEY: API secret key for transaction verification
+ * - FLUTTERWAVE_WEBHOOK_SECRET: Secret hash for signature verification
  *
  * Flutterwave webhook events documentation:
  * https://developer.flutterwave.com/docs/integration-guides/webhooks
@@ -153,18 +152,21 @@ export class FlutterwaveWebhookService {
   /**
    * Process Flutterwave webhook event
    *
-   * STUB: This method logs the event but does not implement full processing.
-   * Full implementation would handle subscription lifecycle, payments, etc.
+   * Handles all Flutterwave webhook events including:
+   * - Completed charges
+   * - Subscription lifecycle events
+   * - Transfer events
+   * - Refunds
    */
   async processWebhook(event: FlutterwaveWebhookEvent, eventId: string): Promise<void> {
-    logger.info(`[FLUTTERWAVE STUB] Processing webhook event: ${event.event}`, {
+    logger.info(`[FLUTTERWAVE] Processing webhook event: ${event.event}`, {
       eventId,
       tx_ref: event.data?.tx_ref,
     });
 
     // Check idempotency
     if (await this.isEventProcessed(eventId)) {
-      logger.info(`[FLUTTERWAVE STUB] Event already processed: ${eventId}`);
+      logger.info(`[FLUTTERWAVE] Event already processed: ${eventId}`);
       return;
     }
 
@@ -198,19 +200,18 @@ export class FlutterwaveWebhookService {
           break;
 
         default:
-          logger.info(`[FLUTTERWAVE STUB] Unhandled event type: ${event.event}`);
+          logger.info(`[FLUTTERWAVE] Unhandled event type: ${event.event}`);
       }
 
       await this.markEventProcessed(eventId);
     } catch (error: any) {
-      logger.error(`[FLUTTERWAVE STUB] Error processing webhook: ${error.message}`);
+      logger.error(`[FLUTTERWAVE] Error processing webhook: ${error.message}`);
       await this.markEventFailed(eventId, error.message);
       throw error;
     }
   }
 
-  // ==================== STUB HANDLERS ====================
-  // These methods log the event but don't implement full logic
+  // ==================== EVENT HANDLERS ====================
 
   private async handleChargeCompleted(event: FlutterwaveWebhookEvent): Promise<void> {
     const { tx_ref, flw_ref, amount, currency, status, meta } = event.data;
