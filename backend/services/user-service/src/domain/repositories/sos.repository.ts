@@ -19,10 +19,11 @@ export class SOSRepository {
     const id = uuidv4();
     const now = new Date();
 
-    const alert: Partial<SOSAlert> = {
+    // Database row with JSON-serialized fields
+    const alertRow = {
       id,
       user_id: input.user_id,
-      status: 'active',
+      status: 'active' as const,
       alert_type: input.alert_type,
       location: input.location ? JSON.stringify(input.location) : null,
       reason: input.reason,
@@ -32,7 +33,7 @@ export class SOSRepository {
     };
 
     try {
-      await db('sos_alerts').insert(alert);
+      await db('sos_alerts').insert(alertRow);
       return this.getAlertById(id) as Promise<SOSAlert>;
     } catch (error) {
       logger.error('Failed to create SOS alert:', error);
@@ -176,11 +177,12 @@ export class SOSRepository {
     const id = uuidv4();
     const now = new Date();
 
-    const checkin: Partial<SafetyCheckin> = {
+    // Database row with JSON-serialized fields
+    const checkinRow = {
       id,
       user_id: input.user_id,
       scheduled_at: input.scheduled_at,
-      status: 'scheduled',
+      status: 'scheduled' as const,
       meeting_details: input.meeting_details ? JSON.stringify(input.meeting_details) : null,
       reminder_sent: false,
       escalated: false,
@@ -188,7 +190,7 @@ export class SOSRepository {
       updated_at: now,
     };
 
-    await db('safety_checkins').insert(checkin);
+    await db('safety_checkins').insert(checkinRow);
     return this.getCheckinById(id) as Promise<SafetyCheckin>;
   }
 
