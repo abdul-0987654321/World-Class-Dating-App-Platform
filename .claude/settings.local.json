@@ -804,7 +804,8 @@
       "Bash(__NEW_LINE__ for repo in api-gateway auth-service user-service matching-service messaging-service notification-service media-service payment-service moderation-service analytics-service admin-service web-app)",
       "Bash(aws ecr put-lifecycle-policy:*)",
       "Bash(aws eks delete-cluster:*)",
-      "Bash(for repo in notification-service media-service payment-service moderation-service analytics-service admin-service)"
+      "Bash(for repo in notification-service media-service payment-service moderation-service analytics-service admin-service)",
+      "Bash(aws codebuild list-builds-for-project:*)"
     ],
     "deny": [],
     "ask": []

@@ -167,16 +167,36 @@ const LandingPage: React.FC = () => {
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link
               to="/"
-              className="serif"
               style={{
-                fontSize: '1.5rem',
-                fontStyle: 'italic',
-                color: 'var(--color-text)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
                 textDecoration: 'none',
-                letterSpacing: '-0.02em'
               }}
             >
-              Flamoral
+              {/* Flamoral Logo - Brand colors: Pink #FF2E93, Purple #7B61FF, Blue #2ED4FF */}
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="landingLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FF2E93"/>
+                    <stop offset="50%" stopColor="#7B61FF"/>
+                    <stop offset="100%" stopColor="#2ED4FF"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#landingLogoGrad)"/>
+                <path d="M16 9c0 0-2 2-2 4.6c0 2 1.3 3.3 2 4c0.7-0.7 2-2 2-4C18 11 16 9 16 9z" fill="#FFFFFF" opacity="0.85"/>
+              </svg>
+              <span
+                className="serif"
+                style={{
+                  fontSize: '1.5rem',
+                  fontStyle: 'italic',
+                  color: 'var(--color-text)',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Flamoral
+              </span>
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
               <Link
@@ -456,13 +476,25 @@ const LandingPage: React.FC = () => {
                 Contact
               </Link>
             </div>
-            <p style={{
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
               color: 'var(--color-text-muted)',
-              fontSize: '0.875rem',
-              margin: 0
+              fontSize: '0.875rem'
             }}>
-              &copy; {new Date().getFullYear()} Flamoral
-            </p>
+              <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="footerLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FF2E93"/>
+                    <stop offset="50%" stopColor="#7B61FF"/>
+                    <stop offset="100%" stopColor="#2ED4FF"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 28.5l-1.9-1.7C7.2 20.5 3 16.8 3 12c0-4.1 3.2-7.5 7.3-7.5c2.3 0 4.5 1.1 6 2.8c1.4-1.7 3.6-2.8 6-2.8c4 0 7.3 3.4 7.3 7.5c0 4.8-4.2 8.5-11.1 14.8L16 28.5z" fill="url(#footerLogoGrad)"/>
+              </svg>
+              <span>&copy; {new Date().getFullYear()} Flamoral</span>
+            </div>
           </div>
         </div>
       </footer>
