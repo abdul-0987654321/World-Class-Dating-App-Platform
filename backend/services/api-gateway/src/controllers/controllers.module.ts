@@ -11,6 +11,8 @@ import { AnalyticsController } from './analytics.controller';
 import { CsrfController } from './csrf.controller';
 import { PlatformController } from './platform.controller';
 import { AuditController } from './audit.controller';
+import { CallsController } from './calls.controller';
+import { VerificationController } from './verification.controller';
 
 @Module({
   controllers: [
@@ -26,6 +28,8 @@ import { AuditController } from './audit.controller';
     CsrfController,
     PlatformController,
     AuditController,
+    CallsController,
+    VerificationController,
   ],
 })
 export class ControllersModule {}
