@@ -53,15 +53,29 @@ export const config = {
     audience: process.env.JWT_AUDIENCE || 'flamoral-platform',
   },
 
-  // Database
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'flamoral',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    ssl: process.env.DB_SSL === 'true',
-  },
+  // Database - Support both DATABASE_URL and individual variables
+  database: (() => {
+    if (process.env.DATABASE_URL) {
+      // Parse DATABASE_URL: postgresql://user:pass@host:port/database
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || '5432', 10),
+        name: url.pathname.slice(1), // Remove leading /
+        user: url.username,
+        password: decodeURIComponent(url.password),
+        ssl: process.env.DB_SSL !== 'false', // Default to true for DATABASE_URL
+      };
+    }
+    return {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      name: process.env.DB_NAME || 'flamoral',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true',
+    };
+  })(),
 
   // Redis
   redis: {

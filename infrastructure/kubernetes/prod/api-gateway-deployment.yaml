@@ -47,6 +47,20 @@ spec:
               value: "http://auth-service.flamoral.svc.cluster.local:3001"
             - name: USER_SERVICE_URL
               value: "http://user-service.flamoral.svc.cluster.local:3002"
+            - name: MATCHING_SERVICE_URL
+              value: "http://matching-service.flamoral.svc.cluster.local:3003"
+            - name: MESSAGING_SERVICE_URL
+              value: "http://messaging-service.flamoral.svc.cluster.local:3004"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://notification-service.flamoral.svc.cluster.local:3005"
+            - name: MEDIA_SERVICE_URL
+              value: "http://media-service.flamoral.svc.cluster.local:3006"
+            - name: PAYMENT_SERVICE_URL
+              value: "http://payment-service.flamoral.svc.cluster.local:3007"
+            - name: CORS_ORIGINS
+              value: "https://flamoral.com,https://www.flamoral.com,https://d2uh8pqxbxge59.cloudfront.net"
+            - name: CORS_CREDENTIALS
+              value: "true"
           envFrom:
             - secretRef:
                 name: api-gateway-secrets
