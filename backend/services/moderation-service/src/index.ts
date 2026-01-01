@@ -13,21 +13,22 @@ import { createValidator, commonValidations } from '@flamoral/backend-shared';
 dotenv.config();
 
 // Validate environment variables at startup
+// Note: AWS credentials are optional - will use IAM role if available
+// Azure Content Moderator is optional - text moderation will use alternative if not configured
 const validator = createValidator('moderation-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3012),
   commonValidations.jwtAccessSecret,
   {
     name: 'AWS_ACCESS_KEY_ID',
-    required: true,
-    description: 'AWS access key ID for Rekognition image moderation',
+    required: false,
+    description: 'AWS access key ID for Rekognition image moderation (optional - uses IAM role if not set)',
     sensitive: true,
   },
   {
     name: 'AWS_SECRET_ACCESS_KEY',
-    required: true,
-    description: 'AWS secret access key for Rekognition',
-    minLength: 20,
+    required: false,
+    description: 'AWS secret access key for Rekognition (optional - uses IAM role if not set)',
     sensitive: true,
   },
   {
@@ -38,15 +39,13 @@ const validator = createValidator('moderation-service', [
   },
   {
     name: 'AZURE_CONTENT_MODERATOR_ENDPOINT',
-    required: true,
-    description: 'Azure Content Moderator endpoint URL for text moderation',
-    validate: (value: string) => value.startsWith('https://'),
+    required: false,
+    description: 'Azure Content Moderator endpoint URL for text moderation (optional)',
   },
   {
     name: 'AZURE_CONTENT_MODERATOR_KEY',
-    required: true,
-    description: 'Azure Content Moderator API key',
-    minLength: 32,
+    required: false,
+    description: 'Azure Content Moderator API key (optional)',
     sensitive: true,
   },
 ]);

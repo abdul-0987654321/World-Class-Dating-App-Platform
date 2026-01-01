@@ -9,12 +9,28 @@ import { config } from '../config';
 import { SMSNotificationPayload } from '../types';
 
 export class SMSNotificationService {
-  private client: twilio.Twilio;
+  private client: twilio.Twilio | null = null;
   private fromNumber: string;
+  private isConfigured: boolean = false;
 
   constructor() {
-    this.client = twilio(config.twilio.accountSid, config.twilio.authToken);
     this.fromNumber = config.twilio.fromNumber;
+
+    // Only initialize Twilio client if credentials are provided
+    if (config.twilio.accountSid && config.twilio.authToken &&
+        config.twilio.accountSid.startsWith('AC')) {
+      try {
+        this.client = twilio(config.twilio.accountSid, config.twilio.authToken);
+        this.isConfigured = true;
+        logger.info('Twilio SMS service initialized successfully');
+      } catch (error: any) {
+        logger.warn('Twilio initialization failed. SMS functionality will be disabled.', {
+          error: error.message,
+        });
+      }
+    } else {
+      logger.warn('Twilio credentials not configured. SMS functionality will be disabled.');
+    }
   }
 
   /**
@@ -26,7 +42,7 @@ export class SMSNotificationService {
     error?: string;
   }> {
     try {
-      if (!config.twilio.accountSid || !config.twilio.authToken) {
+      if (!this.isConfigured || !this.client) {
         logger.warn('Twilio not configured. SMS sending disabled.');
         return {
           success: false,
@@ -237,6 +253,9 @@ export class SMSNotificationService {
    */
   async getDeliveryStatus(messageSid: string): Promise<string | null> {
     try {
+      if (!this.isConfigured || !this.client) {
+        return null;
+      }
       const message = await this.client.messages(messageSid).fetch();
       return message.status;
     } catch (error) {

@@ -31,12 +31,16 @@ WORKDIR /app/service
 COPY backend/services/analytics-service/package*.json ./
 
 # Remove the file: dependency and install dependencies
-RUN sed -i 's|"@flamoral/backend-shared": "file:../../shared",||' package.json && \
-    npm install --legacy-peer-deps
+# Also add axios as direct dependency since it's needed by backend-shared
+RUN sed -i 's|"@flamoral/backend-shared": "file:../../shared/backend-shared",||' package.json && \
+    sed -i 's|"@flamoral/backend-shared": "file:../../shared",||' package.json && \
+    npm install --legacy-peer-deps && \
+    npm install axios@^1.7.9 --save --legacy-peer-deps
 
 # Merge shared module's node_modules into service's node_modules
 # This ensures shared module's transitive dependencies (axios, winston, uuid, etc.) are available
-RUN cp -rn /app/shared/node_modules/* ./node_modules/ 2>/dev/null || true
+RUN cp -rn /app/shared/node_modules/* ./node_modules/ 2>/dev/null || true && \
+    ls -la node_modules/axios 2>/dev/null || npm install axios@^1.7.9 --save --legacy-peer-deps
 
 # Link the built shared module
 RUN mkdir -p node_modules/@flamoral/backend-shared && \

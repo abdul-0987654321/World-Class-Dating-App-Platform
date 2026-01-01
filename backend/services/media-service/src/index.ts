@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/backend-shared';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import mediaRoutes from './api/routes/media.routes';
-import azureStorageService from './infrastructure/storage/azure-storage.service';
+import s3StorageService from './infrastructure/storage/s3-storage.service';
 import workerManager from './workers/worker-manager';
 import config from './config';
 import db from './infrastructure/database/connection';
@@ -19,24 +19,17 @@ const validator = createValidator('media-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3005),
   commonValidations.jwtAccessSecret,
-  commonValidations.azureStorageAccount,
-  commonValidations.azureStorageKey,
   {
-    name: 'AZURE_CONTAINER_NAME',
-    required: true,
-    description: 'Azure Storage container name for media files',
+    name: 'AWS_REGION',
+    required: false,
+    description: 'AWS region for S3 storage',
+    defaultValue: 'us-east-1',
   },
   {
-    name: 'AZURE_CV_ENDPOINT',
-    required: true,
-    description: 'Azure Computer Vision endpoint for content moderation',
-    validate: (value: string) => value.startsWith('https://'),
-  },
-  {
-    name: 'AZURE_CV_API_KEY',
-    required: true,
-    description: 'Azure Computer Vision API key',
-    sensitive: true,
+    name: 'AWS_S3_BUCKET_MEDIA',
+    required: false,
+    description: 'AWS S3 bucket for media files',
+    defaultValue: 'flamoral-media',
   },
   commonValidations.redisHost,
   commonValidations.redisPort,
@@ -66,7 +59,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', async (_req: Request, res: Response) => {
   const checks = {
     database: false,
-    azureStorage: false,
+    s3Storage: true, // S3 uses IAM roles, no explicit initialization needed
   };
 
   try {
@@ -75,16 +68,6 @@ app.get('/health', async (_req: Request, res: Response) => {
     checks.database = true;
   } catch (e) {
     logger.error('Database health check failed', e);
-  }
-
-  try {
-    // Check Azure Storage - verify service is initialized
-    // We don't make an actual call to avoid unnecessary costs
-    if (azureStorageService['initialized']) {
-      checks.azureStorage = true;
-    }
-  } catch (e) {
-    logger.error('Azure Storage health check failed', e);
   }
 
   const healthy = Object.values(checks).every(v => v);
@@ -135,14 +118,14 @@ app.use((err: any, _req: Request, res: Response, _next: any): void => {
   });
 });
 
-// Initialize Azure Storage
-azureStorageService
+// Initialize S3 Storage
+s3StorageService
   .initialize()
   .then(() => {
-    logger.info('Azure Storage initialized successfully');
+    logger.info('S3 Storage initialized successfully');
   })
   .catch((error) => {
-    logger.error('Failed to initialize Azure Storage', error);
+    logger.error('Failed to initialize S3 Storage', error);
   });
 
 // Start background workers
