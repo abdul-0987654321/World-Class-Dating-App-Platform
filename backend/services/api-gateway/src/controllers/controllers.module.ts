@@ -13,6 +13,7 @@ import { PlatformController } from './platform.controller';
 import { AuditController } from './audit.controller';
 import { CallsController } from './calls.controller';
 import { VerificationController } from './verification.controller';
+import { SafetyController } from './safety.controller';
 
 @Module({
   controllers: [
@@ -30,6 +31,7 @@ import { VerificationController } from './verification.controller';
     AuditController,
     CallsController,
     VerificationController,
+    SafetyController,
   ],
 })
 export class ControllersModule {}

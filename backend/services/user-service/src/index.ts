@@ -22,6 +22,7 @@ import boostRoutes from './api/routes/boost.routes';
 import privacyRoutes from './api/routes/privacy.routes';
 import blockRoutes from './api/routes/block.routes';
 import reportRoutes from './api/routes/report.routes';
+import safetyRoutes from './api/routes/safety.routes';
 import usageLimitRoutes from './api/routes/usage-limit.routes';
 import internalRoutes from './api/routes/internal.routes';
 import achievementsRoutes from './api/routes/achievements.routes';
@@ -183,6 +184,7 @@ app.use('/api/v1/boosts', boostRoutes);
 app.use('/api/v1/privacy', privacyRoutes);
 app.use('/api/v1/blocks', blockRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/safety', safetyRoutes);
 app.use('/api/v1/usage-limits', usageLimitRoutes);
 
 app.use('/api/v1/badges', badgeRoutes);
