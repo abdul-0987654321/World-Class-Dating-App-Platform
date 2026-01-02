@@ -43,11 +43,14 @@ export class EnvironmentValidator {
   private errors: string[] = [];
   private warnings: string[] = [];
   private isProduction: boolean;
+  private gracefulMode: boolean;
 
-  constructor(serviceName: string, config: EnvVarConfig[]) {
+  constructor(serviceName: string, config: EnvVarConfig[], options?: { graceful?: boolean }) {
     this.serviceName = serviceName;
     this.config = config;
     this.isProduction = process.env.NODE_ENV === 'production';
+    // Graceful mode: warn instead of throw on missing env vars (for non-critical services)
+    this.gracefulMode = options?.graceful || process.env.ALLOW_DEGRADED_MODE === 'true';
   }
 
   /**
@@ -69,7 +72,7 @@ export class EnvironmentValidator {
   }
 
   /**
-   * Validate and throw on errors
+   * Validate and throw on errors (unless graceful mode is enabled)
    */
   validateOrThrow(): void {
     const result = this.validate();
@@ -83,6 +86,14 @@ export class EnvironmentValidator {
       const errorMessage = `\n[${this.serviceName}] Environment Validation Failed:\n` +
         result.errors.map(e => `  - ${e}`).join('\n') +
         '\n\nPlease set the required environment variables and restart the service.';
+
+      if (this.gracefulMode) {
+        // In graceful mode, log errors as warnings and continue with degraded functionality
+        console.warn(errorMessage);
+        console.warn(`\n[${this.serviceName}] Starting in DEGRADED MODE - some features may not work`);
+        return;
+      }
+
       throw new Error(errorMessage);
     }
 
