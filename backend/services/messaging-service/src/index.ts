@@ -22,6 +22,7 @@ const logger = createLogger('messaging-service');
 // Track service readiness state
 let isReady = false;
 let isShuttingDown = false;
+let isDegradedMode = false;
 
 // Validate environment variables at startup
 const validator = createValidator('messaging-service', [
@@ -155,7 +156,19 @@ app.get('/ready', (req: Request, res: Response) => {
     });
   }
 
-  // Check if Cosmos DB is still connected
+  // In degraded mode, service is ready but with limited functionality
+  // This allows the pod to receive traffic for non-database features (WebSocket, etc.)
+  if (isDegradedMode) {
+    return res.status(200).json({
+      status: 'ready_degraded',
+      service: 'messaging-service',
+      timestamp: new Date().toISOString(),
+      connections: socketManager.getConnectedCount(),
+      details: 'Running in degraded mode - database features limited',
+    });
+  }
+
+  // Check if Cosmos DB is still connected (only when NOT in degraded mode)
   if (!cosmosClient.isInitialized()) {
     return res.status(503).json({
       status: 'not_ready',
@@ -243,6 +256,7 @@ async function startServer() {
           logger.error(`Failed to initialize Cosmos DB after ${maxRetries} attempts:`, error);
           if (allowDegradedMode) {
             logger.warn('Starting in DEGRADED MODE - messaging features will be limited');
+            isDegradedMode = true;
             // Don't throw - continue without Cosmos DB
           } else {
             throw error;
