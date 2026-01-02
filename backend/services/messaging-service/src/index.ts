@@ -242,21 +242,36 @@ async function startServer() {
 
     // Now initialize Cosmos DB connection with retry logic
     logger.info('Initializing Cosmos DB connection...');
-    const maxRetries = 5;
-    const retryDelayMs = 5000;
+    const maxRetries = 3; // Reduced retries since each attempt can take ~2 min
+    const retryDelayMs = 2000; // Shorter delay between retries
+    const connectionTimeoutMs = 10000; // 10 second timeout per attempt
     const allowDegradedMode = process.env.ALLOW_DEGRADED_MODE === 'true';
+
+    // If degraded mode is allowed, set isReady immediately so readiness probe passes
+    // Database features will be limited until Cosmos DB connects
+    if (allowDegradedMode) {
+      isDegradedMode = true;
+      isReady = true;
+      logger.info('Service ready in DEGRADED MODE - Cosmos DB connection will be attempted in background');
+    }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        await cosmosClient.initialize();
+        // Add timeout wrapper to prevent long-running connection attempts
+        const initPromise = cosmosClient.initialize();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timeout')), connectionTimeoutMs)
+        );
+        await Promise.race([initPromise, timeoutPromise]);
         logger.info('Cosmos DB connection established');
+        isDegradedMode = false; // Exit degraded mode on successful connection
         break;
       } catch (error: any) {
         if (attempt === maxRetries) {
           logger.error(`Failed to initialize Cosmos DB after ${maxRetries} attempts:`, error);
           if (allowDegradedMode) {
-            logger.warn('Starting in DEGRADED MODE - messaging features will be limited');
-            isDegradedMode = true;
+            logger.warn('Continuing in DEGRADED MODE - messaging features will be limited');
+            // isDegradedMode already true from above
             // Don't throw - continue without Cosmos DB
           } else {
             throw error;
@@ -268,8 +283,10 @@ async function startServer() {
       }
     }
 
-    // Mark service as ready for traffic
-    isReady = true;
+    // Mark service as ready for traffic (if not already ready from degraded mode)
+    if (!isReady) {
+      isReady = true;
+    }
     logger.info('Messaging Service is fully initialized and ready to accept traffic');
   } catch (error: any) {
     logger.error('Failed to start server:', error);
