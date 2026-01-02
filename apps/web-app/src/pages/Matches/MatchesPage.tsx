@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchingService, Match as ServiceMatch, Like as ServiceLike } from '../../services';
+import FlamoralBackground from '../../components/theme/FlamoralBackground';
 
 interface Match {
   id: string;
@@ -92,177 +93,189 @@ export const MatchesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
-      </div>
+      <FlamoralBackground>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fm-pink"></div>
+        </div>
+      </FlamoralBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            Flamoral
-          </h1>
-          <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">
-              Discover
-            </button>
-            <button onClick={() => navigate('/matches')} className="text-pink-500 font-medium">
-              Matches
-            </button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">
-              Messages
-            </button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">
-              Profile
-            </button>
-            <button onClick={() => navigate('/safety')} className="text-gray-600 hover:text-pink-500">
-              Safety
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="bg-white rounded-xl p-1 flex mb-6 shadow-sm">
-          <button
-            onClick={() => setActiveTab('matches')}
-            className={`flex-1 py-3 rounded-lg font-medium transition ${
-              activeTab === 'matches'
-                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Matches ({matches.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('likes')}
-            className={`flex-1 py-3 rounded-lg font-medium transition ${
-              activeTab === 'likes'
-                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Likes ({likes.length})
-          </button>
-        </div>
-
-        {/* Matches Tab */}
-        {activeTab === 'matches' && (
-          <div className="space-y-4">
-            {/* New Matches - Horizontal Scroll */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">New Matches</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4">
-                {matches.filter(m => !m.lastMessage).map((match) => (
-                  <button
-                    key={match.id}
-                    onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
-                    className="flex-shrink-0 text-center"
-                  >
-                    <div className="relative">
-                      <img
-                        src={match.matchedUser.photoUrl}
-                        alt={match.matchedUser.name}
-                        className="w-20 h-20 rounded-full object-cover border-2 border-pink-500"
-                      />
-                      {match.matchedUser.isOnline && (
-                        <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-gray-800 mt-2">{match.matchedUser.name}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Message History */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">Messages</h2>
-              <div className="bg-white rounded-xl shadow-sm divide-y">
-                {matches.filter(m => m.lastMessage).map((match) => (
-                  <button
-                    key={match.id}
-                    onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
-                    className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 transition text-left"
-                  >
-                    <div className="relative">
-                      <img
-                        src={match.matchedUser.photoUrl}
-                        alt={match.matchedUser.name}
-                        className="w-14 h-14 rounded-full object-cover"
-                      />
-                      {match.matchedUser.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-gray-800">{match.matchedUser.name}</p>
-                        {match.lastMessageAt && (
-                          <span className="text-xs text-gray-400">{formatTime(match.lastMessageAt)}</span>
-                        )}
-                      </div>
-                      <p className={`text-sm truncate ${match.hasUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>
-                        {match.lastMessage}
-                      </p>
-                    </div>
-                    {match.hasUnread && (
-                      <span className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+    <FlamoralBackground>
+      <div className="min-h-screen">
+        {/* Header */}
+        <header className="bg-fm-surface/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-fm-pink to-fm-blue bg-clip-text text-transparent">
+              Flamoral
+            </h1>
+            <nav className="flex items-center gap-6">
+              <button onClick={() => navigate('/discover')} className="text-fm-text-secondary hover:text-fm-pink transition">
+                Discover
+              </button>
+              <button onClick={() => navigate('/matches')} className="text-fm-pink font-medium">
+                Matches
+              </button>
+              <button onClick={() => navigate('/messages')} className="text-fm-text-secondary hover:text-fm-pink transition">
+                Messages
+              </button>
+              <button onClick={() => navigate('/profile')} className="text-fm-text-secondary hover:text-fm-pink transition">
+                Profile
+              </button>
+              <button onClick={() => navigate('/safety')} className="text-fm-text-secondary hover:text-fm-pink transition">
+                Safety
+              </button>
+            </nav>
           </div>
-        )}
+        </header>
 
-        {/* Likes Tab */}
-        {activeTab === 'likes' && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-2">💖</div>
-              <h2 className="text-xl font-bold text-gray-800">{likes.length} people like you!</h2>
-              <p className="text-gray-500 text-sm mt-1">
-                Upgrade to Premium to see who likes you
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {likes.map((like) => (
-                <div key={like.id} className="relative">
-                  <img
-                    src={like.fromUser.blurredPhotoUrl}
-                    alt="Someone likes you"
-                    className="w-full aspect-square rounded-xl object-cover blur-sm"
-                  />
-                  {like.isSuperLike && (
-                    <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                      Super Like
-                    </span>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl">🔒</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
+        {/* Main Content */}
+        <main className="max-w-2xl mx-auto px-4 py-6">
+          {/* Tabs */}
+          <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl p-1 flex mb-6 border border-white/10">
             <button
-              onClick={() => navigate('/subscription')}
-              className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition"
+              onClick={() => setActiveTab('matches')}
+              className={`flex-1 py-3 rounded-lg font-medium transition ${
+                activeTab === 'matches'
+                  ? 'bg-gradient-to-r from-fm-pink to-fm-blue text-white'
+                  : 'text-fm-text-secondary hover:text-fm-text-primary hover:bg-white/5'
+              }`}
             >
-              Upgrade to Premium
+              Matches ({matches.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('likes')}
+              className={`flex-1 py-3 rounded-lg font-medium transition ${
+                activeTab === 'likes'
+                  ? 'bg-gradient-to-r from-fm-pink to-fm-blue text-white'
+                  : 'text-fm-text-secondary hover:text-fm-text-primary hover:bg-white/5'
+              }`}
+            >
+              Likes ({likes.length})
             </button>
           </div>
-        )}
-      </main>
-    </div>
+
+          {/* Matches Tab */}
+          {activeTab === 'matches' && (
+            <div className="space-y-6">
+              {/* New Matches - Horizontal Scroll */}
+              <div>
+                <h2 className="text-lg font-semibold text-fm-text-primary mb-3">New Matches</h2>
+                <div className="flex gap-4 overflow-x-auto pb-4">
+                  {matches.filter(m => !m.lastMessage).length === 0 ? (
+                    <p className="text-fm-text-secondary text-sm">No new matches yet. Keep swiping!</p>
+                  ) : (
+                    matches.filter(m => !m.lastMessage).map((match) => (
+                      <button
+                        key={match.id}
+                        onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
+                        className="flex-shrink-0 text-center group"
+                      >
+                        <div className="relative">
+                          <img
+                            src={match.matchedUser.photoUrl}
+                            alt={match.matchedUser.name}
+                            className="w-20 h-20 rounded-full object-cover border-2 border-fm-pink group-hover:border-fm-blue transition"
+                          />
+                          {match.matchedUser.isOnline && (
+                            <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-fm-background rounded-full" />
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-fm-text-primary mt-2">{match.matchedUser.name}</p>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Message History */}
+              <div>
+                <h2 className="text-lg font-semibold text-fm-text-primary mb-3">Messages</h2>
+                <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl border border-white/10 divide-y divide-white/10">
+                  {matches.filter(m => m.lastMessage).length === 0 ? (
+                    <p className="text-fm-text-secondary text-sm p-4">No messages yet. Start a conversation!</p>
+                  ) : (
+                    matches.filter(m => m.lastMessage).map((match) => (
+                      <button
+                        key={match.id}
+                        onClick={() => navigate(`/messages?chat=${match.matchedUser.id}`)}
+                        className="w-full p-4 flex items-center gap-4 hover:bg-white/5 transition text-left"
+                      >
+                        <div className="relative">
+                          <img
+                            src={match.matchedUser.photoUrl}
+                            alt={match.matchedUser.name}
+                            className="w-14 h-14 rounded-full object-cover"
+                          />
+                          {match.matchedUser.isOnline && (
+                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-fm-surface rounded-full" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-fm-text-primary">{match.matchedUser.name}</p>
+                            {match.lastMessageAt && (
+                              <span className="text-xs text-fm-text-muted">{formatTime(match.lastMessageAt)}</span>
+                            )}
+                          </div>
+                          <p className={`text-sm truncate ${match.hasUnread ? 'text-fm-text-primary font-medium' : 'text-fm-text-secondary'}`}>
+                            {match.lastMessage}
+                          </p>
+                        </div>
+                        {match.hasUnread && (
+                          <span className="w-3 h-3 bg-fm-pink rounded-full flex-shrink-0" />
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Likes Tab */}
+          {activeTab === 'likes' && (
+            <div className="bg-fm-surface/60 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-2">💖</div>
+                <h2 className="text-xl font-bold text-fm-text-primary">{likes.length} people like you!</h2>
+                <p className="text-fm-text-secondary text-sm mt-1">
+                  Upgrade to Premium to see who likes you
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {likes.map((like) => (
+                  <div key={like.id} className="relative">
+                    <img
+                      src={like.fromUser.blurredPhotoUrl}
+                      alt="Someone likes you"
+                      className="w-full aspect-square rounded-xl object-cover blur-md opacity-70"
+                    />
+                    {like.isSuperLike && (
+                      <span className="absolute top-2 right-2 bg-fm-blue text-white text-xs px-2 py-1 rounded-full">
+                        Super Like
+                      </span>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-4xl">🔒</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/subscription')}
+                className="w-full mt-6 bg-gradient-to-r from-fm-pink to-fm-blue text-white py-3 rounded-lg font-semibold hover:opacity-90 transition"
+              >
+                Upgrade to Premium
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
+    </FlamoralBackground>
   );
 };
 
