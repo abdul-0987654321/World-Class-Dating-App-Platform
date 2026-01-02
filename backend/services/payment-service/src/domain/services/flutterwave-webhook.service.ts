@@ -98,8 +98,8 @@ export class FlutterwaveWebhookService {
    */
   verifySignature(signature: string): boolean {
     if (!this.webhookSecret) {
-      logger.warn('FLUTTERWAVE_WEBHOOK_SECRET not configured - skipping signature verification');
-      return true; // Allow in development, but log warning
+      logger.error('FLUTTERWAVE_WEBHOOK_SECRET not configured - rejecting webhook for security');
+      return false;
     }
 
     return signature === this.webhookSecret;

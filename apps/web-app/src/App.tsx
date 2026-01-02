@@ -33,6 +33,7 @@ import TierShowcase from './pages/TierShowcase';
 // Legal Pages
 import { PrivacyPolicy } from './pages/Legal/PrivacyPolicy';
 import { TermsOfService } from './pages/Legal/TermsOfService';
+import { CommunityGuidelines } from './pages/Legal/CommunityGuidelines';
 
 // Admin Pages
 import {
@@ -116,6 +117,7 @@ const App: React.FC = () => {
         {/* Legal pages - public */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
 
         {/* Protected routes */}
         <Route path="/discover" element={

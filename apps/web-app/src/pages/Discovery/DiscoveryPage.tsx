@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { discoveryService, DiscoveryProfile } from '../../services';
 import { Navigation } from '../../components/Navigation';
 import FlamoralBackground from '../../components/theme/FlamoralBackground';
+import { AIAvatarSystem } from '../../components/AIAvatar/AIAvatarSystem';
 
 interface Profile {
   userId: string;
@@ -287,6 +288,8 @@ export const DiscoveryPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        <AIAvatarSystem initialContext="discovery" />
       </div>
     </FlamoralBackground>
   );

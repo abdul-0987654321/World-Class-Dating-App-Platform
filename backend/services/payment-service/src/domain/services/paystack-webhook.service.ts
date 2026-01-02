@@ -87,8 +87,8 @@ export class PaystackWebhookService {
    */
   verifySignature(payload: string, signature: string): boolean {
     if (!this.webhookSecret) {
-      logger.warn('PAYSTACK_WEBHOOK_SECRET not configured - skipping signature verification');
-      return true; // Allow in development, but log warning
+      logger.error('PAYSTACK_WEBHOOK_SECRET not configured - rejecting webhook for security');
+      return false;
     }
 
     const hash = crypto

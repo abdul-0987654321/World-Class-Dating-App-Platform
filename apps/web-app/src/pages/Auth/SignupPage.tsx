@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
+import { AIAvatarSystem } from '../../components/AIAvatar/AIAvatarSystem';
 
 interface FormData {
   firstName: string;
@@ -488,6 +489,8 @@ export const SignupPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <AIAvatarSystem initialContext="welcome" />
     </div>
   );
 };
