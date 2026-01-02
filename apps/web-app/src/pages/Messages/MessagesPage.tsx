@@ -167,6 +167,20 @@ export const MessagesPage: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
           </div>
           <div className="divide-y">
+            {conversations.length === 0 && !loading && (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">No conversations yet</h3>
+                <p className="text-gray-500 mb-4">Match with someone to start chatting!</p>
+                <a href="/discover" className="inline-flex items-center gap-2 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition">
+                  Start Discovering
+                </a>
+              </div>
+            )}
             {conversations.map((conv) => (
               <button
                 key={conv.id}

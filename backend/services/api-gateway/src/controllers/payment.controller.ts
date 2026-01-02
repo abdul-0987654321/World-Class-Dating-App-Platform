@@ -71,7 +71,22 @@ export class PaymentController {
     @Headers('authorization') authorization: string,
     @Body() body: any,
   ) {
-    return this.proxyService.post('paymentService', '/api/subscriptions', body, {
+    return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Subscribe to a plan (alias for createSubscription)
+   */
+  @Post('subscriptions/subscribe')
+  @ApiOperation({ summary: 'Subscribe to a plan' })
+  @HttpCode(HttpStatus.CREATED)
+  async subscribe(
+    @Headers('authorization') authorization: string,
+    @Body() body: any,
+  ) {
+    return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
       Authorization: authorization,
     });
   }
@@ -91,12 +106,27 @@ export class PaymentController {
   }
 
   /**
-   * Cancel subscription
+   * Cancel subscription (DELETE)
    */
   @Delete('subscriptions/me')
   @ApiOperation({ summary: 'Cancel current subscription' })
   async cancelSubscription(@Headers('authorization') authorization: string) {
-    return this.proxyService.delete('paymentService', '/api/subscriptions/me', {
+    return this.proxyService.post('paymentService', '/api/payment/subscription/cancel', {}, {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Cancel subscription (POST - frontend uses this)
+   */
+  @Post('subscriptions/cancel')
+  @ApiOperation({ summary: 'Cancel current subscription' })
+  @HttpCode(HttpStatus.OK)
+  async cancelSubscriptionPost(
+    @Headers('authorization') authorization: string,
+    @Body() body: any,
+  ) {
+    return this.proxyService.post('paymentService', '/api/payment/subscription/cancel', body, {
       Authorization: authorization,
     });
   }

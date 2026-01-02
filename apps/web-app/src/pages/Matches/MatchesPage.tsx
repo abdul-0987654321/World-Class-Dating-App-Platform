@@ -253,7 +253,10 @@ export const MatchesPage: React.FC = () => {
               ))}
             </div>
 
-            <button className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+            <button
+              onClick={() => navigate('/subscription')}
+              className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition"
+            >
               Upgrade to Premium
             </button>
           </div>

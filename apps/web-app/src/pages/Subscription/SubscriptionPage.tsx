@@ -31,6 +31,8 @@ export const SubscriptionPage: React.FC = () => {
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [highlightedTier, setHighlightedTier] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Check for tier parameter from landing page
   useEffect(() => {
@@ -217,6 +219,9 @@ export const SubscriptionPage: React.FC = () => {
     if (plan.tier === 'FREE') return;
 
     setProcessingPlan(plan.id);
+    setError(null);
+    setSuccess(null);
+
     try {
       const token = localStorage.getItem('authToken');
       const res = await fetch('/api/subscriptions/subscribe', {
@@ -231,18 +236,23 @@ export const SubscriptionPage: React.FC = () => {
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         if (data.data?.checkoutUrl) {
           window.location.href = data.data.checkoutUrl;
         } else {
           // Subscription activated directly
           setCurrentSubscription({ tier: plan.tier, status: 'active' });
-          alert('Subscription activated successfully!');
+          setSuccess(`Successfully subscribed to ${plan.name}!`);
         }
+      } else {
+        // Show error message from server
+        setError(data.message || data.error || 'Failed to process subscription. Please try again.');
       }
     } catch (err) {
       console.error('Subscription failed:', err);
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setProcessingPlan(null);
     }
@@ -337,6 +347,38 @@ export const SubscriptionPage: React.FC = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="hover:text-red-300">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        )}
+        {success && (
+          <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>{success}</span>
+            </div>
+            <button onClick={() => setSuccess(null)} className="hover:text-green-300">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
