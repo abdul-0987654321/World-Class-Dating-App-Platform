@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
-[![Azure](https://img.shields.io/badge/Azure-AKS-0089D6.svg)](https://azure.microsoft.com/)
+[![Azure](https://img.shields.io/badge/AWS-EKS-FF9900.svg)](https://aws.amazon.com/)
 
 [Website](https://flamoral.com) | [API Docs](docs/02-api/API_INVENTORY.md) | [Architecture](docs/01-architecture/SYSTEM_MAP.md)
 
@@ -37,7 +37,7 @@
 
 ## Overview
 
-Flamoral is a world-class dating platform featuring web and mobile applications, powered by 13+ microservices deployed on Azure Kubernetes Service (AKS). The platform supports millions of users with real-time messaging, AI-powered matching, video calls, and comprehensive safety features.
+Flamoral is a world-class dating platform featuring web and mobile applications, powered by 13+ microservices deployed on Amazon EKS. The platform supports millions of users with real-time messaging, AI-powered matching, video calls, and comprehensive safety features.
 
 ### Key Highlights
 
@@ -186,14 +186,14 @@ Flamoral offers a **6-tier subscription model** to cater to different user needs
 
 | Technology | Purpose |
 |------------|---------|
-| Azure AKS | Kubernetes orchestration |
-| Azure PostgreSQL | Managed database |
-| Azure Redis | Managed cache |
-| Azure Cosmos DB | Managed MongoDB |
-| Azure Blob Storage | Media files |
-| Azure Key Vault | Secrets management |
-| Azure Front Door | CDN, WAF, load balancing |
-| Azure Container Registry | Docker images |
+| AWS EKS | Kubernetes orchestration |
+| Amazon RDS | Managed database |
+| Amazon ElastiCache | Managed cache |
+| Amazon DocumentDB | Managed MongoDB |
+| Amazon S3 | Media files |
+| AWS Secrets Manager | Secrets management |
+| Amazon CloudFront | CDN, WAF, load balancing |
+| Amazon ECR | Docker images |
 
 ### DevOps & Monitoring
 
@@ -403,7 +403,7 @@ socket.on('call:incoming', (callData) => {});
 | Resource | Name | Purpose |
 |----------|------|---------|
 | Resource Group | `flamoral-prod-rg` | All production resources |
-| AKS Cluster | `flamoral-prod-aks` | Kubernetes orchestration |
+| AKS Cluster | `flamoral-prod-eks` | Kubernetes orchestration |
 | PostgreSQL | `flamoral-prod-postgres` | Primary database |
 | Redis | `flamoral-prod-redis` | Caching & sessions |
 | Cosmos DB | `flamoral-prod-cosmos` | Messages & analytics |
@@ -581,7 +581,7 @@ Push to main      → Build → Test → Deploy to PRODUCTION
 gh workflow run flamoral-pipeline.yml -f environment=production
 
 # Check deployment status
-az aks get-credentials -g flamoral-prod-rg -n flamoral-prod-aks
+aws eks update-kubeconfig --region us-east-1 --name flamoral-prod-eks
 kubectl get pods -n flamoral-prod
 ```
 
@@ -646,6 +646,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Flamoral** | [flamoral.com](https://flamoral.com) | Built for Production
 
-*Version 4.0.0 | Last Updated: 2025-12-22*
+*Version 1.0.0 | Last Updated: 2026-01-02 | AWS Production*
 
 </div>

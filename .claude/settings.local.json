@@ -835,7 +835,9 @@
       "Bash(aws s3api list-buckets:*)",
       "Bash(do echo \"=== flamoral-prod-eks: $ng ===\")",
       "Bash(aws elasticache describe-cache-clusters:*)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(do echo \"Merging PR #$pr...\")",
+      "Bash(git show:*)"
     ],
     "deny": [],
     "ask": []

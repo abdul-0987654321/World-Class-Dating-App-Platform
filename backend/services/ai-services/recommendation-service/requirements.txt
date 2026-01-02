@@ -6,13 +6,13 @@ httpx==0.28.0
 
 # Database and caching
 asyncpg==0.29.0
-redis==5.0.1
+redis==7.1.0
 motor==3.7.1
 sqlalchemy[asyncio]==2.0.45
 
 # ML and AI
 numpy==1.26.4
-pandas==2.2.3
+pandas==2.3.3
 scikit-learn==1.5.2
 sentence-transformers==3.3.1
 torch==2.9.1
@@ -21,10 +21,10 @@ pinecone-client==5.0.1
 
 # Data validation
 pydantic==2.10.3
-pydantic-settings==2.6.1
+pydantic-settings==2.12.0
 
 # Authentication
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 
 # Monitoring and logging
@@ -33,5 +33,5 @@ structlog==24.1.0
 sentry-sdk[fastapi]==1.39.1
 
 # Utilities
-python-dotenv==1.0.0
+python-dotenv==1.2.1
 tenacity==8.2.3

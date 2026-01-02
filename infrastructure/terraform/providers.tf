@@ -10,7 +10,7 @@ terraform {
     # AWS Provider - PRIMARY AND ONLY CLOUD PROVIDER
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.27"
     }
 
     # Kubernetes Provider - For EKS integration
