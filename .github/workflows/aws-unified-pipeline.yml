@@ -12,6 +12,9 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  # Scheduled production deployment at 9:00 PM UTC daily
+  schedule:
+    - cron: '0 21 * * *'  # 9:00 PM UTC (4:00 PM EST / 5:00 PM EDT)
   workflow_call:
     inputs:
       environment:
@@ -141,13 +144,24 @@ jobs:
       - name: Check deployment conditions
         id: check
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && \
-             ([ "${{ github.event.inputs.action }}" == "build-deploy" ] || [ "${{ github.event.inputs.action }}" == "release" ]); then
+          # Always build images on push to main/develop
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "should_build_images=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_build_images=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Deploy only on scheduled 9 PM run or manual workflow_dispatch
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "::notice::Scheduled 9 PM production deployment - deploying all accumulated changes"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && \
+               ([ "${{ github.event.inputs.action }}" == "build-deploy" ] || [ "${{ github.event.inputs.action }}" == "release" ]); then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "::notice::Manual deployment triggered for ${{ github.event.inputs.environment || 'production' }}"
           else
             echo "should_deploy=false" >> $GITHUB_OUTPUT
-            echo "::notice::Build only - deployment requires manual trigger via workflow_dispatch"
+            echo "::notice::Build only - images pushed to ECR. Production deployment runs daily at 9 PM UTC."
           fi
 
       - name: Upload build artifacts
@@ -160,13 +174,17 @@ jobs:
           retention-days: 7
 
   # ===========================================================================
-  # DOCKER BUILD - Build and Push to ECR
+  # DOCKER BUILD - Build and Push to ECR (runs on every push to main)
   # ===========================================================================
   build-docker-images:
     name: Build Docker Images
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: needs.build-and-test.outputs.should_deploy == 'true'
+    # Build images on push to main, schedule, or manual deploy
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'schedule' ||
+      needs.build-and-test.outputs.should_deploy == 'true'
 
     strategy:
       fail-fast: false
@@ -291,13 +309,17 @@ jobs:
           path: sbom-${{ steps.dockerfile.outputs.image_name }}.spdx.json
 
   # ===========================================================================
-  # FRONTEND BUILD
+  # FRONTEND BUILD (runs on every push to main)
   # ===========================================================================
   build-frontend:
     name: Build Frontend
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: needs.build-and-test.outputs.should_deploy == 'true'
+    # Build frontend on push to main, schedule, or manual deploy
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'schedule' ||
+      needs.build-and-test.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -383,13 +405,17 @@ jobs:
           path: sbom-web-app.spdx.json
 
   # ===========================================================================
-  # DEPLOY TO EKS
+  # DEPLOY TO EKS - Only at 9 PM UTC daily or manual trigger
+  # Images are built throughout the day, but deployment is batched to 9 PM
   # ===========================================================================
   deploy:
     name: Deploy to ${{ github.event.inputs.environment || 'production' }}
     needs: [build-and-test, build-docker-images, build-frontend]
     runs-on: ubuntu-latest
-    if: needs.build-and-test.outputs.should_deploy == 'true'
+    # Deploy only on scheduled 9 PM run or manual workflow_dispatch (NOT on push)
+    if: |
+      github.event_name == 'schedule' ||
+      needs.build-and-test.outputs.should_deploy == 'true'
     environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
