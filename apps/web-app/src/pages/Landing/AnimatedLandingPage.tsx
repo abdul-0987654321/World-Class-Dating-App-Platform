@@ -16,7 +16,7 @@ import { FlamoralLogo } from '../../components/Logo';
 
 // Animation configuration
 const MOTION_CONFIG = {
-  ease: [0.22, 1, 0.36, 1],
+  ease: [0.22, 1, 0.36, 1] as const,
   duration: 0.34,
   stagger: 0.08,
 };
@@ -104,7 +104,10 @@ const SAFETY_FEATURES = [
 ];
 
 const AnimatedLandingPage: React.FC = () => {
-  const prefersReducedMotion = useReducedMotion();
+  // useReducedMotion can return null before the preference is resolved
+  // Default to false (show animations) when null
+  const reducedMotionPref = useReducedMotion();
+  const prefersReducedMotion = reducedMotionPref === true;
   const heroRef = useRef<HTMLDivElement>(null);
   const [gradientPos, setGradientPos] = useState({ x: 50, y: 50 });
 
@@ -136,9 +139,21 @@ const AnimatedLandingPage: React.FC = () => {
 
   return (
     <div className="flamoral-animated-landing">
+      {/* Preload fonts for better performance - link element is non-blocking */}
+      <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+      />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
-
         .flamoral-animated-landing {
           /* BRIGHTER backgrounds per Master Prompt */
           --color-bg: #14141f;
@@ -167,6 +182,9 @@ const AnimatedLandingPage: React.FC = () => {
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
           overflow-x: hidden;
+          /* Ensure landing page renders above App's FlamoralBackground */
+          position: relative;
+          z-index: 1;
         }
 
         .flamoral-animated-landing * {

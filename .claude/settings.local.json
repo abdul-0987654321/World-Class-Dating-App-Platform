@@ -828,7 +828,14 @@
       "Bash(do echo -n \"$svc: \")",
       "Bash(do echo \"Scaling down $ng...\")",
       "Bash(aws eks update-nodegroup-config:*)",
-      "Bash(aws dynamodb list-tables:*)"
+      "Bash(aws dynamodb list-tables:*)",
+      "Bash(do echo \"=== $cluster ===\")",
+      "Bash(aws ec2 describe-nat-gateways:*)",
+      "Bash(do echo \"=== applyforus-dev: $ng ===\")",
+      "Bash(aws s3api list-buckets:*)",
+      "Bash(do echo \"=== flamoral-prod-eks: $ng ===\")",
+      "Bash(aws elasticache describe-cache-clusters:*)",
+      "Bash(npx tsc --noEmit)"
     ],
     "deny": [],
     "ask": []

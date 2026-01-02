@@ -40,7 +40,8 @@ export const ProfilePage: React.FC = () => {
         setEditedBio(userData.bio || '');
       } else {
         // Fallback to API call
-        const data = await authService.getCurrentUser();
+        // Cast to any since the API may return additional profile fields
+        const data = await authService.getCurrentUser() as any;
         setUser({
           id: data.id,
           name: data.firstName || '',

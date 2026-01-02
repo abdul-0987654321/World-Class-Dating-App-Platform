@@ -32,6 +32,7 @@ export const SafetyCenterPage: React.FC = () => {
 
   // Default fallback data when API fails
   const getDefaultVerificationStatus = (): VerificationStatus => ({
+    userId: 'default-user',
     emailVerified: true,
     phoneVerified: false,
     governmentIdVerified: false,
@@ -45,15 +46,20 @@ export const SafetyCenterPage: React.FC = () => {
   });
 
   const getDefaultSecuritySettings = (): SecuritySettings => ({
+    id: 'default-settings',
+    user_id: 'default-user',
     two_factor_enabled: false,
     two_factor_method: null,
     login_alerts_enabled: true,
     new_device_alerts_enabled: true,
     suspicious_activity_alerts_enabled: true,
+    allowed_login_countries: [],
     trusted_devices: [],
   });
 
   const getDefaultPrivacySettings = (): PrivacySettings => ({
+    id: 'default-privacy',
+    user_id: 'default-user',
     profile_visibility: 'public',
     show_online_status: true,
     show_last_active: true,
@@ -75,43 +81,55 @@ export const SafetyCenterPage: React.FC = () => {
 
   const getDefaultCrisisResources = (): CrisisResource[] => [
     {
+      type: 'domestic_violence',
       name: 'National Domestic Violence Hotline',
       contact: '1-800-799-7233',
+      country: 'US',
       description: '24/7 confidential support for domestic violence survivors',
       hours: '24/7',
       website: 'https://www.thehotline.org',
     },
     {
+      type: 'sexual_assault',
       name: 'RAINN Sexual Assault Hotline',
       contact: '1-800-656-4673',
+      country: 'US',
       description: 'Free, confidential support for sexual assault survivors',
       hours: '24/7',
       website: 'https://www.rainn.org',
     },
     {
+      type: 'suicide_hotline',
       name: 'National Suicide Prevention Lifeline',
       contact: '988',
+      country: 'US',
       description: 'Free and confidential emotional support for people in crisis',
       hours: '24/7',
       website: 'https://988lifeline.org',
     },
     {
+      type: 'crisis_text',
       name: 'Crisis Text Line',
       contact: 'Text HOME to 741741',
+      country: 'US',
       description: 'Free crisis counseling via text message',
       hours: '24/7',
       website: 'https://www.crisistextline.org',
     },
     {
+      type: 'human_trafficking',
       name: 'National Human Trafficking Hotline',
       contact: '1-888-373-7888',
+      country: 'US',
       description: 'Anti-trafficking hotline for reporting tips and seeking help',
       hours: '24/7',
       website: 'https://humantraffickinghotline.org',
     },
     {
+      type: 'lgbtq_support',
       name: 'Trans Lifeline',
       contact: '1-877-565-8860',
+      country: 'US',
       description: 'Peer support for transgender people in crisis',
       hours: '24/7',
       website: 'https://translifeline.org',
