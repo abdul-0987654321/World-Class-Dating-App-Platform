@@ -180,7 +180,7 @@
   --bg-page: var(--fm-gradient-landing);
 
   /* ============================================================================
-     TYPOGRAPHY
+     TYPOGRAPHY — 9-10pt Base with Italic Emphasis System
      ============================================================================ */
   --fm-font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
   --fm-font-body: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -191,15 +191,46 @@
   --font-body: var(--fm-font-body);
   --font-mono: var(--fm-font-mono);
 
-  /* Type Scale */
-  --fm-text-xs: 0.6875rem;      /* 11px */
-  --fm-text-sm: 0.8125rem;      /* 13px */
-  --fm-text-base: 0.9rem;       /* 14.4px — PRIMARY BODY SIZE */
-  --fm-text-md: 1rem;           /* 16px */
-  --fm-text-lg: 1.125rem;       /* 18px */
-  --fm-text-xl: 1.5rem;         /* 24px */
-  --fm-text-2xl: 2rem;          /* 32px */
-  --fm-text-3xl: 3rem;          /* 48px */
+  /* ============================================================================
+     TYPE SCALE — Master Prompt Typography Standard
+     ============================================================================
+     | Element            | Size        | Weight | Style  |
+     |--------------------|-------------|--------|--------|
+     | Body text          | 0.875rem    | 400    | Normal |
+     | UI labels          | 0.9375rem   | 500    | Normal |
+     | Navigation active  | 0.875rem    | 600    | Italic |
+     | Feature highlights | 0.9375rem   | 500    | Italic |
+     | Plan names         | 1.125rem    | 600    | Italic |
+     | Status badges      | 0.75rem     | 600    | Italic |
+     | Testimonials       | 1rem        | 400    | Italic |
+     | Hero headline      | 2.5-3rem    | 700    | Mixed  |
+     ============================================================================ */
+
+  /* Base sizes (9-10pt range) */
+  --fm-text-body: 0.875rem;           /* 14px ≈ 9pt — PRIMARY BODY */
+  --fm-text-label: 0.9375rem;         /* 15px ≈ 10pt — UI LABELS */
+  --fm-text-badge: 0.75rem;           /* 12px — STATUS BADGES */
+  --fm-text-testimonial: 1rem;        /* 16px — TESTIMONIALS */
+  --fm-text-plan: 1.125rem;           /* 18px — PLAN NAMES */
+  --fm-text-hero-min: 2.5rem;         /* 40px — HERO MIN */
+  --fm-text-hero-max: 3rem;           /* 48px — HERO MAX */
+
+  /* Legacy size scale */
+  --fm-text-xs: 0.75rem;              /* 12px — badges, small text */
+  --fm-text-sm: 0.8125rem;            /* 13px — captions */
+  --fm-text-base: 0.875rem;           /* 14px — body text (9pt) */
+  --fm-text-md: 0.9375rem;            /* 15px — labels (10pt) */
+  --fm-text-lg: 1.125rem;             /* 18px — plan names */
+  --fm-text-xl: 1.5rem;               /* 24px — section titles */
+  --fm-text-2xl: 2rem;                /* 32px — page titles */
+  --fm-text-3xl: 2.5rem;              /* 40px — hero min */
+  --fm-text-4xl: 3rem;                /* 48px — hero max */
+
+  /* Font weights */
+  --fm-weight-normal: 400;
+  --fm-weight-medium: 500;
+  --fm-weight-semibold: 600;
+  --fm-weight-bold: 700;
 
   /* Legacy aliases */
   --text-xs: var(--fm-text-xs);
@@ -209,9 +240,9 @@
   --text-xl: var(--fm-text-xl);
   --text-2xl: var(--fm-text-2xl);
   --text-3xl: var(--fm-text-3xl);
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
-  --text-6xl: 3.75rem;
+  --text-4xl: var(--fm-text-4xl);
+  --text-5xl: 3.5rem;
+  --text-6xl: 4rem;
 
   /* Line heights */
   --fm-leading-tight: 1.1;
@@ -527,7 +558,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 /* ============================================================================
-   TEXT UTILITIES
+   TEXT UTILITIES — Master Prompt Typography Standard
+   9-10pt Base with Italic Emphasis System
    ============================================================================ */
 
 .text-gradient,
@@ -545,6 +577,24 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background-clip: text;
 }
 
+/* Hero Headline — 2.5-3rem, 700, Mixed (accent words italic) */
+.fm-hero-headline,
+.heading-hero {
+  font-family: var(--fm-font-display);
+  font-size: clamp(var(--fm-text-hero-min), 5vw, var(--fm-text-hero-max));
+  font-weight: var(--fm-weight-bold);
+  font-style: normal;
+  line-height: var(--fm-leading-tight);
+  letter-spacing: -0.02em;
+}
+
+.fm-hero-headline .accent,
+.heading-hero .accent {
+  font-style: italic;
+  color: var(--fm-pink);
+}
+
+/* Display heading with italic */
 .heading-display {
   font-family: var(--fm-font-display);
   font-size: var(--fm-text-3xl);
@@ -556,32 +606,113 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 .heading-1 {
   font-size: var(--fm-text-2xl);
-  font-weight: 700;
+  font-weight: var(--fm-weight-bold);
   line-height: var(--fm-leading-tight);
 }
 
 .heading-2 {
   font-size: var(--fm-text-xl);
-  font-weight: 600;
+  font-weight: var(--fm-weight-semibold);
   line-height: var(--fm-leading-snug);
 }
 
 .heading-3 {
   font-size: var(--fm-text-lg);
-  font-weight: 600;
+  font-weight: var(--fm-weight-semibold);
   line-height: var(--fm-leading-snug);
 }
 
+/* Body Text — 0.875rem (14px ≈ 9pt), 400, Normal */
+.fm-body,
 .text-body {
-  font-size: var(--fm-text-base);
-  font-style: italic;
-  color: var(--fm-text-muted);
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-body);
+  font-weight: var(--fm-weight-normal);
+  font-style: normal;
+  color: var(--fm-text);
   line-height: var(--fm-leading-normal);
 }
 
+/* UI Labels — 0.9375rem (15px ≈ 10pt), 500, Normal */
+.fm-label,
+.text-label {
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-label);
+  font-weight: var(--fm-weight-medium);
+  font-style: normal;
+  color: var(--fm-text);
+  line-height: var(--fm-leading-snug);
+}
+
+/* Navigation Active — 0.875rem, 600, Italic */
+.fm-nav-active,
+.text-nav-active {
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-body);
+  font-weight: var(--fm-weight-semibold);
+  font-style: italic;
+  color: var(--fm-text);
+}
+
+/* Feature Highlights — 0.9375rem, 500, Italic */
+.fm-feature,
+.text-feature {
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-label);
+  font-weight: var(--fm-weight-medium);
+  font-style: italic;
+  color: var(--fm-text);
+  line-height: var(--fm-leading-normal);
+}
+
+/* Plan Names — 1.125rem, 600, Italic */
+.fm-plan-name,
+.text-plan {
+  font-family: var(--fm-font-display);
+  font-size: var(--fm-text-plan);
+  font-weight: var(--fm-weight-semibold);
+  font-style: italic;
+  color: var(--fm-text);
+  line-height: var(--fm-leading-snug);
+}
+
+/* Status Badges — 0.75rem, 600, Italic */
+.fm-badge,
+.text-badge {
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-badge);
+  font-weight: var(--fm-weight-semibold);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Testimonials — 1rem, 400, Italic */
+.fm-testimonial,
+.text-testimonial {
+  font-family: var(--fm-font-display);
+  font-size: var(--fm-text-testimonial);
+  font-weight: var(--fm-weight-normal);
+  font-style: italic;
+  color: var(--fm-text);
+  line-height: var(--fm-leading-relaxed);
+}
+
+/* Caption text */
+.fm-caption,
 .text-caption {
   font-size: var(--fm-text-sm);
+  font-weight: var(--fm-weight-normal);
   color: var(--fm-text-subtle);
+}
+
+/* Muted body text */
+.fm-muted,
+.text-muted {
+  font-size: var(--fm-text-body);
+  font-weight: var(--fm-weight-normal);
+  color: var(--fm-text-muted);
+  line-height: var(--fm-leading-normal);
 }
 
 /* ============================================================================
@@ -600,14 +731,18 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 .fm-nav-link {
   color: var(--fm-text-muted);
-  font-size: var(--fm-text-base);
-  font-style: italic;
-  transition: color var(--fm-duration-fast) var(--fm-ease-default);
+  font-size: var(--fm-text-body);
+  font-weight: var(--fm-weight-normal);
+  font-style: normal;
+  transition: all var(--fm-duration-fast) var(--fm-ease-default);
 }
 
+/* Navigation Active — 0.875rem, 600, Italic */
 .fm-nav-link:hover,
 .fm-nav-link.active {
   color: var(--fm-text);
+  font-weight: var(--fm-weight-semibold);
+  font-style: italic;
   text-shadow: 0 0 20px var(--fm-pink);
 }
 
