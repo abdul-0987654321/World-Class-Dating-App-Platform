@@ -116,6 +116,9 @@ spec:
             # Shutdown timeout should be less than terminationGracePeriodSeconds
             - name: SHUTDOWN_TIMEOUT_MS
               value: "25000"
+            # Allow degraded mode when Cosmos DB is unavailable
+            - name: ALLOW_DEGRADED_MODE
+              value: "true"
           envFrom:
             - secretRef:
                 name: backend-secrets

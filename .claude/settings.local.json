@@ -823,7 +823,8 @@
       "Bash(xargs -r kubectl --context=arn:aws:eks:us-east-1:992382449461:cluster/flamoral-prod-eks delete -n flamoral --force --grace-period=0)",
       "Bash(do echo \"=== flamoral/$repo ===\" aws ecr describe-images --repository-name flamoral/$repo --region us-east-1 --query 'imageDetails[*].imageTags' --output text)",
       "Bash(do kubectl --context arn:aws:eks:us-east-1:992382449461:cluster/flamoral-prod-eks -n flamoral rollout restart deployment/$svc)",
-      "Bash(xargs -r kubectl --context=arn:aws:eks:us-east-1:992382449461:cluster/flamoral-prod-eks delete pod -n flamoral --force --grace-period=0)"
+      "Bash(xargs -r kubectl --context=arn:aws:eks:us-east-1:992382449461:cluster/flamoral-prod-eks delete pod -n flamoral --force --grace-period=0)",
+      "Bash(aws docdb describe-db-clusters:*)"
     ],
     "deny": [],
     "ask": []

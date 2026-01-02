@@ -231,6 +231,7 @@ async function startServer() {
     logger.info('Initializing Cosmos DB connection...');
     const maxRetries = 5;
     const retryDelayMs = 5000;
+    const allowDegradedMode = process.env.ALLOW_DEGRADED_MODE === 'true';
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -240,10 +241,16 @@ async function startServer() {
       } catch (error: any) {
         if (attempt === maxRetries) {
           logger.error(`Failed to initialize Cosmos DB after ${maxRetries} attempts:`, error);
-          throw error;
+          if (allowDegradedMode) {
+            logger.warn('Starting in DEGRADED MODE - messaging features will be limited');
+            // Don't throw - continue without Cosmos DB
+          } else {
+            throw error;
+          }
+        } else {
+          logger.warn(`Cosmos DB initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelayMs));
         }
-        logger.warn(`Cosmos DB initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`, error.message);
-        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
       }
     }
 
