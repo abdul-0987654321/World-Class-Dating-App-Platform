@@ -25,37 +25,40 @@ export default {
         // Maps to CSS variables in design-system.css
         // ============================================================================
         fm: {
-          // Backgrounds
+          // Backgrounds - Midnight Luxe Aurora
           bg: {
-            0: 'var(--bg-page-solid, #08080c)',
-            1: 'var(--surface-card, #111318)',
-            2: 'var(--surface-elevated, #1A1D24)',
+            0: 'var(--bg-page-solid, #0D0D12)',
+            1: 'var(--surface-card, #161622)',
+            2: 'var(--surface-elevated, #1E1E2E)',
           },
-          // Surfaces
+          // Surfaces - Midnight Luxe Aurora
           surface: {
-            card: 'var(--surface-card, #111318)',
-            elevated: 'var(--surface-elevated, #1A1D24)',
-            overlay: 'var(--surface-overlay, rgba(11, 11, 15, 0.95))',
+            card: 'var(--surface-card, #161622)',
+            elevated: 'var(--surface-elevated, #1E1E2E)',
+            overlay: 'var(--surface-overlay, #252535)',
           },
-          // Text
+          // Text - Midnight Luxe Aurora
           text: {
             DEFAULT: 'var(--text-primary, #FFFFFF)',
-            muted: 'var(--text-muted, #8A8D9F)',
-            secondary: 'var(--text-secondary, #B5B8C5)',
+            muted: 'var(--text-muted, #6B6B80)',
+            secondary: 'var(--text-secondary, #B4B4C7)',
             disabled: 'var(--text-disabled, #5A5D6F)',
           },
           // Borders
           border: {
-            DEFAULT: 'var(--border-default, rgba(255, 255, 255, 0.12))',
+            DEFAULT: 'var(--border-default, rgba(167, 139, 250, 0.2))',
             subtle: 'var(--border-subtle, rgba(255, 255, 255, 0.08))',
-            strong: 'var(--border-strong, rgba(255, 255, 255, 0.20))',
+            strong: 'var(--border-strong, rgba(167, 139, 250, 0.4))',
           },
-          // Brand Accent Colors (Romantic Aurora)
-          pink: 'var(--accent-pink, #d4587a)',
-          violet: 'var(--accent-purple, #7B61FF)',
-          cyan: 'var(--accent-cyan, #2ED4FF)',
+          // Brand Accent Colors - Midnight Luxe Aurora
+          pink: 'var(--accent-pink, #FF6B9D)',
+          violet: 'var(--accent-purple, #A78BFA)',
+          purple: '#C44AFF',
+          indigo: '#6366F1',
+          cyan: 'var(--accent-cyan, #2B86C5)',
           mint: '#2EE89A',
-          gold: '#D4A574',
+          gold: '#FFD700',
+          orange: '#FF6B35',
           // Semantic
           danger: 'var(--error, #EF4444)',
           warning: 'var(--warning, #F59E0B)',
@@ -64,6 +67,10 @@ export default {
           // Economy
           coin: 'var(--coin-primary, #F59E0B)',
           gem: 'var(--gem-primary, #3B82F6)',
+          // Midnight Luxe specific
+          obsidian: '#0D0D12',
+          charcoal: '#161622',
+          slate: '#1E1E2E',
         },
 
         // Base Colors - Dark Mode First
@@ -154,6 +161,11 @@ export default {
         `,
         // Romantic Aurora gradient (pink → violet → cyan)
         'fm-romance': 'linear-gradient(135deg, #d4587a 0%, #7B61FF 50%, #2ED4FF 100%)',
+        // Aurora Romance™ gradients - Midnight Luxe
+        'aurora-hero': 'linear-gradient(135deg, #FF6B9D 0%, #C44AFF 50%, #6366F1 100%)',
+        'aurora-accent': 'linear-gradient(90deg, #F97316 0%, #EC4899 50%, #8B5CF6 100%)',
+        'aurora-cta': 'linear-gradient(45deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)',
+        'aurora-gold': 'linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%)',
         // Trust gradient (navy → blue → cyan)
         'fm-trust': 'linear-gradient(135deg, #1a2744 0%, #3B82F6 50%, #2ED4FF 100%)',
         // Elite/Luxury gradient (bronze → gold)
@@ -193,7 +205,8 @@ export default {
       },
 
       fontFamily: {
-        heading: ['"Space Grotesk"', '"Inter"', 'system-ui', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', '"Space Grotesk"', '"Inter"', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         sans: ['"Inter"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
       },
@@ -421,6 +434,18 @@ export default {
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
+        '.text-aurora-romance': {
+          background: 'linear-gradient(135deg, #FF6B9D 0%, #C44AFF 50%, #6366F1 100%)',
+          '-webkit-background-clip': 'text',
+          '-webkit-text-fill-color': 'transparent',
+          'background-clip': 'text',
+        },
+        '.text-aurora-gold': {
+          background: 'linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%)',
+          '-webkit-background-clip': 'text',
+          '-webkit-text-fill-color': 'transparent',
+          'background-clip': 'text',
+        },
         '.bg-glass': {
           background: 'rgba(26, 26, 26, 0.8)',
           backdropFilter: 'blur(12px)',
@@ -430,6 +455,15 @@ export default {
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(12px)',
           '-webkit-backdrop-filter': 'blur(12px)',
+        },
+        '.bg-glass-luxe': {
+          background: 'rgba(30, 30, 46, 0.6)',
+          backdropFilter: 'blur(16px)',
+          '-webkit-backdrop-filter': 'blur(16px)',
+          border: '1px solid rgba(167, 139, 250, 0.2)',
+        },
+        '.glow-aurora': {
+          boxShadow: '0 4px 30px rgba(255, 60, 172, 0.4), 0 0 60px rgba(196, 74, 255, 0.2)',
         },
         '.border-gradient': {
           border: '2px solid transparent',

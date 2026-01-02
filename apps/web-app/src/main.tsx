@@ -5,6 +5,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
 import App from './App';
 import './index.css';
+import './styles/midnight-luxe.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

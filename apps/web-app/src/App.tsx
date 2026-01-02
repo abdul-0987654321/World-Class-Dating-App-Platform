@@ -8,6 +8,7 @@ import { FlamoralBackground } from '@/components/theme';
 import LandingPage from './pages/Landing/LandingPage';
 import FuturisticLandingPage from './pages/Landing/FuturisticLandingPage';
 import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
+import LandingPageV2 from './pages/Landing/LandingPageV2';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
@@ -86,9 +87,9 @@ const App: React.FC = () => {
       <FlamoralBackground fixed withNoise>
         <AvatarProvider>
           <Routes>
-          {/* Landing page - public (animated premium design) */}
+          {/* Landing page - public (Midnight Luxe Aurora design) */}
           <Route path="/" element={
-            isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
+            isAuthenticated ? <Navigate to="/discover" replace /> : <LandingPageV2 />
           } />
 
         {/* Legacy Landing pages - fallback */}
@@ -97,6 +98,9 @@ const App: React.FC = () => {
         } />
         <Route path="/landing-old" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <FuturisticLandingPage />
+        } />
+        <Route path="/landing-animated" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
         } />
 
         {/* Public routes */}
