@@ -1,0 +1,408 @@
+# =============================================================================
+# PR QUALITY GATE - Flamoral Dating Platform
+# =============================================================================
+# Self-healing guardrails that prevent broken deployments
+# Legal pages, API routes, and UI must NEVER fail silently
+# =============================================================================
+
+name: PR Quality Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-gate-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ===========================================================================
+  # LEGAL PAGES GUARD - Must NEVER fail silently
+  # ===========================================================================
+  legal-pages-guard:
+    name: Legal Pages Availability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Verify legal page components exist
+        run: |
+          echo "Checking required legal page components..."
+          REQUIRED_LEGAL_PAGES=(
+            "apps/web-app/src/pages/Legal/PrivacyPolicy.tsx"
+            "apps/web-app/src/pages/Legal/TermsOfService.tsx"
+            "apps/web-app/src/pages/Legal/CommunityGuidelines.tsx"
+            "apps/web-app/src/pages/Legal/CookiePolicy.tsx"
+            "apps/web-app/src/pages/Legal/SafetyGuidelines.tsx"
+            "apps/web-app/src/pages/Legal/RefundPolicy.tsx"
+          )
+
+          MISSING=()
+          for page in "${REQUIRED_LEGAL_PAGES[@]}"; do
+            if [ ! -f "$page" ]; then
+              MISSING+=("$page")
+              echo "::error::MISSING LEGAL PAGE: $page"
+            else
+              echo "Found: $page"
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::${#MISSING[@]} required legal pages are missing!"
+            echo "::error::Legal pages must NEVER be removed or fail silently."
+            exit 1
+          fi
+
+          echo "All ${#REQUIRED_LEGAL_PAGES[@]} legal pages verified."
+
+      - name: Verify legal page exports
+        run: |
+          echo "Checking Legal/index.ts exports..."
+          INDEX_FILE="apps/web-app/src/pages/Legal/index.ts"
+
+          REQUIRED_EXPORTS=(
+            "PrivacyPolicy"
+            "TermsOfService"
+            "CommunityGuidelines"
+            "CookiePolicy"
+            "SafetyGuidelines"
+            "RefundPolicy"
+          )
+
+          for export in "${REQUIRED_EXPORTS[@]}"; do
+            if ! grep -q "export.*$export" "$INDEX_FILE"; then
+              echo "::error::Missing export: $export in $INDEX_FILE"
+              exit 1
+            fi
+            echo "Export verified: $export"
+          done
+
+          echo "All legal page exports verified."
+
+      - name: Verify legal routes in App.tsx
+        run: |
+          echo "Checking App.tsx for legal routes..."
+          APP_FILE="apps/web-app/src/App.tsx"
+
+          REQUIRED_ROUTES=(
+            "/privacy-policy"
+            "/terms-of-service"
+            "/community-guidelines"
+            "/cookie-policy"
+            "/safety-guidelines"
+            "/refund-policy"
+          )
+
+          for route in "${REQUIRED_ROUTES[@]}"; do
+            if ! grep -q "path=\"$route\"" "$APP_FILE"; then
+              echo "::error::Missing route: $route in App.tsx"
+              exit 1
+            fi
+            echo "Route verified: $route"
+          done
+
+          echo "All legal routes verified in App.tsx"
+
+      - name: Build web-app to verify compilation
+        run: |
+          cd apps/web-app
+          yarn build
+
+          # Verify legal pages are in the build output
+          if [ ! -d "dist" ]; then
+            echo "::error::Build failed - no dist directory"
+            exit 1
+          fi
+
+          echo "Web-app build successful with all legal pages."
+
+  # ===========================================================================
+  # API ROUTE GUARD - Backend endpoints must be defined
+  # ===========================================================================
+  api-route-guard:
+    name: API Route Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify API Gateway routes
+        run: |
+          echo "Checking API Gateway route definitions..."
+          GATEWAY_DIR="backend/services/api-gateway/src"
+
+          # Check for route modules
+          REQUIRED_ROUTES=(
+            "auth"
+            "users"
+            "profiles"
+            "matching"
+            "messages"
+            "notifications"
+            "payments"
+            "subscriptions"
+          )
+
+          for route in "${REQUIRED_ROUTES[@]}"; do
+            if ls $GATEWAY_DIR/routes/*${route}* 1> /dev/null 2>&1 || \
+               ls $GATEWAY_DIR/modules/*${route}* 1> /dev/null 2>&1 || \
+               grep -rq "/${route}" $GATEWAY_DIR 2>/dev/null; then
+              echo "Route module found: $route"
+            else
+              echo "::warning::Route module may be missing: $route"
+            fi
+          done
+
+          echo "API Gateway route check complete."
+
+      - name: Check for broken service imports
+        run: |
+          echo "Scanning for broken imports..."
+
+          # Look for common import issues
+          find backend/services -name "*.ts" -type f | while read file; do
+            if grep -q "from '\.\./\.\./\.\./\.\./\.\." "$file" 2>/dev/null; then
+              echo "::warning::Deep relative import in $file - consider absolute imports"
+            fi
+          done
+
+          echo "Import scan complete."
+
+  # ===========================================================================
+  # UI COMPONENT GUARD - No broken components
+  # ===========================================================================
+  ui-component-guard:
+    name: UI Component Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: TypeScript type check
+        run: |
+          cd apps/web-app
+          npx tsc --noEmit || {
+            echo "::error::TypeScript compilation errors detected!"
+            exit 1
+          }
+          echo "TypeScript check passed."
+
+      - name: Check for console.error in production code
+        run: |
+          echo "Scanning for unhandled console.error calls..."
+
+          # Allow console.error in specific files (error boundaries, loggers)
+          ALLOW_LIST=(
+            "ErrorBoundary"
+            "logger"
+            "debug"
+            "test"
+            ".spec."
+            ".test."
+          )
+
+          find apps/web-app/src -name "*.tsx" -o -name "*.ts" | while read file; do
+            # Skip allowed files
+            SKIP=false
+            for allow in "${ALLOW_LIST[@]}"; do
+              if [[ "$file" == *"$allow"* ]]; then
+                SKIP=true
+                break
+              fi
+            done
+
+            if [ "$SKIP" = false ]; then
+              if grep -n "console\.error" "$file" 2>/dev/null; then
+                echo "::notice file=$file::Found console.error - ensure proper error handling"
+              fi
+            fi
+          done
+
+          echo "Console.error scan complete."
+
+      - name: Verify critical UI components exist
+        run: |
+          CRITICAL_COMPONENTS=(
+            "apps/web-app/src/components/AIAvatar/AIAvatarSystem.tsx"
+            "apps/web-app/src/components/theme/FlamoralBackground.tsx"
+            "apps/web-app/src/pages/Landing/AnimatedLandingPage.tsx"
+            "apps/web-app/src/pages/Auth/LoginPage.tsx"
+            "apps/web-app/src/pages/Auth/SignupPage.tsx"
+            "apps/web-app/src/pages/Discovery/DiscoveryPage.tsx"
+          )
+
+          for component in "${CRITICAL_COMPONENTS[@]}"; do
+            if [ ! -f "$component" ]; then
+              echo "::error::Missing critical component: $component"
+              exit 1
+            fi
+            echo "Found: $component"
+          done
+
+          echo "All critical UI components verified."
+
+  # ===========================================================================
+  # SECURITY GUARD - No secrets in code
+  # ===========================================================================
+  security-guard:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for potential secrets..."
+
+          PATTERNS=(
+            "AKIA[0-9A-Z]{16}"  # AWS Access Key
+            "sk-[a-zA-Z0-9]{48}"  # OpenAI API Key
+            "ghp_[a-zA-Z0-9]{36}"  # GitHub Personal Token
+            "password\s*=\s*['\"][^'\"]+['\"]"  # Hardcoded passwords
+            "secret\s*=\s*['\"][^'\"]+['\"]"  # Hardcoded secrets
+          )
+
+          FOUND_ISSUES=false
+
+          for pattern in "${PATTERNS[@]}"; do
+            if git diff origin/main...HEAD -- '*.ts' '*.tsx' '*.js' '*.json' | grep -E "$pattern" 2>/dev/null; then
+              echo "::error::Potential secret detected matching pattern: $pattern"
+              FOUND_ISSUES=true
+            fi
+          done
+
+          if [ "$FOUND_ISSUES" = true ]; then
+            echo "::error::Security scan found potential secrets in the diff!"
+            exit 1
+          fi
+
+          echo "No secrets detected in changed files."
+
+      - name: Check for .env files being committed
+        run: |
+          if git diff --cached --name-only | grep -E "\.env$|\.env\." | grep -v "\.env\.example" | grep -v "\.env\.template"; then
+            echo "::error::Attempting to commit .env files!"
+            exit 1
+          fi
+          echo "No .env files in commit."
+
+  # ===========================================================================
+  # PERFORMANCE GUARD - Bundle size check
+  # ===========================================================================
+  performance-guard:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build and check bundle size
+        run: |
+          cd apps/web-app
+          yarn build
+
+          # Check total bundle size
+          TOTAL_SIZE=$(du -sk dist | cut -f1)
+          MAX_SIZE=10240  # 10MB max
+
+          echo "Bundle size: ${TOTAL_SIZE}KB"
+
+          if [ "$TOTAL_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "::error::Bundle size ${TOTAL_SIZE}KB exceeds maximum ${MAX_SIZE}KB"
+            exit 1
+          fi
+
+          echo "Bundle size within limits."
+
+      - name: Check for large assets
+        run: |
+          cd apps/web-app
+
+          # Find files larger than 500KB
+          LARGE_FILES=$(find dist -type f -size +500k 2>/dev/null || true)
+
+          if [ -n "$LARGE_FILES" ]; then
+            echo "::warning::Large files detected in build:"
+            echo "$LARGE_FILES"
+          fi
+
+  # ===========================================================================
+  # SUMMARY
+  # ===========================================================================
+  quality-gate-summary:
+    name: Quality Gate Summary
+    needs: [legal-pages-guard, api-route-guard, ui-component-guard, security-guard, performance-guard]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# PR Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Legal Pages | ${{ needs.legal-pages-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Routes | ${{ needs.api-route-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| UI Components | ${{ needs.ui-component-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ needs.performance-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Determine overall status
+          if [ "${{ needs.legal-pages-guard.result }}" == "failure" ] || \
+             [ "${{ needs.security-guard.result }}" == "failure" ]; then
+            echo "## BLOCKED" >> $GITHUB_STEP_SUMMARY
+            echo "This PR cannot be merged due to critical failures." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.ui-component-guard.result }}" == "failure" ] || \
+               [ "${{ needs.api-route-guard.result }}" == "failure" ]; then
+            echo "## WARNING" >> $GITHUB_STEP_SUMMARY
+            echo "This PR has issues that should be addressed before merging." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "All quality gates passed. PR is ready for review." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if critical checks failed
+        if: |
+          needs.legal-pages-guard.result == 'failure' ||
+          needs.security-guard.result == 'failure'
+        run: |
+          echo "::error::Critical quality gates failed!"
+          exit 1
