@@ -119,6 +119,14 @@ app.get('/', (req: Request, res: Response) => {
         revenue: 'GET /api/dashboard/revenue',
         realTime: 'GET /api/dashboard/real-time',
       },
+      segmentation: {
+        userSegment: 'GET /api/segmentation/user/:userId',
+        batchSegment: 'POST /api/segmentation/batch',
+        analytics: 'GET /api/segmentation/analytics',
+        segmentUsers: 'GET /api/segmentation/segment/:segment/users',
+        transitions: 'GET /api/segmentation/transitions',
+        segments: 'GET /api/segmentation/segments',
+      },
     },
   });
 });
@@ -128,12 +136,14 @@ import trackingRoutes from './api/routes/tracking.routes';
 import analyticsRoutes from './api/routes/analytics.routes';
 import dashboardRoutes from './api/routes/dashboard.routes';
 import eventsRoutes from './api/routes/events.routes';
+import segmentationRoutes from './api/routes/segmentation.routes';
 
 // Register routes
 app.use('/api/v1/tracking', trackingRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/events', eventsRoutes);
+app.use('/api/v1/segmentation', segmentationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

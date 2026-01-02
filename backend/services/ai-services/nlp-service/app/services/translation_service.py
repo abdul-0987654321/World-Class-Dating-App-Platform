@@ -378,26 +378,226 @@ class TranslationService:
         target_lang: str
     ) -> str:
         """
-        Perform actual translation.
+        Perform actual translation using configured provider.
 
-        Note: This is a placeholder. In production, integrate with:
-        - Google Cloud Translation API
-        - DeepL API
-        - Azure Translator
-        - Or self-hosted models like MarianMT
+        Supports multiple providers with automatic fallback:
+        1. Google Cloud Translation (primary)
+        2. DeepL API (secondary)
+        3. Azure Translator (tertiary)
+        4. MarianMT local models (fallback)
         """
-        # For now, return a mock translation
-        # In production, implement actual translation
+        provider = self.settings.TRANSLATION_PROVIDER
+
         logger.info(
             "Translation requested",
+            provider=provider,
             source=source_lang,
             target=target_lang,
             length=len(text)
         )
 
-        # Mock translation for demonstration
-        # Replace with actual API calls in production
-        return f"[Translated from {source_lang} to {target_lang}]: {text}"
+        try:
+            if provider == "google":
+                return await self._translate_google(text, source_lang, target_lang)
+            elif provider == "deepl":
+                return await self._translate_deepl(text, source_lang, target_lang)
+            elif provider == "azure":
+                return await self._translate_azure(text, source_lang, target_lang)
+            elif provider == "marian":
+                return await self._translate_marian(text, source_lang, target_lang)
+            else:
+                # Fallback to mock for development
+                logger.warning("No translation provider configured, using mock")
+                return f"[Translated from {source_lang} to {target_lang}]: {text}"
+        except Exception as e:
+            logger.error(f"Translation with {provider} failed, trying fallback", error=str(e))
+            # Try fallback providers
+            return await self._translate_with_fallback(text, source_lang, target_lang, provider)
+
+    async def _translate_google(self, text: str, source_lang: str, target_lang: str) -> str:
+        """Translate using Google Cloud Translation API."""
+        import aiohttp
+
+        api_key = self.settings.GOOGLE_TRANSLATE_API_KEY
+        if not api_key:
+            raise ValueError("GOOGLE_TRANSLATE_API_KEY not configured")
+
+        url = "https://translation.googleapis.com/language/translate/v2"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url,
+                params={"key": api_key},
+                json={
+                    "q": text,
+                    "source": source_lang,
+                    "target": target_lang,
+                    "format": "text"
+                }
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise Exception(f"Google Translate API error: {error_text}")
+
+                data = await response.json()
+                return data["data"]["translations"][0]["translatedText"]
+
+    async def _translate_deepl(self, text: str, source_lang: str, target_lang: str) -> str:
+        """Translate using DeepL API."""
+        import aiohttp
+
+        api_key = self.settings.DEEPL_API_KEY
+        if not api_key:
+            raise ValueError("DEEPL_API_KEY not configured")
+
+        # DeepL uses different API endpoints for free vs pro
+        base_url = self.settings.DEEPL_API_URL or "https://api-free.deepl.com/v2"
+        url = f"{base_url}/translate"
+
+        # DeepL uses uppercase language codes
+        source_upper = source_lang.upper()
+        target_upper = target_lang.upper()
+
+        # Handle special cases for DeepL language codes
+        if target_upper == "EN":
+            target_upper = "EN-US"
+        if target_upper == "PT":
+            target_upper = "PT-BR"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url,
+                headers={"Authorization": f"DeepL-Auth-Key {api_key}"},
+                data={
+                    "text": text,
+                    "source_lang": source_upper,
+                    "target_lang": target_upper,
+                }
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise Exception(f"DeepL API error: {error_text}")
+
+                data = await response.json()
+                return data["translations"][0]["text"]
+
+    async def _translate_azure(self, text: str, source_lang: str, target_lang: str) -> str:
+        """Translate using Azure Translator."""
+        import aiohttp
+        import uuid
+
+        api_key = self.settings.AZURE_TRANSLATOR_KEY
+        region = self.settings.AZURE_TRANSLATOR_REGION or "eastus"
+
+        if not api_key:
+            raise ValueError("AZURE_TRANSLATOR_KEY not configured")
+
+        url = "https://api.cognitive.microsofttranslator.com/translate"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url,
+                params={
+                    "api-version": "3.0",
+                    "from": source_lang,
+                    "to": target_lang
+                },
+                headers={
+                    "Ocp-Apim-Subscription-Key": api_key,
+                    "Ocp-Apim-Subscription-Region": region,
+                    "Content-Type": "application/json",
+                    "X-ClientTraceId": str(uuid.uuid4())
+                },
+                json=[{"Text": text}]
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise Exception(f"Azure Translator error: {error_text}")
+
+                data = await response.json()
+                return data[0]["translations"][0]["text"]
+
+    async def _translate_marian(self, text: str, source_lang: str, target_lang: str) -> str:
+        """Translate using local MarianMT models."""
+        model_name = f"Helsinki-NLP/opus-mt-{source_lang}-{target_lang}"
+
+        # Check if model is loaded
+        if model_name not in self.translation_models:
+            try:
+                logger.info(f"Loading MarianMT model: {model_name}")
+                tokenizer = MarianTokenizer.from_pretrained(model_name)
+                model = MarianMTModel.from_pretrained(model_name)
+
+                # Move to GPU if available
+                if torch.cuda.is_available():
+                    model = model.cuda()
+
+                self.translation_models[model_name] = {
+                    "tokenizer": tokenizer,
+                    "model": model
+                }
+            except Exception as e:
+                # Try alternative model path (some models use different naming)
+                alt_model_name = f"Helsinki-NLP/opus-mt-tc-big-{source_lang}-{target_lang}"
+                logger.warning(f"Model {model_name} not found, trying {alt_model_name}")
+                try:
+                    tokenizer = MarianTokenizer.from_pretrained(alt_model_name)
+                    model = MarianMTModel.from_pretrained(alt_model_name)
+                    if torch.cuda.is_available():
+                        model = model.cuda()
+                    self.translation_models[model_name] = {
+                        "tokenizer": tokenizer,
+                        "model": model
+                    }
+                except Exception as e2:
+                    raise Exception(f"No MarianMT model available for {source_lang}->{target_lang}")
+
+        # Perform translation
+        model_data = self.translation_models[model_name]
+        tokenizer = model_data["tokenizer"]
+        model = model_data["model"]
+
+        # Tokenize and translate
+        inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        if torch.cuda.is_available():
+            inputs = {k: v.cuda() for k, v in inputs.items()}
+
+        translated = model.generate(**inputs)
+        translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+
+        return translated_text
+
+    async def _translate_with_fallback(
+        self,
+        text: str,
+        source_lang: str,
+        target_lang: str,
+        failed_provider: str
+    ) -> str:
+        """Try fallback providers when primary fails."""
+        fallback_order = ["google", "deepl", "azure", "marian"]
+
+        for provider in fallback_order:
+            if provider == failed_provider:
+                continue
+
+            try:
+                logger.info(f"Trying fallback provider: {provider}")
+                if provider == "google":
+                    return await self._translate_google(text, source_lang, target_lang)
+                elif provider == "deepl":
+                    return await self._translate_deepl(text, source_lang, target_lang)
+                elif provider == "azure":
+                    return await self._translate_azure(text, source_lang, target_lang)
+                elif provider == "marian":
+                    return await self._translate_marian(text, source_lang, target_lang)
+            except Exception as e:
+                logger.warning(f"Fallback provider {provider} also failed", error=str(e))
+                continue
+
+        # All providers failed, return mock
+        logger.error("All translation providers failed, returning original text")
+        return text
 
     def _get_language_name(self, code: str) -> str:
         """Get full language name from code."""

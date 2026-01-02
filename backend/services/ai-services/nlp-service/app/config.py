@@ -44,7 +44,22 @@ class Settings(BaseSettings):
     MIN_TEXT_LENGTH: int = 1
     TOXICITY_THRESHOLD: float = 0.7
     SPAM_THRESHOLD: float = 0.8
-    SUPPORTED_LANGUAGES: List[str] = ["en", "es", "fr", "de", "it", "pt", "nl", "ru", "ja", "ko", "zh"]
+    SUPPORTED_LANGUAGES: List[str] = ["en", "es", "fr", "de", "it", "pt", "nl", "ru", "ja", "ko", "zh", "ar", "hi", "tr", "pl", "sv", "no", "da", "fi"]
+
+    # Translation Provider Settings
+    # Options: "google", "deepl", "azure", "marian" (local), or None for mock
+    TRANSLATION_PROVIDER: Optional[str] = None
+
+    # Google Cloud Translation
+    GOOGLE_TRANSLATE_API_KEY: Optional[str] = None
+
+    # DeepL Translation
+    DEEPL_API_KEY: Optional[str] = None
+    DEEPL_API_URL: str = "https://api-free.deepl.com/v2"  # Use https://api.deepl.com/v2 for Pro
+
+    # Azure Translator
+    AZURE_TRANSLATOR_KEY: Optional[str] = None
+    AZURE_TRANSLATOR_REGION: str = "eastus"
 
     # Conversation Analysis
     SCAM_KEYWORD_THRESHOLD: int = 3
