@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="favMainGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3B82F6"/>
+      <stop offset="50%" style="stop-color:#EC4899"/>
+      <stop offset="100%" style="stop-color:#EC4899"/>
+    </linearGradient>
+
+    <linearGradient id="favInnerGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22C55E"/>
+      <stop offset="100%" style="stop-color:#3B82F6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Subtle outer ring -->
+  <circle
+    cx="16"
+    cy="16"
+    r="15"
+    fill="none"
+    stroke="#EC4899"
+    stroke-width="1"
+    stroke-dasharray="4 2"
+    opacity="0.5"
+  />
+
+  <!-- Main flame-heart -->
+  <path
+    d="M16 28
+       C16 28 4 20 4 13
+       C4 9 7 6 11 6
+       C13 6 15 7 16 9
+       C17 7 19 6 21 6
+       C25 6 28 9 28 13
+       C28 20 16 28 16 28Z"
+    fill="url(#favMainGradient)"
+  />
+
+  <!-- Inner flame -->
+  <path
+    d="M16 24
+       C16 24 9 18 9 14
+       C9 12 10.5 10 13 10
+       C14 10 15 10.5 16 12
+       C17 10.5 18 10 19 10
+       C21.5 10 23 12 23 14
+       C23 18 16 24 16 24Z"
+    fill="url(#favInnerGradient)"
+    opacity="0.6"
+  />
+
+  <!-- Central spark -->
+  <ellipse cx="16" cy="13" rx="2" ry="2.5" fill="white" opacity="0.9"/>
+  <circle cx="14" cy="11" r="1" fill="white" opacity="0.6"/>
+
+  <!-- Connection dots (simplified for small sizes) -->
+  <circle cx="16" cy="1.5" r="1.5" fill="#EC4899"/>
+  <circle cx="29" cy="10" r="1.5" fill="#3B82F6"/>
+  <circle cx="29" cy="22" r="1.5" fill="#22C55E"/>
+</svg>
