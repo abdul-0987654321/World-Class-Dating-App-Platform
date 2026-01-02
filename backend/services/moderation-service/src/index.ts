@@ -94,11 +94,16 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('Azure Content Moderator health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  // In degraded mode, service is still healthy but with limited functionality
+  const allServicesUp = Object.values(checks).every(v => v);
+  const isDegradedMode = process.env.ALLOW_DEGRADED_MODE === 'true';
+  const healthy = allServicesUp || isDegradedMode;
+
   res.status(healthy ? 200 : 503).json({
-    status: healthy ? 'healthy' : 'unhealthy',
+    status: allServicesUp ? 'healthy' : (isDegradedMode ? 'degraded' : 'unhealthy'),
     service: 'moderation-service',
     timestamp: new Date().toISOString(),
+    degradedMode: isDegradedMode && !allServicesUp,
     checks,
   });
 });
