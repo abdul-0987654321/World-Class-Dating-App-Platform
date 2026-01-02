@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { FlamoralLogo } from '../Logo';
 
 const MINIMUM_AGE = 18;
 
@@ -94,10 +95,9 @@ export const AgeGate: React.FC<AgeGateProps> = ({ onVerified, onUnderage }) => {
   return (
     <Overlay>
       <Modal>
-        <Logo>
-          <HeartIcon>❤️</HeartIcon>
-          <LogoText>Flamoral</LogoText>
-        </Logo>
+        <LogoWrapper>
+          <FlamoralLogo variant="primary" size="md" />
+        </LogoWrapper>
 
         <Title>Age Verification Required</Title>
         <Subtitle>
@@ -189,23 +189,11 @@ const Modal = styled.div`
   }
 `;
 
-const Logo = styled.div`
+const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 2rem;
-`;
-
-const HeartIcon = styled.span`
-  font-size: 2rem;
-  margin-right: 0.5rem;
-`;
-
-const LogoText = styled.h1`
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #e91e63;
-  margin: 0;
 `;
 
 const Title = styled.h2`

@@ -77,7 +77,7 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
   // Upload photo to storage
   const uploadPhoto = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('photo', file);  // Backend expects 'photo' field name
     formData.append('userId', userId);
     formData.append('type', 'verification');
 

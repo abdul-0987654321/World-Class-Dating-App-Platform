@@ -22,7 +22,23 @@ export class MediaController {
   // ==================== Upload Endpoints ====================
 
   /**
-   * Upload image
+   * Upload photo (main upload endpoint)
+   */
+  @Post('upload')
+  @ApiOperation({ summary: 'Upload a photo' })
+  @ApiConsumes('multipart/form-data')
+  @HttpCode(HttpStatus.CREATED)
+  async uploadPhoto(
+    @Headers('authorization') authorization: string,
+    @Body() body: any,
+  ) {
+    return this.proxyService.post('mediaService', '/api/media/upload', body, {
+      Authorization: authorization,
+    });
+  }
+
+  /**
+   * Upload image (alias)
    */
   @Post('upload/image')
   @ApiOperation({ summary: 'Upload an image' })
@@ -32,7 +48,7 @@ export class MediaController {
     @Headers('authorization') authorization: string,
     @Body() body: any,
   ) {
-    return this.proxyService.post('mediaService', '/api/media/upload/image', body, {
+    return this.proxyService.post('mediaService', '/api/media/upload', body, {
       Authorization: authorization,
     });
   }

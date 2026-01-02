@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { authService } from './services';
 import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
+import { FlamoralBackground } from '@/components/theme';
 
 // Pages
 import LandingPage from './pages/Landing/LandingPage';
@@ -72,16 +73,19 @@ const App: React.FC = () => {
   // Show loading while checking auth
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
-      </div>
+      <FlamoralBackground fixed withNoise>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fm-pink"></div>
+        </div>
+      </FlamoralBackground>
     );
   }
 
   return (
     <BrowserRouter>
-      <AvatarProvider>
-        <Routes>
+      <FlamoralBackground fixed withNoise>
+        <AvatarProvider>
+          <Routes>
           {/* Landing page - public (animated premium design) */}
           <Route path="/" element={
             isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
@@ -196,8 +200,9 @@ const App: React.FC = () => {
         <Route path="*" element={
           <Navigate to={isAuthenticated ? "/discover" : "/"} replace />
         } />
-        </Routes>
-      </AvatarProvider>
+          </Routes>
+        </AvatarProvider>
+      </FlamoralBackground>
     </BrowserRouter>
   );
 };
