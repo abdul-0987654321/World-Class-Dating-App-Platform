@@ -38,47 +38,47 @@ interface FlamoralBackgroundProps {
   fixed?: boolean;
 }
 
-// Background configuration per variant
+// Background configuration per variant — BRIGHTER values for better readability
 const backgroundConfig = {
   landing: {
-    base: '#0a0a0f',
-    gradient: 'linear-gradient(180deg, #0a0a0f 0%, #12121a 50%, #1a1a25 100%)',
-    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)',
-    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%)',
-    glow3: 'radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 40%)',
+    base: '#14141f',  // Brighter from #0a0a0f
+    gradient: 'linear-gradient(180deg, #14141f 0%, #1e1e2d 50%, #282840 100%)',
+    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.20) 0%, transparent 50%)',
+    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.18) 0%, transparent 50%)',
+    glow3: 'radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.12) 0%, transparent 40%)',
     glowOpacity: 1,
   },
   interior: {
-    base: '#1a1a25',
-    gradient: 'linear-gradient(180deg, #1a1a25 0%, #12121a 100%)',
-    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)',
-    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.08) 0%, transparent 50%)',
+    base: '#282840',  // Brighter from #1a1a25
+    gradient: 'linear-gradient(180deg, #282840 0%, #282840 100%)',
+    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)',
+    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%)',
     glow3: null,
-    glowOpacity: 0.8,
+    glowOpacity: 0.9,
   },
   dashboard: {
-    base: '#232330',
-    gradient: 'linear-gradient(180deg, #232330 0%, #1a1a25 100%)',
-    glow1: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.06) 0%, transparent 50%)',
+    base: '#323250',  // Brighter from #232330
+    gradient: 'linear-gradient(180deg, #323250 0%, #282840 100%)',
+    glow1: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)',
     glow2: null,
     glow3: null,
-    glowOpacity: 0.6,
+    glowOpacity: 0.7,
   },
   auth: {
-    base: '#12121a',
-    gradient: 'linear-gradient(180deg, #12121a 0%, #1a1a25 100%)',
-    glow1: 'radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.15) 0%, transparent 60%)',
+    base: '#1e1e2d',  // Brighter from #12121a
+    gradient: 'linear-gradient(180deg, #1e1e2d 0%, #282840 100%)',
+    glow1: 'radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.20) 0%, transparent 60%)',
     glow2: null,
     glow3: null,
     glowOpacity: 1,
   },
   modal: {
-    base: '#12121a',
-    gradient: 'linear-gradient(180deg, #12121a 0%, #1a1a25 100%)',
-    glow1: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%)',
+    base: '#1e1e2d',  // Brighter from #12121a
+    gradient: 'linear-gradient(180deg, #1e1e2d 0%, #282840 100%)',
+    glow1: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(168, 85, 247, 0.12) 0%, transparent 60%)',
     glow2: null,
     glow3: null,
-    glowOpacity: 0.5,
+    glowOpacity: 0.6,
   },
 };
 

@@ -14,18 +14,19 @@
 
 :root {
   /* ============================================================================
-     BASE BACKGROUNDS — NOT pure black, allows gradient visibility
+     BASE BACKGROUNDS — Brighter dark theme for better readability
+     Increased luminosity by ~40% while maintaining premium dark aesthetic
      ============================================================================ */
-  --fm-bg-0: #0a0a0f;           /* Deepest layer - landing page */
-  --fm-bg-1: #12121a;           /* Primary surface */
-  --fm-bg-2: #1a1a25;           /* Elevated surface - interior pages (BRIGHTER) */
-  --fm-bg-3: #232330;           /* Cards, modals - dashboard (BRIGHTEST) */
+  --fm-bg-0: #14141f;           /* Deepest layer - landing page (was #0a0a0f) */
+  --fm-bg-1: #1e1e2d;           /* Primary surface (was #12121a) */
+  --fm-bg-2: #282840;           /* Elevated surface - interior pages (was #1a1a25) */
+  --fm-bg-3: #323250;           /* Cards, modals - dashboard (was #232330) */
 
   /* Legacy aliases */
   --bg-page-solid: var(--fm-bg-0);
-  --surface-card: var(--fm-bg-1);
-  --surface-elevated: var(--fm-bg-2);
-  --surface-overlay: rgba(26, 26, 37, 0.95);
+  --surface-card: var(--fm-bg-2);
+  --surface-elevated: var(--fm-bg-3);
+  --surface-overlay: rgba(40, 40, 64, 0.95);
 
   /* ============================================================================
      TEXT COLORS — Soft white for readability
@@ -138,28 +139,28 @@
     var(--fm-gold) 100%
   );
 
-  /* Global App Background — Landing Page (dramatic) */
+  /* Global App Background — Landing Page (dramatic but brighter) */
   --fm-gradient-landing:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.20) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.12) 0%, transparent 40%),
     linear-gradient(180deg, var(--fm-bg-0) 0%, var(--fm-bg-1) 50%, var(--fm-bg-2) 100%);
 
-  /* Interior Pages Background (BRIGHTER) */
+  /* Interior Pages Background (BRIGHTER - main app pages) */
   --fm-gradient-interior:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-1) 100%);
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-2) 100%);
 
-  /* Dashboard Background (BRIGHTEST) */
+  /* Dashboard Background (BRIGHTEST - data heavy views) */
   --fm-gradient-dashboard:
-    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, var(--fm-bg-3) 0%, var(--fm-bg-2) 100%);
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
+    linear-gradient(180deg, var(--fm-bg-3) 0%, var(--fm-bg-3) 100%);
 
   /* Auth Pages — Centered glow */
   --fm-gradient-auth:
-    radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.15) 0%, transparent 60%),
-    linear-gradient(180deg, var(--fm-bg-1) 0%, var(--fm-bg-2) 100%);
+    radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.20) 0%, transparent 60%),
+    linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-2) 100%);
 
   /* Glass Surface Overlay */
   --fm-glass: linear-gradient(135deg,
