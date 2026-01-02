@@ -1,108 +1,224 @@
 /**
- * FLAMORAL UNIFIED DESIGN SYSTEM
- * Single source of truth for all styling
+ * FLAMORAL DESIGN SYSTEM v2.0
+ * Brand: "Where Hearts Bloom"
  *
- * NO EXCEPTIONS - Every component must use these tokens
+ * Premium, romantic, safe, intelligent design system
+ * Black-based with layered gradients and subtle atmospheric lighting
+ *
+ * NON-NEGOTIABLES:
+ * 1. Body text: 0.9rem (14.4px) with font-style: italic
+ * 2. Fonts: Playfair Display for headings, DM Sans for body
+ * 3. Interior pages BRIGHTER than landing (use --fm-bg-2 as base)
+ * 4. WCAG AA contrast (4.5:1 for text, 3:1 for large text)
  */
 
 :root {
   /* ============================================================================
-     BACKGROUND SYSTEM
+     BASE BACKGROUNDS — NOT pure black, allows gradient visibility
      ============================================================================ */
+  --fm-bg-0: #0a0a0f;           /* Deepest layer - landing page */
+  --fm-bg-1: #12121a;           /* Primary surface */
+  --fm-bg-2: #1a1a25;           /* Elevated surface - interior pages (BRIGHTER) */
+  --fm-bg-3: #232330;           /* Cards, modals - dashboard (BRIGHTEST) */
 
-  /* Page backgrounds - dark gradient system */
-  --bg-page: linear-gradient(135deg, #0B0B0F 0%, #1B1E2E 50%, #3A1C71 100%);
-  --bg-page-solid: #0B0B0F;
+  /* Legacy aliases */
+  --bg-page-solid: var(--fm-bg-0);
+  --surface-card: var(--fm-bg-1);
+  --surface-elevated: var(--fm-bg-2);
+  --surface-overlay: rgba(26, 26, 37, 0.95);
 
-  /* Surface colors */
-  --surface-card: #111318;
-  --surface-elevated: #1A1D24;
-  --surface-overlay: rgba(11, 11, 15, 0.95);
+  /* ============================================================================
+     TEXT COLORS — Soft white for readability
+     ============================================================================ */
+  --fm-text: #f5f5f7;           /* Primary text — soft white */
+  --fm-text-muted: #a0a0b0;     /* Secondary text */
+  --fm-text-subtle: #6b6b7b;    /* Tertiary/disabled */
 
-  /* Dividers and borders */
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  /* Legacy aliases */
+  --text-primary: var(--fm-text);
+  --text-secondary: var(--fm-text-muted);
+  --text-muted: var(--fm-text-subtle);
+  --text-disabled: #5a5d6f;
+
+  /* ============================================================================
+     BORDERS
+     ============================================================================ */
+  --fm-border: rgba(255, 255, 255, 0.08);
+  --fm-border-hover: rgba(255, 255, 255, 0.15);
+  --fm-border-active: rgba(255, 107, 122, 0.4);
+
+  /* Legacy aliases */
+  --border-subtle: var(--fm-border);
   --border-default: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.20);
+  --border-strong: var(--fm-border-hover);
 
   /* ============================================================================
-     ACCENT COLORS
+     SIGNATURE BRAND COLORS
      ============================================================================ */
+  --fm-pink: #ff6b7a;           /* Primary brand — passion */
+  --fm-pink-light: #ff8a96;
+  --fm-pink-dark: #e84a59;
+  --fm-rose: #ff4757;           /* Deep rose */
 
-  /* Primary gradient (CTAs, highlights) */
-  --accent-gradient: linear-gradient(135deg, #FF2E93 0%, #7B61FF 50%, #2ED4FF 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #FF4BA3 0%, #8B71FF 50%, #4EE4FF 100%);
+  --fm-violet: #a855f7;         /* Romance accent */
+  --fm-violet-light: #c084fc;
+  --fm-violet-dark: #7c3aed;
 
-  /* Individual accent colors */
-  --accent-pink: #FF2E93;
-  --accent-purple: #7B61FF;
-  --accent-cyan: #2ED4FF;
+  --fm-cyan: #22d3ee;           /* Trust/safety */
+  --fm-cyan-light: #67e8f9;
+  --fm-cyan-dark: #06b6d4;
 
-  /* Accent with opacity */
-  --accent-pink-20: rgba(255, 46, 147, 0.20);
-  --accent-purple-20: rgba(123, 97, 255, 0.20);
-  --accent-cyan-20: rgba(46, 212, 255, 0.20);
+  --fm-mint: #34d399;           /* Success/Plus tier */
+  --fm-mint-light: #6ee7b7;
+  --fm-mint-dark: #10b981;
 
-  /* ============================================================================
-     TEXT COLORS
-     ============================================================================ */
+  --fm-gold: #f59e0b;           /* Elite/Premium */
+  --fm-gold-light: #fbbf24;
+  --fm-gold-dark: #d97706;
+  --fm-bronze: #cd7f32;         /* Elite luxury */
 
-  --text-primary: #FFFFFF;
-  --text-secondary: #B5B8C5;
-  --text-muted: #8A8D9F;
-  --text-disabled: #5A5D6F;
+  /* Legacy aliases */
+  --accent-pink: var(--fm-pink);
+  --accent-purple: var(--fm-violet);
+  --accent-cyan: var(--fm-cyan);
 
   /* ============================================================================
      SEMANTIC COLORS
      ============================================================================ */
+  --fm-success: #34d399;
+  --fm-warning: #fbbf24;
+  --fm-danger: #ef4444;
+  --fm-info: #3b82f6;
 
-  --success: #10B981;
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --warning: #F59E0B;
-  --warning-bg: rgba(245, 158, 11, 0.15);
-  --error: #EF4444;
+  /* Legacy aliases */
+  --success: var(--fm-success);
+  --success-bg: rgba(52, 211, 153, 0.15);
+  --warning: var(--fm-warning);
+  --warning-bg: rgba(251, 191, 36, 0.15);
+  --error: var(--fm-danger);
   --error-bg: rgba(239, 68, 68, 0.15);
-  --info: #3B82F6;
+  --info: var(--fm-info);
   --info-bg: rgba(59, 130, 246, 0.15);
 
   /* ============================================================================
      ECONOMY COLORS (Rewards System)
      ============================================================================ */
-
-  /* Coins = Gold (consistent, never orange or purple) */
-  --coin-primary: #F59E0B;
-  --coin-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --coin-primary: var(--fm-gold);
+  --coin-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   --coin-glow: rgba(245, 158, 11, 0.4);
 
-  /* Gems = Blue (consistent, never pink or purple) */
-  --gem-primary: #3B82F6;
-  --gem-gradient: linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%);
+  --gem-primary: var(--fm-info);
+  --gem-gradient: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   --gem-glow: rgba(59, 130, 246, 0.4);
 
-  /* Progress = Pink to Cyan gradient */
-  --progress-gradient: linear-gradient(90deg, #FF2E93 0%, #2ED4FF 100%);
+  --progress-gradient: linear-gradient(90deg, var(--fm-pink) 0%, var(--fm-cyan) 100%);
+
+  /* ============================================================================
+     GRADIENT DEFINITIONS
+     ============================================================================ */
+
+  /* Primary Romance Gradient — Signature */
+  --fm-gradient-romance: linear-gradient(135deg,
+    var(--fm-pink) 0%,
+    var(--fm-violet) 50%,
+    var(--fm-cyan) 100%
+  );
+
+  /* Trust Gradient — Safety/Verification */
+  --fm-gradient-trust: linear-gradient(135deg,
+    #1e3a5f 0%,
+    #2563eb 50%,
+    var(--fm-cyan) 100%
+  );
+
+  /* Elite Gradient — Premium/Luxury */
+  --fm-gradient-elite: linear-gradient(135deg,
+    #78350f 0%,
+    var(--fm-bronze) 50%,
+    var(--fm-gold) 100%
+  );
+
+  /* Global App Background — Landing Page (dramatic) */
+  --fm-gradient-landing:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, var(--fm-bg-0) 0%, var(--fm-bg-1) 50%, var(--fm-bg-2) 100%);
+
+  /* Interior Pages Background (BRIGHTER) */
+  --fm-gradient-interior:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-1) 100%);
+
+  /* Dashboard Background (BRIGHTEST) */
+  --fm-gradient-dashboard:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, var(--fm-bg-3) 0%, var(--fm-bg-2) 100%);
+
+  /* Auth Pages — Centered glow */
+  --fm-gradient-auth:
+    radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.15) 0%, transparent 60%),
+    linear-gradient(180deg, var(--fm-bg-1) 0%, var(--fm-bg-2) 100%);
+
+  /* Glass Surface Overlay */
+  --fm-glass: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+
+  /* Navigation Background — Brighter */
+  --fm-nav-bg: linear-gradient(180deg,
+    rgba(26, 26, 37, 0.95) 0%,
+    rgba(18, 18, 26, 0.98) 100%
+  );
+
+  /* Legacy aliases */
+  --accent-gradient: var(--fm-gradient-romance);
+  --accent-gradient-hover: linear-gradient(135deg, #ff8a96 0%, #c084fc 50%, #67e8f9 100%);
+  --bg-page: var(--fm-gradient-landing);
 
   /* ============================================================================
      TYPOGRAPHY
      ============================================================================ */
+  --fm-font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --fm-font-body: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --fm-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  --font-heading: 'Instrument Serif', Georgia, serif;
-  --font-body: 'DM Sans', 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Legacy aliases */
+  --font-heading: var(--fm-font-display);
+  --font-body: var(--fm-font-body);
+  --font-mono: var(--fm-font-mono);
 
-  /* Font sizes */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
+  /* Type Scale */
+  --fm-text-xs: 0.6875rem;      /* 11px */
+  --fm-text-sm: 0.8125rem;      /* 13px */
+  --fm-text-base: 0.9rem;       /* 14.4px — PRIMARY BODY SIZE */
+  --fm-text-md: 1rem;           /* 16px */
+  --fm-text-lg: 1.125rem;       /* 18px */
+  --fm-text-xl: 1.5rem;         /* 24px */
+  --fm-text-2xl: 2rem;          /* 32px */
+  --fm-text-3xl: 3rem;          /* 48px */
+
+  /* Legacy aliases */
+  --text-xs: var(--fm-text-xs);
+  --text-sm: var(--fm-text-sm);
+  --text-base: var(--fm-text-base);
+  --text-lg: var(--fm-text-lg);
+  --text-xl: var(--fm-text-xl);
+  --text-2xl: var(--fm-text-2xl);
+  --text-3xl: var(--fm-text-3xl);
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
   --text-6xl: 3.75rem;
 
   /* Line heights */
-  --leading-tight: 1.1;
+  --fm-leading-tight: 1.1;
+  --fm-leading-snug: 1.3;
+  --fm-leading-normal: 1.6;
+  --fm-leading-relaxed: 1.8;
+
+  --leading-tight: var(--fm-leading-tight);
   --leading-snug: 1.25;
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
@@ -110,7 +226,20 @@
   /* ============================================================================
      SPACING
      ============================================================================ */
+  --fm-space-1: 4px;
+  --fm-space-2: 8px;
+  --fm-space-3: 12px;
+  --fm-space-4: 16px;
+  --fm-space-5: 20px;
+  --fm-space-6: 24px;
+  --fm-space-8: 32px;
+  --fm-space-10: 40px;
+  --fm-space-12: 48px;
+  --fm-space-16: 64px;
+  --fm-space-20: 80px;
+  --fm-space-24: 96px;
 
+  /* Legacy aliases */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -127,7 +256,14 @@
   /* ============================================================================
      BORDER RADIUS
      ============================================================================ */
+  --fm-radius-sm: 8px;
+  --fm-radius-md: 12px;
+  --fm-radius-card: 20px;
+  --fm-radius-modal: 24px;
+  --fm-radius-chip: 999px;
+  --fm-radius-full: 9999px;
 
+  /* Legacy aliases */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -138,31 +274,62 @@
   /* ============================================================================
      SHADOWS
      ============================================================================ */
+  /* Card shadow — subtle depth */
+  --fm-shadow-card:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -2px rgba(0, 0, 0, 0.2),
+    0 0 0 1px var(--fm-border);
 
+  /* Elevated shadow — modals, dropdowns */
+  --fm-shadow-elevated:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 8px 10px -6px rgba(0, 0, 0, 0.3);
+
+  /* Glow effects for premium states */
+  --fm-glow-pink: 0 0 30px rgba(255, 107, 122, 0.4);
+  --fm-glow-violet: 0 0 30px rgba(168, 85, 247, 0.4);
+  --fm-glow-cyan: 0 0 30px rgba(34, 211, 238, 0.4);
+  --fm-glow-mint: 0 0 30px rgba(52, 211, 153, 0.3);
+  --fm-glow-gold: 0 0 30px rgba(245, 158, 11, 0.3);
+
+  /* Button glow on hover */
+  --fm-glow-cta:
+    0 0 20px rgba(255, 107, 122, 0.5),
+    0 0 40px rgba(255, 107, 122, 0.3);
+
+  /* Legacy aliases */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
-
-  /* Glow shadows */
-  --glow-pink: 0 0 20px rgba(255, 46, 147, 0.4);
-  --glow-purple: 0 0 20px rgba(123, 97, 255, 0.4);
-  --glow-cyan: 0 0 20px rgba(46, 212, 255, 0.4);
+  --glow-pink: var(--fm-glow-pink);
+  --glow-purple: var(--fm-glow-violet);
+  --glow-cyan: var(--fm-glow-cyan);
 
   /* ============================================================================
-     ANIMATIONS
+     MOTION / ANIMATION
      ============================================================================ */
+  --fm-duration-fast: 150ms;
+  --fm-duration-base: 250ms;
+  --fm-duration-slow: 450ms;
+  --fm-duration-slower: 700ms;
 
-  --duration-fast: 150ms;
+  --fm-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --fm-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --fm-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --fm-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --fm-ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Legacy aliases */
+  --duration-fast: var(--fm-duration-fast);
   --duration-normal: 300ms;
   --duration-slow: 500ms;
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-default: var(--fm-ease-default);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ============================================================================
      LAYOUT
      ============================================================================ */
-
   --container-max: 1200px;
   --container-wide: 1400px;
   --container-padding: 1.5rem;
@@ -173,19 +340,51 @@
    ============================================================================ */
 
 body {
-  background: var(--bg-page);
+  background: var(--fm-gradient-interior);
   background-attachment: fixed;
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  line-height: var(--leading-normal);
+  color: var(--fm-text);
+  font-family: var(--fm-font-body);
+  font-size: var(--fm-text-base);
+  font-style: italic;
+  line-height: var(--fm-leading-normal);
   min-height: 100vh;
+}
+
+/* Headings use Playfair Display */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--fm-font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ============================================================================
+   BACKGROUND VARIANTS (Applied via FlamoralBackground component)
+   ============================================================================ */
+
+.fm-bg-landing {
+  background: var(--fm-gradient-landing);
+  background-attachment: fixed;
+}
+
+.fm-bg-interior {
+  background: var(--fm-gradient-interior);
+  background-attachment: fixed;
+}
+
+.fm-bg-dashboard {
+  background: var(--fm-gradient-dashboard);
+  background-attachment: fixed;
+}
+
+.fm-bg-auth {
+  background: var(--fm-gradient-auth);
+  background-attachment: fixed;
 }
 
 /* ============================================================================
    LAYOUT UTILITIES
    ============================================================================ */
 
-/* Standard container - max 1200px, centered */
 .container-app {
   width: 100%;
   max-width: var(--container-max);
@@ -195,7 +394,6 @@ body {
   padding-right: var(--container-padding);
 }
 
-/* Wide container - max 1400px */
 .container-wide {
   width: 100%;
   max-width: var(--container-wide);
@@ -205,7 +403,6 @@ body {
   padding-right: var(--container-padding);
 }
 
-/* Page section with vertical rhythm */
 .page-section {
   padding-top: var(--space-16);
   padding-bottom: var(--space-16);
@@ -219,8 +416,21 @@ body {
 }
 
 /* ============================================================================
-   CARD SYSTEM
+   GLASS CARD SYSTEM
    ============================================================================ */
+
+.fm-card {
+  background: var(--fm-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-card);
+  box-shadow: var(--fm-shadow-card);
+}
+
+.fm-card:hover {
+  border-color: var(--fm-border-hover);
+}
 
 .card {
   background: var(--surface-card);
@@ -251,7 +461,7 @@ body {
   inset: 0;
   border-radius: var(--radius-xl);
   padding: 1px;
-  background: var(--accent-gradient);
+  background: var(--fm-gradient-romance);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -267,101 +477,192 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-lg);
+  padding: var(--fm-space-3) var(--fm-space-6);
+  border-radius: var(--fm-radius-chip);
+  font-family: var(--fm-font-body);
   font-weight: 600;
-  font-size: var(--text-sm);
-  transition: all var(--duration-normal) var(--ease-default);
+  font-size: var(--fm-text-base);
+  font-style: normal;
+  letter-spacing: 0.02em;
+  transition: all var(--fm-duration-base) var(--fm-ease-premium);
   cursor: pointer;
   border: none;
   text-decoration: none;
 }
 
-.btn-primary {
-  background: var(--accent-gradient);
-  color: var(--text-primary);
+.btn-primary,
+.fm-btn-primary {
+  background: var(--fm-gradient-romance);
+  background-size: 200% 200%;
+  color: white;
 }
 
-.btn-primary:hover {
-  background: var(--accent-gradient-hover);
-  box-shadow: var(--glow-pink);
-  transform: translateY(-1px);
+.btn-primary:hover,
+.fm-btn-primary:hover {
+  background-position: 100% 0;
+  box-shadow: var(--fm-glow-cta);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
+  color: var(--fm-text);
+  border: 1px solid var(--fm-border-hover);
 }
 
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: var(--accent-pink);
+  border-color: var(--fm-pink);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--fm-text-muted);
 }
 
 .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  color: var(--fm-text);
 }
 
 /* ============================================================================
    TEXT UTILITIES
    ============================================================================ */
 
-.text-gradient {
-  background: var(--accent-gradient);
+.text-gradient,
+.text-gradient-romance {
+  background: var(--fm-gradient-romance);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: var(--fm-gradient-elite);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .heading-display {
-  font-family: var(--font-heading);
-  font-size: var(--text-5xl);
+  font-family: var(--fm-font-display);
+  font-size: var(--fm-text-3xl);
   font-weight: 400;
-  line-height: var(--leading-tight);
+  font-style: italic;
+  line-height: var(--fm-leading-tight);
   letter-spacing: -0.02em;
 }
 
 .heading-1 {
-  font-size: var(--text-4xl);
+  font-size: var(--fm-text-2xl);
   font-weight: 700;
-  line-height: var(--leading-tight);
+  line-height: var(--fm-leading-tight);
 }
 
 .heading-2 {
-  font-size: var(--text-3xl);
+  font-size: var(--fm-text-xl);
   font-weight: 600;
-  line-height: var(--leading-snug);
+  line-height: var(--fm-leading-snug);
 }
 
 .heading-3 {
-  font-size: var(--text-2xl);
+  font-size: var(--fm-text-lg);
   font-weight: 600;
-  line-height: var(--leading-snug);
+  line-height: var(--fm-leading-snug);
 }
 
 .text-body {
-  font-size: var(--text-base);
-  color: var(--text-secondary);
-  line-height: var(--leading-relaxed);
+  font-size: var(--fm-text-base);
+  font-style: italic;
+  color: var(--fm-text-muted);
+  line-height: var(--fm-leading-normal);
 }
 
 .text-caption {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--fm-text-sm);
+  color: var(--fm-text-subtle);
+}
+
+/* ============================================================================
+   NAVIGATION
+   ============================================================================ */
+
+.fm-nav {
+  background: var(--fm-nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--fm-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.fm-nav-link {
+  color: var(--fm-text-muted);
+  font-size: var(--fm-text-base);
+  font-style: italic;
+  transition: color var(--fm-duration-fast) var(--fm-ease-default);
+}
+
+.fm-nav-link:hover,
+.fm-nav-link.active {
+  color: var(--fm-text);
+  text-shadow: 0 0 20px var(--fm-pink);
+}
+
+/* ============================================================================
+   PRICING CARDS
+   ============================================================================ */
+
+.pricing-card {
+  background: var(--fm-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-card);
+  padding: var(--fm-space-6);
+  display: flex;
+  flex-direction: column;
+  transition: all var(--fm-duration-base) var(--fm-ease-premium);
+}
+
+.pricing-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--fm-border-hover);
+}
+
+/* Tier-specific glows */
+.pricing-card.tier-plus:hover {
+  box-shadow: var(--fm-glow-mint);
+}
+
+.pricing-card.tier-premium:hover {
+  box-shadow: var(--fm-glow-pink);
+}
+
+.pricing-card.tier-elite:hover {
+  box-shadow: var(--fm-glow-gold);
+}
+
+.pricing-card.featured {
+  border-color: var(--fm-pink);
+  position: relative;
+}
+
+.pricing-card.featured::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--fm-radius-card);
+  background: var(--fm-gradient-romance);
+  z-index: -1;
+  opacity: 0.3;
 }
 
 /* ============================================================================
    GRID LAYOUTS
    ============================================================================ */
 
-/* 3-column dashboard grid */
 .grid-dashboard {
   display: grid;
   grid-template-columns: 1fr;
@@ -380,7 +681,6 @@ body {
   }
 }
 
-/* Feature card grid */
 .grid-cards {
   display: grid;
   grid-template-columns: 1fr;
@@ -399,176 +699,53 @@ body {
   }
 }
 
-/* ============================================================================
-   SUBSCRIPTION TIERS
-   ============================================================================ */
-
-.tier-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  transition: all var(--duration-normal) var(--ease-default);
+/* Pricing grid - 4 columns desktop */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--fm-space-4);
 }
 
-.tier-card.current {
-  opacity: 0.7;
-  pointer-events: none;
+@media (min-width: 640px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.tier-card.current::after {
-  content: 'Current Plan';
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  background: var(--success);
-  color: var(--text-primary);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: 600;
-}
-
-.tier-card.recommended {
-  border-color: var(--accent-pink);
-  position: relative;
-}
-
-.tier-card.recommended::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: var(--radius-xl);
-  background: var(--accent-gradient);
-  z-index: -1;
-  opacity: 0.3;
-}
-
-/* Dim non-recommended tiers */
-.tier-card:not(.recommended):not(.current):hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
+@media (min-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* ============================================================================
-   SAFETY CENTER STYLES
+   ANIMATIONS
    ============================================================================ */
 
-.safety-module {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
+@keyframes fm-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.safety-module-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+@keyframes fm-pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
-.safety-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--info-bg);
-  border-radius: var(--radius-lg);
-  color: var(--info);
+@keyframes fm-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-.safety-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 500;
+@keyframes fm-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-.safety-status.verified {
-  background: var(--success-bg);
-  color: var(--success);
-}
-
-.safety-status.pending {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
-
-.safety-status.unverified {
-  background: var(--surface-elevated);
-  color: var(--text-muted);
-}
-
-/* ============================================================================
-   REWARDS SYSTEM STYLES
-   ============================================================================ */
-
-.wallet-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-}
-
-.coin-display {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--coin-primary);
-}
-
-.gem-display {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--gem-primary);
-}
-
-.streak-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--accent-pink);
-}
-
-.progress-bar {
-  height: 8px;
-  background: var(--surface-elevated);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--progress-gradient);
-  border-radius: var(--radius-full);
-  transition: width var(--duration-slow) var(--ease-default);
-}
-
-/* Quest cards */
-.quest-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-}
-
-.quest-reward {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  background: var(--coin-primary);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
-  border-radius: var(--radius-sm);
-  color: var(--coin-primary);
-  font-size: var(--text-sm);
-  font-weight: 600;
+@keyframes fm-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================================
@@ -578,36 +755,13 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--surface-card) 0%,
-    var(--surface-elevated) 50%,
-    var(--surface-card) 100%
+    var(--fm-bg-1) 0%,
+    var(--fm-bg-2) 50%,
+    var(--fm-bg-1) 100%
   );
   background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-  border-radius: var(--radius-md);
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ============================================================================
-   ERROR STATES
-   ============================================================================ */
-
-.error-state {
-  background: var(--error-bg);
-  border: 1px solid var(--error);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  color: var(--error);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--space-12);
-  color: var(--text-muted);
+  animation: fm-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--fm-radius-md);
 }
 
 /* ============================================================================
@@ -624,7 +778,8 @@ body {
   }
 }
 
+.fm-focus:focus-visible,
 *:focus-visible {
-  outline: 2px solid var(--accent-pink);
+  outline: 2px solid var(--fm-cyan);
   outline-offset: 2px;
 }

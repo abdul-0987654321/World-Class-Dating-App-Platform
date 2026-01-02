@@ -1,11 +1,18 @@
 /**
- * FlamoralBackground Component
+ * FlamoralBackground Component v2.0
  *
  * Single source of truth for the global Flamoral background.
- * Used across all pages: marketing, auth, dashboard, modals, etc.
+ * Implements the layered gradient system with different brightness levels.
+ *
+ * Variants:
+ * - landing: Dramatic, deepest gradients (for landing/marketing pages)
+ * - interior: Brighter for readability (for logged-in pages)
+ * - dashboard: Brightest for data-heavy views
+ * - auth: Centered glow for forms
+ * - modal: Contained glow for overlays
  *
  * Features:
- * - Layered gradients for depth (2 radials + 1 base linear)
+ * - Layered gradients for depth
  * - Near-black base for gradient visibility
  * - Respects prefers-reduced-motion
  * - Optional noise texture overlay
@@ -14,7 +21,11 @@
 
 import React, { memo } from 'react';
 
+export type BackgroundVariant = 'landing' | 'interior' | 'dashboard' | 'auth' | 'modal';
+
 interface FlamoralBackgroundProps {
+  /** Background variant - determines brightness level */
+  variant?: BackgroundVariant;
   /** Additional CSS classes */
   className?: string;
   /** Enable subtle animated gradient shift */
@@ -27,13 +38,60 @@ interface FlamoralBackgroundProps {
   fixed?: boolean;
 }
 
+// Background configuration per variant
+const backgroundConfig = {
+  landing: {
+    base: '#0a0a0f',
+    gradient: 'linear-gradient(180deg, #0a0a0f 0%, #12121a 50%, #1a1a25 100%)',
+    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)',
+    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%)',
+    glow3: 'radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 40%)',
+    glowOpacity: 1,
+  },
+  interior: {
+    base: '#1a1a25',
+    gradient: 'linear-gradient(180deg, #1a1a25 0%, #12121a 100%)',
+    glow1: 'radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)',
+    glow2: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.08) 0%, transparent 50%)',
+    glow3: null,
+    glowOpacity: 0.8,
+  },
+  dashboard: {
+    base: '#232330',
+    gradient: 'linear-gradient(180deg, #232330 0%, #1a1a25 100%)',
+    glow1: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(168, 85, 247, 0.06) 0%, transparent 50%)',
+    glow2: null,
+    glow3: null,
+    glowOpacity: 0.6,
+  },
+  auth: {
+    base: '#12121a',
+    gradient: 'linear-gradient(180deg, #12121a 0%, #1a1a25 100%)',
+    glow1: 'radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.15) 0%, transparent 60%)',
+    glow2: null,
+    glow3: null,
+    glowOpacity: 1,
+  },
+  modal: {
+    base: '#12121a',
+    gradient: 'linear-gradient(180deg, #12121a 0%, #1a1a25 100%)',
+    glow1: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%)',
+    glow2: null,
+    glow3: null,
+    glowOpacity: 0.5,
+  },
+};
+
 const FlamoralBackground: React.FC<FlamoralBackgroundProps> = memo(({
+  variant = 'interior',
   className = '',
   animated = false,
   withNoise = true,
   children,
   fixed = false,
 }) => {
+  const config = backgroundConfig[variant];
+
   return (
     <div
       className={`
@@ -42,38 +100,58 @@ const FlamoralBackground: React.FC<FlamoralBackgroundProps> = memo(({
         ${className}
       `}
       style={{
-        background: '#08080c',
+        background: config.base,
       }}
     >
       {/* Base gradient layer */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(180deg, #08080c 0%, #0d0d14 50%, #08080c 100%)',
+          background: config.gradient,
         }}
       />
 
-      {/* Pink radial glow (top center) */}
-      <div
-        className={`
-          absolute inset-0 pointer-events-none
-          ${animated ? 'animate-pulse-slow' : ''}
-        `}
-        style={{
-          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 88, 122, 0.15) 0%, transparent 50%)',
-        }}
-      />
+      {/* Primary glow */}
+      {config.glow1 && (
+        <div
+          className={`
+            absolute inset-0 pointer-events-none
+            ${animated ? 'animate-pulse-slow' : ''}
+          `}
+          style={{
+            background: config.glow1,
+            opacity: config.glowOpacity,
+          }}
+        />
+      )}
 
-      {/* Blue radial glow (right side) */}
-      <div
-        className={`
-          absolute inset-0 pointer-events-none
-          ${animated ? 'animate-pulse-slow [animation-delay:1.5s]' : ''}
-        `}
-        style={{
-          background: 'radial-gradient(ellipse 60% 40% at 100% 50%, rgba(91, 127, 184, 0.1) 0%, transparent 50%)',
-        }}
-      />
+      {/* Secondary glow */}
+      {config.glow2 && (
+        <div
+          className={`
+            absolute inset-0 pointer-events-none
+            ${animated ? 'animate-pulse-slow [animation-delay:1.5s]' : ''}
+          `}
+          style={{
+            background: config.glow2,
+            opacity: config.glowOpacity,
+          }}
+        />
+      )}
+
+      {/* Tertiary glow (landing only) */}
+      {config.glow3 && (
+        <div
+          className={`
+            absolute inset-0 pointer-events-none
+            ${animated ? 'animate-pulse-slow [animation-delay:3s]' : ''}
+          `}
+          style={{
+            background: config.glow3,
+            opacity: config.glowOpacity,
+          }}
+        />
+      )}
 
       {/* Noise texture overlay for premium feel */}
       {withNoise && (
@@ -119,9 +197,9 @@ export const BackgroundGradientOverlay: React.FC<{
   className?: string;
 }> = memo(({ variant = 'romance', className = '' }) => {
   const gradients = {
-    romance: 'linear-gradient(135deg, rgba(212, 88, 122, 0.1) 0%, rgba(123, 97, 255, 0.1) 50%, rgba(46, 212, 255, 0.1) 100%)',
-    trust: 'linear-gradient(135deg, rgba(26, 39, 68, 0.3) 0%, rgba(59, 130, 246, 0.2) 50%, rgba(46, 212, 255, 0.1) 100%)',
-    elite: 'linear-gradient(135deg, rgba(139, 105, 20, 0.2) 0%, rgba(212, 165, 116, 0.15) 50%, rgba(245, 214, 138, 0.1) 100%)',
+    romance: 'linear-gradient(135deg, rgba(255, 107, 122, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(34, 211, 238, 0.1) 100%)',
+    trust: 'linear-gradient(135deg, rgba(30, 58, 95, 0.3) 0%, rgba(37, 99, 235, 0.2) 50%, rgba(34, 211, 238, 0.1) 100%)',
+    elite: 'linear-gradient(135deg, rgba(120, 53, 15, 0.2) 0%, rgba(205, 127, 50, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
   };
 
   return (
@@ -133,3 +211,13 @@ export const BackgroundGradientOverlay: React.FC<{
 });
 
 BackgroundGradientOverlay.displayName = 'BackgroundGradientOverlay';
+
+/**
+ * Export CSS class helpers for use with className prop
+ */
+export const bgClasses = {
+  landing: 'fm-bg-landing',
+  interior: 'fm-bg-interior',
+  dashboard: 'fm-bg-dashboard',
+  auth: 'fm-bg-auth',
+} as const;
