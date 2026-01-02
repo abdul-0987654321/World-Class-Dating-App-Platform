@@ -140,20 +140,21 @@ const AnimatedLandingPage: React.FC = () => {
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
         .flamoral-animated-landing {
-          --color-bg: #08080c;
-          --color-bg-elevated: #0f0f14;
-          --color-bg-card: #131318;
-          --color-text: #e8e6e3;
-          --color-text-muted: #9a9590;
-          --color-text-dim: #5a5955;
-          --color-pink: #d4587a;
-          --color-pink-glow: rgba(212, 88, 122, 0.3);
-          --color-blue: #5b7fb8;
-          --color-blue-glow: rgba(91, 127, 184, 0.3);
-          --color-gold: #c9a962;
-          --color-border: rgba(255, 255, 255, 0.08);
+          /* BRIGHTER backgrounds per Master Prompt */
+          --color-bg: #14141f;
+          --color-bg-elevated: #1e1e2d;
+          --color-bg-card: #282840;
+          --color-text: #f5f5f7;
+          --color-text-muted: #a0a0b0;
+          --color-text-dim: #6b6b7b;
+          --color-pink: #ff6b7a;
+          --color-pink-glow: rgba(255, 107, 122, 0.35);
+          --color-blue: #22d3ee;
+          --color-blue-glow: rgba(34, 211, 238, 0.3);
+          --color-gold: #f59e0b;
+          --color-border: rgba(255, 255, 255, 0.12);
 
-          --font-display: 'Instrument Serif', Georgia, serif;
+          --font-display: 'Playfair Display', Georgia, serif;
           --font-body: 'DM Sans', -apple-system, sans-serif;
 
           --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
