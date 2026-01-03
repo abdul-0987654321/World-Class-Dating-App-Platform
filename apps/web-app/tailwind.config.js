@@ -25,17 +25,17 @@ export default {
         // Maps to CSS variables in design-system.css
         // ============================================================================
         fm: {
-          // Backgrounds
+          // Backgrounds — Master Prompt Specification
           bg: {
-            0: 'var(--bg-page-solid, #08080c)',
-            1: 'var(--surface-card, #111318)',
-            2: 'var(--surface-elevated, #1A1D24)',
+            0: 'var(--bg-page-solid, #1a1a2e)',  /* Midnight Blue */
+            1: 'var(--surface-card, #232342)',
+            2: 'var(--surface-elevated, #2d2d44)', /* Deep Charcoal */
           },
           // Surfaces
           surface: {
-            card: 'var(--surface-card, #111318)',
-            elevated: 'var(--surface-elevated, #1A1D24)',
-            overlay: 'var(--surface-overlay, rgba(11, 11, 15, 0.95))',
+            card: 'var(--surface-card, #2d2d44)',
+            elevated: 'var(--surface-elevated, #383858)',
+            overlay: 'var(--surface-overlay, rgba(26, 26, 46, 0.95))',
           },
           // Text
           text: {
@@ -50,16 +50,16 @@ export default {
             subtle: 'var(--border-subtle, rgba(255, 255, 255, 0.08))',
             strong: 'var(--border-strong, rgba(255, 255, 255, 0.20))',
           },
-          // Brand Accent Colors (Romantic Aurora)
-          pink: 'var(--accent-pink, #d4587a)',
+          // Brand Accent Colors — Master Prompt Specification
+          pink: 'var(--accent-pink, #ff2d75)',    /* Electric Pink */
           violet: 'var(--accent-purple, #7B61FF)',
           cyan: 'var(--accent-cyan, #2ED4FF)',
-          mint: '#2EE89A',
+          mint: '#00d9a5',                         /* Emerald Green */
           gold: '#D4A574',
           // Semantic
           danger: 'var(--error, #EF4444)',
           warning: 'var(--warning, #F59E0B)',
-          success: 'var(--success, #10B981)',
+          success: 'var(--success, #00d9a5)',      /* Emerald Green */
           info: 'var(--info, #3B82F6)',
           // Economy
           coin: 'var(--coin-primary, #F59E0B)',
@@ -79,18 +79,18 @@ export default {
           'off-white': '#F9FAFB',
         },
 
-        // Primary Accent - Pink (Romance + Emotion)
+        // Primary Accent - Electric Pink — Master Prompt Specification
         pink: {
-          50: '#FDF2F8',
-          100: '#FCE7F3',
-          200: '#FBCFE8',
-          300: '#F9A8D4',
-          400: '#F472B6',
-          500: '#EC4899',
-          600: '#DB2777',
-          700: '#BE185D',
-          800: '#9D174D',
-          900: '#831843',
+          50: '#fff0f5',
+          100: '#ffe0eb',
+          200: '#ffb8d1',
+          300: '#ff8ab0',
+          400: '#ff5a94',
+          500: '#ff2d75',   /* Electric Pink - Primary */
+          600: '#d91a5c',
+          700: '#b31048',
+          800: '#8c0a38',
+          900: '#66052a',
         },
 
         // Secondary Accent - Blue (Trust + Growth)
@@ -107,18 +107,18 @@ export default {
           900: '#1E3A8A',
         },
 
-        // Tertiary Accent - Green (Trust + Safety)
+        // Tertiary Accent - Emerald Green — Master Prompt Specification
         green: {
-          50: '#ECFDF5',
-          100: '#D1FAE5',
-          200: '#A7F3D0',
-          300: '#6EE7B7',
-          400: '#34D399',
-          500: '#10B981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065F46',
-          900: '#064E3B',
+          50: '#e6fff8',
+          100: '#ccfff1',
+          200: '#99ffe3',
+          300: '#66ffd5',
+          400: '#33e3b8',
+          500: '#00d9a5',   /* Emerald Green - Success */
+          600: '#00b387',
+          700: '#008c69',
+          800: '#00664c',
+          900: '#00402f',
         },
 
         // Quaternary Accent - Yellow (Energy + Warmth)
@@ -135,8 +135,8 @@ export default {
           900: '#78350F',
         },
 
-        // Semantic Colors
-        success: '#10B981',
+        // Semantic Colors — Master Prompt Specification
+        success: '#00d9a5',  /* Emerald Green */
         warning: '#F59E0B',
         error: '#EF4444',
         info: '#3B82F6',
@@ -148,12 +148,12 @@ export default {
         // ============================================================================
         // App background - layered gradients for depth
         'fm-app': `
-          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 88, 122, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 45, 117, 0.15) 0%, transparent 50%),
           radial-gradient(ellipse 60% 40% at 100% 50%, rgba(91, 127, 184, 0.1) 0%, transparent 50%),
-          linear-gradient(180deg, #08080c 0%, #0d0d14 50%, #08080c 100%)
+          linear-gradient(180deg, #1a1a2e 0%, #232342 50%, #1a1a2e 100%)
         `,
-        // Romantic Aurora gradient (pink → violet → cyan)
-        'fm-romance': 'linear-gradient(135deg, #d4587a 0%, #7B61FF 50%, #2ED4FF 100%)',
+        // Romantic Aurora gradient (pink → violet → cyan) — Master Prompt Specification
+        'fm-romance': 'linear-gradient(135deg, #ff2d75 0%, #7B61FF 50%, #2ED4FF 100%)',
         // Trust gradient (navy → blue → cyan)
         'fm-trust': 'linear-gradient(135deg, #1a2744 0%, #3B82F6 50%, #2ED4FF 100%)',
         // Elite/Luxury gradient (bronze → gold)
@@ -161,34 +161,34 @@ export default {
         // Glass surface overlay
         'fm-glass': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
 
-        // Primary Gradients
-        'gradient-pink-blue': 'linear-gradient(135deg, #EC4899 0%, #3B82F6 100%)',
-        'gradient-blue-green': 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
-        'gradient-pink-yellow': 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
-        'gradient-green-yellow': 'linear-gradient(135deg, #10B981 0%, #F59E0B 100%)',
+        // Primary Gradients — Master Prompt Specification
+        'gradient-pink-blue': 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 100%)',
+        'gradient-blue-green': 'linear-gradient(135deg, #3B82F6 0%, #00d9a5 100%)',
+        'gradient-pink-yellow': 'linear-gradient(135deg, #ff2d75 0%, #F59E0B 100%)',
+        'gradient-green-yellow': 'linear-gradient(135deg, #00d9a5 0%, #F59E0B 100%)',
 
-        // Black Depth Gradients
-        'gradient-black-pink': 'linear-gradient(135deg, #0A0A0A 0%, #EC4899 100%)',
-        'gradient-black-blue': 'linear-gradient(135deg, #0A0A0A 0%, #3B82F6 100%)',
-        'gradient-black-green': 'linear-gradient(135deg, #0A0A0A 0%, #10B981 100%)',
-        'gradient-black-yellow': 'linear-gradient(135deg, #0A0A0A 0%, #F59E0B 100%)',
+        // Black Depth Gradients — Midnight Blue base
+        'gradient-black-pink': 'linear-gradient(135deg, #1a1a2e 0%, #ff2d75 100%)',
+        'gradient-black-blue': 'linear-gradient(135deg, #1a1a2e 0%, #3B82F6 100%)',
+        'gradient-black-green': 'linear-gradient(135deg, #1a1a2e 0%, #00d9a5 100%)',
+        'gradient-black-yellow': 'linear-gradient(135deg, #1a1a2e 0%, #F59E0B 100%)',
 
         // Multi-stop Gradients
-        'gradient-aurora': 'linear-gradient(135deg, #EC4899 0%, #3B82F6 50%, #10B981 100%)',
-        'gradient-spectrum': 'linear-gradient(135deg, #EC4899 0%, #F59E0B 33%, #10B981 66%, #3B82F6 100%)',
+        'gradient-aurora': 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 50%, #00d9a5 100%)',
+        'gradient-spectrum': 'linear-gradient(135deg, #ff2d75 0%, #F59E0B 33%, #00d9a5 66%, #3B82F6 100%)',
 
         // Radial Gradients
-        'gradient-radial-pink': 'radial-gradient(circle at center, rgba(236, 72, 153, 0.3) 0%, transparent 70%)',
+        'gradient-radial-pink': 'radial-gradient(circle at center, rgba(255, 45, 117, 0.3) 0%, transparent 70%)',
         'gradient-radial-blue': 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
-        'gradient-radial-green': 'radial-gradient(circle at center, rgba(16, 185, 129, 0.3) 0%, transparent 70%)',
+        'gradient-radial-green': 'radial-gradient(circle at center, rgba(0, 217, 165, 0.3) 0%, transparent 70%)',
 
         // Mesh Gradients
         'gradient-mesh': `
-          radial-gradient(at 40% 20%, rgba(236, 72, 153, 0.3) 0px, transparent 50%),
+          radial-gradient(at 40% 20%, rgba(255, 45, 117, 0.3) 0px, transparent 50%),
           radial-gradient(at 80% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
-          radial-gradient(at 0% 50%, rgba(16, 185, 129, 0.2) 0px, transparent 50%),
+          radial-gradient(at 0% 50%, rgba(0, 217, 165, 0.2) 0px, transparent 50%),
           radial-gradient(at 80% 50%, rgba(245, 158, 11, 0.2) 0px, transparent 50%),
-          radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.2) 0px, transparent 50%)
+          radial-gradient(at 0% 100%, rgba(255, 45, 117, 0.2) 0px, transparent 50%)
         `,
       },
 
@@ -217,17 +217,17 @@ export default {
         'fm-glow-gold': '0 0 30px rgba(212, 165, 116, 0.4), 0 0 60px rgba(212, 165, 116, 0.2)',
         'fm-glow-violet': '0 0 30px rgba(123, 97, 255, 0.4), 0 0 60px rgba(123, 97, 255, 0.2)',
 
-        // Glow Shadows
-        'glow-pink': '0 0 40px rgba(236, 72, 153, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)',
+        // Glow Shadows — Master Prompt Specification
+        'glow-pink': '0 0 40px rgba(255, 45, 117, 0.4), 0 0 80px rgba(255, 45, 117, 0.2)',
         'glow-blue': '0 0 40px rgba(59, 130, 246, 0.4), 0 0 80px rgba(59, 130, 246, 0.2)',
-        'glow-green': '0 0 40px rgba(16, 185, 129, 0.4), 0 0 80px rgba(16, 185, 129, 0.2)',
+        'glow-green': '0 0 40px rgba(0, 217, 165, 0.4), 0 0 80px rgba(0, 217, 165, 0.2)',
         'glow-yellow': '0 0 40px rgba(245, 158, 11, 0.4), 0 0 80px rgba(245, 158, 11, 0.2)',
         'glow-white': '0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(255, 255, 255, 0.15)',
 
         // Subtle Glow
-        'glow-pink-sm': '0 0 20px rgba(236, 72, 153, 0.3)',
+        'glow-pink-sm': '0 0 20px rgba(255, 45, 117, 0.3)',
         'glow-blue-sm': '0 0 20px rgba(59, 130, 246, 0.3)',
-        'glow-green-sm': '0 0 20px rgba(16, 185, 129, 0.3)',
+        'glow-green-sm': '0 0 20px rgba(0, 217, 165, 0.3)',
         'glow-yellow-sm': '0 0 20px rgba(245, 158, 11, 0.3)',
 
         // Elevation Shadows (Dark Mode Optimized)
@@ -267,8 +267,8 @@ export default {
           '50%': { backgroundPosition: '100% 50%' },
         },
         'glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(236, 72, 153, 0.4)' },
-          '50%': { boxShadow: '0 0 40px rgba(236, 72, 153, 0.8)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(255, 45, 117, 0.4)' },
+          '50%': { boxShadow: '0 0 40px rgba(255, 45, 117, 0.8)' },
         },
         'float': {
           '0%, 100%': { transform: 'translateY(0px)' },
@@ -311,26 +311,26 @@ export default {
         },
         'avatarPulse': {
           '0%, 100%': {
-            boxShadow: '0 0 0 0 rgba(236, 72, 153, 0.4)',
+            boxShadow: '0 0 0 0 rgba(255, 45, 117, 0.4)',
             transform: 'scale(1)',
           },
           '50%': {
-            boxShadow: '0 0 0 20px rgba(236, 72, 153, 0)',
+            boxShadow: '0 0 0 20px rgba(255, 45, 117, 0)',
             transform: 'scale(1.02)',
           },
         },
         'borderGlow': {
           '0%, 100%': {
-            borderColor: 'rgba(236, 72, 153, 0.5)',
-            boxShadow: '0 0 20px rgba(236, 72, 153, 0.3)',
+            borderColor: 'rgba(255, 45, 117, 0.5)',
+            boxShadow: '0 0 20px rgba(255, 45, 117, 0.3)',
           },
           '33%': {
             borderColor: 'rgba(59, 130, 246, 0.5)',
             boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)',
           },
           '66%': {
-            borderColor: 'rgba(16, 185, 129, 0.5)',
-            boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
+            borderColor: 'rgba(0, 217, 165, 0.5)',
+            boxShadow: '0 0 20px rgba(0, 217, 165, 0.3)',
           },
         },
       },
@@ -398,25 +398,25 @@ export default {
     function({ addUtilities }) {
       addUtilities({
         '.text-gradient-pink-blue': {
-          background: 'linear-gradient(135deg, #EC4899 0%, #3B82F6 100%)',
+          background: 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 100%)',
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
         '.text-gradient-blue-green': {
-          background: 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
+          background: 'linear-gradient(135deg, #3B82F6 0%, #00d9a5 100%)',
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
         '.text-gradient-pink-yellow': {
-          background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+          background: 'linear-gradient(135deg, #ff2d75 0%, #F59E0B 100%)',
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
         '.text-gradient-aurora': {
-          background: 'linear-gradient(135deg, #EC4899 0%, #3B82F6 50%, #10B981 100%)',
+          background: 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 50%, #00d9a5 100%)',
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
@@ -433,7 +433,7 @@ export default {
         },
         '.border-gradient': {
           border: '2px solid transparent',
-          backgroundImage: 'linear-gradient(#0A0A0A, #0A0A0A), linear-gradient(135deg, #EC4899 0%, #3B82F6 100%)',
+          backgroundImage: 'linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ff2d75 0%, #3B82F6 100%)',
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box',
         },

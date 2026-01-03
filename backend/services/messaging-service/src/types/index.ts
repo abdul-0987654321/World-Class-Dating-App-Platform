@@ -56,6 +56,9 @@ export interface Message {
   isPinned?: boolean;
   pinnedBy?: string;
   pinnedAt?: Date;
+  // Message Before Match feature (Premium+, Elite only)
+  // When true, indicates this message was sent before users had a mutual match
+  isBeforeMatch?: boolean;
   // End-to-end encryption metadata
   encryption?: {
     isEncrypted: boolean;

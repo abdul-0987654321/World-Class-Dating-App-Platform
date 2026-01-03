@@ -1,17 +1,18 @@
 /**
  * App theme and design system
+ * Master Prompt Specification — Electric Pink, Emerald Green, Midnight Blue
  */
 
 export const Colors = {
-  // Primary
-  primary: '#FF6B6B',
-  primaryDark: '#E85555',
-  primaryLight: '#FF8E8E',
+  // Primary — Electric Pink
+  primary: '#ff2d75',
+  primaryDark: '#d91a5c',
+  primaryLight: '#ff5a94',
 
   // Secondary
-  secondary: '#FF8E53',
-  secondaryDark: '#E87A3E',
-  secondaryLight: '#FFA575',
+  secondary: '#ff8ab0',
+  secondaryDark: '#d91a5c',
+  secondaryLight: '#ffb8d1',
 
   // Neutrals
   black: '#000000',
@@ -26,17 +27,23 @@ export const Colors = {
   gray800: '#48484A',
   gray900: '#3A3A3C',
 
-  // Semantic
-  success: '#34C759',
+  // Semantic — Master Prompt Specification
+  success: '#00d9a5',        // Emerald Green
   warning: '#FF9500',
   error: '#FF3B30',
   info: '#007AFF',
 
-  // Gradients
+  // Background — Midnight Blue base
+  background: '#1a1a2e',     // Midnight Blue
+  backgroundSecondary: '#232342',
+  backgroundTertiary: '#2d2d44', // Deep Charcoal
+
+  // Gradients — Master Prompt Specification
   gradient: {
-    primary: ['#FF6B6B', '#FF8E53'],
+    primary: ['#ff2d75', '#ff5a94'],  // Electric Pink
     secondary: ['#667EEA', '#764BA2'],
     gold: ['#F7971E', '#FFD200'],
+    romance: ['#ff2d75', '#7B61FF', '#2ED4FF'], // Aurora gradient
   },
 
   // Transparent

@@ -11,7 +11,7 @@ const logger = createLogger('notification-service-client');
 
 interface SendNotificationDto {
   userId: string;
-  type: 'new_match' | 'new_message' | 'new_like' | 'subscription_update' | 'payment_success' | 'payment_failed' | 'profile_boost_active' | 'verification_complete' | 'match_expiring' | 'match_expired';
+  type: 'new_match' | 'new_message' | 'new_like' | 'subscription_update' | 'payment_success' | 'payment_failed' | 'profile_boost_active' | 'verification_complete' | 'match_expiring' | 'match_expired' | 'speed_dating' | 'reminder';
   title: string;
   body: string;
   data?: Record<string, any>;

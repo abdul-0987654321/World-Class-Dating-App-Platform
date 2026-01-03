@@ -51,3 +51,17 @@ export { GetMatchesQueryDto, RecentMatchesQueryDto } from './match.dto';
 
 // Recommendation DTOs
 export { GetRecommendationsQueryDto, GetTopMatchesQueryDto } from './recommendation.dto';
+
+// Speed Dating DTOs
+export {
+  GetEventsQueryDto,
+  JoinEventDto,
+  LeaveEventDto,
+  CheckInDto,
+  RecordInterestDto,
+  GetMatchesQueryDto as GetSpeedDatingMatchesQueryDto,
+  GetCurrentRoundDto,
+  CreateEventDto,
+  RatePartnerDto,
+  ReportPartnerDto,
+} from './speed-dating.dto';

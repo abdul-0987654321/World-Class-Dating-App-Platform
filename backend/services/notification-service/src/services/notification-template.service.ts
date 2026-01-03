@@ -133,6 +133,15 @@ export class NotificationTemplateService {
         actionUrl: '/achievements',
         variables: ['achievementName'],
       },
+      {
+        type: NotificationType.SPEED_DATING,
+        language: 'en',
+        title: 'Speed Dating Event',
+        body: '{{eventName}} is starting soon! Join now to meet new people.',
+        category: 'event',
+        actionUrl: '/speed-dating/{{eventId}}',
+        variables: ['eventName', 'eventId'],
+      },
       // Spanish templates
       {
         type: NotificationType.NEW_MATCH,

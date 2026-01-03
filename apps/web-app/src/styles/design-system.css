@@ -14,13 +14,13 @@
 
 :root {
   /* ============================================================================
-     BASE BACKGROUNDS — Brighter dark theme for better readability
-     Increased luminosity by ~40% while maintaining premium dark aesthetic
+     BASE BACKGROUNDS — Master Prompt Specification
+     Midnight Blue based dark theme for premium aesthetic
      ============================================================================ */
-  --fm-bg-0: #14141f;           /* Deepest layer - landing page (was #0a0a0f) */
-  --fm-bg-1: #1e1e2d;           /* Primary surface (was #12121a) */
-  --fm-bg-2: #282840;           /* Elevated surface - interior pages (was #1a1a25) */
-  --fm-bg-3: #323250;           /* Cards, modals - dashboard (was #232330) */
+  --fm-bg-0: #1a1a2e;           /* Deepest layer - landing page (Midnight Blue) */
+  --fm-bg-1: #232342;           /* Primary surface */
+  --fm-bg-2: #2d2d44;           /* Elevated surface - interior pages (Deep Charcoal) */
+  --fm-bg-3: #383858;           /* Cards, modals - dashboard */
 
   /* Legacy aliases */
   --bg-page-solid: var(--fm-bg-0);
@@ -46,7 +46,7 @@
      ============================================================================ */
   --fm-border: rgba(255, 255, 255, 0.08);
   --fm-border-hover: rgba(255, 255, 255, 0.15);
-  --fm-border-active: rgba(255, 107, 122, 0.4);
+  --fm-border-active: rgba(255, 45, 117, 0.4);
 
   /* Legacy aliases */
   --border-subtle: var(--fm-border);
@@ -54,12 +54,12 @@
   --border-strong: var(--fm-border-hover);
 
   /* ============================================================================
-     SIGNATURE BRAND COLORS
+     SIGNATURE BRAND COLORS — Master Prompt Specification
      ============================================================================ */
-  --fm-pink: #ff6b7a;           /* Primary brand — passion */
-  --fm-pink-light: #ff8a96;
-  --fm-pink-dark: #e84a59;
-  --fm-rose: #ff4757;           /* Deep rose */
+  --fm-pink: #ff2d75;           /* Primary brand — Electric Pink (passion) */
+  --fm-pink-light: #ff5a94;
+  --fm-pink-dark: #d91a5c;
+  --fm-rose: #ff2d75;           /* Deep rose (same as primary) */
 
   --fm-violet: #a855f7;         /* Romance accent */
   --fm-violet-light: #c084fc;
@@ -69,9 +69,9 @@
   --fm-cyan-light: #67e8f9;
   --fm-cyan-dark: #06b6d4;
 
-  --fm-mint: #34d399;           /* Success/Plus tier */
-  --fm-mint-light: #6ee7b7;
-  --fm-mint-dark: #10b981;
+  --fm-mint: #00d9a5;           /* Success/Plus tier — Emerald Green */
+  --fm-mint-light: #33e3b8;
+  --fm-mint-dark: #00b387;
 
   --fm-gold: #f59e0b;           /* Elite/Premium */
   --fm-gold-light: #fbbf24;
@@ -84,16 +84,16 @@
   --accent-cyan: var(--fm-cyan);
 
   /* ============================================================================
-     SEMANTIC COLORS
+     SEMANTIC COLORS — Master Prompt Specification
      ============================================================================ */
-  --fm-success: #34d399;
+  --fm-success: #00d9a5;        /* Emerald Green */
   --fm-warning: #fbbf24;
   --fm-danger: #ef4444;
   --fm-info: #3b82f6;
 
   /* Legacy aliases */
   --success: var(--fm-success);
-  --success-bg: rgba(52, 211, 153, 0.15);
+  --success-bg: rgba(0, 217, 165, 0.15);
   --warning: var(--fm-warning);
   --warning-bg: rgba(251, 191, 36, 0.15);
   --error: var(--fm-danger);
@@ -142,14 +142,14 @@
   /* Global App Background — Landing Page (dramatic but brighter) */
   --fm-gradient-landing:
     radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.20) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 45, 117, 0.18) 0%, transparent 50%),
     radial-gradient(ellipse 50% 50% at 50% 100%, rgba(34, 211, 238, 0.12) 0%, transparent 40%),
     linear-gradient(180deg, var(--fm-bg-0) 0%, var(--fm-bg-1) 50%, var(--fm-bg-2) 100%);
 
   /* Interior Pages Background (BRIGHTER - main app pages) */
   --fm-gradient-interior:
     radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 107, 122, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 45, 117, 0.12) 0%, transparent 50%),
     linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-2) 100%);
 
   /* Dashboard Background (BRIGHTEST - data heavy views) */
@@ -159,7 +159,7 @@
 
   /* Auth Pages — Centered glow */
   --fm-gradient-auth:
-    radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 107, 122, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 45, 117, 0.20) 0%, transparent 60%),
     linear-gradient(180deg, var(--fm-bg-2) 0%, var(--fm-bg-2) 100%);
 
   /* Glass Surface Overlay */
@@ -176,7 +176,7 @@
 
   /* Legacy aliases */
   --accent-gradient: var(--fm-gradient-romance);
-  --accent-gradient-hover: linear-gradient(135deg, #ff8a96 0%, #c084fc 50%, #67e8f9 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #ff5a94 0%, #c084fc 50%, #67e8f9 100%);
   --bg-page: var(--fm-gradient-landing);
 
   /* ============================================================================
@@ -318,16 +318,16 @@
     0 8px 10px -6px rgba(0, 0, 0, 0.3);
 
   /* Glow effects for premium states */
-  --fm-glow-pink: 0 0 30px rgba(255, 107, 122, 0.4);
+  --fm-glow-pink: 0 0 30px rgba(255, 45, 117, 0.4);
   --fm-glow-violet: 0 0 30px rgba(168, 85, 247, 0.4);
   --fm-glow-cyan: 0 0 30px rgba(34, 211, 238, 0.4);
-  --fm-glow-mint: 0 0 30px rgba(52, 211, 153, 0.3);
+  --fm-glow-mint: 0 0 30px rgba(0, 217, 165, 0.3);
   --fm-glow-gold: 0 0 30px rgba(245, 158, 11, 0.3);
 
   /* Button glow on hover */
   --fm-glow-cta:
-    0 0 20px rgba(255, 107, 122, 0.5),
-    0 0 40px rgba(255, 107, 122, 0.3);
+    0 0 20px rgba(255, 45, 117, 0.5),
+    0 0 40px rgba(255, 45, 117, 0.3);
 
   /* Legacy aliases */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);

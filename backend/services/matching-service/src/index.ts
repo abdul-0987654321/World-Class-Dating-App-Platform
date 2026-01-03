@@ -13,12 +13,15 @@ import {
   initializeGlobalErrorHandlers,
 } from '@flamoral/backend-shared';
 import swipeRoutes from './api/routes/swipe.routes';
+import rewindRoutes from './api/routes/rewind.routes';
 import matchRoutes from './api/routes/match.routes';
 import recommendationRoutes from './api/routes/recommendation.routes';
 import searchRoutes from './api/routes/search.routes';
 import internalRoutes from './api/routes/internal.routes';
+import speedDatingRoutes from './api/routes/speed-dating.routes';
 import config from './config';
 import matchExpirationJob from './jobs/match-expiration.job';
+import speedDatingJob from './jobs/speed-dating.job';
 import db from './infrastructure/database/connection';
 
 // Load environment variables
@@ -103,18 +106,22 @@ app.get('/', (_req: Request, res: Response) => {
     status: 'running',
     endpoints: {
       swipes: '/api/v1/swipes',
+      rewind: '/api/v1/swipes/rewind',
       matches: '/api/v1/matches',
       recommendations: '/api/v1/recommendations',
       search: '/api/v1/search',
+      speedDating: '/api/v1/speed-dating',
     },
   });
 });
 
 // API Routes
 app.use('/api/v1/swipes', swipeRoutes);
+app.use('/api/v1/swipes/rewind', rewindRoutes);
 app.use('/api/v1/matches', matchRoutes);
 app.use('/api/v1/recommendations', recommendationRoutes);
 app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/speed-dating', speedDatingRoutes);
 
 // Internal API Routes (service-to-service)
 app.use('/api/v1/internal/matches', internalRoutes);
@@ -134,18 +141,24 @@ app.listen(PORT, () => {
   // Start match expiration jobs
   matchExpirationJob.startAll();
   logger.info('Match expiration jobs initialized');
+
+  // Start speed dating jobs
+  speedDatingJob.startAll();
+  logger.info('Speed dating jobs initialized');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM signal received: closing HTTP server');
   matchExpirationJob.stopAll();
+  speedDatingJob.stopAll();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT signal received: closing HTTP server');
   matchExpirationJob.stopAll();
+  speedDatingJob.stopAll();
   process.exit(0);
 });
 

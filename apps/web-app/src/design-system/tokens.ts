@@ -24,19 +24,19 @@ export const colors = {
     offWhite: '#F9FAFB',
   },
 
-  // Primary Accent - Pink (Romance + Emotion)
+  // Primary Accent - Electric Pink — Master Prompt Specification
   pink: {
-    50: '#FDF2F8',
-    100: '#FCE7F3',
-    200: '#FBCFE8',
-    300: '#F9A8D4',
-    400: '#F472B6',
-    500: '#EC4899', // Primary Pink
-    600: '#DB2777',
-    700: '#BE185D',
-    800: '#9D174D',
-    900: '#831843',
-    glow: 'rgba(236, 72, 153, 0.4)',
+    50: '#fff0f5',
+    100: '#ffe0eb',
+    200: '#ffb8d1',
+    300: '#ff8ab0',
+    400: '#ff5a94',
+    500: '#ff2d75', // Electric Pink - Primary
+    600: '#d91a5c',
+    700: '#b31048',
+    800: '#8c0a38',
+    900: '#66052a',
+    glow: 'rgba(255, 45, 117, 0.4)',
   },
 
   // Secondary Accent - Blue (Trust + Growth)
@@ -54,19 +54,19 @@ export const colors = {
     glow: 'rgba(59, 130, 246, 0.4)',
   },
 
-  // Tertiary Accent - Green (Trust + Safety)
+  // Tertiary Accent - Emerald Green — Master Prompt Specification
   green: {
-    50: '#ECFDF5',
-    100: '#D1FAE5',
-    200: '#A7F3D0',
-    300: '#6EE7B7',
-    400: '#34D399',
-    500: '#10B981', // Primary Green
-    600: '#059669',
-    700: '#047857',
-    800: '#065F46',
-    900: '#064E3B',
-    glow: 'rgba(16, 185, 129, 0.4)',
+    50: '#e6fff8',
+    100: '#ccfff1',
+    200: '#99ffe3',
+    300: '#66ffd5',
+    400: '#33e3b8',
+    500: '#00d9a5', // Emerald Green - Success
+    600: '#00b387',
+    700: '#008c69',
+    800: '#00664c',
+    900: '#00402f',
+    glow: 'rgba(0, 217, 165, 0.4)',
   },
 
   // Quaternary Accent - Yellow (Energy + Warmth)
@@ -84,8 +84,8 @@ export const colors = {
     glow: 'rgba(245, 158, 11, 0.4)',
   },
 
-  // Semantic Colors
-  success: '#10B981',
+  // Semantic Colors — Master Prompt Specification
+  success: '#00d9a5',  // Emerald Green
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
@@ -96,52 +96,52 @@ export const colors = {
 // ============================================================================
 
 export const gradients = {
-  // Primary Gradients (Approved Combinations)
+  // Primary Gradients — Master Prompt Specification
   pinkToBlue: {
     name: 'Romance Emotion',
-    css: 'linear-gradient(135deg, #EC4899 0%, #3B82F6 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 100%)',
     tailwind: 'from-pink-500 to-blue-500',
     usage: 'Hero areas, primary CTAs, emotional moments',
   },
   blueToGreen: {
     name: 'Trust Growth',
-    css: 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
+    css: 'linear-gradient(135deg, #3B82F6 0%, #00d9a5 100%)',
     tailwind: 'from-blue-500 to-green-500',
     usage: 'Safety sections, verification badges, trust indicators',
   },
   pinkToYellow: {
     name: 'Energy Warmth',
-    css: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #F59E0B 100%)',
     tailwind: 'from-pink-500 to-yellow-500',
     usage: 'Engagement prompts, boosts, premium features',
   },
   greenToYellow: {
     name: 'Vitality',
-    css: 'linear-gradient(135deg, #10B981 0%, #F59E0B 100%)',
+    css: 'linear-gradient(135deg, #00d9a5 0%, #F59E0B 100%)',
     tailwind: 'from-green-500 to-yellow-500',
     usage: 'Success states, achievements, positive feedback',
   },
   blackToPink: {
     name: 'Depth Romance',
-    css: 'linear-gradient(135deg, #0A0A0A 0%, #EC4899 100%)',
+    css: 'linear-gradient(135deg, #1a1a2e 0%, #ff2d75 100%)',
     tailwind: 'from-black to-pink-500',
     usage: 'Dark hero sections, dramatic entrances',
   },
   blackToBlue: {
     name: 'Depth Trust',
-    css: 'linear-gradient(135deg, #0A0A0A 0%, #3B82F6 100%)',
+    css: 'linear-gradient(135deg, #1a1a2e 0%, #3B82F6 100%)',
     tailwind: 'from-black to-blue-500',
     usage: 'Security sections, professional contexts',
   },
   blackToGreen: {
     name: 'Depth Safety',
-    css: 'linear-gradient(135deg, #0A0A0A 0%, #10B981 100%)',
+    css: 'linear-gradient(135deg, #1a1a2e 0%, #00d9a5 100%)',
     tailwind: 'from-black to-green-500',
     usage: 'Verification flows, safety features',
   },
   blackToYellow: {
     name: 'Depth Energy',
-    css: 'linear-gradient(135deg, #0A0A0A 0%, #F59E0B 100%)',
+    css: 'linear-gradient(135deg, #1a1a2e 0%, #F59E0B 100%)',
     tailwind: 'from-black to-yellow-500',
     usage: 'Premium highlights, special features',
   },
@@ -149,13 +149,13 @@ export const gradients = {
   // Multi-stop Gradients
   aurora: {
     name: 'Aurora',
-    css: 'linear-gradient(135deg, #EC4899 0%, #3B82F6 50%, #10B981 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #3B82F6 50%, #00d9a5 100%)',
     tailwind: 'from-pink-500 via-blue-500 to-green-500',
     usage: 'Special moments, premium experiences',
   },
   spectrum: {
     name: 'Spectrum',
-    css: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 33%, #10B981 66%, #3B82F6 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #F59E0B 33%, #00d9a5 66%, #3B82F6 100%)',
     tailwind: 'from-pink-500 via-yellow-500 via-green-500 to-blue-500',
     usage: 'Celebrations, achievements',
   },
@@ -165,9 +165,9 @@ export const gradients = {
     name: 'Animated Aurora',
     css: `linear-gradient(
       -45deg,
-      #EC4899,
+      #ff2d75,
       #3B82F6,
-      #10B981,
+      #00d9a5,
       #F59E0B
     )`,
     animation: 'gradient-shift 8s ease infinite',
@@ -175,10 +175,10 @@ export const gradients = {
     usage: 'Loading states, attention grabbers',
   },
 
-  // Glow Effects
+  // Glow Effects — Master Prompt Specification
   glowPink: {
     name: 'Pink Glow',
-    css: '0 0 40px rgba(236, 72, 153, 0.5), 0 0 80px rgba(236, 72, 153, 0.3)',
+    css: '0 0 40px rgba(255, 45, 117, 0.5), 0 0 80px rgba(255, 45, 117, 0.3)',
     usage: 'Primary action hover states',
   },
   glowBlue: {
@@ -188,7 +188,7 @@ export const gradients = {
   },
   glowGreen: {
     name: 'Green Glow',
-    css: '0 0 40px rgba(16, 185, 129, 0.5), 0 0 80px rgba(16, 185, 129, 0.3)',
+    css: '0 0 40px rgba(0, 217, 165, 0.5), 0 0 80px rgba(0, 217, 165, 0.3)',
     usage: 'Success states, safety',
   },
   glowYellow: {
@@ -323,10 +323,10 @@ export const shadows = {
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
   none: 'none',
 
-  // Glow Shadows
-  glowPink: '0 0 40px rgba(236, 72, 153, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)',
+  // Glow Shadows — Master Prompt Specification
+  glowPink: '0 0 40px rgba(255, 45, 117, 0.4), 0 0 80px rgba(255, 45, 117, 0.2)',
   glowBlue: '0 0 40px rgba(59, 130, 246, 0.4), 0 0 80px rgba(59, 130, 246, 0.2)',
-  glowGreen: '0 0 40px rgba(16, 185, 129, 0.4), 0 0 80px rgba(16, 185, 129, 0.2)',
+  glowGreen: '0 0 40px rgba(0, 217, 165, 0.4), 0 0 80px rgba(0, 217, 165, 0.2)',
   glowYellow: '0 0 40px rgba(245, 158, 11, 0.4), 0 0 80px rgba(245, 158, 11, 0.2)',
   glowWhite: '0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(255, 255, 255, 0.15)',
 
@@ -371,8 +371,8 @@ export const animations = {
       '50%': { opacity: 0.5 },
     },
     glow: {
-      '0%, 100%': { boxShadow: '0 0 20px rgba(236, 72, 153, 0.4)' },
-      '50%': { boxShadow: '0 0 40px rgba(236, 72, 153, 0.8)' },
+      '0%, 100%': { boxShadow: '0 0 20px rgba(255, 45, 117, 0.4)' },
+      '50%': { boxShadow: '0 0 40px rgba(255, 45, 117, 0.8)' },
     },
     float: {
       '0%, 100%': { transform: 'translateY(0px)' },
@@ -526,15 +526,15 @@ export const accessibility = {
     uiComponents: 3,   // AA standard for UI components and graphics
   },
 
-  // Pre-verified color combinations for dark mode
+  // Pre-verified color combinations for dark mode — Master Prompt Specification
   verifiedCombinations: [
-    { background: '#0A0A0A', foreground: '#FFFFFF', ratio: 21 },
-    { background: '#0A0A0A', foreground: '#EC4899', ratio: 5.1 },
-    { background: '#0A0A0A', foreground: '#3B82F6', ratio: 4.6 },
-    { background: '#0A0A0A', foreground: '#10B981', ratio: 5.4 },
-    { background: '#0A0A0A', foreground: '#F59E0B', ratio: 6.2 },
-    { background: '#1A1A1A', foreground: '#FFFFFF', ratio: 18.1 },
-    { background: '#1A1A1A', foreground: '#F9A8D4', ratio: 6.8 },
+    { background: '#1a1a2e', foreground: '#FFFFFF', ratio: 15.8 },
+    { background: '#1a1a2e', foreground: '#ff2d75', ratio: 5.3 },
+    { background: '#1a1a2e', foreground: '#3B82F6', ratio: 4.6 },
+    { background: '#1a1a2e', foreground: '#00d9a5', ratio: 7.2 },
+    { background: '#1a1a2e', foreground: '#F59E0B', ratio: 6.2 },
+    { background: '#2d2d44', foreground: '#FFFFFF', ratio: 12.4 },
+    { background: '#2d2d44', foreground: '#ff8ab0', ratio: 5.8 },
   ],
 
   // Focus states

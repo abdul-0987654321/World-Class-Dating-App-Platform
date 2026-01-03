@@ -193,4 +193,78 @@ router.get('/users/:userId', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Internal endpoint: Check if user has access to a specific feature
+ * Used by other services to check subscription-based feature access
+ */
+router.get('/users/:userId/features/:featureKey', async (req: Request, res: Response) => {
+  try {
+    const { userId, featureKey } = req.params;
+
+    const subscriptionService = new SubscriptionService();
+    const featureAccess = await subscriptionService.checkFeatureAccess(userId, featureKey);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId,
+        featureKey,
+        hasAccess: featureAccess.hasAccess,
+        limit: featureAccess.limit,
+        requiredTier: featureAccess.requiredTier,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Internal feature check error:', { error });
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to check feature access',
+    });
+  }
+});
+
+/**
+ * Internal endpoint: Get user subscription details
+ * Returns detailed subscription information for a user
+ */
+router.get('/users/:userId/subscription', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const subscriptionService = new SubscriptionService();
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription) {
+      // User has no subscription record, return free tier
+      return res.status(200).json({
+        success: true,
+        data: {
+          userId,
+          tier: 'free',
+          status: 'active',
+          isActive: true,
+        },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId,
+        tier: subscription.tier,
+        status: subscription.status,
+        isActive: subscription.status === 'active' || subscription.status === 'trialing',
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Internal get subscription error:', { error });
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get subscription',
+    });
+  }
+});
+
 export default router;

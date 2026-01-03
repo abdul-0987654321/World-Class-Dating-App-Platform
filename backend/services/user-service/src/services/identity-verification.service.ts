@@ -954,3 +954,6 @@ export class IdentityVerificationService {
 }
 
 export const identityVerificationService = new IdentityVerificationService();
+
+// Re-export the ID verification service for direct access
+export { idVerificationService } from './id-verification.service';

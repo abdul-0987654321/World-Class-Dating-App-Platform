@@ -110,6 +110,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [MatchingErrorCode.EXTENSION_NOT_ALLOWED]: 'This match cannot be extended.',
   [MatchingErrorCode.UNDO_NOT_ALLOWED]: 'Cannot undo this swipe.',
   [MatchingErrorCode.REMATCH_NOT_ALLOWED]: 'Rematch is a Premium feature. Upgrade to rematch with expired matches.',
+  [MatchingErrorCode.REWIND_NOT_ALLOWED]: 'Rewind is not available for your subscription tier. Upgrade to unlock this feature.',
+  [MatchingErrorCode.REWIND_LIMIT_REACHED]: 'You have reached your daily rewind limit. Upgrade for more rewinds or try again tomorrow.',
+  [MatchingErrorCode.NO_SWIPE_TO_REWIND]: 'No recent swipes available to rewind.',
+  [MatchingErrorCode.REWIND_WINDOW_EXPIRED]: 'This swipe can no longer be rewound. Swipes can only be rewound within 3 hours.',
 };
 
 /**
@@ -132,6 +136,6 @@ export function getErrorTitle(code: ErrorCode): string {
   if (code.startsWith('INTEGRATION_')) return 'Service Error';
   if (code.startsWith('DB_') || code.startsWith('CACHE_') || code.startsWith('DATA_')) return 'System Error';
   if (code.startsWith('SERVICE_') || code.startsWith('DEPLOYMENT_') || code.startsWith('FEATURE_FLAG_') || code.startsWith('CONFIG_')) return 'Service Unavailable';
-  if (code.startsWith('MATCH_') || code.startsWith('SWIPE_') || code.startsWith('BOOST_') || code.startsWith('SUPER_LIKE_') || code.startsWith('MESSAGE_') || code.startsWith('SELF_') || code.startsWith('ALREADY_') || code.startsWith('UNDO_') || code.startsWith('REMATCH_') || code.startsWith('DELETE_') || code.startsWith('EXTENSION_')) return 'Matching Error';
+  if (code.startsWith('MATCH_') || code.startsWith('SWIPE_') || code.startsWith('BOOST_') || code.startsWith('SUPER_LIKE_') || code.startsWith('MESSAGE_') || code.startsWith('SELF_') || code.startsWith('ALREADY_') || code.startsWith('UNDO_') || code.startsWith('REMATCH_') || code.startsWith('DELETE_') || code.startsWith('EXTENSION_') || code.startsWith('REWIND_') || code.startsWith('NO_SWIPE_')) return 'Matching Error';
   return 'Error';
 }

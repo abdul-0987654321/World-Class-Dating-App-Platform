@@ -7,6 +7,7 @@ import { conversationRepository } from '../../domain/repositories/conversation.r
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { matchingServiceClient } from '../../infrastructure/clients/matching-service.client';
+import { userServiceClient } from '../../infrastructure/clients/user-service.client';
 import { Message, MessageType, MessageStatus } from '../../types';
 
 const logger = createLogger('message-controller');
@@ -94,6 +95,7 @@ export class MessageController {
       // Get or create conversation
       let conversation;
       let matchInfo = null;
+      let isBeforeMatch = false;
 
       if (conversationId) {
         conversation = await conversationRepository.findById(conversationId);
@@ -108,8 +110,31 @@ export class MessageController {
         conversation = await conversationRepository.findByParticipants(userId, receiverId);
 
         if (!conversation) {
-          // Get match information to check women-first rule
+          // Get match information to check if users are matched
           matchInfo = await matchingServiceClient.findMatchByUsers(userId, receiverId);
+
+          // MESSAGE BEFORE MATCH VALIDATION
+          // If no match exists, check if user has premium feature to message before matching
+          if (!matchInfo) {
+            const canSendBeforeMatch = await userServiceClient.canSendBeforeMatch(userId);
+
+            if (!canSendBeforeMatch) {
+              return res.status(403).json({
+                success: false,
+                error: 'You must match with this user before sending a message. Upgrade to Premium+ or Elite to unlock "Message Before Match" feature.',
+                code: 'NO_MATCH_FOUND',
+                data: {
+                  requiresMatch: true,
+                  upgradeRequired: true,
+                  requiredTiers: ['premium_plus', 'elite'],
+                },
+              });
+            }
+
+            // User has premium feature - mark this as a before-match message
+            isBeforeMatch = true;
+            logger.info(`User ${userId} sending before-match message to ${receiverId}`);
+          }
 
           conversation = await conversationRepository.create({
             id: uuidv4(),
@@ -167,6 +192,8 @@ export class MessageController {
         sentAt: new Date(),
         metadata,
         replyTo,
+        // Mark message if it was sent before users matched (premium feature)
+        isBeforeMatch: isBeforeMatch || undefined,
       };
 
       const createdMessage = await messageRepository.create(message);
@@ -210,6 +237,8 @@ export class MessageController {
           content,
           type: type || MessageType.TEXT,
           metadata,
+          // Include before-match flag for frontend to display appropriately
+          isBeforeMatch: isBeforeMatch || undefined,
         }),
         // Redis pub/sub for event propagation
         messageEventsService.publishNewMessage(createdMessage),

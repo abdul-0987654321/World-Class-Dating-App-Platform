@@ -5,6 +5,7 @@
 
 import swipeRepository from '../repositories/swipe.repository';
 import matchRepository from '../repositories/match.repository';
+import swipeHistoryRepository from '../repositories/swipe-history.repository';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
 import { createLogger } from '@flamoral/backend-shared';
@@ -36,11 +37,25 @@ export class SwipeService {
       }
 
       // Create swipe record
-      await swipeRepository.create({
+      const createdSwipe = await swipeRepository.create({
         userId,
         targetUserId,
         action,
       });
+
+      // Record in swipe history for rewind feature
+      let swipeHistory;
+      try {
+        swipeHistory = await swipeHistoryRepository.create({
+          userId,
+          targetUserId,
+          action,
+          originalSwipeId: createdSwipe.id,
+        });
+      } catch (historyError) {
+        // Non-critical - log and continue
+        logger.warn('Failed to record swipe history', historyError);
+      }
 
       // Check for mutual like only if current action is like or super_like
       if (action === SwipeAction.LIKE || action === SwipeAction.SUPER_LIKE) {
@@ -51,6 +66,15 @@ export class SwipeService {
           const match = await this.createMatch(userId, targetUserId);
 
           logger.info(`Match created: ${match.id}`);
+
+          // Update swipe history with match info
+          if (swipeHistory) {
+            try {
+              await swipeHistoryRepository.updateWithMatchInfo(userId, targetUserId, match.id);
+            } catch (updateError) {
+              logger.warn('Failed to update swipe history with match info', updateError);
+            }
+          }
 
           return {
             matched: true,

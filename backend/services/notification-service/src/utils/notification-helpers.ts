@@ -165,6 +165,7 @@ export function getNotificationCategory(type: NotificationType): string {
     [NotificationType.ACHIEVEMENT_UNLOCKED]: 'gamification',
     [NotificationType.REMINDER]: 'engagement',
     [NotificationType.SECURITY_ALERT]: 'security',
+    [NotificationType.SPEED_DATING]: 'events',
   };
 
   return categoryMap[type] || 'default';

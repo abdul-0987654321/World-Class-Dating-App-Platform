@@ -837,7 +837,10 @@
       "Bash(aws elasticache describe-cache-clusters:*)",
       "Bash(npx tsc --noEmit)",
       "Bash(do echo \"Merging PR #$pr...\")",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(git rev-list:*)",
+      "Bash(export AWS_DEFAULT_REGION=us-east-1)",
+      "Bash(do echo \"=== $repo ===\")"
     ],
     "deny": [],
     "ask": []

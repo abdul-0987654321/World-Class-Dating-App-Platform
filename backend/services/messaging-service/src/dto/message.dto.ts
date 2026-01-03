@@ -141,3 +141,38 @@ export class MarkMessageReadDto {
   @IsUUID()
   conversationId: string;
 }
+
+/**
+ * Response DTO for message data
+ * Used in GET responses to provide consistent message structure
+ *
+ * Includes all message fields including:
+ * - isBeforeMatch: boolean - Indicates if message was sent before users matched
+ *   (Premium+ and Elite feature "Message Before Match")
+ */
+export class MessageResponseDto {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  type: string;
+  status: string;
+  sentAt: Date;
+  deliveredAt?: Date;
+  readAt?: Date;
+  metadata?: MessageMetadataDto;
+  replyTo?: string;
+  deleted?: boolean;
+  deletedAt?: Date;
+  isPinned?: boolean;
+  pinnedBy?: string;
+  pinnedAt?: Date;
+  /**
+   * Indicates if this message was sent before users had a mutual match.
+   * This is a premium feature (Premium+, Elite) that allows users to
+   * send an ice-breaker message before matching.
+   * Frontend can style these messages differently (e.g., "Sent before you matched")
+   */
+  isBeforeMatch?: boolean;
+}

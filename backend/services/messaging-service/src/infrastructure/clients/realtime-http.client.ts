@@ -62,10 +62,12 @@ export class RealtimeHttpClient {
     content: string;
     type: string;
     metadata?: any;
+    /** Indicates if message was sent before users matched (Premium+ feature) */
+    isBeforeMatch?: boolean;
   }): Promise<boolean> {
     try {
       await this.client.post('/messages/publish', data);
-      logger.info(`Message published: ${data.messageId}`);
+      logger.info(`Message published: ${data.messageId}${data.isBeforeMatch ? ' (before-match)' : ''}`);
       return true;
     } catch (error: any) {
       logger.error(`Failed to publish message ${data.messageId}:`, error.message);

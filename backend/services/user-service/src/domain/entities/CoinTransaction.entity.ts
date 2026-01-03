@@ -38,6 +38,7 @@ export const REFERENCE_TYPES = {
   DAILY_REWARD: 'daily_reward',
   ACHIEVEMENT: 'achievement',
   REFUND: 'refund',
+  REFERRAL: 'referral',
 } as const;
 
 // Helper to create transaction reason

@@ -271,6 +271,18 @@ export enum MatchingErrorCode {
 
   /** Cannot rematch - premium required */
   REMATCH_NOT_ALLOWED = 'REMATCH_NOT_ALLOWED',
+
+  /** Cannot rewind swipe - subscription tier limitation */
+  REWIND_NOT_ALLOWED = 'REWIND_NOT_ALLOWED',
+
+  /** User has reached daily rewind limit */
+  REWIND_LIMIT_REACHED = 'REWIND_LIMIT_REACHED',
+
+  /** No swipe available to rewind */
+  NO_SWIPE_TO_REWIND = 'NO_SWIPE_TO_REWIND',
+
+  /** Rewind window has expired */
+  REWIND_WINDOW_EXPIRED = 'REWIND_WINDOW_EXPIRED',
 }
 
 // ============================================================================

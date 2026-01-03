@@ -110,6 +110,10 @@ export const HTTP_STATUS_MAP: Record<ErrorCode, number> = {
   [MatchingErrorCode.EXTENSION_NOT_ALLOWED]: 400,
   [MatchingErrorCode.UNDO_NOT_ALLOWED]: 400,
   [MatchingErrorCode.REMATCH_NOT_ALLOWED]: 403,
+  [MatchingErrorCode.REWIND_NOT_ALLOWED]: 403,
+  [MatchingErrorCode.REWIND_LIMIT_REACHED]: 429,
+  [MatchingErrorCode.NO_SWIPE_TO_REWIND]: 400,
+  [MatchingErrorCode.REWIND_WINDOW_EXPIRED]: 400,
 };
 
 /**

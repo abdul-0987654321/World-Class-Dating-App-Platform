@@ -21,6 +21,7 @@ export enum NotificationType {
   ACHIEVEMENT_UNLOCKED = 'achievement_unlocked',
   REMINDER = 'reminder',
   SECURITY_ALERT = 'security_alert',
+  SPEED_DATING = 'speed_dating',
 }
 
 export enum NotificationChannel {

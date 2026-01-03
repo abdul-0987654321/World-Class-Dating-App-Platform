@@ -1,29 +1,30 @@
 /**
  * Theme configuration for styled-components
- * Flamoral Dark Theme - Rose Red, Coral, Soft Pink palette
+ * Flamoral Dark Theme — Master Prompt Specification
+ * Electric Pink, Emerald Green, Midnight Blue palette
  */
 
 export const theme = {
   colors: {
-    // Primary Brand Colors - Flamoral Flame-Floral palette
-    primary: '#E63946',      // Rose Red
-    primaryLight: '#FF6B6B', // Coral
-    primaryDark: '#C1121F',  // Deep Rose
-    primaryHover: '#FF6B6B',
-    secondary: '#FFB4B4',    // Soft Pink
-    secondaryHover: '#FFDDD2',
-    gradient: 'linear-gradient(135deg, #E63946 0%, #FF6B6B 50%, #FFB4B4 100%)',
-    gradientHover: 'linear-gradient(135deg, #C1121F 0%, #E63946 50%, #FF6B6B 100%)',
+    // Primary Brand Colors — Master Prompt Specification
+    primary: '#ff2d75',      // Electric Pink
+    primaryLight: '#ff5a94',
+    primaryDark: '#d91a5c',
+    primaryHover: '#ff5a94',
+    secondary: '#ffb8d1',
+    secondaryHover: '#ffe0eb',
+    gradient: 'linear-gradient(135deg, #ff2d75 0%, #7B61FF 50%, #2ED4FF 100%)',
+    gradientHover: 'linear-gradient(135deg, #d91a5c 0%, #ff2d75 50%, #ff5a94 100%)',
 
-    // Dark Theme Surfaces
-    white: '#1A1D24',        // Dark surface (replaces white)
+    // Dark Theme Surfaces — Midnight Blue base
+    white: '#2d2d44',        // Deep Charcoal (replaces white)
     black: '#000000',
-    background: '#0B0B0F',   // Darkest background
-    backgroundSecondary: '#111318', // Card backgrounds
-    backgroundTertiary: '#1A1D24',  // Elevated surfaces
-    surface: '#111318',
-    surfaceElevated: '#1A1D24',
-    surfaceOverlay: 'rgba(0, 0, 0, 0.7)',
+    background: '#1a1a2e',   // Midnight Blue - Darkest background
+    backgroundSecondary: '#232342', // Card backgrounds
+    backgroundTertiary: '#2d2d44',  // Deep Charcoal - Elevated surfaces
+    surface: '#232342',
+    surfaceElevated: '#2d2d44',
+    surfaceOverlay: 'rgba(26, 26, 46, 0.7)',
 
     // Text Colors for Dark Theme
     text: '#FFFFFF',
@@ -38,9 +39,9 @@ export const theme = {
     borderSubtle: 'rgba(255, 255, 255, 0.05)',
     borderStrong: 'rgba(255, 255, 255, 0.2)',
 
-    // Status Colors
-    success: '#10B981',
-    successLight: 'rgba(16, 185, 129, 0.1)',
+    // Status Colors — Master Prompt Specification
+    success: '#00d9a5',      // Emerald Green
+    successLight: 'rgba(0, 217, 165, 0.1)',
     warning: '#F59E0B',
     warningLight: 'rgba(245, 158, 11, 0.1)',
     error: '#EF4444',
@@ -48,14 +49,14 @@ export const theme = {
     info: '#3B82F6',
     infoLight: 'rgba(59, 130, 246, 0.1)',
 
-    // Accent Colors
-    pink: '#E63946',
-    coral: '#FF6B6B',
-    softPink: '#FFB4B4',
+    // Accent Colors — Master Prompt Specification
+    pink: '#ff2d75',         // Electric Pink
+    coral: '#ff5a94',
+    softPink: '#ffb8d1',
     purple: '#9333EA',
     blue: '#3B82F6',
     cyan: '#06B6D4',
-    green: '#10B981',
+    green: '#00d9a5',        // Emerald Green
     gold: '#D9A657',
 
     // Coin/Premium Colors
@@ -104,8 +105,8 @@ export const theme = {
     lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
     xl: '0 20px 25px rgba(0, 0, 0, 0.6)',
     '2xl': '0 25px 50px rgba(0, 0, 0, 0.7)',
-    glow: '0 0 20px rgba(230, 57, 70, 0.3)',
-    glowStrong: '0 0 40px rgba(230, 57, 70, 0.5)',
+    glow: '0 0 20px rgba(255, 45, 117, 0.3)',
+    glowStrong: '0 0 40px rgba(255, 45, 117, 0.5)',
   },
   transitions: {
     fast: '0.15s ease',

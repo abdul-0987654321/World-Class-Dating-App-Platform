@@ -19,6 +19,7 @@ export default {
     name: process.env.SERVICE_NAME || 'user-service',
     port: parseInt(process.env.PORT || '3002', 10),
     env: process.env.NODE_ENV || 'development',
+    baseUrl: process.env.SERVICE_BASE_URL || 'http://localhost:3002',
   },
 
   database: (() => {
@@ -93,5 +94,45 @@ export default {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
     authRateLimitMax: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '5', 10),
+  },
+
+  /**
+   * ID Verification Provider Configuration
+   * Supports Jumio (primary), Onfido (fallback), and Mock (development)
+   */
+  verification: {
+    // Provider selection: 'jumio' | 'onfido' | 'mock'
+    provider: process.env.VERIFICATION_PROVIDER || 'jumio',
+
+    // Jumio Configuration (Primary Provider)
+    jumio: {
+      apiKey: process.env.JUMIO_API_KEY,
+      apiSecret: process.env.JUMIO_API_SECRET,
+      baseUrl: process.env.JUMIO_BASE_URL || 'https://api.jumio.com',
+      workflowId: process.env.JUMIO_WORKFLOW_ID || '10011',
+      callbackUrl: process.env.JUMIO_CALLBACK_URL ||
+        `${process.env.SERVICE_BASE_URL || 'http://localhost:3002'}/api/v1/verification/id/webhook/jumio`,
+    },
+
+    // Onfido Configuration (Fallback Provider)
+    onfido: {
+      apiToken: process.env.ONFIDO_API_TOKEN,
+      baseUrl: process.env.ONFIDO_BASE_URL || 'https://api.onfido.com',
+      webhookToken: process.env.ONFIDO_WEBHOOK_TOKEN,
+      workflowId: process.env.ONFIDO_WORKFLOW_ID,
+    },
+
+    // Mock Provider Configuration (Development/Testing)
+    mock: {
+      processingDelayMs: parseInt(process.env.MOCK_VERIFICATION_DELAY_MS || '3000', 10),
+      simulateErrors: process.env.MOCK_VERIFICATION_SIMULATE_ERRORS === 'true',
+    },
+
+    // Verification Settings
+    settings: {
+      expirationHours: parseInt(process.env.VERIFICATION_EXPIRATION_HOURS || '72', 10),
+      maxRetries: parseInt(process.env.VERIFICATION_MAX_RETRIES || '3', 10),
+      requireBiometricConsent: process.env.VERIFICATION_REQUIRE_BIOMETRIC_CONSENT === 'true',
+    },
   },
 };

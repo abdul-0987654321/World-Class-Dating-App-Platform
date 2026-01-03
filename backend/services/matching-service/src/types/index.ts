@@ -115,3 +115,6 @@ export interface MatchResponse {
   match?: Match;
   message?: string;
 }
+
+// Re-export speed dating types
+export * from './speed-dating.types';

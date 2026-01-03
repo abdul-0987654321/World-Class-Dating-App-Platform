@@ -8,6 +8,7 @@ import logger from './utils/logger';
 import authRoutes from './api/routes/auth.routes';
 import profileRoutes from './api/routes/profile.routes';
 import verificationRoutes from './api/routes/verification.routes';
+import idVerificationRoutes from './api/routes/id-verification.routes';
 import phoneVerificationRoutes from './api/routes/phone-verification.routes';
 import passwordResetRoutes from './api/routes/password-reset.routes';
 import photoRoutes from './api/routes/photo.routes';
@@ -29,6 +30,7 @@ import achievementsRoutes from './api/routes/achievements.routes';
 import badgeRoutes from './api/routes/interestIntentionBadge.routes';
 import gemRoutes from './api/routes/gem.routes';
 import communityRoutes from './api/routes/community.routes';
+import referralRoutes from './api/routes/referral.routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
@@ -144,6 +146,7 @@ app.get('/', (_req: Request, res: Response) => {
       auth: '/api/v1/auth',
       profile: '/api/v1/profile',
       verification: '/api/v1/verification',
+      idVerification: '/api/v1/verification/id',
       phone: '/api/v1/phone',
       passwordReset: '/api/v1/password-reset',
       photos: '/api/v1/photos',
@@ -164,6 +167,7 @@ app.get('/', (_req: Request, res: Response) => {
       achievements: '/api/v1/achievements',
       gems: '/api/v1/gems',
       communities: '/api/v1/communities',
+      referrals: '/api/v1/referrals',
     },
   });
 });
@@ -172,6 +176,7 @@ app.get('/', (_req: Request, res: Response) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/verification', verificationRoutes);
+app.use('/api/v1/verification/id', idVerificationRoutes);
 app.use('/api/v1/phone', phoneVerificationRoutes);
 app.use('/api/v1/password-reset', passwordResetRoutes);
 app.use('/api/v1/photos', photoRoutes);
@@ -196,6 +201,7 @@ app.use('/api/v1/badges', badgeRoutes);
 app.use('/api/v1/achievements', achievementsRoutes);
 app.use('/api/v1/gems', gemRoutes);
 app.use('/api/v1/communities', communityRoutes);
+app.use('/api/v1/referrals', referralRoutes);
 
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/v1/internal', internalRoutes);

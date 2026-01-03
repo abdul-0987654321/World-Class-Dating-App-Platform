@@ -16,6 +16,14 @@ interface UserProfile {
   last_name: string;
   gender: 'male' | 'female' | 'non-binary' | 'other' | 'prefer_not_to_say';
   date_of_birth: Date;
+  subscriptionTier?: string;
+}
+
+interface UserSubscription {
+  userId: string;
+  tier: string;
+  status: 'active' | 'expired' | 'cancelled';
+  expiresAt?: Date;
 }
 
 interface UserPreferences {
@@ -81,6 +89,36 @@ export class UserServiceClient {
     } catch (error: any) {
       logger.error(`Failed to get user profiles in batch: ${error.message}`);
       return new Map();
+    }
+  }
+
+  /**
+   * Get user subscription info by user ID
+   */
+  async getUserSubscription(userId: string): Promise<UserSubscription | null> {
+    try {
+      const response = await this.client.get(`/api/internal/users/${userId}/subscription`);
+      return response.data;
+    } catch (error: any) {
+      logger.error(`Failed to get user subscription for ${userId}: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Get user subscription tier by user ID
+   * Returns 'free' if subscription cannot be fetched
+   */
+  async getUserSubscriptionTier(userId: string): Promise<string> {
+    try {
+      const subscription = await this.getUserSubscription(userId);
+      if (subscription && subscription.status === 'active') {
+        return subscription.tier;
+      }
+      return 'free';
+    } catch (error: any) {
+      logger.warn(`Failed to get subscription tier for ${userId}, defaulting to free: ${error.message}`);
+      return 'free';
     }
   }
 }

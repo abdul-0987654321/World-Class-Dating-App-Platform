@@ -393,6 +393,7 @@ class AuthService {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('entitlements');
+    localStorage.removeItem('userGender');
   }
 }
 

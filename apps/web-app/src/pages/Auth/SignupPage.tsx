@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services';
 import { FlamoralLogo } from '../../components/Logo/FlamoralLogo';
@@ -15,6 +15,11 @@ interface FormData {
   agreeToTerms: boolean;
 }
 
+interface PhotoPreview {
+  file: File;
+  url: string;
+}
+
 interface FormErrors {
   firstName?: string;
   lastName?: string;
@@ -24,8 +29,11 @@ interface FormErrors {
   dateOfBirth?: string;
   gender?: string;
   agreeToTerms?: string;
+  photos?: string;
   general?: string;
 }
+
+const MIN_PHOTOS_REQUIRED = 3;
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +41,8 @@ export const SignupPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const tierParam = searchParams.get('tier');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -43,6 +53,7 @@ export const SignupPage: React.FC = () => {
     gender: '',
     agreeToTerms: false,
   });
+  const [photos, setPhotos] = useState<PhotoPreview[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -103,16 +114,56 @@ export const SignupPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNextStep = () => {
-    if (validateStep1()) {
-      setStep(2);
+  const validateStep3 = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (photos.length < MIN_PHOTOS_REQUIRED) {
+      newErrors.photos = `Please upload at least ${MIN_PHOTOS_REQUIRED} photos to continue`;
     }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (step === 1 && validateStep1()) {
+      setStep(2);
+    } else if (step === 2 && validateStep2()) {
+      setStep(3);
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newPhotos: PhotoPreview[] = [];
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith('image/') && photos.length + newPhotos.length < 6) {
+        newPhotos.push({
+          file,
+          url: URL.createObjectURL(file),
+        });
+      }
+    });
+
+    setPhotos([...photos, ...newPhotos]);
+    if (errors.photos) {
+      setErrors((prev) => ({ ...prev, photos: undefined }));
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    const newPhotos = [...photos];
+    URL.revokeObjectURL(newPhotos[index].url);
+    newPhotos.splice(index, 1);
+    setPhotos(newPhotos);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateStep2()) {
+    if (!validateStep3()) {
       return;
     }
 
@@ -131,6 +182,9 @@ export const SignupPage: React.FC = () => {
 
       // Verify registration was successful
       if (response && response.token) {
+        // Store gender for profile background color
+        localStorage.setItem('userGender', formData.gender);
+
         // If user came from a tier selection, redirect to subscription page
         if (tierParam) {
           window.location.href = `/subscription?tier=${tierParam}`;
@@ -182,27 +236,26 @@ export const SignupPage: React.FC = () => {
   return (
     <div
       className="min-h-screen w-full flex flex-col justify-center items-center p-4 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%)' }}
     >
       {/* Animated background gradient orbs */}
       <div
-        className="absolute top-20 left-10 w-72 h-72 rounded-full filter blur-3xl opacity-30 animate-pulse pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%)' }}
+        className="absolute top-20 left-10 w-72 h-72 rounded-full filter blur-3xl opacity-20 animate-pulse pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%)' }}
       />
       <div
-        className="absolute bottom-20 right-10 w-96 h-96 rounded-full filter blur-3xl opacity-20 animate-pulse pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)', animationDelay: '2s' }}
+        className="absolute bottom-20 right-10 w-96 h-96 rounded-full filter blur-3xl opacity-15 animate-pulse pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)', animationDelay: '2s' }}
       />
 
       {/* Main content container */}
       <div className="relative w-full max-w-md">
         {/* Glass-morphism card */}
         <div
-          className="rounded-3xl p-8 border border-white/10"
+          className="rounded-3xl p-8 border border-gray-200 shadow-xl"
           style={{
-            background: 'rgba(26, 26, 26, 0.8)',
+            background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(236, 72, 153, 0.1)',
           }}
         >
           {/* Logo */}
@@ -210,28 +263,34 @@ export const SignupPage: React.FC = () => {
             <Link to="/" className="inline-flex items-center justify-center mb-2">
               <FlamoralLogo variant="horizontal" size="lg" />
             </Link>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-600 text-sm">
               {tierParam ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}` : 'Create your account'}
             </p>
           </div>
 
-          {/* Progress indicator */}
+          {/* Progress indicator - 3 steps */}
           <div className="flex items-center justify-center mb-6">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-              step >= 1 ? 'bg-gradient-pink-blue text-white' : 'bg-base-dark-gray text-gray-500'
+              step >= 1 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
             }`}>
               1
             </div>
-            <div className={`w-16 h-1 transition-all ${step >= 2 ? 'bg-gradient-pink-blue' : 'bg-base-dark-gray'}`} />
+            <div className={`w-12 h-1 transition-all ${step >= 2 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-200'}`} />
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-              step >= 2 ? 'bg-gradient-pink-blue text-white' : 'bg-base-dark-gray text-gray-500'
+              step >= 2 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
             }`}>
               2
+            </div>
+            <div className={`w-12 h-1 transition-all ${step >= 3 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-200'}`} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+              step >= 3 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+            }`}>
+              3
             </div>
           </div>
 
           {errors.general && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm mb-4">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4">
               {errors.general}
             </div>
           )}
@@ -239,11 +298,11 @@ export const SignupPage: React.FC = () => {
           <form onSubmit={handleSubmit}>
             {step === 1 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-white mb-4">Basic Information</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h2>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       First Name *
                     </label>
                     <input
@@ -251,17 +310,17 @@ export const SignupPage: React.FC = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                        errors.firstName ? 'border-red-500' : 'border-base-dark-gray/50'
+                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
+                        errors.firstName ? 'border-red-500' : 'border-gray-200'
                       }`}
                       placeholder="First name"
                     />
                     {errors.firstName && (
-                      <p className="text-red-400 text-xs mt-1">{errors.firstName}</p>
+                      <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Last Name
                     </label>
                     <input
@@ -269,14 +328,14 @@ export const SignupPage: React.FC = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl bg-base-dark-gray border border-base-dark-gray/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition"
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition"
                       placeholder="Last name"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email *
                   </label>
                   <input
@@ -284,18 +343,18 @@ export const SignupPage: React.FC = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.email ? 'border-red-500' : 'border-base-dark-gray/50'
+                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
+                      errors.email ? 'border-red-500' : 'border-gray-200'
                     }`}
                     placeholder="your@email.com"
                   />
                   {errors.email && (
-                    <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Password *
                   </label>
                   <div className="relative">
@@ -304,15 +363,15 @@ export const SignupPage: React.FC = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition pr-10 ${
-                        errors.password ? 'border-red-500' : 'border-base-dark-gray/50'
+                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition pr-10 ${
+                        errors.password ? 'border-red-500' : 'border-gray-200'
                       }`}
                       placeholder="Create a strong password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,15 +388,15 @@ export const SignupPage: React.FC = () => {
                   {formData.password && (
                     <div className="mt-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-base-dark-gray rounded-full overflow-hidden">
+                        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${passwordStrength.color} transition-all`}
                             style={{ width: `${(passwordStrength.strength / 3) * 100}%` }}
                           />
                         </div>
                         <span className={`text-xs font-medium ${
-                          passwordStrength.strength === 1 ? 'text-red-400' :
-                          passwordStrength.strength === 2 ? 'text-yellow-400' : 'text-green-400'
+                          passwordStrength.strength === 1 ? 'text-red-500' :
+                          passwordStrength.strength === 2 ? 'text-yellow-500' : 'text-green-500'
                         }`}>
                           {passwordStrength.label}
                         </span>
@@ -345,12 +404,12 @@ export const SignupPage: React.FC = () => {
                     </div>
                   )}
                   {errors.password && (
-                    <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm Password *
                   </label>
                   <input
@@ -358,20 +417,20 @@ export const SignupPage: React.FC = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-base-dark-gray/50'
+                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
                     }`}
                     placeholder="Confirm your password"
                   />
                   {errors.confirmPassword && (
-                    <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
 
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="w-full bg-gradient-pink-blue text-white py-3 rounded-xl font-semibold hover:shadow-glow-pink hover:scale-[1.02] transition-all duration-300 mt-4"
+                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 mt-4"
                 >
                   Continue
                 </button>
@@ -380,10 +439,10 @@ export const SignupPage: React.FC = () => {
 
             {step === 2 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-white mb-4">About You</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">About You</h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Date of Birth *
                   </label>
                   <input
@@ -392,38 +451,37 @@ export const SignupPage: React.FC = () => {
                     value={formData.dateOfBirth}
                     onChange={handleChange}
                     max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.dateOfBirth ? 'border-red-500' : 'border-base-dark-gray/50'
+                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
+                      errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'
                     }`}
-                    style={{ colorScheme: 'dark' }}
                   />
                   {errors.dateOfBirth && (
-                    <p className="text-red-400 text-xs mt-1">{errors.dateOfBirth}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
                   )}
                   <p className="text-gray-500 text-xs mt-1">You must be at least 18 years old</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Gender *
                   </label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-base-dark-gray border text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.gender ? 'border-red-500' : 'border-base-dark-gray/50'
+                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
+                      errors.gender ? 'border-red-500' : 'border-gray-200'
                     }`}
                   >
-                    <option value="" className="bg-base-charcoal">Select your gender</option>
-                    <option value="male" className="bg-base-charcoal">Male</option>
-                    <option value="female" className="bg-base-charcoal">Female</option>
-                    <option value="non_binary" className="bg-base-charcoal">Non-binary</option>
-                    <option value="other" className="bg-base-charcoal">Other</option>
-                    <option value="prefer_not_to_say" className="bg-base-charcoal">Prefer not to say</option>
+                    <option value="">Select your gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non_binary">Non-binary</option>
+                    <option value="other">Other</option>
+                    <option value="prefer_not_to_say">Prefer not to say</option>
                   </select>
                   {errors.gender && (
-                    <p className="text-red-400 text-xs mt-1">{errors.gender}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.gender}</p>
                   )}
                 </div>
 
@@ -434,35 +492,146 @@ export const SignupPage: React.FC = () => {
                     id="agreeToTerms"
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
-                    className="mt-1 w-4 h-4 rounded bg-base-dark-gray border-base-dark-gray/50 text-pink-500 focus:ring-pink-500/50"
+                    className="mt-1 w-4 h-4 rounded bg-gray-50 border-gray-300 text-pink-500 focus:ring-pink-500/50"
                   />
-                  <label htmlFor="agreeToTerms" className="text-sm text-gray-400">
+                  <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300 hover:underline">
+                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-600 hover:underline">
                       Terms of Service
                     </a>{' '}
                     and{' '}
-                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300 hover:underline">
+                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-600 hover:underline">
                       Privacy Policy
                     </a>
                   </label>
                 </div>
                 {errors.agreeToTerms && (
-                  <p className="text-red-400 text-xs">{errors.agreeToTerms}</p>
+                  <p className="text-red-500 text-xs">{errors.agreeToTerms}</p>
                 )}
 
                 <div className="flex gap-3 mt-6">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex-1 px-4 py-3 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/5 transition"
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">Upload Your Photos</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add at least {MIN_PHOTOS_REQUIRED} photos to help others get to know you better
+                </p>
+
+                {/* Photo Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <div
+                      key={index}
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 border-dashed transition-all ${
+                        index < MIN_PHOTOS_REQUIRED && !photos[index]
+                          ? 'border-pink-400 bg-pink-50'
+                          : 'border-gray-300 bg-gray-50'
+                      }`}
+                    >
+                      {photos[index] ? (
+                        <>
+                          <img
+                            src={photos[index].url}
+                            alt={`Photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(index)}
+                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                          {index === 0 && (
+                            <span className="absolute bottom-1 left-1 text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">
+                              Main
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 transition"
+                        >
+                          <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          <span className="text-xs">
+                            {index < MIN_PHOTOS_REQUIRED ? 'Required' : 'Optional'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+
+                {/* Photo count indicator */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`font-medium ${photos.length >= MIN_PHOTOS_REQUIRED ? 'text-green-600' : 'text-pink-600'}`}>
+                    {photos.length} / {MIN_PHOTOS_REQUIRED} required photos
+                  </span>
+                  {photos.length >= MIN_PHOTOS_REQUIRED && (
+                    <span className="flex items-center gap-1 text-green-600">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Ready!
+                    </span>
+                  )}
+                </div>
+
+                {errors.photos && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                    {errors.photos}
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-500">
+                  Tips: Use clear, recent photos. Show your face in your main photo. Avoid group photos for your first picture.
+                </p>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-gradient-pink-blue text-white py-3 rounded-xl font-semibold hover:shadow-glow-pink hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -482,7 +651,7 @@ export const SignupPage: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
               Already have an account?{' '}
-              <Link to="/login" className="text-pink-400 hover:text-pink-300 font-medium">
+              <Link to="/login" className="text-pink-500 hover:text-pink-600 font-medium">
                 Sign in
               </Link>
             </p>

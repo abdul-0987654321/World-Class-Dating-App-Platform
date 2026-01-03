@@ -1,6 +1,6 @@
 export interface SubscriptionFeature {
   id: string;
-  tier: 'free' | 'basic' | 'mid' | 'ultra';
+  tier: 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
   featureKey: string;
   featureValue: Record<string, any>;
   description?: string;
@@ -10,8 +10,10 @@ export interface SubscriptionFeature {
 }
 
 export interface FeatureAccess {
+  hasAccess: boolean;
   enabled: boolean;
   limit?: number;
+  requiredTier?: string;
   metadata?: Record<string, any>;
 }
 
@@ -43,12 +45,16 @@ export function hasFeatureAccess(
   const feature = features.find(f => f.featureKey === featureKey && f.active);
 
   if (!feature) {
-    return { enabled: false };
+    return { hasAccess: false, enabled: false };
   }
 
+  const enabled = feature.featureValue.enabled !== false;
+
   return {
-    enabled: feature.featureValue.enabled !== false,
+    hasAccess: enabled,
+    enabled,
     limit: feature.featureValue.limit,
+    requiredTier: feature.tier,
     metadata: feature.featureValue,
   };
 }

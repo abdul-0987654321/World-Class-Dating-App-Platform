@@ -155,15 +155,15 @@ const AnimatedLandingPage: React.FC = () => {
       />
       <style>{`
         .flamoral-animated-landing {
-          /* BRIGHTER backgrounds per Master Prompt */
-          --color-bg: #14141f;
-          --color-bg-elevated: #1e1e2d;
-          --color-bg-card: #282840;
+          /* Master Prompt Specification — Midnight Blue base */
+          --color-bg: #1a1a2e;
+          --color-bg-elevated: #232342;
+          --color-bg-card: #2d2d44;
           --color-text: #f5f5f7;
           --color-text-muted: #a0a0b0;
           --color-text-dim: #6b6b7b;
-          --color-pink: #ff6b7a;
-          --color-pink-glow: rgba(255, 107, 122, 0.35);
+          --color-pink: #ff2d75;
+          --color-pink-glow: rgba(255, 45, 117, 0.35);
           --color-blue: #22d3ee;
           --color-blue-glow: rgba(34, 211, 238, 0.3);
           --color-gold: #f59e0b;
@@ -617,7 +617,7 @@ const AnimatedLandingPage: React.FC = () => {
 
         .pricing-card-highlighted {
           border-color: var(--color-pink);
-          background: linear-gradient(180deg, rgba(212, 88, 122, 0.08) 0%, var(--color-bg) 100%);
+          background: linear-gradient(180deg, rgba(255, 45, 117, 0.08) 0%, var(--color-bg) 100%);
         }
 
         .pricing-card-highlighted:hover {

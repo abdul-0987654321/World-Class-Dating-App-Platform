@@ -57,6 +57,11 @@ router.post('/sos', async (req: Request, res: Response) => {
       data: {
         alert: result.alert,
         notifiedContacts: result.notifiedContacts.length,
+        notificationSummary: {
+          totalContacts: result.notificationSummary.totalContacts,
+          successfullyNotified: result.notificationSummary.successfullyNotified,
+          failedNotifications: result.notificationSummary.failedNotifications,
+        },
       },
     });
   } catch (error: any) {
@@ -166,6 +171,91 @@ router.get('/sos/history', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get SOS history',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/safety/sos/{alertId}/notifications:
+ *   get:
+ *     summary: Get notification status for an SOS alert
+ *     tags: [Safety]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: alertId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/sos/:alertId/notifications', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { alertId } = req.params;
+    const notifications = await sosService.getNotificationStatus(alertId);
+
+    res.json({
+      success: true,
+      data: {
+        notifications,
+        summary: {
+          total: notifications.length,
+          sent: notifications.filter(n => n.status === 'sent' || n.status === 'delivered').length,
+          failed: notifications.filter(n => n.status === 'failed').length,
+          pending: notifications.filter(n => n.status === 'pending' || n.status === 'retrying').length,
+        },
+      },
+    });
+  } catch (error: any) {
+    logger.error('Failed to get notification status:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get notification status',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/safety/sos/{alertId}/retry-notifications:
+ *   post:
+ *     summary: Retry failed notifications for an SOS alert
+ *     tags: [Safety]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: alertId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.post('/sos/:alertId/retry-notifications', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { alertId } = req.params;
+    const retriedCount = await sosService.retryFailedNotifications(alertId);
+
+    res.json({
+      success: true,
+      message: `Retried ${retriedCount} failed notifications`,
+      data: { retriedCount },
+    });
+  } catch (error: any) {
+    logger.error('Failed to retry notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to retry notifications',
     });
   }
 });
