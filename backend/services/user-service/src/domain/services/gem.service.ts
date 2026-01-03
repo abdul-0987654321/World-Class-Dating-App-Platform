@@ -1,4 +1,6 @@
 import { gemRepository, GemRepository } from '../repositories/gem.repository';
+import { gemStoreRepository, GemStoreRepository } from '../repositories/gem-store.repository';
+import { gemPurchaseRepository, GemPurchaseRepository } from '../repositories/gem-purchase.repository';
 import {
   Gem,
   GemTransaction,
@@ -7,10 +9,16 @@ import {
   getGemItemPrice,
   getGemSpendingCategory,
 } from '../entities/Gem.entity';
+import { GemStoreItem, DEFAULT_STORE_ITEMS } from '../entities/GemStoreItem.entity';
+import { GemPurchase, calculateExpiration } from '../entities/GemPurchase.entity';
 import logger from '../../utils/logger';
 
 export class GemService {
-  constructor(private repository: GemRepository = gemRepository) {}
+  constructor(
+    private repository: GemRepository = gemRepository,
+    private storeRepository: GemStoreRepository = gemStoreRepository,
+    private purchaseRepository: GemPurchaseRepository = gemPurchaseRepository
+  ) {}
 
   /**
    * Get user's gem balance
@@ -292,6 +300,331 @@ export class GemService {
       expiresAt,
       gem: result.gem,
     };
+  }
+  // ========================================
+  // STORE SPENDING METHODS
+  // ========================================
+
+  /**
+   * Get all active store items
+   */
+  async getStoreItems(): Promise<GemStoreItem[]> {
+    return this.storeRepository.getActiveItems();
+  }
+
+  /**
+   * Get store items by type
+   */
+  async getStoreItemsByType(type: GemStoreItem['type']): Promise<GemStoreItem[]> {
+    return this.storeRepository.getByType(type);
+  }
+
+  /**
+   * Get a specific store item
+   */
+  async getStoreItem(itemId: string): Promise<GemStoreItem | null> {
+    return this.storeRepository.getById(itemId);
+  }
+
+  /**
+   * Purchase an item from the store
+   */
+  async purchaseItem(
+    userId: string,
+    itemId: string,
+    recipientId?: string
+  ): Promise<{ success: boolean; message: string; purchase?: GemPurchase; gem?: Gem }> {
+    // Get the store item
+    const item = await this.storeRepository.getById(itemId);
+    if (!item) {
+      return { success: false, message: 'Item not found' };
+    }
+
+    if (!item.isActive) {
+      return { success: false, message: 'Item is no longer available' };
+    }
+
+    // Check balance
+    const gem = await this.repository.getOrCreate(userId);
+    if (gem.balance < item.gemCost) {
+      return {
+        success: false,
+        message: `Insufficient gems. Need ${item.gemCost}, have ${gem.balance}`,
+        gem,
+      };
+    }
+
+    // Calculate expiration if applicable
+    let expiresAt: Date | undefined;
+    if (item.durationMinutes) {
+      expiresAt = calculateExpiration(item.durationMinutes);
+    }
+
+    // Deduct gems
+    const category = this.mapItemTypeToCategory(item.type);
+    await this.repository.spendGems(
+      userId,
+      item.gemCost,
+      item.name.toUpperCase().replace(/\s+/g, '_') as keyof typeof GEM_PRICES,
+      category,
+      `Purchased: ${item.name}`,
+      { itemId, recipientId }
+    );
+
+    // Create purchase record
+    const purchase = await this.purchaseRepository.create({
+      userId,
+      itemId: item.id,
+      itemName: item.name,
+      itemType: item.type,
+      gemsCost: item.gemCost,
+      quantity: item.quantity || 1,
+      expiresAt,
+      recipientId,
+      metadata: item.metadata,
+    });
+
+    const updatedGem = await this.repository.getOrCreate(userId);
+
+    logger.info(`User ${userId} purchased ${item.name} for ${item.gemCost} gems`, {
+      purchaseId: purchase.id,
+      itemId,
+      recipientId,
+    });
+
+    return {
+      success: true,
+      message: `Successfully purchased ${item.name}`,
+      purchase,
+      gem: updatedGem,
+    };
+  }
+
+  /**
+   * Get purchase history for a user
+   */
+  async getPurchaseHistory(
+    userId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<GemPurchase[]> {
+    return this.purchaseRepository.getByUserId(userId, limit, offset);
+  }
+
+  /**
+   * Get active purchased items for a user
+   */
+  async getActiveItems(userId: string): Promise<GemPurchase[]> {
+    // First, expire any old purchases
+    await this.purchaseRepository.expireOldPurchases();
+    return this.purchaseRepository.getActivePurchases(userId);
+  }
+
+  /**
+   * Check if user has an active item of a specific type
+   */
+  async hasActiveItemOfType(userId: string, itemType: string): Promise<boolean> {
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, itemType);
+    return activePurchases.length > 0;
+  }
+
+  /**
+   * Activate a boost (mark as used and apply effect)
+   */
+  async activateBoost(
+    userId: string,
+    purchaseId: string
+  ): Promise<{ success: boolean; message: string; purchase?: GemPurchase; expiresAt?: Date }> {
+    const purchase = await this.purchaseRepository.getById(purchaseId);
+
+    if (!purchase) {
+      return { success: false, message: 'Purchase not found' };
+    }
+
+    if (purchase.userId !== userId) {
+      return { success: false, message: 'Not authorized to use this purchase' };
+    }
+
+    if (purchase.status !== 'active') {
+      return { success: false, message: `Purchase is ${purchase.status}` };
+    }
+
+    if (purchase.quantityRemaining <= 0) {
+      return { success: false, message: 'No uses remaining' };
+    }
+
+    // For boosts, we use the item which sets the activation time
+    const updatedPurchase = await this.purchaseRepository.useOne(purchaseId);
+
+    if (!updatedPurchase) {
+      return { success: false, message: 'Failed to activate boost' };
+    }
+
+    logger.info(`User ${userId} activated boost`, {
+      purchaseId,
+      itemType: purchase.itemType,
+      expiresAt: purchase.expiresAt,
+    });
+
+    return {
+      success: true,
+      message: 'Boost activated successfully',
+      purchase: updatedPurchase,
+      expiresAt: purchase.expiresAt || undefined,
+    };
+  }
+
+  /**
+   * Send a gift to another user
+   */
+  async sendGiftFromStore(
+    senderId: string,
+    recipientId: string,
+    itemId: string,
+    message?: string
+  ): Promise<{ success: boolean; message: string; purchase?: GemPurchase; gem?: Gem }> {
+    if (senderId === recipientId) {
+      return { success: false, message: 'Cannot send a gift to yourself' };
+    }
+
+    // Purchase the gift with recipient specified
+    const result = await this.purchaseItem(senderId, itemId, recipientId);
+
+    if (!result.success) {
+      return result;
+    }
+
+    // Update the purchase with the gift message
+    if (result.purchase && message) {
+      await this.purchaseRepository.update(result.purchase.id, {
+        metadata: { ...result.purchase.metadata, giftMessage: message },
+      });
+    }
+
+    logger.info(`User ${senderId} sent gift to ${recipientId}`, {
+      purchaseId: result.purchase?.id,
+      itemId,
+    });
+
+    return {
+      success: true,
+      message: 'Gift sent successfully!',
+      purchase: result.purchase,
+      gem: result.gem,
+    };
+  }
+
+  /**
+   * Activate spotlight feature
+   */
+  async activateSpotlight(
+    userId: string,
+    purchaseId: string
+  ): Promise<{ success: boolean; message: string; purchase?: GemPurchase; expiresAt?: Date }> {
+    return this.activateBoost(userId, purchaseId);
+  }
+
+  /**
+   * Use an undo pass
+   */
+  async useUndoPass(userId: string): Promise<{ success: boolean; message: string; purchase?: GemPurchase }> {
+    // Find an active undo pass purchase
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, 'utility');
+    const undoPass = activePurchases.find(p =>
+      p.metadata?.feature === 'undo_pass' && p.quantityRemaining > 0
+    );
+
+    if (!undoPass) {
+      return { success: false, message: 'No undo passes available' };
+    }
+
+    const updatedPurchase = await this.purchaseRepository.useOne(undoPass.id);
+
+    if (!updatedPurchase) {
+      return { success: false, message: 'Failed to use undo pass' };
+    }
+
+    logger.info(`User ${userId} used undo pass`, { purchaseId: undoPass.id });
+
+    return {
+      success: true,
+      message: 'Undo pass used successfully',
+      purchase: updatedPurchase,
+    };
+  }
+
+  /**
+   * Use a super like from pack
+   */
+  async useSuperLike(userId: string): Promise<{ success: boolean; message: string; remaining?: number }> {
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, 'superlike');
+    const superLikePack = activePurchases.find(p => p.quantityRemaining > 0);
+
+    if (!superLikePack) {
+      return { success: false, message: 'No super likes available' };
+    }
+
+    const updatedPurchase = await this.purchaseRepository.useOne(superLikePack.id);
+
+    if (!updatedPurchase) {
+      return { success: false, message: 'Failed to use super like' };
+    }
+
+    logger.info(`User ${userId} used super like`, {
+      purchaseId: superLikePack.id,
+      remaining: updatedPurchase.quantityRemaining,
+    });
+
+    return {
+      success: true,
+      message: 'Super like used!',
+      remaining: updatedPurchase.quantityRemaining,
+    };
+  }
+
+  /**
+   * Get gifts received by user
+   */
+  async getReceivedGifts(
+    userId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<GemPurchase[]> {
+    return this.purchaseRepository.getReceivedGifts(userId, limit, offset);
+  }
+
+  /**
+   * Get purchase statistics
+   */
+  async getPurchaseStats(userId: string): Promise<{
+    totalPurchases: number;
+    totalGemsSpent: number;
+    purchasesByType: Record<string, number>;
+  }> {
+    return this.purchaseRepository.getPurchaseStats(userId);
+  }
+
+  /**
+   * Initialize store with default items
+   */
+  async initializeStore(): Promise<void> {
+    await this.storeRepository.seedDefaultItems(DEFAULT_STORE_ITEMS);
+    logger.info('Gem store initialized with default items');
+  }
+
+  /**
+   * Map item type to spending category
+   */
+  private mapItemTypeToCategory(itemType: string): GemSpendingCategory {
+    const categoryMap: Record<string, GemSpendingCategory> = {
+      boost: 'visibility',
+      spotlight: 'visibility',
+      superlike: 'matching',
+      gift: 'gifts',
+      utility: 'matching',
+      cosmetic: 'profile',
+    };
+    return categoryMap[itemType] || 'matching';
   }
 }
 

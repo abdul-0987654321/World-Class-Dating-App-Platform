@@ -43,7 +43,9 @@ export type ChallengeType =
   | 'photo_uploads'
   | 'daily'
   | 'weekly'
-  | 'monthly';
+  | 'monthly'
+  | 'special_event'
+  | 'limited_time';
 
 export interface UpdateChallengeProgressDto {
   user_id: string;

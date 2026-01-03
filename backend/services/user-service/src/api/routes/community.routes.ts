@@ -1,21 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { communityService } from '../../domain/services/community.service';
-import { CommunityCategory } from '../../domain/entities/Community.entity';
-import { authMiddleware } from '../middleware/auth.middleware';
-import logger from '../../utils/logger';
+import { communityController } from '../controllers/community.controller';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // Public routes
-router.get('/categories', async (_req: Request, res: Response) => {
-  try {
-    const categories = communityService.getCategories();
-    res.json({ success: true, data: categories });
-  } catch (error: any) {
-    logger.error('Error getting categories:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+router.get('/categories', (req: Request, res: Response) =>
+  communityController.getCategories(req as AuthRequest, res)
+);
 
 // All other routes require authentication
 router.use(authMiddleware);
@@ -26,341 +18,442 @@ router.use(authMiddleware);
  * @swagger
  * /api/v1/communities:
  *   get:
- *     summary: Get all communities
+ *     summary: List all communities
  *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: category
  *         schema:
  *           type: string
+ *         description: Filter by category
+ *     responses:
+ *       200:
+ *         description: List of communities
  */
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const category = req.query.category as CommunityCategory | undefined;
-    const communities = await communityService.getAllCommunities(userId, category);
-    res.json({ success: true, data: { communities } });
-  } catch (error: any) {
-    logger.error('Error getting communities:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+router.get('/', (req: Request, res: Response) =>
+  communityController.listCommunities(req as AuthRequest, res)
+);
 
-router.get('/joined', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const communities = await communityService.getJoinedCommunities(userId);
-    res.json({ success: true, data: { communities } });
-  } catch (error: any) {
-    logger.error('Error getting joined communities:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/joined:
+ *   get:
+ *     summary: Get communities the user has joined
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/joined', (req: Request, res: Response) =>
+  communityController.getJoinedCommunities(req as AuthRequest, res)
+);
 
-router.get('/search', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const query = req.query.q as string;
-    if (!query) {
-      return res.status(400).json({ success: false, message: 'Search query required' });
-    }
-    const communities = await communityService.searchCommunities(query, userId);
-    res.json({ success: true, data: { communities } });
-  } catch (error: any) {
-    logger.error('Error searching communities:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/search:
+ *   get:
+ *     summary: Search communities
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/search', (req: Request, res: Response) =>
+  communityController.searchCommunities(req as AuthRequest, res)
+);
 
-router.get('/events', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const events = await communityService.getEvents(undefined, userId);
-    res.json({ success: true, data: { events } });
-  } catch (error: any) {
-    logger.error('Error getting events:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/events:
+ *   get:
+ *     summary: Get all upcoming events across communities
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/events', (req: Request, res: Response) =>
+  communityController.getAllEvents(req as AuthRequest, res)
+);
 
-router.get('/:communityId', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const { communityId } = req.params;
-    const community = await communityService.getCommunity(communityId, userId);
-    if (!community) {
-      return res.status(404).json({ success: false, message: 'Community not found' });
-    }
-    res.json({ success: true, data: community });
-  } catch (error: any) {
-    logger.error('Error getting community:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities:
+ *   post:
+ *     summary: Create a new community
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - icon
+ *               - category
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               icon:
+ *                 type: string
+ *               coverImage:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *               rules:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ */
+router.post('/', (req: Request, res: Response) =>
+  communityController.createCommunity(req as AuthRequest, res)
+);
 
-router.post('/:communityId/join', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { communityId } = req.params;
-    const result = await communityService.joinCommunity(communityId, userId);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error joining community:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}:
+ *   get:
+ *     summary: Get community details
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/:communityId', (req: Request, res: Response) =>
+  communityController.getCommunity(req as AuthRequest, res)
+);
 
-router.post('/:communityId/leave', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { communityId } = req.params;
-    const result = await communityService.leaveCommunity(communityId, userId);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error leaving community:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/join:
+ *   post:
+ *     summary: Join a community
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.post('/:communityId/join', (req: Request, res: Response) =>
+  communityController.joinCommunity(req as AuthRequest, res)
+);
 
-router.get('/:communityId/members', async (req: Request, res: Response) => {
-  try {
-    const { communityId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
-    const result = await communityService.getMembers(communityId, page, limit);
-    res.json({ success: true, data: { items: result.members, total: result.total } });
-  } catch (error: any) {
-    logger.error('Error getting members:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/leave:
+ *   delete:
+ *     summary: Leave a community
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.delete('/:communityId/leave', (req: Request, res: Response) =>
+  communityController.leaveCommunity(req as AuthRequest, res)
+);
+
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/members:
+ *   get:
+ *     summary: Get community members
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ */
+router.get('/:communityId/members', (req: Request, res: Response) =>
+  communityController.getMembers(req as AuthRequest, res)
+);
 
 // ==================== POSTS ====================
 
-router.get('/:communityId/posts', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { communityId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
-    const result = await communityService.getPosts(communityId, userId, page, limit);
-    res.json({ success: true, data: { items: result.posts, total: result.total } });
-  } catch (error: any) {
-    logger.error('Error getting posts:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts:
+ *   get:
+ *     summary: Get community posts
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ */
+router.get('/:communityId/posts', (req: Request, res: Response) =>
+  communityController.getPosts(req as AuthRequest, res)
+);
 
-router.post('/:communityId/posts', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { communityId } = req.params;
-    const { content, images } = req.body;
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts:
+ *   post:
+ *     summary: Create a post in a community
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ */
+router.post('/:communityId/posts', (req: Request, res: Response) =>
+  communityController.createPost(req as AuthRequest, res)
+);
 
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
-    }
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}:
+ *   put:
+ *     summary: Update a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put('/:communityId/posts/:postId', (req: Request, res: Response) =>
+  communityController.updatePost(req as AuthRequest, res)
+);
 
-    const result = await communityService.createPost(communityId, userId, content, images);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.status(201).json({ success: true, data: result.post });
-  } catch (error: any) {
-    logger.error('Error creating post:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}:
+ *   delete:
+ *     summary: Delete a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:communityId/posts/:postId', (req: Request, res: Response) =>
+  communityController.deletePost(req as AuthRequest, res)
+);
 
-router.put('/:communityId/posts/:postId', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    const { content, images } = req.body;
-    const result = await communityService.updatePost(postId, userId, content, images);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error updating post:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/like:
+ *   post:
+ *     summary: Like a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/:communityId/posts/:postId/like', (req: Request, res: Response) =>
+  communityController.likePost(req as AuthRequest, res)
+);
 
-router.delete('/:communityId/posts/:postId', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    const result = await communityService.deletePost(postId, userId);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error deleting post:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/:communityId/posts/:postId/like', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    await communityService.likePost(postId, userId);
-    res.json({ success: true, message: 'Post liked' });
-  } catch (error: any) {
-    logger.error('Error liking post:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.delete('/:communityId/posts/:postId/like', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    await communityService.unlikePost(postId, userId);
-    res.json({ success: true, message: 'Post unliked' });
-  } catch (error: any) {
-    logger.error('Error unliking post:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/like:
+ *   delete:
+ *     summary: Unlike a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:communityId/posts/:postId/like', (req: Request, res: Response) =>
+  communityController.unlikePost(req as AuthRequest, res)
+);
 
 // ==================== COMMENTS ====================
 
-router.get('/:communityId/posts/:postId/comments', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
-    const result = await communityService.getComments(postId, userId, page, limit);
-    res.json({ success: true, data: { items: result.comments, total: result.total } });
-  } catch (error: any) {
-    logger.error('Error getting comments:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/comments:
+ *   get:
+ *     summary: Get comments on a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:communityId/posts/:postId/comments', (req: Request, res: Response) =>
+  communityController.getComments(req as AuthRequest, res)
+);
 
-router.post('/:communityId/posts/:postId/comments', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId } = req.params;
-    const { content, parentId } = req.body;
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/comments:
+ *   post:
+ *     summary: Add a comment to a post
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *               parentId:
+ *                 type: string
+ *                 description: For replies to existing comments
+ */
+router.post('/:communityId/posts/:postId/comments', (req: Request, res: Response) =>
+  communityController.createComment(req as AuthRequest, res)
+);
 
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
-    }
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/comments/{commentId}:
+ *   delete:
+ *     summary: Delete a comment
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:communityId/posts/:postId/comments/:commentId', (req: Request, res: Response) =>
+  communityController.deleteComment(req as AuthRequest, res)
+);
 
-    const comment = await communityService.createComment(postId, userId, content, parentId);
-    res.status(201).json({ success: true, data: comment });
-  } catch (error: any) {
-    logger.error('Error creating comment:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.delete('/:communityId/posts/:postId/comments/:commentId', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { postId, commentId } = req.params;
-    const result = await communityService.deleteComment(commentId, postId, userId);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error deleting comment:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/:communityId/posts/:postId/comments/:commentId/like', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { commentId } = req.params;
-    await communityService.likeComment(commentId, userId);
-    res.json({ success: true, message: 'Comment liked' });
-  } catch (error: any) {
-    logger.error('Error liking comment:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/posts/{postId}/comments/{commentId}/like:
+ *   post:
+ *     summary: Like a comment
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/:communityId/posts/:postId/comments/:commentId/like', (req: Request, res: Response) =>
+  communityController.likeComment(req as AuthRequest, res)
+);
 
 // ==================== EVENTS ====================
 
-router.get('/:communityId/events', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const { communityId } = req.params;
-    const events = await communityService.getEvents(communityId, userId);
-    res.json({ success: true, data: { events } });
-  } catch (error: any) {
-    logger.error('Error getting community events:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/events:
+ *   get:
+ *     summary: Get community events
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:communityId/events', (req: Request, res: Response) =>
+  communityController.getCommunityEvents(req as AuthRequest, res)
+);
 
-router.get('/:communityId/events/:eventId', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const { eventId } = req.params;
-    const event = await communityService.getEvent(eventId, userId);
-    if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
-    }
-    res.json({ success: true, data: event });
-  } catch (error: any) {
-    logger.error('Error getting event:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/events/{eventId}:
+ *   get:
+ *     summary: Get event details
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:communityId/events/:eventId', (req: Request, res: Response) =>
+  communityController.getEvent(req as AuthRequest, res)
+);
 
-router.post('/:communityId/events/:eventId/attend', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { eventId } = req.params;
-    const result = await communityService.attendEvent(eventId, userId);
-    if (!result.success) {
-      return res.status(400).json({ success: false, message: result.message });
-    }
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error attending event:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/events/{eventId}/attend:
+ *   post:
+ *     summary: Register for an event
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/:communityId/events/:eventId/attend', (req: Request, res: Response) =>
+  communityController.attendEvent(req as AuthRequest, res)
+);
 
-router.delete('/:communityId/events/:eventId/attend', async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { eventId } = req.params;
-    const result = await communityService.unattendEvent(eventId, userId);
-    res.json({ success: true, message: result.message });
-  } catch (error: any) {
-    logger.error('Error unattending event:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/events/{eventId}/attend:
+ *   delete:
+ *     summary: Unregister from an event
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:communityId/events/:eventId/attend', (req: Request, res: Response) =>
+  communityController.unattendEvent(req as AuthRequest, res)
+);
 
-router.get('/:communityId/events/:eventId/attendees', async (req: Request, res: Response) => {
-  try {
-    const { eventId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
-    const result = await communityService.getEventAttendees(eventId, page, limit);
-    res.json({ success: true, data: { items: result.attendees, total: result.total } });
-  } catch (error: any) {
-    logger.error('Error getting attendees:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+/**
+ * @swagger
+ * /api/v1/communities/{communityId}/events/{eventId}/attendees:
+ *   get:
+ *     summary: Get event attendees
+ *     tags: [Communities]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:communityId/events/:eventId/attendees', (req: Request, res: Response) =>
+  communityController.getEventAttendees(req as AuthRequest, res)
+);
 
 export default router;

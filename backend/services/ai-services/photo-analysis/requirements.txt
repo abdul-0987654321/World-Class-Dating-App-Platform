@@ -6,12 +6,14 @@ httpx==0.28.0
 
 # Image processing
 Pillow==11.0.0
-opencv-python==4.12.0.88
-numpy==2.4.0
+opencv-python-headless==4.10.0.84
+numpy>=1.26.0,<2.0.0
 
-# Face recognition (optional, for production)
+# Face detection (dlib for production)
+# Note: dlib requires cmake and build tools
+# Uncomment for production with advanced face detection:
+# dlib==19.24.6
 # face-recognition==1.3.0
-# dlib==19.24.2
 
 # Data validation
 pydantic==2.10.3
@@ -19,3 +21,15 @@ pydantic-settings==2.6.1
 
 # Utilities
 python-dotenv==1.0.0
+
+# Optional: For enhanced ML models (production)
+# torch==2.5.1
+# torchvision==0.20.1
+# transformers==4.47.0
+
+# Optional: Image enhancement
+# scikit-image==0.24.0
+
+# Monitoring (production)
+# prometheus-client==0.21.0
+# sentry-sdk[fastapi]==2.19.0

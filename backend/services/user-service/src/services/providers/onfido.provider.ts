@@ -24,6 +24,17 @@ import {
   DocumentDetails,
   ExtractedIDData,
 } from '../../types/id-verification-provider.types';
+import {
+  IBackgroundCheckProvider,
+  BackgroundCheckTier,
+  BackgroundCheckResult,
+  BackgroundCheckStatus,
+  WatchlistResult,
+  WatchlistDetails,
+  WatchlistMatch,
+  BackgroundFlag,
+  BACKGROUND_CHECK_TIER_CONFIG,
+} from '../../types/background-check.types';
 
 // Onfido API response types
 interface OnfidoApplicant {
@@ -104,7 +115,7 @@ interface OnfidoReport {
   };
 }
 
-export class OnfidoProvider implements IIDVerificationProvider {
+export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheckProvider {
   public readonly name: VerificationProvider = 'onfido';
   private config: OnfidoConfig;
 
@@ -556,5 +567,386 @@ export class OnfidoProvider implements IIDVerificationProvider {
 
     const clearCount = completedReports.filter(r => r.result === 'clear').length;
     return clearCount / completedReports.length;
+  }
+
+  // ============================================
+  // Background Check Provider Implementation
+  // ============================================
+
+  /**
+   * Create a background check (identity + watchlist screening)
+   * Uses Onfido's check API with appropriate report types
+   */
+  async createBackgroundCheck(
+    userId: string,
+    applicantId: string,
+    tier: BackgroundCheckTier
+  ): Promise<{ success: boolean; check_id?: string; error?: string }> {
+    try {
+      const reportNames = this.mapTierToReports(tier);
+
+      logger.info('Creating Onfido background check', {
+        userId,
+        applicantId,
+        tier,
+        reports: reportNames,
+      });
+
+      // Create check with identity and watchlist reports
+      const payload = {
+        applicant_id: applicantId,
+        report_names: reportNames,
+        // Onfido recommends async for watchlist checks
+        asynchronous: true,
+        // Consider for enhanced checks
+        consider: tier === 'comprehensive' ? ['consider'] : undefined,
+      };
+
+      const check = await this.makeApiRequest<OnfidoCheck>('POST', '/v3.5/checks', payload);
+
+      logger.info('Onfido background check created', {
+        userId,
+        checkId: check.id,
+        reportCount: check.report_ids.length,
+      });
+
+      return {
+        success: true,
+        check_id: check.id,
+      };
+    } catch (error: any) {
+      logger.error('Failed to create Onfido background check', {
+        userId,
+        applicantId,
+        error: error.message,
+      });
+
+      return {
+        success: false,
+        error: error.message || 'Failed to create background check',
+      };
+    }
+  }
+
+  /**
+   * Get background check status and results
+   */
+  async getCheckStatus(checkId: string): Promise<BackgroundCheckResult> {
+    try {
+      // Get check details
+      const check = await this.makeApiRequest<OnfidoCheck>('GET', `/v3.5/checks/${checkId}`);
+
+      // Get all reports for this check
+      const reports: OnfidoReport[] = [];
+      for (const reportId of check.report_ids) {
+        const report = await this.makeApiRequest<OnfidoReport>('GET', `/v3.5/reports/${reportId}`);
+        reports.push(report);
+      }
+
+      return this.mapCheckToBackgroundResult(check, reports);
+    } catch (error: any) {
+      logger.error('Failed to get Onfido check status', {
+        checkId,
+        error: error.message,
+      });
+
+      throw new Error(`Failed to get background check status: ${error.message}`);
+    }
+  }
+
+  /**
+   * Process background check webhook from Onfido
+   */
+  async processBackgroundCheckWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<BackgroundCheckResult> {
+    const webhookPayload = payload as OnfidoWebhookPayload;
+    const resourceType = webhookPayload.payload.resource_type;
+    const action = webhookPayload.payload.action;
+    const object = webhookPayload.payload.object;
+
+    logger.info('Processing Onfido background check webhook', {
+      resourceType,
+      action,
+      objectId: object.id,
+    });
+
+    // Handle check.completed event
+    if (resourceType === 'check' && action === 'check.completed') {
+      return await this.getCheckStatus(object.id);
+    }
+
+    // For other events, return processing status
+    return {
+      background_check_id: object.id,
+      external_id: object.id,
+      provider: 'onfido',
+      status: 'processing',
+      tier: 'basic',
+      checks_performed: [],
+      identity_verified: false,
+      watchlist_result: 'not_performed',
+      raw_response: payload,
+    };
+  }
+
+  /**
+   * Map background check tier to Onfido report names
+   */
+  mapTierToReports(tier: BackgroundCheckTier): string[] {
+    const baseReports = ['document', 'facial_similarity_photo'];
+
+    switch (tier) {
+      case 'basic':
+        // Identity + basic watchlist
+        return [...baseReports, 'watchlist_standard'];
+
+      case 'standard':
+        // Add enhanced watchlist with more databases
+        return [...baseReports, 'watchlist_enhanced', 'right_to_work'];
+
+      case 'comprehensive':
+        // Full screening with all available checks
+        return [
+          ...baseReports,
+          'watchlist_full',
+          'right_to_work',
+          'known_faces',
+        ];
+
+      default:
+        return [...baseReports, 'watchlist_standard'];
+    }
+  }
+
+  /**
+   * Map Onfido check and reports to BackgroundCheckResult
+   */
+  private mapCheckToBackgroundResult(
+    check: OnfidoCheck,
+    reports: OnfidoReport[]
+  ): BackgroundCheckResult {
+    // Find watchlist report
+    const watchlistReport = reports.find(r =>
+      r.name.includes('watchlist') ||
+      r.name === 'watchlist_standard' ||
+      r.name === 'watchlist_enhanced' ||
+      r.name === 'watchlist_full'
+    );
+
+    // Find identity/document report
+    const documentReport = reports.find(r => r.name === 'document');
+    const faceReport = reports.find(r =>
+      r.name === 'facial_similarity_photo' || r.name === 'facial_similarity_motion'
+    );
+
+    // Map status
+    const status = this.mapCheckToBackgroundStatus(check.status, check.result);
+
+    // Map identity verification
+    const identityVerified = documentReport?.result === 'clear' && faceReport?.result === 'clear';
+
+    // Map watchlist result
+    const watchlistResult = this.mapWatchlistResult(watchlistReport);
+
+    // Extract watchlist details if available
+    const watchlistDetails = this.extractWatchlistDetails(watchlistReport);
+
+    // Extract flags
+    const flags = this.extractBackgroundFlags(reports);
+
+    // Determine checks performed
+    const checksPerformed = reports.map(r => this.mapReportNameToCheckType(r.name)).filter(Boolean) as any[];
+
+    // Calculate overall score
+    const overallScore = this.calculateBackgroundScore(reports);
+
+    // Determine tier based on reports
+    const tier = this.determineTierFromReports(reports);
+
+    return {
+      background_check_id: check.id,
+      external_id: check.id,
+      provider: 'onfido',
+      status,
+      tier,
+      checks_performed: checksPerformed,
+      identity_verified: identityVerified,
+      watchlist_result: watchlistResult,
+      watchlist_details: watchlistDetails,
+      overall_score: overallScore,
+      flags: flags.length > 0 ? flags : undefined,
+      completed_at: check.status === 'complete' ? new Date() : undefined,
+      raw_response: { check, reports },
+    };
+  }
+
+  /**
+   * Map Onfido check status to background check status
+   */
+  private mapCheckToBackgroundStatus(status: string, result?: string): BackgroundCheckStatus {
+    if (status !== 'complete') {
+      return status === 'in_progress' ? 'processing' : 'pending';
+    }
+
+    switch (result) {
+      case 'clear':
+        return 'clear';
+      case 'consider':
+        return 'consider';
+      default:
+        return 'flagged';
+    }
+  }
+
+  /**
+   * Map watchlist report result
+   */
+  private mapWatchlistResult(report?: OnfidoReport): WatchlistResult {
+    if (!report) return 'not_performed';
+
+    switch (report.result) {
+      case 'clear':
+        return 'clear';
+      case 'consider':
+        return 'possible_match';
+      default:
+        return report.status === 'complete' ? 'confirmed_match' : 'not_performed';
+    }
+  }
+
+  /**
+   * Extract watchlist screening details from report
+   */
+  private extractWatchlistDetails(report?: OnfidoReport): WatchlistDetails | undefined {
+    if (!report || !report.breakdown) return undefined;
+
+    const breakdown = report.breakdown;
+    const matches: WatchlistMatch[] = [];
+    const screenedLists: string[] = [];
+
+    // Parse breakdown for match details
+    for (const [listName, listData] of Object.entries(breakdown)) {
+      screenedLists.push(listName);
+
+      if (listData && typeof listData === 'object') {
+        const data = listData as any;
+        if (data.result === 'consider' || data.result === 'unidentified') {
+          matches.push({
+            list_name: listName,
+            list_type: this.inferListType(listName),
+            match_score: data.properties?.score || 0.7,
+            name_matched: data.properties?.matched_name,
+            details: data.properties?.details,
+          });
+        }
+      }
+    }
+
+    return {
+      screened_lists: screenedLists,
+      potential_matches: matches,
+      match_count: matches.length,
+      high_risk_matches: matches.filter(m => m.match_score >= 0.8).length,
+    };
+  }
+
+  /**
+   * Infer list type from list name
+   */
+  private inferListType(listName: string): string {
+    const lower = listName.toLowerCase();
+    if (lower.includes('sanction')) return 'sanction';
+    if (lower.includes('pep') || lower.includes('political')) return 'pep';
+    if (lower.includes('adverse') || lower.includes('media')) return 'adverse_media';
+    if (lower.includes('criminal')) return 'criminal';
+    return 'other';
+  }
+
+  /**
+   * Extract flags from reports
+   */
+  private extractBackgroundFlags(reports: OnfidoReport[]): BackgroundFlag[] {
+    const flags: BackgroundFlag[] = [];
+
+    for (const report of reports) {
+      if (report.result === 'consider' && report.breakdown) {
+        for (const [key, value] of Object.entries(report.breakdown)) {
+          if (value && typeof value === 'object') {
+            const data = value as any;
+            if (data.result === 'consider' || data.result === 'unidentified') {
+              flags.push({
+                type: key,
+                severity: this.inferSeverity(data),
+                description: data.properties?.details || `Concern detected in ${key}`,
+                source: report.name,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return flags;
+  }
+
+  /**
+   * Infer severity from breakdown data
+   */
+  private inferSeverity(data: any): 'low' | 'medium' | 'high' | 'critical' {
+    const score = data.properties?.score || 0.5;
+    if (score >= 0.9) return 'critical';
+    if (score >= 0.7) return 'high';
+    if (score >= 0.5) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Map report name to check type
+   */
+  private mapReportNameToCheckType(reportName: string): string | null {
+    const mapping: Record<string, string> = {
+      'document': 'identity',
+      'facial_similarity_photo': 'identity',
+      'facial_similarity_motion': 'identity',
+      'watchlist_standard': 'watchlist',
+      'watchlist_enhanced': 'watchlist',
+      'watchlist_full': 'global_watchlist',
+      'right_to_work': 'identity',
+      'known_faces': 'identity',
+    };
+    return mapping[reportName] || null;
+  }
+
+  /**
+   * Calculate overall background score
+   */
+  private calculateBackgroundScore(reports: OnfidoReport[]): number {
+    const completed = reports.filter(r => r.status === 'complete' && r.result);
+    if (completed.length === 0) return 0;
+
+    let score = 0;
+    for (const report of completed) {
+      if (report.result === 'clear') score += 1;
+      else if (report.result === 'consider') score += 0.5;
+    }
+
+    return score / completed.length;
+  }
+
+  /**
+   * Determine tier from reports performed
+   */
+  private determineTierFromReports(reports: OnfidoReport[]): BackgroundCheckTier {
+    const reportNames = reports.map(r => r.name);
+
+    if (reportNames.includes('watchlist_full') || reportNames.length >= 5) {
+      return 'comprehensive';
+    }
+    if (reportNames.includes('watchlist_enhanced') || reportNames.length >= 4) {
+      return 'standard';
+    }
+    return 'basic';
   }
 }

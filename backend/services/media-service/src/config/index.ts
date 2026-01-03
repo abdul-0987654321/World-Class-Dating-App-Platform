@@ -77,6 +77,21 @@ export const config = {
     racyContentThreshold: 0.6,
     violenceContentThreshold: 0.7,
   },
+
+  // AI Services
+  services: {
+    photoAnalysisUrl: process.env.PHOTO_ANALYSIS_SERVICE_URL || 'http://photo-analysis-service:8003',
+  },
+
+  // Photo Analysis Settings
+  photoAnalysis: {
+    enabled: process.env.ENABLE_PHOTO_ANALYSIS !== 'false',
+    analyzeOnUpload: process.env.ANALYZE_ON_UPLOAD !== 'false',
+    rejectLowQuality: process.env.REJECT_LOW_QUALITY === 'true',
+    minQualityScore: parseInt(process.env.MIN_QUALITY_SCORE || '30', 10),
+    requireFace: process.env.REQUIRE_FACE === 'true',
+    strictModeration: process.env.STRICT_MODERATION === 'true',
+  },
 };
 
 export default config;

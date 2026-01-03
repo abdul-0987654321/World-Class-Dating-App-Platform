@@ -4,6 +4,7 @@ import {
   ImageProcessingJobData,
   ContentModerationJobData,
   PhotoVerificationJobData,
+  DeepfakeDetectionJobData,
 } from './job-types';
 import { createLogger } from '@flamoral/backend-shared';
 
@@ -36,6 +37,12 @@ export class QueueManager {
     this.queues.set(
       QueueName.PHOTO_VERIFICATION,
       new Queue(QueueName.PHOTO_VERIFICATION, defaultQueueOptions)
+    );
+
+    // Deepfake detection queue
+    this.queues.set(
+      QueueName.DEEPFAKE_DETECTION,
+      new Queue(QueueName.DEEPFAKE_DETECTION, defaultQueueOptions)
     );
 
     logger.info('All queues initialized');
@@ -120,6 +127,26 @@ export class QueueManager {
     return await queue.add(data, {
       priority,
       jobId: `verify-${data.mediaId}`,
+    });
+  }
+
+  /**
+   * Add deepfake detection job
+   */
+  async addDeepfakeDetectionJob(
+    data: DeepfakeDetectionJobData,
+    priority: JobPriority = JobPriority.NORMAL
+  ): Promise<Queue.Job<DeepfakeDetectionJobData>> {
+    const queue = this.queues.get(QueueName.DEEPFAKE_DETECTION);
+    if (!queue) {
+      throw new Error('Deepfake detection queue not initialized');
+    }
+
+    logger.info(`Adding deepfake detection job for media ${data.mediaId}`);
+
+    return await queue.add(data, {
+      priority,
+      jobId: `deepfake-${data.mediaId}`,
     });
   }
 

@@ -19,8 +19,20 @@ export interface MediaMetadata {
   isVerified: boolean;
   moderationStatus: ModerationStatus;
   moderationResult?: ModerationResult;
+  deepfakeResult?: DeepfakeResult;
   uploadedAt: Date;
   updatedAt: Date;
+}
+
+export interface DeepfakeResult {
+  isDeepfake?: boolean;
+  confidence?: number;
+  score?: number;
+  indicators?: string[];
+  analyzedAt?: string;
+  flagReason?: string;
+  requiresManualReview?: boolean;
+  flaggedAt?: string;
 }
 
 export enum ModerationStatus {

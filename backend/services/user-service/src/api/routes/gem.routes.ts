@@ -402,4 +402,522 @@ router.get('/can-afford/:itemType', async (req: Request, res: Response) => {
   }
 });
 
+// ========================================
+// GEM STORE ENDPOINTS
+// ========================================
+
+/**
+ * @swagger
+ * /api/v1/gems/store:
+ *   get:
+ *     summary: Get all available store items
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [boost, superlike, spotlight, gift, utility, cosmetic]
+ *         description: Filter by item type
+ *     responses:
+ *       200:
+ *         description: List of store items
+ */
+router.get('/store', async (req: Request, res: Response) => {
+  try {
+    const { type } = req.query;
+    let items;
+
+    if (type && typeof type === 'string') {
+      items = await gemService.getStoreItemsByType(type as any);
+    } else {
+      items = await gemService.getStoreItems();
+    }
+
+    res.json({
+      success: true,
+      data: items,
+    });
+  } catch (error: any) {
+    logger.error('Error getting store items:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get store items',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/store/{itemId}:
+ *   get:
+ *     summary: Get a specific store item
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Store item details
+ *       404:
+ *         description: Item not found
+ */
+router.get('/store/:itemId', async (req: Request, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const item = await gemService.getStoreItem(itemId);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store item not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: item,
+    });
+  } catch (error: any) {
+    logger.error('Error getting store item:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get store item',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/purchase/{itemId}:
+ *   post:
+ *     summary: Purchase an item from the store
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Purchase successful
+ *       400:
+ *         description: Insufficient gems or invalid item
+ */
+router.post('/purchase/:itemId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { itemId } = req.params;
+
+    const result = await gemService.purchaseItem(userId, itemId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+        data: result.gem ? { balance: result.gem.balance } : undefined,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: {
+        purchase: result.purchase,
+        gem: result.gem,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error purchasing item:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to purchase item',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/purchases:
+ *   get:
+ *     summary: Get purchase history
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *     responses:
+ *       200:
+ *         description: Purchase history
+ */
+router.get('/purchases', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const purchases = await gemService.getPurchaseHistory(userId, limit, offset);
+
+    res.json({
+      success: true,
+      data: purchases,
+      pagination: {
+        limit,
+        offset,
+        hasMore: purchases.length === limit,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error getting purchases:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get purchases',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/active:
+ *   get:
+ *     summary: Get active purchased items
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of active items
+ */
+router.get('/active', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const activeItems = await gemService.getActiveItems(userId);
+
+    res.json({
+      success: true,
+      data: activeItems,
+    });
+  } catch (error: any) {
+    logger.error('Error getting active items:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get active items',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/activate/{purchaseId}:
+ *   post:
+ *     summary: Activate a purchased boost/spotlight
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: purchaseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Item activated
+ *       400:
+ *         description: Cannot activate item
+ */
+router.post('/activate/:purchaseId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { purchaseId } = req.params;
+
+    const result = await gemService.activateBoost(userId, purchaseId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: {
+        purchase: result.purchase,
+        expiresAt: result.expiresAt,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error activating item:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to activate item',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/gift/{recipientId}:
+ *   post:
+ *     summary: Send a gift to another user
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: recipientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - itemId
+ *             properties:
+ *               itemId:
+ *                 type: string
+ *                 description: The store item ID for the gift
+ *               message:
+ *                 type: string
+ *                 description: Optional message to send with the gift
+ *     responses:
+ *       200:
+ *         description: Gift sent successfully
+ *       400:
+ *         description: Cannot send gift
+ */
+router.post('/gift/:recipientId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { recipientId } = req.params;
+    const { itemId, message } = req.body;
+
+    if (!itemId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Item ID is required',
+      });
+    }
+
+    if (recipientId === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot send a gift to yourself',
+      });
+    }
+
+    const result = await gemService.sendGiftFromStore(userId, recipientId, itemId, message);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: {
+        purchase: result.purchase,
+        gem: result.gem,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error sending gift:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send gift',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/gifts/received:
+ *   get:
+ *     summary: Get gifts received by the user
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *     responses:
+ *       200:
+ *         description: List of received gifts
+ */
+router.get('/gifts/received', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const gifts = await gemService.getReceivedGifts(userId, limit, offset);
+
+    res.json({
+      success: true,
+      data: gifts,
+      pagination: {
+        limit,
+        offset,
+        hasMore: gifts.length === limit,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error getting received gifts:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get received gifts',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/use/superlike:
+ *   post:
+ *     summary: Use a super like from purchased pack
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Super like used
+ *       400:
+ *         description: No super likes available
+ */
+router.post('/use/superlike', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const result = await gemService.useSuperLike(userId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: {
+        remaining: result.remaining,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error using super like:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to use super like',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/use/undo:
+ *   post:
+ *     summary: Use an undo pass
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Undo pass used
+ *       400:
+ *         description: No undo passes available
+ */
+router.post('/use/undo', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const result = await gemService.useUndoPass(userId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: {
+        purchase: result.purchase,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error using undo pass:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to use undo pass',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/gems/purchase-stats:
+ *   get:
+ *     summary: Get purchase statistics
+ *     tags: [Gems]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Purchase statistics
+ */
+router.get('/purchase-stats', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const stats = await gemService.getPurchaseStats(userId);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error: any) {
+    logger.error('Error getting purchase stats:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get purchase stats',
+    });
+  }
+});
+
 export default router;

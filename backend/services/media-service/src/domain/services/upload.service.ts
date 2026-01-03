@@ -3,10 +3,14 @@ import imageProcessingService from './image-processing.service';
 import azureStorageService from '../../infrastructure/storage/azure-storage.service';
 import contentModerationService from './content-moderation.service';
 import mediaRepository from '../repositories/media.repository';
+import { queueDeepfakeDetection } from '../../workers/deepfake-detection.worker';
 import { MediaMetadata, ModerationStatus, UploadedFile } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('upload-service');
+
+// Enable deepfake detection (can be disabled via environment variable)
+const DEEPFAKE_DETECTION_ENABLED = process.env.DEEPFAKE_DETECTION_ENABLED !== 'false';
 
 export class UploadService {
   /**
@@ -72,6 +76,11 @@ export class UploadService {
       // Step 7: Start content moderation (async - don't wait)
       this.moderatePhotoAsync(savedMedia);
 
+      // Step 8: Start deepfake detection (async - don't wait)
+      if (DEEPFAKE_DETECTION_ENABLED) {
+        this.detectDeepfakeAsync(savedMedia, isProfilePhoto);
+      }
+
       logger.info(`Photo uploaded successfully: ${mediaId}`);
       return savedMedia;
     } catch (error) {
@@ -109,6 +118,28 @@ export class UploadService {
       }
     } catch (error) {
       logger.error('Content moderation failed', error);
+    }
+  }
+
+  /**
+   * Queue deepfake detection asynchronously
+   */
+  private async detectDeepfakeAsync(media: MediaMetadata, isProfilePhoto: boolean): Promise<void> {
+    try {
+      logger.info(`Queueing deepfake detection for media ${media.id}`);
+
+      await queueDeepfakeDetection({
+        mediaId: media.id,
+        userId: media.userId,
+        imageUrl: media.urls.standard, // Use standard resolution for analysis
+        mediaType: 'image',
+        isProfilePhoto,
+      });
+
+      logger.info(`Deepfake detection queued for media ${media.id}`);
+    } catch (error) {
+      logger.error(`Failed to queue deepfake detection for ${media.id}:`, error);
+      // Don't throw - deepfake detection failure shouldn't block upload
     }
   }
 

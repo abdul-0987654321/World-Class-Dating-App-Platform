@@ -47,6 +47,7 @@ export enum QueueName {
   IMAGE_PROCESSING = 'image-processing',
   CONTENT_MODERATION = 'content-moderation',
   PHOTO_VERIFICATION = 'photo-verification',
+  DEEPFAKE_DETECTION = 'deepfake-detection',
 }
 
 // Job priorities

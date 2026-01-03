@@ -1,0 +1,8 @@
+# Place model weights here
+# Download pre-trained EfficientNet-B4 weights fine-tuned for deepfake detection
+#
+# Recommended models:
+# - EfficientNet-B4 fine-tuned on FaceForensics++
+# - EfficientNet-B4 fine-tuned on Celeb-DF
+#
+# The model expects weights in PyTorch format (.pth or .pt)

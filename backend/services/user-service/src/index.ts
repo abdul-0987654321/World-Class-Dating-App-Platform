@@ -9,6 +9,7 @@ import authRoutes from './api/routes/auth.routes';
 import profileRoutes from './api/routes/profile.routes';
 import verificationRoutes from './api/routes/verification.routes';
 import idVerificationRoutes from './api/routes/id-verification.routes';
+import backgroundCheckRoutes from './api/routes/background-check.routes';
 import phoneVerificationRoutes from './api/routes/phone-verification.routes';
 import passwordResetRoutes from './api/routes/password-reset.routes';
 import photoRoutes from './api/routes/photo.routes';
@@ -31,6 +32,9 @@ import badgeRoutes from './api/routes/interestIntentionBadge.routes';
 import gemRoutes from './api/routes/gem.routes';
 import communityRoutes from './api/routes/community.routes';
 import referralRoutes from './api/routes/referral.routes';
+import challengeRoutes from './api/routes/challenge.routes';
+import datePlanningRoutes from './api/routes/date-planning.routes';
+import eliteRoutes from './api/routes/elite.routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
@@ -147,6 +151,7 @@ app.get('/', (_req: Request, res: Response) => {
       profile: '/api/v1/profile',
       verification: '/api/v1/verification',
       idVerification: '/api/v1/verification/id',
+      backgroundCheck: '/api/v1/verification/background',
       phone: '/api/v1/phone',
       passwordReset: '/api/v1/password-reset',
       photos: '/api/v1/photos',
@@ -161,6 +166,7 @@ app.get('/', (_req: Request, res: Response) => {
       privacy: '/api/v1/privacy',
       blocks: '/api/v1/blocks',
       reports: '/api/v1/reports',
+      safety: '/api/v1/safety',
       usageLimits: '/api/v1/usage-limits',
       internal: '/api/v1/internal',
       badges: '/api/v1/badges',
@@ -168,6 +174,9 @@ app.get('/', (_req: Request, res: Response) => {
       gems: '/api/v1/gems',
       communities: '/api/v1/communities',
       referrals: '/api/v1/referrals',
+      challenges: '/api/v1/challenges',
+      dates: '/api/v1/dates',
+      elite: '/api/v1/elite',
     },
   });
 });
@@ -177,6 +186,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/verification', verificationRoutes);
 app.use('/api/v1/verification/id', idVerificationRoutes);
+app.use('/api/v1/verification/background', backgroundCheckRoutes);
 app.use('/api/v1/phone', phoneVerificationRoutes);
 app.use('/api/v1/password-reset', passwordResetRoutes);
 app.use('/api/v1/photos', photoRoutes);
@@ -199,9 +209,16 @@ app.use('/api/v1/usage-limits', usageLimitRoutes);
 app.use('/api/v1/badges', badgeRoutes);
 // Gamification routes
 app.use('/api/v1/achievements', achievementsRoutes);
+app.use('/api/v1/challenges', challengeRoutes);
 app.use('/api/v1/gems', gemRoutes);
 app.use('/api/v1/communities', communityRoutes);
 app.use('/api/v1/referrals', referralRoutes);
+
+// Date planning routes
+app.use('/api/v1/dates', datePlanningRoutes);
+
+// Elite tier routes (VIP Events, Dating Coach, Concierge)
+app.use('/api/v1/elite', eliteRoutes);
 
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/v1/internal', internalRoutes);

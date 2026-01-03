@@ -24,6 +24,23 @@ export interface PhotoVerificationJobData {
   referencePhotoUrl?: string;
 }
 
+export interface DeepfakeDetectionJobData {
+  mediaId: string;
+  userId: string;
+  imageUrl: string;
+  mediaType: 'image' | 'video';
+  isProfilePhoto: boolean;
+}
+
+export interface DeepfakeDetectionResult {
+  isDeepfake: boolean;
+  confidence: number;
+  score: number;
+  indicators: string[];
+  requiresReview: boolean;
+  details: Record<string, any>;
+}
+
 export interface JobResult {
   success: boolean;
   data?: any;

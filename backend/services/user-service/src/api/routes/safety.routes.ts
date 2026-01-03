@@ -10,7 +10,7 @@ router.use(authenticate);
 
 /**
  * @swagger
- * /api/safety/sos:
+ * /api/v1/safety/sos:
  *   post:
  *     summary: Trigger SOS alert
  *     description: Trigger an emergency SOS alert and notify emergency contacts
@@ -18,6 +18,7 @@ router.use(authenticate);
  *     security:
  *       - bearerAuth: []
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -25,20 +26,60 @@ router.use(authenticate);
  *             properties:
  *               location:
  *                 type: object
+ *                 description: User's current location
  *                 properties:
  *                   latitude:
  *                     type: number
+ *                     description: GPS latitude
+ *                     example: 40.7128
  *                   longitude:
  *                     type: number
+ *                     description: GPS longitude
+ *                     example: -74.0060
  *                   accuracy:
  *                     type: number
+ *                     description: Location accuracy in meters
+ *                     example: 10
  *               reason:
  *                 type: string
+ *                 description: Optional reason for triggering SOS
+ *                 example: "Feeling unsafe on date"
  *     responses:
  *       200:
- *         description: SOS alert triggered
+ *         description: SOS alert triggered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "SOS alert triggered"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     alert:
+ *                       type: object
+ *                       description: The created SOS alert
+ *                     notifiedContacts:
+ *                       type: integer
+ *                       description: Number of emergency contacts notified
+ *                     notificationSummary:
+ *                       type: object
+ *                       properties:
+ *                         totalContacts:
+ *                           type: integer
+ *                         successfullyNotified:
+ *                           type: integer
+ *                         failedNotifications:
+ *                           type: integer
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - invalid or missing token
+ *       500:
+ *         description: Internal server error
  */
 router.post('/sos', async (req: Request, res: Response) => {
   try {
@@ -75,12 +116,33 @@ router.post('/sos', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/sos/status:
+ * /api/v1/safety/sos/status:
  *   get:
  *     summary: Get active SOS status
+ *     description: Check if user has an active SOS alert
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: SOS status retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     hasActiveAlert:
+ *                       type: boolean
+ *                     alert:
+ *                       type: object
+ *                       nullable: true
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/sos/status', async (req: Request, res: Response) => {
   try {
@@ -109,12 +171,33 @@ router.get('/sos/status', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/sos/cancel:
+ * /api/v1/safety/sos/cancel:
  *   post:
  *     summary: Cancel active SOS alert
+ *     description: Cancel an active SOS alert and notify emergency contacts
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - alertId
+ *             properties:
+ *               alertId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: The ID of the SOS alert to cancel
+ *     responses:
+ *       200:
+ *         description: SOS alert cancelled successfully
+ *       400:
+ *         description: Bad request - alert ID required or alert not active
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/sos/cancel', async (req: Request, res: Response) => {
   try {
@@ -146,12 +229,32 @@ router.post('/sos/cancel', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/sos/history:
+ * /api/v1/safety/sos/history:
  *   get:
  *     summary: Get SOS alert history
+ *     description: Retrieve user's SOS alert history
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: SOS alert history retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     alerts:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/sos/history', async (req: Request, res: Response) => {
   try {
@@ -177,9 +280,10 @@ router.get('/sos/history', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/sos/{alertId}/notifications:
+ * /api/v1/safety/sos/{alertId}/notifications:
  *   get:
  *     summary: Get notification status for an SOS alert
+ *     description: Retrieve the notification status for all emergency contacts
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
@@ -189,6 +293,13 @@ router.get('/sos/history', async (req: Request, res: Response) => {
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
+ *         description: The SOS alert ID
+ *     responses:
+ *       200:
+ *         description: Notification status retrieved
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/sos/:alertId/notifications', async (req: Request, res: Response) => {
   try {
@@ -223,9 +334,10 @@ router.get('/sos/:alertId/notifications', async (req: Request, res: Response) =>
 
 /**
  * @swagger
- * /api/safety/sos/{alertId}/retry-notifications:
+ * /api/v1/safety/sos/{alertId}/retry-notifications:
  *   post:
  *     summary: Retry failed notifications for an SOS alert
+ *     description: Retry sending notifications that previously failed
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
@@ -235,6 +347,13 @@ router.get('/sos/:alertId/notifications', async (req: Request, res: Response) =>
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
+ *         description: The SOS alert ID
+ *     responses:
+ *       200:
+ *         description: Notifications retried
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/sos/:alertId/retry-notifications', async (req: Request, res: Response) => {
   try {
@@ -264,12 +383,18 @@ router.post('/sos/:alertId/retry-notifications', async (req: Request, res: Respo
 
 /**
  * @swagger
- * /api/safety/emergency-contacts:
+ * /api/v1/safety/emergency-contacts:
  *   get:
  *     summary: Get emergency contacts
+ *     description: Retrieve user's emergency contacts list
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Emergency contacts retrieved
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/emergency-contacts', async (req: Request, res: Response) => {
   try {
@@ -295,12 +420,44 @@ router.get('/emergency-contacts', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/emergency-contacts:
+ * /api/v1/safety/emergency-contacts:
  *   post:
  *     summary: Add emergency contact
+ *     description: Add a new emergency contact
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - phone
+ *               - relationship
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               relationship:
+ *                 type: string
+ *                 enum: [family, friend, partner, other]
+ *               notify_on_sos:
+ *                 type: boolean
+ *               notify_on_checkin_miss:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Emergency contact added
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/emergency-contacts', async (req: Request, res: Response) => {
   try {
@@ -344,12 +501,26 @@ router.post('/emergency-contacts', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/emergency-contacts/{contactId}:
+ * /api/v1/safety/emergency-contacts/{contactId}:
  *   put:
  *     summary: Update emergency contact
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contactId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Emergency contact updated
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
 router.put('/emergency-contacts/:contactId', async (req: Request, res: Response) => {
   try {
@@ -379,12 +550,26 @@ router.put('/emergency-contacts/:contactId', async (req: Request, res: Response)
 
 /**
  * @swagger
- * /api/safety/emergency-contacts/{contactId}:
+ * /api/v1/safety/emergency-contacts/{contactId}:
  *   delete:
  *     summary: Delete emergency contact
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contactId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Emergency contact deleted
+ *       404:
+ *         description: Emergency contact not found
+ *       401:
+ *         description: Unauthorized
  */
 router.delete('/emergency-contacts/:contactId', async (req: Request, res: Response) => {
   try {
@@ -420,12 +605,18 @@ router.delete('/emergency-contacts/:contactId', async (req: Request, res: Respon
 
 /**
  * @swagger
- * /api/safety/checkins:
+ * /api/v1/safety/checkins:
  *   get:
  *     summary: Get active check-ins
+ *     description: Retrieve user's active safety check-ins
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Check-ins retrieved
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/checkins', async (req: Request, res: Response) => {
   try {
@@ -451,12 +642,42 @@ router.get('/checkins', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/checkins:
+ * /api/v1/safety/checkins:
  *   post:
  *     summary: Create safety check-in
+ *     description: Schedule a safety check-in for a date or meeting
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - scheduled_at
+ *             properties:
+ *               scheduled_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: When the check-in should occur
+ *               meeting_details:
+ *                 type: object
+ *                 properties:
+ *                   location:
+ *                     type: string
+ *                   with_user_id:
+ *                     type: string
+ *                   notes:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: Check-in created
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/checkins', async (req: Request, res: Response) => {
   try {
@@ -496,12 +717,27 @@ router.post('/checkins', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/safety/checkins/{checkinId}/confirm:
+ * /api/v1/safety/checkins/{checkinId}/confirm:
  *   post:
  *     summary: Confirm check-in (I'm safe)
+ *     description: User confirms they are safe
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: checkinId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Check-in confirmed
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/checkins/:checkinId/confirm', async (req: Request, res: Response) => {
   try {
@@ -529,12 +765,27 @@ router.post('/checkins/:checkinId/confirm', async (req: Request, res: Response) 
 
 /**
  * @swagger
- * /api/safety/checkins/{checkinId}/cancel:
+ * /api/v1/safety/checkins/{checkinId}/cancel:
  *   post:
  *     summary: Cancel check-in
+ *     description: Cancel a scheduled check-in
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: checkinId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Check-in cancelled
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
 router.post('/checkins/:checkinId/cancel', async (req: Request, res: Response) => {
   try {
@@ -564,12 +815,24 @@ router.post('/checkins/:checkinId/cancel', async (req: Request, res: Response) =
 
 /**
  * @swagger
- * /api/safety/crisis-resources:
+ * /api/v1/safety/crisis-resources:
  *   get:
  *     summary: Get crisis resources
+ *     description: Get crisis hotlines and resources for emergency assistance
  *     tags: [Safety]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *         description: Filter resources by region (e.g., 'US')
+ *     responses:
+ *       200:
+ *         description: Crisis resources retrieved
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/crisis-resources', async (req: Request, res: Response) => {
   try {

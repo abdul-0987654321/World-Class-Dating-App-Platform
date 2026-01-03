@@ -135,4 +135,28 @@ export default {
       requireBiometricConsent: process.env.VERIFICATION_REQUIRE_BIOMETRIC_CONSENT === 'true',
     },
   },
+
+  /**
+   * Date Planning / Venue Integration Configuration
+   * Google Places API and Yelp Fusion API for venue search
+   */
+  datePlanning: {
+    // Google Places API Configuration
+    googlePlaces: {
+      apiKey: process.env.GOOGLE_PLACES_API_KEY || '',
+      baseUrl: process.env.GOOGLE_PLACES_BASE_URL || 'https://maps.googleapis.com/maps/api/place',
+    },
+
+    // Yelp Fusion API Configuration (optional, fallback)
+    yelp: {
+      apiKey: process.env.YELP_API_KEY || '',
+      baseUrl: process.env.YELP_BASE_URL || 'https://api.yelp.com/v3',
+    },
+
+    // Search defaults
+    defaults: {
+      searchRadius: parseInt(process.env.VENUE_SEARCH_RADIUS || '5000', 10), // meters
+      maxResults: parseInt(process.env.VENUE_MAX_RESULTS || '20', 10),
+    },
+  },
 };

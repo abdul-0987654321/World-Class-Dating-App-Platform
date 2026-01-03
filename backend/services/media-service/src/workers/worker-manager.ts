@@ -1,6 +1,7 @@
 import { startImageProcessingWorker } from './image-processing.worker';
 import { startContentModerationWorker } from './content-moderation.worker';
 import { startPhotoVerificationWorker } from './photo-verification.worker';
+import { startDeepfakeDetectionWorker } from './deepfake-detection.worker';
 import queueManager from '../infrastructure/queue/queue-manager';
 import { createLogger } from '@flamoral/backend-shared';
 
@@ -29,6 +30,9 @@ export class WorkerManager {
 
       // Start photo verification worker
       startPhotoVerificationWorker();
+
+      // Start deepfake detection worker
+      startDeepfakeDetectionWorker();
 
       this.workersStarted = true;
 

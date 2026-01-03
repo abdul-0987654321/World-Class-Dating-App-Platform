@@ -24,6 +24,18 @@ import {
   DocumentDetails,
   ExtractedIDData,
 } from '../../types/id-verification-provider.types';
+import {
+  IBackgroundCheckProvider,
+  BackgroundCheckTier,
+  BackgroundCheckResult,
+  BackgroundCheckStatus,
+  WatchlistResult,
+  WatchlistDetails,
+  WatchlistMatch,
+  BackgroundFlag,
+  CheckType,
+  BACKGROUND_CHECK_TIER_CONFIG,
+} from '../../types/background-check.types';
 
 // Jumio API response types
 interface JumioWorkflowResponse {
@@ -129,7 +141,74 @@ interface JumioCallbackPayload {
   userReference?: string;
 }
 
-export class JumioProvider implements IIDVerificationProvider {
+// Jumio screening callback types
+interface JumioScreeningCallback {
+  workflowExecution: {
+    id: string;
+    href: string;
+  };
+  account: {
+    id: string;
+  };
+  callbackSentAt: string;
+  completedAt?: string;
+  decision: {
+    type: string;
+    details: {
+      label: string;
+    };
+  };
+  capabilities?: {
+    extraction?: {
+      id?: string;
+      decision?: {
+        type: string;
+        details?: {
+          label?: string;
+        };
+      };
+    };
+    screening?: {
+      decision?: {
+        type: string;
+        details?: {
+          label?: string;
+        };
+      };
+      data?: {
+        searchResults?: Array<{
+          listName?: string;
+          listType?: string;
+          matchedName?: string;
+          matchScore?: number;
+          details?: string;
+        }>;
+        listsSearched?: string[];
+      };
+    };
+    watchlistScreening?: {
+      decision?: {
+        type: string;
+        details?: {
+          label?: string;
+        };
+      };
+      data?: {
+        searchResults?: Array<{
+          listName?: string;
+          listType?: string;
+          matchedName?: string;
+          matchScore?: number;
+          details?: string;
+        }>;
+      };
+    };
+  };
+  customerInternalReference?: string;
+  userReference?: string;
+}
+
+export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckProvider {
   public readonly name: VerificationProvider = 'jumio';
   private config: JumioConfig;
 
@@ -503,5 +582,384 @@ export class JumioProvider implements IIDVerificationProvider {
 
     // PASSED = 1.0, WARNING = 0.7, REJECTED = 0
     return (passedChecks * 1.0 + warningChecks * 0.7) / checks.length;
+  }
+
+  // ============================================
+  // Background Check Provider Implementation
+  // ============================================
+
+  /**
+   * Create a background check with Jumio
+   * Uses screening workflows for watchlist and identity checks
+   */
+  async createBackgroundCheck(
+    userId: string,
+    applicantId: string,
+    tier: BackgroundCheckTier
+  ): Promise<{ success: boolean; check_id?: string; error?: string }> {
+    try {
+      // Determine workflow based on tier
+      const workflowKey = this.getScreeningWorkflowKey(tier);
+      const customerInternalReference = `flamoral_bg_${userId}_${Date.now()}`;
+
+      logger.info('Creating Jumio background check', {
+        userId,
+        applicantId,
+        tier,
+        workflowKey,
+      });
+
+      const payload = {
+        customerInternalReference,
+        userReference: userId,
+        workflowDefinition: {
+          key: workflowKey,
+          credentials: [
+            {
+              category: 'ID',
+              type: {
+                values: ['PASSPORT', 'DRIVING_LICENSE', 'ID_CARD'],
+              },
+            },
+          ],
+          capabilities: this.getCapabilitiesForTier(tier),
+        },
+        callbackUrl: this.config.callback_url,
+      };
+
+      const response = await this.makeApiRequest<JumioWorkflowResponse>(
+        'POST',
+        '/api/v1/accounts',
+        payload
+      );
+
+      logger.info('Jumio background check created', {
+        userId,
+        workflowExecutionId: response.workflowExecution.id,
+        accountId: response.account.id,
+      });
+
+      return {
+        success: true,
+        check_id: response.workflowExecution.id,
+      };
+    } catch (error: any) {
+      logger.error('Failed to create Jumio background check', {
+        userId,
+        applicantId,
+        error: error.message,
+      });
+
+      return {
+        success: false,
+        error: error.message || 'Failed to create background check',
+      };
+    }
+  }
+
+  /**
+   * Get background check status from Jumio
+   */
+  async getCheckStatus(checkId: string): Promise<BackgroundCheckResult> {
+    try {
+      // Get workflow execution details
+      const execution = await this.makeApiRequest<any>(
+        'GET',
+        `/api/v1/workflow-executions/${checkId}`
+      );
+
+      return this.mapExecutionToBackgroundResult(execution, checkId);
+    } catch (error: any) {
+      logger.error('Failed to get Jumio check status', {
+        checkId,
+        error: error.message,
+      });
+
+      throw new Error(`Failed to get background check status: ${error.message}`);
+    }
+  }
+
+  /**
+   * Process background check webhook from Jumio
+   */
+  async processBackgroundCheckWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<BackgroundCheckResult> {
+    const callback = payload as JumioScreeningCallback;
+    const verificationId = callback.workflowExecution.id;
+
+    logger.info('Processing Jumio background check webhook', {
+      verificationId,
+      decision: callback.decision.type,
+    });
+
+    // Map decision to status
+    const status = this.mapDecisionToBackgroundStatus(callback.decision.type);
+
+    // Extract screening results
+    const screeningData = callback.capabilities?.screening || callback.capabilities?.watchlistScreening;
+    const watchlistResult = this.mapScreeningToWatchlistResult(screeningData);
+    const watchlistDetails = this.extractJumioWatchlistDetails(screeningData);
+
+    // Check identity verification from main decision
+    const identityVerified = callback.decision.type === 'PASSED';
+
+    // Extract flags
+    const flags = this.extractJumioBackgroundFlags(callback);
+
+    // Determine tier and checks performed
+    const tier = this.inferTierFromCallback(callback);
+    const checksPerformed = this.getChecksFromCallback(callback);
+
+    // Calculate overall score
+    const overallScore = this.calculateBackgroundScore(callback);
+
+    return {
+      background_check_id: verificationId,
+      external_id: callback.account.id,
+      provider: 'jumio',
+      status,
+      tier,
+      checks_performed: checksPerformed,
+      identity_verified: identityVerified,
+      watchlist_result: watchlistResult,
+      watchlist_details: watchlistDetails,
+      overall_score: overallScore,
+      flags: flags.length > 0 ? flags : undefined,
+      completed_at: callback.completedAt ? new Date(callback.completedAt) : undefined,
+      raw_response: payload,
+    };
+  }
+
+  /**
+   * Map tier to Jumio report names/capabilities
+   */
+  mapTierToReports(tier: BackgroundCheckTier): string[] {
+    switch (tier) {
+      case 'basic':
+        return ['extraction', 'liveness', 'screening'];
+      case 'standard':
+        return ['extraction', 'liveness', 'screening', 'dataChecks', 'similarity'];
+      case 'comprehensive':
+        return ['extraction', 'liveness', 'screening', 'dataChecks', 'similarity', 'watchlistScreening'];
+      default:
+        return ['extraction', 'liveness', 'screening'];
+    }
+  }
+
+  /**
+   * Get Jumio workflow key for screening tier
+   */
+  private getScreeningWorkflowKey(tier: BackgroundCheckTier): string {
+    // Jumio workflow IDs for different screening levels
+    const workflows: Record<BackgroundCheckTier, string> = {
+      basic: '10011', // ID verification + basic screening
+      standard: '10012', // Enhanced with data checks
+      comprehensive: '10013', // Full screening with watchlist
+    };
+    return this.config.workflow_id || workflows[tier] || '10011';
+  }
+
+  /**
+   * Get capabilities configuration for tier
+   */
+  private getCapabilitiesForTier(tier: BackgroundCheckTier): Record<string, any> {
+    const base = {
+      extraction: {},
+      liveness: {},
+      similarity: {},
+    };
+
+    switch (tier) {
+      case 'basic':
+        return {
+          ...base,
+          screening: {
+            watchlists: ['PEP', 'SANCTIONS'],
+          },
+        };
+      case 'standard':
+        return {
+          ...base,
+          dataChecks: {},
+          screening: {
+            watchlists: ['PEP', 'SANCTIONS', 'ADVERSE_MEDIA'],
+          },
+        };
+      case 'comprehensive':
+        return {
+          ...base,
+          dataChecks: {},
+          screening: {
+            watchlists: ['PEP', 'SANCTIONS', 'ADVERSE_MEDIA', 'CRIMINAL', 'GLOBAL_WATCHLIST'],
+          },
+        };
+      default:
+        return base;
+    }
+  }
+
+  /**
+   * Map Jumio execution to background check result
+   */
+  private mapExecutionToBackgroundResult(execution: any, checkId: string): BackgroundCheckResult {
+    const status = this.mapDecisionToBackgroundStatus(execution.decision?.type || 'NOT_EXECUTED');
+
+    return {
+      background_check_id: checkId,
+      external_id: execution.account?.id || '',
+      provider: 'jumio',
+      status,
+      tier: 'basic',
+      checks_performed: [],
+      identity_verified: execution.decision?.type === 'PASSED',
+      watchlist_result: 'not_performed',
+      raw_response: execution,
+    };
+  }
+
+  /**
+   * Map Jumio decision to background check status
+   */
+  private mapDecisionToBackgroundStatus(decision: string): BackgroundCheckStatus {
+    const mapping: Record<string, BackgroundCheckStatus> = {
+      'PASSED': 'clear',
+      'REJECTED': 'flagged',
+      'NOT_EXECUTED': 'pending',
+      'WARNING': 'consider',
+    };
+    return mapping[decision] || 'processing';
+  }
+
+  /**
+   * Map screening data to watchlist result
+   */
+  private mapScreeningToWatchlistResult(screeningData?: any): WatchlistResult {
+    if (!screeningData?.decision) return 'not_performed';
+
+    switch (screeningData.decision.type) {
+      case 'PASSED':
+        return 'clear';
+      case 'WARNING':
+        return 'possible_match';
+      case 'REJECTED':
+        return 'confirmed_match';
+      default:
+        return 'not_performed';
+    }
+  }
+
+  /**
+   * Extract watchlist details from Jumio screening
+   */
+  private extractJumioWatchlistDetails(screeningData?: any): WatchlistDetails | undefined {
+    if (!screeningData?.data) return undefined;
+
+    const searchResults = screeningData.data.searchResults || [];
+    const listsSearched = screeningData.data.listsSearched || [];
+
+    const matches: WatchlistMatch[] = searchResults.map((result: any) => ({
+      list_name: result.listName || 'Unknown',
+      list_type: result.listType || 'other',
+      match_score: result.matchScore || 0.5,
+      name_matched: result.matchedName,
+      details: result.details,
+    }));
+
+    return {
+      screened_lists: listsSearched,
+      potential_matches: matches,
+      match_count: matches.length,
+      high_risk_matches: matches.filter(m => m.match_score >= 0.8).length,
+    };
+  }
+
+  /**
+   * Extract flags from Jumio callback
+   */
+  private extractJumioBackgroundFlags(callback: JumioScreeningCallback): BackgroundFlag[] {
+    const flags: BackgroundFlag[] = [];
+
+    if (callback.decision.type === 'REJECTED') {
+      flags.push({
+        type: 'verification_rejected',
+        severity: 'high',
+        description: callback.decision.details.label,
+        source: 'jumio',
+      });
+    }
+
+    if (callback.decision.type === 'WARNING') {
+      flags.push({
+        type: 'verification_warning',
+        severity: 'medium',
+        description: callback.decision.details.label,
+        source: 'jumio',
+      });
+    }
+
+    // Add screening-specific flags
+    const screening = callback.capabilities?.screening || callback.capabilities?.watchlistScreening;
+    if (screening?.decision?.type === 'WARNING' || screening?.decision?.type === 'REJECTED') {
+      flags.push({
+        type: 'watchlist_concern',
+        severity: screening.decision.type === 'REJECTED' ? 'critical' : 'high',
+        description: screening.decision.details?.label || 'Watchlist screening concern',
+        source: 'jumio_screening',
+      });
+    }
+
+    return flags;
+  }
+
+  /**
+   * Infer tier from callback data
+   */
+  private inferTierFromCallback(callback: JumioScreeningCallback): BackgroundCheckTier {
+    const capabilities = callback.capabilities || {};
+    const capabilityCount = Object.keys(capabilities).length;
+
+    if (capabilityCount >= 5 || capabilities.watchlistScreening) {
+      return 'comprehensive';
+    }
+    if (capabilityCount >= 4) {
+      return 'standard';
+    }
+    return 'basic';
+  }
+
+  /**
+   * Get checks performed from callback
+   */
+  private getChecksFromCallback(callback: JumioScreeningCallback): CheckType[] {
+    const checks: CheckType[] = [];
+    const capabilities = callback.capabilities || {};
+
+    if (capabilities.extraction) checks.push('identity');
+    if (capabilities.screening || capabilities.watchlistScreening) checks.push('watchlist');
+
+    return checks;
+  }
+
+  /**
+   * Calculate background score from Jumio callback
+   */
+  private calculateBackgroundScore(callback: JumioScreeningCallback): number {
+    const decisions = [
+      callback.decision.type,
+      callback.capabilities?.screening?.decision?.type,
+      callback.capabilities?.watchlistScreening?.decision?.type,
+    ].filter(Boolean);
+
+    if (decisions.length === 0) return 0;
+
+    let score = 0;
+    for (const decision of decisions) {
+      if (decision === 'PASSED') score += 1;
+      else if (decision === 'WARNING') score += 0.5;
+    }
+
+    return score / decisions.length;
   }
 }
