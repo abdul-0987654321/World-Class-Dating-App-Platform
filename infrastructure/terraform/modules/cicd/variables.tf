@@ -65,3 +65,31 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+################################################################################
+# Nightly Build Configuration
+################################################################################
+
+variable "enable_nightly_build" {
+  description = "Enable nightly scheduled builds"
+  type        = bool
+  default     = false
+}
+
+variable "nightly_build_schedule" {
+  description = "Cron expression for nightly build (default: 9 PM UTC daily)"
+  type        = string
+  default     = "cron(0 21 * * ? *)"
+}
+
+variable "create_notification_topic" {
+  description = "Create SNS topic for pipeline notifications"
+  type        = bool
+  default     = false
+}
+
+variable "notification_email_addresses" {
+  description = "Email addresses to subscribe to pipeline notifications"
+  type        = list(string)
+  default     = []
+}

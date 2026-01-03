@@ -155,6 +155,10 @@ export interface ClientToServerEvents {
   'typing:stop': (data: { conversationId: string }) => void;
   'conversation:join': (data: { conversationId: string }) => void;
   'conversation:leave': (data: { conversationId: string }) => void;
+  // Media messaging events
+  'message:photo': (data: { conversationId: string; receiverId: string; mediaUrl: string; thumbnailUrl: string; width: number; height: number }, callback: (response: SendMessageResponse) => void) => void;
+  'message:voice': (data: { conversationId: string; receiverId: string; mediaUrl: string; duration: number; waveform: number[] }, callback: (response: SendMessageResponse) => void) => void;
+  'message:gif': (data: { conversationId: string; receiverId: string; gifUrl: string; previewUrl: string; giphyId?: string; tenorId?: string }, callback: (response: SendMessageResponse) => void) => void;
 }
 
 export interface ServerToClientEvents {
@@ -166,6 +170,10 @@ export interface ServerToClientEvents {
   'user:online': (data: OnlineStatus) => void;
   'user:offline': (data: OnlineStatus) => void;
   'error': (error: { message: string; code?: string }) => void;
+  // Media message events (use existing message:new for simplicity)
+  'message:media:processing': (data: { messageId: string; conversationId: string; progress: number }) => void;
+  'message:media:ready': (data: { messageId: string; conversationId: string; mediaUrl: string; thumbnailUrl?: string }) => void;
+  'message:media:failed': (data: { messageId: string; conversationId: string; error: string }) => void;
 }
 
 export interface UserSocketMap {

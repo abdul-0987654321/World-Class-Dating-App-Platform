@@ -188,3 +188,53 @@ variable "blocked_countries" {
   type        = list(string)
   default     = []
 }
+
+################################################################################
+# Budget Variables
+################################################################################
+
+variable "monthly_budget_limit" {
+  description = "Monthly budget limit in USD"
+  type        = string
+  default     = "5000"
+}
+
+variable "eks_budget_limit" {
+  description = "Monthly EKS budget limit in USD"
+  type        = string
+  default     = "1500"
+}
+
+variable "rds_budget_limit" {
+  description = "Monthly RDS budget limit in USD"
+  type        = string
+  default     = "1000"
+}
+
+variable "s3_budget_limit" {
+  description = "Monthly S3 budget limit in USD"
+  type        = string
+  default     = "500"
+}
+
+################################################################################
+# CI/CD Variables
+################################################################################
+
+variable "github_repository" {
+  description = "GitHub repository in format owner/repo"
+  type        = string
+  default     = "flamoral/dating-app"
+}
+
+variable "github_branch" {
+  description = "GitHub branch to build from"
+  type        = string
+  default     = "main"
+}
+
+variable "codestar_connection_arn" {
+  description = "CodeStar connection ARN for GitHub (leave empty to create new)"
+  type        = string
+  default     = ""
+}

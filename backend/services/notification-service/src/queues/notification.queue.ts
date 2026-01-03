@@ -7,8 +7,8 @@ import { config } from '../config';
 import logger from '../utils/logger';
 import { NotificationPayload, NotificationChannel } from '../types';
 import { pushNotificationService } from '../services/push-notification.service';
-import { emailNotificationService } from '../services/email-notification.service';
-import { smsNotificationService } from '../services/sms-notification.service';
+import { sesEmailService } from '../services/ses-email.service';
+import { snsSMSService } from '../services/sns-sms.service';
 import { db } from '../config/database';
 
 // Create notification queue
@@ -249,7 +249,7 @@ async function sendEmailNotification(payload: NotificationPayload): Promise<{
     return { success: false, error: 'User email not found' };
   }
 
-  const result = await emailNotificationService.sendEmail({
+  const result = await sesEmailService.sendEmail({
     to: user.email,
     subject: payload.title,
     text: payload.body,
@@ -272,7 +272,7 @@ async function sendSMSNotification(payload: NotificationPayload): Promise<{
     return { success: false, error: 'User phone not found' };
   }
 
-  const result = await smsNotificationService.sendSMS({
+  const result = await snsSMSService.sendSMS({
     to: user.phone,
     message: payload.body,
   });

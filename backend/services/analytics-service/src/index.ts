@@ -137,6 +137,10 @@ import analyticsRoutes from './api/routes/analytics.routes';
 import dashboardRoutes from './api/routes/dashboard.routes';
 import eventsRoutes from './api/routes/events.routes';
 import segmentationRoutes from './api/routes/segmentation.routes';
+import churnPredictionRoutes from './api/routes/churn-prediction.routes';
+
+// Import scheduled jobs
+import { churnPredictionJobRunner } from './jobs/churn-prediction.job';
 
 // Register routes
 app.use('/api/v1/tracking', trackingRoutes);
@@ -144,6 +148,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/events', eventsRoutes);
 app.use('/api/v1/segmentation', segmentationRoutes);
+app.use('/api/v1/churn', churnPredictionRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -176,6 +181,13 @@ async function startServer() {
 
     // Run migrations
     await dbClient.runMigrations();
+
+    // Start churn prediction scheduled jobs
+    if (process.env.ENABLE_CHURN_JOBS !== 'false') {
+      logger.info('Starting churn prediction scheduled jobs...');
+      churnPredictionJobRunner.start();
+      logger.info('Churn prediction jobs started');
+    }
 
     // Start HTTP server
     app.listen(PORT, () => {

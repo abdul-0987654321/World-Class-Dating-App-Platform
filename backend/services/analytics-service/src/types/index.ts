@@ -541,6 +541,361 @@ export interface SegmentTransition {
 }
 
 // =============================================
+// CHURN PREDICTION ML
+// =============================================
+
+/**
+ * Risk tier levels for churn prediction
+ */
+export enum ChurnRiskTier {
+  LOW = 'LOW',           // 0-25% churn probability
+  MEDIUM = 'MEDIUM',     // 25-50% churn probability
+  HIGH = 'HIGH',         // 50-75% churn probability
+  CRITICAL = 'CRITICAL', // 75-100% churn probability
+}
+
+/**
+ * Types of churn indicators
+ */
+export enum ChurnIndicatorType {
+  LOGIN_FREQUENCY = 'LOGIN_FREQUENCY',
+  DECLINING_ENGAGEMENT = 'DECLINING_ENGAGEMENT',
+  PAYMENT_FAILURE = 'PAYMENT_FAILURE',
+  MESSAGE_RESPONSE_RATE = 'MESSAGE_RESPONSE_RATE',
+  SWIPE_ACTIVITY = 'SWIPE_ACTIVITY',
+  PROFILE_COMPLETION = 'PROFILE_COMPLETION',
+  SUBSCRIPTION_RENEWAL = 'SUBSCRIPTION_RENEWAL',
+  SESSION_DURATION = 'SESSION_DURATION',
+  MATCH_SUCCESS_RATE = 'MATCH_SUCCESS_RATE',
+  APP_OPEN_FREQUENCY = 'APP_OPEN_FREQUENCY',
+  FEATURE_USAGE = 'FEATURE_USAGE',
+  SUPPORT_TICKETS = 'SUPPORT_TICKETS',
+  NEGATIVE_FEEDBACK = 'NEGATIVE_FEEDBACK',
+}
+
+/**
+ * Retention campaign types
+ */
+export enum RetentionCampaignType {
+  REENGAGEMENT_EMAIL = 'REENGAGEMENT_EMAIL',
+  PUSH_NOTIFICATION = 'PUSH_NOTIFICATION',
+  IN_APP_MESSAGE = 'IN_APP_MESSAGE',
+  DISCOUNT_OFFER = 'DISCOUNT_OFFER',
+  PROFILE_BOOST = 'PROFILE_BOOST',
+  FREE_SUPER_LIKES = 'FREE_SUPER_LIKES',
+  PERSONALIZED_MATCHES = 'PERSONALIZED_MATCHES',
+  WIN_BACK_CAMPAIGN = 'WIN_BACK_CAMPAIGN',
+  FEEDBACK_REQUEST = 'FEEDBACK_REQUEST',
+  FEATURE_EDUCATION = 'FEATURE_EDUCATION',
+  VIP_SUPPORT = 'VIP_SUPPORT',
+  SUBSCRIPTION_PAUSE = 'SUBSCRIPTION_PAUSE',
+}
+
+/**
+ * Individual churn indicator with score and details
+ */
+export interface ChurnIndicator {
+  type: ChurnIndicatorType;
+  name: string;
+  description: string;
+  score: number;           // 0-1, higher = worse (more likely to churn)
+  weight: number;          // Model weight for this indicator
+  weightedScore: number;   // score * weight
+  trend: 'improving' | 'stable' | 'declining';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  dataPoints: {
+    current: number;
+    previous: number;
+    average: number;
+    percentile: number;   // Where user stands vs all users
+  };
+  lastUpdated: Date;
+}
+
+/**
+ * Feature weights for the churn prediction model
+ */
+export interface ChurnModelWeights {
+  id: string;
+  version: string;
+  createdAt: Date;
+  validFrom: Date;
+  validUntil?: Date;
+  isActive: boolean;
+
+  weights: {
+    [key in ChurnIndicatorType]: number;
+  };
+
+  // Model performance metrics
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  auc: number;
+
+  // Training metadata
+  trainingDataSize: number;
+  trainingPeriodStart: Date;
+  trainingPeriodEnd: Date;
+  modelType: 'logistic_regression' | 'gradient_boosting' | 'weighted_features';
+}
+
+/**
+ * Complete churn risk result for a user
+ */
+export interface ChurnRiskResult {
+  userId: string;
+  riskScore: number;       // 0-1 probability of churn
+  riskTier: ChurnRiskTier;
+  confidence: number;      // 0-1 confidence in prediction
+
+  // Breakdown
+  indicators: ChurnIndicator[];
+  topRiskFactors: ChurnIndicator[];  // Top 3-5 contributing factors
+  positiveSignals: ChurnIndicator[]; // Factors reducing churn risk
+
+  // Historical
+  previousRiskScore?: number;
+  riskTrend: 'increasing' | 'stable' | 'decreasing';
+  daysSinceLastPrediction?: number;
+
+  // Recommendations
+  recommendedCampaigns: RetentionCampaignType[];
+  interventionUrgency: 'immediate' | 'this_week' | 'this_month' | 'monitoring';
+
+  // Metadata
+  modelVersion: string;
+  predictedAt: Date;
+  nextPredictionAt: Date;
+}
+
+/**
+ * At-risk user summary for admin dashboard
+ */
+export interface AtRiskUser {
+  userId: string;
+  email?: string;
+  displayName?: string;
+
+  riskScore: number;
+  riskTier: ChurnRiskTier;
+  riskTrend: 'increasing' | 'stable' | 'decreasing';
+
+  // User value
+  subscriptionTier?: string;
+  ltv: number;
+  monthsActive: number;
+
+  // Key metrics
+  daysSinceLastLogin: number;
+  engagementScore: number;
+  topRiskFactor: ChurnIndicatorType;
+
+  // Intervention status
+  lastCampaignType?: RetentionCampaignType;
+  lastCampaignDate?: Date;
+  campaignResponseStatus?: 'pending' | 'engaged' | 'no_response';
+
+  predictedAt: Date;
+}
+
+/**
+ * Churn analytics summary for dashboard
+ */
+export interface ChurnAnalyticsSummary {
+  period: {
+    startDate: Date;
+    endDate: Date;
+  };
+
+  // Overall metrics
+  totalUsersAnalyzed: number;
+  atRiskUserCount: number;
+  atRiskPercentage: number;
+
+  // By tier
+  tierDistribution: {
+    [key in ChurnRiskTier]: {
+      count: number;
+      percentage: number;
+      avgLtv: number;
+    };
+  };
+
+  // Trends
+  riskTrends: {
+    date: Date;
+    avgRiskScore: number;
+    atRiskCount: number;
+    churnedCount: number;
+  }[];
+
+  // Indicator analysis
+  topRiskIndicators: {
+    indicator: ChurnIndicatorType;
+    avgScore: number;
+    affectedUsers: number;
+    contribution: number; // % contribution to overall churn risk
+  }[];
+
+  // Campaign effectiveness
+  campaignMetrics: {
+    campaignType: RetentionCampaignType;
+    sent: number;
+    engaged: number;
+    retained: number;
+    retentionRate: number;
+  }[];
+
+  // Predictions accuracy
+  predictionAccuracy: {
+    predicted: number;
+    actualChurned: number;
+    accuracy: number;
+  };
+}
+
+/**
+ * Historical churn prediction for a user
+ */
+export interface ChurnPredictionHistory {
+  id: string;
+  userId: string;
+  riskScore: number;
+  riskTier: ChurnRiskTier;
+  indicators: ChurnIndicator[];
+  modelVersion: string;
+  predictedAt: Date;
+  actualOutcome?: 'retained' | 'churned' | 'pending';
+  outcomeDate?: Date;
+}
+
+/**
+ * Retention campaign record
+ */
+export interface RetentionCampaignRecord {
+  id: string;
+  userId: string;
+  campaignType: RetentionCampaignType;
+  riskScoreAtTrigger: number;
+  riskTierAtTrigger: ChurnRiskTier;
+
+  // Campaign details
+  triggeredAt: Date;
+  sentAt?: Date;
+  deliveredAt?: Date;
+  engagedAt?: Date;
+
+  // Outcome
+  status: 'pending' | 'sent' | 'delivered' | 'engaged' | 'failed' | 'expired';
+  outcome?: 'retained' | 'churned' | 'pending';
+  riskScoreAfter?: number;
+
+  // Metadata
+  metadata?: Record<string, any>;
+  expiresAt: Date;
+}
+
+/**
+ * User behavior features for ML model
+ */
+export interface UserBehaviorFeatures {
+  userId: string;
+  extractedAt: Date;
+
+  // Login/Activity features
+  daysSinceLastLogin: number;
+  loginsLast7Days: number;
+  loginsLast30Days: number;
+  loginFrequencyTrend: number;  // -1 to 1 (declining to improving)
+  avgDaysBetweenLogins: number;
+
+  // Session features
+  avgSessionDurationMinutes: number;
+  totalSessionsLast30Days: number;
+  sessionDurationTrend: number;
+  avgScreensPerSession: number;
+
+  // Engagement features
+  swipesLast7Days: number;
+  swipesLast30Days: number;
+  swipeActivityTrend: number;
+  rightSwipeRatio: number;
+
+  // Match features
+  matchesLast30Days: number;
+  matchRate: number;
+  matchRateTrend: number;
+  avgTimeToFirstMessage: number; // hours
+
+  // Message features
+  messagesSentLast30Days: number;
+  messagesReceivedLast30Days: number;
+  responseRate: number;
+  responseRateTrend: number;
+  avgResponseTimeHours: number;
+  conversationsInitiated: number;
+
+  // Profile features
+  profileCompletionPercent: number;
+  photoCount: number;
+  lastProfileUpdateDays: number;
+  hasVerification: boolean;
+  bioLength: number;
+
+  // Subscription features
+  subscriptionTier: string;
+  subscriptionAge: number;       // days
+  daysUntilRenewal: number;
+  paymentFailuresLast90Days: number;
+  hasActiveSubscription: boolean;
+  previouslyPaidUser: boolean;
+
+  // Feature usage
+  usedBoostLast30Days: boolean;
+  usedSuperLikeLast30Days: boolean;
+  usedRewindLast30Days: boolean;
+  premiumFeaturesUsed: number;
+
+  // Support/Feedback
+  supportTicketsLast90Days: number;
+  appRating?: number;
+  hasReportedIssue: boolean;
+
+  // Derived features
+  engagementScore: number;       // 0-100
+  valueScore: number;            // 0-100
+  satisfactionIndicator: number; // 0-100
+}
+
+/**
+ * Model training data point
+ */
+export interface ChurnTrainingDataPoint {
+  userId: string;
+  features: UserBehaviorFeatures;
+  label: 0 | 1;          // 0 = retained, 1 = churned
+  churnedWithinDays: number;
+  extractedAt: Date;
+}
+
+/**
+ * Scheduled churn prediction job
+ */
+export interface ChurnPredictionJob {
+  id: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  startedAt?: Date;
+  completedAt?: Date;
+  usersProcessed: number;
+  usersTotal: number;
+  errorMessage?: string;
+  modelVersion: string;
+  createdAt: Date;
+}
+
+// =============================================
 // API RESPONSES
 // =============================================
 

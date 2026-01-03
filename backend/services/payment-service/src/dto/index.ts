@@ -15,6 +15,37 @@ export {
   IAPProvider,
 } from './iap.dto';
 
+// Dynamic Pricing DTOs
+export {
+  GetPersonalizedPriceDto,
+  GetRegionalPriceParamsDto,
+  GetRegionalPriceQueryDto,
+  GetPriceCatalogParamsDto,
+  ApplyPromoCodeDto,
+  GetActivePromotionsParamsDto,
+  GetActivePromotionsQueryDto,
+  ValidatePromoCodeParamsDto,
+  ValidatePromoCodeQueryDto,
+  CreatePromotionDto,
+  PromotionTargetingRulesDto,
+  RunPriceExperimentDto,
+  GetExperimentResultsParamsDto,
+  RecordExperimentConversionDto,
+  CreateExperimentDto,
+  ExperimentVariantDto,
+  ExperimentTargetingRulesDto,
+  ExperimentExclusionRulesDto,
+  SuccessMetricDto,
+  ExperimentIdParamDto,
+  GetAvailableBundlesParamsDto,
+  GetAvailableBundlesQueryDto,
+  CalculatePersonalizedPricingParamsDto,
+  UpdateRegionalPricingParamsDto,
+  UpdateRegionalPricingDto,
+  TierPriceOverrideDto,
+  RecordPromotionUsageDto,
+} from './dynamic-pricing.dto';
+
 // Validation middleware
 export {
   validateBody,

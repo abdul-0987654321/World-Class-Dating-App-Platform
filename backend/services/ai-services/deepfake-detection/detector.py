@@ -3,13 +3,17 @@ ML-based Deepfake Detection Service.
 
 Implements comprehensive deepfake detection using:
 - EfficientNet-B4 for face forgery classification
+- AWS Rekognition for face analysis
 - Frequency domain analysis for GAN fingerprints
 - Facial consistency checks
-- Temporal analysis for video
+- Temporal analysis for video (blink detection, lip sync)
+- Metadata consistency analysis
+- Ensemble scoring from multiple detection methods
 """
 
 import io
 import logging
+import os
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -23,6 +27,18 @@ from scipy import fftpack
 
 from models.efficientnet_detector import EfficientNetDeepfakeDetector
 from models.face_extractor import FaceExtractor, FaceRegion
+
+# Import enhanced services
+try:
+    from services.ensemble_detector import (
+        EnsembleDeepfakeDetector,
+        DeepfakeResult as EnsembleResult,
+        VideoDeepfakeResult,
+        EnsembleWeight,
+    )
+    ENSEMBLE_AVAILABLE = True
+except ImportError:
+    ENSEMBLE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -764,3 +780,217 @@ class DeepfakeDetector:
 
         confidence = 0.5 + score_confidence * 0.3 + face_boost + indicator_boost
         return min(max(confidence, 0.0), 1.0)
+
+
+class EnhancedDeepfakeDetector:
+    """
+    Enhanced deepfake detector with ensemble methods.
+
+    This class wraps the EnsembleDeepfakeDetector and provides
+    a unified interface for both image and video analysis.
+
+    Features:
+    - ML-based detection (EfficientNet)
+    - AWS Rekognition face analysis
+    - Frequency domain GAN artifact detection
+    - Video temporal analysis (blink, lip sync)
+    - Metadata consistency checking
+    - Ensemble scoring
+    """
+
+    def __init__(
+        self,
+        model_path: Optional[str] = None,
+        device: Optional[str] = None,
+        detection_threshold: float = 0.5,
+        enable_rekognition: bool = True,
+        aws_region: str = "us-east-1",
+    ):
+        """
+        Initialize enhanced detector.
+
+        Args:
+            model_path: Path to ML model weights
+            device: PyTorch device ('cuda' or 'cpu')
+            detection_threshold: Threshold for deepfake classification
+            enable_rekognition: Whether to use AWS Rekognition
+            aws_region: AWS region for Rekognition
+        """
+        self.detection_threshold = detection_threshold
+        self._initialized = False
+
+        if ENSEMBLE_AVAILABLE:
+            self._ensemble = EnsembleDeepfakeDetector(
+                model_path=model_path,
+                device=device,
+                detection_threshold=detection_threshold,
+                enable_rekognition=enable_rekognition,
+                aws_region=aws_region,
+            )
+            logger.info("Enhanced detector using ensemble methods")
+        else:
+            # Fallback to basic detector
+            self._ensemble = None
+            self._basic_detector = DeepfakeDetector(
+                model_path=model_path,
+                device=device,
+                detection_threshold=detection_threshold,
+            )
+            logger.info("Enhanced detector using basic methods (ensemble not available)")
+
+    async def initialize(self) -> None:
+        """Initialize the detector."""
+        if self._initialized:
+            return
+
+        if self._ensemble:
+            await self._ensemble.initialize()
+        else:
+            await self._basic_detector.initialize()
+
+        self._initialized = True
+        logger.info("EnhancedDeepfakeDetector initialized")
+
+    async def close(self) -> None:
+        """Cleanup resources."""
+        if self._ensemble:
+            await self._ensemble.close()
+        elif hasattr(self, '_basic_detector'):
+            await self._basic_detector.close()
+
+        self._initialized = False
+        logger.info("EnhancedDeepfakeDetector closed")
+
+    async def analyze_image(
+        self,
+        image_bytes: bytes,
+        filename: Optional[str] = None,
+    ) -> DetectionResult:
+        """
+        Analyze an image for deepfake indicators.
+
+        Args:
+            image_bytes: Raw image bytes
+            filename: Optional filename for metadata analysis
+
+        Returns:
+            DetectionResult with comprehensive analysis
+        """
+        if not self._initialized:
+            await self.initialize()
+
+        if self._ensemble:
+            result = await self._ensemble.analyze_image(image_bytes, filename)
+
+            return DetectionResult(
+                is_deepfake=result.is_deepfake,
+                confidence=result.confidence,
+                deepfake_score=result.deepfake_score,
+                indicators=result.indicators,
+                face_count=result.face_count,
+                analysis_details={
+                    **result.analysis_details,
+                    "method_results": [
+                        {
+                            "method": r.method.value,
+                            "score": r.score,
+                            "confidence": r.confidence,
+                            "indicators": r.indicators,
+                        }
+                        for r in result.method_results
+                    ],
+                    "detection_reasons": result.detection_reasons,
+                },
+            )
+        else:
+            return await self._basic_detector.analyze_image(image_bytes)
+
+    async def analyze_video(
+        self,
+        video_bytes: bytes,
+        max_frames: int = 300,
+        sample_fps: float = 2.0,
+    ) -> VideoAnalysisResult:
+        """
+        Analyze a video for deepfake indicators.
+
+        Args:
+            video_bytes: Raw video bytes
+            max_frames: Maximum frames to analyze
+            sample_fps: Frames per second to sample
+
+        Returns:
+            VideoAnalysisResult with comprehensive analysis
+        """
+        if not self._initialized:
+            await self.initialize()
+
+        if self._ensemble:
+            result = await self._ensemble.analyze_video(video_bytes, max_frames, sample_fps)
+
+            return VideoAnalysisResult(
+                is_deepfake=result.is_deepfake,
+                confidence=result.confidence,
+                deepfake_score=result.deepfake_score,
+                frame_count=result.frame_count,
+                suspicious_frames=result.suspicious_frames,
+                indicators=result.indicators,
+                temporal_consistency_score=result.temporal_consistency_score,
+                blink_analysis=result.blink_analysis,
+            )
+        else:
+            # Use basic detector with frame extraction
+            from utils.video_utils import extract_frames
+            frames = extract_frames(video_bytes, max_frames=max_frames, fps_sample=sample_fps)
+            return await self._basic_detector.check_facial_consistency(frames)
+
+    def get_confidence_score(self, result: DetectionResult) -> float:
+        """Get confidence score from a result."""
+        return result.confidence
+
+    def get_detection_reasons(self, result: DetectionResult) -> List[str]:
+        """Get detection reasons from a result."""
+        reasons = result.analysis_details.get("detection_reasons", [])
+        if not reasons and result.is_deepfake:
+            # Generate basic reasons from indicators
+            reasons = [f"Detected: {ind}" for ind in result.indicators[:5]]
+        return reasons
+
+
+# Factory function for creating the appropriate detector
+def create_detector(
+    model_path: Optional[str] = None,
+    device: Optional[str] = None,
+    detection_threshold: float = 0.5,
+    use_ensemble: bool = True,
+    enable_rekognition: bool = True,
+    aws_region: str = "us-east-1",
+) -> "DeepfakeDetector":
+    """
+    Create a deepfake detector instance.
+
+    Args:
+        model_path: Path to ML model weights
+        device: PyTorch device
+        detection_threshold: Detection threshold
+        use_ensemble: Whether to use ensemble detection
+        enable_rekognition: Whether to enable AWS Rekognition
+        aws_region: AWS region for Rekognition
+
+    Returns:
+        DeepfakeDetector or EnhancedDeepfakeDetector instance
+    """
+    if use_ensemble and ENSEMBLE_AVAILABLE:
+        return EnhancedDeepfakeDetector(
+            model_path=model_path,
+            device=device,
+            detection_threshold=detection_threshold,
+            enable_rekognition=enable_rekognition,
+            aws_region=aws_region,
+        )
+    else:
+        return DeepfakeDetector(
+            model_path=model_path,
+            device=device,
+            detection_threshold=detection_threshold,
+        )

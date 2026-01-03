@@ -937,3 +937,103 @@ resource "aws_cloudwatch_metric_alarm" "api_health" {
 
   tags = local.common_tags
 }
+
+################################################################################
+# SES Module (Email Infrastructure)
+# AWS-Native email service - replaces SendGrid
+################################################################################
+
+module "ses" {
+  source = "../../modules/ses"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+  domain              = var.domain_name
+  mail_from_subdomain = "mail"
+
+  route53_zone_id            = module.route53.public_zone_id
+  create_dns_records         = var.create_route53_zone
+  create_verification_record = var.create_route53_zone
+
+  dmarc_policy = "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@${var.domain_name}"
+
+  enable_reputation_metrics = true
+  enable_cloudwatch_metrics = true
+
+  # Bounce/complaint handling via SNS
+  bounce_topic_arn    = module.messaging.topic_arns["user-events"]
+  complaint_topic_arn = module.messaging.topic_arns["user-events"]
+
+  allowed_from_addresses = [
+    "noreply@${var.domain_name}",
+    "support@${var.domain_name}",
+    "hello@${var.domain_name}",
+    "*@${var.domain_name}"
+  ]
+
+  tags = local.common_tags
+}
+
+################################################################################
+# Budgets Module (Cost Control)
+# Enforces budget alerts and cost monitoring
+################################################################################
+
+module "budgets" {
+  source = "../../modules/budgets"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  monthly_budget_amount = var.monthly_budget_limit
+  budget_start_date     = "2024-01-01_00:00"
+
+  alert_email_addresses = var.alarm_email_endpoints
+  alert_sns_topic_arns  = [module.monitoring.sns_topic_arn]
+
+  create_service_budgets = true
+  eks_budget_amount      = var.eks_budget_limit
+  rds_budget_amount      = var.rds_budget_limit
+  s3_budget_amount       = var.s3_budget_limit
+
+  enable_budget_actions = false # Enable after review
+
+  tags = local.common_tags
+}
+
+################################################################################
+# CI/CD Module (CodePipeline + CodeBuild + Nightly Builds)
+# Includes EventBridge trigger for 9 PM nightly production builds
+################################################################################
+
+module "cicd" {
+  source = "../../modules/cicd"
+
+  project_name     = var.project_name
+  environment      = var.environment
+  eks_cluster_name = module.eks.cluster_name
+  eks_cluster_arn  = module.eks.cluster_arn
+  kms_key_arn      = module.eks.kms_key_arn
+
+  github_repository       = var.github_repository
+  github_branch           = var.github_branch
+  codestar_connection_arn = var.codestar_connection_arn
+  create_github_connection = var.codestar_connection_arn == ""
+
+  # Build all microservices
+  services = { for service in local.microservices : service => {
+    enabled = true
+  } }
+
+  # Enable nightly builds at 9 PM UTC
+  enable_nightly_build   = true
+  nightly_build_schedule = "cron(0 21 * * ? *)"
+
+  # Pipeline notifications
+  create_notification_topic    = true
+  notification_email_addresses = var.alarm_email_endpoints
+
+  tags = local.common_tags
+}

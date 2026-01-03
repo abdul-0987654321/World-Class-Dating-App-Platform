@@ -1,0 +1,50 @@
+{
+  "name": "@flamoral/partnership-service",
+  "version": "1.0.0",
+  "description": "Partnership service for restaurant reservations, event tickets, and gift delivery",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "migrate": "knex migrate:latest --knexfile src/infrastructure/database/knexfile.ts",
+    "migrate:rollback": "knex migrate:rollback --knexfile src/infrastructure/database/knexfile.ts"
+  },
+  "dependencies": {
+    "@flamoral/backend-shared": "workspace:*",
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "knex": "^3.1.0",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.14",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.2"
+  },
+  "keywords": [
+    "dating",
+    "partnership",
+    "reservations",
+    "tickets",
+    "gifts",
+    "affiliate"
+  ],
+  "author": "Flamoral Team",
+  "license": "MIT"
+}

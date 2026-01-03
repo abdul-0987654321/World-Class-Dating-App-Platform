@@ -1,17 +1,24 @@
 """
 FastAPI application for ML-based Deepfake Detection Service.
 
+Enhanced with:
+- Ensemble detection methods (ML + Rekognition + Frequency + Temporal)
+- AWS Rekognition integration
+- Advanced video analysis (blink detection, lip sync)
+- Metadata consistency checking
+
 Endpoints:
 - POST /api/v1/deepfake/analyze-image - Analyze image for deepfakes
 - POST /api/v1/deepfake/analyze-video - Analyze video for deepfakes
 - GET /api/v1/deepfake/health - Health check
+- GET /api/v1/deepfake/capabilities - List detection capabilities
 """
 
 import io
 import os
 import logging
 from contextlib import asynccontextmanager
-from typing import List, Optional, AsyncGenerator
+from typing import List, Optional, AsyncGenerator, Dict, Any
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +33,13 @@ from PIL import Image
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
-from detector import DeepfakeDetector, DetectionResult, VideoAnalysisResult
+from detector import (
+    DeepfakeDetector,
+    EnhancedDeepfakeDetector,
+    DetectionResult,
+    VideoAnalysisResult,
+    create_detector,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -48,6 +61,16 @@ class Settings(BaseSettings):
     max_video_frames: int = 300  # Max frames to analyze
     allowed_image_types: List[str] = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
     allowed_video_types: List[str] = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm"]
+
+    # Ensemble detection settings
+    use_ensemble: bool = True
+    enable_rekognition: bool = True
+    aws_region: str = "us-east-1"
+
+    # Video analysis settings
+    video_sample_fps: float = 2.0
+    enable_blink_detection: bool = True
+    enable_lip_sync_analysis: bool = True
 
     class Config:
         env_prefix = "DEEPFAKE_"
@@ -81,6 +104,14 @@ class ImageAnalyzeRequest(BaseModel):
     user_id: Optional[str] = Field(None, description="User ID for logging")
 
 
+class MethodResultResponse(BaseModel):
+    """Result from a single detection method."""
+    method: str = Field(..., description="Detection method name")
+    score: float = Field(..., ge=0, le=1, description="Method-specific score")
+    confidence: float = Field(..., ge=0, le=1, description="Method confidence")
+    indicators: List[str] = Field(default_factory=list, description="Method-specific indicators")
+
+
 class ImageAnalyzeResponse(BaseModel):
     """Response from image deepfake analysis."""
     is_deepfake: bool = Field(..., description="Whether image is likely a deepfake")
@@ -89,6 +120,8 @@ class ImageAnalyzeResponse(BaseModel):
     indicators: List[str] = Field(default_factory=list, description="Detected deepfake indicators")
     face_count: int = Field(default=0, description="Number of faces detected")
     analysis_details: dict = Field(default_factory=dict, description="Detailed analysis results")
+    detection_reasons: List[str] = Field(default_factory=list, description="Human-readable detection reasons")
+    method_results: List[MethodResultResponse] = Field(default_factory=list, description="Per-method results")
 
 
 class VideoAnalyzeRequest(BaseModel):
@@ -108,6 +141,8 @@ class VideoAnalyzeResponse(BaseModel):
     indicators: List[str] = Field(default_factory=list, description="Detected deepfake indicators")
     temporal_consistency_score: float = Field(..., ge=0, le=1, description="Temporal consistency score")
     blink_analysis: dict = Field(default_factory=dict, description="Eye blink analysis results")
+    lip_sync_analysis: dict = Field(default_factory=dict, description="Lip sync analysis results")
+    detection_reasons: List[str] = Field(default_factory=list, description="Human-readable detection reasons")
 
 
 class HealthResponse(BaseModel):
@@ -117,26 +152,42 @@ class HealthResponse(BaseModel):
     version: str
     model_loaded: bool
     device: str
+    ensemble_enabled: bool = False
+    rekognition_enabled: bool = False
+
+
+class CapabilitiesResponse(BaseModel):
+    """Detection capabilities response."""
+    detection_methods: List[str] = Field(default_factory=list, description="Available detection methods")
+    supported_image_types: List[str] = Field(default_factory=list, description="Supported image formats")
+    supported_video_types: List[str] = Field(default_factory=list, description="Supported video formats")
+    max_file_size_mb: int = Field(..., description="Maximum file size in MB")
+    features: Dict[str, bool] = Field(default_factory=dict, description="Feature flags")
 
 
 # Application lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Application lifespan handler."""
-    logger.info("Starting Deepfake Detection Service")
+    logger.info("Starting Deepfake Detection Service (Enhanced)")
 
-    # Initialize detector
-    detector = DeepfakeDetector(
+    # Initialize enhanced detector using factory
+    detector = create_detector(
         model_path=settings.model_path,
         detection_threshold=settings.detection_threshold,
+        use_ensemble=settings.use_ensemble,
+        enable_rekognition=settings.enable_rekognition,
+        aws_region=settings.aws_region,
     )
     await detector.initialize()
     app.state.detector = detector
+    app.state.use_ensemble = settings.use_ensemble
+    app.state.enable_rekognition = settings.enable_rekognition
 
     # Initialize HTTP client
     app.state.http_client = httpx.AsyncClient(timeout=60.0)
 
-    logger.info("Deepfake Detection Service started successfully")
+    logger.info(f"Deepfake Detection Service started (ensemble={settings.use_ensemble}, rekognition={settings.enable_rekognition})")
 
     yield
 

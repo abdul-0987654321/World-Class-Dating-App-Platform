@@ -1,5 +1,12 @@
 /**
  * SMS Notification Service (Twilio)
+ *
+ * @deprecated This service uses Twilio which violates AWS-only constraints.
+ * Use SNSSMSService from './sns-sms.service' instead.
+ * This file is maintained only for backward compatibility during migration.
+ *
+ * Migration: Replace all imports of this service with:
+ *   import { snsSMSService } from './sns-sms.service';
  */
 
 import twilio from 'twilio';

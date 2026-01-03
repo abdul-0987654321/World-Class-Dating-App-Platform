@@ -15,6 +15,7 @@ import targetingRoutes from './api/routes/targeting.routes';
 import creativeRoutes from './api/routes/creative.routes';
 import optimizationRoutes from './api/routes/optimization.routes';
 import innovationsRoutes from './api/routes/innovations.routes';
+import adRevenueRoutes from './api/routes/ad-revenue.routes';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
@@ -101,6 +102,7 @@ app.use('/api/v1/targeting', targetingRoutes);
 app.use('/api/v1/creative', creativeRoutes);
 app.use('/api/v1/optimization', optimizationRoutes);
 app.use('/api/v1/innovations', innovationsRoutes);
+app.use('/api/v1/ads', adRevenueRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -126,11 +128,12 @@ app.listen(PORT, () => {
   ║         Flamoral Advertising Service                               ║
   ║         AI-Powered Dating App Advertising Platform                 ║
   ╠════════════════════════════════════════════════════════════════════╣
-  ║  Features: 40 total                                                ║
+  ║  Features: 43 total                                                ║
   ║  - Audience Targeting & Segmentation: 10 features                  ║
   ║  - AI-Enhanced Ad Creative: 10 features                            ║
   ║  - Optimization & Performance: 10 features                         ║
   ║  - Dating-Specific Ad Innovations: 10 features                     ║
+  ║  - Ad Revenue (Banner, Interstitial, Rewarded): 3 features         ║
   ╠════════════════════════════════════════════════════════════════════╣
   ║  Server running on port ${PORT}                                      ║
   ╚════════════════════════════════════════════════════════════════════╝

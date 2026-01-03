@@ -1,40 +1,62 @@
 import { Router } from 'express';
 import { GamificationController } from '../controllers/Gamification.controller';
+import { EnhancedGamificationController } from '../controllers/EnhancedGamification.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 const controller = new GamificationController();
+const enhancedController = new EnhancedGamificationController();
 
-// Public routes
+// =============================================
+// PUBLIC ROUTES
+// =============================================
 router.get('/levels', controller.getLevelDefinitions);
 router.get('/badges', controller.getAllBadges);
+router.get('/streaks/leaderboard', enhancedController.getStreakLeaderboard);
 
-// Protected routes - require authentication
+// =============================================
+// PROTECTED ROUTES - require authentication
+// =============================================
 router.use(authenticate);
 
-// Overview/Dashboard
-router.get('/dashboard', controller.getDashboard);
+// UNIFIED DASHBOARD - Get all gamification data at once
+router.get('/dashboard', enhancedController.getGamificationDashboard);
 
-// Experience & Levels
+// DAILY REWARDS
+router.get('/daily-rewards/status', enhancedController.getDailyRewardStatus);
+router.post('/daily-rewards/claim', enhancedController.claimDailyReward);
+
+// ACHIEVEMENT BADGES
+router.get('/achievements', enhancedController.getAchievementBadges);
+router.get('/achievements/unlocked', enhancedController.getUnlockedBadges);
+router.put('/achievements/:badgeId/display', enhancedController.toggleBadgeDisplay);
+
+// STREAKS
+router.get('/streaks', enhancedController.getStreaks);
+router.post('/streaks/protect', enhancedController.protectStreak);
+
+// COINS & WALLET
+router.get('/wallet', enhancedController.getCoinWallet);
+router.get('/shop', enhancedController.getCoinShop);
+
+// LEVELS & XP
+router.get('/level', enhancedController.getLevelInfo);
+
+// LEGACY ENDPOINTS (maintained for backward compatibility)
 router.get('/experience', controller.getUserExperience);
 router.get('/experience/transactions', controller.getXPTransactions);
 router.get('/experience/leaderboard', controller.getXPLeaderboard);
-
-// Streaks
-router.get('/streaks', controller.getUserStreaks);
-router.post('/streaks/protect', controller.protectStreak);
-router.get('/streaks/leaderboard', controller.getStreakLeaderboard);
 
 // Challenges
 router.get('/challenges/active', controller.getActiveChallenges);
 router.get('/challenges/available', controller.getAvailableChallenges);
 router.post('/challenges/start', controller.startChallenge);
 
-// Badges
+// Profile Badges (different from achievement badges)
 router.get('/badges/user', controller.getUserBadges);
 router.put('/badges/:badgeId/equip', controller.equipBadge);
 
-// Webhook endpoints (should add internal auth middleware in production)
-router.post('/track', controller.trackAction);
+// INTERNAL ACTION TRACKING
+router.post('/track', enhancedController.trackAction);
 
 export default router;

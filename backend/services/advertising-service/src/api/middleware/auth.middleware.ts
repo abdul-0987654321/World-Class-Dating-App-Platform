@@ -347,3 +347,6 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000);
+
+// Export authenticateJWT as authMiddleware for backward compatibility
+export const authMiddleware = authenticateJWT;

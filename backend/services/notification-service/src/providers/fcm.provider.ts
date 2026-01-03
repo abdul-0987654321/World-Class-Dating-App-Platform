@@ -1,6 +1,13 @@
 /**
  * Firebase Cloud Messaging (FCM) Provider
  * Handles push notifications for Android and iOS via Firebase
+ *
+ * @deprecated This provider uses Firebase which violates AWS-only constraints.
+ * Use SNSPushProvider from './sns-push.provider' instead.
+ * This file is maintained only for backward compatibility during migration.
+ *
+ * Migration: Replace all imports of this provider with:
+ *   import { snsPushProvider } from './sns-push.provider';
  */
 
 import * as admin from 'firebase-admin';

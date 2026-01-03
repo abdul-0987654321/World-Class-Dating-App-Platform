@@ -9,6 +9,7 @@ import authRoutes from './api/routes/auth.routes';
 import profileRoutes from './api/routes/profile.routes';
 import verificationRoutes from './api/routes/verification.routes';
 import idVerificationRoutes from './api/routes/id-verification.routes';
+import documentVerificationRoutes from './api/routes/document-verification.routes';
 import backgroundCheckRoutes from './api/routes/background-check.routes';
 import phoneVerificationRoutes from './api/routes/phone-verification.routes';
 import passwordResetRoutes from './api/routes/password-reset.routes';
@@ -35,6 +36,8 @@ import referralRoutes from './api/routes/referral.routes';
 import challengeRoutes from './api/routes/challenge.routes';
 import datePlanningRoutes from './api/routes/date-planning.routes';
 import eliteRoutes from './api/routes/elite.routes';
+import dailyRewardRoutes from './api/routes/dailyReward.routes';
+import gamificationRoutes from './api/routes/gamification.routes';
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import swaggerSpec from './config/swagger.config';
 import { uploadService } from './infrastructure/storage/upload.service';
@@ -151,6 +154,7 @@ app.get('/', (_req: Request, res: Response) => {
       profile: '/api/v1/profile',
       verification: '/api/v1/verification',
       idVerification: '/api/v1/verification/id',
+      documentVerification: '/api/v1/verification/document',
       backgroundCheck: '/api/v1/verification/background',
       phone: '/api/v1/phone',
       passwordReset: '/api/v1/password-reset',
@@ -177,6 +181,8 @@ app.get('/', (_req: Request, res: Response) => {
       challenges: '/api/v1/challenges',
       dates: '/api/v1/dates',
       elite: '/api/v1/elite',
+      dailyRewards: '/api/v1/daily-rewards',
+      gamification: '/api/v1/gamification',
     },
   });
 });
@@ -186,6 +192,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/verification', verificationRoutes);
 app.use('/api/v1/verification/id', idVerificationRoutes);
+app.use('/api/v1/verification/document', documentVerificationRoutes);
 app.use('/api/v1/verification/background', backgroundCheckRoutes);
 app.use('/api/v1/phone', phoneVerificationRoutes);
 app.use('/api/v1/password-reset', passwordResetRoutes);
@@ -219,6 +226,10 @@ app.use('/api/v1/dates', datePlanningRoutes);
 
 // Elite tier routes (VIP Events, Dating Coach, Concierge)
 app.use('/api/v1/elite', eliteRoutes);
+
+// Daily rewards and gamification routes
+app.use('/api/v1/daily-rewards', dailyRewardRoutes);
+app.use('/api/v1/gamification', gamificationRoutes);
 
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/v1/internal', internalRoutes);

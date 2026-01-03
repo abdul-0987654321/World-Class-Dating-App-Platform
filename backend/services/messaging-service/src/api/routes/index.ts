@@ -4,13 +4,15 @@ import messageRoutes from './message.routes';
 import encryptionKeysRoutes from './encryption-keys.routes';
 import giftsRoutes from './gifts.routes';
 import moderationRoutes from './moderation.routes';
+import mediaMessagingRoutes from './media-messaging.routes';
+import enhancedMessagingRoutes from './enhanced-messaging.routes';
 import { messageController } from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validateQuery, GetMessagesQueryDto } from '../../dto';
 
 const router = Router();
 
-// Mount conversation routes
+// Mount conversation routes (includes typing indicators)
 router.use('/conversations', conversationRoutes);
 
 // Mount message routes
@@ -24,6 +26,12 @@ router.use('/gifts', giftsRoutes);
 
 // Mount moderation routes (safety features)
 router.use('/moderation', moderationRoutes);
+
+// Mount media messaging routes (photo sharing, voice messages)
+router.use('/', mediaMessagingRoutes);
+
+// Mount enhanced messaging routes (GIFs, reactions, pinning, search, icebreakers)
+router.use('/', enhancedMessagingRoutes);
 
 // Add conversation messages route (REST convention: /conversations/:id/messages)
 router.get(

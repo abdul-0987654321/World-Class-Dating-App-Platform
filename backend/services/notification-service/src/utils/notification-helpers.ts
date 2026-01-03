@@ -1,12 +1,16 @@
 /**
  * Notification Helper Utilities
+ *
+ * Uses AWS SNS for push notifications (AWS-Only compliance)
  */
 
 import { NotificationType } from '../types';
 import { notificationTemplateService } from '../services/notification-template.service';
 import { quietHoursService } from '../services/quiet-hours.service';
-import { fcmProvider } from '../providers/fcm.provider';
-import { apnsProvider } from '../providers/apns.provider';
+import { snsPushProvider } from '../providers/sns-push.provider';
+// Deprecated providers - kept for backward compatibility
+// import { fcmProvider } from '../providers/fcm.provider';
+// import { apnsProvider } from '../providers/apns.provider';
 import logger from './logger';
 
 export interface SendNotificationParams {
@@ -93,6 +97,7 @@ export async function sendNotificationWithTemplate(
 
 /**
  * Validate device tokens
+ * Uses AWS SNS for endpoint validation
  */
 export async function validateDeviceTokens(
   tokens: Array<{ token: string; platform: 'ios' | 'android' | 'web' }>
@@ -107,12 +112,17 @@ export async function validateDeviceTokens(
     try {
       let isValid = false;
 
-      if (platform === 'ios') {
-        // APNs token validation
+      // Check if token is an SNS endpoint ARN
+      if (token.startsWith('arn:aws:sns:')) {
+        // Validate SNS endpoint
+        isValid = await snsPushProvider.validateEndpoint(token);
+      } else if (platform === 'ios') {
+        // APNs token validation (raw token format check)
         isValid = token.length === 64 && /^[a-fA-F0-9]+$/.test(token);
       } else {
-        // FCM token validation
-        isValid = await fcmProvider.validateToken(token);
+        // Android/Web token - basic format validation
+        // In production, these should be registered with SNS first
+        isValid = token.length > 100; // FCM tokens are typically 150+ chars
       }
 
       if (isValid) {

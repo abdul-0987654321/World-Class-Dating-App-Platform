@@ -11,12 +11,14 @@ import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
+import { DiscoveryFeaturePage } from './pages/Discovery/DiscoveryFeaturePage';
 import { MatchesPage } from './pages/Matches/MatchesPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { ProfileEditPage } from './pages/Profile/ProfileEditPage';
 import { SafetyCenterPage } from './pages/Safety/SafetyCenterPage';
 import { GamificationPage } from './pages/Gamification/GamificationPage';
+import { EnhancedGamificationPage } from './pages/Gamification/EnhancedGamificationPage';
 import { CommunitiesPage } from './pages/Communities/CommunitiesPage';
 import { SpeedDatingPage } from './pages/SpeedDating/SpeedDatingPage';
 import { ReferralPage } from './pages/Referral/ReferralPage';
@@ -124,6 +126,9 @@ const App: React.FC = () => {
 
         {/* Protected routes */}
         <Route path="/discover" element={
+          <ProtectedRoute><DiscoveryFeaturePage /></ProtectedRoute>
+        } />
+        <Route path="/discover/simple" element={
           <ProtectedRoute><DiscoveryPage /></ProtectedRoute>
         } />
         <Route path="/matches" element={
@@ -139,6 +144,9 @@ const App: React.FC = () => {
           <ProtectedRoute><SafetyCenterPage /></ProtectedRoute>
         } />
         <Route path="/rewards" element={
+          <ProtectedRoute><EnhancedGamificationPage /></ProtectedRoute>
+        } />
+        <Route path="/rewards/old" element={
           <ProtectedRoute><GamificationPage /></ProtectedRoute>
         } />
         <Route path="/communities" element={

@@ -18,6 +18,10 @@ export { communitiesService } from './communities.service';
 export { speedDatingService } from './speed-dating.service';
 export { referralService } from './referral.service';
 
+// Discovery Feature Services
+export { curatedPicksService } from './curated-picks.service';
+export { passportService } from './passport.service';
+
 // Safety & Moderation Services
 export { safetyService } from './safety.service';
 export { moderationService } from './moderation.service';
@@ -117,6 +121,20 @@ export type {
   ReferralStats,
   ReferralLeaderboardEntry,
 } from './referral.service';
+
+// Re-export types from curated picks service
+export type {
+  CuratedPick,
+  CuratedPickProfile,
+  CuratedPicksResponse,
+} from './curated-picks.service';
+
+// Re-export types from passport service
+export type {
+  PassportLocation,
+  PopularDestination,
+  PassportStatus,
+} from './passport.service';
 
 // Policy Service
 export { policyService } from './policy.service';

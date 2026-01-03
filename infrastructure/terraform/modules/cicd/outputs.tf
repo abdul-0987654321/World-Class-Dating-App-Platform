@@ -51,3 +51,22 @@ output "github_connection_status" {
   description = "Status of the GitHub connection (needs to be AVAILABLE)"
   value       = var.create_github_connection ? aws_codestarconnections_connection.github[0].connection_status : "EXTERNAL"
 }
+
+################################################################################
+# Nightly Build Outputs
+################################################################################
+
+output "nightly_build_rule_arn" {
+  description = "ARN of the EventBridge rule for nightly builds"
+  value       = var.enable_nightly_build ? aws_cloudwatch_event_rule.nightly_build[0].arn : null
+}
+
+output "nightly_build_schedule" {
+  description = "Schedule expression for nightly builds"
+  value       = var.enable_nightly_build ? var.nightly_build_schedule : null
+}
+
+output "pipeline_notification_topic_arn" {
+  description = "ARN of the SNS topic for pipeline notifications"
+  value       = var.create_notification_topic ? aws_sns_topic.pipeline_notifications[0].arn : null
+}

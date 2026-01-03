@@ -19,6 +19,8 @@ import recommendationRoutes from './api/routes/recommendation.routes';
 import searchRoutes from './api/routes/search.routes';
 import internalRoutes from './api/routes/internal.routes';
 import speedDatingRoutes from './api/routes/speed-dating.routes';
+import curatedPicksRoutes from './api/routes/curated-picks.routes';
+import passportRoutes from './api/routes/passport.routes';
 import config from './config';
 import matchExpirationJob from './jobs/match-expiration.job';
 import speedDatingJob from './jobs/speed-dating.job';
@@ -111,6 +113,8 @@ app.get('/', (_req: Request, res: Response) => {
       recommendations: '/api/v1/recommendations',
       search: '/api/v1/search',
       speedDating: '/api/v1/speed-dating',
+      curatedPicks: '/api/v1/discovery/curated-picks',
+      passport: '/api/v1/discovery/passport',
     },
   });
 });
@@ -122,6 +126,8 @@ app.use('/api/v1/matches', matchRoutes);
 app.use('/api/v1/recommendations', recommendationRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/speed-dating', speedDatingRoutes);
+app.use('/api/v1/discovery/curated-picks', curatedPicksRoutes);
+app.use('/api/v1/discovery/passport', passportRoutes);
 
 // Internal API Routes (service-to-service)
 app.use('/api/v1/internal/matches', internalRoutes);

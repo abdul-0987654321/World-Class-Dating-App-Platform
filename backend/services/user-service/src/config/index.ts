@@ -159,4 +159,59 @@ export default {
       maxResults: parseInt(process.env.VENUE_MAX_RESULTS || '20', 10),
     },
   },
+
+  /**
+   * AWS Textract Configuration for Document OCR
+   * Used for document verification with OCR text extraction
+   */
+  textract: {
+    // AWS Region for Textract
+    region: process.env.AWS_TEXTRACT_REGION || process.env.AWS_REGION || 'us-east-1',
+
+    // AWS Credentials (can use IAM roles in production)
+    accessKeyId: process.env.AWS_TEXTRACT_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_TEXTRACT_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
+
+    // Request configuration
+    maxRetries: parseInt(process.env.AWS_TEXTRACT_MAX_RETRIES || '3', 10),
+    requestTimeout: parseInt(process.env.AWS_TEXTRACT_TIMEOUT || '30000', 10),
+
+    // Optional S3 bucket for async processing of large documents
+    s3Bucket: process.env.AWS_TEXTRACT_S3_BUCKET || '',
+  },
+
+  /**
+   * Document Verification Configuration
+   * OCR-based document verification settings
+   */
+  documentVerification: {
+    // Verification thresholds (0-1 scale)
+    thresholds: {
+      minimumExtractionConfidence: parseFloat(process.env.DOC_MIN_EXTRACTION_CONFIDENCE || '0.7'),
+      minimumFieldConfidence: parseFloat(process.env.DOC_MIN_FIELD_CONFIDENCE || '0.6'),
+      minimumProfileMatchScore: parseFloat(process.env.DOC_MIN_PROFILE_MATCH || '0.8'),
+      minimumAuthenticityScore: parseFloat(process.env.DOC_MIN_AUTHENTICITY || '0.85'),
+      autoApproveThreshold: parseFloat(process.env.DOC_AUTO_APPROVE_THRESHOLD || '0.95'),
+      autoRejectThreshold: parseFloat(process.env.DOC_AUTO_REJECT_THRESHOLD || '0.4'),
+      manualReviewThreshold: parseFloat(process.env.DOC_MANUAL_REVIEW_THRESHOLD || '0.7'),
+    },
+
+    // Data retention settings (GDPR compliance)
+    dataRetention: {
+      verificationDataDays: parseInt(process.env.DOC_RETENTION_VERIFICATION || '365', 10),
+      auditLogDays: parseInt(process.env.DOC_RETENTION_AUDIT || '730', 10),
+      sensitiveDataDays: parseInt(process.env.DOC_RETENTION_SENSITIVE || '30', 10),
+      failedVerificationDays: parseInt(process.env.DOC_RETENTION_FAILED || '90', 10),
+    },
+
+    // Encryption settings
+    encryptionKey: process.env.DOCUMENT_ENCRYPTION_KEY || '',
+
+    // Processing settings
+    maxFileSizeMB: parseInt(process.env.DOC_MAX_FILE_SIZE_MB || '10', 10),
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+
+    // Minimum age requirement
+    minimumAge: parseInt(process.env.DOC_MINIMUM_AGE || '18', 10),
+  },
 };

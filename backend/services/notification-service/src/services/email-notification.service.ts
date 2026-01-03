@@ -1,3 +1,14 @@
+/**
+ * Email Notification Service (SendGrid)
+ *
+ * @deprecated This service uses SendGrid which violates AWS-only constraints.
+ * Use SESEmailService from './ses-email.service' instead.
+ * This file is maintained only for backward compatibility during migration.
+ *
+ * Migration: Replace all imports of this service with:
+ *   import { sesEmailService } from './ses-email.service';
+ */
+
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
 import { db } from '../config/database';
 import logger from '../utils/logger';

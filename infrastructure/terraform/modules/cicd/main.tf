@@ -390,3 +390,142 @@ resource "aws_cloudwatch_log_group" "codebuild" {
 
   tags = var.tags
 }
+
+################################################################################
+# EventBridge Scheduled Trigger (Nightly Build at 9 PM)
+################################################################################
+
+# IAM Role for EventBridge to trigger CodePipeline
+resource "aws_iam_role" "eventbridge_codepipeline" {
+  count = var.enable_nightly_build ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-eventbridge-codepipeline-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "eventbridge_codepipeline" {
+  count = var.enable_nightly_build ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-eventbridge-codepipeline-policy"
+  role = aws_iam_role.eventbridge_codepipeline[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "codepipeline:StartPipelineExecution"
+        ]
+        Resource = aws_codepipeline.main.arn
+      }
+    ]
+  })
+}
+
+# EventBridge Rule - Nightly Build at 9:00 PM UTC
+resource "aws_cloudwatch_event_rule" "nightly_build" {
+  count = var.enable_nightly_build ? 1 : 0
+
+  name                = "${var.project_name}-${var.environment}-nightly-build"
+  description         = "Trigger nightly production build at 9:00 PM UTC"
+  schedule_expression = var.nightly_build_schedule
+
+  tags = merge(var.tags, {
+    Purpose = "NightlyBuild"
+  })
+}
+
+# EventBridge Target - CodePipeline
+resource "aws_cloudwatch_event_target" "nightly_build_pipeline" {
+  count = var.enable_nightly_build ? 1 : 0
+
+  rule      = aws_cloudwatch_event_rule.nightly_build[0].name
+  target_id = "TriggerCodePipeline"
+  arn       = aws_codepipeline.main.arn
+  role_arn  = aws_iam_role.eventbridge_codepipeline[0].arn
+}
+
+################################################################################
+# SNS Topic for Pipeline Notifications
+################################################################################
+
+resource "aws_sns_topic" "pipeline_notifications" {
+  count = var.create_notification_topic ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-pipeline-notifications"
+
+  tags = var.tags
+}
+
+resource "aws_sns_topic_policy" "pipeline_notifications" {
+  count = var.create_notification_topic ? 1 : 0
+
+  arn = aws_sns_topic.pipeline_notifications[0].arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowEventBridgePublish"
+        Effect = "Allow"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+        Action   = "sns:Publish"
+        Resource = aws_sns_topic.pipeline_notifications[0].arn
+      }
+    ]
+  })
+}
+
+# EventBridge Rule for Pipeline State Changes
+resource "aws_cloudwatch_event_rule" "pipeline_state" {
+  count = var.create_notification_topic ? 1 : 0
+
+  name        = "${var.project_name}-${var.environment}-pipeline-state"
+  description = "Capture CodePipeline execution state changes"
+
+  event_pattern = jsonencode({
+    source      = ["aws.codepipeline"]
+    detail-type = ["CodePipeline Pipeline Execution State Change"]
+    detail = {
+      pipeline = [aws_codepipeline.main.name]
+      state    = ["SUCCEEDED", "FAILED", "CANCELED"]
+    }
+  })
+
+  tags = var.tags
+}
+
+# EventBridge Target - SNS for Pipeline State Changes
+resource "aws_cloudwatch_event_target" "pipeline_state_sns" {
+  count = var.create_notification_topic ? 1 : 0
+
+  rule      = aws_cloudwatch_event_rule.pipeline_state[0].name
+  target_id = "SendToSNS"
+  arn       = aws_sns_topic.pipeline_notifications[0].arn
+
+  input_transformer {
+    input_paths = {
+      pipeline = "$.detail.pipeline"
+      state    = "$.detail.state"
+      time     = "$.time"
+    }
+    input_template = "\"Pipeline <pipeline> changed to state <state> at <time>\""
+  }
+}
