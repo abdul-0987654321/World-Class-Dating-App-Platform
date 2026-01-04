@@ -31,14 +31,14 @@ import {
   authenticateInternal,
   AuthRequest,
 } from '../middleware/auth.middleware';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 
 const router = Router();
 
 /**
  * Middleware that allows either admin JWT or internal service authentication
  */
-const adminOrInternal = async (req: Request, res: Response, next: NextFunction) => {
+const adminOrInternal = async (req: AuthRequest, res: Response, next: NextFunction) => {
   // Check for internal service key first
   const serviceKey = req.headers['x-service-key'] as string;
   if (serviceKey) {

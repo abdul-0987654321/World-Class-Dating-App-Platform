@@ -53,7 +53,7 @@ export class GroupMatchingService {
       const groupData = Group.createNew(adminId, {
         name: data.name,
         bio: data.bio,
-        photos: data.photos,
+        photos: data.photos || [],
         preferences: this.buildPreferences(data.preferences),
         minMembers: data.minMembers,
         maxMembers: data.maxMembers,
@@ -777,7 +777,7 @@ export class GroupMatchingService {
           const profile = await userServiceClient.getUserProfile(member.userId);
           return {
             userId: member.userId,
-            firstName: profile?.firstName || 'Member',
+            firstName: profile?.first_name || 'Member',
             age: profile?.age || 0,
             photos: profile?.photos || [],
             interests: profile?.interests || [],

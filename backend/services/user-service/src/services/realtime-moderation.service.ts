@@ -336,7 +336,7 @@ class RealtimeModerationService {
           db.raw("COUNT(*) FILTER (WHERE status = 'in_review') as in_review"),
           db.raw("COUNT(*) FILTER (WHERE is_urgent = true AND status = 'pending') as urgent"),
           db.raw(`COUNT(*) FILTER (WHERE processed_at >= '${today.toISOString()}') as processed_today`)
-        );
+        ) as { pending: string; in_review: string; urgent: string; processed_today: string }[];
 
       // Calculate average wait time for processed items
       const processedItems = await db('realtime_moderation_queue')

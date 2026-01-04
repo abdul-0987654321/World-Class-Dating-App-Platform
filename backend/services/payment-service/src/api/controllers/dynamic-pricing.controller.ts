@@ -774,8 +774,9 @@ declare global {
     interface Request {
       user?: {
         id: string;
-        email?: string;
-        role?: string;
+        userId: string;
+        email: string;
+        role?: 'user' | 'admin' | 'moderator' | 'support';
       };
     }
   }

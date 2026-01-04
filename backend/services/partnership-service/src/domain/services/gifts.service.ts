@@ -50,8 +50,8 @@ export class GiftsService {
       try {
         let products: any[] = [];
 
-        if (partner.integration_type === 'flowers') {
-          const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+        if (partner.integrationType === 'flowers') {
+          const client = new FlowersClient(partner.apiKey, partner.affiliateId);
           products = await client.searchProducts(params);
         }
 
@@ -64,7 +64,7 @@ export class GiftsService {
         await this.cacheProducts(partner.id, products);
 
         results.push({
-          source: partner.integration_type,
+          source: partner.integrationType,
           products: products.map(p => ({
             ...p,
             partnerId: partner.id,
@@ -72,7 +72,7 @@ export class GiftsService {
           })),
         });
       } catch (error: any) {
-        logger.error(`Failed to search ${partner.integration_type} products`, {
+        logger.error(`Failed to search ${partner.integrationType} products`, {
           partnerId: partner.id,
           error: error.message,
         });
@@ -92,8 +92,8 @@ export class GiftsService {
     }
 
     try {
-      if (partner.integration_type === 'flowers') {
-        const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'flowers') {
+        const client = new FlowersClient(partner.apiKey, partner.affiliateId);
         return await client.getProduct(productExternalId);
       }
     } catch (error: any) {
@@ -123,8 +123,8 @@ export class GiftsService {
     }
 
     try {
-      if (partner.integration_type === 'flowers') {
-        const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'flowers') {
+        const client = new FlowersClient(partner.apiKey, partner.affiliateId);
         return await client.getDeliveryOptions(productExternalId, zipCode, date);
       }
     } catch (error: any) {
@@ -179,7 +179,7 @@ export class GiftsService {
     // Calculate commission
     const commissionAmount = calculateCommission(
       totalAmount * 100,
-      partner.commission_rate
+      partner.commissionRate
     ) / 100;
 
     // Store order in database
@@ -214,7 +214,7 @@ export class GiftsService {
       order.id,
       affiliateTrackingId,
       totalAmount,
-      partner.commission_rate
+      partner.commissionRate
     );
 
     logger.info('Gift order created', {
@@ -245,8 +245,8 @@ export class GiftsService {
 
     // Submit order to partner
     try {
-      if (partner.integration_type === 'flowers') {
-        const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'flowers') {
+        const client = new FlowersClient(partner.apiKey, partner.affiliateId);
         const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
         const shippingAddress = typeof order.shipping_address === 'string'
           ? JSON.parse(order.shipping_address)
@@ -331,8 +331,8 @@ export class GiftsService {
     // Try to cancel with partner if order was confirmed
     if (order.status === GIFT_ORDER_STATUS.CONFIRMED && order.external_order_id && partner) {
       try {
-        if (partner.integration_type === 'flowers') {
-          const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+        if (partner.integrationType === 'flowers') {
+          const client = new FlowersClient(partner.apiKey, partner.affiliateId);
           await client.cancelOrder(order.external_order_id);
         }
       } catch (error: any) {
@@ -385,8 +385,8 @@ export class GiftsService {
     }
 
     try {
-      if (partner.integration_type === 'flowers') {
-        const client = new FlowersClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'flowers') {
+        const client = new FlowersClient(partner.apiKey, partner.affiliateId);
         const status = await client.getOrderStatus(order.external_order_id);
 
         // Update local status if different

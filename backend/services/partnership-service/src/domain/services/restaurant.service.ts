@@ -48,11 +48,11 @@ export class RestaurantService {
       try {
         let restaurants: any[] = [];
 
-        if (partner.integration_type === 'opentable') {
-          const client = new OpenTableClient(partner.api_key, partner.affiliate_id);
+        if (partner.integrationType === 'opentable') {
+          const client = new OpenTableClient(partner.apiKey, partner.affiliateId);
           restaurants = await client.searchRestaurants(params);
-        } else if (partner.integration_type === 'resy') {
-          const client = new ResyClient(partner.api_key, partner.affiliate_id);
+        } else if (partner.integrationType === 'resy') {
+          const client = new ResyClient(partner.apiKey, partner.affiliateId);
           restaurants = await client.searchVenues(params);
         }
 
@@ -70,7 +70,7 @@ export class RestaurantService {
         await this.cacheRestaurants(partner.id, restaurants);
 
         results.push({
-          source: partner.integration_type,
+          source: partner.integrationType,
           restaurants: restaurants.map(r => ({
             ...r,
             partnerId: partner.id,
@@ -78,7 +78,7 @@ export class RestaurantService {
           })),
         });
       } catch (error: any) {
-        logger.error(`Failed to search ${partner.integration_type}`, {
+        logger.error(`Failed to search ${partner.integrationType}`, {
           partnerId: partner.id,
           error: error.message,
         });
@@ -103,11 +103,11 @@ export class RestaurantService {
     }
 
     try {
-      if (partner.integration_type === 'opentable') {
-        const client = new OpenTableClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'opentable') {
+        const client = new OpenTableClient(partner.apiKey, partner.affiliateId);
         return await client.getAvailability(restaurantExternalId, date, partySize);
-      } else if (partner.integration_type === 'resy') {
-        const client = new ResyClient(partner.api_key, partner.affiliate_id);
+      } else if (partner.integrationType === 'resy') {
+        const client = new ResyClient(partner.apiKey, partner.affiliateId);
         return await client.getAvailability(restaurantExternalId, date, partySize);
       }
     } catch (error: any) {
@@ -160,8 +160,8 @@ export class RestaurantService {
     let externalResult: { confirmationNumber: string; externalId: string } | undefined;
 
     try {
-      if (partner.integration_type === 'opentable') {
-        const client = new OpenTableClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'opentable') {
+        const client = new OpenTableClient(partner.apiKey, partner.affiliateId);
         externalResult = await client.createReservation({
           restaurantId: restaurant.external_id,
           date: input.date,
@@ -174,8 +174,8 @@ export class RestaurantService {
           specialRequests: input.specialRequests,
           affiliateTrackingId,
         });
-      } else if (partner.integration_type === 'resy') {
-        const client = new ResyClient(partner.api_key, partner.affiliate_id);
+      } else if (partner.integrationType === 'resy') {
+        const client = new ResyClient(partner.apiKey, partner.affiliateId);
         // For Resy, we'd need to get the config token first from availability
         // This is simplified for the example
         externalResult = await client.createReservation({
@@ -261,11 +261,11 @@ export class RestaurantService {
 
     // Cancel with partner
     try {
-      if (partner.integration_type === 'opentable' && reservation.confirmation_code) {
-        const client = new OpenTableClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'opentable' && reservation.confirmation_code) {
+        const client = new OpenTableClient(partner.apiKey, partner.affiliateId);
         await client.cancelReservation(reservation.confirmation_code);
-      } else if (partner.integration_type === 'resy' && reservation.external_reservation_id) {
-        const client = new ResyClient(partner.api_key, partner.affiliate_id);
+      } else if (partner.integrationType === 'resy' && reservation.external_reservation_id) {
+        const client = new ResyClient(partner.apiKey, partner.affiliateId);
         await client.cancelReservation(reservation.external_reservation_id);
       }
     } catch (error: any) {
@@ -468,7 +468,7 @@ export class RestaurantService {
         order_id: orderId,
         order_type: 'reservation',
         order_amount: 0, // Will be updated when we know the check amount
-        commission_rate: partner.commission_rate,
+        commission_rate: partner.commissionRate,
         commission_amount: 0,
         status: 'pending',
       });

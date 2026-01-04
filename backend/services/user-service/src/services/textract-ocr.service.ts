@@ -6,17 +6,6 @@
  * Supports synchronous analysis for ID documents (passport, driver's license, national ID).
  */
 
-import {
-  TextractClient,
-  AnalyzeDocumentCommand,
-  AnalyzeIDCommand,
-  AnalyzeIDCommandOutput,
-  AnalyzeDocumentCommandOutput,
-  FeatureType,
-  Block,
-  IdentityDocument,
-  IdentityDocumentField,
-} from '@aws-sdk/client-textract';
 import logger from '../utils/logger';
 import config from '../config';
 import {
@@ -30,28 +19,67 @@ import {
   BoundingBox,
 } from '../types/document-verification.types';
 
+// AWS SDK types - dynamically imported to handle missing module gracefully
+type TextractClientType = any;
+type AnalyzeDocumentCommandType = any;
+type AnalyzeIDCommandType = any;
+type AnalyzeIDCommandOutputType = any;
+type AnalyzeDocumentCommandOutputType = any;
+type FeatureTypeType = any;
+type BlockType = any;
+type IdentityDocumentType = any;
+type IdentityDocumentFieldType = any;
+
+// Try to import AWS SDK - it may not be installed in all environments
+let TextractClient: TextractClientType;
+let AnalyzeDocumentCommand: AnalyzeDocumentCommandType;
+let AnalyzeIDCommand: AnalyzeIDCommandType;
+let FeatureType: FeatureTypeType;
+let AWS_SDK_AVAILABLE = false;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const textractModule = require('@aws-sdk/client-textract');
+  TextractClient = textractModule.TextractClient;
+  AnalyzeDocumentCommand = textractModule.AnalyzeDocumentCommand;
+  AnalyzeIDCommand = textractModule.AnalyzeIDCommand;
+  FeatureType = textractModule.FeatureType;
+  AWS_SDK_AVAILABLE = true;
+} catch (e) {
+  logger.warn('AWS Textract SDK not available - OCR features will be disabled', {
+    error: e instanceof Error ? e.message : 'Unknown error',
+  });
+}
+
 /**
  * AWS Textract OCR Service
  * Provides document text extraction and analysis capabilities.
  */
 export class TextractOCRService {
-  private client: TextractClient;
+  private client: any;
   private config: TextractConfig;
+  private isAvailable: boolean;
 
   constructor() {
     this.config = this.loadConfig();
-    this.client = new TextractClient({
-      region: this.config.region,
-      credentials: {
-        accessKeyId: this.config.accessKeyId,
-        secretAccessKey: this.config.secretAccessKey,
-      },
-      maxAttempts: this.config.maxRetries,
-    });
+    this.isAvailable = AWS_SDK_AVAILABLE;
 
-    logger.info('AWS Textract OCR service initialized', {
-      region: this.config.region,
-    });
+    if (this.isAvailable) {
+      this.client = new TextractClient({
+        region: this.config.region,
+        credentials: {
+          accessKeyId: this.config.accessKeyId,
+          secretAccessKey: this.config.secretAccessKey,
+        },
+        maxAttempts: this.config.maxRetries,
+      });
+
+      logger.info('AWS Textract OCR service initialized', {
+        region: this.config.region,
+      });
+    } else {
+      logger.warn('AWS Textract OCR service not available - SDK not installed');
+    }
   }
 
   /**
@@ -77,6 +105,16 @@ export class TextractOCRService {
     documentType: DocumentType
   ): Promise<DocumentDataResult> {
     const startTime = Date.now();
+
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        fields: [],
+        overallConfidence: 0,
+        processingTime: Date.now() - startTime,
+        errors: ['AWS Textract SDK is not available. Please install @aws-sdk/client-textract'],
+      };
+    }
 
     try {
       logger.info('Starting document data extraction', { documentType });
@@ -131,7 +169,7 @@ export class TextractOCRService {
         ],
       });
 
-      const response: AnalyzeIDCommandOutput = await this.client.send(command);
+      const response = await this.client.send(command);
 
       if (!response.IdentityDocuments || response.IdentityDocuments.length === 0) {
         return {
@@ -180,7 +218,7 @@ export class TextractOCRService {
    * Parse identity document response to ExtractedDocumentData
    */
   private parseIdentityDocument(
-    identityDoc: IdentityDocument,
+    identityDoc: IdentityDocumentType,
     documentType: DocumentType
   ): ExtractedDocumentData {
     const fields = identityDoc.IdentityDocumentFields || [];
@@ -257,8 +295,8 @@ export class TextractOCRService {
   /**
    * Build a field map from IdentityDocumentFields
    */
-  private buildFieldMap(fields: IdentityDocumentField[]): Map<string, IdentityDocumentField> {
-    const map = new Map<string, IdentityDocumentField>();
+  private buildFieldMap(fields: IdentityDocumentFieldType[]): Map<string, IdentityDocumentFieldType> {
+    const map = new Map<string, IdentityDocumentFieldType>();
     for (const field of fields) {
       if (field.Type?.Text) {
         map.set(field.Type.Text.toUpperCase(), field);
@@ -270,7 +308,7 @@ export class TextractOCRService {
   /**
    * Get field value from field map with fallback keys
    */
-  private getFieldValue(fieldMap: Map<string, IdentityDocumentField>, keys: string[]): string | undefined {
+  private getFieldValue(fieldMap: Map<string, IdentityDocumentFieldType>, keys: string[]): string | undefined {
     for (const key of keys) {
       const field = fieldMap.get(key);
       if (field?.ValueDetection?.Text) {
@@ -283,7 +321,7 @@ export class TextractOCRService {
   /**
    * Extract fields with confidence scores
    */
-  private extractFieldsFromIdentityDocument(identityDoc: IdentityDocument): ExtractedField[] {
+  private extractFieldsFromIdentityDocument(identityDoc: IdentityDocumentType): ExtractedField[] {
     const fields: ExtractedField[] = [];
     const docFields = identityDoc.IdentityDocumentFields || [];
 
@@ -318,7 +356,7 @@ export class TextractOCRService {
       FeatureTypes: [FeatureType.FORMS, FeatureType.TABLES],
     });
 
-    const response: AnalyzeDocumentCommandOutput = await this.client.send(command);
+    const response = await this.client.send(command);
     const blocks = response.Blocks || [];
 
     // Parse blocks into extracted data
@@ -349,7 +387,7 @@ export class TextractOCRService {
    * Parse document blocks into structured data
    */
   private parseDocumentBlocks(
-    blocks: Block[],
+    blocks: BlockType[],
     documentType: DocumentType
   ): { extractedData: ExtractedDocumentData; fields: ExtractedField[] } {
     const fields: ExtractedField[] = [];
@@ -382,9 +420,9 @@ export class TextractOCRService {
   /**
    * Extract key-value pairs from blocks
    */
-  private extractKeyValuePairs(blocks: Block[]): Map<string, { text: string; confidence: number }> {
+  private extractKeyValuePairs(blocks: BlockType[]): Map<string, { text: string; confidence: number }> {
     const pairs = new Map<string, { text: string; confidence: number }>();
-    const blockMap = new Map<string, Block>();
+    const blockMap = new Map<string, BlockType>();
 
     // Build block ID map
     for (const block of blocks) {
@@ -416,7 +454,7 @@ export class TextractOCRService {
   /**
    * Get text content from a block
    */
-  private getBlockText(block: Block, blockMap: Map<string, Block>): string {
+  private getBlockText(block: BlockType, blockMap: Map<string, BlockType>): string {
     if (!block.Relationships) return '';
 
     const textParts: string[] = [];
@@ -437,7 +475,7 @@ export class TextractOCRService {
   /**
    * Find the VALUE block corresponding to a KEY block
    */
-  private findValueBlock(keyBlock: Block, blocks: Block[]): Block | undefined {
+  private findValueBlock(keyBlock: BlockType, blocks: BlockType[]): BlockType | undefined {
     if (!keyBlock.Relationships) return undefined;
 
     for (const relationship of keyBlock.Relationships) {
@@ -485,7 +523,7 @@ export class TextractOCRService {
   /**
    * Extract text blocks for audit trail
    */
-  private extractTextBlocks(blocks: Block[]): TextBlock[] {
+  private extractTextBlocks(blocks: BlockType[]): TextBlock[] {
     return blocks
       .filter(b => b.BlockType === 'LINE' || b.BlockType === 'WORD')
       .map(b => ({

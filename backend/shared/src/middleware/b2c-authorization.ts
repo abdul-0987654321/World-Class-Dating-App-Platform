@@ -87,7 +87,7 @@ export interface FlamoralUser {
   userId: string;  // Alias for id (for B2C compatibility)
   email: string;
   displayName?: string;
-  role?: string;  // Optional role field for compatibility
+  role?: 'user' | 'admin' | 'moderator' | 'support';  // Optional role field for compatibility
   groups: string[];
   subscriptionTier: SubscriptionTier;
   isVerified: boolean;
@@ -163,7 +163,7 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
   const isAdmin = groups.includes(config.groups['saas-admin']);
   const isOperator = groups.includes(config.groups['saas-operator']);
   const isModerator = groups.includes(config.groups['saas-moderator']);
-  const role = isAdmin ? 'admin' : isOperator ? 'operator' : isModerator ? 'moderator' : 'user';
+  const role: 'user' | 'admin' | 'moderator' | 'support' = isAdmin ? 'admin' : isOperator ? 'support' : isModerator ? 'moderator' : 'user';
 
   return {
     id: userId,  // Required by Express.Request.user base type

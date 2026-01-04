@@ -17,6 +17,10 @@ interface UserProfile {
   gender: 'male' | 'female' | 'non-binary' | 'other' | 'prefer_not_to_say';
   date_of_birth: Date;
   subscriptionTier?: string;
+  age?: number;
+  photos?: string[];
+  interests?: string[];
+  bio?: string;
 }
 
 interface UserSubscription {

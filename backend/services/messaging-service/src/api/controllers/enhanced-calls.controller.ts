@@ -8,9 +8,18 @@ import { createLogger } from '../../utils/logger';
 import { callHistoryRepository } from '../../domain/repositories/call-history.repository';
 import { VideoCallService } from '../../services/video-call.service';
 import { getDefaultICEConfig } from '../../config/webrtc.config';
+import redisClient from '../../infrastructure/cache/redis';
+import config from '../../config';
 
 const logger = createLogger('enhanced-calls-controller');
-const videoCallService = new VideoCallService();
+
+// Initialize VideoCallService with required dependencies
+const agoraConfig = {
+  appId: process.env.AGORA_APP_ID || '',
+  appCertificate: process.env.AGORA_APP_CERTIFICATE || '',
+  tokenExpiryTime: parseInt(process.env.AGORA_TOKEN_EXPIRY || '3600', 10),
+};
+const videoCallService = new VideoCallService(redisClient, agoraConfig);
 
 export class EnhancedCallsController {
   /**

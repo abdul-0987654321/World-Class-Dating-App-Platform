@@ -24,6 +24,7 @@ export type UserRole = 'user' | 'moderator' | 'admin' | 'support';
  * JWT payload structure
  */
 export interface JwtPayload {
+  id: string;
   userId: string;
   email: string;
   role?: UserRole;
@@ -99,6 +100,7 @@ export const authenticate = async (
       const payload = jwt.verify(token, config.jwtAccessSecret) as JwtPayload;
 
       req.user = {
+        id: payload.userId,
         userId: payload.userId,
         email: payload.email,
         role: payload.role || 'user',
@@ -301,6 +303,7 @@ export const authenticateAny = async (
     try {
       const payload = jwt.verify(token, config.jwtAccessSecret) as JwtPayload;
       req.user = {
+        id: payload.userId,
         userId: payload.userId,
         email: payload.email,
         role: payload.role || 'user',
@@ -339,6 +342,7 @@ export const optionalAuth = async (
     try {
       const payload = jwt.verify(token, config.jwtAccessSecret) as JwtPayload;
       req.user = {
+        id: payload.userId,
         userId: payload.userId,
         email: payload.email,
         role: payload.role || 'user',

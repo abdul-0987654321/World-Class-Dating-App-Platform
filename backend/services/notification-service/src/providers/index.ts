@@ -37,7 +37,7 @@ export { FCMProvider, fcmProvider } from './fcm.provider';
  * @deprecated Use SNSPushProvider instead
  * Direct APNS is deprecated in favor of AWS SNS platform applications
  */
-export { APNSProvider, apnsProvider } from './apns.provider';
+export { APNsProvider, apnsProvider } from './apns.provider';
 
 // ============================================================================
 // CONVENIENCE ALIAS

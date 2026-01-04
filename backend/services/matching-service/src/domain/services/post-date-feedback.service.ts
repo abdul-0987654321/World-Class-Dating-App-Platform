@@ -164,7 +164,7 @@ export class PostDateFeedbackService {
     try {
       const scheduledDate = await db('scheduled_dates')
         .where('id', scheduledDateId)
-        .andWhereIn('status', [ScheduledDateStatus.SCHEDULED, ScheduledDateStatus.CONFIRMED])
+        .whereIn('status', [ScheduledDateStatus.SCHEDULED, ScheduledDateStatus.CONFIRMED])
         .first();
 
       if (!scheduledDate) {

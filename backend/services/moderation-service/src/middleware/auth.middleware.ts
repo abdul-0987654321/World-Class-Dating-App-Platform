@@ -32,8 +32,9 @@ const getJwtSecret = (): string => {
  */
 export interface AuthenticatedUser {
   id: string;
+  userId: string;
   email: string;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'moderator' | 'admin' | 'support';
   isModerator: boolean;
   isAdmin: boolean;
 }
@@ -146,6 +147,7 @@ export const authenticateJWT = async (
       // Attach authenticated user to request
       const authenticatedUser: AuthenticatedUser = {
         id: userId,
+        userId: userId,
         email: decoded.email || '',
         role,
         isModerator: role === 'moderator' || role === 'admin',
@@ -304,6 +306,7 @@ export const optionalAuth = async (
             const role = determineRole(decoded);
             (req as AuthenticatedRequest).user = {
               id: userId,
+              userId: userId,
               email: decoded.email || '',
               role,
               isModerator: role === 'moderator' || role === 'admin',

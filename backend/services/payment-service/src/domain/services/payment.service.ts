@@ -7,7 +7,7 @@ const logger = createLogger('payment-service');
 
 // Initialize Stripe with API key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
 });
 
 // 6-tier subscription model

@@ -1158,16 +1158,29 @@ export class MentalHealthService {
         this.db.raw('SUM(session_count) as total_sessions'),
         this.db.raw('SUM(total_session_minutes) as total_minutes')
       )
-      .first();
+      .first() as unknown as {
+        total_swipes: string | null;
+        total_matches: string | null;
+        total_rejections: string | null;
+        total_messages_sent: string | null;
+        total_messages_received: string | null;
+        total_sessions: string | null;
+        total_minutes: string | null;
+      } | undefined;
 
     if (!metrics || !metrics.total_swipes) return null;
 
-    const rejectionRatio = metrics.total_matches > 0
-      ? metrics.total_rejections / metrics.total_matches
+    const totalMatches = Number(metrics.total_matches) || 0;
+    const totalRejections = Number(metrics.total_rejections) || 0;
+    const totalMessagesSent = Number(metrics.total_messages_sent) || 0;
+    const totalMessagesReceived = Number(metrics.total_messages_received) || 0;
+
+    const rejectionRatio = totalMatches > 0
+      ? totalRejections / totalMatches
       : 0;
 
-    const responseRate = metrics.total_messages_sent > 0
-      ? metrics.total_messages_received / metrics.total_messages_sent
+    const responseRate = totalMessagesSent > 0
+      ? totalMessagesReceived / totalMessagesSent
       : 0;
 
     return {

@@ -126,7 +126,7 @@ export class TypingIndicatorService {
 
       for (const key of keys) {
         const stateStr = await redisClient.getClient().get(key);
-        if (stateStr) {
+        if (stateStr && typeof stateStr === 'string') {
           const state: TypingState = JSON.parse(stateStr);
           // Only include if not expired (double-check)
           if (new Date(state.expiresAt).getTime() > now && state.isTyping) {
@@ -150,7 +150,7 @@ export class TypingIndicatorService {
       const key = this.getTypingKey(conversationId, userId);
       const stateStr = await redisClient.getClient().get(key);
 
-      if (!stateStr) {
+      if (!stateStr || typeof stateStr !== 'string') {
         return false;
       }
 

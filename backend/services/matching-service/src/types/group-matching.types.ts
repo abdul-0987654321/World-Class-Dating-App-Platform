@@ -167,8 +167,8 @@ export interface GroupActivitySuggestion {
 export interface CreateGroupDto {
   name: string;
   bio: string;
-  photos: string[];
-  preferences: Partial<GroupPreferences>;
+  photos?: string[];
+  preferences?: Partial<GroupPreferences>;
   minMembers?: number;
   maxMembers?: number;
   location?: {

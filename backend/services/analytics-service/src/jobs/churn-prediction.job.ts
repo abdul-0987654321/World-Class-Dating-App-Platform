@@ -378,15 +378,15 @@ class ChurnPredictionJobRunner {
       scheduledJobs: {
         dailyPredictions: {
           nextRun: this.dailyJob?.nextDate()?.toJSDate() || null,
-          isActive: this.dailyJob?.running || false,
+          isActive: (this.dailyJob as CronJob & { running: boolean })?.running || false,
         },
         modelUpdate: {
           nextRun: this.modelUpdateJob?.nextDate()?.toJSDate() || null,
-          isActive: this.modelUpdateJob?.running || false,
+          isActive: (this.modelUpdateJob as CronJob & { running: boolean })?.running || false,
         },
         interventionCheck: {
           nextRun: this.interventionJob?.nextDate()?.toJSDate() || null,
-          isActive: this.interventionJob?.running || false,
+          isActive: (this.interventionJob as CronJob & { running: boolean })?.running || false,
         },
       },
     };

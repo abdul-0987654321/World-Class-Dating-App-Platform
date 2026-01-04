@@ -47,11 +47,11 @@ export class EventsService {
       try {
         let events: any[] = [];
 
-        if (partner.integration_type === 'ticketmaster') {
-          const client = new TicketmasterClient(partner.api_key, partner.affiliate_id);
+        if (partner.integrationType === 'ticketmaster') {
+          const client = new TicketmasterClient(partner.apiKey, partner.affiliateId);
           events = await client.searchEvents(params);
-        } else if (partner.integration_type === 'eventbrite') {
-          const client = new EventbriteClient(partner.api_key, partner.affiliate_id);
+        } else if (partner.integrationType === 'eventbrite') {
+          const client = new EventbriteClient(partner.apiKey, partner.affiliateId);
           events = await client.searchEvents(params);
         }
 
@@ -59,7 +59,7 @@ export class EventsService {
         await this.cacheEvents(partner.id, events);
 
         results.push({
-          source: partner.integration_type,
+          source: partner.integrationType,
           events: events.map(e => ({
             ...e,
             partnerId: partner.id,
@@ -67,7 +67,7 @@ export class EventsService {
           })),
         });
       } catch (error: any) {
-        logger.error(`Failed to search ${partner.integration_type} events`, {
+        logger.error(`Failed to search ${partner.integrationType} events`, {
           partnerId: partner.id,
           error: error.message,
         });
@@ -87,11 +87,11 @@ export class EventsService {
     }
 
     try {
-      if (partner.integration_type === 'ticketmaster') {
-        const client = new TicketmasterClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'ticketmaster') {
+        const client = new TicketmasterClient(partner.apiKey, partner.affiliateId);
         return await client.getEvent(eventExternalId);
-      } else if (partner.integration_type === 'eventbrite') {
-        const client = new EventbriteClient(partner.api_key, partner.affiliate_id);
+      } else if (partner.integrationType === 'eventbrite') {
+        const client = new EventbriteClient(partner.apiKey, partner.affiliateId);
         return await client.getEvent(eventExternalId);
       }
     } catch (error: any) {
@@ -119,11 +119,11 @@ export class EventsService {
     }
 
     try {
-      if (partner.integration_type === 'ticketmaster') {
-        const client = new TicketmasterClient(partner.api_key, partner.affiliate_id);
+      if (partner.integrationType === 'ticketmaster') {
+        const client = new TicketmasterClient(partner.apiKey, partner.affiliateId);
         return await client.getEventInventory(eventExternalId);
-      } else if (partner.integration_type === 'eventbrite') {
-        const client = new EventbriteClient(partner.api_key, partner.affiliate_id);
+      } else if (partner.integrationType === 'eventbrite') {
+        const client = new EventbriteClient(partner.apiKey, partner.affiliateId);
         const ticketClasses = await client.getTicketClasses(eventExternalId);
         const available = ticketClasses.some(tc => tc.available > 0);
         return { available, ticketTypes: ticketClasses };
@@ -173,7 +173,7 @@ export class EventsService {
     // Calculate commission
     const commissionAmount = calculateCommission(
       input.totalAmount * 100, // Convert to cents
-      partner.commission_rate
+      partner.commissionRate
     ) / 100; // Convert back to dollars
 
     // Store purchase in database
@@ -201,7 +201,7 @@ export class EventsService {
       purchase.id,
       affiliateTrackingId,
       input.totalAmount,
-      partner.commission_rate
+      partner.commissionRate
     );
 
     logger.info('Ticket purchase created', {

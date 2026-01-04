@@ -134,7 +134,8 @@ export class PassportModeService {
         .count('* as count')
         .first();
 
-      if ((existingLocations?.count || 0) >= limits.maxLocations) {
+      const locationCount = Number(existingLocations?.count || 0);
+      if (locationCount >= limits.maxLocations) {
         return {
           success: false,
           error: `You can only have ${limits.maxLocations} active passport location(s). Deactivate one first.`,

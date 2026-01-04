@@ -38,7 +38,7 @@ export interface AuthUser {
   id: string;
   userId: string;
   email: string;
-  role?: string;
+  role?: 'user' | 'admin' | 'moderator' | 'support';
   isAdmin?: boolean;
 }
 

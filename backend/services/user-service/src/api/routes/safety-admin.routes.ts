@@ -15,7 +15,7 @@ const router = Router();
 
 // All routes require authentication and admin/moderator role
 router.use(authMiddleware);
-router.use(requireRole(['admin', 'moderator']));
+router.use(requireRole('admin', 'moderator'));
 
 /**
  * GET /api/safety/admin/dashboard/stats

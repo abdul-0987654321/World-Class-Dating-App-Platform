@@ -66,7 +66,7 @@ const logger = createLogger('dynamic-pricing-service');
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
 });
 
 // Base prices from subscription tiers (in USD cents)
@@ -1002,7 +1002,7 @@ export class DynamicPricingService {
             this.db.raw('COUNT(CASE WHEN has_converted THEN 1 END) as conversions'),
             this.db.raw('SUM(revenue_generated) as total_revenue')
           )
-          .first();
+          .first() as unknown as { participants: string | number; conversions: string | number; total_revenue: string | number } | undefined;
 
         const participants = Number(stats?.participants || 0);
         const conversions = Number(stats?.conversions || 0);
@@ -1936,7 +1936,7 @@ export class DynamicPricingService {
     return true;
   }
 
-  private selectVariantByWeight(variants: Array<{ id: string; traffic_weight: number }>): { id: string; traffic_weight: number; [key: string]: any } {
+  private selectVariantByWeight<T extends { id: string; traffic_weight: number }>(variants: T[]): T {
     const totalWeight = variants.reduce((sum, v) => sum + Number(v.traffic_weight), 0);
     let random = Math.random() * totalWeight;
 

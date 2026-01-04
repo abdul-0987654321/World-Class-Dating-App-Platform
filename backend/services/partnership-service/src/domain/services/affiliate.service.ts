@@ -108,7 +108,7 @@ export class AffiliateService {
     // Calculate commission
     const commissionAmount = calculateCommission(
       params.orderAmount * 100, // Convert to cents
-      partner.commission_rate
+      partner.commissionRate
     ) / 100; // Convert back to dollars
 
     // Update click with conversion info
@@ -126,7 +126,7 @@ export class AffiliateService {
         order_id: params.orderId,
         order_type: params.orderType,
         order_amount: params.orderAmount,
-        commission_rate: partner.commission_rate,
+        commission_rate: partner.commissionRate,
         commission_amount: commissionAmount,
         currency: params.currency || 'USD',
         status: 'pending',
@@ -327,7 +327,7 @@ export class AffiliateService {
       .select(
         db.raw('COUNT(*) as total_clicks'),
         db.raw('COUNT(converted_at) as conversions')
-      );
+      ) as { total_clicks: string; conversions: string }[];
 
     const totalClicks = parseInt(totals.total_clicks) || 0;
     const conversions = parseInt(totals.conversions) || 0;

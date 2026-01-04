@@ -127,7 +127,7 @@ class AdminSafetyDashboardService {
         db.raw("COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as resolved"),
         db.raw("COUNT(*) FILTER (WHERE status = 'dismissed') as dismissed"),
         db.raw("COUNT(*) FILTER (WHERE status = 'pending' AND severity = 'critical') as critical_pending")
-      );
+      ) as { total: string; pending: string; in_review: string; resolved: string; dismissed: string; critical_pending: string }[];
 
     // Calculate average resolution time
     const resolvedReports = await db('reports')
@@ -164,14 +164,14 @@ class AdminSafetyDashboardService {
           db.raw("COUNT(*) FILTER (WHERE review_status = 'confirmed') as confirmed_cases"),
           db.raw('COUNT(*) FILTER (WHERE auto_blocked = true) as auto_blocked'),
           db.raw('AVG(overall_risk_score) as average_risk_score')
-        );
+        ) as { total_detections: string; pending_review: string; confirmed_cases: string; auto_blocked: string; average_risk_score: string }[];
 
       harassmentStats = {
-        totalDetections: parseInt(hdStats.total_detections || '0', 10),
-        pendingReview: parseInt(hdStats.pending_review || '0', 10),
-        confirmedCases: parseInt(hdStats.confirmed_cases || '0', 10),
-        autoBlocked: parseInt(hdStats.auto_blocked || '0', 10),
-        averageRiskScore: parseFloat(hdStats.average_risk_score || '0'),
+        totalDetections: parseInt(hdStats?.total_detections || '0', 10),
+        pendingReview: parseInt(hdStats?.pending_review || '0', 10),
+        confirmedCases: parseInt(hdStats?.confirmed_cases || '0', 10),
+        autoBlocked: parseInt(hdStats?.auto_blocked || '0', 10),
+        averageRiskScore: parseFloat(hdStats?.average_risk_score || '0'),
       };
     } catch (e) {
       // Table may not exist
@@ -195,13 +195,13 @@ class AdminSafetyDashboardService {
           db.raw('COUNT(*) FILTER (WHERE is_flagged = true) as total_flagged'),
           db.raw('COUNT(*) FILTER (WHERE is_under_review = true) as under_review'),
           db.raw('COUNT(*) FILTER (WHERE is_restricted = true) as restricted')
-        );
+        ) as { total_flagged: string; under_review: string; restricted: string }[];
 
       const [modStats] = await db('user_moderation_records')
         .select(
           db.raw("COUNT(*) FILTER (WHERE status = 'suspended') as suspended"),
           db.raw("COUNT(*) FILTER (WHERE status = 'banned') as banned")
-        );
+        ) as { suspended: string; banned: string }[];
 
       userStats = {
         totalFlagged: parseInt(usStats?.total_flagged || '0', 10),
@@ -766,17 +766,17 @@ class AdminSafetyDashboardService {
         .select(
           db.raw('COUNT(*) as total_reports'),
           db.raw("COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as confirmed_reports")
-        );
+        ) as { total_reports: string; confirmed_reports: string }[];
 
       const [blockStats] = await db('blocked_users')
         .where('blocked_id', userId)
-        .count('* as total_blocks');
+        .count('* as total_blocks') as { total_blocks: string | number }[];
 
       const existing = await db('user_safety_scores').where('user_id', userId).first();
 
-      const totalReports = parseInt(reportStats.total_reports || '0', 10);
-      const confirmedReports = parseInt(reportStats.confirmed_reports || '0', 10);
-      const totalBlocks = parseInt(blockStats.total_blocks as string || '0', 10);
+      const totalReports = parseInt(reportStats?.total_reports || '0', 10);
+      const confirmedReports = parseInt(reportStats?.confirmed_reports || '0', 10);
+      const totalBlocks = parseInt(String(blockStats?.total_blocks || '0'), 10);
 
       // Calculate new safety score
       const reportPenalty = confirmedReports * 15;

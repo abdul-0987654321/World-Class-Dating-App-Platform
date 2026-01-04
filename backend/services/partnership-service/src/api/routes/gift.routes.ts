@@ -9,7 +9,9 @@ const giftsService = new GiftsService();
 interface AuthRequest extends Request {
   user?: {
     id: string;
+    userId: string;
     email: string;
+    role?: 'user' | 'admin' | 'moderator' | 'support';
   };
 }
 
