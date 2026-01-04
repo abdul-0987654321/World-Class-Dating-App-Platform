@@ -10,9 +10,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
-[![Azure](https://img.shields.io/badge/AWS-EKS-FF9900.svg)](https://aws.amazon.com/)
+[![AWS](https://img.shields.io/badge/AWS-EKS-FF9900.svg)](https://aws.amazon.com/)
 
-[Website](https://flamoral.com) | [API Docs](docs/02-api/API_INVENTORY.md) | [Architecture](docs/01-architecture/SYSTEM_MAP.md)
+[Website](https://flamoral.com) | [API Docs](docs/API_DOCUMENTATION.md) | [Architecture](docs/ARCHITECTURE.md) | [Operations](docs/OPERATIONS.md)
 
 </div>
 
@@ -26,10 +26,9 @@
 - [Technology Stack](#technology-stack)
 - [Architecture](#architecture)
 - [Microservices](#microservices)
-- [API Reference](#api-reference)
 - [Infrastructure](#infrastructure)
-- [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
+- [Environment Setup](#environment-setup)
 - [Deployment](#deployment)
 - [Documentation](#documentation)
 
@@ -37,18 +36,19 @@
 
 ## Overview
 
-Flamoral is a world-class dating platform featuring web and mobile applications, powered by 13+ microservices deployed on Amazon EKS. The platform supports millions of users with real-time messaging, AI-powered matching, video calls, and comprehensive safety features.
+Flamoral is a world-class dating platform featuring web and mobile applications, powered by 14+ microservices deployed on Amazon EKS. The platform supports millions of users with real-time messaging, AI-powered matching, video calls, and comprehensive safety features.
 
 ### Key Highlights
 
-- **150+ API Endpoints** across 13 microservices
+- **200+ API Endpoints** across 14 microservices
 - **Real-time Messaging** with WebSocket/Socket.io
 - **AI-Powered Matching** with machine learning recommendations
 - **Video/Voice Calls** via Agora SDK
 - **Multi-Platform** - Web (React), iOS & Android (React Native)
 - **Enterprise Security** - JWT, OAuth 2.0, RBAC, encryption at rest
 - **GDPR Compliant** - Full data export/deletion, consent management
-- **99.9% SLA Target** with auto-scaling and multi-region support
+- **AWS-Only Infrastructure** - Terraform-managed, multi-region support
+- **99.9% SLA Target** with auto-scaling and disaster recovery
 
 ---
 
@@ -87,10 +87,12 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 | Feature | Description |
 |---------|-------------|
 | **Photo Verification** | AI-powered selfie verification |
-| **ID Verification** | Government ID validation |
+| **ID Verification** | Government ID validation via AWS Textract |
+| **Background Checks** | Optional background verification |
 | **Block & Report** | User safety controls |
 | **Content Moderation** | AI + human review pipeline |
-| **CSAM Detection** | PhotoDNA integration, NCMEC reporting |
+| **Deepfake Detection** | AI-powered media verification |
+| **Panic Button** | Emergency safety features |
 | **Encryption** | End-to-end encrypted messages |
 | **Safety Center** | Tips, resources, emergency contacts |
 
@@ -100,7 +102,8 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 |---------|-------------|
 | **Daily Rewards** | Login streaks, free boosts |
 | **Achievements** | Badges for milestones |
-| **Coins System** | Virtual currency for features |
+| **Coins/Gems System** | Virtual currency for features |
+| **Challenges** | Weekly engagement challenges |
 | **Leaderboards** | Engagement rankings |
 
 ---
@@ -114,35 +117,26 @@ Flamoral offers a **6-tier subscription model** to cater to different user needs
 | **Price (Monthly)** | $0 | $9.99 | $14.99 | $19.99 | $29.99 | $49.99 |
 | **Price (Yearly)** | $0 | $95.88 | $143.88 | $191.88 | $287.88 | $479.88 |
 | **Trial Days** | - | 7 | 7 | 14 | 14 | 14 |
-| **Unlimited Swipes** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| **See Who Likes You** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| **Rewind/Undo** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| **Ad-Free** | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| **Incognito Mode** | - | - | ✓ | ✓ | ✓ | ✓ |
-| **Priority Likes** | - | - | ✓ | ✓ | ✓ | ✓ |
-| **Read Receipts** | - | - | ✓ | ✓ | ✓ | ✓ |
-| **Unlimited Super Likes** | - | - | - | ✓ | ✓ | ✓ |
-| **Passport/Travel Mode** | - | - | - | ✓ | ✓ | ✓ |
-| **Advanced Filters** | - | - | - | ✓ | ✓ | ✓ |
-| **Profile Controls** | - | - | - | ✓ | ✓ | ✓ |
-| **Message Before Match** | - | - | - | - | ✓ | ✓ |
-| **Weekly Boost** | - | - | - | - | ✓ | ✓ |
-| **See Profile Visitors** | - | - | - | - | ✓ | ✓ |
-| **Priority Support** | - | - | - | - | ✓ | ✓ |
-| **VIP Badge** | - | - | - | - | - | ✓ |
-| **Elite Matches** | - | - | - | - | - | ✓ |
-| **Dedicated Account Manager** | - | - | - | - | - | ✓ |
-| **Unlimited Boosts** | - | - | - | - | - | ✓ |
-| **Early Access** | - | - | - | - | - | ✓ |
-
-### Coin Packages
-
-| Package | Coins | Price | Bonus |
-|---------|-------|-------|-------|
-| Starter | 100 | $4.99 | - |
-| Popular | 500 | $19.99 | +50 |
-| Best Value | 1500 | $49.99 | +300 |
-| Ultimate | 5000 | $99.99 | +1500 |
+| **Unlimited Swipes** | - | X | X | X | X | X |
+| **See Who Likes You** | - | X | X | X | X | X |
+| **Rewind/Undo** | - | X | X | X | X | X |
+| **Ad-Free** | - | X | X | X | X | X |
+| **Incognito Mode** | - | - | X | X | X | X |
+| **Priority Likes** | - | - | X | X | X | X |
+| **Read Receipts** | - | - | X | X | X | X |
+| **Unlimited Super Likes** | - | - | - | X | X | X |
+| **Passport/Travel Mode** | - | - | - | X | X | X |
+| **Advanced Filters** | - | - | - | X | X | X |
+| **Profile Controls** | - | - | - | X | X | X |
+| **Message Before Match** | - | - | - | - | X | X |
+| **Weekly Boost** | - | - | - | - | X | X |
+| **See Profile Visitors** | - | - | - | - | X | X |
+| **Priority Support** | - | - | - | - | X | X |
+| **VIP Badge** | - | - | - | - | - | X |
+| **Elite Matches** | - | - | - | - | - | X |
+| **Dedicated Account Manager** | - | - | - | - | - | X |
+| **Unlimited Boosts** | - | - | - | - | - | X |
+| **Early Access** | - | - | - | - | - | X |
 
 ---
 
@@ -171,29 +165,38 @@ Flamoral offers a **6-tier subscription model** to cater to different user needs
 | Socket.io | 4.x | WebSocket server |
 | Bull | 4.x | Job queues |
 | Prisma | 5.x | ORM |
+| Python | 3.11 | AI/ML services |
 
 ### Databases
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| PostgreSQL | 16 | Primary relational data |
-| Redis | 7 | Caching, sessions, queues |
-| MongoDB | 7 | Messages, analytics events |
+| PostgreSQL (Aurora) | 15 | Primary relational data |
+| Redis (ElastiCache) | 7 | Caching, sessions, queues |
+| MongoDB (DocumentDB) | 7 | Messages, analytics events |
 | Elasticsearch | 8 | Full-text search |
-| Azure Blob | - | Media storage |
 
-### Infrastructure
+### AWS Infrastructure (Production)
 
-| Technology | Purpose |
-|------------|---------|
-| AWS EKS | Kubernetes orchestration |
-| Amazon RDS | Managed database |
-| Amazon ElastiCache | Managed cache |
-| Amazon DocumentDB | Managed MongoDB |
-| Amazon S3 | Media files |
-| AWS Secrets Manager | Secrets management |
-| Amazon CloudFront | CDN, WAF, load balancing |
-| Amazon ECR | Docker images |
+| Service | Purpose |
+|---------|---------|
+| **Amazon EKS** | Kubernetes orchestration |
+| **Amazon RDS (Aurora)** | PostgreSQL database (Serverless v2) |
+| **Amazon ElastiCache** | Redis cluster for caching |
+| **Amazon DocumentDB** | MongoDB-compatible document store |
+| **Amazon S3** | Media file storage |
+| **Amazon CloudFront** | CDN and WAF |
+| **Amazon SES** | Transactional email |
+| **Amazon SNS** | Push notifications & pub/sub |
+| **Amazon SQS** | Message queues |
+| **AWS Cognito** | User pool management |
+| **AWS Secrets Manager** | Secrets management |
+| **Amazon ECR** | Docker image registry |
+| **AWS KMS** | Encryption key management |
+| **Amazon Route 53** | DNS management |
+| **AWS ACM** | SSL/TLS certificates |
+| **Amazon CloudWatch** | Logging & monitoring |
+| **AWS X-Ray** | Distributed tracing |
 
 ### DevOps & Monitoring
 
@@ -214,53 +217,49 @@ Flamoral offers a **6-tier subscription model** to cater to different user needs
 | Service | Purpose |
 |---------|---------|
 | Stripe | Payments & subscriptions |
-| SendGrid | Transactional email |
-| Twilio | SMS verification |
-| Firebase | Push notifications |
 | Agora | Video/voice calls |
-| PhotoDNA | CSAM detection |
-| Google Vision | Content moderation |
+| AWS Rekognition | Content moderation |
+| AWS Textract | Document OCR |
 
 ---
 
 ## Architecture
 
 ```
-                                    ┌─────────────────┐
-                                    │   Azure Front   │
-                                    │     Door        │
-                                    │   (CDN + WAF)   │
-                                    └────────┬────────┘
-                                             │
-                    ┌────────────────────────┼────────────────────────┐
-                    │                        │                        │
-              ┌─────▼─────┐           ┌──────▼──────┐          ┌──────▼──────┐
-              │  Web App  │           │ Mobile Apps │          │   Admin     │
-              │  React    │           │React Native │          │  Dashboard  │
-              └─────┬─────┘           └──────┬──────┘          └──────┬──────┘
-                    │                        │                        │
-                    └────────────────────────┼────────────────────────┘
-                                             │
-                                    ┌────────▼────────┐
-                                    │   API Gateway   │
-                                    │   Port: 4000    │
-                                    └────────┬────────┘
-                                             │
-        ┌──────────┬──────────┬──────────┬───┴───┬──────────┬──────────┬──────────┐
-        │          │          │          │       │          │          │          │
-   ┌────▼────┐┌────▼────┐┌────▼────┐┌────▼───┐┌──▼───┐┌─────▼────┐┌────▼────┐┌────▼────┐
-   │  Auth   ││  User   ││ Match   ││Message ││Media ││ Payment  ││ Notify  ││Analytics│
-   │  3001   ││  3002   ││  3003   ││  5000  ││ 3009 ││  3005    ││  3008   ││  3007   │
-   └────┬────┘└────┬────┘└────┬────┘└────┬───┘└──┬───┘└─────┬────┘└────┬────┘└────┬────┘
-        │          │          │          │       │          │          │          │
-        └──────────┴──────────┴──────────┴───┬───┴──────────┴──────────┴──────────┘
-                                             │
-                    ┌────────────────────────┼────────────────────────┐
-                    │                        │                        │
-              ┌─────▼─────┐           ┌──────▼──────┐          ┌──────▼──────┐
-              │PostgreSQL │           │    Redis    │          │   MongoDB   │
-              │  Primary  │           │    Cache    │          │  Messages   │
-              └───────────┘           └─────────────┘          └─────────────┘
+                                    +-------------------+
+                                    |   CloudFront      |
+                                    |   (CDN + WAF)     |
+                                    +--------+----------+
+                                             |
+                    +------------------------+------------------------+
+                    |                        |                        |
+              +-----v-----+           +------v------+          +------v------+
+              |  Web App  |           | Mobile Apps |          |   Admin     |
+              |  React    |           |React Native |          |  Dashboard  |
+              +-----+-----+           +------+------+          +------+------+
+                    |                        |                        |
+                    +------------------------+------------------------+
+                                             |
+                                    +--------v--------+
+                                    |   API Gateway   |
+                                    |   Port: 4000    |
+                                    +--------+--------+
+                                             |
+        +----------+----------+----------+---+---+----------+----------+----------+
+        |          |          |          |       |          |          |          |
+   +----v----++----v----++----v----++----v---++--v---++-----v----++----v----++----v----+
+   |  Auth   ||  User   || Match   ||Message ||Media || Payment  || Notify  ||Analytics|
+   |  3001   ||  3002   ||  3003   ||  5000  || 3009 ||  3005    ||  3008   ||  3007   |
+   +----+----++----+----++----+----++----+---++--+---++-----+----++----+----++----+----+
+        |          |          |          |       |          |          |          |
+        +----------+----------+----------+---+---+----------+----------+----------+
+                                             |
+                    +------------------------+------------------------+
+                    |                        |                        |
+              +-----v-----+           +------v------+          +------v------+
+              | Aurora    |           | ElastiCache |          | DocumentDB  |
+              | PostgreSQL|           |    Redis    |          |   MongoDB   |
+              +-----------+           +-------------+          +-------------+
 ```
 
 ---
@@ -271,147 +270,66 @@ Flamoral offers a **6-tier subscription model** to cater to different user needs
 |---------|------|------------|-------------|
 | **API Gateway** | 4000 | NestJS + Express | Entry point, routing, auth verification, rate limiting |
 | **Auth Service** | 3001 | Express | Authentication, JWT tokens, OAuth, MFA |
-| **User Service** | 3002 | Express | Profile management, settings, preferences |
-| **Matching Service** | 3003 | Express + Bull | Discovery algorithm, swipes, matches |
-| **Messaging Service** | 5000 | Express + Socket.io | Real-time chat, WebSocket connections |
-| **Payment Service** | 3005 | Express + Stripe | Subscriptions, coins, refunds |
-| **Notification Service** | 3008 | Express | Push, email, SMS notifications |
-| **Media Service** | 3009 | Express + Sharp | Photo/video processing, CDN upload |
-| **Admin Service** | 3010 | Express | Admin dashboard backend |
-| **Advertising Service** | 3011 | Express | Ad campaigns, targeting |
-| **Moderation Service** | 3012 | Express | Content review, CSAM detection |
-| **Analytics Service** | 3007 | Express + ES | Event tracking, dashboards |
-| **Automation Service** | 3013 | NestJS + Bull | Workflows, scheduled jobs |
+| **User Service** | 3002 | Express | Profile management, settings, gamification, safety |
+| **Matching Service** | 3003 | Express + Bull | Discovery algorithm, swipes, matches, speed dating |
+| **Messaging Service** | 5000 | Express + Socket.io | Real-time chat, WebSocket connections, calls |
+| **Payment Service** | 3005 | Express + Stripe | Subscriptions, coins, in-app purchases, refunds |
+| **Notification Service** | 3008 | Express | Push (SNS), email (SES), SMS notifications |
+| **Media Service** | 3009 | Express + Sharp | Photo/video processing, S3 upload |
+| **Admin Service** | 3010 | Express | Admin dashboard backend, moderation tools |
+| **Advertising Service** | 3011 | Express | Ad campaigns, targeting, revenue tracking |
+| **Moderation Service** | 3012 | Express | Content review, deepfake detection |
+| **Analytics Service** | 3007 | Express | Event tracking, dashboards, churn prediction |
+| **Automation Service** | 3013 | NestJS + Bull | Workflows, scheduled jobs, icebreakers |
+| **Partnership Service** | 3014 | Express | Restaurant/event partners, date planning |
 
----
+### AI Services (Python)
 
-## API Reference
-
-### Service Endpoints Summary
-
-| Service | Endpoints | Auth Required |
-|---------|-----------|---------------|
-| Auth Service | 12 | No (mostly) |
-| User Service | 80+ | Yes |
-| Matching Service | 18 | Yes |
-| Messaging Service | 20 | Yes |
-| Payment Service | 7 | Yes |
-| Notification Service | 10 | Yes |
-| Media Service | 15 | Yes |
-| Admin Service | 25+ | Admin role |
-| Analytics Service | 12 | Mixed |
-
-### Authentication API
-
-```
-POST   /api/auth/register          # Register new user
-POST   /api/auth/login             # Login
-POST   /api/auth/logout            # Logout
-POST   /api/auth/refresh-token     # Refresh JWT
-POST   /api/auth/verify-email      # Verify email
-POST   /api/auth/forgot-password   # Request password reset
-POST   /api/auth/reset-password    # Reset password
-GET    /api/auth/me                # Get current user
-POST   /api/auth/social/google     # Google OAuth
-POST   /api/auth/social/facebook   # Facebook OAuth
-POST   /api/auth/social/apple      # Apple Sign-In
-```
-
-### Profile & User API
-
-```
-GET    /api/profile                # Get own profile
-PUT    /api/profile                # Update profile
-GET    /api/profile/:userId        # Get user profile
-GET    /api/photos                 # Get photos
-POST   /api/photos                 # Upload photo
-DELETE /api/photos/:id             # Delete photo
-PUT    /api/photos/:id/primary     # Set primary photo
-GET    /api/subscription           # Get subscription
-POST   /api/subscription/upgrade   # Upgrade tier
-GET    /api/privacy                # Get privacy settings
-PUT    /api/privacy                # Update privacy
-POST   /api/blocks                 # Block user
-POST   /api/report                 # Report user
-```
-
-### Discovery & Matching API
-
-```
-GET    /api/discovery              # Get recommended profiles
-POST   /api/discovery/refresh      # Refresh recommendations
-POST   /api/swipes                 # Process swipe (like/pass)
-GET    /api/swipes/likes           # See who liked me
-POST   /api/swipes/undo            # Undo last swipe
-POST   /api/super-likes            # Send super like
-GET    /api/matches                # Get all matches
-DELETE /api/matches/:id            # Unmatch
-POST   /api/boosts                 # Activate boost
-```
-
-### Messaging API
-
-```
-GET    /api/conversations                    # Get conversations
-GET    /api/conversations/:id                # Get conversation
-GET    /api/conversations/:id/messages       # Get messages
-POST   /api/messages                         # Send message
-PUT    /api/messages/:id                     # Edit message
-DELETE /api/messages/:id                     # Delete message
-PUT    /api/messages/:id/status              # Mark read
-POST   /api/messages/:id/react               # Add reaction
-POST   /api/calls/token                      # Get call token
-POST   /api/calls/initiate                   # Start call
-```
-
-### Payment API
-
-```
-POST   /api/payments/create-intent           # Create payment
-POST   /api/payments/subscription/create     # Subscribe
-POST   /api/payments/subscription/cancel     # Cancel
-GET    /api/payments/methods/:customerId     # Payment methods
-POST   /api/payments/methods/add             # Add card
-POST   /api/payments/refund                  # Request refund
-POST   /api/payments/webhook                 # Stripe webhook
-```
-
-### WebSocket Events
-
-```javascript
-// Client → Server
-socket.emit('message:send', { conversationId, content, type });
-socket.emit('message:typing', { conversationId, isTyping });
-socket.emit('message:read', { conversationId, messageId });
-
-// Server → Client
-socket.on('message:new', (message) => {});
-socket.on('message:typing', ({ conversationId, userId, isTyping }) => {});
-socket.on('user:online', ({ userId, isOnline }) => {});
-socket.on('match:new', (match) => {});
-socket.on('call:incoming', (callData) => {});
-```
-
-**Full API documentation:** [docs/02-api/API_INVENTORY.md](docs/02-api/API_INVENTORY.md)
+| Service | Purpose |
+|---------|---------|
+| **Deepfake Detection** | AI-powered media verification |
+| **ML Recommendations** | Profile recommendation engine |
 
 ---
 
 ## Infrastructure
 
-### Azure Production Environment
+### AWS Production Environment
 
-| Resource | Name | Purpose |
-|----------|------|---------|
-| Resource Group | `flamoral-prod-rg` | All production resources |
-| AKS Cluster | `flamoral-prod-eks` | Kubernetes orchestration |
-| PostgreSQL | `flamoral-prod-postgres` | Primary database |
-| Redis | `flamoral-prod-redis` | Caching & sessions |
-| Cosmos DB | `flamoral-prod-cosmos` | Messages & analytics |
-| Blob Storage | `flamoralprodmedia` | Photos & videos |
-| Key Vault | `flamoral-prod-kv` | Secrets & certificates |
-| ACR | `flamoralprodacr` | Docker images |
-| Front Door | `flamoral-prod-fd` | CDN, WAF, routing |
-| Log Analytics | `flamoral-prod-logs` | Centralized logging |
+| Resource | Name Pattern | Purpose |
+|----------|--------------|---------|
+| EKS Cluster | `flamoral-prod-eks` | Kubernetes orchestration |
+| Aurora PostgreSQL | `flamoral-prod-aurora` | Primary database (Serverless v2) |
+| ElastiCache Redis | `flamoral-prod-redis` | Caching & sessions |
+| S3 Buckets | `flamoral-prod-{media,backups,logs}` | Object storage |
+| ECR Repositories | `flamoral-{service-name}` | Docker images |
+| Secrets Manager | `flamoral-prod-{secret}` | Secrets storage |
+| CloudFront Distribution | `flamoral-prod` | CDN with WAF |
+| Route 53 Zone | `flamoral.com` | DNS management |
+| SES Domain | `flamoral.com` | Email delivery |
+| SNS Topics | `flamoral-prod-{topic}` | Pub/sub messaging |
+| SQS Queues | `flamoral-prod-{queue}` | Message queues |
+
+### Terraform Modules
+
+| Module | Purpose |
+|--------|---------|
+| `networking` | VPC, subnets, NAT gateways, VPC endpoints |
+| `eks` | EKS cluster, node groups, OIDC provider |
+| `rds` | Aurora PostgreSQL cluster |
+| `elasticache` | Redis replication group |
+| `s3` | S3 buckets with encryption & lifecycle |
+| `cognito` | User pool & identity pool |
+| `ecr` | Container registry repositories |
+| `secrets` | Secrets Manager secrets |
+| `messaging` | SQS queues & SNS topics |
+| `monitoring` | CloudWatch, X-Ray, dashboards |
+| `route53` | DNS zones & records |
+| `acm` | SSL/TLS certificates |
+| `cloudfront` | CDN distributions & WAF |
+| `ses` | Email infrastructure |
+| `budgets` | Cost alerts & controls |
+| `cicd` | CodePipeline & CodeBuild |
 
 ### Kubernetes Namespaces
 
@@ -445,82 +363,16 @@ ingress           # NGINX Ingress Controller
 
 ---
 
-## Project Structure
-
-```
-flamoral/
-├── .github/
-│   └── workflows/              # CI/CD pipelines
-│       ├── flamoral-pipeline.yml
-│       └── nightly-health-check.yml
-├── apps/
-│   ├── web-app/                # React web application
-│   │   ├── src/
-│   │   ├── public/
-│   │   └── package.json
-│   ├── mobile-app/             # React Native (iOS/Android)
-│   │   ├── src/
-│   │   ├── ios/
-│   │   ├── android/
-│   │   └── package.json
-│   └── branding/               # Brand assets
-├── backend/
-│   ├── services/
-│   │   ├── api-gateway/        # Port 4000
-│   │   ├── auth-service/       # Port 3001
-│   │   ├── user-service/       # Port 3002
-│   │   ├── matching-service/   # Port 3003
-│   │   ├── messaging-service/  # Port 5000
-│   │   ├── payment-service/    # Port 3005
-│   │   ├── notification-service/ # Port 3008
-│   │   ├── media-service/      # Port 3009
-│   │   ├── admin-service/      # Port 3010
-│   │   ├── advertising-service/ # Port 3011
-│   │   ├── moderation-service/ # Port 3012
-│   │   ├── analytics-service/  # Port 3007
-│   │   └── automation-service/ # Port 3013
-│   └── shared/                 # Shared utilities
-│       ├── errors/
-│       ├── middleware/
-│       ├── utils/
-│       └── constants/
-├── infrastructure/
-│   ├── terraform/              # Azure IaC
-│   ├── kubernetes/             # K8s manifests
-│   ├── helm/                   # Helm charts
-│   └── scripts/                # Deployment scripts
-├── docs/
-│   ├── 00-overview/            # Platform overview
-│   ├── 01-architecture/        # System architecture
-│   ├── 02-api/                 # API documentation
-│   ├── 03-security/            # Security docs
-│   ├── 04-compliance/          # GDPR, privacy
-│   ├── 05-reliability/         # SLO/SLA, runbooks
-│   ├── 06-testing/             # Test strategy
-│   └── 07-operations/          # Operations
-├── scripts/
-│   ├── validate-traffic.sh     # Traffic validation
-│   ├── test-harness.sh         # Automated tests
-│   ├── release-readiness-gate.sh # Pre-deploy checks
-│   └── synthetic-monitoring.ts # Synthetic tests
-├── tests/
-│   ├── e2e/                    # End-to-end tests
-│   ├── integration/            # Integration tests
-│   └── load/                   # Load tests
-├── package.json
-├── docker-compose.yml
-└── README.md
-```
-
----
-
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
 - Docker & Docker Compose
-- Azure CLI (for deployment)
+- AWS CLI v2 (configured)
+- Terraform 1.6+
+- kubectl
+- Helm 3.x
 - Git
 
 ### Local Development
@@ -533,8 +385,15 @@ cd World-Class-Dating-App-Platform
 # Install dependencies
 npm install
 
-# Start databases
+# Copy environment file
+cp .env.example .env
+# Edit .env with your local configuration
+
+# Start databases (Docker)
 docker-compose up -d postgres redis mongodb
+
+# Run database migrations
+npm run db:migrate
 
 # Start backend services
 npm run dev:backend
@@ -548,18 +407,49 @@ cd apps/mobile-app
 npm run ios  # or npm run android
 ```
 
-### Environment Variables
+### Running Tests
 
 ```bash
-# Copy example env files
-cp config/dev/.env.example .env
+# Unit tests
+npm run test
 
-# Required variables
+# Integration tests
+npm run test:integration
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:coverage
+```
+
+---
+
+## Environment Setup
+
+See [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md) for detailed environment configuration.
+
+### Required Environment Variables
+
+```bash
+# Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/flamoral
 REDIS_URL=redis://localhost:6379
-MONGODB_URL=mongodb://localhost:27017/flamoral
-JWT_SECRET=your-secret-key
+MONGODB_URI=mongodb://localhost:27017/flamoral
+
+# Authentication
+JWT_SECRET=your-secure-secret
+JWT_ACCESS_SECRET=your-access-secret
+JWT_REFRESH_SECRET=your-refresh-secret
+
+# AWS
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+
+# Stripe
 STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
 ---
@@ -569,18 +459,33 @@ STRIPE_SECRET_KEY=sk_test_...
 ### CI/CD Pipeline
 
 ```
-Push to develop   → Build → Test → Deploy to DEV
-Push to release/* → Build → Test → Deploy to STAGING
-Push to main      → Build → Test → Deploy to PRODUCTION
+Push to develop   -> Build -> Test -> Deploy to DEV
+Push to release/* -> Build -> Test -> Deploy to STAGING
+Push to main      -> Build -> Test -> Deploy to PRODUCTION
+Daily 9 PM UTC    -> Nightly Build -> Deploy to PRODUCTION
 ```
 
-### Manual Deployment
+### Infrastructure Deployment (Terraform)
 
 ```bash
-# Deploy to production
+# Initialize Terraform
+cd infrastructure/terraform/environments/prod
+terraform init
+
+# Plan changes
+terraform plan -out=tfplan
+
+# Apply changes
+terraform apply tfplan
+```
+
+### Application Deployment
+
+```bash
+# Manual deployment via GitHub Actions
 gh workflow run flamoral-pipeline.yml -f environment=production
 
-# Check deployment status
+# Direct kubectl deployment
 aws eks update-kubeconfig --region us-east-1 --name flamoral-prod-eks
 kubectl get pods -n flamoral-prod
 ```
@@ -588,7 +493,10 @@ kubectl get pods -n flamoral-prod
 ### Rollback
 
 ```bash
+# Rollback deployment
 kubectl rollout undo deployment/api-gateway -n flamoral-prod
+
+# Verify rollback
 kubectl rollout status deployment/api-gateway -n flamoral-prod
 ```
 
@@ -598,12 +506,12 @@ kubectl rollout status deployment/api-gateway -n flamoral-prod
 
 | Document | Description |
 |----------|-------------|
-| [System Map](docs/01-architecture/SYSTEM_MAP.md) | Complete architecture overview |
-| [API Inventory](docs/02-api/API_INVENTORY.md) | All 150+ API endpoints |
-| [OpenAPI Spec](docs/02-api/openapi-complete.yaml) | Machine-readable API |
-| [Authentication](docs/03-security/authentication-architecture.md) | Auth flow & security |
-| [Runbooks](docs/05-reliability/runbooks.md) | Incident response |
-| [Error Codes](docs/02-api/errors/error-codes.md) | Error handling |
+| [Architecture](docs/ARCHITECTURE.md) | System architecture & AWS services |
+| [API Documentation](docs/API_DOCUMENTATION.md) | Complete API endpoint reference |
+| [Operations Runbook](docs/OPERATIONS.md) | Deployment & incident procedures |
+| [Environment Setup](docs/ENVIRONMENT_SETUP.md) | Configuration guide |
+| [SEV-1 Runbooks](docs/05-reliability/runbooks.md) | Incident response procedures |
+| [Security](docs/03-security/authentication-architecture.md) | Auth flow & security |
 
 ---
 
@@ -646,6 +554,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Flamoral** | [flamoral.com](https://flamoral.com) | Built for Production
 
-*Version 1.0.0 | Last Updated: 2026-01-02 | AWS Production*
+*Version 1.0.0 | Last Updated: 2026-01-03 | AWS Production*
 
 </div>

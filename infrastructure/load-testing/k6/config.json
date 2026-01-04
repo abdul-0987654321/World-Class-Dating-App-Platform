@@ -1,0 +1,243 @@
+{
+  "loadTesting": {
+    "version": "1.0.0",
+    "description": "Flamoral Dating Platform Load Testing Configuration",
+    "environment": {
+      "production": {
+        "baseUrl": "https://api.flamoral.com",
+        "wsUrl": "wss://ws.flamoral.com",
+        "enabled": false,
+        "notes": "Production load testing requires explicit approval"
+      },
+      "staging": {
+        "baseUrl": "https://api.staging.flamoral.com",
+        "wsUrl": "wss://ws.staging.flamoral.com",
+        "enabled": true
+      },
+      "development": {
+        "baseUrl": "https://api.dev.flamoral.com",
+        "wsUrl": "wss://ws.dev.flamoral.com",
+        "enabled": true
+      },
+      "local": {
+        "baseUrl": "http://localhost:3000",
+        "wsUrl": "ws://localhost:3001",
+        "enabled": true
+      }
+    },
+    "tests": {
+      "user-journey": {
+        "script": "scripts/user-journey.js",
+        "description": "Full user journey including registration, profile, and matching",
+        "defaultVUs": 50,
+        "defaultDuration": "30m",
+        "thresholds": {
+          "http_req_duration_p95_ms": 3000,
+          "http_req_duration_p99_ms": 5000,
+          "error_rate_percent": 5
+        },
+        "scenarios": {
+          "smoke": {
+            "vus": 5,
+            "duration": "5m",
+            "description": "Quick smoke test to verify basic functionality"
+          },
+          "load": {
+            "vus": 100,
+            "duration": "30m",
+            "description": "Standard load test for typical usage patterns"
+          },
+          "stress": {
+            "vus": 300,
+            "duration": "45m",
+            "description": "Stress test to find breaking points"
+          },
+          "spike": {
+            "stages": [
+              { "duration": "2m", "target": 50 },
+              { "duration": "1m", "target": 500 },
+              { "duration": "5m", "target": 500 },
+              { "duration": "2m", "target": 50 }
+            ],
+            "description": "Spike test for sudden traffic surge"
+          },
+          "soak": {
+            "vus": 50,
+            "duration": "4h",
+            "description": "Long-running soak test for memory leaks"
+          }
+        }
+      },
+      "messaging": {
+        "script": "scripts/messaging.js",
+        "description": "Messaging throughput and WebSocket stress test",
+        "defaultVUs": 100,
+        "defaultDuration": "30m",
+        "thresholds": {
+          "http_req_duration_p95_ms": 1000,
+          "message_delivery_time_p95_ms": 1500,
+          "error_rate_percent": 2
+        },
+        "scenarios": {
+          "smoke": {
+            "vus": 10,
+            "duration": "5m"
+          },
+          "sustained": {
+            "vus": 100,
+            "duration": "20m"
+          },
+          "burst": {
+            "stages": [
+              { "duration": "30s", "target": 50 },
+              { "duration": "30s", "target": 300 },
+              { "duration": "2m", "target": 300 },
+              { "duration": "30s", "target": 50 }
+            ]
+          },
+          "concurrent_conversations": {
+            "vus": 500,
+            "duration": "15m",
+            "description": "Test many concurrent messaging sessions"
+          }
+        }
+      },
+      "payment": {
+        "script": "scripts/payment.js",
+        "description": "Payment flow load test (Stripe test mode only)",
+        "defaultVUs": 20,
+        "defaultDuration": "30m",
+        "requiresTestMode": true,
+        "thresholds": {
+          "http_req_duration_p95_ms": 5000,
+          "payment_intent_duration_p95_ms": 3000,
+          "subscription_creation_p95_ms": 5000,
+          "error_rate_percent": 5
+        },
+        "scenarios": {
+          "smoke": {
+            "vus": 5,
+            "duration": "5m"
+          },
+          "standard": {
+            "vus": 20,
+            "duration": "20m"
+          },
+          "peak": {
+            "vus": 50,
+            "duration": "10m",
+            "description": "Simulate peak subscription periods"
+          }
+        }
+      }
+    },
+    "cloudIntegration": {
+      "aws": {
+        "cloudwatch": {
+          "enabled": true,
+          "namespace": "Flamoral/LoadTests",
+          "dimensions": ["Environment", "TestName", "Service"]
+        },
+        "s3": {
+          "enabled": true,
+          "bucket": "flamoral-load-test-results",
+          "prefix": "k6-results/"
+        }
+      }
+    },
+    "reporting": {
+      "outputFormats": ["json", "csv", "html"],
+      "influxdb": {
+        "enabled": true,
+        "url": "http://influxdb.monitoring:8086",
+        "database": "k6",
+        "tags": {
+          "project": "flamoral",
+          "team": "platform"
+        }
+      },
+      "grafana": {
+        "dashboardUrl": "https://grafana.flamoral.com/d/k6-load-tests",
+        "annotations": true
+      }
+    },
+    "alerting": {
+      "slack": {
+        "enabled": true,
+        "webhookUrl": "${SLACK_WEBHOOK_URL}",
+        "channel": "#load-testing",
+        "alertOnFailure": true,
+        "alertOnThresholdBreach": true
+      },
+      "pagerduty": {
+        "enabled": false,
+        "serviceKey": "${PAGERDUTY_SERVICE_KEY}",
+        "alertOnCriticalFailure": true
+      }
+    },
+    "dataGeneration": {
+      "testUsers": {
+        "poolSize": 1000,
+        "prefix": "loadtest_",
+        "domain": "@test.flamoral.com",
+        "password": "LoadTest123!@#"
+      },
+      "locations": [
+        { "city": "New York", "state": "NY", "country": "US", "lat": 40.7128, "lng": -74.0060 },
+        { "city": "Los Angeles", "state": "CA", "country": "US", "lat": 34.0522, "lng": -118.2437 },
+        { "city": "Chicago", "state": "IL", "country": "US", "lat": 41.8781, "lng": -87.6298 },
+        { "city": "Houston", "state": "TX", "country": "US", "lat": 29.7604, "lng": -95.3698 },
+        { "city": "Miami", "state": "FL", "country": "US", "lat": 25.7617, "lng": -80.1918 },
+        { "city": "Seattle", "state": "WA", "country": "US", "lat": 47.6062, "lng": -122.3321 },
+        { "city": "Boston", "state": "MA", "country": "US", "lat": 42.3601, "lng": -71.0589 },
+        { "city": "Denver", "state": "CO", "country": "US", "lat": 39.7392, "lng": -104.9903 }
+      ]
+    },
+    "scheduling": {
+      "nightly": {
+        "enabled": true,
+        "cronExpression": "0 2 * * *",
+        "tests": ["user-journey:smoke", "messaging:smoke", "payment:smoke"],
+        "environment": "staging"
+      },
+      "weekly": {
+        "enabled": true,
+        "cronExpression": "0 3 * * 0",
+        "tests": ["user-journey:load", "messaging:sustained", "payment:standard"],
+        "environment": "staging"
+      },
+      "monthly": {
+        "enabled": true,
+        "cronExpression": "0 4 1 * *",
+        "tests": ["user-journey:stress", "messaging:concurrent_conversations"],
+        "environment": "staging"
+      }
+    },
+    "baseline": {
+      "user-journey": {
+        "http_req_duration_p95_ms": 2500,
+        "http_req_duration_p99_ms": 4000,
+        "registrations_per_minute": 50,
+        "matches_per_minute": 200
+      },
+      "messaging": {
+        "http_req_duration_p95_ms": 800,
+        "messages_per_second": 500,
+        "message_delivery_time_p95_ms": 1200
+      },
+      "payment": {
+        "http_req_duration_p95_ms": 4000,
+        "subscriptions_per_minute": 30,
+        "payment_success_rate_percent": 95
+      }
+    }
+  },
+  "runCommands": {
+    "smoke": "k6 run --env ENVIRONMENT=staging scripts/user-journey.js --vus 5 --duration 5m",
+    "load": "k6 run --env ENVIRONMENT=staging scripts/user-journey.js",
+    "stress": "k6 run --env ENVIRONMENT=staging scripts/user-journey.js --vus 300 --duration 45m",
+    "messaging": "k6 run --env ENVIRONMENT=staging scripts/messaging.js",
+    "payment": "k6 run --env ENVIRONMENT=staging --env STRIPE_TEST_MODE=true scripts/payment.js",
+    "all_smoke": "k6 run --env ENVIRONMENT=staging scripts/user-journey.js --vus 5 --duration 5m && k6 run --env ENVIRONMENT=staging scripts/messaging.js --vus 10 --duration 5m && k6 run --env ENVIRONMENT=staging --env STRIPE_TEST_MODE=true scripts/payment.js --vus 5 --duration 5m"
+  }
+}
