@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payment-service-pdb
+  namespace: dating-app
+  labels:
+    app: payment-service
+    component: availability
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payment-service

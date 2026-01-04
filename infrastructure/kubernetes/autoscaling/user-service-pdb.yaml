@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: user-service-pdb
+  namespace: dating-app
+  labels:
+    app: user-service
+    component: availability
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: user-service

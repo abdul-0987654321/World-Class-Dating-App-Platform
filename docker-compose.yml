@@ -1,0 +1,439 @@
+# =============================================================================
+# Flamoral Docker Compose - Local Development Environment
+# =============================================================================
+# Production-like local environment with all services
+# Usage: docker-compose up -d
+# =============================================================================
+
+version: "3.9"
+
+x-backend-common: &backend-common
+  build:
+    context: .
+    dockerfile: backend/Dockerfile.dev
+  env_file:
+    - .env
+  networks:
+    - flamoral-network
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: 512M
+      reservations:
+        cpus: "0.25"
+        memory: 128M
+
+services:
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: flamoral-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-flamoral}
+      POSTGRES_MULTIPLE_DATABASES: flamoral,flamoral_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+    networks:
+      - flamoral-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-flamoral}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    <<: *resource-limits
+
+  redis:
+    image: redis:7-alpine
+    container_name: flamoral-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - flamoral-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    <<: *resource-limits
+
+  localstack:
+    image: localstack/localstack:3.0
+    container_name: flamoral-localstack
+    ports:
+      - "4566:4566"           # LocalStack Gateway
+      - "4510-4559:4510-4559" # External services range
+    environment:
+      - SERVICES=s3,sqs,sns,ses
+      - DEBUG=${DEBUG:-0}
+      - DATA_DIR=/var/lib/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./infrastructure/docker/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
+    networks:
+      - flamoral-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  # ===========================================================================
+  # Nginx Reverse Proxy
+  # ===========================================================================
+
+  nginx:
+    image: nginx:alpine
+    container_name: flamoral-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./infrastructure/docker/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - flamoral-network
+    depends_on:
+      - web-app
+      - user-service
+      - matching-service
+      - messaging-service
+      - payment-service
+      - notification-service
+      - analytics-service
+      - advertising-service
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    <<: *resource-limits
+
+  # ===========================================================================
+  # Backend Microservices
+  # ===========================================================================
+
+  user-service:
+    <<: *backend-common
+    container_name: flamoral-user-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/user-service
+    command: npm run dev
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - SERVICE_NAME=user-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - user-service-modules:/app/backend/services/user-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  matching-service:
+    <<: *backend-common
+    container_name: flamoral-matching-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/matching-service
+    command: npm run dev
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - SERVICE_NAME=matching-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - matching-service-modules:/app/backend/services/matching-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  messaging-service:
+    <<: *backend-common
+    container_name: flamoral-messaging-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/messaging-service
+    command: npm run dev
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - SERVICE_NAME=messaging-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - messaging-service-modules:/app/backend/services/messaging-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  payment-service:
+    <<: *backend-common
+    container_name: flamoral-payment-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/payment-service
+    command: npm run dev
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - SERVICE_NAME=payment-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - payment-service-modules:/app/backend/services/payment-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  notification-service:
+    <<: *backend-common
+    container_name: flamoral-notification-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/notification-service
+    command: npm run dev
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - SERVICE_NAME=notification-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - notification-service-modules:/app/backend/services/notification-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  analytics-service:
+    <<: *backend-common
+    container_name: flamoral-analytics-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/analytics-service
+    command: npm run dev
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=development
+      - PORT=3007
+      - SERVICE_NAME=analytics-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - analytics-service-modules:/app/backend/services/analytics-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  advertising-service:
+    <<: *backend-common
+    container_name: flamoral-advertising-service
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    working_dir: /app/backend/services/advertising-service
+    command: npm run dev
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=development
+      - PORT=3008
+      - SERVICE_NAME=advertising-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - advertising-service-modules:/app/backend/services/advertising-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # ===========================================================================
+  # Frontend Application
+  # ===========================================================================
+
+  web-app:
+    container_name: flamoral-web-app
+    build:
+      context: ./apps/web-app
+      dockerfile: Dockerfile.simple
+      args:
+        - VITE_API_URL=http://localhost:80/api
+        - VITE_WS_URL=ws://localhost:80
+        - VITE_APP_NAME=Flamoral
+        - VITE_APP_ENV=development
+    ports:
+      - "5173:80"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./apps/web-app/src:/app/src:ro
+      - ./apps/web-app/public:/app/public:ro
+    networks:
+      - flamoral-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    <<: *resource-limits
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  flamoral-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  localstack-data:
+    driver: local
+  user-service-modules:
+    driver: local
+  matching-service-modules:
+    driver: local
+  messaging-service-modules:
+    driver: local
+  payment-service-modules:
+    driver: local
+  notification-service-modules:
+    driver: local
+  analytics-service-modules:
+    driver: local
+  advertising-service-modules:
+    driver: local
+  shared-modules:
+    driver: local
