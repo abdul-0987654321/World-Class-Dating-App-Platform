@@ -3,11 +3,14 @@ import * as crypto from 'crypto';
 import {
   Injectable,
   NestMiddleware,
-  UnauthorizedException,
   ForbiddenException,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response, NextFunction } from 'express';
+import Redis from 'ioredis';
 
 /**
  * CSRF Protection Middleware
@@ -16,6 +19,7 @@ import { Request, Response, NextFunction } from 'express';
  * 2. Double-submit cookie pattern
  * 3. Token expiration and rotation
  * 4. httpOnly cookies with SameSite=Strict
+ * 5. Redis-backed token storage for multi-instance deployments
  */
 
 interface CsrfTokenData {
@@ -36,14 +40,16 @@ declare global {
 }
 
 @Injectable()
-export class CsrfMiddleware implements NestMiddleware {
-  private readonly tokenStore = new Map<string, CsrfTokenData>();
+export class CsrfMiddleware implements NestMiddleware, OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(CsrfMiddleware.name);
+  private redis: Redis | null = null;
+  private readonly REDIS_KEY_PREFIX = 'csrf:';
   private readonly cookieName = 'XSRF-TOKEN';
   private readonly headerName = 'x-csrf-token';
   private readonly secretCookieName = '_csrf';
   private readonly tokenLength = 32; // 32 bytes = 256 bits
   private readonly tokenExpiry = 24 * 60 * 60 * 1000; // 24 hours
-  private readonly cleanupInterval = 60 * 60 * 1000; // 1 hour
+  private readonly tokenExpirySeconds = 24 * 60 * 60; // 24 hours in seconds
 
   // Methods that require CSRF protection
   private readonly protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
@@ -63,9 +69,48 @@ export class CsrfMiddleware implements NestMiddleware {
     '/api/v1/csrf/token',
   ];
 
-  constructor(private readonly configService: ConfigService) {
-    // Start cleanup interval
-    setInterval(() => this.cleanupExpiredTokens(), this.cleanupInterval);
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.initRedis();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.redis) {
+      await this.redis.quit();
+    }
+  }
+
+  private async initRedis(): Promise<void> {
+    try {
+      this.redis = new Redis({
+        host: this.configService.get<string>('redis.host') || 'localhost',
+        port: this.configService.get<number>('redis.port') || 6379,
+        password: this.configService.get<string>('redis.password'),
+        db: this.configService.get<number>('redis.db') || 0,
+        retryStrategy: (times: number) => {
+          if (times > 3) {
+            this.logger.warn('Redis connection failed, CSRF will use cookie-only validation');
+            return null;
+          }
+          return Math.min(times * 100, 3000);
+        },
+        lazyConnect: true,
+      });
+
+      this.redis.on('error', (error) => {
+        this.logger.error('Redis connection error in CSRF middleware:', error.message);
+      });
+
+      this.redis.on('connect', () => {
+        this.logger.log('CSRF middleware connected to Redis');
+      });
+
+      await this.redis.connect();
+    } catch (error) {
+      this.logger.warn('Failed to initialize Redis for CSRF, falling back to cookie-only validation');
+      this.redis = null;
+    }
   }
 
   use(req: Request, res: Response, next: NextFunction) {
@@ -119,20 +164,16 @@ export class CsrfMiddleware implements NestMiddleware {
    * Generate and set CSRF token in cookies and request
    */
   private generateAndSetToken(req: Request, res: Response): void {
-    // Check if token already exists and is valid
+    // Check if token already exists in cookies (cookie-based caching)
     const existingToken = req.cookies?.[this.cookieName];
     const existingSecret = req.cookies?.[this.secretCookieName];
 
+    // Reuse existing token from cookies if present (avoid Redis lookup for performance)
+    // The actual validation against Redis happens in validateCsrfToken
     if (existingToken && existingSecret) {
-      const userId = this.getUserId(req);
-      const tokenData = userId ? this.tokenStore.get(userId) : null;
-
-      // If token is valid and not expired, reuse it
-      if (tokenData && tokenData.expiresAt > Date.now()) {
-        req.csrfToken = () => existingToken;
-        req.csrfSecret = existingSecret;
-        return;
-      }
+      req.csrfToken = () => existingToken;
+      req.csrfSecret = existingSecret;
+      return;
     }
 
     // Generate new token and secret
@@ -141,10 +182,11 @@ export class CsrfMiddleware implements NestMiddleware {
     const tokenHash = this.createTokenHash(token, secret);
     const expiresAt = Date.now() + this.tokenExpiry;
 
-    // Store token data (keyed by user ID if authenticated, or session ID)
+    // Store token data in Redis (keyed by user ID if authenticated)
     const userId = this.getUserId(req);
     if (userId) {
-      this.tokenStore.set(userId, {
+      // Fire and forget - don't await to avoid blocking response
+      this.storeToken(userId, {
         token: tokenHash,
         secret,
         expiresAt,
@@ -181,7 +223,7 @@ export class CsrfMiddleware implements NestMiddleware {
   /**
    * Validate CSRF token from request
    */
-  private validateCsrfToken(req: Request, res: Response, next: NextFunction): void {
+  private async validateCsrfToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Get token from header or body
       const headerToken = req.headers[this.headerName] as string;
@@ -209,7 +251,7 @@ export class CsrfMiddleware implements NestMiddleware {
       // Additional validation with stored hash (if user is authenticated)
       const userId = this.getUserId(req);
       if (userId) {
-        const tokenData = this.tokenStore.get(userId);
+        const tokenData = await this.getToken(userId);
 
         if (!tokenData) {
           throw new ForbiddenException('CSRF token not found');
@@ -217,12 +259,11 @@ export class CsrfMiddleware implements NestMiddleware {
 
         // Check expiration
         if (Date.now() > tokenData.expiresAt) {
-          this.tokenStore.delete(userId);
+          await this.deleteToken(userId);
           throw new ForbiddenException('CSRF token expired');
         }
 
         // Verify token hash
-        const tokenHash = this.createTokenHash(token, secret);
         if (!this.verifyTokenHash(token, secret, tokenData.token)) {
           throw new ForbiddenException('Invalid CSRF token');
         }
@@ -257,31 +298,69 @@ export class CsrfMiddleware implements NestMiddleware {
   }
 
   /**
-   * Clean up expired tokens
+   * Store token data in Redis
    */
-  private cleanupExpiredTokens(): void {
-    const now = Date.now();
-    for (const [userId, data] of this.tokenStore.entries()) {
-      if (now > data.expiresAt) {
-        this.tokenStore.delete(userId);
-      }
+  private async storeToken(userId: string, data: CsrfTokenData): Promise<void> {
+    if (!this.redis) {
+      return; // Fall back to cookie-only validation
+    }
+
+    try {
+      const key = `${this.REDIS_KEY_PREFIX}${userId}`;
+      await this.redis.setex(key, this.tokenExpirySeconds, JSON.stringify(data));
+    } catch (error) {
+      this.logger.error('Failed to store CSRF token in Redis:', error);
     }
   }
 
   /**
-   * Clear CSRF token for user
+   * Get token data from Redis
    */
-  clearToken(userId: string): void {
-    this.tokenStore.delete(userId);
+  private async getToken(userId: string): Promise<CsrfTokenData | null> {
+    if (!this.redis) {
+      return null; // Fall back to cookie-only validation
+    }
+
+    try {
+      const key = `${this.REDIS_KEY_PREFIX}${userId}`;
+      const data = await this.redis.get(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      this.logger.error('Failed to get CSRF token from Redis:', error);
+      return null;
+    }
   }
 
   /**
-   * Refresh CSRF token for user
+   * Delete token from Redis
    */
-  refreshToken(req: Request, res: Response): void {
+  private async deleteToken(userId: string): Promise<void> {
+    if (!this.redis) {
+      return;
+    }
+
+    try {
+      const key = `${this.REDIS_KEY_PREFIX}${userId}`;
+      await this.redis.del(key);
+    } catch (error) {
+      this.logger.error('Failed to delete CSRF token from Redis:', error);
+    }
+  }
+
+  /**
+   * Clear CSRF token for user (public method)
+   */
+  async clearToken(userId: string): Promise<void> {
+    await this.deleteToken(userId);
+  }
+
+  /**
+   * Refresh CSRF token for user (public method)
+   */
+  async refreshToken(req: Request, res: Response): Promise<void> {
     const userId = this.getUserId(req);
     if (userId) {
-      this.tokenStore.delete(userId);
+      await this.deleteToken(userId);
     }
     this.generateAndSetToken(req, res);
   }
