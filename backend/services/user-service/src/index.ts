@@ -187,6 +187,7 @@ app.get('/', (_req: Request, res: Response) => {
       achievements: '/api/v1/achievements',
       gems: '/api/v1/gems',
       communities: '/api/v1/communities',
+      tenants: '/api/v1/tenants',
       referrals: '/api/v1/referrals',
       challenges: '/api/v1/challenges',
       dates: '/api/v1/dates',
@@ -229,6 +230,8 @@ app.use('/api/v1/achievements', achievementsRoutes);
 app.use('/api/v1/challenges', challengeRoutes);
 app.use('/api/v1/gems', gemRoutes);
 app.use('/api/v1/communities', communityRoutes);
+// Tenant alias for /communities (OpenAPI compatibility)
+app.use('/api/v1/tenants', communityRoutes);
 app.use('/api/v1/referrals', referralRoutes);
 
 // Date planning routes

@@ -16,6 +16,16 @@ import { authenticate } from '../middleware/auth.middleware';
 const router = Router();
 const paymentController = new PaymentController();
 
+// Plans endpoint - PUBLIC (no auth required)
+router.get('/plans', paymentController.getPlans.bind(paymentController));
+
+// Subscriptions endpoint - REQUIRES AUTHENTICATION
+router.get(
+  '/subscriptions/me',
+  authenticate,
+  paymentController.getMySubscription.bind(paymentController)
+);
+
 // Payment intent routes - REQUIRES AUTHENTICATION
 router.post(
   '/create-intent',

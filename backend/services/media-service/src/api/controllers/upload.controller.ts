@@ -2,6 +2,7 @@ import { createLogger } from '@flamoral/backend-shared';
 import { Response } from 'express';
 
 import uploadService from '../../domain/services/upload.service';
+import s3Storage from '../../infrastructure/storage/s3-storage.service';
 import { UploadedFile } from '../../types';
 import { AuthRequest } from '../middleware/auth.middleware';
 
@@ -204,6 +205,80 @@ export class UploadController {
       return res.status(500).json({
         success: false,
         error: error.message || 'Failed to set profile photo',
+      });
+    }
+  }
+
+  /**
+   * Get presigned URL for direct S3 upload
+   * POST /api/media/presign
+   *
+   * Request body:
+   * - fileName: string (required) - Original file name
+   * - contentType: string (required) - MIME type of the file
+   * - folder: string (optional) - Target folder (default: 'uploads')
+   *
+   * Response:
+   * - uploadUrl: Presigned PUT URL for direct upload
+   * - key: S3 object key
+   * - expiresAt: URL expiration time
+   * - publicUrl: Public URL of the uploaded file
+   */
+  async getPresignedUploadUrl(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Unauthorized',
+        });
+      }
+
+      const { fileName, contentType, folder } = req.body;
+
+      if (!fileName || !contentType) {
+        return res.status(400).json({
+          success: false,
+          error: 'fileName and contentType are required',
+        });
+      }
+
+      const userId = req.user.userId;
+
+      const result = await s3Storage.getPresignedUploadUrl(
+        userId,
+        fileName,
+        contentType,
+        folder || 'uploads'
+      );
+
+      logger.info(`Presigned URL generated for user ${userId}`, {
+        key: result.key,
+        contentType,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          uploadUrl: result.uploadUrl,
+          key: result.key,
+          expiresAt: result.expiresAt,
+          publicUrl: result.publicUrl,
+        },
+      });
+    } catch (error: any) {
+      logger.error('Failed to generate presigned URL', error);
+
+      // Check for content type validation errors
+      if (error.message?.includes('Unsupported content type')) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to generate presigned URL',
       });
     }
   }

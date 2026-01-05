@@ -1037,3 +1037,193 @@ module "cicd" {
 
   tags = local.common_tags
 }
+
+################################################################################
+# Production Alarms Module
+# Comprehensive CloudWatch alarms for production monitoring
+################################################################################
+
+module "production_alarms" {
+  source = "../../modules/production-alarms"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  # KMS for SNS encryption
+  kms_key_arn = module.eks.kms_key_arn
+
+  # SNS Configuration
+  create_sns_topics     = true
+  critical_alert_emails = var.critical_alert_emails
+  warning_alert_emails  = var.alarm_email_endpoints
+
+  # Pass alarm action ARNs (populated after topic creation)
+  critical_alarm_actions = var.critical_alarm_actions
+  warning_alarm_actions  = var.warning_alarm_actions
+
+  # Resource identifiers for monitoring
+  eks_cluster_name                 = module.eks.cluster_name
+  rds_cluster_identifier           = module.rds.aurora_cluster_id
+  rds_max_connections              = 1000
+  elasticache_replication_group_id = module.elasticache.replication_group_id
+  alb_arn_suffix                   = module.cloudfront.alb_arn_suffix
+  waf_web_acl_name                 = module.cloudfront.waf_web_acl_name
+
+  # SQS Queue monitoring
+  sqs_queues = { for name, config in local.queues : name => {
+    queue_name      = module.messaging.queue_names[name]
+    depth_threshold = config.alarm_threshold
+  } if can(config.alarm_threshold) }
+
+  # DLQ monitoring (critical - any message here indicates failures)
+  sqs_dlq_queues = { for name, _ in local.queues : "${name}-dlq" => {
+    queue_name = "${module.messaging.queue_names[name]}-dlq"
+  } }
+
+  # Cost anomaly detection
+  enable_cost_anomaly_detection = true
+  cost_anomaly_email            = var.cost_alert_email
+
+  tags = local.common_tags
+}
+
+################################################################################
+# WAF Module with Enhanced Rules
+# Production-grade WAF configuration
+################################################################################
+
+module "waf" {
+  source = "../../modules/waf"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  scope      = "REGIONAL"
+  rate_limit = var.waf_rate_limit
+
+  # Enable all security rules
+  enable_rate_limiting         = true
+  enable_common_rules          = true
+  enable_known_bad_inputs_rules = true
+  enable_sqli_rules            = true
+  enable_xss_rules             = true
+  enable_anonymous_ip_rules    = true
+  enable_ip_reputation_rules   = true
+  enable_bot_control           = var.enable_waf_bot_control
+  enable_api_protection        = true
+  enable_size_constraints      = true
+
+  # Rate limits
+  api_rate_limit = var.api_rate_limit
+
+  # Size constraints
+  max_body_size = var.max_request_body_size
+  max_uri_size  = 8192
+
+  # Bot Control configuration
+  bot_control_inspection_level = "COMMON"
+
+  # Geo-blocking
+  blocked_countries = var.blocked_countries
+
+  # IP lists
+  allowed_ips = var.waf_allowed_ips
+  blocked_ips = var.waf_blocked_ips
+
+  # Logging
+  enable_logging            = true
+  cloudwatch_log_retention_days = 30
+
+  tags = local.common_tags
+}
+
+################################################################################
+# GuardDuty Module
+# Threat detection and continuous security monitoring
+################################################################################
+
+module "guardduty" {
+  source = "../../modules/guardduty"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  enable_guardduty             = true
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
+
+  # Protection features
+  enable_s3_protection      = true
+  enable_eks_protection     = true
+  enable_malware_protection = true
+  enable_rds_protection     = true
+  enable_lambda_protection  = true
+  enable_eks_runtime_monitoring = true
+
+  # Findings export to S3
+  create_findings_bucket = true
+  publish_to_s3          = true
+  kms_key_arn            = module.eks.kms_key_arn
+
+  # Alert configuration
+  create_finding_alerts      = true
+  alert_severity_threshold   = 4.0  # Medium and above
+  alert_sns_topic_arn        = module.production_alarms.critical_alerts_topic_arn
+
+  tags = local.common_tags
+}
+
+################################################################################
+# Security Hub Module
+# Security posture management and compliance monitoring
+################################################################################
+
+module "security_hub" {
+  source = "../../modules/security-hub"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  enable_security_hub       = true
+  enable_default_standards  = false
+  auto_enable_controls      = true
+
+  # Enable compliance standards
+  enable_aws_foundational_standard = true
+  enable_cis_benchmark             = true
+  enable_cis_benchmark_v14         = true
+  enable_pci_dss_standard          = var.enable_pci_compliance
+  enable_nist_standard             = false
+
+  # Integrations
+  enable_guardduty_integration       = true
+  enable_inspector_integration       = true
+  enable_access_analyzer_integration = true
+  enable_config_integration          = true
+
+  # Alert configuration
+  create_finding_alerts   = true
+  alert_severity_labels   = ["CRITICAL", "HIGH"]
+  alert_sns_topic_arn     = module.production_alarms.critical_alerts_topic_arn
+
+  tags = local.common_tags
+}
+
+################################################################################
+# CloudWatch Dashboard Module
+# Comprehensive dashboards for operations monitoring
+################################################################################
+
+module "cloudwatch_dashboard" {
+  source = "../../modules/cloudwatch-dashboard"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  # Resource identifiers
+  eks_cluster_name       = module.eks.cluster_name
+  rds_cluster_id         = module.rds.aurora_cluster_id
+  elasticache_cluster_id = module.elasticache.replication_group_id
+  alb_arn_suffix         = module.cloudfront.alb_arn_suffix
+
+  tags = local.common_tags
+}

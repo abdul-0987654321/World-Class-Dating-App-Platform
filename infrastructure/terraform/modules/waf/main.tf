@@ -386,6 +386,263 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
+  # Rule 8: AWS Managed Rules - XSS (Cross-Site Scripting) Rule Set
+  dynamic "rule" {
+    for_each = var.enable_xss_rules ? [1] : []
+
+    content {
+      name     = "AWSManagedRulesXSSRuleSet"
+      priority = 40
+
+      override_action {
+        none {}
+      }
+
+      statement {
+        managed_rule_group_statement {
+          name        = "AWSManagedRulesCommonRuleSet"
+          vendor_name = "AWS"
+
+          # XSS rules are part of CRS but we can also enable specific handling
+          dynamic "rule_action_override" {
+            for_each = var.xss_excluded_rules
+
+            content {
+              name = rule_action_override.value
+              action_to_use {
+                count {}
+              }
+            }
+          }
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-xss-rules"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Rule 9: AWS Managed Rules - Anonymous IP List
+  dynamic "rule" {
+    for_each = var.enable_anonymous_ip_rules ? [1] : []
+
+    content {
+      name     = "AWSManagedRulesAnonymousIpList"
+      priority = 50
+
+      override_action {
+        none {}
+      }
+
+      statement {
+        managed_rule_group_statement {
+          name        = "AWSManagedRulesAnonymousIpList"
+          vendor_name = "AWS"
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-anonymous-ip"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Rule 10: AWS Managed Rules - Amazon IP Reputation List
+  dynamic "rule" {
+    for_each = var.enable_ip_reputation_rules ? [1] : []
+
+    content {
+      name     = "AWSManagedRulesAmazonIpReputationList"
+      priority = 60
+
+      override_action {
+        none {}
+      }
+
+      statement {
+        managed_rule_group_statement {
+          name        = "AWSManagedRulesAmazonIpReputationList"
+          vendor_name = "AWS"
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-ip-reputation"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Rule 11: AWS Managed Rules - Bot Control (requires subscription)
+  dynamic "rule" {
+    for_each = var.enable_bot_control ? [1] : []
+
+    content {
+      name     = "AWSManagedRulesBotControlRuleSet"
+      priority = 70
+
+      override_action {
+        none {}
+      }
+
+      statement {
+        managed_rule_group_statement {
+          name        = "AWSManagedRulesBotControlRuleSet"
+          vendor_name = "AWS"
+
+          managed_rule_group_configs {
+            aws_managed_rules_bot_control_rule_set {
+              inspection_level = var.bot_control_inspection_level
+            }
+          }
+
+          dynamic "rule_action_override" {
+            for_each = var.bot_control_excluded_rules
+
+            content {
+              name = rule_action_override.value
+              action_to_use {
+                count {}
+              }
+            }
+          }
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-bot-control"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Rule 12: Custom rule for API endpoint protection
+  dynamic "rule" {
+    for_each = var.enable_api_protection ? [1] : []
+
+    content {
+      name     = "APIEndpointProtection"
+      priority = 80
+
+      statement {
+        and_statement {
+          statement {
+            byte_match_statement {
+              search_string         = "/api/"
+              positional_constraint = "CONTAINS"
+              field_to_match {
+                uri_path {}
+              }
+              text_transformation {
+                priority = 0
+                type     = "LOWERCASE"
+              }
+            }
+          }
+          statement {
+            rate_based_statement {
+              limit              = var.api_rate_limit
+              aggregate_key_type = "IP"
+            }
+          }
+        }
+      }
+
+      action {
+        block {
+          custom_response {
+            response_code            = 429
+            custom_response_body_key = "api-rate-limited"
+          }
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-api-protection"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Rule 13: Size constraints to prevent oversized requests
+  dynamic "rule" {
+    for_each = var.enable_size_constraints ? [1] : []
+
+    content {
+      name     = "SizeConstraints"
+      priority = 90
+
+      statement {
+        or_statement {
+          statement {
+            size_constraint_statement {
+              comparison_operator = "GT"
+              size                = var.max_body_size
+              field_to_match {
+                body {
+                  oversize_handling = "MATCH"
+                }
+              }
+              text_transformation {
+                priority = 0
+                type     = "NONE"
+              }
+            }
+          }
+          statement {
+            size_constraint_statement {
+              comparison_operator = "GT"
+              size                = var.max_uri_size
+              field_to_match {
+                uri_path {}
+              }
+              text_transformation {
+                priority = 0
+                type     = "NONE"
+              }
+            }
+          }
+        }
+      }
+
+      action {
+        block {
+          custom_response {
+            response_code            = 413
+            custom_response_body_key = "payload-too-large"
+          }
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "${local.name_prefix}-size-constraints"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Custom response bodies
+  custom_response_body {
+    key          = "api-rate-limited"
+    content      = "{\"error\": \"API rate limit exceeded. Please slow down your requests.\"}"
+    content_type = "APPLICATION_JSON"
+  }
+
+  custom_response_body {
+    key          = "payload-too-large"
+    content      = "{\"error\": \"Request payload too large.\"}"
+    content_type = "APPLICATION_JSON"
+  }
+
   # Custom response bodies
   custom_response_body {
     key          = "geo-blocked"

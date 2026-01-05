@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TerminusModule } from '@nestjs/terminus';
@@ -15,6 +15,7 @@ import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
 import { HealthModule } from './health/health.module';
 import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
+import { IdempotencyMiddleware } from './middleware/idempotency.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { TracingMiddleware } from './middleware/tracing.middleware';
 import { DDoSProtectionService } from './services/ddos-protection.service';
@@ -88,6 +89,19 @@ import { WebsocketModule } from './websocket/websocket.module';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+
+    // Idempotency middleware
+    IdempotencyMiddleware,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Apply idempotency middleware to payment-related routes
+    consumer.apply(IdempotencyMiddleware).forRoutes(
+      'api/v1/payments/*',
+      'api/v1/subscriptions/*',
+      'api/v1/coins/*',
+      'api/v1/boosts/*'
+    );
+  }
+}

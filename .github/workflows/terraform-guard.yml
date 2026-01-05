@@ -190,10 +190,82 @@ jobs:
           echo ""
           echo "All environments use S3 backend"
 
+  # ===========================================================================
+  # IAC SECURITY SCANNING - tfsec, Checkov, Trivy
+  # ===========================================================================
+  iac-security-scan:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    needs: azure-provider-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec security scanner
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infrastructure/terraform/aws
+          soft_fail: false
+          format: sarif
+          additional_args: --minimum-severity HIGH
+
+      - name: Upload tfsec SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif.json
+        if: always()
+        continue-on-error: true
+
+      - name: Run Checkov IaC scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infrastructure/terraform/aws
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: false
+          skip_check: CKV_AWS_144,CKV_AWS_145  # Skip specific checks if needed
+
+      - name: Upload Checkov SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov-results.sarif
+        if: always()
+        continue-on-error: true
+
+      - name: Run Trivy IaC scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/terraform/aws'
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload Trivy IaC SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+        if: always()
+        continue-on-error: true
+
+      - name: Generate IaC Security Summary
+        run: |
+          echo "# IaC Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Tools Used" >> $GITHUB_STEP_SUMMARY
+          echo "- tfsec: Terraform security scanner" >> $GITHUB_STEP_SUMMARY
+          echo "- Checkov: Policy-as-code scanner" >> $GITHUB_STEP_SUMMARY
+          echo "- Trivy: IaC vulnerability scanner" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Results uploaded to GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+
   terraform-validate:
     name: Validate Terraform
     runs-on: ubuntu-latest
-    needs: azure-provider-check
+    needs: [azure-provider-check, iac-security-scan]
 
     strategy:
       matrix:
@@ -208,6 +280,11 @@ jobs:
         with:
           terraform_version: '1.6.0'
 
+      - name: Install TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
       - name: Terraform Format Check
         working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
         run: terraform fmt -check -recursive
@@ -221,10 +298,17 @@ jobs:
         working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
         run: terraform validate
 
+      - name: Run TFLint
+        working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        run: |
+          tflint --init
+          tflint --format=compact
+        continue-on-error: true
+
   summary:
     name: Guard Summary
     runs-on: ubuntu-latest
-    needs: [azure-provider-check, terraform-validate]
+    needs: [azure-provider-check, iac-security-scan, terraform-validate]
     if: always()
 
     steps:
@@ -236,7 +320,14 @@ jobs:
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Azure Provider Block | ${{ needs.azure-provider-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| IaC Security Scan | ${{ needs.iac-security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Terraform Validation | ${{ needs.terraform-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Security Scans" >> $GITHUB_STEP_SUMMARY
+          echo "- tfsec: Terraform security vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- Checkov: Policy-as-code compliance" >> $GITHUB_STEP_SUMMARY
+          echo "- Trivy: IaC misconfiguration detection" >> $GITHUB_STEP_SUMMARY
+          echo "- TFLint: Terraform best practices" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Policy" >> $GITHUB_STEP_SUMMARY
           echo "- Azure providers are **FORBIDDEN**" >> $GITHUB_STEP_SUMMARY

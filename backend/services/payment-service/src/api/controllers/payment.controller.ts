@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 
+import { SUBSCRIPTION_TIERS, SubscriptionTier } from '../../config/stripe-products';
 import { PaymentService } from '../../domain/services/payment.service';
 import logger from '../../utils/logger';
 
@@ -215,6 +216,82 @@ export class PaymentController {
       return res.status(400).json({
         success: false,
         message: error.message || 'Failed to process refund',
+      });
+    }
+  }
+
+  /**
+   * GET /plans - Get available subscription plans
+   * Returns all subscription tiers with pricing and entitlements
+   */
+  async getPlans(_req: Request, res: Response): Promise<Response> {
+    try {
+      // Transform tiers to public-facing format (exclude internal Stripe IDs)
+      const plans = SUBSCRIPTION_TIERS.map((tier: SubscriptionTier) => ({
+        key: tier.key,
+        name: tier.name,
+        priceMonthly: tier.priceMonthly,
+        priceCurrency: 'usd',
+        priceFormatted: tier.priceMonthly === 0 ? 'Free' : `$${(tier.priceMonthly / 100).toFixed(2)}/month`,
+        entitlements: tier.entitlements,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        data: plans,
+      });
+    } catch (error: any) {
+      logger.error('Get plans error:', error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get subscription plans',
+      });
+    }
+  }
+
+  /**
+   * GET /subscriptions/me - Get current user's subscription
+   * Returns the user's active subscription status and entitlements
+   */
+  async getMySubscription(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+        });
+      }
+
+      const subscription = await this.paymentService.getUserSubscription(userId);
+
+      if (!subscription) {
+        // Return free tier info if no subscription
+        const freeTier = SUBSCRIPTION_TIERS.find((t: SubscriptionTier) => t.key === 'free');
+        return res.status(200).json({
+          success: true,
+          data: {
+            status: 'free',
+            tier: 'free',
+            tierName: 'Free',
+            entitlements: freeTier?.entitlements,
+            subscription: null,
+          },
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: subscription,
+      });
+    } catch (error: any) {
+      logger.error('Get subscription error:', error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get subscription',
       });
     }
   }

@@ -848,7 +848,9 @@
       "Bash(./node_modules/.bin/eslint:*)",
       "Bash(../node_modules/.bin/tsc:*)",
       "Bash(node ./node_modules/typescript/bin/tsc:*)",
-      "Bash(yarn lint:all)"
+      "Bash(yarn lint:all)",
+      "Bash(node --version)",
+      "Bash(npm --version)"
     ],
     "deny": [],
     "ask": []

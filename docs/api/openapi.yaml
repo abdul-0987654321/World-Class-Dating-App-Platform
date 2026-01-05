@@ -1,0 +1,1416 @@
+openapi: 3.1.0
+info:
+  title: Flamoral Dating Platform API
+  description: |
+    Complete API specification for the Flamoral Dating Platform.
+
+    ## Authentication
+    All authenticated endpoints require a Bearer JWT token in the Authorization header.
+
+    ## Rate Limiting
+    - Auth endpoints: 100 requests per 5 minutes per IP
+    - General API: 1000 requests per 5 minutes per IP
+    - File uploads: 20 requests per minute per user
+
+    ## Error Handling
+    All errors follow a standardized format with correlation IDs for tracking.
+
+    ## Idempotency
+    Mutation endpoints (POST for creates, payments) support idempotency via `Idempotency-Key` header.
+  version: 1.0.0
+  contact:
+    name: Flamoral Engineering
+    email: engineering@flamoral.com
+  license:
+    name: Proprietary
+    url: https://flamoral.com/terms
+
+servers:
+  - url: https://api.flamoral.com
+    description: Production server
+  - url: https://api.staging.flamoral.com
+    description: Staging server
+  - url: http://localhost:4000
+    description: Development server
+
+tags:
+  - name: System
+    description: Health checks and system endpoints
+  - name: Auth
+    description: Authentication and authorization
+  - name: Users
+    description: User profile management
+  - name: Tenants
+    description: Multi-tenant/mode management
+  - name: Billing
+    description: Payments and subscriptions
+  - name: Files
+    description: Media file management
+  - name: Notifications
+    description: Notification management
+  - name: Analytics
+    description: Event tracking and analytics
+  - name: Admin
+    description: Administrative endpoints
+  - name: Webhooks
+    description: Webhook endpoints for external services
+  - name: Matching
+    description: Discovery and matching
+  - name: Messaging
+    description: Conversations and messages
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /auth/login
+
+    serviceAuth:
+      type: apiKey
+      in: header
+      name: X-Service-Key
+      description: Internal service-to-service authentication
+
+    webhookStripe:
+      type: apiKey
+      in: header
+      name: Stripe-Signature
+      description: Stripe webhook signature for verification
+
+    webhookPaystack:
+      type: apiKey
+      in: header
+      name: x-paystack-signature
+      description: Paystack webhook signature
+
+    webhookFlutterwave:
+      type: apiKey
+      in: header
+      name: verif-hash
+      description: Flutterwave webhook verification hash
+
+  parameters:
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: Correlation ID for request tracking (auto-generated if not provided)
+      schema:
+        type: string
+        format: uuid
+
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Unique key for idempotent operations (required for payment mutations)
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 64
+
+    CSRFToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      description: CSRF token for state-changing operations
+      schema:
+        type: string
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Number of items to return (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Pagination cursor for next page
+      schema:
+        type: string
+
+  schemas:
+    # Standard Error Response
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - requestId
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+          example: Validation failed
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+          example:
+            field: email
+            reason: Invalid email format
+        requestId:
+          type: string
+          format: uuid
+          description: Correlation ID for tracking
+          example: 550e8400-e29b-41d4-a716-446655440000
+
+    # Paginated Response
+    PaginatedResponse:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      required:
+        - limit
+        - hasMore
+      properties:
+        limit:
+          type: integer
+          example: 20
+        cursor:
+          type: string
+          nullable: true
+          description: Cursor for next page, null if no more pages
+        hasMore:
+          type: boolean
+          example: true
+        total:
+          type: integer
+          description: Total count (optional, expensive operation)
+
+    # Success Response Wrapper
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    # User Schema
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, non-binary, other]
+        verified:
+          type: boolean
+        subscriptionTier:
+          type: string
+          enum: [free, plus, premium, elite]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # Auth Tokens
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+        expiresIn:
+          type: integer
+          description: Access token expiry in seconds
+
+    # Subscription
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+        tier:
+          type: string
+          enum: [free, plus, premium, elite]
+        status:
+          type: string
+          enum: [active, cancelled, past_due, trialing]
+        currentPeriodStart:
+          type: string
+          format: date-time
+        currentPeriodEnd:
+          type: string
+          format: date-time
+        cancelAtPeriodEnd:
+          type: boolean
+
+    # Payment Method
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [card, bank_account]
+        last4:
+          type: string
+        brand:
+          type: string
+        expiryMonth:
+          type: integer
+        expiryYear:
+          type: integer
+        isDefault:
+          type: boolean
+
+    # Match
+    Match:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        matchedUserId:
+          type: string
+          format: uuid
+        matchedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        conversationId:
+          type: string
+          format: uuid
+          nullable: true
+
+    # Notification
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        data:
+          type: object
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: Request validation failed
+            details:
+              field: email
+              reason: Invalid email format
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: UNAUTHORIZED
+            message: Authentication required
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: FORBIDDEN
+            message: Access denied
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: NOT_FOUND
+            message: Resource not found
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Rate limit ceiling
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: RATE_LIMITED
+            message: Too many requests
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INTERNAL_ERROR
+            message: An unexpected error occurred
+            requestId: 550e8400-e29b-41d4-a716-446655440000
+
+paths:
+  # ==================== SYSTEM ENDPOINTS ====================
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      security: []
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+
+  /health/ready:
+    get:
+      tags: [System]
+      summary: Readiness probe
+      security: []
+      operationId: readinessProbe
+      responses:
+        '200':
+          description: Service is ready
+        '503':
+          description: Service is not ready
+
+  /health/live:
+    get:
+      tags: [System]
+      summary: Liveness probe
+      security: []
+      operationId: livenessProbe
+      responses:
+        '200':
+          description: Service is alive
+        '503':
+          description: Service is not alive
+
+  /version:
+    get:
+      tags: [System]
+      summary: API version info
+      security: []
+      operationId: getVersion
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  buildNumber:
+                    type: string
+                  commitHash:
+                    type: string
+                  environment:
+                    type: string
+
+  /api/v1/config/public:
+    get:
+      tags: [System]
+      summary: Public configuration
+      security: []
+      operationId: getPublicConfig
+      responses:
+        '200':
+          description: Public configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  features:
+                    type: object
+                  appStoreUrl:
+                    type: string
+                  playStoreUrl:
+                    type: string
+                  supportEmail:
+                    type: string
+                  minAppVersion:
+                    type: object
+                    properties:
+                      ios:
+                        type: string
+                      android:
+                        type: string
+
+  # ==================== AUTH ENDPOINTS ====================
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      operationId: register
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+                - dateOfBirth
+                - gender
+                - consents
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                dateOfBirth:
+                  type: string
+                  format: date
+                gender:
+                  type: string
+                  enum: [male, female, non-binary, other]
+                consents:
+                  type: object
+                  required:
+                    - termsAccepted
+                    - privacyAccepted
+                  properties:
+                    termsAccepted:
+                      type: boolean
+                    privacyAccepted:
+                      type: boolean
+                    marketingEmails:
+                      type: boolean
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          tokens:
+                            $ref: '#/components/schemas/AuthTokens'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      security: []
+      operationId: login
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                deviceInfo:
+                  type: object
+                  properties:
+                    deviceId:
+                      type: string
+                    platform:
+                      type: string
+                    osVersion:
+                      type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          tokens:
+                            $ref: '#/components/schemas/AuthTokens'
+                          requires2FA:
+                            type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      security: []
+      operationId: refreshToken
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/password/reset:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+      security: []
+      operationId: requestPasswordReset
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent (if account exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ==================== USER ENDPOINTS ====================
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Get current user
+      operationId: getCurrentUser
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/profile:
+    get:
+      tags: [Users]
+      summary: Get user profile
+      operationId: getProfile
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Users]
+      summary: Update user profile
+      operationId: updateProfile
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  type: string
+                  maxLength: 500
+                occupation:
+                  type: string
+                location:
+                  type: object
+                  properties:
+                    city:
+                      type: string
+                    country:
+                      type: string
+                interests:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== TENANT ENDPOINTS ====================
+  /api/v1/tenants:
+    get:
+      tags: [Tenants]
+      summary: Get available tenants/modes
+      operationId: getTenants
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: List of available tenants/modes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/tenants/{tenantId}/members:
+    get:
+      tags: [Tenants]
+      summary: Get tenant members
+      operationId: getTenantMembers
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Tenant members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ==================== BILLING ENDPOINTS ====================
+  /api/v1/plans:
+    get:
+      tags: [Billing]
+      summary: Get subscription plans
+      security: []
+      operationId: getPlans
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Available subscription plans
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        tier:
+                          type: string
+                        price:
+                          type: number
+                        currency:
+                          type: string
+                        interval:
+                          type: string
+                          enum: [month, year]
+                        features:
+                          type: array
+                          items:
+                            type: string
+
+  /api/v1/subscriptions:
+    get:
+      tags: [Billing]
+      summary: Get current subscription
+      operationId: getSubscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Current subscription
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Billing]
+      summary: Create subscription
+      operationId: createSubscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - planId
+                - paymentMethodId
+              properties:
+                planId:
+                  type: string
+                paymentMethodId:
+                  type: string
+      responses:
+        '201':
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/payments/methods:
+    get:
+      tags: [Billing]
+      summary: Get payment methods
+      operationId: getPaymentMethods
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Payment methods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentMethod'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Billing]
+      summary: Add payment method
+      operationId: addPaymentMethod
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - paymentMethodId
+              properties:
+                paymentMethodId:
+                  type: string
+                setDefault:
+                  type: boolean
+      responses:
+        '201':
+          description: Payment method added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== FILE ENDPOINTS ====================
+  /api/v1/files/presign:
+    post:
+      tags: [Files]
+      summary: Get presigned upload URL
+      operationId: getPresignedUrl
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileName
+                - contentType
+              properties:
+                fileName:
+                  type: string
+                contentType:
+                  type: string
+                  enum: [image/jpeg, image/png, image/webp, video/mp4]
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      uploadUrl:
+                        type: string
+                        format: uri
+                      fileKey:
+                        type: string
+                      expiresIn:
+                        type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== NOTIFICATION ENDPOINTS ====================
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: Get notifications
+      operationId: getNotifications
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Get notification preferences
+      operationId: getNotificationPreferences
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Notifications]
+      summary: Update notification preferences
+      operationId: updateNotificationPreferences
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                push:
+                  type: object
+                  properties:
+                    messages:
+                      type: boolean
+                    matches:
+                      type: boolean
+                    likes:
+                      type: boolean
+                email:
+                  type: object
+                  properties:
+                    marketing:
+                      type: boolean
+                    digest:
+                      type: boolean
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== AUDIT/ANALYTICS ENDPOINTS ====================
+  /api/v1/audit/logs:
+    get:
+      tags: [Admin]
+      summary: Query audit logs
+      operationId: getAuditLogs
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ==================== WEBHOOK ENDPOINTS ====================
+  /api/v1/webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Stripe webhook handler
+      security:
+        - webhookStripe: []
+      operationId: handleStripeWebhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Stripe webhook event payload
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+        '400':
+          description: Invalid webhook signature or payload
+        '429':
+          description: Duplicate event (replay detected)
+
+  /api/v1/webhooks/paystack:
+    post:
+      tags: [Webhooks]
+      summary: Paystack webhook handler
+      security:
+        - webhookPaystack: []
+      operationId: handlePaystackWebhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Paystack webhook event payload
+      responses:
+        '200':
+          description: Webhook processed
+        '400':
+          description: Invalid webhook signature
+
+  /api/v1/webhooks/flutterwave:
+    post:
+      tags: [Webhooks]
+      summary: Flutterwave webhook handler
+      security:
+        - webhookFlutterwave: []
+      operationId: handleFlutterwaveWebhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Flutterwave webhook event payload
+      responses:
+        '200':
+          description: Webhook processed
+        '400':
+          description: Invalid webhook signature
+
+  /api/v1/webhooks/health:
+    get:
+      tags: [Webhooks]
+      summary: Webhook health check
+      security: []
+      operationId: webhookHealthCheck
+      responses:
+        '200':
+          description: Webhook endpoints healthy
+
+  # ==================== MATCHING ENDPOINTS ====================
+  /api/v1/discovery:
+    get:
+      tags: [Matching]
+      summary: Get discovery feed
+      operationId: getDiscoveryFeed
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Discovery profiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/matches:
+    get:
+      tags: [Matching]
+      summary: Get matches
+      operationId: getMatches
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Matches list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Match'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/swipes:
+    post:
+      tags: [Matching]
+      summary: Process swipe action
+      operationId: processSwipe
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - targetUserId
+                - direction
+              properties:
+                targetUserId:
+                  type: string
+                  format: uuid
+                direction:
+                  type: string
+                  enum: [like, pass, superlike]
+      responses:
+        '200':
+          description: Swipe processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      matched:
+                        type: boolean
+                      match:
+                        $ref: '#/components/schemas/Match'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+webhooks:
+  stripeEvents:
+    post:
+      summary: Stripe webhook events
+      description: |
+        Events received from Stripe:
+        - customer.subscription.created
+        - customer.subscription.updated
+        - customer.subscription.deleted
+        - payment_intent.succeeded
+        - payment_intent.payment_failed
+        - invoice.paid
+        - invoice.payment_failed
+        - checkout.session.completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                type:
+                  type: string
+                data:
+                  type: object
+      responses:
+        '200':
+          description: Event acknowledged

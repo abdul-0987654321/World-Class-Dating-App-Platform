@@ -80,6 +80,86 @@ variable "enable_sqli_rules" {
   default     = true
 }
 
+variable "enable_xss_rules" {
+  description = "Enable XSS protection rules"
+  type        = bool
+  default     = true
+}
+
+variable "enable_anonymous_ip_rules" {
+  description = "Enable AWS Managed Rules Anonymous IP List"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ip_reputation_rules" {
+  description = "Enable AWS Managed Rules Amazon IP Reputation List"
+  type        = bool
+  default     = true
+}
+
+variable "enable_bot_control" {
+  description = "Enable AWS Managed Rules Bot Control (additional cost)"
+  type        = bool
+  default     = false
+}
+
+variable "bot_control_inspection_level" {
+  description = "Bot Control inspection level (COMMON or TARGETED)"
+  type        = string
+  default     = "COMMON"
+
+  validation {
+    condition     = contains(["COMMON", "TARGETED"], var.bot_control_inspection_level)
+    error_message = "Bot control inspection level must be COMMON or TARGETED."
+  }
+}
+
+variable "enable_api_protection" {
+  description = "Enable API-specific rate limiting protection"
+  type        = bool
+  default     = true
+}
+
+variable "api_rate_limit" {
+  description = "Rate limit for API endpoints per 5-minute period per IP"
+  type        = number
+  default     = 1000
+
+  validation {
+    condition     = var.api_rate_limit >= 100 && var.api_rate_limit <= 20000000
+    error_message = "API rate limit must be between 100 and 20,000,000."
+  }
+}
+
+variable "enable_size_constraints" {
+  description = "Enable request size constraint rules"
+  type        = bool
+  default     = true
+}
+
+variable "max_body_size" {
+  description = "Maximum request body size in bytes (default 10MB)"
+  type        = number
+  default     = 10485760  # 10MB
+
+  validation {
+    condition     = var.max_body_size >= 1000 && var.max_body_size <= 104857600
+    error_message = "Max body size must be between 1KB and 100MB."
+  }
+}
+
+variable "max_uri_size" {
+  description = "Maximum URI size in bytes"
+  type        = number
+  default     = 8192  # 8KB
+
+  validation {
+    condition     = var.max_uri_size >= 100 && var.max_uri_size <= 65536
+    error_message = "Max URI size must be between 100 bytes and 64KB."
+  }
+}
+
 ################################################################################
 # Rule Exclusions
 ################################################################################
@@ -98,6 +178,18 @@ variable "known_bad_inputs_excluded_rules" {
 
 variable "sqli_excluded_rules" {
   description = "List of rules to exclude from AWS Managed Rules SQL Injection Rule Set"
+  type        = list(string)
+  default     = []
+}
+
+variable "xss_excluded_rules" {
+  description = "List of XSS rules to exclude"
+  type        = list(string)
+  default     = []
+}
+
+variable "bot_control_excluded_rules" {
+  description = "List of Bot Control rules to exclude"
   type        = list(string)
   default     = []
 }

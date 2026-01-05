@@ -649,4 +649,434 @@ describe('PaymentController', () => {
       });
     });
   });
+
+  describe('getPlans', () => {
+    it('should return all subscription plans with formatted prices', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+      expect(responseJson).toHaveBeenCalledWith({
+        success: true,
+        data: expect.any(Array),
+      });
+    });
+
+    it('should exclude internal Stripe IDs from public response', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      if (responseData.data && responseData.data.length > 0) {
+        responseData.data.forEach((plan: any) => {
+          expect(plan).not.toHaveProperty('stripePriceId');
+          expect(plan).not.toHaveProperty('stripeProductId');
+        });
+      }
+    });
+
+    it('should format free tier price as "Free"', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      const freePlan = responseData.data?.find((p: any) => p.key === 'free');
+      if (freePlan) {
+        expect(freePlan.priceFormatted).toBe('Free');
+      }
+    });
+
+    it('should format paid tier prices correctly with dollar sign and per-month suffix', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      const paidPlans = responseData.data?.filter((p: any) => p.priceMonthly > 0) || [];
+      paidPlans.forEach((plan: any) => {
+        expect(plan.priceFormatted).toMatch(/^\$[\d.]+\/month$/);
+      });
+    });
+
+    it('should include entitlements for each plan', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      responseData.data?.forEach((plan: any) => {
+        expect(plan).toHaveProperty('entitlements');
+      });
+    });
+
+    it('should include required plan fields: key, name, priceMonthly, priceCurrency', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      responseData.data?.forEach((plan: any) => {
+        expect(plan).toHaveProperty('key');
+        expect(plan).toHaveProperty('name');
+        expect(plan).toHaveProperty('priceMonthly');
+        expect(plan).toHaveProperty('priceCurrency');
+        expect(plan.priceCurrency).toBe('usd');
+      });
+    });
+
+    it('should follow success/data API contract pattern', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData).toHaveProperty('success', true);
+      expect(responseData).toHaveProperty('data');
+      expect(Array.isArray(responseData.data)).toBe(true);
+    });
+  });
+
+  describe('getMySubscription', () => {
+    it('should return 401 if user is not authenticated', async () => {
+      // User not set on request
+      mockRequest.user = undefined;
+      (mockRequest as any).user = undefined;
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(401);
+      expect(responseJson).toHaveBeenCalledWith({
+        success: false,
+        message: 'User ID is required',
+      });
+    });
+
+    it('should return free tier info when user has no subscription', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(null);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+      expect(responseJson).toHaveBeenCalledWith({
+        success: true,
+        data: expect.objectContaining({
+          status: 'free',
+          tier: 'free',
+          tierName: 'Free',
+          subscription: null,
+        }),
+      });
+    });
+
+    it('should return active subscription details', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      const mockSubscription = {
+        status: 'active',
+        tier: 'premium',
+        tierName: 'Premium',
+        subscriptionId: 'sub_test123',
+        currentPeriodEnd: new Date('2025-02-01'),
+        cancelAtPeriodEnd: false,
+        entitlements: { dailySwipes: -1 },
+      };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(mockSubscription);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+      expect(responseJson).toHaveBeenCalledWith({
+        success: true,
+        data: mockSubscription,
+      });
+    });
+
+    it('should return trialing subscription status', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      const mockSubscription = {
+        status: 'trialing',
+        tier: 'basic',
+        tierName: 'Basic',
+        subscriptionId: 'sub_trial123',
+        currentPeriodEnd: new Date('2025-01-15'),
+        cancelAtPeriodEnd: false,
+        entitlements: {},
+      };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(mockSubscription);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.data.status).toBe('trialing');
+    });
+
+    it('should return past_due subscription status', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      const mockSubscription = {
+        status: 'past_due',
+        tier: 'premium',
+        tierName: 'Premium',
+        subscriptionId: 'sub_pastdue123',
+        currentPeriodEnd: new Date('2025-01-10'),
+        cancelAtPeriodEnd: false,
+        entitlements: {},
+      };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(mockSubscription);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.data.status).toBe('past_due');
+    });
+
+    it('should return canceled subscription with cancelAtPeriodEnd flag', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      const mockSubscription = {
+        status: 'canceled',
+        tier: 'premium',
+        tierName: 'Premium',
+        subscriptionId: 'sub_canceled123',
+        currentPeriodEnd: new Date('2025-01-31'),
+        cancelAtPeriodEnd: true,
+        entitlements: {},
+      };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(mockSubscription);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.data.cancelAtPeriodEnd).toBe(true);
+    });
+
+    it('should handle service errors gracefully with 500 status', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      mockPaymentService.getUserSubscription = jest.fn().mockRejectedValue(
+        new Error('Database connection failed')
+      );
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(500);
+      expect(responseJson).toHaveBeenCalledWith({
+        success: false,
+        message: 'Database connection failed',
+      });
+    });
+
+    it('should follow success/data API contract pattern', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(null);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData).toHaveProperty('success');
+      expect(responseData).toHaveProperty('data');
+    });
+
+    it('should include entitlements in subscription response', async () => {
+      (mockRequest as any).user = { id: 'user-123' };
+      const mockSubscription = {
+        status: 'active',
+        tier: 'elite',
+        tierName: 'Elite',
+        subscriptionId: 'sub_elite123',
+        currentPeriodEnd: new Date('2025-02-15'),
+        cancelAtPeriodEnd: false,
+        entitlements: {
+          dailySwipes: -1,
+          superLikesPerDay: -1,
+          boostsPerMonth: -1,
+          canSeeWhoLikesYou: true,
+          passport: true,
+          vipBadge: true,
+        },
+      };
+      mockPaymentService.getUserSubscription = jest.fn().mockResolvedValue(mockSubscription);
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.data.entitlements).toHaveProperty('dailySwipes');
+      expect(responseData.data.entitlements).toHaveProperty('passport');
+      expect(responseData.data.entitlements).toHaveProperty('vipBadge');
+    });
+  });
+
+  describe('Idempotency Key Validation', () => {
+    it('should accept request with idempotency key in headers', async () => {
+      const mockPaymentIntent = {
+        id: 'pi_test123',
+        client_secret: 'pi_test123_secret',
+      };
+
+      mockRequest.body = {
+        amount: 10.00,
+        customerId: 'cus_test123',
+      };
+      mockRequest.headers = {
+        'idempotency-key': 'unique-key-123',
+      };
+
+      mockPaymentService.createPaymentIntent = jest.fn().mockResolvedValue(mockPaymentIntent);
+
+      await paymentController.createPaymentIntent(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+    });
+
+    it('should process request without idempotency key', async () => {
+      const mockPaymentIntent = {
+        id: 'pi_test123',
+        client_secret: 'pi_test123_secret',
+      };
+
+      mockRequest.body = {
+        amount: 10.00,
+        customerId: 'cus_test123',
+      };
+
+      mockPaymentService.createPaymentIntent = jest.fn().mockResolvedValue(mockPaymentIntent);
+
+      await paymentController.createPaymentIntent(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+    });
+  });
+
+  describe('API Response Contract Validation', () => {
+    it('should always include success field in successful responses', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData).toHaveProperty('success', true);
+    });
+
+    it('should always include success field in error responses', async () => {
+      mockRequest.body = {};
+
+      await paymentController.createPaymentIntent(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData).toHaveProperty('success', false);
+    });
+
+    it('should include data field on successful responses', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.success).toBe(true);
+      expect(responseData).toHaveProperty('data');
+    });
+
+    it('should include message field on error responses', async () => {
+      mockRequest.body = {};
+
+      await paymentController.createPaymentIntent(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      const responseData = responseJson.mock.calls[0][0];
+      expect(responseData.success).toBe(false);
+      expect(responseData).toHaveProperty('message');
+    });
+
+    it('should use HTTP 200 for successful GET requests', async () => {
+      await paymentController.getPlans(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(200);
+    });
+
+    it('should use HTTP 400 for validation errors', async () => {
+      mockRequest.body = {};
+
+      await paymentController.createPaymentIntent(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(400);
+    });
+
+    it('should use HTTP 401 for authentication errors', async () => {
+      (mockRequest as any).user = undefined;
+
+      await paymentController.getMySubscription(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(401);
+    });
+
+    it('should use HTTP 500 for internal server errors', async () => {
+      mockRequest.params = { customerId: 'cus_test' };
+      mockPaymentService.getPaymentMethods = jest.fn().mockRejectedValue(
+        new Error('Internal error')
+      );
+
+      await paymentController.getPaymentMethods(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(responseStatus).toHaveBeenCalledWith(500);
+    });
+  });
 });

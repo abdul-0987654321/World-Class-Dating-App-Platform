@@ -442,6 +442,116 @@ export class S3StorageService {
   }
 
   /**
+   * SECURITY: Generate presigned URL for direct client upload
+   * This allows clients to upload directly to S3 without going through the server
+   */
+  async getPresignedUploadUrl(
+    userId: string,
+    fileName: string,
+    contentType: string,
+    folder: string = 'uploads',
+    expirySeconds: number = 900 // 15 minutes default for uploads
+  ): Promise<{
+    uploadUrl: string;
+    key: string;
+    expiresAt: Date;
+    publicUrl: string;
+  }> {
+    try {
+      // Validate content type
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'video/mp4',
+        'video/quicktime',
+        'audio/mpeg',
+        'audio/wav',
+      ];
+
+      if (!allowedTypes.includes(contentType)) {
+        throw new Error(`Unsupported content type: ${contentType}`);
+      }
+
+      // Sanitize filename and generate unique key
+      const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileExtension = sanitizedFileName.split('.').pop() || '';
+      const uniqueId = uuidv4();
+      const key = `${userId}/${folder}/${uniqueId}.${fileExtension}`;
+
+      // SECURITY: Limit max file sizes based on content type
+      const maxSizes: Record<string, number> = {
+        'image/jpeg': 10 * 1024 * 1024, // 10MB
+        'image/png': 10 * 1024 * 1024,
+        'image/webp': 10 * 1024 * 1024,
+        'image/gif': 15 * 1024 * 1024, // 15MB for GIFs
+        'video/mp4': 100 * 1024 * 1024, // 100MB for videos
+        'video/quicktime': 100 * 1024 * 1024,
+        'audio/mpeg': 25 * 1024 * 1024, // 25MB for audio
+        'audio/wav': 50 * 1024 * 1024,
+      };
+
+      // In local development, return mock URL
+      if (this.isLocalDevelopment) {
+        const expiresAt = new Date(Date.now() + expirySeconds * 1000);
+        const publicUrl = `http://localhost:4566/${this.bucket}/${key}`;
+        logger.info('Returning mock presigned upload URL for local development', {
+          userId,
+          key,
+        });
+        return {
+          uploadUrl: publicUrl,
+          key,
+          expiresAt,
+          publicUrl,
+        };
+      }
+
+      // SECURITY: Limit expiry time to maximum 1 hour for uploads
+      const maxExpirySeconds = 60 * 60; // 1 hour
+      const safeExpirySeconds = Math.min(expirySeconds, maxExpirySeconds);
+
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+        // Content-Length-Range is enforced via bucket policy, not here
+        Metadata: {
+          userId,
+          originalFileName: sanitizedFileName,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+
+      const uploadUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: safeExpirySeconds,
+      });
+
+      const expiresAt = new Date(Date.now() + safeExpirySeconds * 1000);
+      const publicUrl = this.getObjectUrl(key);
+
+      logger.info('Generated presigned upload URL', {
+        userId,
+        key,
+        contentType,
+        expirySeconds: safeExpirySeconds,
+        expiresAt,
+      });
+
+      return {
+        uploadUrl,
+        key,
+        expiresAt,
+        publicUrl,
+      };
+    } catch (error) {
+      logger.error('Failed to generate presigned upload URL', error);
+      throw new Error('Failed to generate upload URL');
+    }
+  }
+
+  /**
    * Helper: Get object URL
    */
   private getObjectUrl(key: string): string {

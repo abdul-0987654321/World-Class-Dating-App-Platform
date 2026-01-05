@@ -382,6 +382,86 @@ export class PaymentService {
   }
 
   /**
+   * Get user's subscription by userId
+   * Searches for active subscriptions via customer metadata
+   */
+  async getUserSubscription(userId: string): Promise<{
+    status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid';
+    tier: SubscriptionTier;
+    tierName: string;
+    subscriptionId: string;
+    currentPeriodEnd: Date;
+    cancelAtPeriodEnd: boolean;
+    entitlements: Record<string, any>;
+  } | null> {
+    try {
+      // Search for customer by userId metadata
+      const customers = await this.stripe.customers.search({
+        query: `metadata['userId']:'${userId}'`,
+        limit: 1,
+      });
+
+      if (customers.data.length === 0) {
+        return null;
+      }
+
+      const customer = customers.data[0];
+
+      // Get active subscriptions for this customer
+      const subscriptions = await this.stripe.subscriptions.list({
+        customer: customer.id,
+        status: 'all',
+        limit: 1,
+      });
+
+      if (subscriptions.data.length === 0) {
+        return null;
+      }
+
+      const subscription = subscriptions.data[0];
+      const tier = (subscription.metadata.tier || 'free') as SubscriptionTier;
+
+      // Get tier entitlements from config
+      const { getEntitlements } = await import('../../config/stripe-products');
+      const entitlements = getEntitlements(tier);
+
+      // Map Stripe status
+      let status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid' = 'active';
+      if (subscription.status === 'trialing') {
+        status = 'trialing';
+      } else if (subscription.status === 'past_due') {
+        status = 'past_due';
+      } else if (subscription.status === 'canceled' || subscription.cancel_at_period_end) {
+        status = 'canceled';
+      } else if (subscription.status === 'unpaid' || subscription.status === 'incomplete') {
+        status = 'unpaid';
+      }
+
+      const tierDisplayNames: Record<SubscriptionTier, string> = {
+        free: 'Free',
+        basic: 'Basic',
+        plus: 'Plus',
+        premium: 'Premium',
+        premium_plus: 'Premium+',
+        elite: 'Elite',
+      };
+
+      return {
+        status,
+        tier,
+        tierName: tierDisplayNames[tier] || 'Free',
+        subscriptionId: subscription.id,
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        entitlements,
+      };
+    } catch (error: any) {
+      logger.error('Error getting user subscription:', error.message);
+      return null;
+    }
+  }
+
+  /**
    * Handle Stripe webhook events
    */
   async handleWebhook(rawBody: string | Buffer, signature: string): Promise<Stripe.Event> {

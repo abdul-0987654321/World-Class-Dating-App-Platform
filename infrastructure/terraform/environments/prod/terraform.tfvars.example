@@ -1,0 +1,106 @@
+################################################################################
+# Production Environment - Example Configuration
+# Copy this file to terraform.tfvars and fill in your values
+################################################################################
+
+# Project Configuration
+project_name = "flamoral"
+environment  = "prod"
+aws_region   = "us-east-1"
+dr_region    = "us-west-2"
+
+# Tags
+cost_center = "production"
+owner       = "platform-team"
+
+# Networking
+vpc_cidr           = "10.30.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# EKS Configuration
+eks_cluster_version = "1.29"
+
+# RDS Configuration
+rds_engine_version = "15.4"
+
+# Domain Configuration
+domain_name       = "flamoral.com"
+domain_names      = ["flamoral.com", "www.flamoral.com", "api.flamoral.com"]
+create_route53_zone = true
+
+# Cognito URLs
+cognito_callback_urls        = ["https://flamoral.com/auth/callback"]
+cognito_logout_urls          = ["https://flamoral.com"]
+cognito_mobile_callback_urls = ["flamoral://auth/callback"]
+cognito_mobile_logout_urls   = ["flamoral://"]
+
+# CORS Origins
+allowed_origins = ["https://flamoral.com", "https://www.flamoral.com", "https://api.flamoral.com"]
+
+################################################################################
+# Security Configuration (IMPORTANT)
+################################################################################
+
+# WAF Configuration
+waf_rate_limit     = 2000  # Requests per 5 minutes per IP
+api_rate_limit     = 1000  # API-specific rate limit
+enable_waf_bot_control = true  # Enable for production (additional cost ~$10/month)
+max_request_body_size = 10485760  # 10MB
+
+# Geo-blocking (add countries if needed)
+blocked_countries = []  # e.g., ["CN", "RU", "KP"]
+
+# IP allowlist/blocklist (CIDR notation)
+waf_allowed_ips = []  # e.g., ["203.0.113.0/24"]
+waf_blocked_ips = []  # e.g., ["198.51.100.0/24"]
+
+# CloudFront origin verification header (generate a strong random value)
+origin_verify_header = ""  # Set to a secure random string
+
+################################################################################
+# Monitoring & Alerting (CRITICAL - Set these before deployment)
+################################################################################
+
+# General alerts
+alarm_email_endpoints = [
+  # "ops-team@flamoral.com",
+  # "devops@flamoral.com"
+]
+
+# Critical alerts (24/7 on-call team)
+critical_alert_emails = [
+  # "oncall@flamoral.com",
+  # "sre-critical@flamoral.com"
+]
+
+# Cost alerts
+cost_alert_email = ""  # e.g., "finance@flamoral.com"
+
+################################################################################
+# Budget Configuration
+################################################################################
+
+monthly_budget_limit = "5000"
+eks_budget_limit     = "1500"
+rds_budget_limit     = "1000"
+s3_budget_limit      = "500"
+
+################################################################################
+# Compliance
+################################################################################
+
+enable_pci_compliance = false  # Enable if handling payment card data
+
+################################################################################
+# CI/CD Configuration
+################################################################################
+
+github_repository       = "flamoral/dating-app"
+github_branch           = "main"
+codestar_connection_arn = ""  # Leave empty to create new connection
+
+################################################################################
+# DNSSEC (Optional)
+################################################################################
+
+dnssec_kms_key_arn = null  # Set if enabling DNSSEC

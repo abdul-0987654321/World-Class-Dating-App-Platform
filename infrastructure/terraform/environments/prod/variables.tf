@@ -238,3 +238,81 @@ variable "codestar_connection_arn" {
   type        = string
   default     = ""
 }
+
+################################################################################
+# Production Alarms Variables
+################################################################################
+
+variable "critical_alert_emails" {
+  description = "Email addresses for critical alerts (24/7 on-call)"
+  type        = list(string)
+  default     = []
+}
+
+variable "critical_alarm_actions" {
+  description = "SNS topic ARNs for critical alarms"
+  type        = list(string)
+  default     = []
+}
+
+variable "warning_alarm_actions" {
+  description = "SNS topic ARNs for warning alarms"
+  type        = list(string)
+  default     = []
+}
+
+variable "cost_alert_email" {
+  description = "Email address for cost anomaly alerts"
+  type        = string
+  default     = ""
+}
+
+################################################################################
+# WAF Configuration Variables
+################################################################################
+
+variable "waf_rate_limit" {
+  description = "WAF rate limit per 5-minute period per IP"
+  type        = number
+  default     = 2000
+}
+
+variable "api_rate_limit" {
+  description = "API-specific rate limit per 5-minute period per IP"
+  type        = number
+  default     = 1000
+}
+
+variable "enable_waf_bot_control" {
+  description = "Enable WAF Bot Control (additional cost)"
+  type        = bool
+  default     = false
+}
+
+variable "max_request_body_size" {
+  description = "Maximum request body size in bytes"
+  type        = number
+  default     = 10485760  # 10MB
+}
+
+variable "waf_allowed_ips" {
+  description = "IP addresses allowed to bypass WAF (CIDR notation)"
+  type        = list(string)
+  default     = []
+}
+
+variable "waf_blocked_ips" {
+  description = "IP addresses to block in WAF (CIDR notation)"
+  type        = list(string)
+  default     = []
+}
+
+################################################################################
+# Compliance Variables
+################################################################################
+
+variable "enable_pci_compliance" {
+  description = "Enable PCI DSS compliance standard in Security Hub"
+  type        = bool
+  default     = false
+}

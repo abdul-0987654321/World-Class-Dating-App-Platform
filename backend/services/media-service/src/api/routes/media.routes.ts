@@ -175,6 +175,70 @@ router.put(
   uploadController.setAsProfilePhoto.bind(uploadController)
 );
 
+/**
+ * @swagger
+ * /api/media/presign:
+ *   post:
+ *     summary: Get presigned URL for direct S3 upload
+ *     tags: [Media]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *               - contentType
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: Original file name
+ *                 example: photo.jpg
+ *               contentType:
+ *                 type: string
+ *                 description: MIME type of the file
+ *                 example: image/jpeg
+ *               folder:
+ *                 type: string
+ *                 description: Target folder (default uploads)
+ *                 example: profile
+ *     responses:
+ *       200:
+ *         description: Presigned URL generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     uploadUrl:
+ *                       type: string
+ *                       description: Presigned PUT URL for direct upload
+ *                     key:
+ *                       type: string
+ *                       description: S3 object key
+ *                     expiresAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: URL expiration time
+ *                     publicUrl:
+ *                       type: string
+ *                       description: Public URL of the uploaded file
+ *       400:
+ *         description: Bad request - Missing required fields or unsupported content type
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/presign', authenticate, uploadController.getPresignedUploadUrl.bind(uploadController));
+
 // Mount sub-routes
 router.use('/videos', videoRoutes);
 router.use('/voice-notes', voiceNoteRoutes);
