@@ -30,7 +30,18 @@ export const config = {
     db: parseInt(process.env.REDIS_DB || '7', 10),
   },
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+    // Security: Validate AMQPS in production, fail-safe to secure default
+    url: (() => {
+      const url = process.env.RABBITMQ_URL;
+      const isProduction = process.env.NODE_ENV === 'production';
+
+      if (isProduction && url && !url.startsWith('amqps://')) {
+        throw new Error('RABBITMQ_URL must use amqps:// (TLS) in production');
+      }
+
+      // Default to localhost only in development
+      return url || (isProduction ? '' : 'amqp://localhost:5672');
+    })(),
     exchange: process.env.RABBITMQ_EXCHANGE || 'flamoral_events',
     queues: {
       match: process.env.RABBITMQ_MATCH_QUEUE || 'match_events',

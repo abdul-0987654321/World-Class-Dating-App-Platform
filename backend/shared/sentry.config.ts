@@ -7,7 +7,16 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
  * @param serviceName - Name of the service (e.g., 'user-service', 'payment-service')
  */
 export function initializeSentry(serviceName: string): void {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   if (!process.env.SENTRY_DSN) {
+    if (isProduction) {
+      // In production, Sentry is required for error tracking
+      throw new Error(
+        `SENTRY_DSN environment variable is required in production for ${serviceName}. ` +
+          'Configure Sentry DSN or set NODE_ENV to development.'
+      );
+    }
     console.warn(`Sentry DSN not configured for ${serviceName}. Error tracking disabled.`);
     return;
   }

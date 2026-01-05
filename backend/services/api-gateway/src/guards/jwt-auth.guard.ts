@@ -89,16 +89,20 @@ export class JwtAuthGuard implements CanActivate {
       return null;
     }
 
-    // Support both "Bearer <token>" and just "<token>" formats
-    if (authHeader.startsWith('Bearer ')) {
-      return authHeader.substring(7);
+    // RFC 6750: OAuth 2.0 Bearer Token - Enforce strict "Bearer " prefix
+    // Security: Do not accept tokens without proper Bearer prefix to prevent bypass attacks
+    if (!authHeader.startsWith('Bearer ')) {
+      return null;
     }
 
-    // If it looks like a JWT (contains dots), try to use it directly
-    if (authHeader.includes('.')) {
-      return authHeader;
+    const token = authHeader.substring(7).trim();
+
+    // Validate token has JWT structure (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
     }
 
-    return null;
+    return token;
   }
 }
