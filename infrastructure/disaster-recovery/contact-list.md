@@ -8,17 +8,38 @@ This document contains contact information for all personnel involved in disaste
 
 ---
 
+## PRE-PRODUCTION VALIDATION CHECKLIST
+
+> **ACTION REQUIRED**: Before going to production, verify ALL items below are completed.
+
+| Item | Status | Owner | Completed Date |
+|------|--------|-------|----------------|
+| All [REQUIRED] fields populated with real data | [ ] | DevOps Lead | |
+| Phone numbers verified and tested | [ ] | DevOps Lead | |
+| PagerDuty/OpsGenie integration configured | [ ] | DevOps Lead | |
+| Conference bridge tested | [ ] | Platform Lead | |
+| AWS Support contract activated | [ ] | VP Engineering | |
+| Slack channels created and members added | [ ] | Platform Lead | |
+| All team members have access to this document | [ ] | DevOps Lead | |
+| Quarterly review calendar invite sent | [ ] | DevOps Lead | |
+
+**Validation Sign-off**: _________________________ Date: _____________
+
+---
+
 ## On-Call Rotation
 
 ### Current On-Call Schedule
 
 | Week Of | Primary On-Call | Secondary On-Call | Manager On-Call |
 |---------|----------------|-------------------|-----------------|
-| 2024-12-16 | [Name] | [Name] | [Name] |
-| 2024-12-23 | [Name] | [Name] | [Name] |
-| 2024-12-30 | [Name] | [Name] | [Name] |
+| 2026-01-06 | [REQUIRED: Primary Engineer Name] | [REQUIRED: Secondary Engineer Name] | [REQUIRED: Manager Name] |
+| 2026-01-13 | [REQUIRED: Primary Engineer Name] | [REQUIRED: Secondary Engineer Name] | [REQUIRED: Manager Name] |
+| 2026-01-20 | [REQUIRED: Primary Engineer Name] | [REQUIRED: Secondary Engineer Name] | [REQUIRED: Manager Name] |
 
-**On-Call Schedule Tool**: [PagerDuty/OpsGenie URL]
+**On-Call Schedule Tool**: [REQUIRED: PagerDuty/OpsGenie URL - e.g., https://flamoral.pagerduty.com]
+
+> **Note**: Update this schedule weekly. Consider automating via PagerDuty/OpsGenie API integration.
 
 ---
 
@@ -27,31 +48,31 @@ This document contains contact information for all personnel involved in disaste
 ### Platform Team
 
 #### Platform Lead
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Platform Lead / Technical Decision Maker
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 1
 
 #### DevOps Lead
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Infrastructure & DevOps Lead
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 1
-- **Expertise**: AKS, Azure, Terraform, CI/CD
+- **Expertise**: AWS EKS, Terraform, CI/CD, Kubernetes
 
 #### Senior DevOps Engineer
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Senior DevOps Engineer
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 2
 - **Expertise**: Kubernetes, Monitoring, Automation
 
@@ -60,21 +81,21 @@ This document contains contact information for all personnel involved in disaste
 ### Database Team
 
 #### Database Administrator (Primary)
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Senior DBA
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 1
-- **Expertise**: PostgreSQL, Azure Database, Backup/Restore
+- **Expertise**: PostgreSQL, Aurora, Backup/Restore, PITR
 
 #### Database Engineer
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Database Engineer
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
 - **Escalation Level**: 2
 - **Expertise**: PostgreSQL, Query Optimization, Replication
 
@@ -83,76 +104,76 @@ This document contains contact information for all personnel involved in disaste
 ### Security Team
 
 #### Security Lead
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Information Security Lead
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 1
 - **Expertise**: Security Incidents, Compliance, Forensics
 
 #### Security Engineer
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Security Engineer
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
 - **Escalation Level**: 2
-- **Expertise**: Azure Security, Threat Detection, WAF
+- **Expertise**: AWS Security, GuardDuty, WAF, Threat Detection
 
 ---
 
 ### Development Team
 
 #### Backend Lead
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Backend Development Lead
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 2
-- **Expertise**: API, Microservices, Node.js
+- **Expertise**: API, Microservices, Node.js, NestJS
 
 #### Frontend Lead
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Frontend Development Lead
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
-- **Backup**: [Backup Name]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
+- **Backup**: [REQUIRED: Backup Person Name]
 - **Escalation Level**: 2
-- **Expertise**: React, Web Performance, UI/UX
+- **Expertise**: React, React Native, Web Performance
 
 ---
 
 ### Management
 
 #### CTO
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Chief Technology Officer
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
 - **Escalation Level**: Executive
-- **When to Contact**: Severity 1 incidents, security breaches, extended outages
+- **When to Contact**: Severity 1 incidents, security breaches, extended outages (>1 hour)
 
 #### VP of Engineering
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: VP Engineering
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
 - **Escalation Level**: Executive
 - **When to Contact**: Severity 1-2 incidents, major technical decisions
 
 #### Engineering Manager
-- **Name**: [Full Name]
+- **Name**: [REQUIRED: Full Name]
 - **Role**: Engineering Manager
-- **Phone**: +1-XXX-XXX-XXXX
-- **Email**: [email]@company.com
-- **Slack**: @username
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX with area code]
+- **Email**: [REQUIRED: name@flamoral.com]
+- **Slack**: [REQUIRED: @slack-handle]
 - **Escalation Level**: Management
 - **When to Contact**: Severity 2-3 incidents, resource allocation
 
@@ -160,46 +181,53 @@ This document contains contact information for all personnel involved in disaste
 
 ## External Contacts
 
-### Azure Support
+### AWS Support
 
-#### Premier Support
-- **Support Portal**: https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade
-- **Phone**: 1-800-642-7676 (US)
-- **Support Level**: Premier
-- **Contract ID**: [Contract Number]
-- **When to Contact**: Azure infrastructure issues, service outages
-- **SLA**: 15 minutes response for Severity A
+#### AWS Enterprise Support
+- **Support Portal**: https://console.aws.amazon.com/support/home
+- **Phone**: 1-800-555-2345 (US Enterprise Support)
+- **Support Level**: [REQUIRED: Business/Enterprise]
+- **Account ID**: [REQUIRED: AWS Account ID - 12 digits]
+- **When to Contact**: AWS infrastructure issues, service outages
+- **SLA**: 15 minutes response for Critical (Enterprise)
 
-#### Technical Account Manager
-- **Name**: [Full Name]
-- **Email**: [email]@microsoft.com
-- **Phone**: +1-XXX-XXX-XXXX
-- **When to Contact**: Escalations, architectural guidance
+#### AWS Technical Account Manager (TAM)
+- **Name**: [REQUIRED if Enterprise: TAM Full Name]
+- **Email**: [REQUIRED if Enterprise: tam-name@amazon.com]
+- **Phone**: [REQUIRED if Enterprise: +1-XXX-XXX-XXXX]
+- **When to Contact**: Escalations, architectural guidance, proactive reviews
 
 ---
 
 ### Third-Party Services
 
-#### CDN Provider (if applicable)
-- **Company**: [Provider Name]
-- **Support Email**: support@provider.com
-- **Support Phone**: +1-XXX-XXX-XXXX
-- **Account ID**: [Account ID]
-- **24/7 Support**: Yes
+#### Payment Provider (Stripe)
+- **Company**: Stripe
+- **Support Portal**: https://support.stripe.com
+- **Support Email**: support@stripe.com
+- **Account ID**: [REQUIRED: Stripe Account ID]
+- **24/7 Support**: Yes (for high-priority issues)
+- **Escalation Contact**: [OPTIONAL: Account Manager email if assigned]
 
-#### Monitoring Service (DataDog/New Relic/etc)
-- **Company**: [Provider Name]
-- **Support Email**: support@provider.com
-- **Support Phone**: +1-XXX-XXX-XXXX
-- **Account ID**: [Account ID]
-- **When to Contact**: Monitoring platform issues
+#### Email Service (AWS SES)
+- **Company**: AWS SES
+- **Support**: Via AWS Support Console
+- **Region**: us-east-1
+- **Account ID**: Same as AWS Account
+- **When to Contact**: Email deliverability issues
 
-#### DNS Provider (if not Azure DNS)
-- **Company**: [Provider Name]
-- **Support Email**: support@provider.com
-- **Support Phone**: +1-XXX-XXX-XXXX
-- **Account ID**: [Account ID]
-- **When to Contact**: DNS resolution issues
+#### Push Notifications (Firebase)
+- **Company**: Google Firebase
+- **Support Portal**: https://firebase.google.com/support
+- **Project ID**: [REQUIRED: Firebase Project ID]
+- **When to Contact**: Push notification delivery issues
+
+#### SMS Provider (Twilio)
+- **Company**: Twilio
+- **Support Portal**: https://www.twilio.com/console/support
+- **Support Email**: support@twilio.com
+- **Account SID**: [REQUIRED: Twilio Account SID]
+- **When to Contact**: SMS delivery issues
 
 ---
 
@@ -208,37 +236,31 @@ This document contains contact information for all personnel involved in disaste
 ### Primary Communication Channels
 
 #### Slack
-- **Workspace**: [company].slack.com
+- **Workspace**: [REQUIRED: flamoral.slack.com or custom URL]
 - **Emergency Channel**: #incident-response
 - **DevOps Channel**: #devops-team
 - **Security Channel**: #security-team
-- **Status Updates**: #status-updates
+- **Status Updates**: #status-updates (public channel for updates)
 
-#### Microsoft Teams
-- **Team**: Engineering
-- **Emergency Channel**: Incident Response
-- **When to Use**: Video calls, screen sharing during incidents
-
-#### PagerDuty/OpsGenie
-- **URL**: [pagerduty-url]
+#### PagerDuty
+- **URL**: [REQUIRED: https://flamoral.pagerduty.com]
 - **Service**: Flamoral Production
 - **Escalation Policy**: Production Support
+- **Phone Number**: [REQUIRED: PagerDuty phone callback number]
 
 ---
 
 ### Conference Bridge
 
-#### Primary Bridge
-- **Provider**: [Zoom/Teams/etc]
-- **URL**: [conference-url]
-- **Phone**: +1-XXX-XXX-XXXX
-- **Meeting ID**: [ID]
-- **Password**: [Password]
+#### Primary Bridge (Zoom)
+- **URL**: [REQUIRED: https://zoom.us/j/XXXXXXXXX]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX]
+- **Meeting ID**: [REQUIRED: Meeting ID]
+- **Password**: [REQUIRED: Meeting Password]
 
-#### Backup Bridge
-- **Provider**: [Alternative]
-- **URL**: [backup-conference-url]
-- **Phone**: +1-XXX-XXX-XXXX
+#### Backup Bridge (Google Meet)
+- **URL**: [REQUIRED: https://meet.google.com/xxx-xxxx-xxx]
+- **Phone**: [REQUIRED: +1-XXX-XXX-XXXX]
 
 ---
 
@@ -261,10 +283,10 @@ This document contains contact information for all personnel involved in disaste
 
 ### Level 3 Escalation (30-60 minutes)
 1. Management notified
-2. External support engaged (Azure, vendors)
+2. External support engaged (AWS, vendors)
 3. Public communication prepared
 
-**Contacts**: VP Engineering, CTO, Azure Support
+**Contacts**: VP Engineering, CTO, AWS Support
 
 ### Executive Escalation (60+ minutes or Security Breach)
 1. Executive team notified
@@ -293,7 +315,7 @@ This document contains contact information for all personnel involved in disaste
 - CTO
 
 **Within 30 minutes**:
-- Azure Support (if infrastructure issue)
+- AWS Support (if infrastructure issue)
 - Status page update
 
 ---
@@ -335,104 +357,61 @@ This document contains contact information for all personnel involved in disaste
 
 ---
 
-## After-Hours Contact Guidelines
+## Quick Reference Card
 
-### When to Contact After Hours
+**Print and keep near your workstation**
 
-**DO contact for**:
-- Severity 1 incidents
-- Security breaches
-- Complete service outages
-- Data loss or corruption
-- Escalated customer issues
-
-**DON'T contact for**:
-- Severity 4 issues
-- Questions that can wait until business hours
-- Non-urgent requests
-
-### Preferred Contact Methods (in order)
-
-1. **PagerDuty/OpsGenie** - Automatic notification
-2. **Phone Call** - If urgent and no response
-3. **Slack** - Tag @oncall in #incident-response
-4. **Email** - Last resort, may not see immediately
-
----
-
-## Vendor Contacts
-
-### SSL Certificate Provider
-- **Provider**: Let's Encrypt / Azure Certificate Service
-- **Support**: [Contact Info]
-- **Renewal Process**: Automated via cert-manager
-
-### Email Service Provider
-- **Provider**: [SendGrid/AWS SES/etc]
-- **Support Email**: support@provider.com
-- **Support Phone**: +1-XXX-XXX-XXXX
-- **Account ID**: [Account ID]
-
-### SMS Provider
-- **Provider**: [Twilio/etc]
-- **Support Email**: support@provider.com
-- **Support Phone**: +1-XXX-XXX-XXXX
-- **Account ID**: [Account ID]
+```
++==============================================================+
+|          FLAMORAL EMERGENCY CONTACT QUICK REFERENCE          |
++==============================================================+
+|                                                              |
+|  PRIMARY ON-CALL: [REQUIRED] - [REQUIRED]                   |
+|  SECONDARY ON-CALL: [REQUIRED] - [REQUIRED]                 |
+|                                                              |
+|  PLATFORM LEAD: [REQUIRED] - [REQUIRED]                     |
+|  DEVOPS LEAD: [REQUIRED] - [REQUIRED]                       |
+|  DATABASE LEAD: [REQUIRED] - [REQUIRED]                     |
+|  SECURITY LEAD: [REQUIRED] - [REQUIRED]                     |
+|                                                              |
+|  SLACK: #incident-response                                  |
+|  CONFERENCE BRIDGE: [REQUIRED]                              |
+|  PAGERDUTY: [REQUIRED]                                      |
+|                                                              |
+|  AWS SUPPORT: 1-800-555-2345                                |
+|  ACCOUNT ID: [REQUIRED]                                     |
+|                                                              |
++==============================================================+
+```
 
 ---
 
 ## Document Maintenance
 
 ### Update Schedule
-- **Frequency**: Monthly
+- **Frequency**: Monthly (minimum), after any personnel change
 - **Owner**: DevOps Lead
 - **Review Date**: First Monday of each month
+- **Quarterly Verification**: Test all phone numbers and escalation paths
 
 ### Update Procedure
-1. Verify all phone numbers and emails
+1. Verify all phone numbers and emails are current
 2. Update on-call rotation
-3. Add new team members
-4. Remove departed team members
-5. Test contact methods quarterly
+3. Add new team members within 1 business day of joining
+4. Remove departed team members within 1 business day of leaving
+5. Test contact methods quarterly (actual phone calls to verify)
 
 ### Distribution
 This document should be:
-- Stored in secure location (encrypted)
+- Stored in secure location (encrypted at rest)
 - Accessible to all engineering team members
-- Printed copy in office
-- Copy in runbook repository (with sensitive data redacted)
+- Printed copy in office (if applicable)
+- Copy in password manager for offline access
 
 ---
 
-## Quick Reference Card
-
-**Print and keep near your workstation**
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║          FLAMORAL EMERGENCY CONTACT QUICK REFERENCE          ║
-╠══════════════════════════════════════════════════════════════╣
-║                                                              ║
-║  PRIMARY ON-CALL: [Name] - [Phone]                          ║
-║  SECONDARY ON-CALL: [Name] - [Phone]                        ║
-║                                                              ║
-║  PLATFORM LEAD: [Name] - [Phone]                            ║
-║  DEVOPS LEAD: [Name] - [Phone]                              ║
-║  DATABASE LEAD: [Name] - [Phone]                            ║
-║  SECURITY LEAD: [Name] - [Phone]                            ║
-║                                                              ║
-║  SLACK: #incident-response                                  ║
-║  CONFERENCE BRIDGE: [URL]                                   ║
-║                                                              ║
-║  AZURE SUPPORT: 1-800-642-7676                              ║
-║  CONTRACT ID: [Contract Number]                             ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
----
-
-**Last Updated**: 2024-12-13
+**Last Updated**: 2026-01-05
 **Document Owner**: DevOps Team
 **Classification**: Internal - Sensitive
-**Next Review**: 2025-01-13
+**Next Review**: 2026-02-01
+**Production Validation**: [REQUIRED: Date validated for production]

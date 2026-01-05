@@ -1,0 +1,579 @@
+{
+  "auditReport": {
+    "title": "Section 4: Financial & Revenue Operations (RevOps) Production Readiness Audit",
+    "auditDate": "2026-01-05",
+    "auditor": "Claude Opus 4.5",
+    "version": "1.0.0",
+    "overallStatus": "PARTIAL_READY",
+    "overallScore": 68,
+    "summary": {
+      "strengths": [
+        "Comprehensive multi-provider payment support (Stripe, Paystack, Flutterwave, Apple IAP, Google Play)",
+        "Robust webhook handling with retry logic and idempotency",
+        "Well-designed subscription lifecycle management with grace periods",
+        "Complete dynamic pricing system with regional, promotional, and personalized pricing",
+        "Full proration support for mid-cycle upgrades",
+        "Detailed pricing audit logging infrastructure"
+      ],
+      "criticalGaps": [
+        "No end-to-end reconciliation service between app state, payment providers, and accounting",
+        "Missing tax calculation/VAT handling by region",
+        "No revenue recognition rules or deferred revenue tracking",
+        "No monthly close process or accounting integration",
+        "No multi-currency conversion at transaction time",
+        "Missing revenue leakage monitoring and alerts"
+      ]
+    }
+  },
+
+  "billingIntegrity": {
+    "status": "PARTIAL",
+    "score": 60,
+    "details": {
+      "endToEndReconciliation": {
+        "status": "NOT_IMPLEMENTED",
+        "score": 0,
+        "findings": [
+          "No reconciliation service exists between app subscription state and payment provider records",
+          "No automated comparison of Stripe/Paystack/Flutterwave records with internal database",
+          "No scheduled reconciliation jobs or alerts for discrepancies",
+          "Transaction records stored in database but not cross-validated with provider ledgers"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/",
+          "files": ["payment.service.ts", "webhook.service.ts", "flutterwave-webhook.service.ts", "paystack-webhook.service.ts"],
+          "observation": "No ReconciliationService or similar exists. Webhooks update internal state but no periodic reconciliation."
+        },
+        "recommendations": [
+          "Implement ReconciliationService with daily scheduled runs",
+          "Create reconciliation reports comparing: (1) internal subscription_states, (2) Stripe/Paystack/Flutterwave subscriptions, (3) expected revenue",
+          "Set up alerts for discrepancies > $100 or > 1% of daily volume",
+          "Add reconciliation dashboard for finance team"
+        ],
+        "priority": "CRITICAL"
+      },
+
+      "refundAndDisputeHandling": {
+        "status": "PARTIAL",
+        "score": 70,
+        "findings": [
+          "Refund processing implemented for Stripe via processRefund() method",
+          "Dispute handling via handleDisputeCreated() with logging and status update",
+          "Flutterwave and Paystack refund webhooks handled",
+          "MISSING: No automated evidence collection for disputes",
+          "MISSING: No dispute response workflow",
+          "MISSING: No chargeback rate monitoring"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/webhook.service.ts",
+          "codeSnippet": "async handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> { logger.error(`Dispute created: ${dispute.id} for charge: ${dispute.charge}`); ... }",
+          "line": 838
+        },
+        "recommendations": [
+          "Implement DisputeResponseService with evidence template generation",
+          "Add dispute analytics dashboard tracking chargeback rates by user segment",
+          "Create automated evidence package (transaction logs, user activity, delivery proof)",
+          "Set up alerts when chargeback rate exceeds 0.5%"
+        ],
+        "priority": "HIGH"
+      },
+
+      "taxCalculationByRegion": {
+        "status": "NOT_IMPLEMENTED",
+        "score": 0,
+        "findings": [
+          "No tax calculation logic found in payment service",
+          "No VAT/GST handling for EU, UK, Australia, or other jurisdictions",
+          "Regional pricing exists but focuses on purchasing power parity, not tax compliance",
+          "Currency symbols mapped in dynamic-pricing.types.ts but no tax rates",
+          "Stripe Tax integration not configured"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/types/dynamic-pricing.types.ts",
+          "observation": "CURRENCY_SYMBOLS and regional pricing exist but no TAX_RATES or tax calculation functions"
+        },
+        "recommendations": [
+          "Integrate Stripe Tax or implement TaxCalculationService",
+          "Define tax rates by country/region (EU VAT, US state sales tax, etc.)",
+          "Store tax amounts on transactions for reporting",
+          "Generate tax invoices compliant with local regulations",
+          "Consider using tax automation providers (TaxJar, Avalara)"
+        ],
+        "priority": "CRITICAL"
+      },
+
+      "subscriptionLifecycleEdgeCases": {
+        "upgradesMidCycle": {
+          "status": "IMPLEMENTED",
+          "score": 90,
+          "findings": [
+            "updateSubscriptionTier() uses proration_behavior: 'always_invoice'",
+            "Immediate invoice generation for upgrade difference",
+            "Test coverage for basic to premium and premium to elite upgrades"
+          ],
+          "evidence": {
+            "location": "backend/services/payment-service/src/domain/services/payment.service.ts",
+            "line": 221,
+            "codeSnippet": "proration_behavior: 'always_invoice'"
+          }
+        },
+        "downgrades": {
+          "status": "PARTIAL",
+          "score": 60,
+          "findings": [
+            "Downgrade to free tier implemented on subscription cancellation/deletion",
+            "MISSING: Prorated credits for mid-cycle downgrades to lower paid tiers",
+            "MISSING: UI/API for selecting downgrade effective date"
+          ],
+          "evidence": {
+            "location": "backend/services/payment-service/src/domain/services/payment.service.ts",
+            "line": 698,
+            "observation": "// Downgrade user to free tier - only handles full cancellation, not tier-to-tier downgrade"
+          }
+        },
+        "proration": {
+          "status": "IMPLEMENTED",
+          "score": 85,
+          "findings": [
+            "Proration enabled via Stripe's 'always_invoice' behavior",
+            "Works correctly for upgrades",
+            "Multi-month billing cycles (3-month, 6-month) supported in schema",
+            "MISSING: Custom proration calculations for non-Stripe providers"
+          ]
+        },
+        "failedPayments": {
+          "status": "IMPLEMENTED",
+          "score": 85,
+          "findings": [
+            "3-day grace period configured for failed payments",
+            "handleInvoicePaymentFailed() triggers grace_period status",
+            "User notifications sent on payment failure",
+            "Automatic downgrade to free after grace period expires",
+            "Retry logic in webhook-retry.service.ts with exponential backoff"
+          ],
+          "evidence": {
+            "location": "backend/services/payment-service/src/domain/services/flutterwave-webhook.service.ts",
+            "line": 370,
+            "codeSnippet": "gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3);"
+          }
+        }
+      },
+
+      "revenueLeakageMonitoring": {
+        "status": "NOT_IMPLEMENTED",
+        "score": 10,
+        "findings": [
+          "No dedicated revenue leakage detection",
+          "No alerts for: expired trials not converting, failed renewals, abandoned carts",
+          "No tracking of subscription value loss from cancellations",
+          "Webhook statistics available but not tied to revenue metrics"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/webhook-retry.service.ts",
+          "observation": "getWebhookStats() tracks processing status but not revenue impact"
+        },
+        "recommendations": [
+          "Implement RevenueLeakageMonitor with metrics for: failed renewals $, expired trials $, cancellation value $",
+          "Daily revenue reconciliation report",
+          "Alert thresholds for abnormal churn or payment failure rates",
+          "Integrate with analytics service for cohort-based revenue tracking"
+        ],
+        "priority": "HIGH"
+      }
+    }
+  },
+
+  "accountingAndReporting": {
+    "status": "NOT_READY",
+    "score": 30,
+    "details": {
+      "revenueRecognitionRules": {
+        "status": "NOT_IMPLEMENTED",
+        "score": 0,
+        "findings": [
+          "No ASC 606 / IFRS 15 compliant revenue recognition",
+          "Subscription revenue recorded at payment time, not over service period",
+          "No deferred revenue tracking for prepaid annual/multi-month subscriptions",
+          "No distinction between recognized and deferred revenue in database schema"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/infrastructure/database/migrations/20250125_create_payment_tables.ts",
+          "observation": "transactions table has amount and processed_at but no recognized_amount, deferred_amount, or recognition_schedule columns"
+        },
+        "recommendations": [
+          "Add revenue recognition tables: deferred_revenue, revenue_recognition_schedule, recognized_revenue",
+          "Implement daily revenue recognition job",
+          "Generate revenue waterfall reports for finance",
+          "Support configurable recognition rules (point-in-time vs. over-time)"
+        ],
+        "priority": "CRITICAL"
+      },
+
+      "monthlyCloseProcess": {
+        "status": "NOT_IMPLEMENTED",
+        "score": 0,
+        "findings": [
+          "No month-end close workflow",
+          "No period locking to prevent retroactive changes",
+          "No accrual calculations for partially served subscriptions",
+          "No journal entry generation for accounting systems"
+        ],
+        "recommendations": [
+          "Implement MonthlyCloseService with: period locking, accrual calculations, reconciliation checkpoints",
+          "Generate GL-ready reports in standard format",
+          "Create close checklist workflow for finance team",
+          "Add audit trail for any period adjustments"
+        ],
+        "priority": "CRITICAL"
+      },
+
+      "auditTrailCompleteness": {
+        "status": "PARTIAL",
+        "score": 70,
+        "findings": [
+          "Good: pricing_audit_log table captures pricing decisions",
+          "Good: stripe_webhook_events tracks all payment events with payloads",
+          "Good: transactions table records all payment activities",
+          "MISSING: User-initiated action audit (who changed what, when)",
+          "MISSING: Admin override audit trail",
+          "MISSING: Immutable audit log (current tables are mutable)"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/infrastructure/database/migrations/20260103000001_create_dynamic_pricing_tables.ts",
+          "line": 319,
+          "observation": "pricing_audit_log table exists with action tracking"
+        },
+        "recommendations": [
+          "Add admin_audit_log for manual changes",
+          "Implement append-only audit tables or use event sourcing",
+          "Add performedBy field to all state changes",
+          "Integrate with SIEM for security monitoring"
+        ],
+        "priority": "MEDIUM"
+      },
+
+      "multiCurrencyHandling": {
+        "status": "PARTIAL",
+        "score": 50,
+        "findings": [
+          "Currency field exists on transactions table",
+          "Regional pricing supports multiple currencies with symbols",
+          "MISSING: Exchange rate tracking at transaction time",
+          "MISSING: Currency conversion for reporting (everything to base currency)",
+          "MISSING: Historical exchange rate storage",
+          "Flutterwave/Paystack use local currencies (NGN, GHS) but no conversion to USD for consolidated reporting"
+        ],
+        "evidence": {
+          "locations": [
+            "backend/services/payment-service/src/types/dynamic-pricing.types.ts (CURRENCY_SYMBOLS)",
+            "backend/services/payment-service/src/infrastructure/database/migrations/20250125_create_payment_tables.ts (currency column)"
+          ]
+        },
+        "recommendations": [
+          "Add exchange_rate column to transactions table",
+          "Store amount_in_base_currency for consolidated reporting",
+          "Integrate exchange rate API for daily rates",
+          "Generate multi-currency P&L reports with conversion"
+        ],
+        "priority": "HIGH"
+      },
+
+      "costAllocationPerTenant": {
+        "status": "NOT_APPLICABLE",
+        "score": null,
+        "findings": [
+          "Application is B2C dating platform, not multi-tenant B2B",
+          "Cost allocation per tenant not applicable",
+          "Per-product cost tracking could be useful for P&L by subscription tier"
+        ],
+        "recommendations": [
+          "Consider implementing cost tracking by: subscription tier, acquisition channel, user cohort",
+          "Track payment provider fees per transaction for margin analysis"
+        ],
+        "priority": "LOW"
+      }
+    }
+  },
+
+  "paymentProviderIntegration": {
+    "status": "IMPLEMENTED",
+    "score": 85,
+    "details": {
+      "stripe": {
+        "status": "FULLY_IMPLEMENTED",
+        "features": [
+          "Customer management",
+          "Subscription lifecycle (create, update, cancel, reactivate)",
+          "Payment intents and payment methods",
+          "Comprehensive webhook handling (25+ event types)",
+          "Retry logic with exponential backoff",
+          "Idempotency via stripe_webhook_events table"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/payment.service.ts",
+          "lines": "39-780"
+        }
+      },
+      "appleIAP": {
+        "status": "IMPLEMENTED",
+        "features": [
+          "Receipt validation (production and sandbox)",
+          "Subscription status checking",
+          "Auto-renew status tracking",
+          "Bundle ID verification",
+          "Product ID to tier mapping"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/apple-iap.service.ts"
+        }
+      },
+      "googlePlay": {
+        "status": "IMPLEMENTED",
+        "features": [
+          "Subscription validation via Android Publisher API",
+          "Product purchase validation",
+          "Purchase acknowledgment",
+          "Subscription cancellation and refund",
+          "Product ID to tier mapping"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/google-play.service.ts"
+        }
+      },
+      "paystack": {
+        "status": "IMPLEMENTED",
+        "features": [
+          "HMAC-SHA512 signature verification",
+          "Charge success handling",
+          "Subscription lifecycle webhooks",
+          "Refund processing",
+          "Transaction verification with API"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/paystack-webhook.service.ts"
+        }
+      },
+      "flutterwave": {
+        "status": "IMPLEMENTED",
+        "features": [
+          "Webhook signature verification",
+          "Charge completion handling",
+          "Subscription management",
+          "Transfer webhooks (payouts)",
+          "Refund processing"
+        ],
+        "evidence": {
+          "location": "backend/services/payment-service/src/domain/services/flutterwave-webhook.service.ts"
+        }
+      }
+    }
+  },
+
+  "dynamicPricingSystem": {
+    "status": "FULLY_IMPLEMENTED",
+    "score": 90,
+    "details": {
+      "features": [
+        "Regional pricing with purchasing power parity",
+        "Promotional codes with targeting rules",
+        "Personalized pricing based on engagement and behavior",
+        "A/B testing experiments for price optimization",
+        "Bundle pricing support",
+        "Pricing rules engine (time-based, loyalty, win-back)",
+        "Complete audit logging"
+      ],
+      "evidence": {
+        "service": "backend/services/payment-service/src/domain/services/dynamic-pricing.service.ts",
+        "types": "backend/services/payment-service/src/types/dynamic-pricing.types.ts",
+        "migration": "backend/services/payment-service/src/infrastructure/database/migrations/20260103000001_create_dynamic_pricing_tables.ts"
+      },
+      "tables": [
+        "regional_pricing",
+        "promotions",
+        "promotion_usage",
+        "personalized_pricing",
+        "price_experiments",
+        "price_experiment_variants",
+        "user_experiment_assignments",
+        "pricing_bundles",
+        "pricing_rules",
+        "pricing_audit_log"
+      ]
+    }
+  },
+
+  "databaseSchema": {
+    "status": "IMPLEMENTED",
+    "score": 80,
+    "tables": {
+      "core": [
+        "subscription_plans",
+        "user_subscriptions",
+        "payment_methods",
+        "transactions",
+        "coin_packages",
+        "coin_transactions"
+      ],
+      "webhooks": [
+        "stripe_webhook_events",
+        "paystack_webhook_events",
+        "flutterwave_webhook_events"
+      ],
+      "dynamicPricing": [
+        "regional_pricing",
+        "promotions",
+        "promotion_usage",
+        "personalized_pricing",
+        "price_experiments",
+        "price_experiment_variants",
+        "user_experiment_assignments",
+        "pricing_bundles",
+        "pricing_rules",
+        "pricing_audit_log"
+      ]
+    },
+    "missingTables": [
+      "reconciliation_reports",
+      "deferred_revenue",
+      "revenue_recognition_schedule",
+      "exchange_rates",
+      "tax_rates",
+      "accounting_periods",
+      "journal_entries"
+    ]
+  },
+
+  "testCoverage": {
+    "status": "PARTIAL",
+    "score": 65,
+    "findings": {
+      "implemented": [
+        "Subscription lifecycle tests (create, upgrade, cancel, reactivate)",
+        "Payment method management tests",
+        "Webhook controller tests including dispute handling",
+        "Grace period management tests"
+      ],
+      "missing": [
+        "Integration tests with real payment providers (sandbox)",
+        "Reconciliation tests",
+        "Multi-currency conversion tests",
+        "Tax calculation tests",
+        "Dynamic pricing comprehensive tests"
+      ]
+    },
+    "evidence": {
+      "testFiles": [
+        "backend/services/payment-service/src/__tests__/subscription.test.ts",
+        "backend/services/payment-service/tests/unit/services/payment.service.test.ts",
+        "backend/services/payment-service/tests/unit/controllers/webhook.controller.test.ts"
+      ]
+    }
+  },
+
+  "actionItems": {
+    "critical": [
+      {
+        "id": "REVOPS-001",
+        "title": "Implement Reconciliation Service",
+        "description": "Create service to reconcile internal records with payment provider records daily",
+        "effort": "HIGH",
+        "files": ["backend/services/payment-service/src/domain/services/reconciliation.service.ts"]
+      },
+      {
+        "id": "REVOPS-002",
+        "title": "Add Tax Calculation Support",
+        "description": "Integrate Stripe Tax or implement tax calculation by region",
+        "effort": "HIGH",
+        "files": ["backend/services/payment-service/src/domain/services/tax.service.ts"]
+      },
+      {
+        "id": "REVOPS-003",
+        "title": "Implement Revenue Recognition",
+        "description": "Add deferred revenue tracking and ASC 606 compliant recognition",
+        "effort": "HIGH",
+        "files": [
+          "backend/services/payment-service/src/domain/services/revenue-recognition.service.ts",
+          "backend/services/payment-service/src/infrastructure/database/migrations/YYYYMMDD_create_revenue_recognition_tables.ts"
+        ]
+      },
+      {
+        "id": "REVOPS-004",
+        "title": "Create Monthly Close Process",
+        "description": "Implement month-end close workflow with period locking",
+        "effort": "MEDIUM",
+        "files": ["backend/services/payment-service/src/domain/services/monthly-close.service.ts"]
+      }
+    ],
+    "high": [
+      {
+        "id": "REVOPS-005",
+        "title": "Add Exchange Rate Tracking",
+        "description": "Store exchange rates at transaction time for multi-currency reporting",
+        "effort": "MEDIUM"
+      },
+      {
+        "id": "REVOPS-006",
+        "title": "Implement Revenue Leakage Monitoring",
+        "description": "Track and alert on failed renewals, expired trials, cancellation value",
+        "effort": "MEDIUM"
+      },
+      {
+        "id": "REVOPS-007",
+        "title": "Enhance Dispute Handling",
+        "description": "Add automated evidence collection and chargeback rate monitoring",
+        "effort": "MEDIUM"
+      }
+    ],
+    "medium": [
+      {
+        "id": "REVOPS-008",
+        "title": "Add Downgrade Proration",
+        "description": "Support prorated credits for tier-to-tier downgrades",
+        "effort": "LOW"
+      },
+      {
+        "id": "REVOPS-009",
+        "title": "Implement Immutable Audit Log",
+        "description": "Convert audit tables to append-only or use event sourcing",
+        "effort": "MEDIUM"
+      }
+    ]
+  },
+
+  "complianceConsiderations": {
+    "pciDss": {
+      "status": "DELEGATED",
+      "notes": "PCI compliance delegated to payment providers (Stripe, Paystack, Flutterwave). No card data stored locally."
+    },
+    "gdpr": {
+      "status": "PARTIAL",
+      "notes": "Payment data includes PII. Need to ensure data retention policies and deletion capabilities."
+    },
+    "asc606": {
+      "status": "NOT_IMPLEMENTED",
+      "notes": "Revenue recognition not compliant with ASC 606. Critical for US GAAP reporting."
+    },
+    "ifrs15": {
+      "status": "NOT_IMPLEMENTED",
+      "notes": "Revenue recognition not compliant with IFRS 15. Critical for international reporting."
+    }
+  },
+
+  "filesAudited": [
+    "backend/services/payment-service/src/domain/services/payment.service.ts",
+    "backend/services/payment-service/src/domain/services/webhook.service.ts",
+    "backend/services/payment-service/src/domain/services/webhook-retry.service.ts",
+    "backend/services/payment-service/src/domain/services/dynamic-pricing.service.ts",
+    "backend/services/payment-service/src/domain/services/apple-iap.service.ts",
+    "backend/services/payment-service/src/domain/services/google-play.service.ts",
+    "backend/services/payment-service/src/domain/services/flutterwave-webhook.service.ts",
+    "backend/services/payment-service/src/domain/services/paystack-webhook.service.ts",
+    "backend/services/payment-service/src/api/controllers/payment.controller.ts",
+    "backend/services/payment-service/src/config/stripe-products.ts",
+    "backend/services/payment-service/src/types/dynamic-pricing.types.ts",
+    "backend/services/payment-service/src/infrastructure/database/migrations/20250125_create_payment_tables.ts",
+    "backend/services/payment-service/src/infrastructure/database/migrations/20250126_expand_subscription_tiers.ts",
+    "backend/services/payment-service/src/infrastructure/database/migrations/20260103000001_create_dynamic_pricing_tables.ts",
+    "backend/services/payment-service/src/__tests__/subscription.test.ts"
+  ]
+}
