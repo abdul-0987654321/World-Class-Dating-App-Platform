@@ -247,7 +247,7 @@ router.post(
     try {
       const test = await abTestService.createTest({
         ...req.body,
-        createdBy: req.admin.id,
+        createdBy: req.admin!.id,
       });
       res.json({ success: true, data: test });
     } catch (error: any) {
@@ -406,8 +406,8 @@ router.post(
     try {
       await ticketsService.assignTicket(
         req.params.ticketId,
-        req.admin.id,
-        `${req.admin.firstName} ${req.admin.lastName}`
+        req.admin!.id,
+        `${req.admin!.firstName} ${req.admin!.lastName}`
       );
       res.json({ success: true, message: 'Ticket assigned successfully' });
     } catch (error: any) {
@@ -425,7 +425,7 @@ router.post(
     try {
       await ticketsService.addMessage(
         req.params.ticketId,
-        req.admin.id,
+        req.admin!.id,
         'admin',
         req.body.content,
         req.body.attachments

@@ -56,7 +56,8 @@ export class RestaurantService {
 
         // Filter by minimum rating
         if (params.minRating) {
-          restaurants = restaurants.filter((r) => (r.rating || 0) >= params.minRating);
+          const minRating = params.minRating;
+          restaurants = restaurants.filter((r) => (r.rating || 0) >= minRating);
         }
 
         // Cache restaurants in database

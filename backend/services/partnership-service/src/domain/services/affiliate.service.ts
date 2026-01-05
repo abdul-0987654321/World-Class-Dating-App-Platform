@@ -350,7 +350,7 @@ export class AffiliateService {
       conversions,
       conversionRate: Math.round(conversionRate * 100) / 100,
       byResourceType: resourceTypeMap,
-      byDay: byDay.map((row) => ({
+      byDay: byDay.map((row: any) => ({
         date: row.date,
         clicks: parseInt(row.clicks as string) || 0,
         conversions: parseInt(row.conversions as string) || 0,

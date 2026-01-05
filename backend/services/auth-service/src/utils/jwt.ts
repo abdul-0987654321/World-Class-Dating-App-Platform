@@ -9,6 +9,7 @@ export interface JwtPayload {
   email: string;
   subscriptionTier?: string;
   subscriptionStatus?: string;
+  roles?: string[];
   iat?: number;
   exp?: number;
   iss?: string;

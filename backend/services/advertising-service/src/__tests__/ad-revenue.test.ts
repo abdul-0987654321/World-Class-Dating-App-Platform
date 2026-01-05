@@ -43,21 +43,23 @@ jest.mock('uuid', () => ({
 
 import db from '../infrastructure/database/connection';
 
-// Type definitions for mocked db
+// Type definitions for mocked db - use 'any' to avoid complex generic constraints
+type MockFn = jest.Mock<() => any>;
+
 interface MockDb {
-  where: jest.Mock;
-  first: jest.Mock;
-  select: jest.Mock;
-  insert: jest.Mock;
-  update: jest.Mock;
-  increment: jest.Mock;
-  whereBetween: jest.Mock;
-  groupBy: jest.Mock;
-  countDistinct: jest.Mock;
-  raw: jest.Mock;
+  where: MockFn;
+  first: MockFn;
+  select: MockFn;
+  insert: MockFn;
+  update: MockFn;
+  increment: MockFn;
+  whereBetween: MockFn;
+  groupBy: MockFn;
+  countDistinct: MockFn;
+  raw: MockFn;
 }
 
-const mockDb = db as unknown as jest.Mock & MockDb;
+const mockDb = db as unknown as MockFn & MockDb;
 
 // Helper to create mock date
 const createMockDate = (dateString: string): Date => new Date(dateString);

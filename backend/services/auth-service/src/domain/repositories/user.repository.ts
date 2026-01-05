@@ -21,6 +21,8 @@ export interface User {
   // Subscription fields
   subscription_tier?: string;
   subscription_status?: string;
+  // Role fields
+  roles?: string[];
   // Two-Factor Authentication fields
   two_factor_enabled?: boolean;
   two_factor_secret?: string;
@@ -106,6 +108,8 @@ export class UserRepository {
       // Subscription fields
       subscription_tier: row.subscription_tier || 'free',
       subscription_status: row.subscription_status || 'inactive',
+      // Role fields
+      roles: row.roles || ['USER'],
       // Two-Factor Authentication fields
       two_factor_enabled: row.two_factor_enabled || false,
       two_factor_secret: row.two_factor_secret,

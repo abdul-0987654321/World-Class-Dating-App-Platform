@@ -262,7 +262,7 @@ export class EventbriteClient {
     if (event.ticket_classes && event.ticket_classes.length > 0) {
       const prices = event.ticket_classes
         .filter((tc) => tc.cost)
-        .map((tc) => parseFloat(tc.cost.major_value));
+        .map((tc) => parseFloat(tc.cost!.major_value));
 
       if (prices.length > 0) {
         minPrice = Math.min(...prices);
