@@ -7,12 +7,10 @@
  */
 
 import { Request, Response } from 'express';
+
 import { documentVerificationService } from '../../services/document-verification.service';
+import { DocumentType, DocumentVerificationRequest } from '../../types/document-verification.types';
 import logger from '../../utils/logger';
-import {
-  DocumentType,
-  DocumentVerificationRequest,
-} from '../../types/document-verification.types';
 
 /**
  * Document Verification Controller
@@ -93,7 +91,7 @@ export class DocumentVerificationController {
       ) {
         return res.status(400).json({
           success: false,
-          error: 'document_back file is required for driver\'s license and national ID',
+          error: "document_back file is required for driver's license and national ID",
         });
       }
 
@@ -280,7 +278,10 @@ export class DocumentVerificationController {
       }
 
       // Verify ownership
-      const result = await documentVerificationService.getVerificationStatus(verificationId, userId);
+      const result = await documentVerificationService.getVerificationStatus(
+        verificationId,
+        userId
+      );
       if (!result) {
         return res.status(404).json({
           success: false,
@@ -330,8 +331,8 @@ export class DocumentVerificationController {
             },
             {
               type: 'drivers_license',
-              name: 'Driver\'s License',
-              description: 'Government-issued driver\'s license',
+              name: "Driver's License",
+              description: "Government-issued driver's license",
               requires_back: true,
             },
             {

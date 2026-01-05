@@ -1,6 +1,8 @@
 import { Knex } from 'knex';
-import { getOptimizedKnexConfig } from './connection-pool-config';
+
 import createLogger from '../utils/logger';
+
+import { getOptimizedKnexConfig } from './connection-pool-config';
 
 const logger = createLogger('read-replica');
 
@@ -61,7 +63,7 @@ export class DatabaseConnectionManager {
       });
 
       // Test connection
-      await this.primaryConnection!.raw('SELECT 1');
+      await this.primaryConnection.raw('SELECT 1');
       logger.info('Primary database connection established');
     } catch (error) {
       logger.error('Failed to initialize primary connection', error);

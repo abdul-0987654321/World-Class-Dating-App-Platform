@@ -3,13 +3,14 @@
  * Handles all analytics endpoints for the admin dashboard
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
-import eventsRepository from '../../domain/repositories/events.repository';
+
 import engagementRepository from '../../domain/repositories/engagement.repository';
+import eventsRepository from '../../domain/repositories/events.repository';
 import matchSuccessRepository from '../../domain/repositories/match-success.repository';
 import revenueRepository from '../../domain/repositories/revenue.repository';
 import timeSeriesRepository from '../../domain/repositories/time-series.repository';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('dashboard-controller');
 
@@ -21,16 +22,13 @@ export async function getDashboardOverview(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
     // Get key metrics in parallel
-    const [
-      engagementMetrics,
-      matchMetrics,
-      revenueMetrics,
-      realTimeMetrics,
-    ] = await Promise.all([
+    const [engagementMetrics, matchMetrics, revenueMetrics, realTimeMetrics] = await Promise.all([
       engagementRepository.getEngagementMetrics(start, end),
       matchSuccessRepository.getMatchSuccessMetrics(start, end),
       revenueRepository.getRevenueMetrics(start, end),
@@ -38,7 +36,8 @@ export async function getDashboardOverview(req: Request, res: Response) {
     ]);
 
     // Calculate totals
-    const totalDAU = engagementMetrics.reduce((sum, day) => sum + day.dau, 0) / engagementMetrics.length;
+    const totalDAU =
+      engagementMetrics.reduce((sum, day) => sum + day.dau, 0) / engagementMetrics.length;
     const totalNewUsers = engagementMetrics.reduce((sum, day) => sum + day.newUsers, 0);
 
     res.status(200).json({
@@ -77,7 +76,9 @@ export async function getEngagementAnalytics(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
     const today = new Date();
@@ -85,19 +86,14 @@ export async function getEngagementAnalytics(req: Request, res: Response) {
     const wau = await engagementRepository.getWAU(today);
     const mau = await engagementRepository.getMAU(today);
 
-    const [
-      engagementMetrics,
-      retentionCohorts,
-      churnRate,
-      featureUsage,
-      timeOnApp,
-    ] = await Promise.all([
-      engagementRepository.getEngagementMetrics(start, end),
-      engagementRepository.getRetentionCohorts(start, end),
-      engagementRepository.getChurnRate(start, end),
-      engagementRepository.getFeatureUsage(start, end),
-      engagementRepository.getTimeOnAppStats(start, end),
-    ]);
+    const [engagementMetrics, retentionCohorts, churnRate, featureUsage, timeOnApp] =
+      await Promise.all([
+        engagementRepository.getEngagementMetrics(start, end),
+        engagementRepository.getRetentionCohorts(start, end),
+        engagementRepository.getChurnRate(start, end),
+        engagementRepository.getFeatureUsage(start, end),
+        engagementRepository.getTimeOnAppStats(start, end),
+      ]);
 
     res.status(200).json({
       success: true,
@@ -132,22 +128,19 @@ export async function getMatchSuccessAnalytics(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
-    const [
-      matchMetrics,
-      matchFunnel,
-      dateArrangementStats,
-      responseTimeDistribution,
-      topMatches,
-    ] = await Promise.all([
-      matchSuccessRepository.getMatchSuccessMetrics(start, end),
-      matchSuccessRepository.getMatchToConversationFunnel(start, end),
-      matchSuccessRepository.getDateArrangementStats(start, end),
-      matchSuccessRepository.getResponseTimeDistribution(start, end),
-      matchSuccessRepository.getTopMatches(100, start, end),
-    ]);
+    const [matchMetrics, matchFunnel, dateArrangementStats, responseTimeDistribution, topMatches] =
+      await Promise.all([
+        matchSuccessRepository.getMatchSuccessMetrics(start, end),
+        matchSuccessRepository.getMatchToConversationFunnel(start, end),
+        matchSuccessRepository.getDateArrangementStats(start, end),
+        matchSuccessRepository.getResponseTimeDistribution(start, end),
+        matchSuccessRepository.getTopMatches(100, start, end),
+      ]);
 
     res.status(200).json({
       success: true,
@@ -176,7 +169,9 @@ export async function getRevenueAnalytics(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
     const [
@@ -229,16 +224,13 @@ export async function getUserBehaviorAnalytics(req: Request, res: Response) {
   try {
     const { startDate, endDate, groupBy } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
     const group = (groupBy as 'hour' | 'day' | 'week') || 'day';
 
-    const [
-      sessionStats,
-      swipesByTime,
-      featureUsage,
-      powerUsers,
-    ] = await Promise.all([
+    const [sessionStats, swipesByTime, featureUsage, powerUsers] = await Promise.all([
       eventsRepository.getSessionStats(start, end),
       eventsRepository.getSwipesByTimeRange(start, end, group),
       engagementRepository.getFeatureUsage(start, end),
@@ -278,16 +270,13 @@ export async function getTimeSeriesData(req: Request, res: Response) {
       });
     }
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
     const group = (groupBy as 'hour' | 'day' | 'week' | 'month') || 'day';
 
-    const data = await timeSeriesRepository.getMetricsByPeriod(
-      metric as string,
-      start,
-      end,
-      group
-    );
+    const data = await timeSeriesRepository.getMetricsByPeriod(metric as string, start, end, group);
 
     res.status(200).json({
       success: true,
@@ -377,11 +366,7 @@ export async function getUserActivitySummary(req: Request, res: Response) {
       });
     }
 
-    const [
-      activitySummary,
-      swipeStats,
-      matchSuccessRate,
-    ] = await Promise.all([
+    const [activitySummary, swipeStats, matchSuccessRate] = await Promise.all([
       engagementRepository.getUserActivitySummary(userId),
       eventsRepository.getUserSwipeStats(userId),
       eventsRepository.getUserMatchSuccessRate(userId),
@@ -534,7 +519,9 @@ export async function getDailyMetrics(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
     const metrics = await timeSeriesRepository.getDailyMetrics(start, end);
@@ -560,7 +547,9 @@ export async function getHourlyMetrics(req: Request, res: Response) {
   try {
     const { startDate, endDate } = req.query;
 
-    const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate as string) : new Date();
 
     const metrics = await timeSeriesRepository.getHourlyMetrics(start, end);

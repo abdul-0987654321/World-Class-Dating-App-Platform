@@ -11,8 +11,10 @@
  * - Handles common evasion techniques (filters, borders, rotation)
  */
 
-import sharp from 'sharp';
 import crypto from 'crypto';
+
+import sharp from 'sharp';
+
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('perceptual-hash-service');
@@ -44,11 +46,7 @@ export class PerceptualHashService {
         .toBuffer();
 
       // Calculate dHash
-      const hash = this.calculateDHash(
-        processed,
-        this.RESIZE_WIDTH,
-        this.RESIZE_HEIGHT
-      );
+      const hash = this.calculateDHash(processed, this.RESIZE_WIDTH, this.RESIZE_HEIGHT);
 
       logger.debug('Perceptual hash generated', {
         hashLength: hash.length,
@@ -56,7 +54,6 @@ export class PerceptualHashService {
       });
 
       return hash;
-
     } catch (error: any) {
       logger.error('Failed to generate perceptual hash', error);
       throw new Error(`Perceptual hash generation failed: ${error.message}`);
@@ -66,11 +63,7 @@ export class PerceptualHashService {
   /**
    * Calculate difference hash (dHash)
    */
-  private calculateDHash(
-    pixels: Buffer,
-    width: number,
-    height: number
-  ): string {
+  private calculateDHash(pixels: Buffer, width: number, height: number): string {
     const bits: number[] = [];
 
     for (let y = 0; y < height; y++) {
@@ -97,11 +90,7 @@ export class PerceptualHashService {
     let hex = '';
 
     for (let i = 0; i < bits.length; i += 4) {
-      const nibble =
-        (bits[i] << 3) |
-        (bits[i + 1] << 2) |
-        (bits[i + 2] << 1) |
-        bits[i + 3];
+      const nibble = (bits[i] << 3) | (bits[i + 1] << 2) | (bits[i + 2] << 1) | bits[i + 3];
 
       hex += nibble.toString(16);
     }
@@ -140,11 +129,7 @@ export class PerceptualHashService {
    * Check if two hashes are similar within a threshold
    * Default threshold: 10 bits difference (out of 64)
    */
-  areSimilar(
-    hash1: string,
-    hash2: string,
-    threshold: number = 10
-  ): boolean {
+  areSimilar(hash1: string, hash2: string, threshold: number = 10): boolean {
     try {
       const distance = this.calculateHammingDistance(hash1, hash2);
       return distance <= threshold;
@@ -181,21 +166,15 @@ export class PerceptualHashService {
     flippedVertical: string;
   }> {
     try {
-      const [
-        original,
-        rotated90,
-        rotated180,
-        rotated270,
-        flipped,
-        flippedVertical,
-      ] = await Promise.all([
-        this.generateHash(imageBuffer),
-        this.generateHashFromTransform(imageBuffer, 'rotate90'),
-        this.generateHashFromTransform(imageBuffer, 'rotate180'),
-        this.generateHashFromTransform(imageBuffer, 'rotate270'),
-        this.generateHashFromTransform(imageBuffer, 'flip'),
-        this.generateHashFromTransform(imageBuffer, 'flipVertical'),
-      ]);
+      const [original, rotated90, rotated180, rotated270, flipped, flippedVertical] =
+        await Promise.all([
+          this.generateHash(imageBuffer),
+          this.generateHashFromTransform(imageBuffer, 'rotate90'),
+          this.generateHashFromTransform(imageBuffer, 'rotate180'),
+          this.generateHashFromTransform(imageBuffer, 'rotate270'),
+          this.generateHashFromTransform(imageBuffer, 'flip'),
+          this.generateHashFromTransform(imageBuffer, 'flipVertical'),
+        ]);
 
       return {
         original,
@@ -205,7 +184,6 @@ export class PerceptualHashService {
         flipped,
         flippedVertical,
       };
-
     } catch (error: any) {
       logger.error('Failed to generate hash variants', error);
       throw error;
@@ -215,10 +193,7 @@ export class PerceptualHashService {
   /**
    * Generate hash from transformed image
    */
-  private async generateHashFromTransform(
-    imageBuffer: Buffer,
-    transform: string
-  ): Promise<string> {
+  private async generateHashFromTransform(imageBuffer: Buffer, transform: string): Promise<string> {
     let sharpInstance = sharp(imageBuffer);
 
     switch (transform) {

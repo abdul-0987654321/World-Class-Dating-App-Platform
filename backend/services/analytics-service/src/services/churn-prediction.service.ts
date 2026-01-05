@@ -5,8 +5,9 @@
  * Uses weighted feature scoring with automatic model retraining capabilities.
  */
 
-import { dbClient } from '../infrastructure/database/db-client';
 import { createLogger } from '@flamoral/backend-shared';
+
+import { dbClient } from '../infrastructure/database/db-client';
 import {
   ChurnRiskTier,
   ChurnIndicatorType,
@@ -29,7 +30,7 @@ const DEFAULT_MODEL_WEIGHTS: Record<ChurnIndicatorType, number> = {
   [ChurnIndicatorType.LOGIN_FREQUENCY]: 0.18,
   [ChurnIndicatorType.DECLINING_ENGAGEMENT]: 0.15,
   [ChurnIndicatorType.PAYMENT_FAILURE]: 0.12,
-  [ChurnIndicatorType.MESSAGE_RESPONSE_RATE]: 0.10,
+  [ChurnIndicatorType.MESSAGE_RESPONSE_RATE]: 0.1,
   [ChurnIndicatorType.SWIPE_ACTIVITY]: 0.09,
   [ChurnIndicatorType.PROFILE_COMPLETION]: 0.08,
   [ChurnIndicatorType.SUBSCRIPTION_RENEWAL]: 0.07,
@@ -44,16 +45,16 @@ const DEFAULT_MODEL_WEIGHTS: Record<ChurnIndicatorType, number> = {
 // Risk tier thresholds
 const RISK_TIER_THRESHOLDS = {
   LOW: 0.25,
-  MEDIUM: 0.50,
+  MEDIUM: 0.5,
   HIGH: 0.75,
   CRITICAL: 1.0,
 };
 
 // Intervention urgency thresholds
 const INTERVENTION_THRESHOLDS = {
-  immediate: 0.80,
-  this_week: 0.60,
-  this_month: 0.40,
+  immediate: 0.8,
+  this_week: 0.6,
+  this_month: 0.4,
   monitoring: 0,
 };
 
@@ -114,11 +115,15 @@ export class ChurnPredictionService {
 
     // Identify top risk factors and positive signals
     const sortedIndicators = [...indicators].sort((a, b) => b.weightedScore - a.weightedScore);
-    const topRiskFactors = sortedIndicators.filter(i => i.score > 0.5).slice(0, 5);
-    const positiveSignals = sortedIndicators.filter(i => i.score <= 0.3).slice(-3);
+    const topRiskFactors = sortedIndicators.filter((i) => i.score > 0.5).slice(0, 5);
+    const positiveSignals = sortedIndicators.filter((i) => i.score <= 0.3).slice(-3);
 
     // Determine recommended campaigns based on risk factors
-    const recommendedCampaigns = this.determineRecommendedCampaigns(topRiskFactors, riskTier, features);
+    const recommendedCampaigns = this.determineRecommendedCampaigns(
+      topRiskFactors,
+      riskTier,
+      features
+    );
 
     // Determine intervention urgency
     const interventionUrgency = this.determineInterventionUrgency(riskScore);
@@ -137,7 +142,10 @@ export class ChurnPredictionService {
       previousRiskScore: previousPrediction?.riskScore,
       riskTrend,
       daysSinceLastPrediction: previousPrediction
-        ? Math.floor((Date.now() - new Date(previousPrediction.predictedAt).getTime()) / (1000 * 60 * 60 * 24))
+        ? Math.floor(
+            (Date.now() - new Date(previousPrediction.predictedAt).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
         : undefined,
       recommendedCampaigns,
       interventionUrgency,
@@ -226,15 +234,15 @@ export class ChurnPredictionService {
       const result = await dbClient.query(query, [limit, offset]);
 
       return result.rows.map((row: any) => {
-        const indicators = typeof row.indicators === 'string'
-          ? JSON.parse(row.indicators)
-          : row.indicators;
+        const indicators =
+          typeof row.indicators === 'string' ? JSON.parse(row.indicators) : row.indicators;
 
-        const topRiskFactor = indicators && indicators.length > 0
-          ? indicators.reduce((max: ChurnIndicator, i: ChurnIndicator) =>
-              i.weightedScore > (max?.weightedScore || 0) ? i : max
-            ).type
-          : ChurnIndicatorType.LOGIN_FREQUENCY;
+        const topRiskFactor =
+          indicators && indicators.length > 0
+            ? indicators.reduce((max: ChurnIndicator, i: ChurnIndicator) =>
+                i.weightedScore > (max?.weightedScore || 0) ? i : max
+              ).type
+            : ChurnIndicatorType.LOGIN_FREQUENCY;
 
         const riskTrend = row.prev_risk_score
           ? row.risk_score > row.prev_risk_score + 0.05
@@ -257,7 +265,9 @@ export class ChurnPredictionService {
             (Date.now() - new Date(row.user_created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)
           ),
           daysSinceLastLogin: row.last_active_at
-            ? Math.floor((Date.now() - new Date(row.last_active_at).getTime()) / (1000 * 60 * 60 * 24))
+            ? Math.floor(
+                (Date.now() - new Date(row.last_active_at).getTime()) / (1000 * 60 * 60 * 24)
+              )
             : 999,
           engagementScore: this.calculateEngagementScoreFromIndicators(indicators),
           topRiskFactor,
@@ -617,7 +627,6 @@ export class ChurnPredictionService {
 
       // Trigger interventions for high-risk users
       await this.triggerAutomaticInterventions();
-
     } catch (error: any) {
       job.status = 'failed';
       job.errorMessage = error.message;
@@ -741,7 +750,9 @@ export class ChurnPredictionService {
       const feature = featureRes.rows[0] || {};
 
       const lastLogin = session.last_login ? new Date(session.last_login) : now;
-      const daysSinceLastLogin = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
+      const daysSinceLastLogin = Math.floor(
+        (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       const loginsLast7Days = parseInt(session.logins_7d) || 0;
       const loginsLast30Days = parseInt(session.logins_30d) || 0;
@@ -810,7 +821,10 @@ export class ChurnPredictionService {
         profileCompletionPercent: parseInt(profile.profile_completion) || 0,
         photoCount: parseInt(profile.photo_count) || 0,
         lastProfileUpdateDays: profile.profile_updated_at
-          ? Math.floor((now.getTime() - new Date(profile.profile_updated_at).getTime()) / (1000 * 60 * 60 * 24))
+          ? Math.floor(
+              (now.getTime() - new Date(profile.profile_updated_at).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
           : 999,
         hasVerification: profile.has_verification || false,
         bioLength: parseInt(profile.bio_length) || 0,
@@ -829,7 +843,10 @@ export class ChurnPredictionService {
         usedBoostLast30Days: (parseInt(feature.boosts) || 0) > 0,
         usedSuperLikeLast30Days: (parseInt(feature.super_likes) || 0) > 0,
         usedRewindLast30Days: (parseInt(feature.rewinds) || 0) > 0,
-        premiumFeaturesUsed: (parseInt(feature.boosts) || 0) + (parseInt(feature.super_likes) || 0) + (parseInt(feature.rewinds) || 0),
+        premiumFeaturesUsed:
+          (parseInt(feature.boosts) || 0) +
+          (parseInt(feature.super_likes) || 0) +
+          (parseInt(feature.rewinds) || 0),
 
         // Support
         supportTicketsLast90Days: 0,
@@ -837,11 +854,16 @@ export class ChurnPredictionService {
 
         // Derived
         engagementScore: this.calculateEngagementScore(
-          loginsLast30Days, swipesLast30Days, messagesSent, matchesLast30Days
+          loginsLast30Days,
+          swipesLast30Days,
+          messagesSent,
+          matchesLast30Days
         ),
         valueScore: this.calculateValueScore(profile.subscription_tier),
         satisfactionIndicator: this.calculateSatisfactionIndicator(
-          matchRate, responseRate, loginsLast30Days
+          matchRate,
+          responseRate,
+          loginsLast30Days
         ),
       };
 
@@ -871,7 +893,12 @@ export class ChurnPredictionService {
       score: loginScore,
       weight: this.modelWeights[ChurnIndicatorType.LOGIN_FREQUENCY],
       weightedScore: loginScore * this.modelWeights[ChurnIndicatorType.LOGIN_FREQUENCY],
-      trend: features.loginFrequencyTrend > 0.1 ? 'improving' : features.loginFrequencyTrend < -0.1 ? 'declining' : 'stable',
+      trend:
+        features.loginFrequencyTrend > 0.1
+          ? 'improving'
+          : features.loginFrequencyTrend < -0.1
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(loginScore),
       dataPoints: {
         current: features.loginsLast7Days,
@@ -891,7 +918,12 @@ export class ChurnPredictionService {
       score: engagementScore,
       weight: this.modelWeights[ChurnIndicatorType.DECLINING_ENGAGEMENT],
       weightedScore: engagementScore * this.modelWeights[ChurnIndicatorType.DECLINING_ENGAGEMENT],
-      trend: features.swipeActivityTrend > 0.1 ? 'improving' : features.swipeActivityTrend < -0.1 ? 'declining' : 'stable',
+      trend:
+        features.swipeActivityTrend > 0.1
+          ? 'improving'
+          : features.swipeActivityTrend < -0.1
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(engagementScore),
       dataPoints: {
         current: features.engagementScore,
@@ -931,7 +963,12 @@ export class ChurnPredictionService {
       score: responseScore,
       weight: this.modelWeights[ChurnIndicatorType.MESSAGE_RESPONSE_RATE],
       weightedScore: responseScore * this.modelWeights[ChurnIndicatorType.MESSAGE_RESPONSE_RATE],
-      trend: features.responseRateTrend > 0 ? 'improving' : features.responseRateTrend < 0 ? 'declining' : 'stable',
+      trend:
+        features.responseRateTrend > 0
+          ? 'improving'
+          : features.responseRateTrend < 0
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(responseScore),
       dataPoints: {
         current: features.responseRate * 100,
@@ -951,7 +988,12 @@ export class ChurnPredictionService {
       score: swipeScore,
       weight: this.modelWeights[ChurnIndicatorType.SWIPE_ACTIVITY],
       weightedScore: swipeScore * this.modelWeights[ChurnIndicatorType.SWIPE_ACTIVITY],
-      trend: features.swipeActivityTrend > 0.1 ? 'improving' : features.swipeActivityTrend < -0.1 ? 'declining' : 'stable',
+      trend:
+        features.swipeActivityTrend > 0.1
+          ? 'improving'
+          : features.swipeActivityTrend < -0.1
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(swipeScore),
       dataPoints: {
         current: features.swipesLast7Days,
@@ -977,7 +1019,11 @@ export class ChurnPredictionService {
         current: features.profileCompletionPercent,
         previous: features.profileCompletionPercent,
         average: 70,
-        percentile: await this.getPercentile(userId, 'profile_completion', features.profileCompletionPercent),
+        percentile: await this.getPercentile(
+          userId,
+          'profile_completion',
+          features.profileCompletionPercent
+        ),
       },
       lastUpdated: now,
     });
@@ -1011,13 +1057,22 @@ export class ChurnPredictionService {
       score: sessionScore,
       weight: this.modelWeights[ChurnIndicatorType.SESSION_DURATION],
       weightedScore: sessionScore * this.modelWeights[ChurnIndicatorType.SESSION_DURATION],
-      trend: features.sessionDurationTrend > 0 ? 'improving' : features.sessionDurationTrend < 0 ? 'declining' : 'stable',
+      trend:
+        features.sessionDurationTrend > 0
+          ? 'improving'
+          : features.sessionDurationTrend < 0
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(sessionScore),
       dataPoints: {
         current: features.avgSessionDurationMinutes,
         previous: 0,
         average: 8,
-        percentile: await this.getPercentile(userId, 'session_duration', features.avgSessionDurationMinutes),
+        percentile: await this.getPercentile(
+          userId,
+          'session_duration',
+          features.avgSessionDurationMinutes
+        ),
       },
       lastUpdated: now,
     });
@@ -1031,7 +1086,12 @@ export class ChurnPredictionService {
       score: matchScore,
       weight: this.modelWeights[ChurnIndicatorType.MATCH_SUCCESS_RATE],
       weightedScore: matchScore * this.modelWeights[ChurnIndicatorType.MATCH_SUCCESS_RATE],
-      trend: features.matchRateTrend > 0 ? 'improving' : features.matchRateTrend < 0 ? 'declining' : 'stable',
+      trend:
+        features.matchRateTrend > 0
+          ? 'improving'
+          : features.matchRateTrend < 0
+            ? 'declining'
+            : 'stable',
       severity: this.getSeverity(matchScore),
       dataPoints: {
         current: features.matchRate * 100,
@@ -1280,7 +1340,7 @@ export class ChurnPredictionService {
     }
 
     // Based on specific risk factors
-    topRiskFactors.forEach(factor => {
+    topRiskFactors.forEach((factor) => {
       switch (factor.type) {
         case ChurnIndicatorType.LOGIN_FREQUENCY:
           if (!campaigns.includes(RetentionCampaignType.PUSH_NOTIFICATION)) {
@@ -1392,13 +1452,13 @@ export class ChurnPredictionService {
 
   private calculateValueScore(subscriptionTier: string): number {
     const tiers: Record<string, number> = {
-      'FREE': 10,
-      'BASIC': 30,
-      'PLUS': 50,
-      'GOLD': 70,
-      'PLATINUM': 85,
-      'DIAMOND': 95,
-      'ELITE': 100,
+      FREE: 10,
+      BASIC: 30,
+      PLUS: 50,
+      GOLD: 70,
+      PLATINUM: 85,
+      DIAMOND: 95,
+      ELITE: 100,
     };
     return tiers[subscriptionTier?.toUpperCase()] || 10;
   }
@@ -1514,7 +1574,8 @@ export class ChurnPredictionService {
         userId: row.user_id,
         riskScore: parseFloat(row.risk_score),
         riskTier: row.risk_tier as ChurnRiskTier,
-        indicators: typeof row.indicators === 'string' ? JSON.parse(row.indicators) : row.indicators,
+        indicators:
+          typeof row.indicators === 'string' ? JSON.parse(row.indicators) : row.indicators,
         modelVersion: row.model_version,
         predictedAt: new Date(row.predicted_at),
         actualOutcome: row.actual_outcome,
@@ -1544,7 +1605,7 @@ export class ChurnPredictionService {
         result.riskTier,
         result.confidence,
         JSON.stringify(result.indicators),
-        JSON.stringify(result.topRiskFactors.map(i => i.type)),
+        JSON.stringify(result.topRiskFactors.map((i) => i.type)),
         JSON.stringify(result.recommendedCampaigns),
         result.interventionUrgency,
         result.modelVersion,
@@ -1611,21 +1672,25 @@ export class ChurnPredictionService {
   ): Promise<Record<ChurnIndicatorType, number>> {
     // Simplified weight optimization using correlation with churn outcome
     const indicatorCorrelations: Record<ChurnIndicatorType, { sum: number; count: number }> =
-      Object.values(ChurnIndicatorType).reduce((acc, type) => {
-        acc[type] = { sum: 0, count: 0 };
-        return acc;
-      }, {} as Record<ChurnIndicatorType, { sum: number; count: number }>);
+      Object.values(ChurnIndicatorType).reduce(
+        (acc, type) => {
+          acc[type] = { sum: 0, count: 0 };
+          return acc;
+        },
+        {} as Record<ChurnIndicatorType, { sum: number; count: number }>
+      );
 
-    trainingData.forEach(data => {
-      const indicators = typeof data.indicators === 'string'
-        ? JSON.parse(data.indicators)
-        : data.indicators;
+    trainingData.forEach((data) => {
+      const indicators =
+        typeof data.indicators === 'string' ? JSON.parse(data.indicators) : data.indicators;
       const churned = data.churned === 1;
 
       indicators?.forEach((indicator: ChurnIndicator) => {
         if (indicatorCorrelations[indicator.type]) {
           // Higher score for indicators that correlate with churn
-          indicatorCorrelations[indicator.type].sum += churned ? indicator.score : (1 - indicator.score);
+          indicatorCorrelations[indicator.type].sum += churned
+            ? indicator.score
+            : 1 - indicator.score;
           indicatorCorrelations[indicator.type].count++;
         }
       });
@@ -1642,10 +1707,11 @@ export class ChurnPredictionService {
     });
 
     // Normalize to sum to 1
-    Object.keys(weights).forEach(type => {
-      weights[type as ChurnIndicatorType] = totalWeight > 0
-        ? weights[type as ChurnIndicatorType] / totalWeight
-        : 1 / Object.keys(weights).length;
+    Object.keys(weights).forEach((type) => {
+      weights[type as ChurnIndicatorType] =
+        totalWeight > 0
+          ? weights[type as ChurnIndicatorType] / totalWeight
+          : 1 / Object.keys(weights).length;
     });
 
     return weights;
@@ -1654,13 +1720,21 @@ export class ChurnPredictionService {
   private async evaluateModel(
     trainingData: any[],
     weights: Record<ChurnIndicatorType, number>
-  ): Promise<{ accuracy: number; precision: number; recall: number; f1Score: number; auc: number }> {
-    let tp = 0, fp = 0, tn = 0, fn = 0;
+  ): Promise<{
+    accuracy: number;
+    precision: number;
+    recall: number;
+    f1Score: number;
+    auc: number;
+  }> {
+    let tp = 0,
+      fp = 0,
+      tn = 0,
+      fn = 0;
 
-    trainingData.forEach(data => {
-      const indicators = typeof data.indicators === 'string'
-        ? JSON.parse(data.indicators)
-        : data.indicators;
+    trainingData.forEach((data) => {
+      const indicators =
+        typeof data.indicators === 'string' ? JSON.parse(data.indicators) : data.indicators;
       const actualChurned = data.churned === 1;
 
       // Calculate predicted score with new weights
@@ -1681,7 +1755,7 @@ export class ChurnPredictionService {
     const accuracy = (tp + tn) / (tp + tn + fp + fn) || 0;
     const precision = tp / (tp + fp) || 0;
     const recall = tp / (tp + fn) || 0;
-    const f1Score = 2 * (precision * recall) / (precision + recall) || 0;
+    const f1Score = (2 * (precision * recall)) / (precision + recall) || 0;
 
     return {
       accuracy,
@@ -1826,8 +1900,10 @@ export class ChurnPredictionService {
 
     for (const user of atRiskUsers) {
       // Check if they haven't received a campaign recently
-      if (!user.lastCampaignDate ||
-          Date.now() - user.lastCampaignDate.getTime() > 7 * 24 * 60 * 60 * 1000) {
+      if (
+        !user.lastCampaignDate ||
+        Date.now() - user.lastCampaignDate.getTime() > 7 * 24 * 60 * 60 * 1000
+      ) {
         try {
           // Determine best campaign based on top risk factor
           const campaignType = this.getCampaignForRiskFactor(user.topRiskFactor);

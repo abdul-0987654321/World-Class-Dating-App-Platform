@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { TravelModeController } from '../controllers/travel-mode.controller';
 import { Knex } from 'knex';
+
+import { TravelModeController } from '../controllers/travel-mode.controller';
 
 export function createTravelModeRoutes(db: Knex): Router {
   const router = Router();

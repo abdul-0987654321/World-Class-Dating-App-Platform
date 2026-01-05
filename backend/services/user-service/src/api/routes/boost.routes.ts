@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { BoostController } from '../controllers/boost.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -80,7 +81,12 @@ router.get('/products', authenticate, boostController.getProducts.bind(boostCont
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/purchase', authenticate, validate(purchaseBoostSchema), boostController.purchaseWithCoins.bind(boostController));
+router.post(
+  '/purchase',
+  authenticate,
+  validate(purchaseBoostSchema),
+  boostController.purchaseWithCoins.bind(boostController)
+);
 
 /**
  * @swagger
@@ -152,7 +158,12 @@ router.get('/active', authenticate, boostController.getActiveBoost.bind(boostCon
  *                   items:
  *                     $ref: '#/components/schemas/BoostInstance'
  */
-router.get('/history', authenticate, validate(boostHistoryQuerySchema, 'query'), boostController.getHistory.bind(boostController));
+router.get(
+  '/history',
+  authenticate,
+  validate(boostHistoryQuerySchema, 'query'),
+  boostController.getHistory.bind(boostController)
+);
 
 /**
  * @swagger

@@ -15,9 +15,10 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { ProxyService } from '../services/proxy.service';
+
 import { CurrentUser, JwtPayload } from '../decorators/current-user.decorator';
 import { RequireSubscription, SubscriptionTier } from '../decorators/subscription.decorator';
+import { ProxyService } from '../services/proxy.service';
 
 // DTOs for super-like endpoint
 interface SuperLikeRequest {
@@ -57,7 +58,7 @@ export class MatchingController {
   async getRecommendations(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -75,10 +76,7 @@ export class MatchingController {
   @Post('discovery/search')
   @ApiOperation({ summary: 'Search for profiles with filters' })
   @HttpCode(HttpStatus.OK)
-  async searchProfiles(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async searchProfiles(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('matchingService', '/api/discovery/search', body, {
       Authorization: authorization,
     });
@@ -117,13 +115,16 @@ export class MatchingController {
     },
   })
   @ApiResponse({ status: 400, description: 'Bad request - invalid target_user_id' })
-  @ApiResponse({ status: 402, description: 'Payment required - upgrade subscription for more super-likes' })
+  @ApiResponse({
+    status: 402,
+    description: 'Payment required - upgrade subscription for more super-likes',
+  })
   @ApiResponse({ status: 429, description: 'Rate limited - daily super-like limit reached' })
   @HttpCode(HttpStatus.OK)
   async superLikeUser(
     @Headers('authorization') authorization: string,
     @CurrentUser() user: JwtPayload,
-    @Body() body: SuperLikeRequest,
+    @Body() body: SuperLikeRequest
   ): Promise<SuperLikeResponse> {
     // Validate request
     if (!body.target_user_id) {
@@ -151,9 +152,13 @@ export class MatchingController {
     // Check current usage for non-unlimited tiers
     if (dailyLimit !== -1) {
       try {
-        const usageStats = await this.proxyService.get('matchingService', '/api/super-likes/usage/today', {
-          Authorization: authorization,
-        });
+        const usageStats = await this.proxyService.get(
+          'matchingService',
+          '/api/super-likes/usage/today',
+          {
+            Authorization: authorization,
+          }
+        );
 
         const usedToday = usageStats?.count || 0;
 
@@ -162,19 +167,25 @@ export class MatchingController {
           const canUpgrade = tier === 'free' || tier === 'basic' || tier === 'plus';
 
           if (canUpgrade) {
-            throw new HttpException({
-              code: 'SUPER_LIKE_LIMIT_REACHED',
-              message: `Daily super-like limit reached (${dailyLimit}/${dailyLimit}). Upgrade for more super-likes.`,
-              required_plan: tier === 'free' ? 'plus' : 'premium',
-              current_plan: tier,
-              correlation_id: this.generateCorrelationId(),
-            }, 402);
+            throw new HttpException(
+              {
+                code: 'SUPER_LIKE_LIMIT_REACHED',
+                message: `Daily super-like limit reached (${dailyLimit}/${dailyLimit}). Upgrade for more super-likes.`,
+                required_plan: tier === 'free' ? 'plus' : 'premium',
+                current_plan: tier,
+                correlation_id: this.generateCorrelationId(),
+              },
+              402
+            );
           } else {
-            throw new HttpException({
-              code: 'RATE_LIMITED',
-              message: `Daily super-like limit reached. Try again tomorrow.`,
-              correlation_id: this.generateCorrelationId(),
-            }, 429);
+            throw new HttpException(
+              {
+                code: 'RATE_LIMITED',
+                message: `Daily super-like limit reached. Try again tomorrow.`,
+                correlation_id: this.generateCorrelationId(),
+              },
+              429
+            );
           }
         }
       } catch (error) {
@@ -192,16 +203,20 @@ export class MatchingController {
         'matchingService',
         '/api/super-likes',
         { targetUserId: body.target_user_id },
-        { Authorization: authorization },
+        { Authorization: authorization }
       );
 
       // Get remaining count
       let remaining = -1;
       if (dailyLimit !== -1) {
         try {
-          const usageAfter = await this.proxyService.get('matchingService', '/api/super-likes/usage/today', {
-            Authorization: authorization,
-          });
+          const usageAfter = await this.proxyService.get(
+            'matchingService',
+            '/api/super-likes/usage/today',
+            {
+              Authorization: authorization,
+            }
+          );
           remaining = Math.max(0, dailyLimit - (usageAfter?.count || 1));
         } catch {
           remaining = Math.max(0, dailyLimit - 1);
@@ -243,7 +258,7 @@ export class MatchingController {
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
     @Query('radius') radius?: string,
-    @Query('limit') limit?: string,
+    @Query('limit') limit?: string
   ) {
     const queryString = new URLSearchParams();
     if (latitude) queryString.append('latitude', latitude);
@@ -265,10 +280,7 @@ export class MatchingController {
   @Post('likes')
   @ApiOperation({ summary: 'Like a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async likeProfile(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async likeProfile(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('matchingService', '/api/likes', body, {
       Authorization: authorization,
     });
@@ -282,7 +294,7 @@ export class MatchingController {
   async getLikesReceived(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -302,7 +314,7 @@ export class MatchingController {
   async getLikesSent(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -320,10 +332,7 @@ export class MatchingController {
   @Post('passes')
   @ApiOperation({ summary: 'Pass on a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async passProfile(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async passProfile(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('matchingService', '/api/passes', body, {
       Authorization: authorization,
     });
@@ -336,9 +345,14 @@ export class MatchingController {
   @ApiOperation({ summary: 'Undo last swipe action' })
   @HttpCode(HttpStatus.OK)
   async undoAction(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('matchingService', '/api/actions/undo', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'matchingService',
+      '/api/actions/undo',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   // ==================== Match Endpoints ====================
@@ -351,7 +365,7 @@ export class MatchingController {
   async getMatches(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -370,7 +384,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Get a specific match' })
   async getMatch(
     @Headers('authorization') authorization: string,
-    @Param('matchId') matchId: string,
+    @Param('matchId') matchId: string
   ) {
     return this.proxyService.get('matchingService', `/api/matches/${matchId}`, {
       Authorization: authorization,
@@ -384,7 +398,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Unmatch a user' })
   async unmatch(
     @Headers('authorization') authorization: string,
-    @Param('matchId') matchId: string,
+    @Param('matchId') matchId: string
   ) {
     return this.proxyService.delete('matchingService', `/api/matches/${matchId}`, {
       Authorization: authorization,
@@ -410,10 +424,7 @@ export class MatchingController {
   @Post('super-likes')
   @ApiOperation({ summary: 'Super like a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async superLike(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async superLike(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('matchingService', '/api/super-likes', body, {
       Authorization: authorization,
     });
@@ -439,9 +450,14 @@ export class MatchingController {
   @ApiOperation({ summary: 'Activate profile boost' })
   @HttpCode(HttpStatus.CREATED)
   async activateBoost(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('matchingService', '/api/boost', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'matchingService',
+      '/api/boost',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -464,7 +480,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Get compatibility score with a match' })
   async getCompatibilityScore(
     @Headers('authorization') authorization: string,
-    @Param('matchId') matchId: string,
+    @Param('matchId') matchId: string
   ) {
     return this.proxyService.get('matchingService', `/api/matches/${matchId}/compatibility`, {
       Authorization: authorization,

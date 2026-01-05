@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { BoostService } from '../../domain/services/boost.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class BoostController {
   private boostService: BoostService;

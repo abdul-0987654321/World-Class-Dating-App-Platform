@@ -18,7 +18,8 @@ export * from './verification/VerificationBadges';
 // Discovery Components
 export * from './discovery/AdvancedFilters';
 export * from './discovery/DiscoveryStack';
-export * from './discovery/ProfileDetails';
+export { ProfileDetails } from './discovery/ProfileDetails';
+export type { UserProfile as ProfileDetailsUserProfile } from './discovery/ProfileDetails';
 export * from './discovery/SwipeCard';
 
 // Matching Components

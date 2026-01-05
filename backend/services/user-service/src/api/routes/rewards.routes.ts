@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { Pool } from 'pg';
+
 import { RewardsController } from '../controllers/rewards.controller';
 
 export function createRewardsRoutes(dbPool: Pool): Router {

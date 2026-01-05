@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { Request, Response } from 'express';
-import { authenticate } from '../middleware/auth.middleware';
+import { Router, Request, Response } from 'express';
+
 import db from '../../infrastructure/database/connection';
 import { AccountSecurityService } from '../../services/account-security.service';
 import { SessionManagementService } from '../../services/session-management.service';
 import logger from '../../utils/logger';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -23,7 +23,7 @@ const sessionService = new SessionManagementService(db);
  */
 router.get('/sessions', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const sessions = await sessionService.getUserSessions(userId);
 
@@ -51,7 +51,7 @@ router.get('/sessions', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/sessions/revoke/:sessionId', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { sessionId } = req.params;
 
     // Verify session belongs to user
@@ -89,7 +89,7 @@ router.post('/sessions/revoke/:sessionId', authenticate, async (req: Request, re
  */
 router.post('/sessions/revoke-all', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const currentSessionId = req.session?.id;
 
     const count = await sessionService.revokeAllUserSessions(
@@ -122,7 +122,7 @@ router.post('/sessions/revoke-all', authenticate, async (req: Request, res: Resp
  */
 router.get('/login-attempts', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = parseInt(req.query.limit as string) || 50;
 
     const attempts = await securityService.getLoginAttempts(userId, limit);
@@ -151,7 +151,7 @@ router.get('/login-attempts', authenticate, async (req: Request, res: Response) 
  */
 router.get('/lockout-history', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const history = await securityService.getLockoutHistory(userId);
 
@@ -179,13 +179,13 @@ router.get('/lockout-history', authenticate, async (req: Request, res: Response)
  */
 router.get('/account-status', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const lockStatus = await securityService.isAccountLocked(userId);
     const sessions = await sessionService.getUserSessions(userId);
     const recentAttempts = await securityService.getLoginAttempts(userId, 10);
 
-    const failedAttempts = recentAttempts.filter(a => !a.success).length;
+    const failedAttempts = recentAttempts.filter((a) => !a.success).length;
 
     res.json({
       success: true,
@@ -217,7 +217,7 @@ router.get('/account-status', authenticate, async (req: Request, res: Response) 
  */
 router.post('/unlock-account', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { unlockToken } = req.body;
 
     await securityService.unlockAccount(userId, unlockToken);
@@ -246,7 +246,7 @@ router.post('/unlock-account', authenticate, async (req: Request, res: Response)
  */
 router.get('/session-statistics', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const stats = await sessionService.getSessionStatistics(userId);
 

@@ -4,19 +4,20 @@
  * Implements 40 features across 4 categories
  */
 
-import express from 'express';
-import dotenv from 'dotenv';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
 import helmet from 'helmet';
+
+import adRevenueRoutes from './api/routes/ad-revenue.routes';
+import creativeRoutes from './api/routes/creative.routes';
+import innovationsRoutes from './api/routes/innovations.routes';
+import optimizationRoutes from './api/routes/optimization.routes';
+import targetingRoutes from './api/routes/targeting.routes';
 import logger from './utils/logger';
 
 // Import routes
-import targetingRoutes from './api/routes/targeting.routes';
-import creativeRoutes from './api/routes/creative.routes';
-import optimizationRoutes from './api/routes/optimization.routes';
-import innovationsRoutes from './api/routes/innovations.routes';
-import adRevenueRoutes from './api/routes/ad-revenue.routes';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
 
 // Load environment variables
 dotenv.config();
@@ -52,14 +53,20 @@ validator.validateOrThrow();
 const app = express();
 
 // Middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 
 const PORT = process.env.PORT || 3010;
@@ -79,7 +86,7 @@ app.get('/health', async (req, res) => {
     logger.error('OpenAI health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'advertising-service',

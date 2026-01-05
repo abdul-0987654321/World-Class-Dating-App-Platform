@@ -5,8 +5,13 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('sos_alerts', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('status', ['active', 'resolved', 'cancelled', 'escalated']).notNullable().defaultTo('active');
-    table.enum('alert_type', ['emergency', 'uncomfortable', 'checkin_missed', 'manual']).notNullable();
+    table
+      .enum('status', ['active', 'resolved', 'cancelled', 'escalated'])
+      .notNullable()
+      .defaultTo('active');
+    table
+      .enum('alert_type', ['emergency', 'uncomfortable', 'checkin_missed', 'manual'])
+      .notNullable();
     table.jsonb('location').nullable();
     table.text('reason').nullable();
     table.jsonb('emergency_contacts_notified').defaultTo('[]');
@@ -45,7 +50,10 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.timestamp('scheduled_at').notNullable();
     table.timestamp('checked_in_at').nullable();
-    table.enum('status', ['scheduled', 'active', 'checked_in', 'missed', 'cancelled']).notNullable().defaultTo('scheduled');
+    table
+      .enum('status', ['scheduled', 'active', 'checked_in', 'missed', 'cancelled'])
+      .notNullable()
+      .defaultTo('scheduled');
     table.jsonb('meeting_details').nullable();
     table.boolean('reminder_sent').notNullable().defaultTo(false);
     table.boolean('escalated').notNullable().defaultTo(false);

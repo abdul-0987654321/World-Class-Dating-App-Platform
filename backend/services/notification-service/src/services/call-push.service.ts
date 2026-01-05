@@ -4,10 +4,11 @@
  * Supports iOS VoIP Push (CallKit), Android high-priority notifications
  */
 
-import admin from 'firebase-admin';
-import { db } from '../config/database';
 import { createLogger } from '@flamoral/backend-shared';
+import admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../config/database';
 
 const logger = createLogger('call-push-service');
 
@@ -86,9 +87,9 @@ export class CallPushService {
       }
 
       // Separate tokens by platform for optimized notifications
-      const iosTokens = tokens.filter(t => t.device_type === 'ios');
-      const androidTokens = tokens.filter(t => t.device_type === 'android');
-      const webTokens = tokens.filter(t => t.device_type === 'web');
+      const iosTokens = tokens.filter((t) => t.device_type === 'ios');
+      const androidTokens = tokens.filter((t) => t.device_type === 'android');
+      const webTokens = tokens.filter((t) => t.device_type === 'web');
 
       let totalSent = 0;
       let totalFailed = 0;
@@ -137,7 +138,7 @@ export class CallPushService {
   ): Promise<{ sent: number; failed: number }> {
     try {
       const message: admin.messaging.MulticastMessage = {
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         data: {
           type: CallNotificationType.INCOMING_CALL,
           callId: data.callId,
@@ -198,7 +199,7 @@ export class CallPushService {
   ): Promise<{ sent: number; failed: number }> {
     try {
       const message: admin.messaging.MulticastMessage = {
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         data: {
           type: CallNotificationType.INCOMING_CALL,
           callId: data.callId,
@@ -261,7 +262,7 @@ export class CallPushService {
   ): Promise<{ sent: number; failed: number }> {
     try {
       const message: admin.messaging.MulticastMessage = {
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         notification: {
           title: data.callType === 'video' ? 'Incoming Video Call' : 'Incoming Voice Call',
           body: `${data.callerName} is calling you`,
@@ -332,7 +333,7 @@ export class CallPushService {
       }
 
       const message: admin.messaging.MulticastMessage = {
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         notification: {
           title: 'Missed Call',
           body: `You missed a ${data.callType} call from ${data.callerName}`,
@@ -376,10 +377,7 @@ export class CallPushService {
   /**
    * Cancel pending call notification (when call is answered/rejected elsewhere)
    */
-  async cancelCallNotification(
-    recipientId: string,
-    callId: string
-  ): Promise<{ success: boolean }> {
+  async cancelCallNotification(recipientId: string, callId: string): Promise<{ success: boolean }> {
     try {
       if (!this.firebaseApp) {
         return { success: false };
@@ -392,7 +390,7 @@ export class CallPushService {
 
       // Send a silent notification to dismiss the incoming call notification
       const message: admin.messaging.MulticastMessage = {
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         data: {
           type: CallNotificationType.CALL_CANCELLED,
           callId: callId,
@@ -478,10 +476,7 @@ export class CallPushService {
   /**
    * Save call notification record
    */
-  private async saveCallNotificationRecord(
-    userId: string,
-    data: IncomingCallData
-  ): Promise<void> {
+  private async saveCallNotificationRecord(userId: string, data: IncomingCallData): Promise<void> {
     try {
       await db('notifications').insert({
         id: uuidv4(),

@@ -83,11 +83,19 @@ export const config = {
     weeklyDigestDay: process.env.WEEKLY_DIGEST_DAY || 'monday',
     weeklyDigestTime: process.env.WEEKLY_DIGEST_TIME || '10:00',
     matchWarmupEnabled: process.env.MATCH_WARMUP_SEQUENCE_ENABLED === 'true',
-    matchWarmupIntervals: process.env.MATCH_WARMUP_INTERVALS?.split(',') || ['1h', '6h', '24h', '72h'],
+    matchWarmupIntervals: process.env.MATCH_WARMUP_INTERVALS?.split(',') || [
+      '1h',
+      '6h',
+      '24h',
+      '72h',
+    ],
   },
   rateLimiting: {
     automationPerUserDaily: parseInt(process.env.AUTOMATION_RATE_LIMIT_PER_USER_DAILY || '10', 10),
-    scheduledMessagePerUserDaily: parseInt(process.env.SCHEDULED_MESSAGE_RATE_LIMIT_PER_USER_DAILY || '5', 10),
+    scheduledMessagePerUserDaily: parseInt(
+      process.env.SCHEDULED_MESSAGE_RATE_LIMIT_PER_USER_DAILY || '5',
+      10
+    ),
     aiRequestPerUserHourly: parseInt(process.env.AI_REQUEST_RATE_LIMIT_PER_USER_HOURLY || '20', 10),
   },
   bull: {

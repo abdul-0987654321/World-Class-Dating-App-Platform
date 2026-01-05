@@ -6,9 +6,10 @@ import {
   HeadObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { v4 as uuidv4 } from 'uuid';
-import config from '../../config';
 import { createLogger } from '@flamoral/backend-shared';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../../config';
 
 const logger = createLogger('s3-storage-service');
 
@@ -119,10 +120,25 @@ export class S3StorageService {
       const extension = fileName.split('.').pop();
 
       const [thumbnailUrl, standardUrl, hdUrl, originalUrl] = await Promise.all([
-        this.uploadFile(buffers.thumbnail, `${baseFileName}-thumb.${extension}`, mimeType, `${userId}/thumbnails`),
-        this.uploadFile(buffers.standard, `${baseFileName}-std.${extension}`, mimeType, `${userId}/standard`),
+        this.uploadFile(
+          buffers.thumbnail,
+          `${baseFileName}-thumb.${extension}`,
+          mimeType,
+          `${userId}/thumbnails`
+        ),
+        this.uploadFile(
+          buffers.standard,
+          `${baseFileName}-std.${extension}`,
+          mimeType,
+          `${userId}/standard`
+        ),
         this.uploadFile(buffers.hd, `${baseFileName}-hd.${extension}`, mimeType, `${userId}/hd`),
-        this.uploadFile(buffers.original, `${baseFileName}.${extension}`, mimeType, `${userId}/original`),
+        this.uploadFile(
+          buffers.original,
+          `${baseFileName}.${extension}`,
+          mimeType,
+          `${userId}/original`
+        ),
       ]);
 
       return {

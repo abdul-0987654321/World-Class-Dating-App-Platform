@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+
 import {
   identityVerificationController,
   identityVerificationAdminController,
@@ -268,7 +269,9 @@ router.get(
   generalLimiter,
   authMiddleware,
   // In production, add admin role check middleware here
-  identityVerificationAdminController.getPendingVerifications.bind(identityVerificationAdminController)
+  identityVerificationAdminController.getPendingVerifications.bind(
+    identityVerificationAdminController
+  )
 );
 
 /**

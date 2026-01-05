@@ -7,11 +7,10 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
+
+import { ExecutionStatus, ActionExecutionResult } from '../interfaces/workflow.interface';
+
 import { Workflow } from './workflow.entity';
-import {
-  ExecutionStatus,
-  ActionExecutionResult,
-} from '../interfaces/workflow.interface';
 
 @Entity('workflow_executions')
 @Index(['workflowId', 'createdAt'])

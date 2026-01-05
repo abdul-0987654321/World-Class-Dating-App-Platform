@@ -1,9 +1,13 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+
+import {
+  conversationRepository,
+  Conversation,
+} from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
 import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { conversationRepository, Conversation } from '../../domain/repositories/conversation.repository';
-import { messageRepository } from '../../domain/repositories/message.repository';
 
 const logger = createLogger('conversation-controller');
 
@@ -14,7 +18,7 @@ export class ConversationController {
    */
   async getConversations(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
@@ -66,7 +70,7 @@ export class ConversationController {
    */
   async getConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       const conversation = await conversationRepository.findById(conversationId);
@@ -79,10 +83,7 @@ export class ConversationController {
       }
 
       // Verify user is a participant
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to view this conversation',
@@ -115,7 +116,7 @@ export class ConversationController {
    */
   async createConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { participantId } = req.body;
 
       if (!participantId) {
@@ -182,7 +183,7 @@ export class ConversationController {
    */
   async getOrCreateConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { otherUserId } = req.params;
 
       if (!otherUserId) {
@@ -237,7 +238,7 @@ export class ConversationController {
    */
   async deleteConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       const conversation = await conversationRepository.findById(conversationId);
@@ -250,10 +251,7 @@ export class ConversationController {
       }
 
       // Verify user is a participant
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to delete this conversation',
@@ -285,7 +283,7 @@ export class ConversationController {
    */
   async markAsRead(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       const conversation = await conversationRepository.findById(conversationId);
@@ -298,10 +296,7 @@ export class ConversationController {
       }
 
       // Verify user is a participant
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this conversation',

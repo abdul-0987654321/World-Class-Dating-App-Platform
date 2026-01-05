@@ -1,6 +1,9 @@
+import crypto from 'crypto';
+
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
+
+import logger from '../../utils/logger';
 import {
   CheckIn,
   CheckInWithReflection,
@@ -32,7 +35,6 @@ import {
   generateMoodInsights,
   UsageWellnessMetrics,
 } from '../types/mental-health.types';
-import logger from '../../utils/logger';
 
 /**
  * Mental Health Service
@@ -47,8 +49,10 @@ export class MentalHealthService {
   constructor(db: Knex) {
     this.db = db;
     // Derive encryption key from master key
-    const masterKey = process.env.MENTAL_HEALTH_ENCRYPTION_KEY || process.env.TOTP_ENCRYPTION_MASTER_KEY || '';
-    const salt = process.env.MENTAL_HEALTH_ENCRYPTION_SALT || process.env.TOTP_ENCRYPTION_KEY_SALT || '';
+    const masterKey =
+      process.env.MENTAL_HEALTH_ENCRYPTION_KEY || process.env.TOTP_ENCRYPTION_MASTER_KEY || '';
+    const salt =
+      process.env.MENTAL_HEALTH_ENCRYPTION_SALT || process.env.TOTP_ENCRYPTION_KEY_SALT || '';
     this.encryptionKey = crypto.scryptSync(masterKey, salt, 32);
   }
 
@@ -177,22 +181,29 @@ export class MentalHealthService {
     }
 
     // Calculate averages
-    const avgMood = checkIns.reduce((sum: number, c: any) => sum + c.mood_score, 0) / checkIns.length;
+    const avgMood =
+      checkIns.reduce((sum: number, c: any) => sum + c.mood_score, 0) / checkIns.length;
 
     const anxietyCheckIns = checkIns.filter((c: any) => c.anxiety_level !== null);
-    const avgAnxiety = anxietyCheckIns.length > 0
-      ? anxietyCheckIns.reduce((sum: number, c: any) => sum + c.anxiety_level, 0) / anxietyCheckIns.length
-      : 5;
+    const avgAnxiety =
+      anxietyCheckIns.length > 0
+        ? anxietyCheckIns.reduce((sum: number, c: any) => sum + c.anxiety_level, 0) /
+          anxietyCheckIns.length
+        : 5;
 
     const energyCheckIns = checkIns.filter((c: any) => c.energy_level !== null);
-    const avgEnergy = energyCheckIns.length > 0
-      ? energyCheckIns.reduce((sum: number, c: any) => sum + c.energy_level, 0) / energyCheckIns.length
-      : 5;
+    const avgEnergy =
+      energyCheckIns.length > 0
+        ? energyCheckIns.reduce((sum: number, c: any) => sum + c.energy_level, 0) /
+          energyCheckIns.length
+        : 5;
 
     const confidenceCheckIns = checkIns.filter((c: any) => c.dating_confidence !== null);
-    const avgConfidence = confidenceCheckIns.length > 0
-      ? confidenceCheckIns.reduce((sum: number, c: any) => sum + c.dating_confidence, 0) / confidenceCheckIns.length
-      : 5;
+    const avgConfidence =
+      confidenceCheckIns.length > 0
+        ? confidenceCheckIns.reduce((sum: number, c: any) => sum + c.dating_confidence, 0) /
+          confidenceCheckIns.length
+        : 5;
 
     // Determine trend direction
     let direction = MoodTrendDirection.STABLE;
@@ -201,8 +212,10 @@ export class MentalHealthService {
       const older = checkIns.slice(0, Math.min(3, checkIns.length - 3));
 
       if (older.length > 0) {
-        const recentAvg = recent.reduce((sum: number, c: any) => sum + c.mood_score, 0) / recent.length;
-        const olderAvg = older.reduce((sum: number, c: any) => sum + c.mood_score, 0) / older.length;
+        const recentAvg =
+          recent.reduce((sum: number, c: any) => sum + c.mood_score, 0) / recent.length;
+        const olderAvg =
+          older.reduce((sum: number, c: any) => sum + c.mood_score, 0) / older.length;
 
         if (recentAvg > olderAvg + 0.5) direction = MoodTrendDirection.IMPROVING;
         else if (recentAvg < olderAvg - 0.5) direction = MoodTrendDirection.DECLINING;
@@ -252,7 +265,8 @@ export class MentalHealthService {
     const streakDays = await this.calculateCheckInStreak(userId);
 
     // Get last check-in
-    const lastCheckIn = recentCheckIns.length > 0 ? new Date(recentCheckIns[0].created_at) : undefined;
+    const lastCheckIn =
+      recentCheckIns.length > 0 ? new Date(recentCheckIns[0].created_at) : undefined;
 
     // Calculate overall score
     const checkInsForScore: CheckIn[] = recentCheckIns.map((r: any) => this.mapCheckInFromDb(r));
@@ -328,9 +342,8 @@ export class MentalHealthService {
     }
 
     // Get relevant resources
-    const resources = reasons.length > 0
-      ? await this.getResources(ResourceCategory.DATING_STRESS)
-      : [];
+    const resources =
+      reasons.length > 0 ? await this.getResources(ResourceCategory.DATING_STRESS) : [];
 
     return {
       suggested: reasons.length > 0,
@@ -388,15 +401,13 @@ export class MentalHealthService {
       .returning('*');
 
     // Update settings
-    await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .update({
-        is_on_break: true,
-        break_started_at: startedAt,
-        break_ends_at: intendedEndAt,
-        break_reason: reason,
-        updated_at: new Date(),
-      });
+    await this.db('wellness_settings').where({ user_id: userId }).update({
+      is_on_break: true,
+      break_started_at: startedAt,
+      break_ends_at: intendedEndAt,
+      break_reason: reason,
+      updated_at: new Date(),
+    });
 
     // Hide user from discovery (call user service)
     await this.setUserDiscoveryStatus(userId, false);
@@ -425,25 +436,20 @@ export class MentalHealthService {
     const now = new Date();
 
     // Update active break
-    await this.db('wellness_breaks')
-      .where({ user_id: userId })
-      .whereNull('actual_end_at')
-      .update({
-        actual_end_at: now,
-        ended_early: true,
-        updated_at: now,
-      });
+    await this.db('wellness_breaks').where({ user_id: userId }).whereNull('actual_end_at').update({
+      actual_end_at: now,
+      ended_early: true,
+      updated_at: now,
+    });
 
     // Update settings
-    await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .update({
-        is_on_break: false,
-        break_started_at: null,
-        break_ends_at: null,
-        break_reason: null,
-        updated_at: now,
-      });
+    await this.db('wellness_settings').where({ user_id: userId }).update({
+      is_on_break: false,
+      break_started_at: null,
+      break_ends_at: null,
+      break_reason: null,
+      updated_at: now,
+    });
 
     // Show user in discovery again
     await this.setUserDiscoveryStatus(userId, true);
@@ -476,12 +482,10 @@ export class MentalHealthService {
       .returning('*');
 
     // Update settings
-    await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .update({
-        break_ends_at: newEndDate,
-        updated_at: new Date(),
-      });
+    await this.db('wellness_settings').where({ user_id: userId }).update({
+      break_ends_at: newEndDate,
+      updated_at: new Date(),
+    });
 
     logger.info('Mental health break extended', {
       userId,
@@ -513,9 +517,11 @@ export class MentalHealthService {
     }
 
     if (includeCountry) {
-      query = query.where(function() {
-        this.whereRaw("available_countries = '{}' OR available_countries IS NULL")
-          .orWhereRaw('? = ANY(available_countries)', [includeCountry]);
+      query = query.where(function () {
+        this.whereRaw("available_countries = '{}' OR available_countries IS NULL").orWhereRaw(
+          '? = ANY(available_countries)',
+          [includeCountry]
+        );
       });
     }
 
@@ -693,7 +699,9 @@ export class MentalHealthService {
 
     if (recentCheckIns.length > 0) {
       // Check for low mood trend
-      const avgMood = recentCheckIns.reduce((sum: number, c: any) => sum + c.mood_score, 0) / recentCheckIns.length;
+      const avgMood =
+        recentCheckIns.reduce((sum: number, c: any) => sum + c.mood_score, 0) /
+        recentCheckIns.length;
       if (avgMood <= config.lowMoodThreshold) {
         indicators.push({
           type: DetectionType.LOW_MOOD_TREND,
@@ -706,7 +714,9 @@ export class MentalHealthService {
       // Check for high anxiety
       const anxietyCheckIns = recentCheckIns.filter((c: any) => c.anxiety_level !== null);
       if (anxietyCheckIns.length > 0) {
-        const avgAnxiety = anxietyCheckIns.reduce((sum: number, c: any) => sum + c.anxiety_level, 0) / anxietyCheckIns.length;
+        const avgAnxiety =
+          anxietyCheckIns.reduce((sum: number, c: any) => sum + c.anxiety_level, 0) /
+          anxietyCheckIns.length;
         if (avgAnxiety >= config.highAnxietyThreshold) {
           indicators.push({
             type: DetectionType.HIGH_ANXIETY,
@@ -763,7 +773,7 @@ export class MentalHealthService {
     let crisisResourcesNeeded = false;
 
     if (indicators.length > 0) {
-      const maxSeverity = Math.max(...indicators.map(i => i.severity));
+      const maxSeverity = Math.max(...indicators.map((i) => i.severity));
 
       if (maxSeverity >= 5) {
         recommendedAction = DistressActionTaken.CRISIS_RESOURCES_SHOWN;
@@ -791,9 +801,7 @@ export class MentalHealthService {
    * Get or create wellness settings for a user
    */
   async getOrCreateSettings(userId: string): Promise<WellnessSettings> {
-    let settings = await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .first();
+    let settings = await this.db('wellness_settings').where({ user_id: userId }).first();
 
     if (!settings) {
       [settings] = await this.db('wellness_settings')
@@ -858,9 +866,7 @@ export class MentalHealthService {
       dbUpdates.share_anonymous_stats = updates.shareAnonymousStats;
     }
 
-    await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .update(dbUpdates);
+    await this.db('wellness_settings').where({ user_id: userId }).update(dbUpdates);
 
     return this.getOrCreateSettings(userId);
   }
@@ -884,11 +890,15 @@ export class MentalHealthService {
         .update({
           swipes_sent: this.db.raw('swipes_sent + ?', [metrics.swipesSent || 0]),
           matches_received: this.db.raw('matches_received + ?', [metrics.matchesReceived || 0]),
-          rejections_received: this.db.raw('rejections_received + ?', [metrics.rejectionsReceived || 0]),
+          rejections_received: this.db.raw('rejections_received + ?', [
+            metrics.rejectionsReceived || 0,
+          ]),
           messages_sent: this.db.raw('messages_sent + ?', [metrics.messagesSent || 0]),
           messages_received: this.db.raw('messages_received + ?', [metrics.messagesReceived || 0]),
           session_count: this.db.raw('session_count + ?', [metrics.sessionCount || 0]),
-          total_session_minutes: this.db.raw('total_session_minutes + ?', [metrics.totalSessionMinutes || 0]),
+          total_session_minutes: this.db.raw('total_session_minutes + ?', [
+            metrics.totalSessionMinutes || 0,
+          ]),
           updated_at: new Date(),
         });
     } else {
@@ -933,9 +943,7 @@ export class MentalHealthService {
    * Export user data (GDPR compliance)
    */
   async exportUserData(userId: string): Promise<Record<string, any>> {
-    const settings = await this.db('wellness_settings')
-      .where({ user_id: userId })
-      .first();
+    const settings = await this.db('wellness_settings').where({ user_id: userId }).first();
 
     const checkIns = await this.db('mental_health_checkins')
       .where({ user_id: userId })
@@ -1004,7 +1012,12 @@ export class MentalHealthService {
 
   // ==================== Private Helpers ====================
 
-  private encryptData(plaintext: string): { ciphertext: string; iv: string; tag: string; keyId: string } {
+  private encryptData(plaintext: string): {
+    ciphertext: string;
+    iv: string;
+    tag: string;
+    keyId: string;
+  } {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
 
@@ -1037,8 +1050,8 @@ export class MentalHealthService {
   private async calculateCheckInStreak(userId: string): Promise<number> {
     const checkIns = await this.db('mental_health_checkins')
       .where({ user_id: userId })
-      .select(this.db.raw("DATE(created_at) as check_date"))
-      .groupBy(this.db.raw("DATE(created_at)"))
+      .select(this.db.raw('DATE(created_at) as check_date'))
+      .groupBy(this.db.raw('DATE(created_at)'))
       .orderBy('check_date', 'desc')
       .limit(30);
 
@@ -1075,30 +1088,38 @@ export class MentalHealthService {
     }
 
     // Mood stability (lower variance = higher score)
-    const moodScores = checkIns.map(c => c.moodScore);
+    const moodScores = checkIns.map((c) => c.moodScore);
     const avgMood = moodScores.reduce((a, b) => a + b, 0) / moodScores.length;
-    const moodVariance = moodScores.reduce((sum, m) => sum + Math.pow(m - avgMood, 2), 0) / moodScores.length;
+    const moodVariance =
+      moodScores.reduce((sum, m) => sum + Math.pow(m - avgMood, 2), 0) / moodScores.length;
     const moodStability = Math.max(0, 100 - moodVariance * 10);
 
     // Anxiety management (inverse of average anxiety)
-    const anxietyScores = checkIns.filter(c => c.anxietyLevel !== undefined).map(c => c.anxietyLevel!);
-    const avgAnxiety = anxietyScores.length > 0
-      ? anxietyScores.reduce((a, b) => a + b, 0) / anxietyScores.length
-      : 5;
+    const anxietyScores = checkIns
+      .filter((c) => c.anxietyLevel !== undefined)
+      .map((c) => c.anxietyLevel);
+    const avgAnxiety =
+      anxietyScores.length > 0
+        ? anxietyScores.reduce((a, b) => a + b, 0) / anxietyScores.length
+        : 5;
     const anxietyManagement = ((10 - avgAnxiety) / 10) * 100;
 
     // Dating confidence
-    const confidenceScores = checkIns.filter(c => c.datingConfidence !== undefined).map(c => c.datingConfidence!);
-    const avgConfidence = confidenceScores.length > 0
-      ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
-      : 5;
+    const confidenceScores = checkIns
+      .filter((c) => c.datingConfidence !== undefined)
+      .map((c) => c.datingConfidence);
+    const avgConfidence =
+      confidenceScores.length > 0
+        ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
+        : 5;
     const datingConfidence = (avgConfidence / 10) * 100;
 
     // Social engagement (based on social satisfaction)
-    const socialScores = checkIns.filter(c => c.socialSatisfaction !== undefined).map(c => c.socialSatisfaction!);
-    const avgSocial = socialScores.length > 0
-      ? socialScores.reduce((a, b) => a + b, 0) / socialScores.length
-      : 5;
+    const socialScores = checkIns
+      .filter((c) => c.socialSatisfaction !== undefined)
+      .map((c) => c.socialSatisfaction);
+    const avgSocial =
+      socialScores.length > 0 ? socialScores.reduce((a, b) => a + b, 0) / socialScores.length : 5;
     const socialEngagement = (avgSocial / 10) * 100;
 
     // Self-care consistency (based on check-in frequency)
@@ -1136,17 +1157,20 @@ export class MentalHealthService {
       logger.warn('Distress signals detected', {
         userId,
         indicatorCount: distress.indicators.length,
-        maxSeverity: Math.max(...distress.indicators.map(i => i.severity)),
+        maxSeverity: Math.max(...distress.indicators.map((i) => i.severity)),
         recommendedAction: distress.recommendedAction,
       });
     }
   }
 
-  private async getRecentUsageMetrics(userId: string, days: number): Promise<UsageWellnessMetrics | null> {
+  private async getRecentUsageMetrics(
+    userId: string,
+    days: number
+  ): Promise<UsageWellnessMetrics | null> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const metrics = await this.db('usage_wellness_metrics')
+    const metrics = (await this.db('usage_wellness_metrics')
       .where({ user_id: userId })
       .where('metric_date', '>=', startDate.toISOString().split('T')[0])
       .select(
@@ -1158,15 +1182,17 @@ export class MentalHealthService {
         this.db.raw('SUM(session_count) as total_sessions'),
         this.db.raw('SUM(total_session_minutes) as total_minutes')
       )
-      .first() as unknown as {
-        total_swipes: string | null;
-        total_matches: string | null;
-        total_rejections: string | null;
-        total_messages_sent: string | null;
-        total_messages_received: string | null;
-        total_sessions: string | null;
-        total_minutes: string | null;
-      } | undefined;
+      .first()) as unknown as
+      | {
+          total_swipes: string | null;
+          total_matches: string | null;
+          total_rejections: string | null;
+          total_messages_sent: string | null;
+          total_messages_received: string | null;
+          total_sessions: string | null;
+          total_minutes: string | null;
+        }
+      | undefined;
 
     if (!metrics || !metrics.total_swipes) return null;
 
@@ -1175,13 +1201,9 @@ export class MentalHealthService {
     const totalMessagesSent = Number(metrics.total_messages_sent) || 0;
     const totalMessagesReceived = Number(metrics.total_messages_received) || 0;
 
-    const rejectionRatio = totalMatches > 0
-      ? totalRejections / totalMatches
-      : 0;
+    const rejectionRatio = totalMatches > 0 ? totalRejections / totalMatches : 0;
 
-    const responseRate = totalMessagesSent > 0
-      ? totalMessagesReceived / totalMessagesSent
-      : 0;
+    const responseRate = totalMessagesSent > 0 ? totalMessagesReceived / totalMessagesSent : 0;
 
     return {
       userId,
@@ -1205,32 +1227,26 @@ export class MentalHealthService {
 
     if (!metrics) return;
 
-    const rejectionRatio = metrics.matches_received > 0
-      ? metrics.rejections_received / metrics.matches_received
-      : null;
+    const rejectionRatio =
+      metrics.matches_received > 0 ? metrics.rejections_received / metrics.matches_received : null;
 
-    const responseRate = metrics.messages_sent > 0
-      ? metrics.messages_received / metrics.messages_sent
-      : null;
+    const responseRate =
+      metrics.messages_sent > 0 ? metrics.messages_received / metrics.messages_sent : null;
 
-    await this.db('usage_wellness_metrics')
-      .where({ user_id: userId, metric_date: date })
-      .update({
-        rejection_ratio: rejectionRatio,
-        response_rate: responseRate,
-        updated_at: new Date(),
-      });
+    await this.db('usage_wellness_metrics').where({ user_id: userId, metric_date: date }).update({
+      rejection_ratio: rejectionRatio,
+      response_rate: responseRate,
+      updated_at: new Date(),
+    });
   }
 
   private async setUserDiscoveryStatus(userId: string, visible: boolean): Promise<void> {
     // Update the user's profile to hide/show from discovery
     try {
-      await this.db('profiles')
-        .where({ user_id: userId })
-        .update({
-          is_discoverable: visible,
-          updated_at: new Date(),
-        });
+      await this.db('profiles').where({ user_id: userId }).update({
+        is_discoverable: visible,
+        updated_at: new Date(),
+      });
     } catch (error) {
       // Table might not exist or have different structure
       logger.warn('Could not update discovery status', { userId, visible, error });

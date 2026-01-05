@@ -56,14 +56,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     // Generate correlation ID for error tracking
-    const correlationId = (request.headers['x-correlation-id'] as string) ||
-                          (request.headers['x-request-id'] as string) ||
-                          uuidv4();
+    const correlationId =
+      (request.headers['x-correlation-id'] as string) ||
+      (request.headers['x-request-id'] as string) ||
+      uuidv4();
 
     let status: number;
     let code: string;
     let message: string;
-    let additionalFields: Record<string, any> = {};
+    const additionalFields: Record<string, any> = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -99,15 +100,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       code = 'INTERNAL_SERVER_ERROR';
-      message = process.env.NODE_ENV === 'production'
-        ? 'An unexpected error occurred'
-        : exception.message;
+      message =
+        process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : exception.message;
 
       // Log the actual error for debugging
-      this.logger.error(
-        `Unhandled exception: ${exception.message}`,
-        exception.stack,
-      );
+      this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack);
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       code = 'INTERNAL_SERVER_ERROR';
@@ -131,7 +128,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Log error details
     this.logger.error(
-      `${request.method} ${request.url} - ${status} - [${correlationId}] ${code}: ${message}`,
+      `${request.method} ${request.url} - ${status} - [${correlationId}] ${code}: ${message}`
     );
 
     // Set correlation ID header for tracking
@@ -147,7 +144,11 @@ export class ApiErrors {
   /**
    * 400 Bad Request
    */
-  static badRequest(message: string, code?: string, details?: Record<string, any>): BadRequestException {
+  static badRequest(
+    message: string,
+    code?: string,
+    details?: Record<string, any>
+  ): BadRequestException {
     return new BadRequestException({
       code: code || 'BAD_REQUEST',
       message,
@@ -173,12 +174,15 @@ export class ApiErrors {
     requiredPlan: string,
     currentPlan: string
   ): HttpException {
-    return new HttpException({
-      code: 'PAYMENT_REQUIRED',
-      message,
-      required_plan: requiredPlan,
-      current_plan: currentPlan,
-    }, HttpStatus.PAYMENT_REQUIRED);
+    return new HttpException(
+      {
+        code: 'PAYMENT_REQUIRED',
+        message,
+        required_plan: requiredPlan,
+        current_plan: currentPlan,
+      },
+      HttpStatus.PAYMENT_REQUIRED
+    );
   }
 
   /**
@@ -195,9 +199,7 @@ export class ApiErrors {
    * 404 Not Found
    */
   static notFound(resource: string, id?: string): NotFoundException {
-    const message = id
-      ? `${resource} with ID '${id}' not found`
-      : `${resource} not found`;
+    const message = id ? `${resource} with ID '${id}' not found` : `${resource} not found`;
     return new NotFoundException({
       code: 'NOT_FOUND',
       message,
@@ -208,30 +210,39 @@ export class ApiErrors {
    * 429 Rate Limited
    */
   static rateLimited(message: string = 'Too many requests', retryAfter?: number): HttpException {
-    return new HttpException({
-      code: 'RATE_LIMITED',
-      message,
-      retry_after: retryAfter,
-    }, HttpStatus.TOO_MANY_REQUESTS);
+    return new HttpException(
+      {
+        code: 'RATE_LIMITED',
+        message,
+        retry_after: retryAfter,
+      },
+      HttpStatus.TOO_MANY_REQUESTS
+    );
   }
 
   /**
    * 500 Internal Server Error
    */
   static internalError(message: string = 'An unexpected error occurred'): HttpException {
-    return new HttpException({
-      code: 'INTERNAL_SERVER_ERROR',
-      message,
-    }, HttpStatus.INTERNAL_SERVER_ERROR);
+    return new HttpException(
+      {
+        code: 'INTERNAL_SERVER_ERROR',
+        message,
+      },
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
   }
 
   /**
    * 503 Service Unavailable
    */
   static serviceUnavailable(service: string): HttpException {
-    return new HttpException({
-      code: 'SERVICE_UNAVAILABLE',
-      message: `${service} is temporarily unavailable`,
-    }, HttpStatus.SERVICE_UNAVAILABLE);
+    return new HttpException(
+      {
+        code: 'SERVICE_UNAVAILABLE',
+        message: `${service} is temporarily unavailable`,
+      },
+      HttpStatus.SERVICE_UNAVAILABLE
+    );
   }
 }

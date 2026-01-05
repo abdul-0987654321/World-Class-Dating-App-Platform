@@ -1,4 +1,4 @@
-import { InterestIntentionBadgeRepository } from '../repositories/interestIntentionBadge.repository';
+import logger from '../../utils/logger';
 import {
   InterestBadge,
   IntentionBadge,
@@ -10,7 +10,7 @@ import {
   InterestBadgePopularity,
   IntentionBadgeDistribution,
 } from '../entities/InterestIntentionBadge.entity';
-import logger from '../../utils/logger';
+import { InterestIntentionBadgeRepository } from '../repositories/interestIntentionBadge.repository';
 
 export class InterestIntentionBadgeService {
   private badgeRepository: InterestIntentionBadgeRepository;
@@ -272,7 +272,10 @@ export class InterestIntentionBadgeService {
     try {
       return await this.badgeRepository.checkIntentionCompatibility(userId1, userId2);
     } catch (error: any) {
-      logger.error(`Error checking intention compatibility between ${userId1} and ${userId2}:`, error);
+      logger.error(
+        `Error checking intention compatibility between ${userId1} and ${userId2}:`,
+        error
+      );
       return false;
     }
   }

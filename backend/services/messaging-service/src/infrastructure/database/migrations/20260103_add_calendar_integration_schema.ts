@@ -11,6 +11,7 @@
  */
 
 import { CosmosClient, Database } from '@azure/cosmos';
+
 import { createLogger } from '../../../utils/logger';
 
 const logger = createLogger('calendar-migration');
@@ -163,7 +164,9 @@ export async function up(context: MigrationContext): Promise<void> {
 
       await context.database.containers.createIfNotExists(containerConfig);
 
-      logger.info(`Container "${containerDef.id}" created successfully - ${containerDef.description}`);
+      logger.info(
+        `Container "${containerDef.id}" created successfully - ${containerDef.description}`
+      );
     } catch (error: any) {
       logger.error(`Failed to create container ${containerDef.id}:`, error);
       throw error;

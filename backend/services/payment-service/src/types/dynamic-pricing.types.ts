@@ -412,7 +412,12 @@ export interface RunPriceExperimentRequest {
 // BUNDLE PRICING TYPES
 // =============================================================================
 
-export type BundleItemType = 'super_likes' | 'boosts' | 'subscription_upgrade' | 'coins' | 'feature_unlock';
+export type BundleItemType =
+  | 'super_likes'
+  | 'boosts'
+  | 'subscription_upgrade'
+  | 'coins'
+  | 'feature_unlock';
 
 export interface PricingBundle {
   id: string;

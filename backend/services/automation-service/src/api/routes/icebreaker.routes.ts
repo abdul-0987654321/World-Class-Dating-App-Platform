@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authenticateUser } from '../middleware/auth.middleware';
+
 import * as icebreakerController from '../controllers/icebreaker.controller';
+import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
 

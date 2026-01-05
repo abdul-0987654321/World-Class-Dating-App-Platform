@@ -28,26 +28,26 @@ export interface GemUpdateInput {
 // Gem prices for premium features
 export const GEM_PRICES = {
   // Discovery & Visibility
-  PRIORITY_QUEUE_24H: 10,        // Priority in discovery queue for 24 hours
-  PROFILE_SPOTLIGHT_24H: 15,     // Featured placement for 24 hours
-  SUPER_SPOTLIGHT_48H: 25,       // Extended featured placement
+  PRIORITY_QUEUE_24H: 10, // Priority in discovery queue for 24 hours
+  PROFILE_SPOTLIGHT_24H: 15, // Featured placement for 24 hours
+  SUPER_SPOTLIGHT_48H: 25, // Extended featured placement
 
   // Profile Enhancements
-  EXCLUSIVE_FRAME_7D: 20,        // Exclusive profile frame for 7 days
-  EXCLUSIVE_FRAME_30D: 50,       // Exclusive profile frame for 30 days
-  PROFILE_BADGE_PERMANENT: 100,  // Permanent exclusive badge
+  EXCLUSIVE_FRAME_7D: 20, // Exclusive profile frame for 7 days
+  EXCLUSIVE_FRAME_30D: 50, // Exclusive profile frame for 30 days
+  PROFILE_BADGE_PERMANENT: 100, // Permanent exclusive badge
 
   // Communication
-  PREMIUM_ICEBREAKER_PACK: 5,    // Pack of 5 premium icebreaker messages
-  UNLIMITED_MESSAGES_24H: 15,    // Unlimited messages for 24 hours (non-premium)
+  PREMIUM_ICEBREAKER_PACK: 5, // Pack of 5 premium icebreaker messages
+  UNLIMITED_MESSAGES_24H: 15, // Unlimited messages for 24 hours (non-premium)
 
   // Insights
-  SEE_WHO_LIKED_YOU: 25,         // See who liked you (if not premium)
-  WEEKLY_INSIGHTS_REPORT: 10,    // Detailed weekly dating insights
+  SEE_WHO_LIKED_YOU: 25, // See who liked you (if not premium)
+  WEEKLY_INSIGHTS_REPORT: 10, // Detailed weekly dating insights
 
   // Matching
-  MATCH_EXTENSION_24H: 10,       // Extend match expiration by 24 hours
-  REMATCH_PREMIUM: 20,           // Re-match with someone who unmatched
+  MATCH_EXTENSION_24H: 10, // Extend match expiration by 24 hours
+  REMATCH_PREMIUM: 20, // Re-match with someone who unmatched
 
   // Virtual Gifts (send to matches)
   GIFT_ROSE: 5,

@@ -1,7 +1,13 @@
+import {
+  createLogger,
+  ApiError,
+  MatchingErrorCode,
+  ValidationErrorCode,
+} from '@flamoral/backend-shared';
 import { Request, Response, NextFunction } from 'express';
+
 import swipeService from '../../domain/services/swipe.service';
 import { SwipeAction } from '../../types';
-import { createLogger, ApiError, MatchingErrorCode, ValidationErrorCode } from '@flamoral/backend-shared';
 
 const logger = createLogger('swipe-controller');
 

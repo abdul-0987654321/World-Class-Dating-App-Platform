@@ -82,7 +82,7 @@ export class RateLimiterMiddleware implements NestMiddleware {
               message: 'Too many requests. Please try again later.',
               retryAfter: ttl,
             },
-            HttpStatus.TOO_MANY_REQUESTS,
+            HttpStatus.TOO_MANY_REQUESTS
           );
         }
       }
@@ -163,7 +163,10 @@ export class RateLimiterMiddleware implements NestMiddleware {
   /**
    * Get rate limit info
    */
-  async getRateLimitInfo(identifier: string, type: 'user' | 'ip'): Promise<{
+  async getRateLimitInfo(
+    identifier: string,
+    type: 'user' | 'ip'
+  ): Promise<{
     limit: number;
     remaining: number;
     reset: number;

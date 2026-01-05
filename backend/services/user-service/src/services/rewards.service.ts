@@ -4,6 +4,7 @@
  */
 
 import { Pool } from 'pg';
+
 import { RewardType } from '../domain/entities/DailyLoginReward.entity';
 import {
   UserLoginStreak,
@@ -137,7 +138,10 @@ export class RewardsService {
     const today = this.getDateOnly(now);
 
     // Check if already logged in today
-    if (streak.lastLoginDate && this.getDateOnly(streak.lastLoginDate).getTime() === today.getTime()) {
+    if (
+      streak.lastLoginDate &&
+      this.getDateOnly(streak.lastLoginDate).getTime() === today.getTime()
+    ) {
       return {
         streakBroken: false,
         newStreakValue: streak.currentStreak,
@@ -233,7 +237,12 @@ export class RewardsService {
     }
 
     // Grant reward based on type
-    await this.grantReward(userId, rewardConfig.rewardType, rewardConfig.rewardAmount, rewardConfig.rewardDurationHours);
+    await this.grantReward(
+      userId,
+      rewardConfig.rewardType,
+      rewardConfig.rewardAmount,
+      rewardConfig.rewardDurationHours
+    );
 
     // Save reward history
     await this.saveRewardHistory({
@@ -584,7 +593,9 @@ export class RewardsService {
     const nowDate = this.getDateOnly(now);
     const lastLoginDateOnly = this.getDateOnly(lastLogin);
 
-    const daysDiff = Math.floor((nowDate.getTime() - lastLoginDateOnly.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.floor(
+      (nowDate.getTime() - lastLoginDateOnly.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     return {
       streakBroken: daysDiff > 1,
@@ -605,7 +616,10 @@ export class RewardsService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
 
-    const hoursUntil = Math.max(0, Math.ceil((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60)));
+    const hoursUntil = Math.max(
+      0,
+      Math.ceil((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60))
+    );
     return hoursUntil;
   }
 

@@ -1,10 +1,11 @@
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import helmet from 'helmet';
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
+import helmet from 'helmet';
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -16,7 +17,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: process.env.NODE_ENV === 'production',
       crossOriginEmbedderPolicy: false,
-    }),
+    })
   );
 
   // Compression
@@ -27,12 +28,7 @@ async function bootstrap() {
     origin: ['http://localhost:3000', 'http://localhost:4000'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Internal-Service-Key',
-      'X-Request-ID',
-    ],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Internal-Service-Key', 'X-Request-ID'],
   });
 
   // Global prefix
@@ -47,15 +43,13 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
 
   // Swagger API documentation
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Flamoral Workflow Engine API')
-    .setDescription(
-      'Visual workflow builder system for dating automation (Zapier/n8n style)',
-    )
+    .setDescription('Visual workflow builder system for dating automation (Zapier/n8n style)')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -66,7 +60,7 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth',
+      'JWT-auth'
     )
     .addApiKey(
       {
@@ -75,7 +69,7 @@ async function bootstrap() {
         in: 'header',
         description: 'Internal service authentication key',
       },
-      'Internal-Service-Key',
+      'Internal-Service-Key'
     )
     .addTag('workflows', 'Workflow management')
     .addTag('execution', 'Workflow execution and history')

@@ -8,6 +8,7 @@
  */
 
 import { Router } from 'express';
+
 import {
   trackSwipe,
   trackMatch,
@@ -20,10 +21,7 @@ import {
   getUserSwipeStats,
   getUserMatchSuccess,
 } from '../controllers/events.controller';
-import {
-  authenticateInternal,
-  authenticateAny,
-} from '../middleware/auth.middleware';
+import { authenticateInternal, authenticateAny } from '../middleware/auth.middleware';
 
 const router = Router();
 

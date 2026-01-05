@@ -5,6 +5,7 @@
  * Uses class-validator decorators for validation.
  */
 
+import { Type } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -17,7 +18,6 @@ import {
   IsUrl,
   IsInt,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * DTO for lookalike search request.

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import https from 'https';
+
 import logger from '../../utils/logger';
 
 export interface BreachCheckResult {
@@ -11,7 +12,8 @@ export interface BreachCheckResult {
 class PasswordBreachCheckerService {
   private readonly HIBP_API_URL = 'api.pwnedpasswords.com';
   private readonly CACHE_TTL = 24 * 60 * 60; // 24 hours
-  private breachCache: Map<string, { breached: boolean; count: number; timestamp: number }> = new Map();
+  private breachCache: Map<string, { breached: boolean; count: number; timestamp: number }> =
+    new Map();
 
   /**
    * Check if password has been breached using HaveIBeenPwned API
@@ -45,9 +47,10 @@ class PasswordBreachCheckerService {
       const result: BreachCheckResult = {
         isBreached: breachCount > 0,
         breachCount,
-        message: breachCount > 0
-          ? `This password has been found in ${breachCount} data breaches. Please choose a different password.`
-          : 'Password has not been found in known data breaches.',
+        message:
+          breachCount > 0
+            ? `This password has been found in ${breachCount} data breaches. Please choose a different password.`
+            : 'Password has not been found in known data breaches.',
       };
 
       if (breachCount > 0) {

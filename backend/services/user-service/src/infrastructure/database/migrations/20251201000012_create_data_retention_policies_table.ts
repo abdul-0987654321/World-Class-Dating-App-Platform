@@ -3,17 +3,20 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('data_retention_policies', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.enum('data_type', [
-      'user_profile',
-      'messages',
-      'photos',
-      'swipes',
-      'matches',
-      'login_attempts',
-      'access_logs',
-      'deleted_accounts',
-      'payment_records',
-    ]).notNullable().unique();
+    table
+      .enum('data_type', [
+        'user_profile',
+        'messages',
+        'photos',
+        'swipes',
+        'matches',
+        'login_attempts',
+        'access_logs',
+        'deleted_accounts',
+        'payment_records',
+      ])
+      .notNullable()
+      .unique();
     table.integer('retention_days').notNullable(); // How many days to retain
     table.boolean('applies_after_deletion').defaultTo(false); // Retain after user deletion
     table.text('legal_basis'); // GDPR legal basis for retention

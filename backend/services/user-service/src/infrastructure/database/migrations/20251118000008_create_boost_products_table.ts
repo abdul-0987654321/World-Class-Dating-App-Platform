@@ -37,7 +37,7 @@ export async function up(knex: Knex): Promise<void> {
       coin_price: 30,
       usd_price: 3.99,
       display_order: 1,
-      active: true
+      active: true,
     },
     {
       sku: 'boost_pack_3',
@@ -51,7 +51,7 @@ export async function up(knex: Knex): Promise<void> {
       usd_price: 9.99,
       display_order: 2,
       badge_text: 'POPULAR',
-      active: true
+      active: true,
     },
     {
       sku: 'boost_pack_10',
@@ -65,7 +65,7 @@ export async function up(knex: Knex): Promise<void> {
       usd_price: 24.99,
       display_order: 3,
       badge_text: 'BEST VALUE',
-      active: true
+      active: true,
     },
     {
       sku: 'boost_prime_time',
@@ -78,7 +78,7 @@ export async function up(knex: Knex): Promise<void> {
       coin_price: 50,
       usd_price: 5.99,
       display_order: 4,
-      active: true
+      active: true,
     },
     {
       sku: 'boost_spotlight',
@@ -91,8 +91,8 @@ export async function up(knex: Knex): Promise<void> {
       coin_price: 100,
       usd_price: 9.99,
       display_order: 5,
-      active: true
-    }
+      active: true,
+    },
   ]);
 }
 

@@ -3,8 +3,9 @@
  * Implements compatibility scoring based on multiple factors
  */
 
-import { UserProfile, UserPreferences, MatchScore } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+
+import { UserProfile, UserPreferences, MatchScore } from '../../types';
 
 const logger = createLogger('matching-algorithm');
 
@@ -21,18 +22,27 @@ export class MatchingAlgorithmService {
   ): MatchScore {
     try {
       const scores = {
-        distance: this.calculateDistanceScore(user.location, candidate.location, userPreferences.maxDistance),
+        distance: this.calculateDistanceScore(
+          user.location,
+          candidate.location,
+          userPreferences.maxDistance
+        ),
         interests: this.calculateInterestScore(user.interests, candidate.interests),
         activity: this.calculateActivityScore(user, candidate),
-        preferences: this.calculatePreferenceScore(user, candidate, userPreferences, candidatePreferences),
+        preferences: this.calculatePreferenceScore(
+          user,
+          candidate,
+          userPreferences,
+          candidatePreferences
+        ),
       };
 
       // Weighted average (distance and preferences are more important)
       const totalScore =
-        scores.distance * 0.30 +
+        scores.distance * 0.3 +
         scores.interests * 0.25 +
         scores.activity * 0.15 +
-        scores.preferences * 0.30;
+        scores.preferences * 0.3;
 
       // Apply premium boost
       const finalScore = user.premium || candidate.premium ? totalScore * 1.1 : totalScore;

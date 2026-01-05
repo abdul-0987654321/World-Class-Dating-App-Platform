@@ -3,11 +3,12 @@
  * Handles analytics queries and reporting
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
-import trackingEventRepository from '../../domain/repositories/tracking-event.repository';
+
 import attributionRepository from '../../domain/repositories/attribution.repository';
 import funnelRepository from '../../domain/repositories/funnel.repository';
-import { createLogger } from '@flamoral/backend-shared';
+import trackingEventRepository from '../../domain/repositories/tracking-event.repository';
 
 const logger = createLogger('analytics-controller');
 
@@ -52,10 +53,7 @@ export async function getAttributionSummary(req: Request, res: Response) {
     const start = startDate ? new Date(startDate as string) : undefined;
     const end = endDate ? new Date(endDate as string) : undefined;
 
-    const attributionSummary = await attributionRepository.getAttributionSummary(
-      start,
-      end
-    );
+    const attributionSummary = await attributionRepository.getAttributionSummary(start, end);
 
     res.status(200).json({
       success: true,
@@ -81,10 +79,7 @@ export async function getEventsBySource(req: Request, res: Response) {
     const start = startDate ? new Date(startDate as string) : undefined;
     const end = endDate ? new Date(endDate as string) : undefined;
 
-    const eventsBySource = await trackingEventRepository.getEventsBySource(
-      start,
-      end
-    );
+    const eventsBySource = await trackingEventRepository.getEventsBySource(start, end);
 
     res.status(200).json({
       success: true,
@@ -107,9 +102,7 @@ export async function getDropoffAnalysis(req: Request, res: Response) {
   try {
     const { utmSource } = req.query;
 
-    const dropoffAnalysis = await funnelRepository.getDropoffAnalysis(
-      utmSource as string
-    );
+    const dropoffAnalysis = await funnelRepository.getDropoffAnalysis(utmSource as string);
 
     res.status(200).json({
       success: true,
@@ -132,9 +125,7 @@ export async function getAverageTimings(req: Request, res: Response) {
   try {
     const { utmSource } = req.query;
 
-    const timings = await funnelRepository.getAverageTimings(
-      utmSource as string
-    );
+    const timings = await funnelRepository.getAverageTimings(utmSource as string);
 
     res.status(200).json({
       success: true,

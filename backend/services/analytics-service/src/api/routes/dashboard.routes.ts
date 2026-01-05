@@ -8,7 +8,8 @@
  * - Admin operations: Admin JWT only
  */
 
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
+
 import {
   getDashboardOverview,
   getEngagementAnalytics,
@@ -31,7 +32,6 @@ import {
   authenticateInternal,
   AuthRequest,
 } from '../middleware/auth.middleware';
-import { Response, NextFunction } from 'express';
 
 const router = Router();
 

@@ -6,7 +6,6 @@
  * Supports synchronous analysis for ID documents (passport, driver's license, national ID).
  */
 
-import logger from '../utils/logger';
 import config from '../config';
 import {
   DocumentType,
@@ -18,6 +17,7 @@ import {
   getConfidenceLevel,
   BoundingBox,
 } from '../types/document-verification.types';
+import logger from '../utils/logger';
 
 // AWS SDK types - dynamically imported to handle missing module gracefully
 type TextractClientType = any;
@@ -89,7 +89,8 @@ export class TextractOCRService {
     return {
       region: process.env.AWS_TEXTRACT_REGION || process.env.AWS_REGION || 'us-east-1',
       accessKeyId: process.env.AWS_TEXTRACT_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.AWS_TEXTRACT_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
+      secretAccessKey:
+        process.env.AWS_TEXTRACT_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
       maxRetries: parseInt(process.env.AWS_TEXTRACT_MAX_RETRIES || '3', 10),
       requestTimeout: parseInt(process.env.AWS_TEXTRACT_TIMEOUT || '30000', 10),
       s3Bucket: process.env.AWS_TEXTRACT_S3_BUCKET,
@@ -186,10 +187,11 @@ export class TextractOCRService {
       const fields = this.extractFieldsFromIdentityDocument(identityDoc);
 
       // Calculate overall confidence
-      const confidenceScores = fields.map(f => f.confidence).filter(c => c > 0);
-      const overallConfidence = confidenceScores.length > 0
-        ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
-        : 0;
+      const confidenceScores = fields.map((f) => f.confidence).filter((c) => c > 0);
+      const overallConfidence =
+        confidenceScores.length > 0
+          ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
+          : 0;
 
       // Detect any warnings
       const warnings = this.detectWarnings(extractedData, fields, documentType);
@@ -233,19 +235,38 @@ export class TextractOCRService {
     data.lastName = this.getFieldValue(fieldMap, ['LAST_NAME', 'SURNAME', 'FAMILY_NAME']);
     data.middleName = this.getFieldValue(fieldMap, ['MIDDLE_NAME', 'MIDDLE_NAMES']);
     data.fullName = this.getFieldValue(fieldMap, ['FULL_NAME', 'NAME']);
-    data.dateOfBirth = this.normalizeDate(this.getFieldValue(fieldMap, ['DATE_OF_BIRTH', 'DOB', 'BIRTH_DATE']));
+    data.dateOfBirth = this.normalizeDate(
+      this.getFieldValue(fieldMap, ['DATE_OF_BIRTH', 'DOB', 'BIRTH_DATE'])
+    );
     data.gender = this.getFieldValue(fieldMap, ['SEX', 'GENDER']);
     data.nationality = this.getFieldValue(fieldMap, ['NATIONALITY', 'COUNTRY']);
 
     // Extract document information
-    data.documentNumber = this.getFieldValue(fieldMap, ['DOCUMENT_NUMBER', 'ID_NUMBER', 'LICENSE_NUMBER', 'PASSPORT_NUMBER']);
-    data.issuingCountry = this.getFieldValue(fieldMap, ['COUNTRY_OF_ISSUANCE', 'ISSUING_COUNTRY', 'PLACE_OF_ISSUE']);
+    data.documentNumber = this.getFieldValue(fieldMap, [
+      'DOCUMENT_NUMBER',
+      'ID_NUMBER',
+      'LICENSE_NUMBER',
+      'PASSPORT_NUMBER',
+    ]);
+    data.issuingCountry = this.getFieldValue(fieldMap, [
+      'COUNTRY_OF_ISSUANCE',
+      'ISSUING_COUNTRY',
+      'PLACE_OF_ISSUE',
+    ]);
     data.issuingAuthority = this.getFieldValue(fieldMap, ['ISSUING_AUTHORITY', 'ISSUED_BY']);
-    data.issueDate = this.normalizeDate(this.getFieldValue(fieldMap, ['DATE_OF_ISSUE', 'ISSUE_DATE']));
-    data.expiryDate = this.normalizeDate(this.getFieldValue(fieldMap, ['EXPIRATION_DATE', 'DATE_OF_EXPIRY', 'EXPIRY_DATE', 'EXPIRES']));
+    data.issueDate = this.normalizeDate(
+      this.getFieldValue(fieldMap, ['DATE_OF_ISSUE', 'ISSUE_DATE'])
+    );
+    data.expiryDate = this.normalizeDate(
+      this.getFieldValue(fieldMap, ['EXPIRATION_DATE', 'DATE_OF_EXPIRY', 'EXPIRY_DATE', 'EXPIRES'])
+    );
 
     // Extract address (primarily for driver's licenses)
-    const addressLine1 = this.getFieldValue(fieldMap, ['ADDRESS_LINE_1', 'ADDRESS', 'STREET_ADDRESS']);
+    const addressLine1 = this.getFieldValue(fieldMap, [
+      'ADDRESS_LINE_1',
+      'ADDRESS',
+      'STREET_ADDRESS',
+    ]);
     const addressLine2 = this.getFieldValue(fieldMap, ['ADDRESS_LINE_2']);
     const city = this.getFieldValue(fieldMap, ['CITY', 'PLACE_OF_BIRTH']);
     const state = this.getFieldValue(fieldMap, ['STATE', 'STATE_NAME', 'PROVINCE']);
@@ -286,7 +307,11 @@ export class TextractOCRService {
 
     // Extract national ID specific fields
     if (documentType === 'national_id') {
-      data.personalNumber = this.getFieldValue(fieldMap, ['PERSONAL_NUMBER', 'NATIONAL_ID_NUMBER', 'ID_NUMBER']);
+      data.personalNumber = this.getFieldValue(fieldMap, [
+        'PERSONAL_NUMBER',
+        'NATIONAL_ID_NUMBER',
+        'ID_NUMBER',
+      ]);
     }
 
     return data;
@@ -295,7 +320,9 @@ export class TextractOCRService {
   /**
    * Build a field map from IdentityDocumentFields
    */
-  private buildFieldMap(fields: IdentityDocumentFieldType[]): Map<string, IdentityDocumentFieldType> {
+  private buildFieldMap(
+    fields: IdentityDocumentFieldType[]
+  ): Map<string, IdentityDocumentFieldType> {
     const map = new Map<string, IdentityDocumentFieldType>();
     for (const field of fields) {
       if (field.Type?.Text) {
@@ -308,7 +335,10 @@ export class TextractOCRService {
   /**
    * Get field value from field map with fallback keys
    */
-  private getFieldValue(fieldMap: Map<string, IdentityDocumentFieldType>, keys: string[]): string | undefined {
+  private getFieldValue(
+    fieldMap: Map<string, IdentityDocumentFieldType>,
+    keys: string[]
+  ): string | undefined {
     for (const key of keys) {
       const field = fieldMap.get(key);
       if (field?.ValueDetection?.Text) {
@@ -363,10 +393,11 @@ export class TextractOCRService {
     const { extractedData, fields } = this.parseDocumentBlocks(blocks, documentType);
 
     // Calculate overall confidence
-    const confidenceScores = fields.map(f => f.confidence).filter(c => c > 0);
-    const overallConfidence = confidenceScores.length > 0
-      ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
-      : 0;
+    const confidenceScores = fields.map((f) => f.confidence).filter((c) => c > 0);
+    const overallConfidence =
+      confidenceScores.length > 0
+        ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
+        : 0;
 
     // Extract raw text blocks for audit
     extractedData.rawTextBlocks = this.extractTextBlocks(blocks);
@@ -420,7 +451,9 @@ export class TextractOCRService {
   /**
    * Extract key-value pairs from blocks
    */
-  private extractKeyValuePairs(blocks: BlockType[]): Map<string, { text: string; confidence: number }> {
+  private extractKeyValuePairs(
+    blocks: BlockType[]
+  ): Map<string, { text: string; confidence: number }> {
     const pairs = new Map<string, { text: string; confidence: number }>();
     const blockMap = new Map<string, BlockType>();
 
@@ -481,7 +514,7 @@ export class TextractOCRService {
     for (const relationship of keyBlock.Relationships) {
       if (relationship.Type === 'VALUE' && relationship.Ids && relationship.Ids.length > 0) {
         const valueId = relationship.Ids[0];
-        return blocks.find(b => b.Id === valueId);
+        return blocks.find((b) => b.Id === valueId);
       }
     }
 
@@ -493,25 +526,25 @@ export class TextractOCRService {
    */
   private mapKeyValueToData(key: string, value: string, data: ExtractedDocumentData): void {
     const keyMappings: Record<string, (v: string) => void> = {
-      'FIRST_NAME': (v) => data.firstName = v,
-      'GIVEN_NAME': (v) => data.firstName = v,
-      'LAST_NAME': (v) => data.lastName = v,
-      'SURNAME': (v) => data.lastName = v,
-      'DATE_OF_BIRTH': (v) => data.dateOfBirth = this.normalizeDate(v),
-      'DOB': (v) => data.dateOfBirth = this.normalizeDate(v),
-      'BIRTH_DATE': (v) => data.dateOfBirth = this.normalizeDate(v),
-      'DOCUMENT_NUMBER': (v) => data.documentNumber = v,
-      'ID_NUMBER': (v) => data.documentNumber = v,
-      'LICENSE_NUMBER': (v) => data.documentNumber = v,
-      'PASSPORT_NUMBER': (v) => data.documentNumber = v,
-      'EXPIRATION_DATE': (v) => data.expiryDate = this.normalizeDate(v),
-      'EXPIRY_DATE': (v) => data.expiryDate = this.normalizeDate(v),
-      'EXPIRES': (v) => data.expiryDate = this.normalizeDate(v),
-      'ISSUE_DATE': (v) => data.issueDate = this.normalizeDate(v),
-      'SEX': (v) => data.gender = v,
-      'GENDER': (v) => data.gender = v,
-      'NATIONALITY': (v) => data.nationality = v,
-      'COUNTRY': (v) => data.issuingCountry = v,
+      FIRST_NAME: (v) => (data.firstName = v),
+      GIVEN_NAME: (v) => (data.firstName = v),
+      LAST_NAME: (v) => (data.lastName = v),
+      SURNAME: (v) => (data.lastName = v),
+      DATE_OF_BIRTH: (v) => (data.dateOfBirth = this.normalizeDate(v)),
+      DOB: (v) => (data.dateOfBirth = this.normalizeDate(v)),
+      BIRTH_DATE: (v) => (data.dateOfBirth = this.normalizeDate(v)),
+      DOCUMENT_NUMBER: (v) => (data.documentNumber = v),
+      ID_NUMBER: (v) => (data.documentNumber = v),
+      LICENSE_NUMBER: (v) => (data.documentNumber = v),
+      PASSPORT_NUMBER: (v) => (data.documentNumber = v),
+      EXPIRATION_DATE: (v) => (data.expiryDate = this.normalizeDate(v)),
+      EXPIRY_DATE: (v) => (data.expiryDate = this.normalizeDate(v)),
+      EXPIRES: (v) => (data.expiryDate = this.normalizeDate(v)),
+      ISSUE_DATE: (v) => (data.issueDate = this.normalizeDate(v)),
+      SEX: (v) => (data.gender = v),
+      GENDER: (v) => (data.gender = v),
+      NATIONALITY: (v) => (data.nationality = v),
+      COUNTRY: (v) => (data.issuingCountry = v),
     };
 
     const mapper = keyMappings[key];
@@ -525,17 +558,19 @@ export class TextractOCRService {
    */
   private extractTextBlocks(blocks: BlockType[]): TextBlock[] {
     return blocks
-      .filter(b => b.BlockType === 'LINE' || b.BlockType === 'WORD')
-      .map(b => ({
+      .filter((b) => b.BlockType === 'LINE' || b.BlockType === 'WORD')
+      .map((b) => ({
         text: b.Text || '',
         confidence: (b.Confidence || 0) / 100,
         blockType: b.BlockType as TextBlock['blockType'],
-        boundingBox: b.Geometry?.BoundingBox ? {
-          width: b.Geometry.BoundingBox.Width || 0,
-          height: b.Geometry.BoundingBox.Height || 0,
-          left: b.Geometry.BoundingBox.Left || 0,
-          top: b.Geometry.BoundingBox.Top || 0,
-        } : undefined,
+        boundingBox: b.Geometry?.BoundingBox
+          ? {
+              width: b.Geometry.BoundingBox.Width || 0,
+              height: b.Geometry.BoundingBox.Height || 0,
+              left: b.Geometry.BoundingBox.Left || 0,
+              top: b.Geometry.BoundingBox.Top || 0,
+            }
+          : undefined,
       }));
   }
 
@@ -562,9 +597,18 @@ export class TextractOCRService {
     ];
 
     const monthMap: Record<string, string> = {
-      'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
-      'MAY': '05', 'JUN': '06', 'JUL': '07', 'AUG': '08',
-      'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12',
+      JAN: '01',
+      FEB: '02',
+      MAR: '03',
+      APR: '04',
+      MAY: '05',
+      JUN: '06',
+      JUL: '07',
+      AUG: '08',
+      SEP: '09',
+      OCT: '10',
+      NOV: '11',
+      DEC: '12',
     };
 
     const cleaned = dateStr.trim().toUpperCase();
@@ -621,13 +665,43 @@ export class TextractOCRService {
     // MRZ check digit calculation weights
     const weights = [7, 3, 1];
     const charValues: Record<string, number> = {
-      '<': 0, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
-      '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-      'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15,
-      'G': 16, 'H': 17, 'I': 18, 'J': 19, 'K': 20, 'L': 21,
-      'M': 22, 'N': 23, 'O': 24, 'P': 25, 'Q': 26, 'R': 27,
-      'S': 28, 'T': 29, 'U': 30, 'V': 31, 'W': 32, 'X': 33,
-      'Y': 34, 'Z': 35,
+      '<': 0,
+      '0': 0,
+      '1': 1,
+      '2': 2,
+      '3': 3,
+      '4': 4,
+      '5': 5,
+      '6': 6,
+      '7': 7,
+      '8': 8,
+      '9': 9,
+      A: 10,
+      B: 11,
+      C: 12,
+      D: 13,
+      E: 14,
+      F: 15,
+      G: 16,
+      H: 17,
+      I: 18,
+      J: 19,
+      K: 20,
+      L: 21,
+      M: 22,
+      N: 23,
+      O: 24,
+      P: 25,
+      Q: 26,
+      R: 27,
+      S: 28,
+      T: 29,
+      U: 30,
+      V: 31,
+      W: 32,
+      X: 33,
+      Y: 34,
+      Z: 35,
     };
 
     const calculateCheckDigit = (str: string): number => {
@@ -658,7 +732,8 @@ export class TextractOCRService {
         const dobCheckDigit = line2.substring(19, 20);
         const expiry = line2.substring(21, 27);
         const expiryCheckDigit = line2.substring(27, 28);
-        const composite = line2.substring(0, 10) + line2.substring(13, 20) + line2.substring(21, 43);
+        const composite =
+          line2.substring(0, 10) + line2.substring(13, 20) + line2.substring(21, 43);
         const compositeCheck = line2.substring(43, 44);
 
         return {
@@ -686,9 +761,13 @@ export class TextractOCRService {
     const warnings: string[] = [];
 
     // Check for low confidence fields
-    const lowConfidenceFields = fields.filter(f => f.confidenceLevel === 'low' || f.confidenceLevel === 'very_low');
+    const lowConfidenceFields = fields.filter(
+      (f) => f.confidenceLevel === 'low' || f.confidenceLevel === 'very_low'
+    );
     if (lowConfidenceFields.length > 0) {
-      warnings.push(`Low confidence detected for fields: ${lowConfidenceFields.map(f => f.fieldName).join(', ')}`);
+      warnings.push(
+        `Low confidence detected for fields: ${lowConfidenceFields.map((f) => f.fieldName).join(', ')}`
+      );
     }
 
     // Check for missing critical fields
@@ -744,14 +823,15 @@ export class TextractOCRService {
 
         if (backResult.success && backResult.data) {
           // Merge back image data with front
-          const mergedData = this.mergeExtractedData(frontResult.data!, backResult.data);
+          const mergedData = this.mergeExtractedData(frontResult.data, backResult.data);
           const mergedFields = [...frontResult.fields, ...backResult.fields];
 
           // Recalculate overall confidence
-          const confidenceScores = mergedFields.map(f => f.confidence).filter(c => c > 0);
-          const overallConfidence = confidenceScores.length > 0
-            ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
-            : 0;
+          const confidenceScores = mergedFields.map((f) => f.confidence).filter((c) => c > 0);
+          const overallConfidence =
+            confidenceScores.length > 0
+              ? confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
+              : 0;
 
           return {
             success: true,
@@ -759,10 +839,7 @@ export class TextractOCRService {
             fields: mergedFields,
             overallConfidence,
             processingTime: Date.now() - startTime,
-            warnings: [
-              ...(frontResult.warnings || []),
-              ...(backResult.warnings || []),
-            ],
+            warnings: [...(frontResult.warnings || []), ...(backResult.warnings || [])],
           };
         }
       }
@@ -815,10 +892,7 @@ export class TextractOCRService {
       restrictions: front.restrictions || back.restrictions,
       endorsements: front.endorsements || back.endorsements,
       personalNumber: front.personalNumber || back.personalNumber,
-      rawTextBlocks: [
-        ...(front.rawTextBlocks || []),
-        ...(back.rawTextBlocks || []),
-      ],
+      rawTextBlocks: [...(front.rawTextBlocks || []), ...(back.rawTextBlocks || [])],
     };
   }
 }

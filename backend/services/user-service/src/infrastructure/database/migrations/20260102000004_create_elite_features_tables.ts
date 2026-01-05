@@ -33,7 +33,10 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('event_id').notNullable().references('id').inTable('vip_events').onDelete('CASCADE');
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('status', ['registered', 'attended', 'cancelled', 'no_show']).notNullable().defaultTo('registered');
+    table
+      .enum('status', ['registered', 'attended', 'cancelled', 'no_show'])
+      .notNullable()
+      .defaultTo('registered');
     table.timestamp('registered_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('attended_at').nullable();
     table.timestamp('cancelled_at').nullable();
@@ -89,8 +92,20 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('coach_id').notNullable().references('id').inTable('coaches').onDelete('CASCADE');
     table.timestamp('scheduled_at').notNullable();
     table.integer('duration').notNullable().defaultTo(60); // in minutes
-    table.enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled', 'no_show']).notNullable().defaultTo('scheduled');
-    table.enum('type', ['initial_consultation', 'follow_up', 'profile_review', 'date_prep', 'post_date_debrief']).notNullable().defaultTo('follow_up');
+    table
+      .enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled', 'no_show'])
+      .notNullable()
+      .defaultTo('scheduled');
+    table
+      .enum('type', [
+        'initial_consultation',
+        'follow_up',
+        'profile_review',
+        'date_prep',
+        'post_date_debrief',
+      ])
+      .notNullable()
+      .defaultTo('follow_up');
     table.string('topic', 500).nullable();
     table.text('notes').nullable();
     table.text('coach_notes').nullable();
@@ -112,9 +127,21 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('concierge_requests', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('type', ['date-planning', 'reservation', 'advice', 'gift-recommendation', 'travel', 'other']).notNullable();
+    table
+      .enum('type', [
+        'date-planning',
+        'reservation',
+        'advice',
+        'gift-recommendation',
+        'travel',
+        'other',
+      ])
+      .notNullable();
     table.text('description').notNullable();
-    table.enum('status', ['pending', 'in_progress', 'awaiting_info', 'completed', 'cancelled']).notNullable().defaultTo('pending');
+    table
+      .enum('status', ['pending', 'in_progress', 'awaiting_info', 'completed', 'cancelled'])
+      .notNullable()
+      .defaultTo('pending');
     table.enum('priority', ['low', 'normal', 'high', 'urgent']).notNullable().defaultTo('normal');
     table.uuid('assigned_to').nullable().references('id').inTable('users').onDelete('SET NULL');
     table.text('response').nullable();
@@ -138,7 +165,12 @@ export async function up(knex: Knex): Promise<void> {
   // ============ Concierge Messages Table ============
   await knex.schema.createTable('concierge_messages', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('request_id').notNullable().references('id').inTable('concierge_requests').onDelete('CASCADE');
+    table
+      .uuid('request_id')
+      .notNullable()
+      .references('id')
+      .inTable('concierge_requests')
+      .onDelete('CASCADE');
     table.uuid('sender_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.enum('sender_type', ['user', 'concierge']).notNullable();
     table.text('message').notNullable();
@@ -157,7 +189,11 @@ export async function up(knex: Knex): Promise<void> {
       name: 'Dr. Sarah Mitchell',
       title: 'Senior Dating Coach & Relationship Expert',
       bio: 'With over 15 years of experience in relationship psychology, Dr. Mitchell specializes in helping professionals find meaningful connections. Her approach combines evidence-based strategies with personalized coaching.',
-      specialties: JSON.stringify(['Executive Dating', 'First Date Confidence', 'Long-term Relationship Building']),
+      specialties: JSON.stringify([
+        'Executive Dating',
+        'First Date Confidence',
+        'Long-term Relationship Building',
+      ]),
       availability_hours: 'Mon-Fri 9AM-6PM EST',
       rating: 4.9,
       total_sessions: 1250,
@@ -198,7 +234,8 @@ export async function up(knex: Knex): Promise<void> {
   await knex('vip_events').insert([
     {
       name: 'Elite Mixer: NYC Rooftop Sunset',
-      description: 'Join fellow Elite members for an exclusive rooftop gathering overlooking the Manhattan skyline. Enjoy premium cocktails, gourmet appetizers, and meaningful conversations in an intimate setting.',
+      description:
+        'Join fellow Elite members for an exclusive rooftop gathering overlooking the Manhattan skyline. Enjoy premium cocktails, gourmet appetizers, and meaningful conversations in an intimate setting.',
       type: 'in-person',
       location: 'The Skylark, 200 W 39th St, New York, NY',
       date: futureDate1,
@@ -212,7 +249,8 @@ export async function up(knex: Knex): Promise<void> {
     },
     {
       name: 'Virtual Wine & Connect',
-      description: 'A curated virtual wine tasting experience paired with guided conversation starters. Premium wine delivered to your door, expert sommelier guidance, and facilitated introductions with compatible Elite members.',
+      description:
+        'A curated virtual wine tasting experience paired with guided conversation starters. Premium wine delivered to your door, expert sommelier guidance, and facilitated introductions with compatible Elite members.',
       type: 'virtual',
       virtual_link: 'https://zoom.us/j/elite-wine-connect',
       date: futureDate2,
@@ -226,7 +264,8 @@ export async function up(knex: Knex): Promise<void> {
     },
     {
       name: 'Elite Members Yacht Day',
-      description: 'Set sail on a private yacht in Miami for a day of luxury, connection, and adventure. Includes gourmet lunch, water activities, and curated matchmaking introductions.',
+      description:
+        'Set sail on a private yacht in Miami for a day of luxury, connection, and adventure. Includes gourmet lunch, water activities, and curated matchmaking introductions.',
       type: 'in-person',
       location: 'Miami Beach Marina, Miami, FL',
       date: futureDate3,

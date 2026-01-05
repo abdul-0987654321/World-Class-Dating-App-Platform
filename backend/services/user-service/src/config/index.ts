@@ -82,7 +82,10 @@ export default {
   },
 
   cors: {
-    origins: (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:4000').split(','),
+    origins: (
+      process.env.CORS_ORIGINS ||
+      'http://localhost:3000,http://localhost:3001,http://localhost:4000'
+    ).split(','),
   },
 
   security: {
@@ -110,7 +113,8 @@ export default {
       apiSecret: process.env.JUMIO_API_SECRET,
       baseUrl: process.env.JUMIO_BASE_URL || 'https://api.jumio.com',
       workflowId: process.env.JUMIO_WORKFLOW_ID || '10011',
-      callbackUrl: process.env.JUMIO_CALLBACK_URL ||
+      callbackUrl:
+        process.env.JUMIO_CALLBACK_URL ||
         `${process.env.SERVICE_BASE_URL || 'http://localhost:3002'}/api/v1/verification/id/webhook/jumio`,
     },
 
@@ -170,7 +174,8 @@ export default {
 
     // AWS Credentials (can use IAM roles in production)
     accessKeyId: process.env.AWS_TEXTRACT_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_TEXTRACT_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
+    secretAccessKey:
+      process.env.AWS_TEXTRACT_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
 
     // Request configuration
     maxRetries: parseInt(process.env.AWS_TEXTRACT_MAX_RETRIES || '3', 10),

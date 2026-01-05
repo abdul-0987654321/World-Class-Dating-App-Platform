@@ -1,12 +1,13 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   GemPurchase,
   GemPurchaseCreateInput,
   GemPurchaseUpdateInput,
   GemPurchaseStatus,
 } from '../entities/GemPurchase.entity';
-import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
 
 export class GemPurchaseRepository {
   /**
@@ -21,11 +22,7 @@ export class GemPurchaseRepository {
   /**
    * Get all purchases for a user
    */
-  async getByUserId(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemPurchase[]> {
+  async getByUserId(userId: string, limit = 50, offset = 0): Promise<GemPurchase[]> {
     const purchases = await db('gem_purchases')
       .where({ user_id: userId })
       .orderBy('purchased_at', 'desc')
@@ -43,7 +40,7 @@ export class GemPurchaseRepository {
     const purchases = await db('gem_purchases')
       .where({ user_id: userId })
       .where('status', 'active')
-      .where(function() {
+      .where(function () {
         this.whereNull('expires_at').orWhere('expires_at', '>', now);
       })
       .where('quantity_remaining', '>', 0)
@@ -60,7 +57,7 @@ export class GemPurchaseRepository {
     const purchases = await db('gem_purchases')
       .where({ user_id: userId, item_type: itemType })
       .where('status', 'active')
-      .where(function() {
+      .where(function () {
         this.whereNull('expires_at').orWhere('expires_at', '>', now);
       })
       .where('quantity_remaining', '>', 0)
@@ -72,11 +69,7 @@ export class GemPurchaseRepository {
   /**
    * Get gifts received by a user
    */
-  async getReceivedGifts(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemPurchase[]> {
+  async getReceivedGifts(userId: string, limit = 50, offset = 0): Promise<GemPurchase[]> {
     const purchases = await db('gem_purchases')
       .where({ recipient_id: userId })
       .whereNotNull('recipient_id')
@@ -114,9 +107,12 @@ export class GemPurchaseRepository {
     };
 
     await db('gem_purchases').insert(purchase);
-    logger.info(`Created gem purchase: ${input.itemName} for user ${input.userId}`, { id, gemsCost: input.gemsCost });
+    logger.info(`Created gem purchase: ${input.itemName} for user ${input.userId}`, {
+      id,
+      gemsCost: input.gemsCost,
+    });
 
-    return this.getById(id) as Promise<GemPurchase>;
+    return this.getById(id);
   }
 
   /**
@@ -128,7 +124,8 @@ export class GemPurchaseRepository {
     if (input.activatedAt !== undefined) updateData.activated_at = input.activatedAt;
     if (input.expiresAt !== undefined) updateData.expires_at = input.expiresAt;
     if (input.status !== undefined) updateData.status = input.status;
-    if (input.quantityRemaining !== undefined) updateData.quantity_remaining = input.quantityRemaining;
+    if (input.quantityRemaining !== undefined)
+      updateData.quantity_remaining = input.quantityRemaining;
     if (input.metadata !== undefined) {
       updateData.metadata = input.metadata ? JSON.stringify(input.metadata) : null;
     }
@@ -233,7 +230,11 @@ export class GemPurchaseRepository {
       expiresAt: row.expires_at,
       status: row.status,
       recipientId: row.recipient_id,
-      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      metadata: row.metadata
+        ? typeof row.metadata === 'string'
+          ? JSON.parse(row.metadata)
+          : row.metadata
+        : null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

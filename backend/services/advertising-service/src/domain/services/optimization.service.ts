@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   MatchPredictionTiming,
   EngagementBidOptimizer,
@@ -45,8 +46,8 @@ export class OptimizationService {
     }
 
     const optimalWindows = predictions
-      .filter(p => p.probability > 0.1)
-      .map(p => ({
+      .filter((p) => p.probability > 0.1)
+      .map((p) => ({
         window_start: p.timestamp,
         window_end: new Date(p.timestamp.getTime() + 60 * 60 * 1000),
         predicted_engagement: p.probability * 2,
@@ -70,8 +71,8 @@ export class OptimizationService {
       optimization_goal: 'matches',
       bidding_strategy: {
         strategy_type: 'target_cpa',
-        base_bid: 1.50,
-        bid_caps: { min: 0.50, max: 5.00 },
+        base_bid: 1.5,
+        bid_caps: { min: 0.5, max: 5.0 },
         learning_budget: 500,
       },
       real_time_adjustments: [
@@ -99,9 +100,9 @@ export class OptimizationService {
         },
       ],
       performance_tracking: {
-        avg_cpc: 1.20,
-        avg_cpm: 8.50,
-        avg_cpa: 25.00,
+        avg_cpc: 1.2,
+        avg_cpm: 8.5,
+        avg_cpa: 25.0,
         spend_efficiency: 0.85,
         improvement_vs_baseline: 18.5,
         daily_metrics: [
@@ -169,26 +170,26 @@ export class OptimizationService {
         {
           channel: 'social_media',
           credit_percentage: 25,
-          credit_value: 12.50,
+          credit_value: 12.5,
           touchpoint_count: 1,
           avg_time_to_conversion_hours: 168,
         },
         {
           channel: 'display',
           credit_percentage: 30,
-          credit_value: 15.00,
+          credit_value: 15.0,
           touchpoint_count: 1,
           avg_time_to_conversion_hours: 72,
         },
         {
           channel: 'search',
           credit_percentage: 45,
-          credit_value: 22.50,
+          credit_value: 22.5,
           touchpoint_count: 1,
           avg_time_to_conversion_hours: 24,
         },
       ],
-      conversion_value: 50.00,
+      conversion_value: 50.0,
     };
   }
 
@@ -212,11 +213,16 @@ export class OptimizationService {
         current_spend: currentSpend,
         expected_spend: expectedSpend,
         pacing_percentage: (currentSpend / expectedSpend) * 100,
-        status: currentSpend < expectedSpend * 0.9 ? 'under_pacing' :
-                currentSpend > expectedSpend * 1.1 ? 'over_pacing' : 'on_track',
-        adjustment_recommendation: currentSpend < expectedSpend * 0.9
-          ? 'Consider increasing bids by 15%'
-          : 'Pacing is healthy',
+        status:
+          currentSpend < expectedSpend * 0.9
+            ? 'under_pacing'
+            : currentSpend > expectedSpend * 1.1
+              ? 'over_pacing'
+              : 'on_track',
+        adjustment_recommendation:
+          currentSpend < expectedSpend * 0.9
+            ? 'Consider increasing bids by 15%'
+            : 'Pacing is healthy',
       },
       forecast: {
         projected_daily_spend: currentSpend * (24 / hoursElapsed),
@@ -225,15 +231,18 @@ export class OptimizationService {
         projected_conversions: 450,
         confidence_interval: { lower: 380, upper: 520 },
       },
-      alerts: currentSpend < expectedSpend * 0.8 ? [
-        {
-          alert_type: 'under_delivery',
-          severity: 'medium',
-          message: 'Campaign is pacing 20% under target',
-          recommended_action: 'Expand targeting or increase bids',
-          triggered_at: new Date(),
-        },
-      ] : [],
+      alerts:
+        currentSpend < expectedSpend * 0.8
+          ? [
+              {
+                alert_type: 'under_delivery',
+                severity: 'medium',
+                message: 'Campaign is pacing 20% under target',
+                recommended_action: 'Expand targeting or increase bids',
+                triggered_at: new Date(),
+              },
+            ]
+          : [],
     };
   }
 
@@ -248,8 +257,20 @@ export class OptimizationService {
           expected_lift: 2.5,
           affected_segments: ['all'],
           historical_data: [
-            { year: 2024, period: 'valentines', registrations_lift: 2.3, engagement_lift: 1.8, revenue_lift: 2.8 },
-            { year: 2023, period: 'valentines', registrations_lift: 2.1, engagement_lift: 1.6, revenue_lift: 2.5 },
+            {
+              year: 2024,
+              period: 'valentines',
+              registrations_lift: 2.3,
+              engagement_lift: 1.8,
+              revenue_lift: 2.8,
+            },
+            {
+              year: 2023,
+              period: 'valentines',
+              registrations_lift: 2.1,
+              engagement_lift: 1.6,
+              revenue_lift: 2.5,
+            },
           ],
         },
         {
@@ -259,7 +280,13 @@ export class OptimizationService {
           expected_lift: 1.8,
           affected_segments: ['new_users'],
           historical_data: [
-            { year: 2024, period: 'new_year', registrations_lift: 1.9, engagement_lift: 1.5, revenue_lift: 1.7 },
+            {
+              year: 2024,
+              period: 'new_year',
+              registrations_lift: 1.9,
+              engagement_lift: 1.5,
+              revenue_lift: 1.7,
+            },
           ],
         },
         {
@@ -269,7 +296,13 @@ export class OptimizationService {
           expected_lift: 1.5,
           affected_segments: ['serious_relationship'],
           historical_data: [
-            { year: 2024, period: 'cuffing', registrations_lift: 1.4, engagement_lift: 1.6, revenue_lift: 1.5 },
+            {
+              year: 2024,
+              period: 'cuffing',
+              registrations_lift: 1.4,
+              engagement_lift: 1.6,
+              revenue_lift: 1.5,
+            },
           ],
         },
       ],
@@ -277,7 +310,7 @@ export class OptimizationService {
         events: [
           {
             event_id: uuidv4(),
-            event_name: 'Valentine\'s Day',
+            event_name: "Valentine's Day",
             event_type: 'holiday',
             date: new Date('2025-02-14'),
             duration_days: 14,
@@ -287,7 +320,7 @@ export class OptimizationService {
         ],
         pre_scheduled_campaigns: [],
         budget_allocations: [
-          { period: 'Q1', allocation_percentage: 30, rationale: 'Valentine\'s + New Year' },
+          { period: 'Q1', allocation_percentage: 30, rationale: "Valentine's + New Year" },
           { period: 'Q2', allocation_percentage: 20, rationale: 'Spring dating season' },
           { period: 'Q3', allocation_percentage: 20, rationale: 'Summer activities' },
           { period: 'Q4', allocation_percentage: 30, rationale: 'Cuffing season' },
@@ -295,7 +328,12 @@ export class OptimizationService {
       },
       automated_adjustments: [
         {
-          trigger: { metric: 'registrations', condition: 'above', threshold: 1.2, time_window_hours: 24 },
+          trigger: {
+            metric: 'registrations',
+            condition: 'above',
+            threshold: 1.2,
+            time_window_hours: 24,
+          },
           action: { action_type: 'bid_adjustment', parameters: { multiplier: 1.15 } },
           magnitude: 15,
           active: true,
@@ -314,23 +352,48 @@ export class OptimizationService {
   async optimizeForDevice(deviceType: string): Promise<DeviceOptimization> {
     return {
       device_profiles: [
-        { device_type: 'smartphone', os: 'ios', screen_size_category: 'medium', connection_type: 'wifi' },
-        { device_type: 'smartphone', os: 'android', screen_size_category: 'medium', connection_type: 'cellular' },
-        { device_type: 'desktop', os: 'windows', screen_size_category: 'large', connection_type: 'wifi' },
+        {
+          device_type: 'smartphone',
+          os: 'ios',
+          screen_size_category: 'medium',
+          connection_type: 'wifi',
+        },
+        {
+          device_type: 'smartphone',
+          os: 'android',
+          screen_size_category: 'medium',
+          connection_type: 'cellular',
+        },
+        {
+          device_type: 'desktop',
+          os: 'windows',
+          screen_size_category: 'large',
+          connection_type: 'wifi',
+        },
       ],
       optimization_rules: [
         {
           rule_id: uuidv4(),
-          target_device: { device_type: 'smartphone', os: 'ios', screen_size_category: 'medium', connection_type: 'wifi' },
+          target_device: {
+            device_type: 'smartphone',
+            os: 'ios',
+            screen_size_category: 'medium',
+            connection_type: 'wifi',
+          },
           creative_adaptations: [
-            { adaptation_type: 'resize', from_format: '1200x628', to_format: '1080x1920', quality_preservation: 0.95 },
+            {
+              adaptation_type: 'resize',
+              from_format: '1200x628',
+              to_format: '1080x1920',
+              quality_preservation: 0.95,
+            },
           ],
           bid_adjustment: 1.2,
           enabled: true,
         },
       ],
       performance_by_device: {
-        'ios_smartphone': {
+        ios_smartphone: {
           impressions: 100000,
           clicks: 12000,
           conversions: 600,
@@ -339,16 +402,16 @@ export class OptimizationService {
           avg_session_duration: 420,
           unique_users: 45000,
         },
-        'android_smartphone': {
+        android_smartphone: {
           impressions: 150000,
           clicks: 15000,
           conversions: 750,
-          ctr: 0.10,
+          ctr: 0.1,
           cvr: 0.05,
           avg_session_duration: 380,
           unique_users: 65000,
         },
-        'desktop': {
+        desktop: {
           impressions: 50000,
           clicks: 3500,
           conversions: 175,
@@ -365,12 +428,27 @@ export class OptimizationService {
   async manageFrequencyCapping(campaignId: string): Promise<FrequencyCapping> {
     return {
       capping_config: {
-        global_cap: { max_impressions: 10, time_window_hours: 24, cap_type: 'soft', overflow_action: 'reduce_bid' },
+        global_cap: {
+          max_impressions: 10,
+          time_window_hours: 24,
+          cap_type: 'soft',
+          overflow_action: 'reduce_bid',
+        },
         campaign_caps: {
-          [campaignId]: { max_impressions: 5, time_window_hours: 24, cap_type: 'hard', overflow_action: 'block' },
+          [campaignId]: {
+            max_impressions: 5,
+            time_window_hours: 24,
+            cap_type: 'hard',
+            overflow_action: 'block',
+          },
         },
         creative_caps: {},
-        cross_campaign_cap: { max_impressions: 15, time_window_hours: 24, cap_type: 'soft', overflow_action: 'alternate_creative' },
+        cross_campaign_cap: {
+          max_impressions: 15,
+          time_window_hours: 24,
+          cap_type: 'soft',
+          overflow_action: 'alternate_creative',
+        },
       },
       user_exposure_tracking: [
         {
@@ -423,11 +501,41 @@ export class OptimizationService {
         {
           path_id: uuidv4(),
           steps: [
-            { step_number: 1, action: 'ad_impression', channel: 'social', avg_time_at_step_minutes: 0, drop_off_rate: 0.85 },
-            { step_number: 2, action: 'ad_click', channel: 'social', avg_time_at_step_minutes: 5, drop_off_rate: 0.70 },
-            { step_number: 3, action: 'app_install', channel: 'app_store', avg_time_at_step_minutes: 180, drop_off_rate: 0.45 },
-            { step_number: 4, action: 'registration', channel: 'in_app', avg_time_at_step_minutes: 10, drop_off_rate: 0.30 },
-            { step_number: 5, action: 'subscription', channel: 'in_app', avg_time_at_step_minutes: 1440, drop_off_rate: 0 },
+            {
+              step_number: 1,
+              action: 'ad_impression',
+              channel: 'social',
+              avg_time_at_step_minutes: 0,
+              drop_off_rate: 0.85,
+            },
+            {
+              step_number: 2,
+              action: 'ad_click',
+              channel: 'social',
+              avg_time_at_step_minutes: 5,
+              drop_off_rate: 0.7,
+            },
+            {
+              step_number: 3,
+              action: 'app_install',
+              channel: 'app_store',
+              avg_time_at_step_minutes: 180,
+              drop_off_rate: 0.45,
+            },
+            {
+              step_number: 4,
+              action: 'registration',
+              channel: 'in_app',
+              avg_time_at_step_minutes: 10,
+              drop_off_rate: 0.3,
+            },
+            {
+              step_number: 5,
+              action: 'subscription',
+              channel: 'in_app',
+              avg_time_at_step_minutes: 1440,
+              drop_off_rate: 0,
+            },
           ],
           total_users: 10000,
           conversion_rate: 0.018,
@@ -451,9 +559,24 @@ export class OptimizationService {
         },
       ],
       funnel_metrics: {
-        top_of_funnel: { stage_name: 'Awareness', users: 500000, conversion_to_next: 0.15, avg_time_in_stage_hours: 24 },
-        middle_of_funnel: { stage_name: 'Consideration', users: 75000, conversion_to_next: 0.20, avg_time_in_stage_hours: 72 },
-        bottom_of_funnel: { stage_name: 'Conversion', users: 15000, conversion_to_next: 0.12, avg_time_in_stage_hours: 48 },
+        top_of_funnel: {
+          stage_name: 'Awareness',
+          users: 500000,
+          conversion_to_next: 0.15,
+          avg_time_in_stage_hours: 24,
+        },
+        middle_of_funnel: {
+          stage_name: 'Consideration',
+          users: 75000,
+          conversion_to_next: 0.2,
+          avg_time_in_stage_hours: 72,
+        },
+        bottom_of_funnel: {
+          stage_name: 'Conversion',
+          users: 15000,
+          conversion_to_next: 0.12,
+          avg_time_in_stage_hours: 48,
+        },
         overall_conversion_rate: 0.0036,
       },
     };
@@ -468,7 +591,7 @@ export class OptimizationService {
         features: [
           { feature_name: 'subscription_tier', importance: 0.35, feature_type: 'financial' },
           { feature_name: 'engagement_score', importance: 0.25, feature_type: 'behavioral' },
-          { feature_name: 'matches_count', importance: 0.20, feature_type: 'engagement' },
+          { feature_name: 'matches_count', importance: 0.2, feature_type: 'engagement' },
           { feature_name: 'tenure_days', importance: 0.15, feature_type: 'demographic' },
           { feature_name: 'message_response_rate', importance: 0.05, feature_type: 'behavioral' },
         ],
@@ -478,7 +601,7 @@ export class OptimizationService {
       user_predictions: [
         {
           user_id: userId,
-          predicted_ltv: 285.00,
+          predicted_ltv: 285.0,
           confidence_interval: { lower: 220, upper: 350 },
           prediction_horizon_months: 12,
           risk_of_churn: 0.15,
@@ -570,12 +693,30 @@ export class OptimizationService {
         avg_touchpoints_to_conversion: 4.2,
         avg_days_to_conversion: 8.5,
         common_paths: [
-          { path: ['social', 'search', 'direct'], frequency: 0.25, conversion_rate: 0.045, avg_ltv: 320 },
-          { path: ['display', 'social', 'search', 'direct'], frequency: 0.18, conversion_rate: 0.038, avg_ltv: 290 },
+          {
+            path: ['social', 'search', 'direct'],
+            frequency: 0.25,
+            conversion_rate: 0.045,
+            avg_ltv: 320,
+          },
+          {
+            path: ['display', 'social', 'search', 'direct'],
+            frequency: 0.18,
+            conversion_rate: 0.038,
+            avg_ltv: 290,
+          },
         ],
         channel_synergies: [
-          { channel_pair: ['social_media', 'search'], synergy_effect: 1.35, optimal_sequence: 'social_media -> search' },
-          { channel_pair: ['display', 'social_media'], synergy_effect: 1.22, optimal_sequence: 'display -> social_media' },
+          {
+            channel_pair: ['social_media', 'search'],
+            synergy_effect: 1.35,
+            optimal_sequence: 'social_media -> search',
+          },
+          {
+            channel_pair: ['display', 'social_media'],
+            synergy_effect: 1.22,
+            optimal_sequence: 'display -> social_media',
+          },
         ],
       },
       budget_recommendations: [

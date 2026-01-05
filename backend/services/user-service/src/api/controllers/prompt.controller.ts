@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { PromptService } from '../../domain/services/prompt.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class PromptController {
   private promptService: PromptService;
@@ -29,7 +30,7 @@ export class PromptController {
 
   async getUserPrompts(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const userPrompts = await this.promptService.getUserPrompts(userId);
 
       return res.status(200).json({
@@ -47,7 +48,7 @@ export class PromptController {
 
   async addUserPrompt(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { prompt_id, answer } = req.body;
 
       if (!prompt_id || !answer) {
@@ -75,7 +76,7 @@ export class PromptController {
 
   async updateUserPrompt(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { promptId } = req.params;
       const { answer } = req.body;
 
@@ -104,7 +105,7 @@ export class PromptController {
 
   async deleteUserPrompt(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { promptId } = req.params;
 
       await this.promptService.deleteUserPrompt(userId, promptId);

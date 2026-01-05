@@ -1,7 +1,8 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 import { RecordingSession } from '../../services/call-recording.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('call-recording-repository');
 
@@ -97,7 +98,9 @@ export class CallRecordingRepository {
    */
   async findById(recordingId: string, callId: string): Promise<CallRecordingDocument | null> {
     try {
-      const { resource } = await this.container.item(recordingId, callId).read<CallRecordingDocument>();
+      const { resource } = await this.container
+        .item(recordingId, callId)
+        .read<CallRecordingDocument>();
       return resource || null;
     } catch (error: any) {
       if (error.code === 404) {
@@ -150,7 +153,9 @@ export class CallRecordingRepository {
         parameters: [{ name: '@callId', value: callId }],
       };
 
-      const { resources } = await this.container.items.query<CallRecordingDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<CallRecordingDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get recordings by call ID:', error);
@@ -179,7 +184,9 @@ export class CallRecordingRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<CallRecordingDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<CallRecordingDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get recordings by user ID:', error);
@@ -206,7 +213,9 @@ export class CallRecordingRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<CallRecordingDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<CallRecordingDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get recordings by status:', error);
@@ -276,7 +285,9 @@ export class CallRecordingRepository {
         parameters: [{ name: '@olderThan', value: olderThan.getTime() }],
       };
 
-      const { resources } = await this.container.items.query<{ id: string; callId: string }>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<{ id: string; callId: string }>(querySpec)
+        .fetchAll();
 
       let deleted = 0;
       for (const recording of resources) {

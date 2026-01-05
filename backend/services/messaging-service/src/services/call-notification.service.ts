@@ -4,8 +4,9 @@
  */
 
 import axios from 'axios';
-import { createLogger } from '../utils/logger';
+
 import config from '../config';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('call-notification-service');
 
@@ -39,7 +40,8 @@ export class CallNotificationService {
   private serviceToken: string;
 
   constructor() {
-    this.notificationServiceUrl = config.services?.notificationServiceUrl || 'http://localhost:3005';
+    this.notificationServiceUrl =
+      config.services?.notificationServiceUrl || 'http://localhost:3005';
     this.serviceToken = config.serviceToken;
   }
 
@@ -108,7 +110,7 @@ export class CallNotificationService {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.serviceToken}`,
+            Authorization: `Bearer ${this.serviceToken}`,
             'X-Service-Name': 'messaging-service',
           },
           timeout: 5000, // 5 second timeout for calls
@@ -173,7 +175,7 @@ export class CallNotificationService {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.serviceToken}`,
+            Authorization: `Bearer ${this.serviceToken}`,
             'X-Service-Name': 'messaging-service',
           },
           timeout: 10000,
@@ -235,7 +237,7 @@ export class CallNotificationService {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.serviceToken}`,
+            Authorization: `Bearer ${this.serviceToken}`,
             'X-Service-Name': 'messaging-service',
           },
           timeout: 10000,
@@ -268,7 +270,7 @@ export class CallNotificationService {
           },
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.serviceToken}`,
+            Authorization: `Bearer ${this.serviceToken}`,
             'X-Service-Name': 'messaging-service',
           },
           timeout: 5000,

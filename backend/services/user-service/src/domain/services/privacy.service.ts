@@ -1,4 +1,3 @@
-import { PrivacySettingRepository } from '../repositories/privacy-setting.repository';
 import {
   PrivacySetting,
   PrivacySettingUpdateInput,
@@ -6,8 +5,9 @@ import {
   isVisibleTo,
   getFuzzyCoordinates,
   validatePrivacyUpdate,
-  PROFILE_VISIBILITY
+  PROFILE_VISIBILITY,
 } from '../entities/PrivacySetting.entity';
+import { PrivacySettingRepository } from '../repositories/privacy-setting.repository';
 
 export class PrivacyService {
   private privacySettingRepository: PrivacySettingRepository;
@@ -198,10 +198,7 @@ export class PrivacyService {
   /**
    * Check if user should be hidden from specific phone number
    */
-  async shouldHideFromPhoneNumber(
-    userId: string,
-    phoneNumber: string
-  ): Promise<boolean> {
+  async shouldHideFromPhoneNumber(userId: string, phoneNumber: string): Promise<boolean> {
     const settings = await this.privacySettingRepository.findByUserId(userId);
 
     if (!settings || !settings.hideFromContacts || !settings.hiddenContactNumbers) {

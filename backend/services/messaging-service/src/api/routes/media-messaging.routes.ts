@@ -5,9 +5,10 @@
 
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticate } from '../middleware/auth.middleware';
-import { mediaMessagingController } from '../controllers/media-messaging.controller';
+
 import config from '../../config';
+import { mediaMessagingController } from '../controllers/media-messaging.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 

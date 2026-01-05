@@ -1,4 +1,4 @@
-import { communityRepository, CommunityRepository } from '../repositories/community.repository';
+import logger from '../../utils/logger';
 import {
   Community,
   CommunityWithMembership,
@@ -11,18 +11,24 @@ import {
   PostCreateInput,
   EventCreateInput,
 } from '../entities/Community.entity';
-import logger from '../../utils/logger';
+import { communityRepository, CommunityRepository } from '../repositories/community.repository';
 
 export class CommunityService {
   constructor(private repository: CommunityRepository = communityRepository) {}
 
   // ==================== COMMUNITIES ====================
 
-  async getAllCommunities(userId?: string, category?: CommunityCategory): Promise<CommunityWithMembership[]> {
+  async getAllCommunities(
+    userId?: string,
+    category?: CommunityCategory
+  ): Promise<CommunityWithMembership[]> {
     return this.repository.getAll(userId, category);
   }
 
-  async getCommunity(communityId: string, userId?: string): Promise<CommunityWithMembership | null> {
+  async getCommunity(
+    communityId: string,
+    userId?: string
+  ): Promise<CommunityWithMembership | null> {
     return this.repository.getById(communityId, userId);
   }
 
@@ -41,7 +47,10 @@ export class CommunityService {
 
   // ==================== MEMBERSHIP ====================
 
-  async joinCommunity(communityId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async joinCommunity(
+    communityId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     const community = await this.repository.getById(communityId);
     if (!community) {
       return { success: false, message: 'Community not found' };
@@ -56,7 +65,10 @@ export class CommunityService {
     return { success: true, message: 'Joined community successfully' };
   }
 
-  async leaveCommunity(communityId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async leaveCommunity(
+    communityId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     const role = await this.repository.getMemberRole(communityId, userId);
     if (!role) {
       return { success: false, message: 'Not a member of this community' };
@@ -65,9 +77,12 @@ export class CommunityService {
     if (role === 'admin') {
       // Check if there are other admins
       const { members } = await this.repository.getMembers(communityId, 100, 0);
-      const otherAdmins = members.filter(m => m.role === 'admin' && m.userId !== userId);
+      const otherAdmins = members.filter((m) => m.role === 'admin' && m.userId !== userId);
       if (otherAdmins.length === 0) {
-        return { success: false, message: 'Cannot leave: you are the only admin. Transfer ownership first.' };
+        return {
+          success: false,
+          message: 'Cannot leave: you are the only admin. Transfer ownership first.',
+        };
       }
     }
 
@@ -75,19 +90,33 @@ export class CommunityService {
     return { success: true, message: 'Left community successfully' };
   }
 
-  async getMembers(communityId: string, page: number, limit: number): Promise<{ members: CommunityMember[]; total: number }> {
+  async getMembers(
+    communityId: string,
+    page: number,
+    limit: number
+  ): Promise<{ members: CommunityMember[]; total: number }> {
     const offset = (page - 1) * limit;
     return this.repository.getMembers(communityId, limit, offset);
   }
 
   // ==================== POSTS ====================
 
-  async getPosts(communityId: string, userId: string, page: number, limit: number): Promise<{ posts: CommunityPost[]; total: number }> {
+  async getPosts(
+    communityId: string,
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ posts: CommunityPost[]; total: number }> {
     const offset = (page - 1) * limit;
     return this.repository.getPosts(communityId, userId, limit, offset);
   }
 
-  async createPost(communityId: string, userId: string, content: string, images?: string[]): Promise<{ success: boolean; post?: CommunityPost; message?: string }> {
+  async createPost(
+    communityId: string,
+    userId: string,
+    content: string,
+    images?: string[]
+  ): Promise<{ success: boolean; post?: CommunityPost; message?: string }> {
     const isMember = await this.repository.isMember(communityId, userId);
     if (!isMember) {
       return { success: false, message: 'Must be a member to post' };
@@ -103,7 +132,12 @@ export class CommunityService {
     return { success: true, post };
   }
 
-  async updatePost(postId: string, userId: string, content: string, images?: string[]): Promise<{ success: boolean; message: string }> {
+  async updatePost(
+    postId: string,
+    userId: string,
+    content: string,
+    images?: string[]
+  ): Promise<{ success: boolean; message: string }> {
     const post = await this.repository.getPostById(postId, userId);
     if (!post) {
       return { success: false, message: 'Post not found' };
@@ -148,12 +182,22 @@ export class CommunityService {
 
   // ==================== COMMENTS ====================
 
-  async getComments(postId: string, userId: string, page: number, limit: number): Promise<{ comments: CommunityComment[]; total: number }> {
+  async getComments(
+    postId: string,
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ comments: CommunityComment[]; total: number }> {
     const offset = (page - 1) * limit;
     return this.repository.getComments(postId, userId, limit, offset);
   }
 
-  async createComment(postId: string, userId: string, content: string, parentId?: string): Promise<CommunityComment> {
+  async createComment(
+    postId: string,
+    userId: string,
+    content: string,
+    parentId?: string
+  ): Promise<CommunityComment> {
     return this.repository.createComment({
       postId,
       authorId: userId,
@@ -162,10 +206,14 @@ export class CommunityService {
     });
   }
 
-  async deleteComment(commentId: string, postId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async deleteComment(
+    commentId: string,
+    postId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     // Get comment to check author
     const { comments } = await this.repository.getComments(postId, userId, 100, 0);
-    const comment = comments.find(c => c.id === commentId);
+    const comment = comments.find((c) => c.id === commentId);
 
     if (!comment) {
       return { success: false, message: 'Comment not found' };
@@ -205,7 +253,10 @@ export class CommunityService {
     return this.repository.createEvent(input);
   }
 
-  async attendEvent(eventId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async attendEvent(
+    eventId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.repository.attendEvent(eventId, userId);
       return { success: true, message: 'Registered for event' };
@@ -214,12 +265,19 @@ export class CommunityService {
     }
   }
 
-  async unattendEvent(eventId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async unattendEvent(
+    eventId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     await this.repository.unattendEvent(eventId, userId);
     return { success: true, message: 'Unregistered from event' };
   }
 
-  async getEventAttendees(eventId: string, page: number, limit: number): Promise<{ attendees: any[]; total: number }> {
+  async getEventAttendees(
+    eventId: string,
+    page: number,
+    limit: number
+  ): Promise<{ attendees: any[]; total: number }> {
     const offset = (page - 1) * limit;
     return this.repository.getEventAttendees(eventId, limit, offset);
   }

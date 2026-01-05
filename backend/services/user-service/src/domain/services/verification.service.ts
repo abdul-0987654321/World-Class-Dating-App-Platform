@@ -1,8 +1,8 @@
+import emailService from '../../infrastructure/email/email.service';
+import jwtUtils from '../../utils/jwt';
+import logger from '../../utils/logger';
 import { UserRepository } from '../repositories/user.repository';
 import { VerificationTokenRepository } from '../repositories/verification-token.repository';
-import jwtUtils from '../../utils/jwt';
-import emailService from '../../infrastructure/email/email.service';
-import logger from '../../utils/logger';
 
 export class VerificationService {
   private userRepository: UserRepository;

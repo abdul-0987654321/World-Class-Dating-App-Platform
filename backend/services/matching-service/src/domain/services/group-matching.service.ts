@@ -3,10 +3,10 @@
  * Handles group creation, management, and group-to-group matching
  */
 
-import groupRepository, { GroupRepository } from '../repositories/group.repository';
-import { Group } from '../entities/Group.entity';
-import { GroupMember } from '../entities/GroupMember.entity';
-import { GroupMatch } from '../entities/GroupMatch.entity';
+import { createLogger } from '@flamoral/backend-shared';
+
+import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import {
   GroupStatus,
   GroupMemberRole,
@@ -24,9 +24,10 @@ import {
   GroupInvitation,
   GroupLookingFor,
 } from '../../types/group-matching.types';
-import { createLogger } from '@flamoral/backend-shared';
-import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
+import { Group } from '../entities/Group.entity';
+import { GroupMatch } from '../entities/GroupMatch.entity';
+import { GroupMember } from '../entities/GroupMember.entity';
+import groupRepository, { GroupRepository } from '../repositories/group.repository';
 
 const logger = createLogger('group-matching-service');
 
@@ -340,7 +341,9 @@ export class GroupMatchingService {
       }
 
       if (targetUserId === adminId) {
-        throw new Error('Admin cannot remove themselves. Transfer admin rights first or disband the group.');
+        throw new Error(
+          'Admin cannot remove themselves. Transfer admin rights first or disband the group.'
+        );
       }
 
       const member = await this.repository.findMemberByGroupAndUser(groupId, targetUserId);
@@ -384,7 +387,9 @@ export class GroupMatchingService {
       }
 
       if (group.isAdmin(userId)) {
-        throw new Error('Admin cannot leave the group. Transfer admin rights first or disband the group.');
+        throw new Error(
+          'Admin cannot leave the group. Transfer admin rights first or disband the group.'
+        );
       }
 
       const member = await this.repository.findMemberByGroupAndUser(groupId, userId);
@@ -439,7 +444,9 @@ export class GroupMatchingService {
         channel: 'push',
       });
 
-      logger.info(`Admin rights transferred from ${currentAdminId} to ${newAdminId} for group ${groupId}`);
+      logger.info(
+        `Admin rights transferred from ${currentAdminId} to ${newAdminId} for group ${groupId}`
+      );
     } catch (error) {
       logger.error('Failed to transfer admin rights', error);
       throw error;
@@ -768,7 +775,10 @@ export class GroupMatchingService {
   }
 
   private async buildGroupProfile(sourceGroup: Group, targetGroup: Group): Promise<GroupProfile> {
-    const members = await this.repository.findGroupMembers(targetGroup.id, GroupMemberStatus.ACTIVE);
+    const members = await this.repository.findGroupMembers(
+      targetGroup.id,
+      GroupMemberStatus.ACTIVE
+    );
 
     // Get member profiles from user service (simplified for now)
     const memberProfiles: GroupMemberProfile[] = await Promise.all(

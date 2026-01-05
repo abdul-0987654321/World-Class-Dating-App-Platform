@@ -1,8 +1,9 @@
 import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 import { Icebreaker } from '../../types/enhanced-types';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('icebreaker-repository');
 
@@ -43,7 +44,10 @@ export class IcebreakerRepository {
   /**
    * Create a new icebreaker
    */
-  async create(icebreaker: Omit<Icebreaker, 'id'>, createdBy?: string): Promise<IcebreakerDocument> {
+  async create(
+    icebreaker: Omit<Icebreaker, 'id'>,
+    createdBy?: string
+  ): Promise<IcebreakerDocument> {
     try {
       const id = uuidv4();
       const now = new Date();
@@ -80,7 +84,9 @@ export class IcebreakerRepository {
         parameters: [{ name: '@id', value: icebreakerId }],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources.length > 0 ? resources[0] : null;
     } catch (error: any) {
       logger.error(`Failed to find icebreaker ${icebreakerId}:`, error);
@@ -104,7 +110,9 @@ export class IcebreakerRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get icebreakers by category:', error);
@@ -119,9 +127,12 @@ export class IcebreakerRepository {
     try {
       // Get total count first
       const countQuery = {
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.isCustom != true OR NOT IS_DEFINED(c.isCustom)',
+        query:
+          'SELECT VALUE COUNT(1) FROM c WHERE c.isCustom != true OR NOT IS_DEFINED(c.isCustom)',
       };
-      const { resources: countResult } = await this.container.items.query<number>(countQuery).fetchAll();
+      const { resources: countResult } = await this.container.items
+        .query<number>(countQuery)
+        .fetchAll();
       const totalCount = countResult[0] || 0;
 
       if (totalCount === 0) {
@@ -138,7 +149,9 @@ export class IcebreakerRepository {
         parameters: [{ name: '@offset', value: randomOffset }],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources.length > 0 ? resources[0] : null;
     } catch (error: any) {
       logger.error('Failed to get random icebreaker:', error);
@@ -152,7 +165,9 @@ export class IcebreakerRepository {
   async searchByTags(tags: string[], count: number = 10): Promise<IcebreakerDocument[]> {
     try {
       // Build a query that checks if any of the tags match
-      const tagConditions = tags.map((_, index) => `ARRAY_CONTAINS(c.tags, @tag${index})`).join(' OR ');
+      const tagConditions = tags
+        .map((_, index) => `ARRAY_CONTAINS(c.tags, @tag${index})`)
+        .join(' OR ');
 
       const querySpec = {
         query: `SELECT * FROM c
@@ -165,7 +180,9 @@ export class IcebreakerRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to search icebreakers by tags:', error);
@@ -201,7 +218,9 @@ export class IcebreakerRepository {
       }
 
       // Build query to match tags with interests
-      const interestConditions = interests.map((_, index) => `ARRAY_CONTAINS(c.tags, @interest${index})`).join(' OR ');
+      const interestConditions = interests
+        .map((_, index) => `ARRAY_CONTAINS(c.tags, @interest${index})`)
+        .join(' OR ');
 
       const querySpec = {
         query: `SELECT * FROM c
@@ -209,19 +228,24 @@ export class IcebreakerRepository {
                 ORDER BY c.popularity DESC
                 OFFSET 0 LIMIT @count`,
         parameters: [
-          ...interests.map((interest, index) => ({ name: `@interest${index}`, value: interest.toLowerCase() })),
+          ...interests.map((interest, index) => ({
+            name: `@interest${index}`,
+            value: interest.toLowerCase(),
+          })),
           { name: '@count', value: count },
         ],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
 
       // If we don't have enough matches, fill with popular ones
       if (resources.length < count) {
         const moreNeeded = count - resources.length;
-        const existingIds = resources.map(r => r.id);
+        const existingIds = resources.map((r) => r.id);
         const popular = await this.getMostPopular(moreNeeded + 5);
-        const additional = popular.filter(p => !existingIds.includes(p.id)).slice(0, moreNeeded);
+        const additional = popular.filter((p) => !existingIds.includes(p.id)).slice(0, moreNeeded);
         return [...resources, ...additional];
       }
 
@@ -244,7 +268,9 @@ export class IcebreakerRepository {
         parameters: [{ name: '@count', value: count }],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get most popular icebreakers:', error);
@@ -320,7 +346,9 @@ export class IcebreakerRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<IcebreakerDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<IcebreakerDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get custom icebreakers:', error);

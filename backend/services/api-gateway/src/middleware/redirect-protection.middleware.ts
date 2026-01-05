@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import logger from '../utils/logger';
 
 /**
@@ -227,11 +228,7 @@ export const protectAgainstOpenRedirect = (
 /**
  * Helper function to perform safe redirect
  */
-export const safeRedirect = (
-  res: Response,
-  url: string,
-  defaultUrl: string = '/'
-): void => {
+export const safeRedirect = (res: Response, url: string, defaultUrl: string = '/'): void => {
   const safeUrl = redirectProtectionService.sanitizeRedirectUrl(url, defaultUrl);
 
   // Use 302 (temporary) redirect for security

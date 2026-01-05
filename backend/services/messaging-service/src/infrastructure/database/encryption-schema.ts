@@ -138,10 +138,7 @@ export const ENCRYPTION_INDEXING_POLICIES = {
       { path: '/isUsed/?' },
       { path: '/createdAt/?' },
     ],
-    excludedPaths: [
-      { path: '/privateKey/?' },
-      { path: '/"_etag"/?' },
-    ],
+    excludedPaths: [{ path: '/privateKey/?' }, { path: '/"_etag"/?' }],
   },
 };
 

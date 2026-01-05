@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+
 import { deviceManagementService } from '../../services/device-management.service';
 import logger from '../../utils/logger';
 
@@ -14,7 +15,7 @@ export class DeviceController {
    */
   async registerDevice(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { deviceToken, platform, deviceId, deviceModel, osVersion, appVersion } = req.body;
 
       // Validate required fields
@@ -76,7 +77,7 @@ export class DeviceController {
    */
   async unregisterDevice(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { deviceToken } = req.body;
 
       if (!deviceToken) {
@@ -118,7 +119,7 @@ export class DeviceController {
    */
   async updateDevice(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { deviceToken, osVersion, appVersion, deviceModel } = req.body;
 
       if (!deviceToken) {
@@ -164,7 +165,7 @@ export class DeviceController {
    */
   async getUserDevices(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const activeOnly = req.query.activeOnly === 'true';
 
       const result = await deviceManagementService.getUserDevices(userId, activeOnly);
@@ -205,7 +206,7 @@ export class DeviceController {
 
       if (result.success) {
         // Verify the device belongs to the authenticated user
-        if (result.device?.userId !== req.user!.id) {
+        if (result.device?.userId !== req.user.id) {
           res.status(403).json({
             success: false,
             error: 'Access denied',
@@ -241,7 +242,7 @@ export class DeviceController {
    */
   async deleteAllDevices(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
 
       const result = await deviceManagementService.deleteUserDevices(userId);
 
@@ -275,7 +276,7 @@ export class DeviceController {
    */
   async deactivateByPlatform(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const platform = req.params.platform as 'ios' | 'android' | 'web';
 
       if (!['ios', 'android', 'web'].includes(platform)) {
@@ -318,7 +319,7 @@ export class DeviceController {
    */
   async getDeviceStats(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
 
       const result = await deviceManagementService.getDeviceStats(userId);
 

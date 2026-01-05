@@ -1,9 +1,10 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Router, Request, Response } from 'express';
+
+import db from '../infrastructure/database/connection';
 import { authenticateService } from '../middleware/service-auth.middleware';
 import moderationService from '../services/moderation.service';
-import db from '../infrastructure/database/connection';
 import { ContentType } from '../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('internal-routes');
 
@@ -67,7 +68,7 @@ router.post('/moderate', async (req: Request, res: Response) => {
       const text = typeof content === 'string' ? content : JSON.stringify(content);
       moderationResult = await moderationService.moderateText({
         contentId,
-        contentType: contentType as any,
+        contentType: contentType,
         userId,
         text,
       });
@@ -180,22 +181,25 @@ router.post('/flag', async (req: Request, res: Response) => {
     const { v4: uuidv4 } = await import('uuid');
     const flagId = uuidv4();
 
-    await db('moderation_queue').insert({
-      id: flagId,
-      content_id: contentId,
-      content_type: contentType,
-      user_id: userId,
-      risk_score: 0.5, // Default risk score for flagged content
-      violations: [reason],
-      status: 'flagged',
-      priority: 'medium',
-      flagged_at: new Date(),
-      created_at: new Date(),
-      updated_at: new Date(),
-    }).onConflict('content_id').merge({
-      violations: db.raw("array_append(violations, ?)", [reason]),
-      updated_at: new Date(),
-    });
+    await db('moderation_queue')
+      .insert({
+        id: flagId,
+        content_id: contentId,
+        content_type: contentType,
+        user_id: userId,
+        risk_score: 0.5, // Default risk score for flagged content
+        violations: [reason],
+        status: 'flagged',
+        priority: 'medium',
+        flagged_at: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
+      .onConflict('content_id')
+      .merge({
+        violations: db.raw('array_append(violations, ?)', [reason]),
+        updated_at: new Date(),
+      });
 
     // Also log the flag report
     await db('moderation_logs').insert({
@@ -280,7 +284,8 @@ router.post('/moderate-bulk', async (req: Request, res: Response) => {
               imageUrl,
             });
           } else {
-            const text = typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
+            const text =
+              typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
             moderationResult = await moderationService.moderateText({
               contentId: item.contentId,
               contentType: item.contentType,

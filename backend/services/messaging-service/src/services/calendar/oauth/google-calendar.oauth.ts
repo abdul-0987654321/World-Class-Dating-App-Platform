@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { createLogger } from '../../../utils/logger';
+
 import { googleCalendarConfig, calendarConfig } from '../../../config/calendar.config';
 import {
   CalendarOAuthTokens,
@@ -13,6 +13,7 @@ import {
   TimeSlot,
   CalendarProvider,
 } from '../../../types/calendar.types';
+import { createLogger } from '../../../utils/logger';
 
 const logger = createLogger('google-calendar-oauth');
 
@@ -101,7 +102,10 @@ export class GoogleCalendarOAuth {
       return { tokens, email, calendarId };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to exchange code for tokens:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to exchange code for tokens:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to authenticate with Google: ${axiosError.message}`);
     }
   }
@@ -139,7 +143,10 @@ export class GoogleCalendarOAuth {
       };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to refresh access token:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to refresh access token:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to refresh Google token: ${axiosError.message}`);
     }
   }
@@ -219,7 +226,7 @@ export class GoogleCalendarOAuth {
 
       // Add attendees if provided
       if (event.attendees && event.attendees.length > 0) {
-        googleEvent.attendees = event.attendees.map(attendee => ({
+        googleEvent.attendees = event.attendees.map((attendee) => ({
           email: attendee.email,
           displayName: attendee.name,
           responseStatus: attendee.responseStatus || 'needsAction',
@@ -230,7 +237,7 @@ export class GoogleCalendarOAuth {
       if (event.reminders && event.reminders.length > 0) {
         googleEvent.reminders = {
           useDefault: false,
-          overrides: event.reminders.map(reminder => ({
+          overrides: event.reminders.map((reminder) => ({
             method: reminder.method,
             minutes: reminder.minutes,
           })),
@@ -428,15 +435,11 @@ export class GoogleCalendarOAuth {
     try {
       logger.info('Revoking Google Calendar access');
 
-      await axios.post(
-        `https://oauth2.googleapis.com/revoke?token=${accessToken}`,
-        null,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
-      );
+      await axios.post(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, null, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
 
       logger.info('Successfully revoked access');
     } catch (error) {

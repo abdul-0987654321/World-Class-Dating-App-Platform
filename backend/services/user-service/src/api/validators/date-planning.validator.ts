@@ -9,18 +9,12 @@ export const searchVenuesSchema = Joi.object({
     'string.min': 'Location must be at least 2 characters',
     'any.required': 'Location is required',
   }),
-  type: Joi.string()
-    .valid('restaurant', 'bar', 'activity', 'entertainment')
-    .optional()
-    .messages({
-      'any.only': 'Type must be one of: restaurant, bar, activity, entertainment',
-    }),
-  budget: Joi.string()
-    .valid('budget', 'moderate', 'upscale', 'luxury')
-    .optional()
-    .messages({
-      'any.only': 'Budget must be one of: budget, moderate, upscale, luxury',
-    }),
+  type: Joi.string().valid('restaurant', 'bar', 'activity', 'entertainment').optional().messages({
+    'any.only': 'Type must be one of: restaurant, bar, activity, entertainment',
+  }),
+  budget: Joi.string().valid('budget', 'moderate', 'upscale', 'luxury').optional().messages({
+    'any.only': 'Budget must be one of: budget, moderate, upscale, luxury',
+  }),
   keyword: Joi.string().max(100).optional(),
 });
 
@@ -28,9 +22,7 @@ export const searchVenuesSchema = Joi.object({
  * Validation schema for date preferences (AI suggestions)
  */
 export const datePreferencesSchema = Joi.object({
-  budget: Joi.string()
-    .valid('budget', 'moderate', 'upscale', 'luxury', 'any')
-    .optional(),
+  budget: Joi.string().valid('budget', 'moderate', 'upscale', 'luxury', 'any').optional(),
   mood: Joi.string()
     .valid('romantic', 'adventurous', 'casual', 'luxurious', 'cultural', 'fun')
     .optional(),
@@ -39,9 +31,7 @@ export const datePreferencesSchema = Joi.object({
     .optional(),
   cuisinePreferences: Joi.array().items(Joi.string().max(50)).max(10).optional(),
   activityPreferences: Joi.array().items(Joi.string().max(50)).max(10).optional(),
-  timeOfDay: Joi.string()
-    .valid('morning', 'afternoon', 'evening', 'night')
-    .optional(),
+  timeOfDay: Joi.string().valid('morning', 'afternoon', 'evening', 'night').optional(),
   duration: Joi.string().valid('short', 'medium', 'long').optional(),
   location: Joi.string().max(200).optional(),
   specialOccasion: Joi.string().max(100).optional(),
@@ -134,9 +124,7 @@ export const datePlanIdSchema = Joi.object({
  * Validation schema for query params when listing date plans
  */
 export const listDatePlansSchema = Joi.object({
-  status: Joi.string()
-    .valid('draft', 'confirmed', 'completed', 'cancelled')
-    .optional(),
+  status: Joi.string().valid('draft', 'confirmed', 'completed', 'cancelled').optional(),
 });
 
 /**

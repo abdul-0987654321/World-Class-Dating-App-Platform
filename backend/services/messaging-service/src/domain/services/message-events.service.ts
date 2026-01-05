@@ -1,6 +1,6 @@
-import { createLogger } from '../../utils/logger';
 import { realtimeClient } from '../../infrastructure/clients/realtime.client';
 import { Message, MessageStatus } from '../../types';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('message-events-service');
 
@@ -145,11 +145,7 @@ export class MessageEventsService {
     try {
       logger.debug(`Publishing typing start event for conversation: ${conversationId}`);
 
-      const success = await realtimeClient.publishTypingStart(
-        conversationId,
-        userId,
-        targetUserId
-      );
+      const success = await realtimeClient.publishTypingStart(conversationId, userId, targetUserId);
 
       if (success) {
         logger.debug(`Typing start event published for conversation: ${conversationId}`);
@@ -173,11 +169,7 @@ export class MessageEventsService {
     try {
       logger.debug(`Publishing typing stop event for conversation: ${conversationId}`);
 
-      const success = await realtimeClient.publishTypingStop(
-        conversationId,
-        userId,
-        targetUserId
-      );
+      const success = await realtimeClient.publishTypingStop(conversationId, userId, targetUserId);
 
       if (success) {
         logger.debug(`Typing stop event published for conversation: ${conversationId}`);

@@ -1,6 +1,9 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { db } from '../../infrastructure/database/connection';
+
 import { FlowersClient } from '../../infrastructure/clients/flowers.client';
+import { db } from '../../infrastructure/database/connection';
+import { GiftCategory, Address, DeliveryOption, GiftOrderItem } from '../../types';
+import { generateAffiliateTrackingId, calculateCommission } from '../entities/Affiliate.entity';
 import {
   GiftProduct,
   GiftOrder,
@@ -8,11 +11,6 @@ import {
   GIFT_ORDER_STATUS,
 } from '../entities/Gift.entity';
 import { Partner } from '../entities/Partner.entity';
-import { GiftCategory, Address, DeliveryOption, GiftOrderItem } from '../../types';
-import {
-  generateAffiliateTrackingId,
-  calculateCommission,
-} from '../entities/Affiliate.entity';
 
 const logger = createLogger('gifts-service');
 
@@ -42,9 +40,7 @@ export class GiftsService {
     const results: { products: any[]; source: string }[] = [];
 
     // Get active gift partners
-    const partners = await db('partners')
-      .where('type', 'gifts')
-      .where('status', 'active');
+    const partners = await db('partners').where('type', 'gifts').where('status', 'active');
 
     for (const partner of partners) {
       try {
@@ -57,7 +53,7 @@ export class GiftsService {
 
         // Filter for romantic products if requested
         if (params.romantic) {
-          products = products.filter(p => p.isRomantic);
+          products = products.filter((p) => p.isRomantic);
         }
 
         // Cache products in database
@@ -65,7 +61,7 @@ export class GiftsService {
 
         results.push({
           source: partner.integrationType,
-          products: products.map(p => ({
+          products: products.map((p) => ({
             ...p,
             partnerId: partner.id,
             partnerName: partner.name,
@@ -170,17 +166,10 @@ export class GiftsService {
     const totalAmount = subtotal + deliveryOption.price + tax;
 
     // Generate affiliate tracking ID
-    const affiliateTrackingId = generateAffiliateTrackingId(
-      input.userId,
-      input.partnerId,
-      'gift'
-    );
+    const affiliateTrackingId = generateAffiliateTrackingId(input.userId, input.partnerId, 'gift');
 
     // Calculate commission
-    const commissionAmount = calculateCommission(
-      totalAmount * 100,
-      partner.commissionRate
-    ) / 100;
+    const commissionAmount = calculateCommission(totalAmount * 100, partner.commissionRate) / 100;
 
     // Store order in database
     const [order] = await db('gift_orders')
@@ -229,10 +218,7 @@ export class GiftsService {
   /**
    * Confirm a gift order (after payment)
    */
-  async confirmGiftOrder(
-    orderId: string,
-    paymentIntentId: string
-  ): Promise<GiftOrder> {
+  async confirmGiftOrder(orderId: string, paymentIntentId: string): Promise<GiftOrder> {
     const order = await db('gift_orders').where('id', orderId).first();
     if (!order) {
       throw new Error('Order not found');
@@ -248,18 +234,20 @@ export class GiftsService {
       if (partner.integrationType === 'flowers') {
         const client = new FlowersClient(partner.apiKey, partner.affiliateId);
         const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-        const shippingAddress = typeof order.shipping_address === 'string'
-          ? JSON.parse(order.shipping_address)
-          : order.shipping_address;
-        const deliveryOption = typeof order.delivery_option === 'string'
-          ? JSON.parse(order.delivery_option)
-          : order.delivery_option;
+        const shippingAddress =
+          typeof order.shipping_address === 'string'
+            ? JSON.parse(order.shipping_address)
+            : order.shipping_address;
+        const deliveryOption =
+          typeof order.delivery_option === 'string'
+            ? JSON.parse(order.delivery_option)
+            : order.delivery_option;
 
         const result = await client.createOrder({
           items: items.map((item: GiftOrderItem) => ({
             productId: item.productId,
             quantity: item.quantity,
-            selectedOptions: item.selectedOptions?.map(o => o.id),
+            selectedOptions: item.selectedOptions?.map((o) => o.id),
           })),
           shippingAddress,
           deliveryOptionId: deliveryOption.id,
@@ -311,10 +299,7 @@ export class GiftsService {
    * Cancel a gift order
    */
   async cancelGiftOrder(orderId: string, userId: string): Promise<GiftOrder> {
-    const order = await db('gift_orders')
-      .where('id', orderId)
-      .where('user_id', userId)
-      .first();
+    const order = await db('gift_orders').where('id', orderId).where('user_id', userId).first();
 
     if (!order) {
       throw new Error('Order not found');
@@ -391,12 +376,10 @@ export class GiftsService {
 
         // Update local status if different
         if (status.trackingNumber && status.trackingNumber !== order.tracking_number) {
-          await db('gift_orders')
-            .where('id', orderId)
-            .update({
-              tracking_number: status.trackingNumber,
-              updated_at: db.fn.now(),
-            });
+          await db('gift_orders').where('id', orderId).update({
+            tracking_number: status.trackingNumber,
+            updated_at: db.fn.now(),
+          });
         }
 
         return status;
@@ -416,16 +399,14 @@ export class GiftsService {
    * Get user's gift orders
    */
   async getUserGiftOrders(userId: string, status?: string): Promise<GiftOrder[]> {
-    let query = db('gift_orders')
-      .where('user_id', userId)
-      .orderBy('created_at', 'desc');
+    let query = db('gift_orders').where('user_id', userId).orderBy('created_at', 'desc');
 
     if (status) {
       query = query.where('status', status);
     }
 
     const orders = await query;
-    return orders.map(o => this.mapGiftOrder(o));
+    return orders.map((o) => this.mapGiftOrder(o));
   }
 
   /**
@@ -439,16 +420,13 @@ export class GiftsService {
       limit: 10,
     });
 
-    return results.flatMap(r => r.products);
+    return results.flatMap((r) => r.products);
   }
 
   /**
    * Get gift ideas for an occasion
    */
-  async getGiftIdeasForOccasion(
-    occasion: string,
-    budget?: number
-  ): Promise<any[]> {
+  async getGiftIdeasForOccasion(occasion: string, budget?: number): Promise<any[]> {
     const results = await this.searchProducts('system', {
       occasion,
       priceMax: budget,
@@ -456,7 +434,7 @@ export class GiftsService {
       limit: 15,
     });
 
-    return results.flatMap(r => r.products);
+    return results.flatMap((r) => r.products);
   }
 
   /**
@@ -468,12 +446,8 @@ export class GiftsService {
     deliveryOptionId: string,
     zipCode: string
   ): Promise<DeliveryOption | null> {
-    const options = await this.getDeliveryOptions(
-      partnerId,
-      productId,
-      zipCode
-    );
-    return options.find(o => o.id === deliveryOptionId) || null;
+    const options = await this.getDeliveryOptions(partnerId, productId, zipCode);
+    return options.find((o) => o.id === deliveryOptionId) || null;
   }
 
   /**
@@ -576,17 +550,19 @@ export class GiftsService {
       externalOrderId: row.external_order_id,
       status: row.status,
       items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items,
-      shippingAddress: typeof row.shipping_address === 'string'
-        ? JSON.parse(row.shipping_address)
-        : row.shipping_address,
+      shippingAddress:
+        typeof row.shipping_address === 'string'
+          ? JSON.parse(row.shipping_address)
+          : row.shipping_address,
       billingAddress: row.billing_address
-        ? (typeof row.billing_address === 'string'
+        ? typeof row.billing_address === 'string'
           ? JSON.parse(row.billing_address)
-          : row.billing_address)
+          : row.billing_address
         : undefined,
-      deliveryOption: typeof row.delivery_option === 'string'
-        ? JSON.parse(row.delivery_option)
-        : row.delivery_option,
+      deliveryOption:
+        typeof row.delivery_option === 'string'
+          ? JSON.parse(row.delivery_option)
+          : row.delivery_option,
       giftMessage: row.gift_message,
       isAnonymous: row.is_anonymous,
       subtotal: parseFloat(row.subtotal),

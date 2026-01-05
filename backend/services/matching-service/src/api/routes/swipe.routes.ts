@@ -1,8 +1,9 @@
 import { Router } from 'express';
+
+import { SwipeDto } from '../../dto';
 import swipeController from '../controllers/swipe.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validateBody } from '../middleware/validation.middleware';
-import { SwipeDto } from '../../dto';
 
 const router = Router();
 

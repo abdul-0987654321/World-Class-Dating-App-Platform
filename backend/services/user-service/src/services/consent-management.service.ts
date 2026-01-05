@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import logger from '../utils/logger';
 
 interface ConsentRecord {
@@ -132,7 +133,7 @@ export class ConsentManagementService {
     userAgent?: string
   ): Promise<ConsentRecord> {
     try {
-      const consentTypeInfo = this.CONSENT_TYPES.find(ct => ct.type === consentType);
+      const consentTypeInfo = this.CONSENT_TYPES.find((ct) => ct.type === consentType);
 
       if (!consentTypeInfo) {
         throw new Error(`Invalid consent type: ${consentType}`);
@@ -169,7 +170,9 @@ export class ConsentManagementService {
         })
         .returning('*');
 
-      logger.info(`Consent ${consentGiven ? 'given' : 'withdrawn'} for user ${userId}: ${consentType}`);
+      logger.info(
+        `Consent ${consentGiven ? 'given' : 'withdrawn'} for user ${userId}: ${consentType}`
+      );
 
       return consent;
     } catch (error) {
@@ -189,7 +192,7 @@ export class ConsentManagementService {
   ): Promise<ConsentRecord[]> {
     try {
       // Validate all required consents are present and true
-      const requiredConsents = this.CONSENT_TYPES.filter(ct => ct.required);
+      const requiredConsents = this.CONSENT_TYPES.filter((ct) => ct.required);
 
       for (const required of requiredConsents) {
         if (!consents[required.type]) {
@@ -248,9 +251,7 @@ export class ConsentManagementService {
    */
   async getConsentHistory(userId: string, consentType?: string): Promise<ConsentRecord[]> {
     try {
-      let query = this.db('gdpr_consent')
-        .where({ user_id: userId })
-        .orderBy('given_at', 'desc');
+      let query = this.db('gdpr_consent').where({ user_id: userId }).orderBy('given_at', 'desc');
 
       if (consentType) {
         query = query.where({ consent_type: consentType });
@@ -273,7 +274,7 @@ export class ConsentManagementService {
     userAgent?: string
   ): Promise<ConsentRecord> {
     try {
-      const consentTypeInfo = this.CONSENT_TYPES.find(ct => ct.type === consentType);
+      const consentTypeInfo = this.CONSENT_TYPES.find((ct) => ct.type === consentType);
 
       if (!consentTypeInfo) {
         throw new Error(`Invalid consent type: ${consentType}`);
@@ -312,7 +313,7 @@ export class ConsentManagementService {
    */
   async hasAllRequiredConsents(userId: string): Promise<boolean> {
     try {
-      const requiredConsents = this.CONSENT_TYPES.filter(ct => ct.required);
+      const requiredConsents = this.CONSENT_TYPES.filter((ct) => ct.required);
 
       for (const required of requiredConsents) {
         const hasConsent = await this.hasConsent(userId, required.type);
@@ -331,7 +332,9 @@ export class ConsentManagementService {
   /**
    * Get all consent types with user's status
    */
-  async getAllConsentTypes(userId?: string): Promise<Array<ConsentType & { userConsent?: ConsentRecord }>> {
+  async getAllConsentTypes(
+    userId?: string
+  ): Promise<Array<ConsentType & { userConsent?: ConsentRecord }>> {
     try {
       const result: Array<ConsentType & { userConsent?: ConsentRecord }> = [];
 
@@ -362,7 +365,7 @@ export class ConsentManagementService {
    */
   async updateConsentVersion(consentType: string, newVersion: string): Promise<void> {
     try {
-      const consentTypeIndex = this.CONSENT_TYPES.findIndex(ct => ct.type === consentType);
+      const consentTypeIndex = this.CONSENT_TYPES.findIndex((ct) => ct.type === consentType);
 
       if (consentTypeIndex === -1) {
         throw new Error(`Invalid consent type: ${consentType}`);
@@ -382,7 +385,7 @@ export class ConsentManagementService {
    */
   async needsReConsent(userId: string, consentType: string): Promise<boolean> {
     try {
-      const consentTypeInfo = this.CONSENT_TYPES.find(ct => ct.type === consentType);
+      const consentTypeInfo = this.CONSENT_TYPES.find((ct) => ct.type === consentType);
       if (!consentTypeInfo) {
         return false;
       }
@@ -434,7 +437,9 @@ export class ConsentManagementService {
       for (const consentType of this.CONSENT_TYPES) {
         const result = await this.db('gdpr_consent')
           .where({ consent_type: consentType.type })
-          .whereRaw('given_at = (SELECT MAX(given_at) FROM gdpr_consent gc2 WHERE gc2.user_id = gdpr_consent.user_id AND gc2.consent_type = gdpr_consent.consent_type)')
+          .whereRaw(
+            'given_at = (SELECT MAX(given_at) FROM gdpr_consent gc2 WHERE gc2.user_id = gdpr_consent.user_id AND gc2.consent_type = gdpr_consent.consent_type)'
+          )
           .select(
             this.db.raw('COUNT(CASE WHEN consent_given = true THEN 1 END) as given_count'),
             this.db.raw('COUNT(CASE WHEN consent_given = false THEN 1 END) as withdrawn_count'),

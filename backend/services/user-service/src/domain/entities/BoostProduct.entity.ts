@@ -54,7 +54,7 @@ export function getBoostValue(product: BoostProduct): number {
 
 // Get best value boost product
 export function getBestValueBoost(products: BoostProduct[]): BoostProduct | null {
-  const activeProducts = products.filter(p => p.active);
+  const activeProducts = products.filter((p) => p.active);
 
   if (activeProducts.length === 0) {
     return null;

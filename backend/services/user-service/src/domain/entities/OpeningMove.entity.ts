@@ -1,5 +1,12 @@
 export type OpeningMoveType = 'text' | 'image' | 'system';
-export type TemplateCategory = 'interests' | 'date_ideas' | 'travel' | 'fun' | 'conversation' | 'food' | 'entertainment';
+export type TemplateCategory =
+  | 'interests'
+  | 'date_ideas'
+  | 'travel'
+  | 'fun'
+  | 'conversation'
+  | 'food'
+  | 'entertainment';
 
 export interface OpeningMoveEntity {
   id: string;

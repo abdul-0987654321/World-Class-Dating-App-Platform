@@ -12,12 +12,14 @@
  * https://developer.flutterwave.com/docs/integration-guides/webhooks
  */
 
+import crypto from 'crypto';
+
+import axios from 'axios';
+
+import notificationClient from '../../infrastructure/clients/notification-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import { db } from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
-import crypto from 'crypto';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
-import notificationClient from '../../infrastructure/clients/notification-service.client';
-import axios from 'axios';
 
 // Flutterwave event types
 export type FlutterwaveEventType =
@@ -390,7 +392,10 @@ export class FlutterwaveWebhookService {
     // Send cancellation notification
     await notificationClient.notifySubscriptionCanceled(userId, 'Subscription', gracePeriodEnd);
 
-    logger.info('[FLUTTERWAVE] Subscription cancelled with grace period', { userId, gracePeriodEnd });
+    logger.info('[FLUTTERWAVE] Subscription cancelled with grace period', {
+      userId,
+      gracePeriodEnd,
+    });
   }
 
   private async handleTransferCompleted(event: FlutterwaveWebhookEvent): Promise<void> {
@@ -399,13 +404,11 @@ export class FlutterwaveWebhookService {
     logger.info('[FLUTTERWAVE] Processing transfer completed', { tx_ref, amount });
 
     // Record payout completion
-    await db('transactions')
-      .where('metadata', 'like', `%${tx_ref}%`)
-      .update({
-        status: 'succeeded',
-        processed_at: new Date(),
-        updated_at: new Date(),
-      });
+    await db('transactions').where('metadata', 'like', `%${tx_ref}%`).update({
+      status: 'succeeded',
+      processed_at: new Date(),
+      updated_at: new Date(),
+    });
 
     logger.info('[FLUTTERWAVE] Transfer completed processed', { tx_ref });
   }
@@ -416,13 +419,11 @@ export class FlutterwaveWebhookService {
     logger.info('[FLUTTERWAVE] Processing transfer failure', { tx_ref, processor_response });
 
     // Update payout status to failed
-    await db('transactions')
-      .where('metadata', 'like', `%${tx_ref}%`)
-      .update({
-        status: 'failed',
-        failure_message: processor_response,
-        updated_at: new Date(),
-      });
+    await db('transactions').where('metadata', 'like', `%${tx_ref}%`).update({
+      status: 'failed',
+      failure_message: processor_response,
+      updated_at: new Date(),
+    });
 
     logger.error('[FLUTTERWAVE] Transfer failed', { tx_ref, processor_response });
   }

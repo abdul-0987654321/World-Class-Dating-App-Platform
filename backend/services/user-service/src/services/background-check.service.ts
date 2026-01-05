@@ -7,12 +7,9 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import db from '../infrastructure/database/connection';
-import logger from '../utils/logger';
+
 import config from '../config';
-import { JumioProvider } from './providers/jumio.provider';
-import { OnfidoProvider } from './providers/onfido.provider';
-import { VerificationProvider } from '../types/id-verification-provider.types';
+import db from '../infrastructure/database/connection';
 import {
   BackgroundCheckTier,
   BackgroundCheckStatus,
@@ -24,6 +21,11 @@ import {
   WatchlistResult,
   BACKGROUND_CHECK_TIER_CONFIG,
 } from '../types/background-check.types';
+import { VerificationProvider } from '../types/id-verification-provider.types';
+import logger from '../utils/logger';
+
+import { JumioProvider } from './providers/jumio.provider';
+import { OnfidoProvider } from './providers/onfido.provider';
 
 // Provider type that supports both ID verification and background checks
 type BackgroundCheckCapableProvider = JumioProvider | OnfidoProvider;
@@ -31,15 +33,15 @@ type BackgroundCheckCapableProvider = JumioProvider | OnfidoProvider;
 // Provider region preferences for background checks
 const REGION_PROVIDER_PREFERENCES: Record<string, VerificationProvider> = {
   // EU countries - Onfido for GDPR compliance
-  'DEU': 'onfido',
-  'FRA': 'onfido',
-  'GBR': 'onfido',
-  'ITA': 'onfido',
-  'ESP': 'onfido',
+  DEU: 'onfido',
+  FRA: 'onfido',
+  GBR: 'onfido',
+  ITA: 'onfido',
+  ESP: 'onfido',
   // Americas - Jumio
-  'USA': 'jumio',
-  'CAN': 'jumio',
-  'MEX': 'jumio',
+  USA: 'jumio',
+  CAN: 'jumio',
+  MEX: 'jumio',
   // Default to Jumio
 };
 
@@ -66,7 +68,8 @@ export class BackgroundCheckService {
         api_secret: providerConfig.jumio.apiSecret,
         base_url: providerConfig.jumio.baseUrl || 'https://api.jumio.com',
         workflow_id: providerConfig.jumio.workflowId,
-        callback_url: providerConfig.jumio.callbackUrl ||
+        callback_url:
+          providerConfig.jumio.callbackUrl ||
           `${config.service.baseUrl}/api/v1/verification/background/webhook/jumio`,
       });
       this.providers.set('jumio', jumioProvider);
@@ -86,7 +89,9 @@ export class BackgroundCheckService {
     }
 
     if (this.providers.size === 0) {
-      logger.warn('No background check providers configured. Background checks will not be available.');
+      logger.warn(
+        'No background check providers configured. Background checks will not be available.'
+      );
     }
   }
 
@@ -261,9 +266,7 @@ export class BackgroundCheckService {
       }
 
       // Reload after potential update
-      const updatedCheck = await db('background_checks')
-        .where({ id: check.id })
-        .first();
+      const updatedCheck = await db('background_checks').where({ id: check.id }).first();
 
       return this.mapRecordToStatusResponse(updatedCheck);
     } catch (error: any) {
@@ -313,9 +316,8 @@ export class BackgroundCheckService {
       }
 
       // Validate webhook signature (provider-specific)
-      const signature = headers['x-jumio-signature'] ||
-        headers['x-sha2-signature'] ||
-        headers['signature'] || '';
+      const signature =
+        headers['x-jumio-signature'] || headers['x-sha2-signature'] || headers['signature'] || '';
 
       if (!provider.validateWebhookSignature(rawBody, signature)) {
         logger.warn('Invalid background check webhook signature', { provider: providerName });
@@ -353,7 +355,9 @@ export class BackgroundCheckService {
           status: result.status,
           identity_verified: result.identity_verified,
           watchlist_result: result.watchlist_result,
-          watchlist_details: result.watchlist_details ? JSON.stringify(result.watchlist_details) : null,
+          watchlist_details: result.watchlist_details
+            ? JSON.stringify(result.watchlist_details)
+            : null,
           overall_score: result.overall_score,
           flags: result.flags ? JSON.stringify(result.flags) : null,
           completed_at: result.completed_at || now,
@@ -405,12 +409,10 @@ export class BackgroundCheckService {
     // Check for pending or recently completed check
     const check = await db('background_checks')
       .where({ user_id: userId })
-      .where(function() {
-        this.whereIn('status', ['initiated', 'pending', 'processing'])
-          .orWhere(function() {
-            this.where('status', 'clear')
-              .where('expires_at', '>', now);
-          });
+      .where(function () {
+        this.whereIn('status', ['initiated', 'pending', 'processing']).orWhere(function () {
+          this.where('status', 'clear').where('expires_at', '>', now);
+        });
       })
       .orderBy('created_at', 'desc')
       .first();
@@ -455,15 +457,13 @@ export class BackgroundCheckService {
       const result = await provider.getCheckStatus(check.external_id);
 
       if (result.status !== check.status) {
-        await db('background_checks')
-          .where({ id: check.id })
-          .update({
-            status: result.status,
-            identity_verified: result.identity_verified,
-            watchlist_result: result.watchlist_result,
-            overall_score: result.overall_score,
-            updated_at: new Date(),
-          });
+        await db('background_checks').where({ id: check.id }).update({
+          status: result.status,
+          identity_verified: result.identity_verified,
+          watchlist_result: result.watchlist_result,
+          overall_score: result.overall_score,
+          updated_at: new Date(),
+        });
       }
     } catch (error) {
       logger.warn('Could not refresh background check status', {
@@ -530,21 +530,25 @@ export class BackgroundCheckService {
       initiated_at: record.initiated_at,
       completed_at: record.completed_at || undefined,
       expires_at: record.expires_at || undefined,
-      result: record.completed_at ? {
-        background_check_id: record.id,
-        external_id: record.external_id,
-        provider: record.provider,
-        status: record.status,
-        tier: record.tier,
-        checks_performed: record.checks_performed ? JSON.parse(record.checks_performed) : [],
-        identity_verified: record.identity_verified,
-        watchlist_result: record.watchlist_result,
-        watchlist_details: record.watchlist_details ? JSON.parse(record.watchlist_details) : undefined,
-        overall_score: record.overall_score,
-        flags: record.flags ? JSON.parse(record.flags) : undefined,
-        completed_at: record.completed_at,
-        raw_response: record.raw_response ? JSON.parse(record.raw_response) : undefined,
-      } : undefined,
+      result: record.completed_at
+        ? {
+            background_check_id: record.id,
+            external_id: record.external_id,
+            provider: record.provider,
+            status: record.status,
+            tier: record.tier,
+            checks_performed: record.checks_performed ? JSON.parse(record.checks_performed) : [],
+            identity_verified: record.identity_verified,
+            watchlist_result: record.watchlist_result,
+            watchlist_details: record.watchlist_details
+              ? JSON.parse(record.watchlist_details)
+              : undefined,
+            overall_score: record.overall_score,
+            flags: record.flags ? JSON.parse(record.flags) : undefined,
+            completed_at: record.completed_at,
+            raw_response: record.raw_response ? JSON.parse(record.raw_response) : undefined,
+          }
+        : undefined,
       badge_awarded: record.status === 'clear' && record.identity_verified,
     };
   }

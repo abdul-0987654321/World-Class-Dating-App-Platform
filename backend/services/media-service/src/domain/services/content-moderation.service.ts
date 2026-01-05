@@ -1,9 +1,10 @@
-import axios from 'axios';
 import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
 import { ApiKeyCredentials } from '@azure/ms-rest-js';
+import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+
 import config from '../../config';
 import { ModerationResult, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('content-moderation-service');
 
@@ -64,7 +65,8 @@ export class ContentModerationService {
         status,
         result: {
           isAdultContent: moderationResult.detectedViolations?.includes('explicit_nudity') || false,
-          isRacyContent: moderationResult.detectedViolations?.includes('suggestive_nudity') || false,
+          isRacyContent:
+            moderationResult.detectedViolations?.includes('suggestive_nudity') || false,
           isViolentContent: moderationResult.detectedViolations?.includes('violence') || false,
           adultScore: moderationResult.imageModerationResult?.categories?.explicitNudity || 0,
           racyScore: moderationResult.imageModerationResult?.categories?.suggestiveNudity || 0,
@@ -86,7 +88,9 @@ export class ContentModerationService {
   /**
    * Fallback moderation using Azure Computer Vision directly
    */
-  private async fallbackModeration(imageUrl: string): Promise<{ status: ModerationStatus; result: ModerationResult }> {
+  private async fallbackModeration(
+    imageUrl: string
+  ): Promise<{ status: ModerationStatus; result: ModerationResult }> {
     try {
       const analysis = await this.client.analyzeImage(imageUrl, {
         visualFeatures: ['Adult', 'Description', 'Tags'],
@@ -130,11 +134,8 @@ export class ContentModerationService {
    */
   private determineModerationStatus(result: ModerationResult): ModerationStatus {
     const { adultScore, racyScore, violenceScore } = result;
-    const {
-      adultContentThreshold,
-      racyContentThreshold,
-      violenceContentThreshold,
-    } = config.moderation;
+    const { adultContentThreshold, racyContentThreshold, violenceContentThreshold } =
+      config.moderation;
 
     // Reject if any score exceeds threshold
     if (

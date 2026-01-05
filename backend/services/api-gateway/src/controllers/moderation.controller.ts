@@ -12,9 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { ProxyService } from '../services/proxy.service';
+
 import { Roles } from '../decorators/roles.decorator';
 import { RolesGuard, Role } from '../guards/roles.guard';
+import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('moderation')
 @ApiBearerAuth('JWT-auth')
@@ -30,10 +31,7 @@ export class ModerationController {
   @Post('submit')
   @ApiOperation({ summary: 'Submit content for moderation' })
   @HttpCode(HttpStatus.CREATED)
-  async submitContent(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async submitContent(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/submit', body, {
       Authorization: authorization,
     });
@@ -46,7 +44,7 @@ export class ModerationController {
   @ApiOperation({ summary: 'Get content moderation status' })
   async getModerationStatus(
     @Headers('authorization') authorization: string,
-    @Param('contentId') contentId: string,
+    @Param('contentId') contentId: string
   ) {
     return this.proxyService.get('moderationService', `/api/moderation/status/${contentId}`, {
       Authorization: authorization,
@@ -65,7 +63,7 @@ export class ModerationController {
     @Headers('authorization') authorization: string,
     @Query('status') status?: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (status) queryString.append('status', status);
@@ -88,11 +86,16 @@ export class ModerationController {
   @ApiOperation({ summary: 'Approve content (admin)' })
   async approveContent(
     @Headers('authorization') authorization: string,
-    @Param('contentId') contentId: string,
+    @Param('contentId') contentId: string
   ) {
-    return this.proxyService.put('moderationService', `/api/moderation/approve/${contentId}`, {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.put(
+      'moderationService',
+      `/api/moderation/approve/${contentId}`,
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -106,7 +109,7 @@ export class ModerationController {
   async rejectContent(
     @Headers('authorization') authorization: string,
     @Param('contentId') contentId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.put('moderationService', `/api/moderation/reject/${contentId}`, body, {
       Authorization: authorization,
@@ -121,10 +124,7 @@ export class ModerationController {
   @Post('reports')
   @ApiOperation({ summary: 'Submit a report' })
   @HttpCode(HttpStatus.CREATED)
-  async submitReport(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async submitReport(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/reports', body, {
       Authorization: authorization,
     });
@@ -138,7 +138,7 @@ export class ModerationController {
   async getMyReports(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -163,7 +163,7 @@ export class ModerationController {
     @Query('status') status?: string,
     @Query('type') type?: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (status) queryString.append('status', status);
@@ -187,7 +187,7 @@ export class ModerationController {
   @ApiOperation({ summary: 'Get report details (admin)' })
   async getReport(
     @Headers('authorization') authorization: string,
-    @Param('reportId') reportId: string,
+    @Param('reportId') reportId: string
   ) {
     return this.proxyService.get('moderationService', `/api/moderation/reports/${reportId}`, {
       Authorization: authorization,
@@ -205,7 +205,7 @@ export class ModerationController {
   async updateReport(
     @Headers('authorization') authorization: string,
     @Param('reportId') reportId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.put('moderationService', `/api/moderation/reports/${reportId}`, body, {
       Authorization: authorization,
@@ -224,10 +224,7 @@ export class ModerationController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Ban user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async banUser(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async banUser(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/ban', body, {
       Authorization: authorization,
     });
@@ -242,10 +239,7 @@ export class ModerationController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Unban user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async unbanUser(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async unbanUser(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/unban', body, {
       Authorization: authorization,
     });
@@ -260,10 +254,7 @@ export class ModerationController {
   @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Warn user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async warnUser(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async warnUser(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/warn', body, {
       Authorization: authorization,
     });
@@ -279,7 +270,7 @@ export class ModerationController {
   @ApiOperation({ summary: 'Get user moderation history (admin)' })
   async getUserModerationHistory(
     @Headers('authorization') authorization: string,
-    @Param('userId') userId: string,
+    @Param('userId') userId: string
   ) {
     return this.proxyService.get('moderationService', `/api/moderation/users/${userId}/history`, {
       Authorization: authorization,
@@ -294,10 +285,7 @@ export class ModerationController {
   @Post('scan/text')
   @ApiOperation({ summary: 'Scan text for inappropriate content' })
   @HttpCode(HttpStatus.OK)
-  async scanText(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async scanText(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/text', body, {
       Authorization: authorization,
     });
@@ -309,10 +297,7 @@ export class ModerationController {
   @Post('scan/image')
   @ApiOperation({ summary: 'Scan image for inappropriate content' })
   @HttpCode(HttpStatus.OK)
-  async scanImage(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async scanImage(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/image', body, {
       Authorization: authorization,
     });
@@ -331,7 +316,7 @@ export class ModerationController {
   async getStatistics(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);

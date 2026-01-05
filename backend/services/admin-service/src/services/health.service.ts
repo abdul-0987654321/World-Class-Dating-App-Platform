@@ -1,9 +1,11 @@
-import { SystemHealth } from '../types';
+import os from 'os';
+
+import axios from 'axios';
+
 import { db } from '../infrastructure/database';
 import { redis } from '../infrastructure/redis';
-import axios from 'axios';
+import { SystemHealth } from '../types';
 import { logger } from '../utils/logger';
-import os from 'os';
 
 export class HealthService {
   private services = [
@@ -60,13 +62,15 @@ export class HealthService {
     );
 
     return results.map((result) =>
-      result.status === 'fulfilled' ? result.value : {
-        name: 'unknown',
-        status: 'down' as const,
-        responseTime: 0,
-        lastCheck: new Date(),
-        error: 'Service check failed',
-      }
+      result.status === 'fulfilled'
+        ? result.value
+        : {
+            name: 'unknown',
+            status: 'down' as const,
+            responseTime: 0,
+            lastCheck: new Date(),
+            error: 'Service check failed',
+          }
     );
   }
 
@@ -77,7 +81,7 @@ export class HealthService {
       const latency = Date.now() - startTime;
 
       // Get connection pool info
-      const pool = (db.client as any).pool;
+      const pool = db.client.pool;
       const connections = pool.numUsed() + pool.numFree();
 
       return {
@@ -122,7 +126,7 @@ export class HealthService {
   }
 
   private getSystemMetrics() {
-    const cpuUsage = os.loadavg()[0] / os.cpus().length * 100;
+    const cpuUsage = (os.loadavg()[0] / os.cpus().length) * 100;
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
     const memoryUsage = ((totalMem - freeMem) / totalMem) * 100;
@@ -143,8 +147,8 @@ export class HealthService {
       return 'down';
     }
 
-    const downServices = services.filter(s => s.status === 'down').length;
-    const degradedServices = services.filter(s => s.status === 'degraded').length;
+    const downServices = services.filter((s) => s.status === 'down').length;
+    const degradedServices = services.filter((s) => s.status === 'degraded').length;
 
     if (downServices > services.length / 2) {
       return 'down';
@@ -170,6 +174,8 @@ export class HealthService {
   async restartService(serviceName: string) {
     // This would integrate with your orchestration platform (k8s, docker, etc.)
     logger.info(`Restart requested for service: ${serviceName}`);
-    throw new Error('Service restart not implemented - requires orchestration platform integration');
+    throw new Error(
+      'Service restart not implemented - requires orchestration platform integration'
+    );
   }
 }

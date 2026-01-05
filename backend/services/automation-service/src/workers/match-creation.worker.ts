@@ -5,16 +5,11 @@
  * Sends notifications to both users
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('match-creation-worker');
 
@@ -54,7 +49,9 @@ export class MatchCreationWorker extends BaseWorker<MatchCreationJobData, MatchC
   /**
    * Process match creation job
    */
-  protected async processJob(job: Job<MatchCreationJobData>): Promise<JobResult<MatchCreationResult>> {
+  protected async processJob(
+    job: Job<MatchCreationJobData>
+  ): Promise<JobResult<MatchCreationResult>> {
     const { type, user1Id, user2Id, swipeType, superLikeMessage, matchMode } = job.data;
     const startTime = Date.now();
 
@@ -149,20 +146,17 @@ export class MatchCreationWorker extends BaseWorker<MatchCreationJobData, MatchC
    */
   private async checkMutualLike(user1Id: string, user2Id: string): Promise<boolean> {
     try {
-      const response = await axios.get(
-        `${MATCHING_SERVICE_URL}/api/v1/internal/swipes/check`,
-        {
-          params: {
-            swiperId: user1Id,
-            swipedUserId: user2Id,
-            direction: 'right',
-          },
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 5000,
-        }
-      );
+      const response = await axios.get(`${MATCHING_SERVICE_URL}/api/v1/internal/swipes/check`, {
+        params: {
+          swiperId: user1Id,
+          swipedUserId: user2Id,
+          direction: 'right',
+        },
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 5000,
+      });
 
       return response.data.exists === true;
     } catch (error: any) {

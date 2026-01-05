@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware';
-import { enhancedMessagingController } from '../controllers/enhanced-messaging.controller';
+
 import {
   validateBody,
   validateQuery,
@@ -10,6 +9,8 @@ import {
   GetSharedMediaQueryDto,
   ExportChatDto,
 } from '../../dto';
+import { enhancedMessagingController } from '../controllers/enhanced-messaging.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 

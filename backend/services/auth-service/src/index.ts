@@ -1,14 +1,15 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import { config } from './config';
-import logger from './utils/logger';
-import { testConnection, closePool } from './infrastructure/database/pool';
-import redisCache from './infrastructure/cache/redis';
-import apiRoutes from './api/routes';
-import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
+
+import { generalLimiter } from './api/middleware/rate-limit.middleware';
+import apiRoutes from './api/routes';
+import { config } from './config';
+import redisCache from './infrastructure/cache/redis';
+import { testConnection, closePool } from './infrastructure/database/pool';
+import logger from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -34,12 +35,14 @@ const app: Application = express();
 app.use(helmet());
 
 // CORS configuration
-app.use(cors({
-  origin: config.cors.origins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Service-Key'],
-}));
+app.use(
+  cors({
+    origin: config.cors.origins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Service-Key'],
+  })
+);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -71,7 +74,7 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('Redis health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'auth-service',
@@ -165,7 +168,6 @@ async function startServer(): Promise<void> {
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
-
   } catch (error) {
     logger.error('Failed to start server', error);
     process.exit(1);

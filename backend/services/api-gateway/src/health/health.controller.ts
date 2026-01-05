@@ -1,11 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   HealthCheckService,
   HealthCheck,
   MemoryHealthIndicator,
   DiskHealthIndicator,
 } from '@nestjs/terminus';
-import { ConfigService } from '@nestjs/config';
+
 import { Public } from '../decorators/public.decorator';
 import { ProxyService } from '../services/proxy.service';
 
@@ -16,7 +17,7 @@ export class HealthController {
     private readonly memory: MemoryHealthIndicator,
     private readonly disk: DiskHealthIndicator,
     private readonly configService: ConfigService,
-    private readonly proxyService: ProxyService,
+    private readonly proxyService: ProxyService
   ) {}
 
   @Public()

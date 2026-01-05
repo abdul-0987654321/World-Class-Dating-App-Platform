@@ -12,6 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('Communities')
@@ -27,14 +28,12 @@ export class CommunityController {
   @ApiResponse({ status: 200, description: 'List of communities' })
   async getCommunities(
     @Headers('authorization') authorization: string,
-    @Query('category') category?: string,
+    @Query('category') category?: string
   ) {
     const queryParams = category ? `?category=${category}` : '';
-    return this.proxyService.get(
-      'userService',
-      `/api/v1/communities${queryParams}`,
-      { Authorization: authorization },
-    );
+    return this.proxyService.get('userService', `/api/v1/communities${queryParams}`, {
+      Authorization: authorization,
+    });
   }
 
   @Get('joined')
@@ -49,12 +48,12 @@ export class CommunityController {
   @ApiOperation({ summary: 'Search communities' })
   async searchCommunities(
     @Headers('authorization') authorization: string,
-    @Query('q') query: string,
+    @Query('q') query: string
   ) {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/search?q=${encodeURIComponent(query)}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -78,13 +77,11 @@ export class CommunityController {
   @ApiOperation({ summary: 'Get community by ID' })
   async getCommunity(
     @Headers('authorization') authorization: string,
-    @Param('communityId') communityId: string,
+    @Param('communityId') communityId: string
   ) {
-    return this.proxyService.get(
-      'userService',
-      `/api/v1/communities/${communityId}`,
-      { Authorization: authorization },
-    );
+    return this.proxyService.get('userService', `/api/v1/communities/${communityId}`, {
+      Authorization: authorization,
+    });
   }
 
   @Post(':communityId/join')
@@ -92,13 +89,13 @@ export class CommunityController {
   @ApiOperation({ summary: 'Join a community' })
   async joinCommunity(
     @Headers('authorization') authorization: string,
-    @Param('communityId') communityId: string,
+    @Param('communityId') communityId: string
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/join`,
       {},
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -107,13 +104,13 @@ export class CommunityController {
   @ApiOperation({ summary: 'Leave a community' })
   async leaveCommunity(
     @Headers('authorization') authorization: string,
-    @Param('communityId') communityId: string,
+    @Param('communityId') communityId: string
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/leave`,
       {},
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -123,7 +120,7 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: number
   ) {
     const queryParams = new URLSearchParams();
     if (page) queryParams.append('page', page.toString());
@@ -133,7 +130,7 @@ export class CommunityController {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/${communityId}/members${queryString ? `?${queryString}` : ''}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -145,7 +142,7 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: number
   ) {
     const queryParams = new URLSearchParams();
     if (page) queryParams.append('page', page.toString());
@@ -155,7 +152,7 @@ export class CommunityController {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/${communityId}/posts${queryString ? `?${queryString}` : ''}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -165,14 +162,11 @@ export class CommunityController {
   async createPost(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Body() body: { content: string; images?: string[] },
+    @Body() body: { content: string; images?: string[] }
   ) {
-    return this.proxyService.post(
-      'userService',
-      `/api/v1/communities/${communityId}/posts`,
-      body,
-      { Authorization: authorization },
-    );
+    return this.proxyService.post('userService', `/api/v1/communities/${communityId}/posts`, body, {
+      Authorization: authorization,
+    });
   }
 
   @Put(':communityId/posts/:postId')
@@ -181,13 +175,13 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Param('postId') postId: string,
-    @Body() body: { content: string; images?: string[] },
+    @Body() body: { content: string; images?: string[] }
   ) {
     return this.proxyService.put(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}`,
       body,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -196,12 +190,12 @@ export class CommunityController {
   async deletePost(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('postId') postId: string,
+    @Param('postId') postId: string
   ) {
     return this.proxyService.delete(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -211,13 +205,13 @@ export class CommunityController {
   async likePost(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('postId') postId: string,
+    @Param('postId') postId: string
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/like`,
       {},
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -226,12 +220,12 @@ export class CommunityController {
   async unlikePost(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('postId') postId: string,
+    @Param('postId') postId: string
   ) {
     return this.proxyService.delete(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/like`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -244,7 +238,7 @@ export class CommunityController {
     @Param('communityId') communityId: string,
     @Param('postId') postId: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: number
   ) {
     const queryParams = new URLSearchParams();
     if (page) queryParams.append('page', page.toString());
@@ -254,7 +248,7 @@ export class CommunityController {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/comments${queryString ? `?${queryString}` : ''}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -265,13 +259,13 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Param('postId') postId: string,
-    @Body() body: { content: string; parentId?: string },
+    @Body() body: { content: string; parentId?: string }
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/comments`,
       body,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -281,12 +275,12 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Param('postId') postId: string,
-    @Param('commentId') commentId: string,
+    @Param('commentId') commentId: string
   ) {
     return this.proxyService.delete(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/comments/${commentId}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -297,13 +291,13 @@ export class CommunityController {
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
     @Param('postId') postId: string,
-    @Param('commentId') commentId: string,
+    @Param('commentId') commentId: string
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/posts/${postId}/comments/${commentId}/like`,
       {},
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -313,13 +307,11 @@ export class CommunityController {
   @ApiOperation({ summary: 'Get community events' })
   async getCommunityEvents(
     @Headers('authorization') authorization: string,
-    @Param('communityId') communityId: string,
+    @Param('communityId') communityId: string
   ) {
-    return this.proxyService.get(
-      'userService',
-      `/api/v1/communities/${communityId}/events`,
-      { Authorization: authorization },
-    );
+    return this.proxyService.get('userService', `/api/v1/communities/${communityId}/events`, {
+      Authorization: authorization,
+    });
   }
 
   @Get(':communityId/events/:eventId')
@@ -327,12 +319,12 @@ export class CommunityController {
   async getEvent(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('eventId') eventId: string,
+    @Param('eventId') eventId: string
   ) {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/${communityId}/events/${eventId}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -342,13 +334,13 @@ export class CommunityController {
   async attendEvent(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('eventId') eventId: string,
+    @Param('eventId') eventId: string
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/communities/${communityId}/events/${eventId}/attend`,
       {},
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -357,12 +349,12 @@ export class CommunityController {
   async unattendEvent(
     @Headers('authorization') authorization: string,
     @Param('communityId') communityId: string,
-    @Param('eventId') eventId: string,
+    @Param('eventId') eventId: string
   ) {
     return this.proxyService.delete(
       'userService',
       `/api/v1/communities/${communityId}/events/${eventId}/attend`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -373,7 +365,7 @@ export class CommunityController {
     @Param('communityId') communityId: string,
     @Param('eventId') eventId: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: number
   ) {
     const queryParams = new URLSearchParams();
     if (page) queryParams.append('page', page.toString());
@@ -383,7 +375,7 @@ export class CommunityController {
     return this.proxyService.get(
       'userService',
       `/api/v1/communities/${communityId}/events/${eventId}/attendees${queryString ? `?${queryString}` : ''}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 }

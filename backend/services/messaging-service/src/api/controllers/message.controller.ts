@@ -1,14 +1,15 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../../utils/logger';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { messageRepository } from '../../domain/repositories/message.repository';
+
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
-import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { matchingServiceClient } from '../../infrastructure/clients/matching-service.client';
+import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { userServiceClient } from '../../infrastructure/clients/user-service.client';
 import { Message, MessageType, MessageStatus } from '../../types';
+import { createLogger } from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('message-controller');
 
@@ -19,7 +20,7 @@ export class MessageController {
    */
   async getMessages(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
@@ -34,10 +35,7 @@ export class MessageController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to view this conversation',
@@ -51,9 +49,7 @@ export class MessageController {
       );
 
       // Filter out messages deleted for this user
-      const filteredMessages = messages.filter(
-        (msg) => !msg.deletedFor?.includes(userId)
-      );
+      const filteredMessages = messages.filter((msg) => !msg.deletedFor?.includes(userId));
 
       return res.status(200).json({
         success: true,
@@ -81,7 +77,7 @@ export class MessageController {
    */
   async sendMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId, receiverId, content, type, metadata, replyTo } = req.body;
 
       // Validate required fields
@@ -121,7 +117,8 @@ export class MessageController {
             if (!canSendBeforeMatch) {
               return res.status(403).json({
                 success: false,
-                error: 'You must match with this user before sending a message. Upgrade to Premium+ or Elite to unlock "Message Before Match" feature.',
+                error:
+                  'You must match with this user before sending a message. Upgrade to Premium+ or Elite to unlock "Message Before Match" feature.',
                 code: 'NO_MATCH_FOUND',
                 data: {
                   requiresMatch: true,
@@ -153,10 +150,7 @@ export class MessageController {
       }
 
       // Verify user is a participant
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to send messages in this conversation',
@@ -170,7 +164,8 @@ export class MessageController {
         if (userId !== conversation.womanUserId) {
           return res.status(403).json({
             success: false,
-            error: 'In heterosexual matches, only women can send the first message. Please wait for her to message you first.',
+            error:
+              'In heterosexual matches, only women can send the first message. Please wait for her to message you first.',
             code: 'WOMEN_FIRST_MESSAGING_REQUIRED',
             data: {
               requiresWomenFirst: true,
@@ -200,11 +195,7 @@ export class MessageController {
 
       // Update conversation with last message info
       const preview = content.length > 50 ? content.substring(0, 47) + '...' : content;
-      await conversationRepository.updateLastMessage(
-        conversation.id,
-        new Date(),
-        preview
-      );
+      await conversationRepository.updateLastMessage(conversation.id, new Date(), preview);
 
       // If this is the first message, mark conversation as initiated
       if (!conversation.conversationInitiated) {
@@ -215,11 +206,7 @@ export class MessageController {
 
         // Update the match status in matching service
         if (matchInfo) {
-          await matchingServiceClient.updateMatchConversationStatus(
-            matchInfo.id,
-            true,
-            userId
-          );
+          await matchingServiceClient.updateMatchConversationStatus(matchInfo.id, true, userId);
         }
       }
 
@@ -266,7 +253,7 @@ export class MessageController {
    */
   async getMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId } = req.query;
 
@@ -287,10 +274,7 @@ export class MessageController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to view this message',
@@ -333,7 +317,7 @@ export class MessageController {
    */
   async updateMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId, content } = req.body;
 
@@ -391,7 +375,7 @@ export class MessageController {
    */
   async deleteMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId, deleteForAll } = req.body;
 
@@ -448,7 +432,7 @@ export class MessageController {
    */
   async updateMessageStatus(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId, status } = req.body;
 
@@ -515,7 +499,7 @@ export class MessageController {
    */
   async getUnreadCount(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       // Get all conversations for user
       const conversations = await conversationRepository.findByUserId(userId);

@@ -1,9 +1,11 @@
 import { createLogger } from '@flamoral/backend-shared';
+
 import { db } from '../../infrastructure/database/connection';
-import { RestaurantService } from './restaurant.service';
+import { DatePlanSuggestion, DateActivity } from '../../types';
+
 import { EventsService } from './events.service';
 import { GiftsService } from './gifts.service';
-import { DatePlanSuggestion, DateActivity } from '../../types';
+import { RestaurantService } from './restaurant.service';
 
 const logger = createLogger('date-planner-service');
 
@@ -222,7 +224,7 @@ export class DatePlannerService {
         budget * 0.5
       );
 
-      const adventureEvents = events.filter(e =>
+      const adventureEvents = events.filter((e) =>
         ['experiences', 'classes', 'comedy'].includes(e.category)
       );
 
@@ -255,7 +257,7 @@ export class DatePlannerService {
         radiusMiles: 5,
       });
 
-      const casualRestaurants = restaurants.flatMap(r => r.restaurants);
+      const casualRestaurants = restaurants.flatMap((r) => r.restaurants);
       if (casualRestaurants.length > 0) {
         const restaurant = casualRestaurants[0];
         const dinnerCost = this.estimateDinnerCost(restaurant.priceRange);
@@ -323,7 +325,7 @@ export class DatePlannerService {
         radiusMiles: 5,
       });
 
-      const casualSpots = restaurants.flatMap(r => r.restaurants);
+      const casualSpots = restaurants.flatMap((r) => r.restaurants);
       if (casualSpots.length > 0) {
         const restaurant = casualSpots[0];
         const dinnerCost = this.estimateDinnerCost(restaurant.priceRange);
@@ -349,9 +351,9 @@ export class DatePlannerService {
         budget * 0.3
       );
 
-      const casualEvents = events.filter(e =>
-        e.priceRange.min < 30 &&
-        ['food_drink', 'classes', 'experiences'].includes(e.category)
+      const casualEvents = events.filter(
+        (e) =>
+          e.priceRange.min < 30 && ['food_drink', 'classes', 'experiences'].includes(e.category)
       );
 
       if (casualEvents.length > 0) {
@@ -423,7 +425,7 @@ export class DatePlannerService {
         radiusMiles: 15,
       });
 
-      const fineRestaurants = restaurants.flatMap(r => r.restaurants);
+      const fineRestaurants = restaurants.flatMap((r) => r.restaurants);
       if (fineRestaurants.length > 0) {
         const restaurant = fineRestaurants.sort(
           (a, b) => (b.romanticScore || 0) - (a.romanticScore || 0)
@@ -452,9 +454,8 @@ export class DatePlannerService {
         budget * 0.4
       );
 
-      const upscaleEvents = events.filter(e =>
-        ['theater', 'concerts'].includes(e.category) &&
-        e.priceRange.min >= 50
+      const upscaleEvents = events.filter(
+        (e) => ['theater', 'concerts'].includes(e.category) && e.priceRange.min >= 50
       );
 
       if (upscaleEvents.length > 0) {
@@ -477,7 +478,7 @@ export class DatePlannerService {
 
       // Premium gift
       const gifts = await this.giftsService.getRomanticSuggestions(budget * 0.2);
-      const premiumGifts = gifts.filter(g => g.price >= 60);
+      const premiumGifts = gifts.filter((g) => g.price >= 60);
       if (premiumGifts.length > 0) {
         const gift = premiumGifts[0];
         activities.push({
@@ -521,10 +522,7 @@ export class DatePlannerService {
   /**
    * Get saved date plan suggestions for a user
    */
-  async getUserSuggestions(
-    userId: string,
-    matchId?: string
-  ): Promise<DatePlanSuggestion[]> {
+  async getUserSuggestions(userId: string, matchId?: string): Promise<DatePlanSuggestion[]> {
     let query = db('date_plan_suggestions')
       .where('user_id', userId)
       .orderBy('created_at', 'desc')
@@ -535,7 +533,7 @@ export class DatePlannerService {
     }
 
     const rows = await query;
-    return rows.map(r => this.mapSuggestion(r));
+    return rows.map((r) => this.mapSuggestion(r));
   }
 
   /**
@@ -608,9 +606,7 @@ export class DatePlannerService {
         currency: row.budget_currency,
       },
       duration: row.duration,
-      activities: typeof row.activities === 'string'
-        ? JSON.parse(row.activities)
-        : row.activities,
+      activities: typeof row.activities === 'string' ? JSON.parse(row.activities) : row.activities,
       totalEstimatedCost: parseFloat(row.total_estimated_cost),
       romanticScore: row.romantic_score,
       adventureScore: row.adventure_score,

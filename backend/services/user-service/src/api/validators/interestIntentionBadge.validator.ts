@@ -2,17 +2,12 @@ import Joi from 'joi';
 
 // Update user interest badges
 export const updateUserInterestBadgesSchema = Joi.object({
-  badge_ids: Joi.array()
-    .items(Joi.string().uuid())
-    .min(0)
-    .max(20)
-    .required()
-    .messages({
-      'array.base': 'badge_ids must be an array',
-      'array.min': 'You must select at least 0 badges',
-      'array.max': 'You can select a maximum of 20 interest badges',
-      'any.required': 'badge_ids is required',
-    }),
+  badge_ids: Joi.array().items(Joi.string().uuid()).min(0).max(20).required().messages({
+    'array.base': 'badge_ids must be an array',
+    'array.min': 'You must select at least 0 badges',
+    'array.max': 'You can select a maximum of 20 interest badges',
+    'any.required': 'badge_ids is required',
+  }),
 });
 
 // Update user intention badges

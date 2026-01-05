@@ -25,7 +25,7 @@ export class Match {
     user1Id: string;
     user2Id: string;
     status: MatchStatus;
-  mode: UserMode;
+    mode: UserMode;
     compatibilityScore?: number;
     matchedAt: Date;
     lastActivityAt: Date;
@@ -68,7 +68,12 @@ export class Match {
     return this.user1Id === userId ? this.user2Id : this.user1Id;
   }
 
-  static createNew(user1Id: string, user2Id: string, mode: UserMode = UserMode.DATE, score?: number): Partial<Match> {
+  static createNew(
+    user1Id: string,
+    user2Id: string,
+    mode: UserMode = UserMode.DATE,
+    score?: number
+  ): Partial<Match> {
     // Ensure consistent ordering (alphabetically) to prevent duplicates
     const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
 

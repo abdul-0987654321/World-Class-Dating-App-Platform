@@ -4,7 +4,13 @@ export async function up(knex: Knex): Promise<void> {
   // Gems table - stores user gem balances
   await knex.schema.createTable('gems', (table) => {
     table.uuid('id').primary();
-    table.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('user_id')
+      .notNullable()
+      .unique()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
     table.integer('balance').notNullable().defaultTo(0);
     table.integer('total_earned').notNullable().defaultTo(0);
     table.integer('total_spent').notNullable().defaultTo(0);
@@ -20,7 +26,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.integer('amount').notNullable(); // Positive for credits, negative for debits
     table.enum('type', ['earned', 'spent', 'purchased', 'bonus', 'refund']).notNullable();
-    table.enum('category', ['visibility', 'profile', 'communication', 'insights', 'matching', 'gifts']).nullable();
+    table
+      .enum('category', ['visibility', 'profile', 'communication', 'insights', 'matching', 'gifts'])
+      .nullable();
     table.string('item_type', 50).nullable(); // e.g., PROFILE_SPOTLIGHT_24H
     table.string('description', 255).notNullable();
     table.jsonb('metadata').nullable(); // Additional context (achievement ID, recipient ID for gifts, etc.)
@@ -57,7 +65,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary();
     table.uuid('sender_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.uuid('recipient_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('gift_type', ['GIFT_ROSE', 'GIFT_HEART', 'GIFT_DIAMOND', 'GIFT_CROWN']).notNullable();
+    table
+      .enum('gift_type', ['GIFT_ROSE', 'GIFT_HEART', 'GIFT_DIAMOND', 'GIFT_CROWN'])
+      .notNullable();
     table.integer('gem_cost').notNullable();
     table.string('message', 500).nullable();
     table.uuid('transaction_id').nullable().references('id').inTable('gem_transactions');

@@ -1,8 +1,9 @@
-import { Response } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { IcebreakerService } from '../../services/icebreaker.service';
+import { Response } from 'express';
+
 import { GenerateIcebreakerDto } from '../../dtos';
+import { IcebreakerService } from '../../services/icebreaker.service';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('automation-service:icebreaker-controller');
 const icebreakerService = new IcebreakerService();
@@ -18,7 +19,7 @@ export const generateIcebreakers = async (
     const { matchId, matchUserId, category, tone, includeEmoji, maxLength } = req.body;
 
     const dto: GenerateIcebreakerDto = {
-      userId: req.userId!,
+      userId: req.userId,
       matchUserId,
       matchId,
       category,

@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { getDbConnection } from '../../infrastructure/database/connection';
+
+import { AchievementBadgeService } from '../../domain/services/AchievementBadge.service';
+import { BadgeService } from '../../domain/services/Badge.service';
+import { CoinService } from '../../domain/services/coin.service';
 import { DailyRewardService } from '../../domain/services/DailyReward.service';
 import { StreakService } from '../../domain/services/Streak.service';
-import { BadgeService } from '../../domain/services/Badge.service';
-import { AchievementBadgeService } from '../../domain/services/AchievementBadge.service';
-import { CoinService } from '../../domain/services/coin.service';
+import { getDbConnection } from '../../infrastructure/database/connection';
 
 /**
  * Enhanced Gamification Controller
@@ -39,7 +40,11 @@ export class EnhancedGamificationController {
   /**
    * Get complete gamification dashboard
    */
-  getGamificationDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getGamificationDashboard = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -47,21 +52,15 @@ export class EnhancedGamificationController {
         return;
       }
 
-      const [
-        dailyRewardStatus,
-        streaks,
-        achievementStats,
-        recentBadges,
-        coinBalance,
-        level,
-      ] = await Promise.all([
-        this.dailyRewardService.getDailyRewardStatus(userId),
-        this.streakService.getUserStreaks(userId),
-        this.achievementBadgeService.getUserAchievementStats(userId),
-        this.achievementBadgeService.getUnlockedBadges(userId),
-        this.coinService.getBalance(userId),
-        this.getUserLevel(userId),
-      ]);
+      const [dailyRewardStatus, streaks, achievementStats, recentBadges, coinBalance, level] =
+        await Promise.all([
+          this.dailyRewardService.getDailyRewardStatus(userId),
+          this.streakService.getUserStreaks(userId),
+          this.achievementBadgeService.getUserAchievementStats(userId),
+          this.achievementBadgeService.getUnlockedBadges(userId),
+          this.coinService.getBalance(userId),
+          this.getUserLevel(userId),
+        ]);
 
       res.status(200).json({
         success: true,
@@ -73,9 +72,9 @@ export class EnhancedGamificationController {
             todayReward: dailyRewardStatus.todayReward,
           },
           streaks: {
-            login: streaks.find(s => s.streakType === 'login') || null,
-            conversation: streaks.find(s => s.streakType === 'conversation') || null,
-            match: streaks.find(s => s.streakType === 'match') || null,
+            login: streaks.find((s) => s.streakType === 'login') || null,
+            conversation: streaks.find((s) => s.streakType === 'conversation') || null,
+            match: streaks.find((s) => s.streakType === 'match') || null,
           },
           achievements: {
             unlocked: achievementStats.unlockedBadges,
@@ -248,11 +247,11 @@ export class EnhancedGamificationController {
       let userBadges = await this.achievementBadgeService.getUserBadges(userId);
 
       if (category) {
-        userBadges = userBadges.filter(b => b.badge?.category === category);
+        userBadges = userBadges.filter((b) => b.badge?.category === category);
       }
 
       if (!includeHidden) {
-        userBadges = userBadges.filter(b => !b.badge?.isHidden || b.isUnlocked);
+        userBadges = userBadges.filter((b) => !b.badge?.isHidden || b.isUnlocked);
       }
 
       const stats = await this.achievementBadgeService.getUserAchievementStats(userId);
@@ -523,15 +522,17 @@ export class EnhancedGamificationController {
       xpForNextLevel: nextLevel?.xp_required || totalXP,
       xpProgress: nextLevel ? totalXP - currentLevel.xp_required : 0,
       xpNeeded: nextLevel ? nextLevel.xp_required - currentLevel.xp_required : 0,
-      nextLevel: nextLevel ? {
-        level: nextLevel.level,
-        title: nextLevel.title,
-        rewards: {
-          coins: nextLevel.coin_reward,
-          superLikes: nextLevel.super_likes_reward,
-          boosts: nextLevel.boosts_reward,
-        },
-      } : null,
+      nextLevel: nextLevel
+        ? {
+            level: nextLevel.level,
+            title: nextLevel.title,
+            rewards: {
+              coins: nextLevel.coin_reward,
+              superLikes: nextLevel.super_likes_reward,
+              boosts: nextLevel.boosts_reward,
+            },
+          }
+        : null,
     };
   }
 
@@ -591,13 +592,13 @@ export class EnhancedGamificationController {
 
       // Map action to metric for achievements
       const actionMetricMap: Record<string, string> = {
-        'match_made': 'matches',
-        'message_sent': 'messages_sent',
-        'swipe': 'swipes',
-        'super_like_used': 'super_likes_used',
-        'boost_used': 'boosts_used',
-        'photo_uploaded': 'photos_uploaded',
-        'quick_response': 'quick_responses',
+        match_made: 'matches',
+        message_sent: 'messages_sent',
+        swipe: 'swipes',
+        super_like_used: 'super_likes_used',
+        boost_used: 'boosts_used',
+        photo_uploaded: 'photos_uploaded',
+        quick_response: 'quick_responses',
       };
 
       const metric = actionMetricMap[action];
@@ -636,7 +637,7 @@ export class EnhancedGamificationController {
         // Check daily limit
         const todayEarnings = await this.db('user_coin_earnings')
           .where({ user_id: userId, event_id: coinEarningEvent.id })
-          .whereRaw("DATE(earned_at) = CURRENT_DATE")
+          .whereRaw('DATE(earned_at) = CURRENT_DATE')
           .count('* as count')
           .first();
 
@@ -645,7 +646,7 @@ export class EnhancedGamificationController {
         if (!coinEarningEvent.daily_limit || dailyCount < coinEarningEvent.daily_limit) {
           const coinsToAward = Math.floor(
             coinEarningEvent.base_coins *
-            (1 + Math.random() * (coinEarningEvent.multiplier_max - 1))
+              (1 + Math.random() * (coinEarningEvent.multiplier_max - 1))
           );
 
           await this.coinService.awardCoins(

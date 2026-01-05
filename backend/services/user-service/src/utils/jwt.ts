@@ -1,5 +1,6 @@
-import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
+
+import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 
 export interface JwtPayload {

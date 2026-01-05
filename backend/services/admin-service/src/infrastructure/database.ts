@@ -1,4 +1,5 @@
 import knex, { Knex } from 'knex';
+
 import { logger } from '../utils/logger';
 
 const config: Knex.Config = {

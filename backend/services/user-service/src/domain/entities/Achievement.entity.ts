@@ -174,12 +174,7 @@ export interface AchievementFilters {
   isActive?: boolean;
 }
 
-export type RequirementType =
-  | 'count'
-  | 'threshold'
-  | 'streak'
-  | 'completion'
-  | 'milestone';
+export type RequirementType = 'count' | 'threshold' | 'streak' | 'completion' | 'milestone';
 
 // Additional type aliases for backwards compatibility
 export type AchievementDefinition = AchievementEntity;
@@ -222,18 +217,8 @@ export type UpdateUserAchievementInput = {
   current_tier?: number;
   times_completed?: number;
 };
-export type AchievementCategory =
-  | 'engagement'
-  | 'social'
-  | 'profile'
-  | 'premium'
-  | 'special';
-export type AchievementTier =
-  | 'bronze'
-  | 'silver'
-  | 'gold'
-  | 'platinum'
-  | 'diamond';
+export type AchievementCategory = 'engagement' | 'social' | 'profile' | 'premium' | 'special';
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
 export type AchievementProgressUpdate = UpdateAchievementProgressDto;
 export type AchievementUnlockResult = {
   unlocked: boolean;

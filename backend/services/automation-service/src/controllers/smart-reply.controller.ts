@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import { SmartReplyService } from '../services/smart-reply.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import { SmartReplyService } from '../services/smart-reply.service';
 
 const logger = createLogger('automation-service:smart-reply-controller');
 
@@ -55,10 +56,7 @@ export class SmartReplyController {
    * Generate conversation starters
    * POST /api/automation/conversation-starters
    */
-  generateConversationStarters = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
+  generateConversationStarters = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.user?.id || req.user?.userId;
       const { matchUserId, matchId } = req.body;
@@ -109,10 +107,7 @@ export class SmartReplyController {
         return;
       }
 
-      const analysis = await this.smartReplyService.analyzeMessage(
-        userId,
-        message
-      );
+      const analysis = await this.smartReplyService.analyzeMessage(userId, message);
 
       res.json({
         success: true,
@@ -152,11 +147,7 @@ export class SmartReplyController {
         return;
       }
 
-      const rewrites = await this.smartReplyService.rewriteMessage(
-        userId,
-        message,
-        targetTone
-      );
+      const rewrites = await this.smartReplyService.rewriteMessage(userId, message, targetTone);
 
       res.json({
         success: true,

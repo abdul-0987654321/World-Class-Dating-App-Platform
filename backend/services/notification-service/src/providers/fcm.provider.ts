@@ -10,9 +10,11 @@
  *   import { snsPushProvider } from './sns-push.provider';
  */
 
-import * as admin from 'firebase-admin';
-import logger from '../utils/logger';
 import path from 'path';
+
+import * as admin from 'firebase-admin';
+
+import logger from '../utils/logger';
 
 export interface FCMMessage {
   token: string;
@@ -72,7 +74,9 @@ export class FCMProvider {
         const projectId = process.env.FIREBASE_PROJECT_ID;
 
         if (!privateKey || !clientEmail || !projectId) {
-          throw new Error('Missing Firebase configuration. Set FIREBASE_SERVICE_ACCOUNT_PATH or environment variables.');
+          throw new Error(
+            'Missing Firebase configuration. Set FIREBASE_SERVICE_ACCOUNT_PATH or environment variables.'
+          );
         }
 
         this.app = admin.initializeApp({
@@ -193,7 +197,7 @@ export class FCMProvider {
         success: false,
         successCount: 0,
         failureCount: message.tokens.length,
-        results: message.tokens.map(token => ({
+        results: message.tokens.map((token) => ({
           token,
           success: false,
           error: 'FCM Provider not initialized',
@@ -262,7 +266,7 @@ export class FCMProvider {
         success: false,
         successCount: 0,
         failureCount: message.tokens.length,
-        results: message.tokens.map(token => ({
+        results: message.tokens.map((token) => ({
           token,
           success: false,
           error: error.message,
@@ -281,13 +285,16 @@ export class FCMProvider {
 
     try {
       // Try to send a dry-run message to validate the token
-      await admin.messaging().send({
-        token,
-        notification: {
-          title: 'Test',
-          body: 'Test',
+      await admin.messaging().send(
+        {
+          token,
+          notification: {
+            title: 'Test',
+            body: 'Test',
+          },
         },
-      }, true); // dry run
+        true
+      ); // dry run
 
       return true;
     } catch (error: any) {
@@ -302,7 +309,10 @@ export class FCMProvider {
   /**
    * Subscribe tokens to a topic
    */
-  async subscribeToTopic(tokens: string[], topic: string): Promise<{
+  async subscribeToTopic(
+    tokens: string[],
+    topic: string
+  ): Promise<{
     success: boolean;
     successCount: number;
     failureCount: number;
@@ -346,7 +356,10 @@ export class FCMProvider {
   /**
    * Unsubscribe tokens from a topic
    */
-  async unsubscribeFromTopic(tokens: string[], topic: string): Promise<{
+  async unsubscribeFromTopic(
+    tokens: string[],
+    topic: string
+  ): Promise<{
     success: boolean;
     successCount: number;
     failureCount: number;
@@ -390,12 +403,15 @@ export class FCMProvider {
   /**
    * Send notification to a topic
    */
-  async sendToTopic(topic: string, message: {
-    title: string;
-    body: string;
-    imageUrl?: string;
-    data?: Record<string, string>;
-  }): Promise<{
+  async sendToTopic(
+    topic: string,
+    message: {
+      title: string;
+      body: string;
+      imageUrl?: string;
+      data?: Record<string, string>;
+    }
+  ): Promise<{
     success: boolean;
     messageId?: string;
     error?: string;

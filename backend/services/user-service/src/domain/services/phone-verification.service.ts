@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+
 import db from '../../infrastructure/database/connection';
 import twilioService from '../../infrastructure/sms/twilio.service';
 import { createLogger } from '../../utils/logger';
@@ -161,20 +162,16 @@ export class PhoneVerificationService {
       }
 
       // Mark token as used
-      await db('verification_tokens')
-        .where({ id: token.id })
-        .update({
-          is_used: true,
-          updated_at: new Date(),
-        });
+      await db('verification_tokens').where({ id: token.id }).update({
+        is_used: true,
+        updated_at: new Date(),
+      });
 
       // Update user's phone verification status
-      await db('users')
-        .where({ id: userId })
-        .update({
-          is_phone_verified: true,
-          updated_at: new Date(),
-        });
+      await db('users').where({ id: userId }).update({
+        is_phone_verified: true,
+        updated_at: new Date(),
+      });
 
       logger.info(`Phone verified successfully for user ${userId}`);
 
@@ -203,10 +200,7 @@ export class PhoneVerificationService {
    * Check if user's phone is verified
    */
   async isPhoneVerified(userId: string): Promise<boolean> {
-    const user = await db('users')
-      .where({ id: userId })
-      .select('is_phone_verified')
-      .first();
+    const user = await db('users').where({ id: userId }).select('is_phone_verified').first();
 
     return user?.is_phone_verified || false;
   }
@@ -214,7 +208,10 @@ export class PhoneVerificationService {
   /**
    * Update user's phone number (requires re-verification)
    */
-  async updatePhoneNumber(userId: string, newPhoneNumber: string): Promise<{
+  async updatePhoneNumber(
+    userId: string,
+    newPhoneNumber: string
+  ): Promise<{
     success: boolean;
     message?: string;
     error?: string;
@@ -244,13 +241,11 @@ export class PhoneVerificationService {
       }
 
       // Update phone number and set verification to false
-      await db('users')
-        .where({ id: userId })
-        .update({
-          phone_number: formattedPhone,
-          is_phone_verified: false,
-          updated_at: new Date(),
-        });
+      await db('users').where({ id: userId }).update({
+        phone_number: formattedPhone,
+        is_phone_verified: false,
+        updated_at: new Date(),
+      });
 
       logger.info(`Phone number updated for user ${userId}`);
 

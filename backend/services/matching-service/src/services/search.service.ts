@@ -3,8 +3,9 @@
  * Handles complex filtering and search operations
  */
 
-import { db } from '../database';
 import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../database';
 import { logger } from '../utils/logger';
 
 interface SearchFilters {
@@ -108,7 +109,8 @@ export class SearchService {
           db.raw(`
             EXTRACT(YEAR FROM AGE(users.date_of_birth)) as age
           `),
-          db.raw(`
+          db.raw(
+            `
             (
               6371 * acos(
                 cos(radians(?)) * cos(radians(users.latitude)) *
@@ -116,7 +118,9 @@ export class SearchService {
                 sin(radians(?)) * sin(radians(users.latitude))
               )
             ) as distance
-          `, [currentUser.latitude, currentUser.longitude, currentUser.latitude])
+          `,
+            [currentUser.latitude, currentUser.longitude, currentUser.latitude]
+          )
         )
         .whereNot({ 'users.id': userId })
         .where({ 'users.is_active': true });
@@ -129,10 +133,16 @@ export class SearchService {
       // Age filter
       if (filters.minAge || filters.maxAge) {
         // Validate that ages are integers to prevent SQL injection
-        if (filters.maxAge !== undefined && (!Number.isInteger(filters.maxAge) || filters.maxAge < 0)) {
+        if (
+          filters.maxAge !== undefined &&
+          (!Number.isInteger(filters.maxAge) || filters.maxAge < 0)
+        ) {
           throw new Error('Invalid maxAge parameter');
         }
-        if (filters.minAge !== undefined && (!Number.isInteger(filters.minAge) || filters.minAge < 0)) {
+        if (
+          filters.minAge !== undefined &&
+          (!Number.isInteger(filters.minAge) || filters.minAge < 0)
+        ) {
           throw new Error('Invalid minAge parameter');
         }
 
@@ -168,7 +178,7 @@ export class SearchService {
       // Occupation filter
       if (filters.occupation && filters.occupation.length > 0) {
         query = query.where((builder) => {
-          filters.occupation!.forEach((occ) => {
+          filters.occupation.forEach((occ) => {
             builder.orWhereRaw('LOWER(users.occupation) LIKE ?', [`%${occ.toLowerCase()}%`]);
           });
         });
@@ -181,18 +191,14 @@ export class SearchService {
 
       // Interests filter (overlap check)
       if (filters.interests && filters.interests.length > 0) {
-        query = query.whereRaw(
-          'users.interests && ARRAY[?]::varchar[]',
-          [filters.interests]
-        );
+        query = query.whereRaw('users.interests && ARRAY[?]::varchar[]', [filters.interests]);
       }
 
       // Relationship goals filter
       if (filters.relationshipGoals && filters.relationshipGoals.length > 0) {
-        query = query.whereRaw(
-          'users.relationship_goals && ARRAY[?]::varchar[]',
-          [filters.relationshipGoals]
-        );
+        query = query.whereRaw('users.relationship_goals && ARRAY[?]::varchar[]', [
+          filters.relationshipGoals,
+        ]);
       }
 
       // Dealbreakers
@@ -229,9 +235,7 @@ export class SearchService {
         db('user_blocks')
           .select(1)
           .where((builder) => {
-            builder
-              .where({ blocker_id: userId })
-              .orWhere({ blocked_id: userId });
+            builder.where({ blocker_id: userId }).orWhere({ blocked_id: userId });
           })
           .whereRaw('user_blocks.blocker_id = users.id OR user_blocks.blocked_id = users.id')
       );
@@ -247,10 +251,7 @@ export class SearchService {
       }
 
       // Order by distance and limit
-      query = query
-        .orderBy('distance', 'asc')
-        .limit(limit)
-        .offset(offset);
+      query = query.orderBy('distance', 'asc').limit(limit).offset(offset);
 
       // Execute query
       const users = await query;
@@ -410,10 +411,9 @@ export class SearchService {
           builder
             .whereRaw('LOWER(first_name) LIKE ?', [`%${query.toLowerCase()}%`])
             .orWhereRaw('LOWER(last_name) LIKE ?', [`%${query.toLowerCase()}%`])
-            .orWhereRaw(
-              'LOWER(CONCAT(first_name, \' \', last_name)) LIKE ?',
-              [`%${query.toLowerCase()}%`]
-            );
+            .orWhereRaw("LOWER(CONCAT(first_name, ' ', last_name)) LIKE ?", [
+              `%${query.toLowerCase()}%`,
+            ]);
         })
         .limit(20);
 

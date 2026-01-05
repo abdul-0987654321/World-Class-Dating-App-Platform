@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Security Headers Middleware
@@ -16,7 +16,8 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
   constructor(private readonly configService: ConfigService) {
     this.isDevelopment = process.env.NODE_ENV === 'development';
-    this.cspReportUri = this.configService.get<string>('CSP_REPORT_URI') || '/api/v1/security/csp-report';
+    this.cspReportUri =
+      this.configService.get<string>('CSP_REPORT_URI') || '/api/v1/security/csp-report';
     this.apiDomain = this.configService.get<string>('API_DOMAIN') || 'https://api.flamoral.com';
   }
 
@@ -53,10 +54,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // includeSubDomains: Apply to all subdomains
     // preload: Allow inclusion in browser preload lists
     if (!this.isDevelopment) {
-      res.setHeader(
-        'Strict-Transport-Security',
-        'max-age=31536000; includeSubDomains; preload'
-      );
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     }
 
     // X-Permitted-Cross-Domain-Policies: Restricts Adobe Flash and PDF cross-domain requests
@@ -103,7 +101,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
         'ws:',
         this.apiDomain,
         'https://api.flamoral.com',
-        ...(this.isDevelopment ? ['http://localhost:*', 'ws://localhost:*'] : [])
+        ...(this.isDevelopment ? ['http://localhost:*', 'ws://localhost:*'] : []),
       ],
       'media-src': ["'self'", 'blob:', 'data:', 'https:'],
       'object-src': ["'none'"], // Disable plugins
@@ -140,24 +138,24 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
    */
   private buildPermissionsPolicy(): string {
     const policies = {
-      'camera': ['self'], // Allow camera for video calls
-      'microphone': ['self'], // Allow microphone for video/voice calls
-      'geolocation': ['self'], // Allow geolocation for location-based matching
-      'payment': ['self'], // Allow payment APIs for subscriptions
-      'usb': ['()'], // Disable USB
-      'magnetometer': ['()'], // Disable magnetometer
-      'accelerometer': ['()'], // Disable accelerometer
-      'gyroscope': ['()'], // Disable gyroscope
+      camera: ['self'], // Allow camera for video calls
+      microphone: ['self'], // Allow microphone for video/voice calls
+      geolocation: ['self'], // Allow geolocation for location-based matching
+      payment: ['self'], // Allow payment APIs for subscriptions
+      usb: ['()'], // Disable USB
+      magnetometer: ['()'], // Disable magnetometer
+      accelerometer: ['()'], // Disable accelerometer
+      gyroscope: ['()'], // Disable gyroscope
       'ambient-light-sensor': ['()'], // Disable ambient light sensor
-      'autoplay': ['self'], // Allow autoplay for media
-      'fullscreen': ['self'], // Allow fullscreen for video calls
+      autoplay: ['self'], // Allow autoplay for media
+      fullscreen: ['self'], // Allow fullscreen for video calls
       'picture-in-picture': ['self'], // Allow PIP for video calls
       'display-capture': ['()'], // Disable screen capture
       'document-domain': ['()'], // Disable document.domain
       'encrypted-media': ['self'], // Allow encrypted media
       'execution-while-not-rendered': ['()'], // Disable background execution
       'execution-while-out-of-viewport': ['()'], // Disable execution when not visible
-      'midi': ['()'], // Disable MIDI
+      midi: ['()'], // Disable MIDI
       'speaker-selection': ['()'], // Disable speaker selection
       'sync-xhr': ['()'], // Disable synchronous XHR
       'interest-cohort': ['()'], // Disable FLoC/Topics API (privacy)
@@ -188,6 +186,6 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       '/admin',
     ];
 
-    return sensitivePatterns.some(pattern => path.includes(pattern));
+    return sensitivePatterns.some((pattern) => path.includes(pattern));
   }
 }

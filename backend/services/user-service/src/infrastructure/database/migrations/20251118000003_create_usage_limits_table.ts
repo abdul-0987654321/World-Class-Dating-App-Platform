@@ -4,7 +4,9 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('usage_limits', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('resource_type', ['swipes', 'likes', 'super_likes', 'rewinds', 'boosts']).notNullable();
+    table
+      .enum('resource_type', ['swipes', 'likes', 'super_likes', 'rewinds', 'boosts'])
+      .notNullable();
     table.integer('daily_limit').notNullable().defaultTo(0);
     table.integer('current_usage').notNullable().defaultTo(0);
     table.timestamp('reset_at').notNullable();

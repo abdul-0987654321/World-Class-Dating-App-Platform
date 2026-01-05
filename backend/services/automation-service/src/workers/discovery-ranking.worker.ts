@@ -4,16 +4,11 @@
  * Uses matching algorithm factors to refresh candidate scores
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
 import axios from 'axios';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('discovery-ranking-worker');
 
@@ -55,7 +50,10 @@ export interface DiscoveryRankingResult {
 /**
  * Discovery Ranking Worker
  */
-export class DiscoveryRankingWorker extends BaseWorker<DiscoveryRankingJobData, DiscoveryRankingResult> {
+export class DiscoveryRankingWorker extends BaseWorker<
+  DiscoveryRankingJobData,
+  DiscoveryRankingResult
+> {
   private readonly cacheKeyPrefix = 'discovery:rankings:';
   private readonly rankingCacheTTL = 3600; // 1 hour cache TTL
   private readonly maxCandidatesDefault = 100;
@@ -67,7 +65,9 @@ export class DiscoveryRankingWorker extends BaseWorker<DiscoveryRankingJobData, 
   /**
    * Process discovery ranking job
    */
-  protected async processJob(job: Job<DiscoveryRankingJobData>): Promise<JobResult<DiscoveryRankingResult>> {
+  protected async processJob(
+    job: Job<DiscoveryRankingJobData>
+  ): Promise<JobResult<DiscoveryRankingResult>> {
     const { type, userId, userIds, forceRefresh, maxCandidates } = job.data;
     const startTime = Date.now();
 
@@ -287,12 +287,15 @@ export class DiscoveryRankingWorker extends BaseWorker<DiscoveryRankingJobData, 
    */
   private async getUserPreferences(userId: string): Promise<any> {
     try {
-      const response = await axios.get(`${MATCHING_SERVICE_URL}/api/v1/internal/preferences/${userId}`, {
-        headers: {
-          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-        },
-        timeout: 5000,
-      });
+      const response = await axios.get(
+        `${MATCHING_SERVICE_URL}/api/v1/internal/preferences/${userId}`,
+        {
+          headers: {
+            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+          },
+          timeout: 5000,
+        }
+      );
       return response.data;
     } catch (error: any) {
       logger.error(`Failed to get user preferences: ${userId}`, error);
@@ -445,7 +448,10 @@ export class DiscoveryRankingWorker extends BaseWorker<DiscoveryRankingJobData, 
   /**
    * Schedule a ranking refresh for a user
    */
-  async scheduleUserRanking(userId: string, priority: JobPriority = JobPriority.NORMAL): Promise<void> {
+  async scheduleUserRanking(
+    userId: string,
+    priority: JobPriority = JobPriority.NORMAL
+  ): Promise<void> {
     await this.addJob(
       {
         type: 'single_user',
@@ -459,7 +465,10 @@ export class DiscoveryRankingWorker extends BaseWorker<DiscoveryRankingJobData, 
   /**
    * Schedule a batch ranking refresh
    */
-  async scheduleBatchRanking(userIds: string[], priority: JobPriority = JobPriority.LOW): Promise<void> {
+  async scheduleBatchRanking(
+    userIds: string[],
+    priority: JobPriority = JobPriority.LOW
+  ): Promise<void> {
     await this.addJob(
       {
         type: 'batch_users',

@@ -4,9 +4,7 @@
  */
 
 import { Router } from 'express';
-import speedDatingController from '../controllers/speed-dating.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validateBody, validateQuery } from '../middleware/validation.middleware';
+
 import {
   GetEventsQueryDto,
   JoinEventDto,
@@ -15,6 +13,9 @@ import {
   RecordInterestDto,
   GetMatchesQueryDto,
 } from '../../dto/speed-dating.dto';
+import speedDatingController from '../controllers/speed-dating.controller';
+import { authenticate } from '../middleware/auth.middleware';
+import { validateBody, validateQuery } from '../middleware/validation.middleware';
 
 const router = Router();
 
@@ -56,7 +57,10 @@ router.get(
  * GET /api/v1/speed-dating/events/:eventId/stats
  * Get event statistics
  */
-router.get('/events/:eventId/stats', speedDatingController.getEventStats.bind(speedDatingController));
+router.get(
+  '/events/:eventId/stats',
+  speedDatingController.getEventStats.bind(speedDatingController)
+);
 
 /**
  * POST /api/v1/speed-dating/join

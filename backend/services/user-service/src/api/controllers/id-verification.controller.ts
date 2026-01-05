@@ -6,13 +6,14 @@
  */
 
 import { Request, Response } from 'express';
+
 import { idVerificationService } from '../../services/id-verification.service';
-import logger from '../../utils/logger';
 import {
   InitiateIDVerificationRequest,
   IDDocumentType,
   VerificationProvider,
 } from '../../types/id-verification-provider.types';
+import logger from '../../utils/logger';
 
 export class IDVerificationController {
   /**
@@ -29,7 +30,14 @@ export class IDVerificationController {
         });
       }
 
-      const { document_type, country_code, redirect_url, locale, biometric_consent, region_policy_key } = req.body;
+      const {
+        document_type,
+        country_code,
+        redirect_url,
+        locale,
+        biometric_consent,
+        region_policy_key,
+      } = req.body;
 
       // Validate required fields
       if (!document_type) {

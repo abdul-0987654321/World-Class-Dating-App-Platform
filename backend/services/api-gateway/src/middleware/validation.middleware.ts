@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, BadRequestException, Logger } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
+import { validate, ValidationError } from 'class-validator';
+import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class ValidationMiddleware implements NestMiddleware {
@@ -61,8 +61,10 @@ export class ValidationMiddleware implements NestMiddleware {
     if (req.headers['content-type']) {
       const contentType = req.headers['content-type'];
       if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-        if (!contentType.includes('application/json') &&
-            !contentType.includes('multipart/form-data')) {
+        if (
+          !contentType.includes('application/json') &&
+          !contentType.includes('multipart/form-data')
+        ) {
           throw new BadRequestException('Invalid content-type header');
         }
       }
@@ -75,7 +77,7 @@ export class ValidationMiddleware implements NestMiddleware {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item) => this.sanitizeObject(item));
     }
 
     const sanitized: any = {};
@@ -105,7 +107,7 @@ export function ValidateBody(dtoClass: any) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const request = args.find(arg => arg && arg.body !== undefined);
+      const request = args.find((arg) => arg && arg.body !== undefined);
 
       if (request && request.body) {
         const dtoInstance = plainToClass(dtoClass, request.body);

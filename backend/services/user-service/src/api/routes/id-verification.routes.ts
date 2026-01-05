@@ -6,6 +6,7 @@
  */
 
 import { Router, Request, Response, NextFunction, json } from 'express';
+
 import { idVerificationController } from '../controllers/id-verification.controller';
 import { authLimiter } from '../middleware/rate-limit.middleware';
 
@@ -139,7 +140,11 @@ router.post(
  */
 router.post(
   '/webhook/:provider',
-  json({ verify: (req, res, buf) => { (req as any).rawBody = buf.toString(); } }),
+  json({
+    verify: (req, res, buf) => {
+      (req as any).rawBody = buf.toString();
+    },
+  }),
   idVerificationController.handleWebhook.bind(idVerificationController)
 );
 
@@ -200,10 +205,7 @@ router.post(
  *       404:
  *         description: Verification not found
  */
-router.get(
-  '/status',
-  idVerificationController.getStatus.bind(idVerificationController)
-);
+router.get('/status', idVerificationController.getStatus.bind(idVerificationController));
 
 /**
  * @swagger
@@ -233,10 +235,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/history',
-  idVerificationController.getHistory.bind(idVerificationController)
-);
+router.get('/history', idVerificationController.getHistory.bind(idVerificationController));
 
 /**
  * @swagger
@@ -268,9 +267,6 @@ router.get(
  *                       items:
  *                         type: string
  */
-router.get(
-  '/providers',
-  idVerificationController.getProviders.bind(idVerificationController)
-);
+router.get('/providers', idVerificationController.getProviders.bind(idVerificationController));
 
 export default router;

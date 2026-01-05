@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authenticateUser } from '../middleware/auth.middleware';
+
 import * as scheduledMessageController from '../controllers/scheduled-message.controller';
+import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
 

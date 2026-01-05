@@ -37,10 +37,7 @@ export class MessageRepository {
     return messages;
   }
 
-  async findRecentByConversationId(
-    conversationId: string,
-    limit = 50
-  ): Promise<MessageEntity[]> {
+  async findRecentByConversationId(conversationId: string, limit = 50): Promise<MessageEntity[]> {
     const messages = await db(this.table)
       .where({ conversation_id: conversationId })
       .orderBy('created_at', 'desc')
@@ -50,19 +47,14 @@ export class MessageRepository {
   }
 
   async markAsRead(messageId: string): Promise<void> {
-    await db(this.table)
-      .where({ id: messageId })
-      .update({
-        is_read: true,
-        read_at: db.fn.now(),
-        status: 'read',
-      });
+    await db(this.table).where({ id: messageId }).update({
+      is_read: true,
+      read_at: db.fn.now(),
+      status: 'read',
+    });
   }
 
-  async markConversationAsRead(
-    conversationId: string,
-    receiverId: string
-  ): Promise<void> {
+  async markConversationAsRead(conversationId: string, receiverId: string): Promise<void> {
     await db(this.table)
       .where({
         conversation_id: conversationId,

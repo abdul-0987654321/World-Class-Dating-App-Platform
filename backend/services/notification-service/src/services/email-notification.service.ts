@@ -10,6 +10,7 @@
  */
 
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
+
 import { db } from '../config/database';
 import logger from '../utils/logger';
 
@@ -143,7 +144,12 @@ export class EmailNotificationService {
   /**
    * Send match notification email
    */
-  async sendMatchEmail(userId: string, email: string, matchName: string, matchPhotoUrl: string): Promise<void> {
+  async sendMatchEmail(
+    userId: string,
+    email: string,
+    matchName: string,
+    matchPhotoUrl: string
+  ): Promise<void> {
     // Check user preferences first
     const prefs = await this.getUserPreferences(userId);
     if (!prefs?.email_new_match) {
@@ -231,9 +237,7 @@ export class EmailNotificationService {
       to_email: email,
       subject,
       text_body: body,
-      html_body: template.html_body
-        ? this.replaceVariables(template.html_body, variables)
-        : body,
+      html_body: template.html_body ? this.replaceVariables(template.html_body, variables) : body,
       status: 'queued',
     });
   }
@@ -274,11 +278,13 @@ export class EmailNotificationService {
         const retryCount = email.retry_count + 1;
         const shouldRetry = retryCount < 3;
 
-        await db('email_queue').where({ id: email.id }).update({
-          status: shouldRetry ? 'queued' : 'failed',
-          error_message: result.error,
-          retry_count: retryCount,
-        });
+        await db('email_queue')
+          .where({ id: email.id })
+          .update({
+            status: shouldRetry ? 'queued' : 'failed',
+            error_message: result.error,
+            retry_count: retryCount,
+          });
 
         if (!shouldRetry) {
           await db('notifications')

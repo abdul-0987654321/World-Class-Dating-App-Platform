@@ -4,13 +4,14 @@
  */
 
 import { Request, Response } from 'express';
+
 import { adRevenueService } from '../../domain/services/ad-revenue.service';
-import logger from '../../utils/logger';
 import {
   RecordImpressionRequest,
   RecordClickRequest,
   ClaimRewardRequest,
 } from '../../domain/types/ad-revenue.types';
+import logger from '../../utils/logger';
 
 /**
  * Get ad configuration for client
@@ -30,7 +31,7 @@ export async function getAdConfig(req: Request, res: Response): Promise<void> {
         enabled: shouldShow,
         testMode: process.env.NODE_ENV !== 'production',
         frequencyCap,
-        rewards: rewards.filter(r => r.enabled),
+        rewards: rewards.filter((r) => r.enabled),
         premiumTiersAdFree: ['BASIC', 'PLUS', 'PREMIUM', 'PREMIUM_PLUS', 'ELITE'],
       },
     });
@@ -311,9 +312,7 @@ export async function getPerformanceMetrics(req: Request, res: Response): Promis
     const startDate = req.query.startDate
       ? new Date(req.query.startDate as string)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date();
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : new Date();
     const period = (req.query.period as 'hourly' | 'daily' | 'weekly' | 'monthly') || 'daily';
 
     const metrics = await adRevenueService.getPerformanceMetrics(startDate, endDate, period);
@@ -339,9 +338,7 @@ export async function getRewardAnalytics(req: Request, res: Response): Promise<v
     const startDate = req.query.startDate
       ? new Date(req.query.startDate as string)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date();
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : new Date();
     const period = (req.query.period as 'daily' | 'weekly' | 'monthly') || 'daily';
 
     const analytics = await adRevenueService.getRewardAnalytics(startDate, endDate, period);

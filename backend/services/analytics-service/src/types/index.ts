@@ -175,7 +175,23 @@ export interface ConversionFunnel {
 export interface UpdateFunnelStepRequest {
   userId?: string;
   sessionId: string;
-  step: keyof Omit<ConversionFunnel, 'id' | 'userId' | 'sessionId' | 'timeToRegister' | 'timeToVerify' | 'timeToProfile' | 'timeToMatch' | 'timeToSubscribe' | 'droppedAtStep' | 'completed' | 'utmSource' | 'utmCampaign' | 'createdAt' | 'updatedAt'>;
+  step: keyof Omit<
+    ConversionFunnel,
+    | 'id'
+    | 'userId'
+    | 'sessionId'
+    | 'timeToRegister'
+    | 'timeToVerify'
+    | 'timeToProfile'
+    | 'timeToMatch'
+    | 'timeToSubscribe'
+    | 'droppedAtStep'
+    | 'completed'
+    | 'utmSource'
+    | 'utmCampaign'
+    | 'createdAt'
+    | 'updatedAt'
+  >;
   timestamp?: Date;
 }
 
@@ -421,42 +437,42 @@ export interface AttributionSummary {
 
 export enum UserSegmentType {
   // Engagement Segments
-  POWER_USER = 'POWER_USER',           // Daily active, high engagement
-  ACTIVE_USER = 'ACTIVE_USER',          // Weekly active
-  CASUAL_USER = 'CASUAL_USER',          // Monthly active
-  DORMANT_USER = 'DORMANT_USER',        // 30+ days inactive
-  CHURNED_USER = 'CHURNED_USER',        // 90+ days inactive
+  POWER_USER = 'POWER_USER', // Daily active, high engagement
+  ACTIVE_USER = 'ACTIVE_USER', // Weekly active
+  CASUAL_USER = 'CASUAL_USER', // Monthly active
+  DORMANT_USER = 'DORMANT_USER', // 30+ days inactive
+  CHURNED_USER = 'CHURNED_USER', // 90+ days inactive
 
   // Subscription Segments
   FREE_USER = 'FREE_USER',
   TRIAL_USER = 'TRIAL_USER',
   PAID_USER = 'PAID_USER',
-  PREMIUM_USER = 'PREMIUM_USER',        // High-tier subscription
+  PREMIUM_USER = 'PREMIUM_USER', // High-tier subscription
   LAPSED_SUBSCRIBER = 'LAPSED_SUBSCRIBER',
 
   // Behavior Segments
-  SWIPER = 'SWIPER',                    // High swipe activity
-  MATCHER = 'MATCHER',                   // High match rate
+  SWIPER = 'SWIPER', // High swipe activity
+  MATCHER = 'MATCHER', // High match rate
   CONVERSATIONALIST = 'CONVERSATIONALIST', // High message engagement
-  PROFILE_BUILDER = 'PROFILE_BUILDER',   // Complete profile, regular updates
-  GHOST = 'GHOST',                       // Matches but doesn't message
+  PROFILE_BUILDER = 'PROFILE_BUILDER', // Complete profile, regular updates
+  GHOST = 'GHOST', // Matches but doesn't message
 
   // Lifecycle Segments
-  NEW_USER = 'NEW_USER',                 // < 7 days
-  ONBOARDING = 'ONBOARDING',             // Incomplete profile
-  ESTABLISHED = 'ESTABLISHED',           // 30+ days, complete profile
-  VETERAN = 'VETERAN',                   // 180+ days active
+  NEW_USER = 'NEW_USER', // < 7 days
+  ONBOARDING = 'ONBOARDING', // Incomplete profile
+  ESTABLISHED = 'ESTABLISHED', // 30+ days, complete profile
+  VETERAN = 'VETERAN', // 180+ days active
 
   // Value Segments
-  HIGH_LTV = 'HIGH_LTV',                 // High lifetime value
+  HIGH_LTV = 'HIGH_LTV', // High lifetime value
   MEDIUM_LTV = 'MEDIUM_LTV',
   LOW_LTV = 'LOW_LTV',
-  AT_RISK = 'AT_RISK',                   // Declining engagement
+  AT_RISK = 'AT_RISK', // Declining engagement
 
   // Intent Segments
-  SERIOUS_DATER = 'SERIOUS_DATER',       // Looking for relationship
-  CASUAL_BROWSER = 'CASUAL_BROWSER',     // Low intent signals
-  READY_TO_MEET = 'READY_TO_MEET',       // High meeting readiness
+  SERIOUS_DATER = 'SERIOUS_DATER', // Looking for relationship
+  CASUAL_BROWSER = 'CASUAL_BROWSER', // Low intent signals
+  READY_TO_MEET = 'READY_TO_MEET', // High meeting readiness
 }
 
 export interface UserSegment {
@@ -466,7 +482,7 @@ export interface UserSegment {
   primarySegment: UserSegmentType;
 
   // Engagement Metrics
-  engagementScore: number;          // 0-100
+  engagementScore: number; // 0-100
   activityLevel: 'high' | 'medium' | 'low' | 'none';
   lastActiveAt?: Date;
   daysActive: number;
@@ -475,26 +491,26 @@ export interface UserSegment {
   // Behavior Metrics
   totalSwipes: number;
   totalMatches: number;
-  matchRate: number;                // matches / swipes
+  matchRate: number; // matches / swipes
   totalMessages: number;
   avgMessagesPerMatch: number;
-  responseRate: number;             // 0-1
+  responseRate: number; // 0-1
 
   // Subscription Metrics
   subscriptionTier?: string;
   subscriptionStartDate?: Date;
   totalSpend: number;
-  ltv: number;                      // Lifetime value
-  ltvPredicted: number;             // Predicted LTV
+  ltv: number; // Lifetime value
+  ltvPredicted: number; // Predicted LTV
 
   // Profile Metrics
-  profileCompletion: number;        // 0-100
+  profileCompletion: number; // 0-100
   photoCount: number;
   hasVerification: boolean;
 
   // Risk Indicators
-  churnRisk: number;                // 0-1
-  upsellPotential: number;          // 0-1
+  churnRisk: number; // 0-1
+  upsellPotential: number; // 0-1
 
   // Timestamps
   segmentedAt: Date;
@@ -504,21 +520,21 @@ export interface UserSegment {
 
 export interface SegmentationCriteria {
   // Engagement thresholds
-  powerUserDaysActive: number;      // Days active in last 30
+  powerUserDaysActive: number; // Days active in last 30
   activeUserDaysActive: number;
   dormantDaysInactive: number;
   churnedDaysInactive: number;
 
   // Behavior thresholds
-  swiperMinSwipes: number;          // Min swipes/week
-  matcherMinMatchRate: number;      // Min match rate
+  swiperMinSwipes: number; // Min swipes/week
+  matcherMinMatchRate: number; // Min match rate
   conversationalistMinMessages: number;
   ghostMaxResponseRate: number;
 
   // Value thresholds
   highLtvThreshold: number;
   mediumLtvThreshold: number;
-  atRiskEngagementDrop: number;     // % drop threshold
+  atRiskEngagementDrop: number; // % drop threshold
 }
 
 export interface SegmentAnalytics {
@@ -528,7 +544,7 @@ export interface SegmentAnalytics {
   avgEngagementScore: number;
   avgLtv: number;
   avgMatchRate: number;
-  conversionRate: number;           // To paid
+  conversionRate: number; // To paid
   churnRate: number;
 }
 
@@ -548,9 +564,9 @@ export interface SegmentTransition {
  * Risk tier levels for churn prediction
  */
 export enum ChurnRiskTier {
-  LOW = 'LOW',           // 0-25% churn probability
-  MEDIUM = 'MEDIUM',     // 25-50% churn probability
-  HIGH = 'HIGH',         // 50-75% churn probability
+  LOW = 'LOW', // 0-25% churn probability
+  MEDIUM = 'MEDIUM', // 25-50% churn probability
+  HIGH = 'HIGH', // 50-75% churn probability
   CRITICAL = 'CRITICAL', // 75-100% churn probability
 }
 
@@ -598,16 +614,16 @@ export interface ChurnIndicator {
   type: ChurnIndicatorType;
   name: string;
   description: string;
-  score: number;           // 0-1, higher = worse (more likely to churn)
-  weight: number;          // Model weight for this indicator
-  weightedScore: number;   // score * weight
+  score: number; // 0-1, higher = worse (more likely to churn)
+  weight: number; // Model weight for this indicator
+  weightedScore: number; // score * weight
   trend: 'improving' | 'stable' | 'declining';
   severity: 'low' | 'medium' | 'high' | 'critical';
   dataPoints: {
     current: number;
     previous: number;
     average: number;
-    percentile: number;   // Where user stands vs all users
+    percentile: number; // Where user stands vs all users
   };
   lastUpdated: Date;
 }
@@ -646,13 +662,13 @@ export interface ChurnModelWeights {
  */
 export interface ChurnRiskResult {
   userId: string;
-  riskScore: number;       // 0-1 probability of churn
+  riskScore: number; // 0-1 probability of churn
   riskTier: ChurnRiskTier;
-  confidence: number;      // 0-1 confidence in prediction
+  confidence: number; // 0-1 confidence in prediction
 
   // Breakdown
   indicators: ChurnIndicator[];
-  topRiskFactors: ChurnIndicator[];  // Top 3-5 contributing factors
+  topRiskFactors: ChurnIndicator[]; // Top 3-5 contributing factors
   positiveSignals: ChurnIndicator[]; // Factors reducing churn risk
 
   // Historical
@@ -808,7 +824,7 @@ export interface UserBehaviorFeatures {
   daysSinceLastLogin: number;
   loginsLast7Days: number;
   loginsLast30Days: number;
-  loginFrequencyTrend: number;  // -1 to 1 (declining to improving)
+  loginFrequencyTrend: number; // -1 to 1 (declining to improving)
   avgDaysBetweenLogins: number;
 
   // Session features
@@ -846,7 +862,7 @@ export interface UserBehaviorFeatures {
 
   // Subscription features
   subscriptionTier: string;
-  subscriptionAge: number;       // days
+  subscriptionAge: number; // days
   daysUntilRenewal: number;
   paymentFailuresLast90Days: number;
   hasActiveSubscription: boolean;
@@ -864,8 +880,8 @@ export interface UserBehaviorFeatures {
   hasReportedIssue: boolean;
 
   // Derived features
-  engagementScore: number;       // 0-100
-  valueScore: number;            // 0-100
+  engagementScore: number; // 0-100
+  valueScore: number; // 0-100
   satisfactionIndicator: number; // 0-100
 }
 
@@ -875,7 +891,7 @@ export interface UserBehaviorFeatures {
 export interface ChurnTrainingDataPoint {
   userId: string;
   features: UserBehaviorFeatures;
-  label: 0 | 1;          // 0 = retained, 1 = churned
+  label: 0 | 1; // 0 = retained, 1 = churned
   churnedWithinDays: number;
   extractedAt: Date;
 }

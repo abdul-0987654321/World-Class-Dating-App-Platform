@@ -19,13 +19,10 @@ export const purchaseSubscriptionSchema = Joi.object({
     'string.guid': 'Invalid user ID format',
     'any.required': 'User ID is required',
   }),
-  tier: Joi.string()
-    .valid('basic', 'mid', 'ultra')
-    .required()
-    .messages({
-      'any.only': 'Tier must be one of: basic, mid, ultra',
-      'any.required': 'Tier is required',
-    }),
+  tier: Joi.string().valid('basic', 'mid', 'ultra').required().messages({
+    'any.only': 'Tier must be one of: basic, mid, ultra',
+    'any.required': 'Tier is required',
+  }),
   priceId: Joi.string().required().messages({
     'any.required': 'Price ID is required',
   }),

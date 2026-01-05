@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { promisify } from 'util';
+
 import { createLogger } from '../../utils/logger';
 
 const randomBytes = promisify(crypto.randomBytes);
@@ -136,13 +137,7 @@ export class DomainEncryptionService {
       const concatenated = Buffer.concat(dhOutputs);
       const salt = await randomBytes(this.SALT_LENGTH);
 
-      return pbkdf2(
-        concatenated,
-        salt,
-        this.ITERATIONS,
-        this.KEY_LENGTH,
-        'sha256'
-      );
+      return pbkdf2(concatenated, salt, this.ITERATIONS, this.KEY_LENGTH, 'sha256');
     } catch (error: any) {
       logger.error('Failed to derive root key:', error);
       throw new Error('Failed to derive root key');
@@ -359,10 +354,7 @@ export class DomainEncryptionService {
   /**
    * Validate encryption metadata
    */
-  validateEncryptionMetadata(metadata: {
-    iv: string;
-    authTag: string;
-  }): boolean {
+  validateEncryptionMetadata(metadata: { iv: string; authTag: string }): boolean {
     try {
       // Validate IV length
       const iv = Buffer.from(metadata.iv, 'base64');

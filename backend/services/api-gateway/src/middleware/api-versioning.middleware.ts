@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import logger from '../utils/logger';
 
 /**
@@ -234,10 +235,7 @@ export const requireMinimumVersion = (minVersion: ApiVersion) => {
 /**
  * Get version compatibility info
  */
-export const getVersionCompatibility = (
-  req: Request,
-  res: Response
-): void => {
+export const getVersionCompatibility = (req: Request, res: Response): void => {
   const versions = Array.from(versionRegistry.entries()).map(([version, metadata]) => ({
     version,
     status: metadata.status,

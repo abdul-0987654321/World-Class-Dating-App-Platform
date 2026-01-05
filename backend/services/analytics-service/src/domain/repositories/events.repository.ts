@@ -391,7 +391,7 @@ export class EventsRepository {
     `;
 
     const result = await dbClient.query(query, [startDate, endDate]);
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       period: row.period.toISOString(),
       count: parseInt(row.count, 10),
       direction: row.direction,

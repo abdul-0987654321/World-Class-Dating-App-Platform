@@ -169,12 +169,7 @@ export const DDOS_PROTECTION = {
   fingerprint: {
     enabled: true,
     // Factors to consider for fingerprinting
-    factors: [
-      'user-agent',
-      'accept-language',
-      'accept-encoding',
-      'connection',
-    ],
+    factors: ['user-agent', 'accept-language', 'accept-encoding', 'connection'],
   },
 
   // Whitelist (IPs that bypass DDoS protection)
@@ -232,7 +227,7 @@ export function parseTimeWindow(window: string): number {
 export function getRateLimitRule(
   method: string,
   path: string,
-  tier: SubscriptionTier = SubscriptionTier.FREE,
+  tier: SubscriptionTier = SubscriptionTier.FREE
 ): RateLimitRule {
   // Normalize path (remove trailing slash, remove query params)
   const normalizedPath = path.split('?')[0].replace(/\/$/, '');
@@ -295,8 +290,8 @@ export function isWhitelisted(ip: string): boolean {
 
   // Check private IP ranges
   if (
-    cleanIp.startsWith('10.') ||           // 10.0.0.0/8
-    cleanIp.startsWith('172.16.') ||       // 172.16.0.0/12
+    cleanIp.startsWith('10.') || // 10.0.0.0/8
+    cleanIp.startsWith('172.16.') || // 172.16.0.0/12
     cleanIp.startsWith('172.17.') ||
     cleanIp.startsWith('172.18.') ||
     cleanIp.startsWith('172.19.') ||
@@ -312,8 +307,8 @@ export function isWhitelisted(ip: string): boolean {
     cleanIp.startsWith('172.29.') ||
     cleanIp.startsWith('172.30.') ||
     cleanIp.startsWith('172.31.') ||
-    cleanIp.startsWith('192.168.') ||      // 192.168.0.0/16
-    cleanIp === '127.0.0.1' ||             // localhost
+    cleanIp.startsWith('192.168.') || // 192.168.0.0/16
+    cleanIp === '127.0.0.1' || // localhost
     cleanIp === 'localhost'
   ) {
     return true;

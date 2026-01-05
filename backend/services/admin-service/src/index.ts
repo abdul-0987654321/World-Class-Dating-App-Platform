@@ -1,13 +1,14 @@
 import 'reflect-metadata';
-import express from 'express';
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { logger } from './utils/logger';
+import express from 'express';
+import helmet from 'helmet';
+
 import { testConnection } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
 import adminRoutes from './routes';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import { logger } from './utils/logger';
 
 dotenv.config();
 
@@ -39,10 +40,12 @@ const PORT = process.env.PORT || 3010;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -79,7 +82,7 @@ app.get('/health', async (req, res) => {
     logger.error('Redis health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'admin-service',

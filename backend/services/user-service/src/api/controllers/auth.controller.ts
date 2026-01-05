@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+
 import { AuthService } from '../../domain/services/auth.service';
-import { VerificationService } from '../../domain/services/verification.service';
 import { SocialAuthService } from '../../domain/services/social-auth.service';
+import { VerificationService } from '../../domain/services/verification.service';
 import logger from '../../utils/logger';
 
 export class AuthController {

@@ -1,8 +1,9 @@
-import { Response } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { ScheduledMessageService } from '../../services/scheduled-message.service';
+import { Response } from 'express';
+
 import { CreateScheduledMessageDto, UpdateScheduledMessageDto } from '../../dtos';
+import { ScheduledMessageService } from '../../services/scheduled-message.service';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('automation-service:scheduled-message-controller');
 const scheduledMessageService = new ScheduledMessageService();
@@ -17,7 +18,7 @@ export const createScheduledMessage = async (
   try {
     const dto: CreateScheduledMessageDto = {
       ...req.body,
-      userId: req.userId!,
+      userId: req.userId,
     };
 
     const result = await scheduledMessageService.createScheduledMessage(dto);
@@ -96,7 +97,7 @@ export const createMatchWarmupSequence = async (
   try {
     const dto = {
       ...req.body,
-      userId: req.userId!,
+      userId: req.userId,
     };
 
     const result = await scheduledMessageService.createMatchWarmupSequence(dto);

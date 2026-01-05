@@ -3,8 +3,19 @@
  * Represents concierge service requests for Elite tier members
  */
 
-export type ConciergeRequestType = 'date-planning' | 'reservation' | 'advice' | 'gift-recommendation' | 'travel' | 'other';
-export type ConciergeRequestStatus = 'pending' | 'in_progress' | 'awaiting_info' | 'completed' | 'cancelled';
+export type ConciergeRequestType =
+  | 'date-planning'
+  | 'reservation'
+  | 'advice'
+  | 'gift-recommendation'
+  | 'travel'
+  | 'other';
+export type ConciergeRequestStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'awaiting_info'
+  | 'completed'
+  | 'cancelled';
 export type ConciergeRequestPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 export interface ConciergeRequest {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { ReportController } from '../controllers/report.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -69,7 +70,12 @@ const reportController = new ReportController();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', authenticate, validate(createReportSchema), reportController.createReport.bind(reportController));
+router.post(
+  '/',
+  authenticate,
+  validate(createReportSchema),
+  reportController.createReport.bind(reportController)
+);
 
 /**
  * @swagger
@@ -95,7 +101,11 @@ router.post('/', authenticate, validate(createReportSchema), reportController.cr
  *                   items:
  *                     $ref: '#/components/schemas/ReportCategory'
  */
-router.get('/categories', authenticate, reportController.getReportCategories.bind(reportController));
+router.get(
+  '/categories',
+  authenticate,
+  reportController.getReportCategories.bind(reportController)
+);
 
 /**
  * @swagger
@@ -143,7 +153,12 @@ router.get('/categories', authenticate, reportController.getReportCategories.bin
  *                   items:
  *                     $ref: '#/components/schemas/Report'
  */
-router.get('/my-reports', authenticate, validate(reportQuerySchema, 'query'), reportController.getMyReports.bind(reportController));
+router.get(
+  '/my-reports',
+  authenticate,
+  validate(reportQuerySchema, 'query'),
+  reportController.getMyReports.bind(reportController)
+);
 
 /**
  * @swagger
@@ -206,7 +221,12 @@ router.get('/my-reports', authenticate, validate(reportQuerySchema, 'query'), re
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:reportId/resolve', authenticate, validate(resolveReportSchema), reportController.resolveReport.bind(reportController));
+router.put(
+  '/:reportId/resolve',
+  authenticate,
+  validate(resolveReportSchema),
+  reportController.resolveReport.bind(reportController)
+);
 
 /**
  * @swagger
@@ -265,7 +285,12 @@ router.put('/:reportId/resolve', authenticate, validate(resolveReportSchema), re
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/moderation-queue', authenticate, validate(moderationQueueQuerySchema, 'query'), reportController.getModerationQueue.bind(reportController));
+router.get(
+  '/moderation-queue',
+  authenticate,
+  validate(moderationQueueQuerySchema, 'query'),
+  reportController.getModerationQueue.bind(reportController)
+);
 
 /**
  * @swagger

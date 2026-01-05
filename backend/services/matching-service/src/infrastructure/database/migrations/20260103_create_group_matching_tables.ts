@@ -65,7 +65,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('group_swipes', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('group_id').notNullable().references('id').inTable('groups').onDelete('CASCADE');
-    table.uuid('target_group_id').notNullable().references('id').inTable('groups').onDelete('CASCADE');
+    table
+      .uuid('target_group_id')
+      .notNullable()
+      .references('id')
+      .inTable('groups')
+      .onDelete('CASCADE');
     table.enum('action', ['like', 'pass', 'super_like']).notNullable();
     table.uuid('swiped_by_user_id').notNullable();
     table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
@@ -171,7 +176,8 @@ export async function up(knex: Knex): Promise<void> {
     {
       name: 'Escape Room Adventure',
       category: 'entertainment',
-      description: 'Work together to solve puzzles and escape within the time limit. Great for building teamwork!',
+      description:
+        'Work together to solve puzzles and escape within the time limit. Great for building teamwork!',
       ideal_group_size_min: 4,
       ideal_group_size_max: 8,
       estimated_duration: '1-2 hours',
@@ -292,7 +298,9 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw('DROP TRIGGER IF EXISTS update_group_activity_suggestions_timestamp ON group_activity_suggestions');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS update_group_activity_suggestions_timestamp ON group_activity_suggestions'
+  );
   await knex.raw('DROP TRIGGER IF EXISTS update_group_matches_activity ON group_matches');
   await knex.raw('DROP TRIGGER IF EXISTS update_groups_timestamp ON groups');
   await knex.raw('DROP FUNCTION IF EXISTS update_groups_updated_at');

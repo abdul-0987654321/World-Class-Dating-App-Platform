@@ -4,8 +4,9 @@
  * for targeted marketing, personalization, and analytics
  */
 
-import { dbClient } from '../infrastructure/database/db-client';
 import { createLogger } from '@flamoral/backend-shared';
+
+import { dbClient } from '../infrastructure/database/db-client';
 import {
   UserSegmentType,
   UserSegment,
@@ -19,21 +20,21 @@ const logger = createLogger('segmentation-service');
 // Default segmentation criteria
 const DEFAULT_CRITERIA: SegmentationCriteria = {
   // Engagement thresholds
-  powerUserDaysActive: 25,      // 25+ days active in last 30
-  activeUserDaysActive: 10,     // 10+ days active in last 30
-  dormantDaysInactive: 30,      // 30+ days since last activity
-  churnedDaysInactive: 90,      // 90+ days = churned
+  powerUserDaysActive: 25, // 25+ days active in last 30
+  activeUserDaysActive: 10, // 10+ days active in last 30
+  dormantDaysInactive: 30, // 30+ days since last activity
+  churnedDaysInactive: 90, // 90+ days = churned
 
   // Behavior thresholds
-  swiperMinSwipes: 100,         // 100+ swipes/week
-  matcherMinMatchRate: 0.15,    // 15%+ match rate
+  swiperMinSwipes: 100, // 100+ swipes/week
+  matcherMinMatchRate: 0.15, // 15%+ match rate
   conversationalistMinMessages: 50, // 50+ messages/week
-  ghostMaxResponseRate: 0.1,    // <10% response rate = ghost
+  ghostMaxResponseRate: 0.1, // <10% response rate = ghost
 
   // Value thresholds
-  highLtvThreshold: 200,        // $200+ LTV
-  mediumLtvThreshold: 50,       // $50-200 LTV
-  atRiskEngagementDrop: 0.5,    // 50% engagement drop
+  highLtvThreshold: 200, // $200+ LTV
+  mediumLtvThreshold: 50, // $50-200 LTV
+  atRiskEngagementDrop: 0.5, // 50% engagement drop
 };
 
 export class SegmentationService {
@@ -103,7 +104,8 @@ export class SegmentationService {
       totalMatches: metrics.totalMatches,
       matchRate: metrics.totalSwipes > 0 ? metrics.totalMatches / metrics.totalSwipes : 0,
       totalMessages: metrics.totalMessages,
-      avgMessagesPerMatch: metrics.totalMatches > 0 ? metrics.totalMessages / metrics.totalMatches : 0,
+      avgMessagesPerMatch:
+        metrics.totalMatches > 0 ? metrics.totalMessages / metrics.totalMatches : 0,
       responseRate: metrics.responseRate,
       subscriptionTier: metrics.subscriptionTier,
       subscriptionStartDate: metrics.subscriptionStartDate,
@@ -139,10 +141,12 @@ export class SegmentationService {
     for (let i = 0; i < userIds.length; i += batchSize) {
       const batch = userIds.slice(i, i + batchSize);
       const batchResults = await Promise.all(
-        batch.map(userId => this.segmentUser(userId).catch(err => {
-          logger.error(`Failed to segment user ${userId}:`, err);
-          return null;
-        }))
+        batch.map((userId) =>
+          this.segmentUser(userId).catch((err) => {
+            logger.error(`Failed to segment user ${userId}:`, err);
+            return null;
+          })
+        )
       );
       results.push(...batchResults.filter((r): r is UserSegment => r !== null));
     }
@@ -170,7 +174,10 @@ export class SegmentationService {
 
     try {
       const result = await dbClient.query(query);
-      const totalUsers = result.rows.reduce((sum: number, r: any) => sum + parseInt(r.user_count), 0);
+      const totalUsers = result.rows.reduce(
+        (sum: number, r: any) => sum + parseInt(r.user_count),
+        0
+      );
 
       return result.rows.map((row: any) => ({
         segment: row.segment as UserSegmentType,
@@ -216,10 +223,7 @@ export class SegmentationService {
   /**
    * Get recent segment transitions
    */
-  async getSegmentTransitions(
-    days: number = 7,
-    limit: number = 100
-  ): Promise<SegmentTransition[]> {
+  async getSegmentTransitions(days: number = 7, limit: number = 100): Promise<SegmentTransition[]> {
     const query = `
       SELECT user_id, from_segment, to_segment, transitioned_at, trigger
       FROM segment_transitions
@@ -308,13 +312,17 @@ export class SegmentationService {
         createdAt,
         lastActiveAt,
         daysSinceCreated: Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)),
-        daysSinceLastActive: Math.floor((now.getTime() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24)),
+        daysSinceLastActive: Math.floor(
+          (now.getTime() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24)
+        ),
         daysActiveInLast30: parseInt(row.days_active_30) || 0,
         profileCompletion: parseInt(row.profile_completion) || 0,
         photoCount: parseInt(row.photo_count) || 0,
         hasVerification: row.has_verification || false,
         subscriptionTier: row.subscription_tier || 'FREE',
-        subscriptionStartDate: row.subscription_start_date ? new Date(row.subscription_start_date) : undefined,
+        subscriptionStartDate: row.subscription_start_date
+          ? new Date(row.subscription_start_date)
+          : undefined,
         totalSwipes: parseInt(row.total_swipes) || 0,
         totalMatches: parseInt(row.total_matches) || 0,
         totalMessages: parseInt(row.total_messages) || 0,
@@ -532,7 +540,8 @@ export class SegmentationService {
     // Check for at-risk users (engagement dropping)
     if (metrics.previousEngagementScore > 0) {
       const currentScore = this.calculateEngagementScore(metrics);
-      const drop = (metrics.previousEngagementScore - currentScore) / metrics.previousEngagementScore;
+      const drop =
+        (metrics.previousEngagementScore - currentScore) / metrics.previousEngagementScore;
       if (drop >= this.criteria.atRiskEngagementDrop) {
         return UserSegmentType.AT_RISK;
       }
@@ -569,10 +578,7 @@ export class SegmentationService {
     }
 
     // Casual browser: Low activity, incomplete profile
-    if (
-      metrics.daysActiveInLast30 < 5 &&
-      metrics.profileCompletion < 50
-    ) {
+    if (metrics.daysActiveInLast30 < 5 && metrics.profileCompletion < 50) {
       return UserSegmentType.CASUAL_BROWSER;
     }
 
@@ -586,20 +592,20 @@ export class SegmentationService {
     // Priority order for primary segment (most actionable)
     const priorityOrder: UserSegmentType[] = [
       // High-value first
-      UserSegmentType.AT_RISK,           // Prevent churn
+      UserSegmentType.AT_RISK, // Prevent churn
       UserSegmentType.LAPSED_SUBSCRIBER, // Win back
-      UserSegmentType.TRIAL_USER,        // Convert
-      UserSegmentType.NEW_USER,          // Onboard
-      UserSegmentType.GHOST,             // Re-engage
-      UserSegmentType.DORMANT_USER,      // Reactivate
-      UserSegmentType.ONBOARDING,        // Complete profile
-      UserSegmentType.HIGH_LTV,          // Retain
-      UserSegmentType.PREMIUM_USER,      // Upsell/retain
-      UserSegmentType.READY_TO_MEET,     // Facilitate
-      UserSegmentType.SERIOUS_DATER,     // Premium target
-      UserSegmentType.POWER_USER,        // Ambassador
+      UserSegmentType.TRIAL_USER, // Convert
+      UserSegmentType.NEW_USER, // Onboard
+      UserSegmentType.GHOST, // Re-engage
+      UserSegmentType.DORMANT_USER, // Reactivate
+      UserSegmentType.ONBOARDING, // Complete profile
+      UserSegmentType.HIGH_LTV, // Retain
+      UserSegmentType.PREMIUM_USER, // Upsell/retain
+      UserSegmentType.READY_TO_MEET, // Facilitate
+      UserSegmentType.SERIOUS_DATER, // Premium target
+      UserSegmentType.POWER_USER, // Ambassador
       UserSegmentType.CONVERSATIONALIST, // Engagement driver
-      UserSegmentType.MATCHER,           // Success story
+      UserSegmentType.MATCHER, // Success story
     ];
 
     for (const segment of priorityOrder) {
@@ -652,7 +658,8 @@ export class SegmentationService {
     // Engagement drop
     if (metrics.previousEngagementScore > 0) {
       const currentScore = this.calculateEngagementScore(metrics);
-      const drop = (metrics.previousEngagementScore - currentScore) / metrics.previousEngagementScore;
+      const drop =
+        (metrics.previousEngagementScore - currentScore) / metrics.previousEngagementScore;
       if (drop > 0) {
         risk += 0.3 * Math.min(drop, 1);
       }
@@ -718,7 +725,7 @@ export class SegmentationService {
 
     // Engagement multiplier
     const engagementScore = this.calculateEngagementScore(metrics);
-    const engagementMultiplier = 1 + (engagementScore / 100);
+    const engagementMultiplier = 1 + engagementScore / 100;
 
     // Conversion probability for free users
     if (metrics.subscriptionTier === 'FREE') {

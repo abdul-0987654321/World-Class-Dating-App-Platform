@@ -406,10 +406,10 @@ export function calculateWellnessScore(
   // Weight factors
   const weights = {
     mood: 0.35,
-    anxiety: 0.20,
-    datingConfidence: 0.20,
+    anxiety: 0.2,
+    datingConfidence: 0.2,
     trend: 0.15,
-    consistency: 0.10,
+    consistency: 0.1,
   };
 
   // Calculate average mood (scaled to 0-100)
@@ -417,18 +417,21 @@ export function calculateWellnessScore(
   const moodScore = (avgMood / 10) * 100;
 
   // Calculate anxiety score (inverse - lower anxiety = higher score)
-  const anxietyCheckIns = recentCheckIns.filter(c => c.anxietyLevel !== undefined);
+  const anxietyCheckIns = recentCheckIns.filter((c) => c.anxietyLevel !== undefined);
   let anxietyScore = 50;
   if (anxietyCheckIns.length > 0) {
-    const avgAnxiety = anxietyCheckIns.reduce((sum, c) => sum + (c.anxietyLevel || 5), 0) / anxietyCheckIns.length;
+    const avgAnxiety =
+      anxietyCheckIns.reduce((sum, c) => sum + (c.anxietyLevel || 5), 0) / anxietyCheckIns.length;
     anxietyScore = ((10 - avgAnxiety) / 10) * 100;
   }
 
   // Calculate dating confidence score
-  const confidenceCheckIns = recentCheckIns.filter(c => c.datingConfidence !== undefined);
+  const confidenceCheckIns = recentCheckIns.filter((c) => c.datingConfidence !== undefined);
   let confidenceScore = 50;
   if (confidenceCheckIns.length > 0) {
-    const avgConfidence = confidenceCheckIns.reduce((sum, c) => sum + (c.datingConfidence || 5), 0) / confidenceCheckIns.length;
+    const avgConfidence =
+      confidenceCheckIns.reduce((sum, c) => sum + (c.datingConfidence || 5), 0) /
+      confidenceCheckIns.length;
     confidenceScore = (avgConfidence / 10) * 100;
   }
 
@@ -470,11 +473,15 @@ export function generateWellnessRecommendations(score: WellnessScore): string[] 
   }
 
   if (score.streakDays === 0) {
-    recommendations.push('Regular check-ins help track your wellbeing. Try setting a daily reminder.');
+    recommendations.push(
+      'Regular check-ins help track your wellbeing. Try setting a daily reminder.'
+    );
   }
 
   if (score.trend === MoodTrendDirection.DECLINING) {
-    recommendations.push('Your mood has been trending down. Consider reaching out to a friend or counselor.');
+    recommendations.push(
+      'Your mood has been trending down. Consider reaching out to a friend or counselor.'
+    );
   }
 
   if (recommendations.length === 0) {
@@ -495,7 +502,7 @@ export function generateMoodInsights(moodHistory: { date: Date; moodScore: numbe
 
   // Analyze day of week patterns
   const dayAverages: Record<number, number[]> = {};
-  moodHistory.forEach(m => {
+  moodHistory.forEach((m) => {
     const day = new Date(m.date).getDay();
     if (!dayAverages[day]) dayAverages[day] = [];
     dayAverages[day].push(m.moodScore);

@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { Logger } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -60,7 +60,7 @@ export class HealthCheckService {
     try {
       const checks = await this.performReadinessChecks();
 
-      const ready = Object.values(checks).every(check => check === true);
+      const ready = Object.values(checks).every((check) => check === true);
 
       const status: ReadinessStatus = {
         ready,
@@ -89,7 +89,7 @@ export class HealthCheckService {
       // Determine overall status
       let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
 
-      const checkStatuses = Object.values(checks).map(c => c?.status);
+      const checkStatuses = Object.values(checks).map((c) => c?.status);
 
       if (checkStatuses.includes('down')) {
         status = 'unhealthy';
@@ -256,7 +256,7 @@ export class HealthCheckService {
       this.logger.log('Stopping new request acceptance...');
 
       // Wait for ongoing requests to complete (with timeout)
-      await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds
+      await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 seconds
 
       // Close database connections
       this.logger.log('Closing database connections...');
@@ -280,7 +280,7 @@ export class HealthCheckService {
   setupGracefulShutdown(): void {
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
 
-    signals.forEach(signal => {
+    signals.forEach((signal) => {
       process.on(signal, () => {
         this.gracefulShutdown(signal);
       });
@@ -303,10 +303,7 @@ export class HealthCheckService {
 /**
  * Create health check routes
  */
-export function createHealthCheckRoutes(
-  serviceName: string,
-  serviceVersion?: string
-) {
+export function createHealthCheckRoutes(serviceName: string, serviceVersion?: string) {
   const healthCheckService = new HealthCheckService(serviceName, serviceVersion);
 
   // Setup graceful shutdown

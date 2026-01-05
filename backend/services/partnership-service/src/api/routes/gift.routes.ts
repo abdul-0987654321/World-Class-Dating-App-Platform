@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { GiftsService } from '../../domain/services/gifts.service';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { GiftsService } from '../../domain/services/gifts.service';
 
 const router = express.Router();
 const logger = createLogger('gift-routes');
@@ -22,16 +23,7 @@ interface AuthRequest extends Request {
 router.get('/search', async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id || 'anonymous';
-    const {
-      category,
-      occasion,
-      priceMin,
-      priceMax,
-      romantic,
-      sortBy,
-      limit,
-      offset,
-    } = req.query;
+    const { category, occasion, priceMin, priceMax, romantic, sortBy, limit, offset } = req.query;
 
     const results = await giftsService.searchProducts(userId, {
       category: category as any,
@@ -331,10 +323,7 @@ router.get('/orders', async (req: AuthRequest, res: Response) => {
 
     const { status } = req.query;
 
-    const orders = await giftsService.getUserGiftOrders(
-      req.user.id,
-      status as string | undefined
-    );
+    const orders = await giftsService.getUserGiftOrders(req.user.id, status as string | undefined);
 
     res.json({
       success: true,

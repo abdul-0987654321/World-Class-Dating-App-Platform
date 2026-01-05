@@ -10,10 +10,11 @@
  */
 
 import twilio from 'twilio';
-import { db } from '../config/database';
-import logger from '../utils/logger';
+
 import { config } from '../config';
+import { db } from '../config/database';
 import { SMSNotificationPayload } from '../types';
+import logger from '../utils/logger';
 
 export class SMSNotificationService {
   private client: twilio.Twilio | null = null;
@@ -24,8 +25,11 @@ export class SMSNotificationService {
     this.fromNumber = config.twilio.fromNumber;
 
     // Only initialize Twilio client if credentials are provided
-    if (config.twilio.accountSid && config.twilio.authToken &&
-        config.twilio.accountSid.startsWith('AC')) {
+    if (
+      config.twilio.accountSid &&
+      config.twilio.authToken &&
+      config.twilio.accountSid.startsWith('AC')
+    ) {
       try {
         this.client = twilio(config.twilio.accountSid, config.twilio.authToken);
         this.isConfigured = true;
@@ -86,11 +90,7 @@ export class SMSNotificationService {
   /**
    * Send verification code SMS
    */
-  async sendVerificationCode(
-    userId: string,
-    phoneNumber: string,
-    code: string
-  ): Promise<void> {
+  async sendVerificationCode(userId: string, phoneNumber: string, code: string): Promise<void> {
     const template = await this.getTemplate('verification_code');
     if (!template) {
       logger.warn('Verification code template not found');
@@ -175,11 +175,7 @@ export class SMSNotificationService {
   /**
    * Send password reset code
    */
-  async sendPasswordResetCode(
-    userId: string,
-    phoneNumber: string,
-    code: string
-  ): Promise<void> {
+  async sendPasswordResetCode(userId: string, phoneNumber: string, code: string): Promise<void> {
     const message = `Your Flamoral password reset code is: ${code}. Valid for 10 minutes.`;
 
     const [notification] = await db('notifications')
@@ -238,11 +234,13 @@ export class SMSNotificationService {
         const retryCount = sms.retry_count + 1;
         const shouldRetry = retryCount < 3;
 
-        await db('sms_queue').where({ id: sms.id }).update({
-          status: shouldRetry ? 'queued' : 'failed',
-          error_message: result.error,
-          retry_count: retryCount,
-        });
+        await db('sms_queue')
+          .where({ id: sms.id })
+          .update({
+            status: shouldRetry ? 'queued' : 'failed',
+            error_message: result.error,
+            retry_count: retryCount,
+          });
 
         if (!shouldRetry) {
           await db('notifications')
@@ -296,33 +294,28 @@ export class SMSNotificationService {
           .where({ id: sms.notification_id })
           .update({ status: 'delivered', delivered_at: new Date() });
       } else if (status === 'failed' || status === 'undelivered') {
-        await db('sms_queue').where({ id: sms.id }).update({
-          status: 'failed',
-          error_message: `Twilio status: ${status}`,
-        });
+        await db('sms_queue')
+          .where({ id: sms.id })
+          .update({
+            status: 'failed',
+            error_message: `Twilio status: ${status}`,
+          });
 
-        await db('notifications')
-          .where({ id: sms.notification_id })
-          .update({ status: 'failed' });
+        await db('notifications').where({ id: sms.notification_id }).update({ status: 'failed' });
       }
     }
   }
 
   // Helper methods
   private async getTemplate(name: string): Promise<any> {
-    return db('notification_templates')
-      .where({ name, type: 'sms', is_active: true })
-      .first();
+    return db('notification_templates').where({ name, type: 'sms', is_active: true }).first();
   }
 
   private async getUserPreferences(userId: string): Promise<any> {
     return db('notification_preferences').where({ user_id: userId }).first();
   }
 
-  private replaceVariables(
-    template: string,
-    variables: Record<string, string>
-  ): string {
+  private replaceVariables(template: string, variables: Record<string, string>): string {
     let result = template;
     for (const [key, value] of Object.entries(variables)) {
       result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);

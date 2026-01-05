@@ -7,13 +7,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string('name', 100).notNullable();
     table.text('description').nullable();
     table.enum('severity', ['low', 'medium', 'high', 'critical']).notNullable().defaultTo('medium');
-    table.enum('auto_action', [
-      'none',
-      'flag',
-      'warn',
-      'suspend',
-      'ban'
-    ]).notNullable().defaultTo('none');
+    table
+      .enum('auto_action', ['none', 'flag', 'warn', 'suspend', 'ban'])
+      .notNullable()
+      .defaultTo('none');
     table.integer('suspension_duration_hours').nullable();
     table.boolean('active').notNullable().defaultTo(true);
     table.integer('display_order').notNullable().defaultTo(0);
@@ -34,7 +31,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'high',
       auto_action: 'flag',
       display_order: 1,
-      active: true
+      active: true,
     },
     {
       code: 'inappropriate_messages',
@@ -43,7 +40,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'medium',
       auto_action: 'flag',
       display_order: 2,
-      active: true
+      active: true,
     },
     {
       code: 'fake_profile',
@@ -52,7 +49,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'medium',
       auto_action: 'flag',
       display_order: 3,
-      active: true
+      active: true,
     },
     {
       code: 'spam',
@@ -61,7 +58,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'low',
       auto_action: 'warn',
       display_order: 4,
-      active: true
+      active: true,
     },
     {
       code: 'harassment',
@@ -71,7 +68,7 @@ export async function up(knex: Knex): Promise<void> {
       auto_action: 'suspend',
       suspension_duration_hours: 24,
       display_order: 5,
-      active: true
+      active: true,
     },
     {
       code: 'underage',
@@ -80,7 +77,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'critical',
       auto_action: 'ban',
       display_order: 6,
-      active: true
+      active: true,
     },
     {
       code: 'scam',
@@ -90,7 +87,7 @@ export async function up(knex: Knex): Promise<void> {
       auto_action: 'suspend',
       suspension_duration_hours: 72,
       display_order: 7,
-      active: true
+      active: true,
     },
     {
       code: 'violence',
@@ -99,7 +96,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'critical',
       auto_action: 'ban',
       display_order: 8,
-      active: true
+      active: true,
     },
     {
       code: 'hate_speech',
@@ -108,7 +105,7 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'critical',
       auto_action: 'ban',
       display_order: 9,
-      active: true
+      active: true,
     },
     {
       code: 'other',
@@ -117,8 +114,8 @@ export async function up(knex: Knex): Promise<void> {
       severity: 'low',
       auto_action: 'flag',
       display_order: 10,
-      active: true
-    }
+      active: true,
+    },
   ]);
 }
 

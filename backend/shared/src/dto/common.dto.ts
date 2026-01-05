@@ -1,5 +1,5 @@
-import { IsUUID, IsOptional, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsUUID, IsOptional, IsInt, Min, Max } from 'class-validator';
 
 /**
  * Pagination DTO for list endpoints

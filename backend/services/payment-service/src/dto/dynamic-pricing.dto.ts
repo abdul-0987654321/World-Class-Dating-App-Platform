@@ -4,6 +4,7 @@
  * Validation DTOs for all dynamic pricing endpoints using class-validator
  */
 
+import { Type, Transform } from 'class-transformer';
 import {
   IsString,
   IsNumber,
@@ -25,7 +26,6 @@ import {
   ValidateNested,
   Matches,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
 
 // =============================================================================
 // COMMON TYPES
@@ -33,7 +33,12 @@ import { Type, Transform } from 'class-transformer';
 
 const VALID_TIERS = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'] as const;
 const VALID_BILLING_CYCLES = ['monthly', '3_months', '6_months', 'yearly'] as const;
-const VALID_DISCOUNT_TYPES = ['percentage', 'fixed_amount', 'free_trial_days', 'tier_upgrade'] as const;
+const VALID_DISCOUNT_TYPES = [
+  'percentage',
+  'fixed_amount',
+  'free_trial_days',
+  'tier_upgrade',
+] as const;
 const VALID_EXPERIMENT_STATUSES = ['draft', 'running', 'paused', 'completed', 'cancelled'] as const;
 const VALID_RULE_TYPES = [
   'time_based',
@@ -132,7 +137,9 @@ export class ApplyPromoCodeDto {
   @IsString()
   @MinLength(3, { message: 'Promo code must be at least 3 characters' })
   @MaxLength(50, { message: 'Promo code must not exceed 50 characters' })
-  @Matches(/^[A-Za-z0-9_-]+$/, { message: 'Promo code can only contain letters, numbers, underscores, and hyphens' })
+  @Matches(/^[A-Za-z0-9_-]+$/, {
+    message: 'Promo code can only contain letters, numbers, underscores, and hyphens',
+  })
   @Transform(({ value }) => value?.toUpperCase())
   code: string;
 
@@ -261,7 +268,9 @@ export class CreatePromotionDto {
   @IsString()
   @MinLength(3, { message: 'Code must be at least 3 characters' })
   @MaxLength(50, { message: 'Code must not exceed 50 characters' })
-  @Matches(/^[A-Za-z0-9_-]+$/, { message: 'Code can only contain letters, numbers, underscores, and hyphens' })
+  @Matches(/^[A-Za-z0-9_-]+$/, {
+    message: 'Code can only contain letters, numbers, underscores, and hyphens',
+  })
   @Transform(({ value }) => value?.toUpperCase())
   code: string;
 

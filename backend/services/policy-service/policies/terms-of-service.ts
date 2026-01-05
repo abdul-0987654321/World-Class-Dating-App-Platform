@@ -93,7 +93,7 @@ export const termsOfService: TermsOfService = {
         Failure to complete required verification may limit your access to certain features.
       `,
       examples: [
-        'Using someone else\'s photos is a violation and will result in account termination',
+        "Using someone else's photos is a violation and will result in account termination",
         'Creating multiple accounts to circumvent a ban is prohibited',
         'Misrepresenting your age, even by one year, violates these Terms',
       ],

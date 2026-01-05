@@ -1,14 +1,17 @@
+import * as crypto from 'crypto';
+
 import axios from 'axios';
 import { OAuth2Client } from 'google-auth-library';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import * as crypto from 'crypto';
-import { UserRepository } from '../repositories/user.repository';
-import { ProfileRepository } from '../repositories/profile.repository';
-import { SocialAccountRepository } from '../repositories/social-account.repository';
-import { AuthResponse } from './auth.service';
+
 import jwtUtils from '../../utils/jwt';
 import logger from '../../utils/logger';
 import { UserResponse } from '../entities/User.entity';
+import { ProfileRepository } from '../repositories/profile.repository';
+import { SocialAccountRepository } from '../repositories/social-account.repository';
+import { UserRepository } from '../repositories/user.repository';
+
+import { AuthResponse } from './auth.service';
 
 export interface GoogleTokenPayload {
   code?: string;
@@ -74,9 +77,7 @@ export class SocialAuthService {
     );
 
     // Initialize Apple JWKS
-    this.appleJWKS = createRemoteJWKSet(
-      new URL('https://appleid.apple.com/auth/keys')
-    );
+    this.appleJWKS = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/keys'));
 
     // Cleanup expired states every minute
     setInterval(() => this.cleanupExpiredStates(), 60 * 1000);
@@ -89,7 +90,7 @@ export class SocialAuthService {
     const state = crypto.randomBytes(32).toString('hex');
     this.stateStore.set(state, {
       timestamp: Date.now(),
-      nonce
+      nonce,
     });
     return state;
   }
@@ -149,7 +150,7 @@ export class SocialAuthService {
       const googleUserInfo = await this.verifyGoogleToken(tokenPayload);
 
       // Check if social account already exists
-      let socialAccount = await this.socialAccountRepository.findByProvider(
+      const socialAccount = await this.socialAccountRepository.findByProvider(
         'google',
         googleUserInfo.sub
       );
@@ -264,7 +265,7 @@ export class SocialAuthService {
       const appleUserInfo = await this.verifyAppleToken(tokenPayload);
 
       // Check if social account already exists
-      let socialAccount = await this.socialAccountRepository.findByProvider(
+      const socialAccount = await this.socialAccountRepository.findByProvider(
         'apple',
         appleUserInfo.sub
       );
@@ -373,7 +374,7 @@ export class SocialAuthService {
       const facebookUserInfo = await this.verifyFacebookToken(tokenPayload.access_token);
 
       // Check if social account already exists
-      let socialAccount = await this.socialAccountRepository.findByProvider(
+      const socialAccount = await this.socialAccountRepository.findByProvider(
         'facebook',
         facebookUserInfo.id
       );
@@ -490,7 +491,10 @@ export class SocialAuthService {
       }
 
       // Check if already linked
-      const existingLink = await this.socialAccountRepository.findByUserAndProvider(userId, provider);
+      const existingLink = await this.socialAccountRepository.findByUserAndProvider(
+        userId,
+        provider
+      );
       if (existingLink) {
         throw new Error(`Account already linked to ${provider}`);
       }
@@ -526,7 +530,9 @@ export class SocialAuthService {
           break;
         }
         case 'facebook': {
-          const facebookInfo = await this.verifyFacebookToken((token as FacebookTokenPayload).access_token);
+          const facebookInfo = await this.verifyFacebookToken(
+            (token as FacebookTokenPayload).access_token
+          );
           providerUserId = facebookInfo.id;
           providerEmail = facebookInfo.email;
           providerName = facebookInfo.name;
@@ -540,7 +546,10 @@ export class SocialAuthService {
       }
 
       // Check if this social account is already linked to another user
-      const existingAccount = await this.socialAccountRepository.findByProvider(provider, providerUserId);
+      const existingAccount = await this.socialAccountRepository.findByProvider(
+        provider,
+        providerUserId
+      );
       if (existingAccount && existingAccount.user_id !== userId) {
         throw new Error(`This ${provider} account is already linked to another user`);
       }
@@ -569,7 +578,10 @@ export class SocialAuthService {
    * Unlink social account from user
    */
   async unlinkAccount(userId: string, provider: string): Promise<void> {
-    const socialAccount = await this.socialAccountRepository.findByUserAndProvider(userId, provider);
+    const socialAccount = await this.socialAccountRepository.findByUserAndProvider(
+      userId,
+      provider
+    );
 
     if (!socialAccount) {
       throw new Error('Social account not found');
@@ -594,7 +606,7 @@ export class SocialAuthService {
   async getLinkedAccounts(userId: string): Promise<any[]> {
     const accounts = await this.socialAccountRepository.findByUserId(userId);
 
-    return accounts.map(account => ({
+    return accounts.map((account) => ({
       id: account.id,
       provider: account.provider,
       provider_email: account.provider_email,
@@ -608,7 +620,10 @@ export class SocialAuthService {
    * Refresh social provider tokens
    */
   async refreshSocialToken(userId: string, provider: string): Promise<void> {
-    const socialAccount = await this.socialAccountRepository.findByUserAndProvider(userId, provider);
+    const socialAccount = await this.socialAccountRepository.findByUserAndProvider(
+      userId,
+      provider
+    );
 
     if (!socialAccount) {
       throw new Error('Social account not found');
@@ -630,10 +645,7 @@ export class SocialAuthService {
       case 'facebook':
         if (socialAccount.access_token) {
           const newToken = await this.refreshFacebookToken(socialAccount.access_token);
-          await this.socialAccountRepository.updateTokens(
-            socialAccount.id,
-            newToken.access_token
-          );
+          await this.socialAccountRepository.updateTokens(socialAccount.id, newToken.access_token);
         }
         break;
       // Apple tokens don't need refresh in the same way
@@ -778,7 +790,8 @@ export class SocialAuthService {
 
       // Check if email is private relay
       const email = payload.email as string;
-      const isPrivateEmail = payload.is_private_email === true || payload.is_private_email === 'true';
+      const isPrivateEmail =
+        payload.is_private_email === true || payload.is_private_email === 'true';
 
       return {
         sub: payload.sub,
@@ -836,15 +849,12 @@ export class SocialAuthService {
         .digest('hex');
 
       // First, verify the access token with Facebook's debug endpoint
-      const debugResponse = await axios.get(
-        `https://graph.facebook.com/debug_token`,
-        {
-          params: {
-            input_token: accessToken,
-            access_token: `${appId}|${appSecret}`,
-          },
-        }
-      );
+      const debugResponse = await axios.get(`https://graph.facebook.com/debug_token`, {
+        params: {
+          input_token: accessToken,
+          access_token: `${appId}|${appSecret}`,
+        },
+      });
 
       const tokenData = debugResponse.data.data;
 
@@ -873,16 +883,13 @@ export class SocialAuthService {
       }
 
       // Get user information with app secret proof
-      const userResponse = await axios.get(
-        `https://graph.facebook.com/me`,
-        {
-          params: {
-            fields: 'id,name,email,picture',
-            access_token: accessToken,
-            appsecret_proof: appsecretProof,
-          },
-        }
-      );
+      const userResponse = await axios.get(`https://graph.facebook.com/me`, {
+        params: {
+          fields: 'id,name,email,picture',
+          access_token: accessToken,
+          appsecret_proof: appsecretProof,
+        },
+      });
 
       const userData = userResponse.data;
 

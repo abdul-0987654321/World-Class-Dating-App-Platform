@@ -1,7 +1,8 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 import { Message, MessageStatus } from '../../types';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('message-repository');
 
@@ -51,7 +52,11 @@ export class MessageRepository {
   /**
    * Update message
    */
-  async update(messageId: string, conversationId: string, updates: Partial<Message>): Promise<Message> {
+  async update(
+    messageId: string,
+    conversationId: string,
+    updates: Partial<Message>
+  ): Promise<Message> {
     try {
       logger.info(`Updating message: ${messageId}`);
 
@@ -106,7 +111,11 @@ export class MessageRepository {
   /**
    * Mark all messages in a conversation as read for a specific user
    */
-  async markConversationAsRead(conversationId: string, userId: string, readAt: Date): Promise<void> {
+  async markConversationAsRead(
+    conversationId: string,
+    userId: string,
+    readAt: Date
+  ): Promise<void> {
     try {
       logger.info(`Marking conversation ${conversationId} as read for user ${userId}`);
 

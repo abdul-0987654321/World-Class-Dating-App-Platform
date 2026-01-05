@@ -1,11 +1,11 @@
+import db from '../../infrastructure/database/connection';
 import {
   Boost,
   BoostCreateInput,
   BoostUpdateInput,
   BOOST_STATUS,
-  calculateBoostExpiry
+  calculateBoostExpiry,
 } from '../entities/Boost.entity';
-import db from '../../infrastructure/database/connection';
 
 export class BoostRepository {
   private tableName = 'boosts';
@@ -25,28 +25,25 @@ export class BoostRepository {
       updated_at: now,
     };
 
-    const [boost] = await db(this.tableName)
-      .insert(boostData)
-      .returning('*');
+    const [boost] = await db(this.tableName).insert(boostData).returning('*');
 
     return this.mapToEntity(boost);
   }
 
   async findById(id: string): Promise<Boost | null> {
-    const boost = await db(this.tableName)
-      .where({ id })
-      .first();
+    const boost = await db(this.tableName).where({ id }).first();
 
     return boost ? this.mapToEntity(boost) : null;
   }
 
-  async findByUserId(userId: string, options?: {
-    limit?: number;
-    status?: string;
-  }): Promise<Boost[]> {
-    let query = db(this.tableName)
-      .where({ user_id: userId })
-      .orderBy('created_at', 'desc');
+  async findByUserId(
+    userId: string,
+    options?: {
+      limit?: number;
+      status?: string;
+    }
+  ): Promise<Boost[]> {
+    let query = db(this.tableName).where({ user_id: userId }).orderBy('created_at', 'desc');
 
     if (options?.status) {
       query = query.where({ status: options.status });
@@ -77,14 +74,12 @@ export class BoostRepository {
     if (input.status !== undefined) updateData.status = input.status;
     if (input.startedAt !== undefined) updateData.started_at = input.startedAt;
     if (input.expiresAt !== undefined) updateData.expires_at = input.expiresAt;
-    if (input.impressionsGained !== undefined) updateData.impressions_gained = input.impressionsGained;
+    if (input.impressionsGained !== undefined)
+      updateData.impressions_gained = input.impressionsGained;
     if (input.likesGained !== undefined) updateData.likes_gained = input.likesGained;
     if (input.matchesGained !== undefined) updateData.matches_gained = input.matchesGained;
 
-    const [boost] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [boost] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(boost);
   }
@@ -136,11 +131,14 @@ export class BoostRepository {
     return this.mapToEntity(boost);
   }
 
-  async incrementMetrics(id: string, metrics: {
-    impressions?: number;
-    likes?: number;
-    matches?: number;
-  }): Promise<Boost> {
+  async incrementMetrics(
+    id: string,
+    metrics: {
+      impressions?: number;
+      likes?: number;
+      matches?: number;
+    }
+  ): Promise<Boost> {
     const updateData: any = {
       updated_at: new Date(),
     };
@@ -155,10 +153,7 @@ export class BoostRepository {
       updateData.matches_gained = db.raw('matches_gained + ?', [metrics.matches]);
     }
 
-    const [boost] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [boost] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(boost);
   }
@@ -179,7 +174,7 @@ export class BoostRepository {
     totalMatches: number;
     averageEffectiveness: number;
   }> {
-    const result = await db(this.tableName)
+    const result = (await db(this.tableName)
       .where({ user_id: userId, status: BOOST_STATUS.COMPLETED })
       .select(
         db.raw('COUNT(*) as total_boosts'),
@@ -187,16 +182,15 @@ export class BoostRepository {
         db.raw('SUM(likes_gained) as total_likes'),
         db.raw('SUM(matches_gained) as total_matches')
       )
-      .first() as any;
+      .first()) as any;
 
     const totalBoosts = parseInt(result?.total_boosts || '0', 10);
     const totalImpressions = parseInt(result?.total_impressions || '0', 10);
     const totalLikes = parseInt(result?.total_likes || '0', 10);
     const totalMatches = parseInt(result?.total_matches || '0', 10);
 
-    const averageEffectiveness = totalBoosts > 0
-      ? (totalLikes + (totalMatches * 2)) / totalBoosts
-      : 0;
+    const averageEffectiveness =
+      totalBoosts > 0 ? (totalLikes + totalMatches * 2) / totalBoosts : 0;
 
     return {
       totalBoosts,
@@ -208,9 +202,7 @@ export class BoostRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   // Map database row to entity

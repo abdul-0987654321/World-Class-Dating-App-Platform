@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { encryptionKeysController } from '../controllers/encryption-keys.controller';
-import { authenticate } from '../middleware/auth.middleware';
+
 import {
   validateBody,
   UploadKeysDto,
@@ -8,6 +7,8 @@ import {
   CreateSessionKeyDto,
   UpdateSessionKeyDto,
 } from '../../dto';
+import { encryptionKeysController } from '../controllers/encryption-keys.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 

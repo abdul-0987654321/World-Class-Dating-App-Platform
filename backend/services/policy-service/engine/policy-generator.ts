@@ -11,10 +11,33 @@
 // ============================================================================
 
 export type RegionCode =
-  | 'US' | 'US-CA' | 'US-WA' | 'US-CO' | 'US-VA' | 'US-CT' | 'US-UT'
-  | 'EU' | 'EU-DE' | 'EU-FR' | 'EU-IT' | 'EU-ES' | 'EU-NL'
-  | 'UK' | 'CA' | 'AU' | 'NG' | 'BR' | 'MX' | 'AR'
-  | 'SG' | 'JP' | 'KR' | 'IN' | 'AE' | 'SA' | 'ZA';
+  | 'US'
+  | 'US-CA'
+  | 'US-WA'
+  | 'US-CO'
+  | 'US-VA'
+  | 'US-CT'
+  | 'US-UT'
+  | 'EU'
+  | 'EU-DE'
+  | 'EU-FR'
+  | 'EU-IT'
+  | 'EU-ES'
+  | 'EU-NL'
+  | 'UK'
+  | 'CA'
+  | 'AU'
+  | 'NG'
+  | 'BR'
+  | 'MX'
+  | 'AR'
+  | 'SG'
+  | 'JP'
+  | 'KR'
+  | 'IN'
+  | 'AE'
+  | 'SA'
+  | 'ZA';
 
 export type PolicyType =
   | 'privacy_policy'
@@ -87,7 +110,7 @@ export interface RegulatoryUpdate {
 
 export const regionConfigs: Record<RegionCode, RegionConfig> = {
   // United States
-  'US': {
+  US: {
     code: 'US',
     name: 'United States',
     language: 'en-US',
@@ -169,10 +192,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     currency: 'USD',
     legalFramework: ['Connecticut Data Privacy Act'],
     ageOfConsent: 18,
-    specialRequirements: [
-      'Consumer privacy rights',
-      'Global opt-out recognition',
-    ],
+    specialRequirements: ['Consumer privacy rights', 'Global opt-out recognition'],
   },
   'US-UT': {
     code: 'US-UT',
@@ -182,14 +202,11 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     currency: 'USD',
     legalFramework: ['Utah Consumer Privacy Act'],
     ageOfConsent: 18,
-    specialRequirements: [
-      'Consumer privacy rights',
-      'Sensitive data requirements',
-    ],
+    specialRequirements: ['Consumer privacy rights', 'Sensitive data requirements'],
   },
 
   // European Union
-  'EU': {
+  EU: {
     code: 'EU',
     name: 'European Union',
     language: 'en',
@@ -232,10 +249,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['GDPR', 'Loi Informatique et Libertés'],
     ageOfConsent: 15,
     dataProtectionAuthority: 'CNIL',
-    specialRequirements: [
-      'CNIL guidelines on cookies',
-      'Specific consent requirements',
-    ],
+    specialRequirements: ['CNIL guidelines on cookies', 'Specific consent requirements'],
   },
   'EU-IT': {
     code: 'EU-IT',
@@ -246,10 +260,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['GDPR', 'Italian Privacy Code'],
     ageOfConsent: 14,
     dataProtectionAuthority: 'Garante',
-    specialRequirements: [
-      'Garante guidelines',
-      'Marketing consent specifics',
-    ],
+    specialRequirements: ['Garante guidelines', 'Marketing consent specifics'],
   },
   'EU-ES': {
     code: 'EU-ES',
@@ -260,9 +271,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['GDPR', 'LOPDGDD'],
     ageOfConsent: 14,
     dataProtectionAuthority: 'AEPD',
-    specialRequirements: [
-      'AEPD guidance compliance',
-    ],
+    specialRequirements: ['AEPD guidance compliance'],
   },
   'EU-NL': {
     code: 'EU-NL',
@@ -273,13 +282,11 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['GDPR', 'UAVG'],
     ageOfConsent: 16,
     dataProtectionAuthority: 'Autoriteit Persoonsgegevens',
-    specialRequirements: [
-      'Dutch implementation specifics',
-    ],
+    specialRequirements: ['Dutch implementation specifics'],
   },
 
   // United Kingdom
-  'UK': {
+  UK: {
     code: 'UK',
     name: 'United Kingdom',
     language: 'en-GB',
@@ -287,7 +294,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     currency: 'GBP',
     legalFramework: ['UK GDPR', 'Data Protection Act 2018', 'PECR', 'Online Safety Act'],
     ageOfConsent: 13,
-    dataProtectionAuthority: 'Information Commissioner\'s Office (ICO)',
+    dataProtectionAuthority: "Information Commissioner's Office (ICO)",
     specialRequirements: [
       'UK GDPR compliance',
       'ICO guidance',
@@ -298,7 +305,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
   },
 
   // Canada
-  'CA': {
+  CA: {
     code: 'CA',
     name: 'Canada',
     language: 'en-CA',
@@ -316,7 +323,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
   },
 
   // Australia
-  'AU': {
+  AU: {
     code: 'AU',
     name: 'Australia',
     language: 'en-AU',
@@ -334,7 +341,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
   },
 
   // Nigeria
-  'NG': {
+  NG: {
     code: 'NG',
     name: 'Nigeria',
     language: 'en-NG',
@@ -351,7 +358,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
   },
 
   // Latin America
-  'BR': {
+  BR: {
     code: 'BR',
     name: 'Brazil',
     language: 'pt-BR',
@@ -360,13 +367,9 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['LGPD', 'Marco Civil'],
     ageOfConsent: 18,
     dataProtectionAuthority: 'ANPD',
-    specialRequirements: [
-      'LGPD compliance',
-      'Data subject rights',
-      'DPO requirement',
-    ],
+    specialRequirements: ['LGPD compliance', 'Data subject rights', 'DPO requirement'],
   },
-  'MX': {
+  MX: {
     code: 'MX',
     name: 'Mexico',
     language: 'es-MX',
@@ -375,12 +378,9 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['LFPDPPP'],
     ageOfConsent: 18,
     dataProtectionAuthority: 'INAI',
-    specialRequirements: [
-      'Privacy notice requirements',
-      'ARCO rights',
-    ],
+    specialRequirements: ['Privacy notice requirements', 'ARCO rights'],
   },
-  'AR': {
+  AR: {
     code: 'AR',
     name: 'Argentina',
     language: 'es-AR',
@@ -389,14 +389,11 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['Personal Data Protection Law'],
     ageOfConsent: 18,
     dataProtectionAuthority: 'AAIP',
-    specialRequirements: [
-      'EU adequacy status',
-      'Cross-border transfer rules',
-    ],
+    specialRequirements: ['EU adequacy status', 'Cross-border transfer rules'],
   },
 
   // Asia Pacific
-  'SG': {
+  SG: {
     code: 'SG',
     name: 'Singapore',
     language: 'en-SG',
@@ -405,13 +402,9 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     legalFramework: ['PDPA'],
     ageOfConsent: 21,
     dataProtectionAuthority: 'PDPC',
-    specialRequirements: [
-      'PDPA compliance',
-      'DNC registry',
-      'Data breach notification',
-    ],
+    specialRequirements: ['PDPA compliance', 'DNC registry', 'Data breach notification'],
   },
-  'JP': {
+  JP: {
     code: 'JP',
     name: 'Japan',
     language: 'ja',
@@ -426,7 +419,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
       'Special care personal information',
     ],
   },
-  'KR': {
+  KR: {
     code: 'KR',
     name: 'South Korea',
     language: 'ko',
@@ -441,7 +434,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
       'Data localization considerations',
     ],
   },
-  'IN': {
+  IN: {
     code: 'IN',
     name: 'India',
     language: 'en-IN',
@@ -458,7 +451,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
   },
 
   // Middle East
-  'AE': {
+  AE: {
     code: 'AE',
     name: 'United Arab Emirates',
     language: 'en',
@@ -472,7 +465,7 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
       'Content moderation requirements',
     ],
   },
-  'SA': {
+  SA: {
     code: 'SA',
     name: 'Saudi Arabia',
     language: 'ar',
@@ -480,15 +473,11 @@ export const regionConfigs: Record<RegionCode, RegionConfig> = {
     currency: 'SAR',
     legalFramework: ['Personal Data Protection Law'],
     ageOfConsent: 21,
-    specialRequirements: [
-      'PDPL compliance',
-      'Data localization',
-      'Content restrictions',
-    ],
+    specialRequirements: ['PDPL compliance', 'Data localization', 'Content restrictions'],
   },
 
   // Africa
-  'ZA': {
+  ZA: {
     code: 'ZA',
     name: 'South Africa',
     language: 'en-ZA',
@@ -552,21 +541,14 @@ export class PolicyGenerator {
   /**
    * Generate a region-specific policy
    */
-  public generatePolicy(
-    type: PolicyType,
-    region: RegionCode
-  ): GeneratedPolicy {
+  public generatePolicy(type: PolicyType, region: RegionCode): GeneratedPolicy {
     const regionConfig = regionConfigs[region];
     if (!regionConfig) {
       throw new Error(`Unknown region: ${region}`);
     }
 
     const baseContent = this.getBasePolicyContent(type);
-    const regionSpecificContent = this.applyRegionRequirements(
-      baseContent,
-      type,
-      regionConfig
-    );
+    const regionSpecificContent = this.applyRegionRequirements(baseContent, type, regionConfig);
     const version = this.getCurrentVersion(type);
 
     const policy: GeneratedPolicy = {
@@ -602,7 +584,10 @@ export class PolicyGenerator {
 
     // Add region-specific policies
     const regionConfig = regionConfigs[region];
-    if (regionConfig.legalFramework.includes('CCPA') || regionConfig.legalFramework.includes('CPRA')) {
+    if (
+      regionConfig.legalFramework.includes('CCPA') ||
+      regionConfig.legalFramework.includes('CPRA')
+    ) {
       policyTypes.push('do_not_sell', 'notice_at_collection');
     }
     if (region === 'US-WA') {
@@ -631,9 +616,7 @@ export class PolicyGenerator {
    * Process pending regulatory updates
    */
   public processPendingUpdates(): ChangeLogEntry[] {
-    const pendingUpdates = this.regulatoryUpdates.filter(
-      (u) => u.status === 'pending'
-    );
+    const pendingUpdates = this.regulatoryUpdates.filter((u) => u.status === 'pending');
     const appliedChanges: ChangeLogEntry[] = [];
 
     for (const update of pendingUpdates) {
@@ -660,10 +643,7 @@ export class PolicyGenerator {
   /**
    * Generate "What Changed" summary for users
    */
-  public generateChangesSummary(
-    policyType: PolicyType,
-    region: RegionCode
-  ): string {
+  public generateChangesSummary(policyType: PolicyType, region: RegionCode): string {
     const history = this.versionHistory.get(policyType) || [];
     const recentChanges = history
       .flatMap((v) => v.changeLog)
@@ -873,12 +853,18 @@ See our Privacy Policy for a complete description of your rights.
 
   private getRequirementContent(requirement: string): string {
     const contents: Record<string, string> = {
-      'CCPA/CPRA compliance': 'Full compliance with California privacy regulations including consumer rights and data sharing disclosures.',
-      'Right to opt-out of sale/sharing': 'You may opt-out of the sale or sharing of your personal information by visiting our "Do Not Sell or Share" page.',
-      'Consumer health data specific consent': 'We obtain specific consent before collecting consumer health data as required by Washington\'s My Health My Data Act.',
-      'Modern Slavery Statement': 'FLAMORAL is committed to preventing modern slavery and human trafficking in our operations and supply chain.',
-      'Data breach notification (72 hours)': 'We will notify the relevant supervisory authority within 72 hours of becoming aware of a personal data breach.',
-      'Australian Privacy Principles': 'We comply with all Australian Privacy Principles as set out in the Privacy Act 1988.',
+      'CCPA/CPRA compliance':
+        'Full compliance with California privacy regulations including consumer rights and data sharing disclosures.',
+      'Right to opt-out of sale/sharing':
+        'You may opt-out of the sale or sharing of your personal information by visiting our "Do Not Sell or Share" page.',
+      'Consumer health data specific consent':
+        "We obtain specific consent before collecting consumer health data as required by Washington's My Health My Data Act.",
+      'Modern Slavery Statement':
+        'FLAMORAL is committed to preventing modern slavery and human trafficking in our operations and supply chain.',
+      'Data breach notification (72 hours)':
+        'We will notify the relevant supervisory authority within 72 hours of becoming aware of a personal data breach.',
+      'Australian Privacy Principles':
+        'We comply with all Australian Privacy Principles as set out in the Privacy Act 1988.',
     };
 
     return contents[requirement] || 'Compliance measures in place.';
@@ -946,12 +932,14 @@ See our Privacy Policy for a complete description of your rights.
 
   private getCurrentVersion(type: PolicyType): PolicyVersion {
     const history = this.versionHistory.get(type);
-    return history?.[history.length - 1] || {
-      version: '1.0.0',
-      effectiveDate: new Date().toISOString().split('T')[0],
-      lastUpdated: new Date().toISOString().split('T')[0],
-      changeLog: [],
-    };
+    return (
+      history?.[history.length - 1] || {
+        version: '1.0.0',
+        effectiveDate: new Date().toISOString().split('T')[0],
+        lastUpdated: new Date().toISOString().split('T')[0],
+        changeLog: [],
+      }
+    );
   }
 
   private incrementVersion(type: PolicyType): string {

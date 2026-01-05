@@ -3,13 +3,14 @@
  * Manages real-time communication for speed dating events
  */
 
-import { Server, Socket } from 'socket.io';
+import { createLogger } from '@flamoral/backend-shared';
 import jwt from 'jsonwebtoken';
-import speedDatingService from '../domain/services/speed-dating.service';
-import speedDatingRepository from '../domain/repositories/speed-dating.repository';
+import { Server, Socket } from 'socket.io';
+
 import { SpeedDatingEventStatus } from '../domain/entities/SpeedDatingEvent.entity';
 import { ParticipantStatus } from '../domain/entities/SpeedDatingParticipant.entity';
-import { createLogger } from '@flamoral/backend-shared';
+import speedDatingRepository from '../domain/repositories/speed-dating.repository';
+import speedDatingService from '../domain/services/speed-dating.service';
 
 const logger = createLogger('speed-dating-websocket');
 
@@ -43,7 +44,9 @@ export class SpeedDatingWebSocketHandler {
     // Authentication middleware
     speedDatingNamespace.use(async (socket: AuthenticatedSocket, next) => {
       try {
-        const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
+        const token =
+          socket.handshake.auth.token ||
+          socket.handshake.headers.authorization?.replace('Bearer ', '');
 
         if (!token) {
           return next(new Error('Authentication required'));
@@ -79,9 +82,12 @@ export class SpeedDatingWebSocketHandler {
       });
 
       // Submit interest
-      socket.on('submit_interest', async (data: { eventId: string; targetUserId: string; interested: boolean }) => {
-        await this.handleSubmitInterest(socket, data);
-      });
+      socket.on(
+        'submit_interest',
+        async (data: { eventId: string; targetUserId: string; interested: boolean }) => {
+          await this.handleSubmitInterest(socket, data);
+        }
+      );
 
       // Send message in round (for chat during rounds)
       socket.on('round_message', async (data: { eventId: string; message: string }) => {
@@ -108,7 +114,10 @@ export class SpeedDatingWebSocketHandler {
         return;
       }
 
-      const participant = await speedDatingRepository.findParticipantByEventAndUser(eventId, socket.userId);
+      const participant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        socket.userId
+      );
       if (!participant) {
         socket.emit('error', { message: 'Not registered for this event' });
         return;
@@ -124,7 +133,7 @@ export class SpeedDatingWebSocketHandler {
       if (!this.eventParticipants.has(eventId)) {
         this.eventParticipants.set(eventId, new Set());
       }
-      this.eventParticipants.get(eventId)!.add(socket.id);
+      this.eventParticipants.get(eventId).add(socket.id);
       this.socketToUser.set(socket.id, { userId: socket.userId, eventId });
 
       // Notify others
@@ -236,7 +245,10 @@ export class SpeedDatingWebSocketHandler {
       // If mutual, notify the other user
       if (result.mutual && result.match) {
         // Find the other user's socket
-        const sockets = await this.io.of('/speed-dating').in(`event:${data.eventId}`).fetchSockets();
+        const sockets = await this.io
+          .of('/speed-dating')
+          .in(`event:${data.eventId}`)
+          .fetchSockets();
         for (const s of sockets) {
           const userData = this.socketToUser.get(s.id);
           if (userData && userData.userId === data.targetUserId) {
@@ -345,13 +357,16 @@ export class SpeedDatingWebSocketHandler {
     const pairings = await speedDatingRepository.getRoundPairings(eventId, event.currentRound);
 
     // Notify all participants in the event
-    this.io.of('/speed-dating').to(`event:${eventId}`).emit('round_started', {
-      roundNumber: event.currentRound,
-      totalRounds: event.totalRounds,
-      duration: event.roundDuration,
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + event.roundDuration * 1000).toISOString(),
-    });
+    this.io
+      .of('/speed-dating')
+      .to(`event:${eventId}`)
+      .emit('round_started', {
+        roundNumber: event.currentRound,
+        totalRounds: event.totalRounds,
+        duration: event.roundDuration,
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + event.roundDuration * 1000).toISOString(),
+      });
 
     // Send individual pairing info to each participant
     const sockets = await this.io.of('/speed-dating').in(`event:${eventId}`).fetchSockets();
@@ -399,12 +414,15 @@ export class SpeedDatingWebSocketHandler {
     // End the round in the service
     await speedDatingService.endRound(eventId);
 
-    this.io.of('/speed-dating').to(`event:${eventId}`).emit('round_ended', {
-      roundNumber: event.currentRound,
-      message: 'Round complete! Time to decide if you are interested.',
-      breakDuration: event.breakDuration,
-      nextRound: event.currentRound < event.totalRounds ? event.currentRound + 1 : null,
-    });
+    this.io
+      .of('/speed-dating')
+      .to(`event:${eventId}`)
+      .emit('round_ended', {
+        roundNumber: event.currentRound,
+        message: 'Round complete! Time to decide if you are interested.',
+        breakDuration: event.breakDuration,
+        nextRound: event.currentRound < event.totalRounds ? event.currentRound + 1 : null,
+      });
 
     // Schedule next round or event completion
     if (event.currentRound < event.totalRounds) {
@@ -475,9 +493,12 @@ export class SpeedDatingWebSocketHandler {
     const countdownIntervals = [60, 30, 10, 5, 4, 3, 2, 1];
     for (const seconds of countdownIntervals) {
       if (seconds < durationSeconds) {
-        setTimeout(() => {
-          this.sendCountdown(eventId, seconds, 'round');
-        }, (durationSeconds - seconds) * 1000);
+        setTimeout(
+          () => {
+            this.sendCountdown(eventId, seconds, 'round');
+          },
+          (durationSeconds - seconds) * 1000
+        );
       }
     }
 
@@ -495,9 +516,12 @@ export class SpeedDatingWebSocketHandler {
     const countdownIntervals = [30, 10, 5, 4, 3, 2, 1];
     for (const seconds of countdownIntervals) {
       if (seconds < breakDurationSeconds) {
-        setTimeout(() => {
-          this.sendCountdown(eventId, seconds, 'break');
-        }, (breakDurationSeconds - seconds) * 1000);
+        setTimeout(
+          () => {
+            this.sendCountdown(eventId, seconds, 'break');
+          },
+          (breakDurationSeconds - seconds) * 1000
+        );
       }
     }
 

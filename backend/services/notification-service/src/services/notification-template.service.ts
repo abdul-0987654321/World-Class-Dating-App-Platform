@@ -4,8 +4,8 @@
  */
 
 import { db } from '../config/database';
-import logger from '../utils/logger';
 import { NotificationType } from '../types';
+import logger from '../utils/logger';
 
 export interface NotificationTemplate {
   id: string;
@@ -47,7 +47,7 @@ export class NotificationTemplateService {
         type: NotificationType.NEW_MATCH,
         language: 'en',
         title: "It's a Match!",
-        body: "You and {{matchUserName}} liked each other!",
+        body: 'You and {{matchUserName}} liked each other!',
         category: 'social',
         actionUrl: '/chat/{{matchUserId}}',
         variables: ['matchUserName', 'matchUserId'],
@@ -224,7 +224,7 @@ export class NotificationTemplateService {
 
       // Check cache
       if (this.templateCache.has(cacheKey)) {
-        return this.templateCache.get(cacheKey)!;
+        return this.templateCache.get(cacheKey);
       }
 
       // Try to get template for specified language
@@ -253,12 +253,12 @@ export class NotificationTemplateService {
         category: template.category,
         imageUrl: template.image_url,
         actionUrl: template.action_url,
-        variables: typeof template.variables === 'string'
-          ? JSON.parse(template.variables)
-          : template.variables,
-        metadata: typeof template.metadata === 'string'
-          ? JSON.parse(template.metadata)
-          : template.metadata,
+        variables:
+          typeof template.variables === 'string'
+            ? JSON.parse(template.variables)
+            : template.variables,
+        metadata:
+          typeof template.metadata === 'string' ? JSON.parse(template.metadata) : template.metadata,
         isActive: template.is_active,
         createdAt: template.created_at,
         updatedAt: template.updated_at,
@@ -310,7 +310,7 @@ export class NotificationTemplateService {
       let subtitle = template.subtitle;
       let actionUrl = template.actionUrl;
 
-      Object.keys(options.variables).forEach(key => {
+      Object.keys(options.variables).forEach((key) => {
         const value = options.variables[key];
         const regex = new RegExp(`{{${key}}}`, 'g');
 
@@ -441,7 +441,7 @@ export class NotificationTemplateService {
 
       const templates = await query.orderBy('type', 'asc').orderBy('language', 'asc');
 
-      return templates.map(t => ({
+      return templates.map((t) => ({
         id: t.id,
         type: t.type,
         language: t.language,

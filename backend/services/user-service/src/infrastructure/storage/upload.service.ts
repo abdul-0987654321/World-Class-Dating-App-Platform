@@ -1,7 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
-import { s3Storage } from './s3-storage.config';
+import { v4 as uuidv4 } from 'uuid';
+
 import { imageProcessor, ProcessedImage } from './image-processor';
+import { s3Storage } from './s3-storage.config';
 
 const logger = createLogger('upload-service');
 
@@ -52,10 +53,7 @@ class UploadService {
   /**
    * Upload a photo with processing and multiple sizes
    */
-  async uploadPhoto(
-    file: Express.Multer.File,
-    userId: string
-  ): Promise<UploadResult> {
+  async uploadPhoto(file: Express.Multer.File, userId: string): Promise<UploadResult> {
     try {
       // Validate file
       const validation = this.validateFile(file);
@@ -75,9 +73,7 @@ class UploadService {
       const baseFileName = `${userId}/${photoId}-${timestamp}`;
 
       // Process image into multiple sizes
-      const { thumbnail, medium, large } = await imageProcessor.createMultipleSizes(
-        file.buffer
-      );
+      const { thumbnail, medium, large } = await imageProcessor.createMultipleSizes(file.buffer);
 
       // Upload all versions to S3
       const [largeUrl, mediumUrl, thumbnailUrl] = await Promise.all([
@@ -105,10 +101,7 @@ class UploadService {
   /**
    * Upload a single processed image
    */
-  private async uploadProcessedImage(
-    fileName: string,
-    image: ProcessedImage
-  ): Promise<string> {
+  private async uploadProcessedImage(fileName: string, image: ProcessedImage): Promise<string> {
     const contentType = `image/${image.format}`;
     return await s3Storage.uploadFile(fileName, image.buffer, contentType);
   }

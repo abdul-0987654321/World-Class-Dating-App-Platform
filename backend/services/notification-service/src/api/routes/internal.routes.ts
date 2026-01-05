@@ -1,7 +1,8 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Router, Request, Response } from 'express';
+
 import { authenticateService } from '../../middleware/service-auth.middleware';
 import { NotificationService } from '../../services/notification.service';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('internal-routes');
 

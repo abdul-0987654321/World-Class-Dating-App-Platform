@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { MessagingService } from '../../domain/services/messaging.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class MessagingController {
   private messagingService: MessagingService;
@@ -15,15 +16,11 @@ export class MessagingController {
    */
   async getConversations(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
-      const conversations = await this.messagingService.getUserConversations(
-        userId,
-        limit,
-        offset
-      );
+      const conversations = await this.messagingService.getUserConversations(userId, limit, offset);
 
       return res.status(200).json({
         success: true,
@@ -43,13 +40,10 @@ export class MessagingController {
    */
   async getOrCreateConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { otherUserId } = req.params;
 
-      const conversation = await this.messagingService.getOrCreateConversation(
-        userId,
-        otherUserId
-      );
+      const conversation = await this.messagingService.getOrCreateConversation(userId, otherUserId);
 
       return res.status(200).json({
         success: true,
@@ -69,7 +63,7 @@ export class MessagingController {
    */
   async getMessages(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
@@ -99,7 +93,7 @@ export class MessagingController {
    */
   async sendMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { receiver_id, content } = req.body;
 
       if (!receiver_id || !content) {
@@ -133,7 +127,7 @@ export class MessagingController {
    */
   async markAsRead(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       await this.messagingService.markConversationAsRead(conversationId, userId);
@@ -156,7 +150,7 @@ export class MessagingController {
    */
   async getUnreadCount(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const unreadCount = await this.messagingService.getTotalUnreadCount(userId);
 
       return res.status(200).json({
@@ -177,7 +171,7 @@ export class MessagingController {
    */
   async deleteConversation(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       await this.messagingService.deleteConversation(conversationId, userId);

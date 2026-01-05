@@ -51,10 +51,7 @@ export class EncryptionService {
     });
 
     // In production, this should be signed with the identity key
-    const signature = crypto
-      .createHash('sha256')
-      .update(publicKey)
-      .digest('base64');
+    const signature = crypto.createHash('sha256').update(publicKey).digest('base64');
 
     return {
       keyId,
@@ -93,10 +90,7 @@ export class EncryptionService {
   /**
    * Perform Diffie-Hellman key exchange
    */
-  async performDH(
-    privateKey: string,
-    publicKey: string
-  ): Promise<Buffer> {
+  async performDH(privateKey: string, publicKey: string): Promise<Buffer> {
     const privateKeyObj = crypto.createPrivateKey(privateKey);
     const publicKeyObj = crypto.createPublicKey(publicKey);
 
@@ -109,19 +103,11 @@ export class EncryptionService {
   /**
    * Derive a root key from multiple DH outputs (X3DH)
    */
-  async deriveRootKey(
-    dhOutputs: Buffer[]
-  ): Promise<Buffer> {
+  async deriveRootKey(dhOutputs: Buffer[]): Promise<Buffer> {
     const concatenated = Buffer.concat(dhOutputs);
     const salt = await randomBytes(this.SALT_LENGTH);
 
-    return pbkdf2(
-      concatenated,
-      salt,
-      this.ITERATIONS,
-      this.KEY_LENGTH,
-      'sha256'
-    );
+    return pbkdf2(concatenated, salt, this.ITERATIONS, this.KEY_LENGTH, 'sha256');
   }
 
   /**
@@ -138,10 +124,7 @@ export class EncryptionService {
     const salt = rootKey;
 
     // HKDF
-    const prk = crypto
-      .createHmac('sha256', salt)
-      .update(dhOutput)
-      .digest();
+    const prk = crypto.createHmac('sha256', salt).update(dhOutput).digest();
 
     const okm1 = crypto
       .createHmac('sha256', prk)
@@ -213,11 +196,7 @@ export class EncryptionService {
     iv: string,
     authTag: string
   ): Promise<string> {
-    const decipher = crypto.createDecipheriv(
-      this.ALGORITHM,
-      messageKey,
-      Buffer.from(iv, 'base64')
-    );
+    const decipher = crypto.createDecipheriv(this.ALGORITHM, messageKey, Buffer.from(iv, 'base64'));
 
     decipher.setAuthTag(Buffer.from(authTag, 'base64'));
 
@@ -292,10 +271,7 @@ export class EncryptionService {
   /**
    * Generate message authentication signature
    */
-  async signMessage(
-    message: string,
-    privateKey: string
-  ): Promise<string> {
+  async signMessage(message: string, privateKey: string): Promise<string> {
     const sign = crypto.createSign('SHA256');
     sign.update(message);
     sign.end();

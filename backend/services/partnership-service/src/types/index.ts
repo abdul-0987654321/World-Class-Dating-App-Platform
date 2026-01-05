@@ -4,7 +4,13 @@
 
 export type PartnerType = 'restaurant' | 'events' | 'gifts' | 'experiences';
 export type PartnerStatus = 'active' | 'inactive' | 'pending' | 'suspended';
-export type IntegrationType = 'opentable' | 'resy' | 'ticketmaster' | 'eventbrite' | 'flowers' | 'custom';
+export type IntegrationType =
+  | 'opentable'
+  | 'resy'
+  | 'ticketmaster'
+  | 'eventbrite'
+  | 'flowers'
+  | 'custom';
 
 export interface Partner {
   id: string;
@@ -192,13 +198,7 @@ export interface Ticket {
 
 // ==================== Gift Types ====================
 
-export type GiftCategory =
-  | 'flowers'
-  | 'chocolates'
-  | 'wine'
-  | 'jewelry'
-  | 'experiences'
-  | 'custom';
+export type GiftCategory = 'flowers' | 'chocolates' | 'wine' | 'jewelry' | 'experiences' | 'custom';
 
 export type GiftOrderStatus =
   | 'pending'

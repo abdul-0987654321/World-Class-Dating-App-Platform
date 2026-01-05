@@ -23,8 +23,17 @@ export const encrypt = (text: string, secretKey: string): string => {
 
 export const decrypt = (encryptedText: string, secretKey: string): string => {
   const salt = Buffer.from(encryptedText.slice(0, SALT_LENGTH * 2), 'hex');
-  const iv = Buffer.from(encryptedText.slice(SALT_LENGTH * 2, SALT_LENGTH * 2 + IV_LENGTH * 2), 'hex');
-  const tag = Buffer.from(encryptedText.slice(SALT_LENGTH * 2 + IV_LENGTH * 2, SALT_LENGTH * 2 + IV_LENGTH * 2 + TAG_LENGTH * 2), 'hex');
+  const iv = Buffer.from(
+    encryptedText.slice(SALT_LENGTH * 2, SALT_LENGTH * 2 + IV_LENGTH * 2),
+    'hex'
+  );
+  const tag = Buffer.from(
+    encryptedText.slice(
+      SALT_LENGTH * 2 + IV_LENGTH * 2,
+      SALT_LENGTH * 2 + IV_LENGTH * 2 + TAG_LENGTH * 2
+    ),
+    'hex'
+  );
   const encrypted = encryptedText.slice(SALT_LENGTH * 2 + IV_LENGTH * 2 + TAG_LENGTH * 2);
 
   const key = crypto.pbkdf2Sync(secretKey, salt, ITERATIONS, KEY_LENGTH, 'sha512');
@@ -44,7 +53,10 @@ export const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, saltRounds);
 };
 
-export const comparePassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+export const comparePassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   const bcrypt = require('bcrypt');
   return await bcrypt.compare(password, hashedPassword);
 };

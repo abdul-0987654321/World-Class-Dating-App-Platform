@@ -1,9 +1,11 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { v4 as uuidv4 } from 'uuid';
-import audioProcessingService from './audio-processing.service';
+
 import azureStorageService from '../../infrastructure/storage/azure-storage.service';
 import { UploadedFile, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 import voiceNoteRepository from '../repositories/voice-note.repository';
+
+import audioProcessingService from './audio-processing.service';
 
 const logger = createLogger('voice-note-service');
 
@@ -207,7 +209,7 @@ export class VoiceNoteService {
     try {
       logger.info(`Retrieving profile voice for user: ${userId}`);
       const voiceNotes = await voiceNoteRepository.findByUserIdAndContext(userId, 'profile');
-      return voiceNotes.find(v => v.moderationStatus === ModerationStatus.APPROVED) || null;
+      return voiceNotes.find((v) => v.moderationStatus === ModerationStatus.APPROVED) || null;
     } catch (error) {
       logger.error('Failed to retrieve profile voice', error);
       throw error;

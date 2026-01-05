@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
+
+import { ExecutionStatus, TriggerType } from '../interfaces/workflow.interface';
 import { WorkflowExecution } from '../models/workflow-execution.entity';
 import { Workflow } from '../models/workflow.entity';
-import { ExecutionStatus, TriggerType } from '../interfaces/workflow.interface';
 
 export interface AnalyticsReport {
   totalExecutions: number;
@@ -40,7 +41,7 @@ export class AnalyticsService {
     @InjectRepository(WorkflowExecution)
     private readonly executionRepository: Repository<WorkflowExecution>,
     @InjectRepository(Workflow)
-    private readonly workflowRepository: Repository<Workflow>,
+    private readonly workflowRepository: Repository<Workflow>
   ) {}
 
   /**
@@ -56,11 +57,9 @@ export class AnalyticsService {
 
     const totalExecutions = executions.length;
     const successfulExecutions = executions.filter(
-      (e) => e.status === ExecutionStatus.COMPLETED,
+      (e) => e.status === ExecutionStatus.COMPLETED
     ).length;
-    const failedExecutions = executions.filter(
-      (e) => e.status === ExecutionStatus.FAILED,
-    ).length;
+    const failedExecutions = executions.filter((e) => e.status === ExecutionStatus.FAILED).length;
     const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
 
     // Calculate average execution time
@@ -108,7 +107,11 @@ export class AnalyticsService {
   /**
    * Get funnel metrics for a specific workflow
    */
-  async getFunnelMetrics(workflowId: string, startDate: Date, endDate: Date): Promise<FunnelMetrics> {
+  async getFunnelMetrics(
+    workflowId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<FunnelMetrics> {
     const workflow = await this.workflowRepository.findOne({
       where: { id: workflowId },
     });
@@ -126,10 +129,13 @@ export class AnalyticsService {
 
     const totalUsers = new Set(executions.map((e) => e.userId).filter(Boolean)).size;
     const conditionsPassed = executions.filter((e) => e.conditionsEvaluated).length;
-    const actionsCompleted = executions.filter((e) => e.status === ExecutionStatus.COMPLETED).length;
+    const actionsCompleted = executions.filter(
+      (e) => e.status === ExecutionStatus.COMPLETED
+    ).length;
 
     const conditionsPassedRate = totalUsers > 0 ? (conditionsPassed / totalUsers) * 100 : 0;
-    const actionsCompletedRate = conditionsPassed > 0 ? (actionsCompleted / conditionsPassed) * 100 : 0;
+    const actionsCompletedRate =
+      conditionsPassed > 0 ? (actionsCompleted / conditionsPassed) * 100 : 0;
     const conversionRate = totalUsers > 0 ? (actionsCompleted / totalUsers) * 100 : 0;
 
     return {
@@ -165,7 +171,7 @@ export class AnalyticsService {
 
     const totalExecutions = executions.length;
     const successfulExecutions = executions.filter(
-      (e) => e.status === ExecutionStatus.COMPLETED,
+      (e) => e.status === ExecutionStatus.COMPLETED
     ).length;
     const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
 
@@ -194,7 +200,11 @@ export class AnalyticsService {
   /**
    * Get trigger analytics
    */
-  async getTriggerAnalytics(triggerType: TriggerType, startDate: Date, endDate: Date): Promise<{
+  async getTriggerAnalytics(
+    triggerType: TriggerType,
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     totalExecutions: number;
     uniqueUsers: number;
     successRate: number;
@@ -227,7 +237,7 @@ export class AnalyticsService {
     const totalExecutions = executions.length;
     const uniqueUsers = new Set(executions.map((e) => e.userId).filter(Boolean)).size;
     const successfulExecutions = executions.filter(
-      (e) => e.status === ExecutionStatus.COMPLETED,
+      (e) => e.status === ExecutionStatus.COMPLETED
     ).length;
     const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
 
@@ -272,7 +282,7 @@ export class AnalyticsService {
   private groupExecutionsByDay(
     executions: WorkflowExecution[],
     startDate: Date,
-    endDate: Date,
+    endDate: Date
   ): Array<{ date: string; count: number }> {
     const dayMap = new Map<string, number>();
 
@@ -301,7 +311,7 @@ export class AnalyticsService {
   private async getTopWorkflows(
     startDate: Date,
     endDate: Date,
-    limit: number = 10,
+    limit: number = 10
   ): Promise<
     Array<{
       workflowId: string;
@@ -316,7 +326,7 @@ export class AnalyticsService {
       .addSelect('COUNT(*)', 'executions')
       .addSelect(
         `SUM(CASE WHEN execution.status = '${ExecutionStatus.COMPLETED}' THEN 1 ELSE 0 END)`,
-        'successful',
+        'successful'
       )
       .where('execution.createdAt BETWEEN :startDate AND :endDate', {
         startDate,

@@ -4,7 +4,7 @@
  */
 
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import {
   DatePlanningService,
   CreateDatePlanDto,
@@ -13,6 +13,7 @@ import {
   SearchVenuesDto,
 } from '../../domain/services/date-planning.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 import {
   searchVenuesSchema,
   datePreferencesSchema,
@@ -36,12 +37,10 @@ export class DatePlanningController {
    */
   async getSuggestions(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       // Validate query params
-      const { error: queryError, value: queryParams } = suggestionsQuerySchema.validate(
-        req.query
-      );
+      const { error: queryError, value: queryParams } = suggestionsQuerySchema.validate(req.query);
       if (queryError) {
         return res.status(400).json({
           success: false,
@@ -144,7 +143,7 @@ export class DatePlanningController {
    */
   async createDatePlan(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const { error, value } = createDatePlanSchema.validate(req.body);
       if (error) {
@@ -180,7 +179,7 @@ export class DatePlanningController {
    */
   async getDatePlans(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const { error, value } = listDatePlansSchema.validate(req.query);
       if (error) {
@@ -211,7 +210,7 @@ export class DatePlanningController {
    */
   async getDatePlanById(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const datePlan = await this.datePlanningService.getDatePlanWithVenues(userId, id);
@@ -243,7 +242,7 @@ export class DatePlanningController {
    */
   async updateDatePlan(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const { error, value } = updateDatePlanSchema.validate(req.body);
@@ -266,8 +265,8 @@ export class DatePlanningController {
       const status = error.message.includes('not found')
         ? 404
         : error.message.includes('Access denied')
-        ? 403
-        : 400;
+          ? 403
+          : 400;
       return res.status(status).json({
         success: false,
         message: error.message || 'Failed to update date plan',
@@ -281,7 +280,7 @@ export class DatePlanningController {
    */
   async deleteDatePlan(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       await this.datePlanningService.deleteDatePlan(userId, id);
@@ -295,8 +294,8 @@ export class DatePlanningController {
       const status = error.message.includes('not found')
         ? 404
         : error.message.includes('Access denied')
-        ? 403
-        : 500;
+          ? 403
+          : 500;
       return res.status(status).json({
         success: false,
         message: error.message || 'Failed to delete date plan',
@@ -310,7 +309,7 @@ export class DatePlanningController {
    */
   async sharePlanWithMatch(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       await this.datePlanningService.sharePlanWithMatch(userId, id);
@@ -324,8 +323,8 @@ export class DatePlanningController {
       const status = error.message.includes('not found')
         ? 404
         : error.message.includes('Access denied')
-        ? 403
-        : 400;
+          ? 403
+          : 400;
       return res.status(status).json({
         success: false,
         message: error.message || 'Failed to share date plan',
@@ -339,7 +338,7 @@ export class DatePlanningController {
    */
   async completeDatePlan(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const { error, value } = completeDatePlanSchema.validate(req.body);
@@ -361,8 +360,8 @@ export class DatePlanningController {
       const status = error.message.includes('not found')
         ? 404
         : error.message.includes('Access denied')
-        ? 403
-        : 400;
+          ? 403
+          : 400;
       return res.status(status).json({
         success: false,
         message: error.message || 'Failed to complete date plan',

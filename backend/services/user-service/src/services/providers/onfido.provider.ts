@@ -9,7 +9,18 @@
  */
 
 import * as crypto from 'crypto';
-import logger from '../../utils/logger';
+
+import {
+  IBackgroundCheckProvider,
+  BackgroundCheckTier,
+  BackgroundCheckResult,
+  BackgroundCheckStatus,
+  WatchlistResult,
+  WatchlistDetails,
+  WatchlistMatch,
+  BackgroundFlag,
+  BACKGROUND_CHECK_TIER_CONFIG,
+} from '../../types/background-check.types';
 import {
   IIDVerificationProvider,
   VerificationProvider,
@@ -24,17 +35,7 @@ import {
   DocumentDetails,
   ExtractedIDData,
 } from '../../types/id-verification-provider.types';
-import {
-  IBackgroundCheckProvider,
-  BackgroundCheckTier,
-  BackgroundCheckResult,
-  BackgroundCheckStatus,
-  WatchlistResult,
-  WatchlistDetails,
-  WatchlistMatch,
-  BackgroundFlag,
-  BACKGROUND_CHECK_TIER_CONFIG,
-} from '../../types/background-check.types';
+import logger from '../../utils/logger';
 
 // Onfido API response types
 interface OnfidoApplicant {
@@ -127,7 +128,9 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
   /**
    * Initiate an ID verification session with Onfido
    */
-  async initiateVerification(request: InitiateIDVerificationRequest): Promise<InitiateIDVerificationResponse> {
+  async initiateVerification(
+    request: InitiateIDVerificationRequest
+  ): Promise<InitiateIDVerificationResponse> {
     try {
       // Step 1: Create an applicant
       const applicant = await this.createApplicant(request.user_id);
@@ -173,7 +176,10 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
   /**
    * Process webhook callback from Onfido
    */
-  async processWebhook(payload: Record<string, any>, headers: Record<string, string>): Promise<IDVerificationResult> {
+  async processWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<IDVerificationResult> {
     const webhookPayload = payload as OnfidoWebhookPayload;
     const resourceType = webhookPayload.payload.resource_type;
     const action = webhookPayload.payload.action;
@@ -269,10 +275,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
         .update(payload)
         .digest('hex');
 
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature)
-      );
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
     } catch (error) {
       logger.error('Onfido webhook signature validation failed', { error });
       return false;
@@ -355,7 +358,9 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
       face_match: this.mapFaceResult(output.facial_similarity_result),
       document_type: this.mapOnfidoDocumentType(output.document_type),
       confidence_score: this.calculateOnfidoConfidenceScore(output),
-      completed_at: workflowRun.completed_at_iso8601 ? new Date(workflowRun.completed_at_iso8601) : undefined,
+      completed_at: workflowRun.completed_at_iso8601
+        ? new Date(workflowRun.completed_at_iso8601)
+        : undefined,
       raw_response: workflowRun,
     };
   }
@@ -375,28 +380,32 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     }
 
     // Find document and facial similarity reports
-    const documentReport = reports.find(r => r.name === 'document');
-    const facialReport = reports.find(r =>
-      r.name === 'facial_similarity_photo' || r.name === 'facial_similarity_motion'
+    const documentReport = reports.find((r) => r.name === 'document');
+    const facialReport = reports.find(
+      (r) => r.name === 'facial_similarity_photo' || r.name === 'facial_similarity_motion'
     );
 
     // Extract document details
-    const documentDetails: DocumentDetails | undefined = documentReport?.properties ? {
-      document_number: documentReport.properties.document_number,
-      issuing_country: documentReport.properties.issuing_country,
-      expiry_date: documentReport.properties.date_of_expiry,
-      mrz_line1: documentReport.properties.mrz_line1,
-      mrz_line2: documentReport.properties.mrz_line2,
-    } : undefined;
+    const documentDetails: DocumentDetails | undefined = documentReport?.properties
+      ? {
+          document_number: documentReport.properties.document_number,
+          issuing_country: documentReport.properties.issuing_country,
+          expiry_date: documentReport.properties.date_of_expiry,
+          mrz_line1: documentReport.properties.mrz_line1,
+          mrz_line2: documentReport.properties.mrz_line2,
+        }
+      : undefined;
 
     // Extract personal data
-    const extractedData: ExtractedIDData | undefined = documentReport?.properties ? {
-      first_name: documentReport.properties.first_name,
-      last_name: documentReport.properties.last_name,
-      date_of_birth: documentReport.properties.date_of_birth,
-      gender: documentReport.properties.gender,
-      nationality: documentReport.properties.nationality,
-    } : undefined;
+    const extractedData: ExtractedIDData | undefined = documentReport?.properties
+      ? {
+          first_name: documentReport.properties.first_name,
+          last_name: documentReport.properties.last_name,
+          date_of_birth: documentReport.properties.date_of_birth,
+          gender: documentReport.properties.gender,
+          nationality: documentReport.properties.nationality,
+        }
+      : undefined;
 
     return {
       verification_id: checkId,
@@ -426,9 +435,9 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     const url = `${this.config.base_url}${path}`;
 
     const headers: Record<string, string> = {
-      'Authorization': `Token token=${this.config.api_token}`,
+      Authorization: `Token token=${this.config.api_token}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     };
 
     const options: RequestInit = {
@@ -457,7 +466,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
         throw error;
       }
 
-      return await response.json() as T;
+      return (await response.json()) as T;
     } catch (error: any) {
       if (error.code) {
         throw error;
@@ -471,13 +480,13 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    */
   private mapWorkflowStatus(status: string): IDVerificationStatus {
     const mapping: Record<string, IDVerificationStatus> = {
-      'processing': 'processing',
-      'awaiting_input': 'pending',
-      'approved': 'approved',
-      'declined': 'declined',
-      'review': 'processing',
-      'abandoned': 'expired',
-      'error': 'error',
+      processing: 'processing',
+      awaiting_input: 'pending',
+      approved: 'approved',
+      declined: 'declined',
+      review: 'processing',
+      abandoned: 'expired',
+      error: 'error',
     };
     return mapping[status] || 'processing';
   }
@@ -506,9 +515,9 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     if (!result) return 'not_performed';
 
     const mapping: Record<string, DocumentCheckResult> = {
-      'clear': 'clear',
-      'consider': 'consider',
-      'unidentified': 'rejected',
+      clear: 'clear',
+      consider: 'consider',
+      unidentified: 'rejected',
     };
     return mapping[result] || 'consider';
   }
@@ -520,8 +529,8 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     if (!result) return 'not_performed';
 
     const mapping: Record<string, FaceMatchResult> = {
-      'clear': 'match',
-      'consider': 'no_match',
+      clear: 'match',
+      consider: 'no_match',
     };
     return mapping[result] || 'error';
   }
@@ -533,11 +542,11 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     if (!onfidoType) return 'passport';
 
     const mapping: Record<string, IDDocumentType> = {
-      'passport': 'passport',
-      'driving_licence': 'drivers_license',
-      'national_identity_card': 'national_id',
-      'residence_permit': 'national_id',
-      'visa': 'passport',
+      passport: 'passport',
+      driving_licence: 'drivers_license',
+      national_identity_card: 'national_id',
+      residence_permit: 'national_id',
+      visa: 'passport',
     };
     return mapping[onfidoType.toLowerCase()] || 'passport';
   }
@@ -546,14 +555,11 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    * Calculate confidence score from workflow output
    */
   private calculateOnfidoConfidenceScore(output: Record<string, any>): number {
-    const results = [
-      output.document_result,
-      output.facial_similarity_result,
-    ].filter(Boolean);
+    const results = [output.document_result, output.facial_similarity_result].filter(Boolean);
 
     if (results.length === 0) return 0;
 
-    const clearCount = results.filter(r => r === 'clear').length;
+    const clearCount = results.filter((r) => r === 'clear').length;
     return clearCount / results.length;
   }
 
@@ -561,11 +567,11 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    * Calculate confidence score from reports
    */
   private calculateReportConfidenceScore(reports: OnfidoReport[]): number {
-    const completedReports = reports.filter(r => r.status === 'complete' && r.result);
+    const completedReports = reports.filter((r) => r.status === 'complete' && r.result);
 
     if (completedReports.length === 0) return 0;
 
-    const clearCount = completedReports.filter(r => r.result === 'clear').length;
+    const clearCount = completedReports.filter((r) => r.result === 'clear').length;
     return clearCount / completedReports.length;
   }
 
@@ -708,12 +714,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
 
       case 'comprehensive':
         // Full screening with all available checks
-        return [
-          ...baseReports,
-          'watchlist_full',
-          'right_to_work',
-          'known_faces',
-        ];
+        return [...baseReports, 'watchlist_full', 'right_to_work', 'known_faces'];
 
       default:
         return [...baseReports, 'watchlist_standard'];
@@ -728,17 +729,18 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     reports: OnfidoReport[]
   ): BackgroundCheckResult {
     // Find watchlist report
-    const watchlistReport = reports.find(r =>
-      r.name.includes('watchlist') ||
-      r.name === 'watchlist_standard' ||
-      r.name === 'watchlist_enhanced' ||
-      r.name === 'watchlist_full'
+    const watchlistReport = reports.find(
+      (r) =>
+        r.name.includes('watchlist') ||
+        r.name === 'watchlist_standard' ||
+        r.name === 'watchlist_enhanced' ||
+        r.name === 'watchlist_full'
     );
 
     // Find identity/document report
-    const documentReport = reports.find(r => r.name === 'document');
-    const faceReport = reports.find(r =>
-      r.name === 'facial_similarity_photo' || r.name === 'facial_similarity_motion'
+    const documentReport = reports.find((r) => r.name === 'document');
+    const faceReport = reports.find(
+      (r) => r.name === 'facial_similarity_photo' || r.name === 'facial_similarity_motion'
     );
 
     // Map status
@@ -757,7 +759,9 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
     const flags = this.extractBackgroundFlags(reports);
 
     // Determine checks performed
-    const checksPerformed = reports.map(r => this.mapReportNameToCheckType(r.name)).filter(Boolean) as any[];
+    const checksPerformed = reports
+      .map((r) => this.mapReportNameToCheckType(r.name))
+      .filter(Boolean) as any[];
 
     // Calculate overall score
     const overallScore = this.calculateBackgroundScore(reports);
@@ -831,7 +835,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
       screenedLists.push(listName);
 
       if (listData && typeof listData === 'object') {
-        const data = listData as any;
+        const data = listData;
         if (data.result === 'consider' || data.result === 'unidentified') {
           matches.push({
             list_name: listName,
@@ -848,7 +852,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
       screened_lists: screenedLists,
       potential_matches: matches,
       match_count: matches.length,
-      high_risk_matches: matches.filter(m => m.match_score >= 0.8).length,
+      high_risk_matches: matches.filter((m) => m.match_score >= 0.8).length,
     };
   }
 
@@ -874,7 +878,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
       if (report.result === 'consider' && report.breakdown) {
         for (const [key, value] of Object.entries(report.breakdown)) {
           if (value && typeof value === 'object') {
-            const data = value as any;
+            const data = value;
             if (data.result === 'consider' || data.result === 'unidentified') {
               flags.push({
                 type: key,
@@ -907,14 +911,14 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    */
   private mapReportNameToCheckType(reportName: string): string | null {
     const mapping: Record<string, string> = {
-      'document': 'identity',
-      'facial_similarity_photo': 'identity',
-      'facial_similarity_motion': 'identity',
-      'watchlist_standard': 'watchlist',
-      'watchlist_enhanced': 'watchlist',
-      'watchlist_full': 'global_watchlist',
-      'right_to_work': 'identity',
-      'known_faces': 'identity',
+      document: 'identity',
+      facial_similarity_photo: 'identity',
+      facial_similarity_motion: 'identity',
+      watchlist_standard: 'watchlist',
+      watchlist_enhanced: 'watchlist',
+      watchlist_full: 'global_watchlist',
+      right_to_work: 'identity',
+      known_faces: 'identity',
     };
     return mapping[reportName] || null;
   }
@@ -923,7 +927,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    * Calculate overall background score
    */
   private calculateBackgroundScore(reports: OnfidoReport[]): number {
-    const completed = reports.filter(r => r.status === 'complete' && r.result);
+    const completed = reports.filter((r) => r.status === 'complete' && r.result);
     if (completed.length === 0) return 0;
 
     let score = 0;
@@ -939,7 +943,7 @@ export class OnfidoProvider implements IIDVerificationProvider, IBackgroundCheck
    * Determine tier from reports performed
    */
   private determineTierFromReports(reports: OnfidoReport[]): BackgroundCheckTier {
-    const reportNames = reports.map(r => r.name);
+    const reportNames = reports.map((r) => r.name);
 
     if (reportNames.includes('watchlist_full') || reportNames.length >= 5) {
       return 'comprehensive';

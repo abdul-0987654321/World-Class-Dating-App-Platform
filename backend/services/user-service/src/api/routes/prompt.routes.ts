@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { PromptController } from '../controllers/prompt.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -104,7 +105,11 @@ router.post('/user', authenticate, promptController.addUserPrompt.bind(promptCon
  *       401:
  *         description: Unauthorized
  */
-router.put('/user/:promptId', authenticate, promptController.updateUserPrompt.bind(promptController));
+router.put(
+  '/user/:promptId',
+  authenticate,
+  promptController.updateUserPrompt.bind(promptController)
+);
 
 /**
  * @swagger
@@ -128,6 +133,10 @@ router.put('/user/:promptId', authenticate, promptController.updateUserPrompt.bi
  *       401:
  *         description: Unauthorized
  */
-router.delete('/user/:promptId', authenticate, promptController.deleteUserPrompt.bind(promptController));
+router.delete(
+  '/user/:promptId',
+  authenticate,
+  promptController.deleteUserPrompt.bind(promptController)
+);
 
 export default router;

@@ -125,10 +125,7 @@ export function canShareDatePlan(datePlan: DatePlan): boolean {
  * Check if date plan can be completed
  */
 export function canCompleteDatePlan(datePlan: DatePlan): boolean {
-  return (
-    datePlan.status === DATE_PLAN_STATUS.CONFIRMED &&
-    new Date(datePlan.date) <= new Date()
-  );
+  return datePlan.status === DATE_PLAN_STATUS.CONFIRMED && new Date(datePlan.date) <= new Date();
 }
 
 /**

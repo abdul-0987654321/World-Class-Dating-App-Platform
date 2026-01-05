@@ -3,11 +3,10 @@
  * Handles database operations for groups and group matching
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
 import db from '../../infrastructure/database/connection';
-import { Group } from '../entities/Group.entity';
-import { GroupMember } from '../entities/GroupMember.entity';
-import { GroupMatch } from '../entities/GroupMatch.entity';
 import {
   GroupStatus,
   GroupMemberRole,
@@ -18,7 +17,9 @@ import {
   GroupActivitySuggestion,
   GroupSwipe,
 } from '../../types/group-matching.types';
-import { createLogger } from '@flamoral/backend-shared';
+import { Group } from '../entities/Group.entity';
+import { GroupMatch } from '../entities/GroupMatch.entity';
+import { GroupMember } from '../entities/GroupMember.entity';
 
 const logger = createLogger('group-repository');
 
@@ -94,7 +95,8 @@ export class GroupRepository {
       if (data.bio !== undefined) updateData.bio = data.bio;
       if (data.photos !== undefined) updateData.photos = JSON.stringify(data.photos);
       if (data.preferences !== undefined) updateData.preferences = JSON.stringify(data.preferences);
-      if (data.combinedInterests !== undefined) updateData.combined_interests = JSON.stringify(data.combinedInterests);
+      if (data.combinedInterests !== undefined)
+        updateData.combined_interests = JSON.stringify(data.combinedInterests);
       if (data.status !== undefined) updateData.status = data.status;
       if (data.memberCount !== undefined) updateData.member_count = data.memberCount;
       if (data.location !== undefined) {
@@ -129,9 +131,7 @@ export class GroupRepository {
 
   async incrementMemberCount(groupId: string): Promise<void> {
     try {
-      await this.db('groups')
-        .where({ id: groupId })
-        .increment('member_count', 1);
+      await this.db('groups').where({ id: groupId }).increment('member_count', 1);
     } catch (error) {
       logger.error('Failed to increment member count', error);
       throw error;
@@ -140,9 +140,7 @@ export class GroupRepository {
 
   async decrementMemberCount(groupId: string): Promise<void> {
     try {
-      await this.db('groups')
-        .where({ id: groupId })
-        .decrement('member_count', 1);
+      await this.db('groups').where({ id: groupId }).decrement('member_count', 1);
     } catch (error) {
       logger.error('Failed to decrement member count', error);
       throw error;
@@ -212,8 +210,10 @@ export class GroupRepository {
 
   async findPendingInvitations(userId: string): Promise<GroupMember[]> {
     try {
-      const invitations = await this.db('group_members')
-        .where({ user_id: userId, status: GroupMemberStatus.PENDING });
+      const invitations = await this.db('group_members').where({
+        user_id: userId,
+        status: GroupMemberStatus.PENDING,
+      });
       return invitations.map(this.mapToGroupMember);
     } catch (error) {
       logger.error('Failed to find pending invitations', error);
@@ -268,9 +268,7 @@ export class GroupRepository {
           .update({ role: GroupMemberRole.ADMIN });
 
         // Update group admin_id
-        await trx('groups')
-          .where({ id: groupId })
-          .update({ admin_id: newAdminId });
+        await trx('groups').where({ id: groupId }).update({ admin_id: newAdminId });
       });
     } catch (error) {
       logger.error('Failed to transfer admin', error);
@@ -323,7 +321,8 @@ export class GroupRepository {
       return (
         swipe1 !== null &&
         swipe2 !== null &&
-        (swipe1.action === GroupSwipeAction.LIKE || swipe1.action === GroupSwipeAction.SUPER_LIKE) &&
+        (swipe1.action === GroupSwipeAction.LIKE ||
+          swipe1.action === GroupSwipeAction.SUPER_LIKE) &&
         (swipe2.action === GroupSwipeAction.LIKE || swipe2.action === GroupSwipeAction.SUPER_LIKE)
       );
     } catch (error) {
@@ -348,7 +347,7 @@ export class GroupRepository {
 
   async createMatch(data: Partial<GroupMatch>): Promise<GroupMatch> {
     try {
-      const [sortedGroup1, sortedGroup2] = [data.group1Id!, data.group2Id!].sort();
+      const [sortedGroup1, sortedGroup2] = [data.group1Id, data.group2Id].sort();
 
       const [created] = await this.db('group_matches')
         .insert({
@@ -432,7 +431,10 @@ export class GroupRepository {
     }
   }
 
-  async setMatchConversationId(matchId: string, conversationId: string): Promise<GroupMatch | null> {
+  async setMatchConversationId(
+    matchId: string,
+    conversationId: string
+  ): Promise<GroupMatch | null> {
     try {
       const [updated] = await this.db('group_matches')
         .where({ id: matchId })
@@ -540,10 +542,7 @@ export class GroupRepository {
 
       if (tags && tags.length > 0) {
         // Filter by tags using JSONB containment
-        query = query.whereRaw(
-          `tags ?| array[${tags.map(() => '?').join(',')}]`,
-          tags
-        );
+        query = query.whereRaw(`tags ?| array[${tags.map(() => '?').join(',')}]`, tags);
       }
 
       const suggestions = await query.limit(limit);
@@ -581,7 +580,10 @@ export class GroupRepository {
       photos: typeof record.photos === 'string' ? JSON.parse(record.photos) : record.photos || [],
       adminId: record.admin_id,
       status: record.status,
-      preferences: typeof record.preferences === 'string' ? JSON.parse(record.preferences) : record.preferences || {},
+      preferences:
+        typeof record.preferences === 'string'
+          ? JSON.parse(record.preferences)
+          : record.preferences || {},
       combinedInterests:
         typeof record.combined_interests === 'string'
           ? JSON.parse(record.combined_interests)

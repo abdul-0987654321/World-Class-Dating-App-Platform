@@ -1,16 +1,16 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
+import { createLogger, createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@flamoral/backend-shared';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
+import iapRoutes from './api/routes/iap.routes';
+import paymentRoutes from './api/routes/payment.routes';
+import webhookRoutes from './api/routes/webhook.routes';
 import { db } from './infrastructure/database/connection';
 
 // Import routes
-import paymentRoutes from './api/routes/payment.routes';
-import webhookRoutes from './api/routes/webhook.routes';
-import iapRoutes from './api/routes/iap.routes';
 
 // Load environment variables
 dotenv.config();
@@ -45,14 +45,20 @@ const app: Application = express();
 const PORT = process.env.PORT || 3006;
 
 // Middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 // Note: Webhook routes must be mounted BEFORE express.json() middleware
 // because they need access to the raw body for signature verification
@@ -82,7 +88,7 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('Database health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'payment-service',

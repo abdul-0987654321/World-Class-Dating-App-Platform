@@ -1,6 +1,12 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
-import { RestaurantSearchParams, RestaurantAvailability, Address, OperatingHours } from '../../types';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
+import {
+  RestaurantSearchParams,
+  RestaurantAvailability,
+  Address,
+  OperatingHours,
+} from '../../types';
 
 const logger = createLogger('opentable-client');
 
@@ -58,7 +64,7 @@ export class OpenTableClient {
     this.client = axios.create({
       baseURL: process.env.OPENTABLE_API_URL || 'https://platform.opentable.com/v2',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         'X-Affiliate-ID': this.affiliateId,
       },
@@ -118,9 +124,7 @@ export class OpenTableClient {
         },
       });
 
-      return response.data.restaurants.map((r: OpenTableRestaurant) =>
-        this.transformRestaurant(r)
-      );
+      return response.data.restaurants.map((r: OpenTableRestaurant) => this.transformRestaurant(r));
     } catch (error: any) {
       logger.error('Failed to search restaurants', { error: error.message });
       throw new Error(`OpenTable search failed: ${error.message}`);
@@ -232,7 +236,10 @@ export class OpenTableClient {
       const response = await this.client.get(`/reservations/${confirmationNumber}`);
       return response.data.status;
     } catch (error: any) {
-      logger.error('Failed to get reservation status', { confirmationNumber, error: error.message });
+      logger.error('Failed to get reservation status', {
+        confirmationNumber,
+        error: error.message,
+      });
       throw new Error(`Failed to get reservation status: ${error.message}`);
     }
   }
@@ -276,8 +283,10 @@ export class OpenTableClient {
     const amenities: string[] = [];
 
     if (restaurant.parking_details) amenities.push('Parking Available');
-    if (restaurant.payment_options?.includes('credit_card')) amenities.push('Credit Cards Accepted');
-    if (restaurant.dining_style?.toLowerCase().includes('romantic')) amenities.push('Romantic Ambiance');
+    if (restaurant.payment_options?.includes('credit_card'))
+      amenities.push('Credit Cards Accepted');
+    if (restaurant.dining_style?.toLowerCase().includes('romantic'))
+      amenities.push('Romantic Ambiance');
     if (restaurant.dining_style?.toLowerCase().includes('fine')) amenities.push('Fine Dining');
 
     return amenities;

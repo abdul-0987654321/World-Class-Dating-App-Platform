@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { InterestIntentionBadgeController } from '../controllers/interestIntentionBadge.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -41,11 +42,7 @@ const badgeController = new InterestIntentionBadgeController();
  *                   items:
  *                     $ref: '#/components/schemas/InterestBadge'
  */
-router.get(
-  '/interests',
-  authenticate,
-  badgeController.getAllInterestBadges.bind(badgeController)
-);
+router.get('/interests', authenticate, badgeController.getAllInterestBadges.bind(badgeController));
 
 /**
  * @swagger
@@ -118,11 +115,7 @@ router.get(
  *       200:
  *         description: User's complete badge profile
  */
-router.get(
-  '/users/me',
-  authenticate,
-  badgeController.getUserBadgesProfile.bind(badgeController)
-);
+router.get('/users/me', authenticate, badgeController.getUserBadgesProfile.bind(badgeController));
 
 /**
  * @swagger

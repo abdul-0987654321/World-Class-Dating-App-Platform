@@ -22,7 +22,16 @@ export const spendCoinsSchema = Joi.object({
   }),
   referenceId: Joi.string().optional(),
   referenceType: Joi.string()
-    .valid('boost', 'super_like', 'rewind', 'stripe_payment', 'daily_reward', 'achievement', 'refund', 'referral')
+    .valid(
+      'boost',
+      'super_like',
+      'rewind',
+      'stripe_payment',
+      'daily_reward',
+      'achievement',
+      'refund',
+      'referral'
+    )
     .optional()
     .messages({
       'any.only': 'Invalid reference type',

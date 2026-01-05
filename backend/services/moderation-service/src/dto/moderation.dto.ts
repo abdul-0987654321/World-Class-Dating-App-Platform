@@ -18,6 +18,7 @@ import {
   MinLength,
   MaxLength,
 } from 'class-validator';
+
 import { ContentType } from '../types';
 
 /**

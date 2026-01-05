@@ -80,26 +80,28 @@ export class SpeedDatingParticipant {
   }
 
   canParticipate(): boolean {
-    return this.status !== ParticipantStatus.LEFT &&
-           this.status !== ParticipantStatus.REMOVED &&
-           this.status !== ParticipantStatus.COMPLETED;
+    return (
+      this.status !== ParticipantStatus.LEFT &&
+      this.status !== ParticipantStatus.REMOVED &&
+      this.status !== ParticipantStatus.COMPLETED
+    );
   }
 
   getMetPartnerIds(): string[] {
-    return this.matchHistory.map(entry => entry.partnerId);
+    return this.matchHistory.map((entry) => entry.partnerId);
   }
 
   hasMetPartner(partnerId: string): boolean {
-    return this.matchHistory.some(entry => entry.partnerId === partnerId);
+    return this.matchHistory.some((entry) => entry.partnerId === partnerId);
   }
 
   getMutualMatches(): MatchHistoryEntry[] {
-    return this.matchHistory.filter(entry => entry.mutual === true);
+    return this.matchHistory.filter((entry) => entry.mutual === true);
   }
 
   recordInterest(roundNumber: number, partnerId: string, interested: boolean): void {
     const existingEntry = this.matchHistory.find(
-      entry => entry.roundNumber === roundNumber && entry.partnerId === partnerId
+      (entry) => entry.roundNumber === roundNumber && entry.partnerId === partnerId
     );
 
     if (existingEntry) {
@@ -119,7 +121,7 @@ export class SpeedDatingParticipant {
 
   updatePartnerInterest(roundNumber: number, partnerId: string, partnerInterested: boolean): void {
     const entry = this.matchHistory.find(
-      entry => entry.roundNumber === roundNumber && entry.partnerId === partnerId
+      (entry) => entry.roundNumber === roundNumber && entry.partnerId === partnerId
     );
 
     if (entry) {

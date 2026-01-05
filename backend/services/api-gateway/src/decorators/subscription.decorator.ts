@@ -10,5 +10,4 @@ export enum SubscriptionTier {
 }
 
 export const SUBSCRIPTION_KEY = 'subscription';
-export const RequireSubscription = (tier: SubscriptionTier) =>
-  SetMetadata(SUBSCRIPTION_KEY, tier);
+export const RequireSubscription = (tier: SubscriptionTier) => SetMetadata(SUBSCRIPTION_KEY, tier);

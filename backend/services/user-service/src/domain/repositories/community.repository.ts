@@ -1,4 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   Community,
   CommunityWithMembership,
@@ -13,8 +16,6 @@ import {
   EventCreateInput,
   COMMUNITY_CATEGORIES,
 } from '../entities/Community.entity';
-import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
 
 export class CommunityRepository {
   // ==================== COMMUNITIES ====================
@@ -79,9 +80,8 @@ export class CommunityRepository {
   async search(query: string, userId?: string): Promise<CommunityWithMembership[]> {
     const communities = await db('communities')
       .where('is_active', true)
-      .where(function() {
-        this.whereILike('name', `%${query}%`)
-          .orWhereILike('description', `%${query}%`);
+      .where(function () {
+        this.whereILike('name', `%${query}%`).orWhereILike('description', `%${query}%`);
       })
       .orderBy('member_count', 'desc')
       .limit(50);
@@ -133,7 +133,11 @@ export class CommunityRepository {
 
   // ==================== MEMBERS ====================
 
-  async addMember(communityId: string, userId: string, role: 'member' | 'moderator' | 'admin' = 'member'): Promise<void> {
+  async addMember(
+    communityId: string,
+    userId: string,
+    role: 'member' | 'moderator' | 'admin' = 'member'
+  ): Promise<void> {
     const existing = await db('community_members')
       .where({ community_id: communityId, user_id: userId })
       .first();
@@ -148,9 +152,7 @@ export class CommunityRepository {
       joined_at: new Date(),
     });
 
-    await db('communities')
-      .where({ id: communityId })
-      .increment('member_count', 1);
+    await db('communities').where({ id: communityId }).increment('member_count', 1);
 
     logger.info(`User ${userId} joined community ${communityId}`);
   }
@@ -161,15 +163,17 @@ export class CommunityRepository {
       .del();
 
     if (deleted > 0) {
-      await db('communities')
-        .where({ id: communityId })
-        .decrement('member_count', 1);
+      await db('communities').where({ id: communityId }).decrement('member_count', 1);
 
       logger.info(`User ${userId} left community ${communityId}`);
     }
   }
 
-  async getMembers(communityId: string, limit = 20, offset = 0): Promise<{ members: CommunityMember[]; total: number }> {
+  async getMembers(
+    communityId: string,
+    limit = 20,
+    offset = 0
+  ): Promise<{ members: CommunityMember[]; total: number }> {
     const members = await db('community_members')
       .join('users', 'community_members.user_id', 'users.id')
       .where('community_members.community_id', communityId)
@@ -186,9 +190,7 @@ export class CommunityRepository {
       .limit(limit)
       .offset(offset);
 
-    const [{ count }] = await db('community_members')
-      .where({ community_id: communityId })
-      .count();
+    const [{ count }] = await db('community_members').where({ community_id: communityId }).count();
 
     return {
       members: members.map((m: any) => ({
@@ -220,15 +222,16 @@ export class CommunityRepository {
 
   // ==================== POSTS ====================
 
-  async getPosts(communityId: string, userId: string, limit = 20, offset = 0): Promise<{ posts: CommunityPost[]; total: number }> {
+  async getPosts(
+    communityId: string,
+    userId: string,
+    limit = 20,
+    offset = 0
+  ): Promise<{ posts: CommunityPost[]; total: number }> {
     const posts = await db('community_posts')
       .join('users', 'community_posts.author_id', 'users.id')
       .where('community_posts.community_id', communityId)
-      .select(
-        'community_posts.*',
-        'users.first_name',
-        'users.last_name'
-      )
+      .select('community_posts.*', 'users.first_name', 'users.last_name')
       .orderBy([
         { column: 'community_posts.is_pinned', order: 'desc' },
         { column: 'community_posts.created_at', order: 'desc' },
@@ -243,9 +246,7 @@ export class CommunityRepository {
       .whereIn('post_id', postIds);
     const likedPostIds = new Set(likes.map((l: any) => l.post_id));
 
-    const [{ count }] = await db('community_posts')
-      .where({ community_id: communityId })
-      .count();
+    const [{ count }] = await db('community_posts').where({ community_id: communityId }).count();
 
     return {
       posts: posts.map((p: any) => this.mapPost(p, likedPostIds.has(p.id))),
@@ -286,11 +287,9 @@ export class CommunityRepository {
       updated_at: now,
     });
 
-    await db('communities')
-      .where({ id: input.communityId })
-      .increment('post_count', 1);
+    await db('communities').where({ id: input.communityId }).increment('post_count', 1);
 
-    return this.getPostById(id, input.authorId) as Promise<CommunityPost>;
+    return this.getPostById(id, input.authorId);
   }
 
   async updatePost(postId: string, content: string, images?: string[]): Promise<void> {
@@ -305,9 +304,7 @@ export class CommunityRepository {
 
   async deletePost(postId: string, communityId: string): Promise<void> {
     await db('community_posts').where({ id: postId }).del();
-    await db('communities')
-      .where({ id: communityId })
-      .decrement('post_count', 1);
+    await db('communities').where({ id: communityId }).decrement('post_count', 1);
   }
 
   async likePost(postId: string, userId: string): Promise<void> {
@@ -324,9 +321,7 @@ export class CommunityRepository {
       created_at: new Date(),
     });
 
-    await db('community_posts')
-      .where({ id: postId })
-      .increment('like_count', 1);
+    await db('community_posts').where({ id: postId }).increment('like_count', 1);
   }
 
   async unlikePost(postId: string, userId: string): Promise<void> {
@@ -335,24 +330,23 @@ export class CommunityRepository {
       .del();
 
     if (deleted > 0) {
-      await db('community_posts')
-        .where({ id: postId })
-        .decrement('like_count', 1);
+      await db('community_posts').where({ id: postId }).decrement('like_count', 1);
     }
   }
 
   // ==================== COMMENTS ====================
 
-  async getComments(postId: string, userId: string, limit = 20, offset = 0): Promise<{ comments: CommunityComment[]; total: number }> {
+  async getComments(
+    postId: string,
+    userId: string,
+    limit = 20,
+    offset = 0
+  ): Promise<{ comments: CommunityComment[]; total: number }> {
     const comments = await db('community_comments')
       .join('users', 'community_comments.author_id', 'users.id')
       .where('community_comments.post_id', postId)
       .whereNull('community_comments.parent_id')
-      .select(
-        'community_comments.*',
-        'users.first_name',
-        'users.last_name'
-      )
+      .select('community_comments.*', 'users.first_name', 'users.last_name')
       .orderBy('community_comments.created_at', 'asc')
       .limit(limit)
       .offset(offset);
@@ -407,9 +401,7 @@ export class CommunityRepository {
       created_at: now,
     });
 
-    await db('community_posts')
-      .where({ id: input.postId })
-      .increment('comment_count', 1);
+    await db('community_posts').where({ id: input.postId }).increment('comment_count', 1);
 
     const comment = await db('community_comments')
       .join('users', 'community_comments.author_id', 'users.id')
@@ -426,9 +418,7 @@ export class CommunityRepository {
     await db('community_comments').where({ id: commentId }).del();
 
     // Recalculate comment count
-    const [{ count }] = await db('community_comments')
-      .where({ post_id: postId })
-      .count();
+    const [{ count }] = await db('community_comments').where({ post_id: postId }).count();
 
     await db('community_posts')
       .where({ id: postId })
@@ -449,9 +439,7 @@ export class CommunityRepository {
       created_at: new Date(),
     });
 
-    await db('community_comments')
-      .where({ id: commentId })
-      .increment('like_count', 1);
+    await db('community_comments').where({ id: commentId }).increment('like_count', 1);
   }
 
   // ==================== EVENTS ====================
@@ -460,11 +448,7 @@ export class CommunityRepository {
     let query = db('community_events')
       .join('users', 'community_events.host_id', 'users.id')
       .where('community_events.start_date', '>', new Date())
-      .select(
-        'community_events.*',
-        'users.first_name',
-        'users.last_name'
-      )
+      .select('community_events.*', 'users.first_name', 'users.last_name')
       .orderBy('community_events.start_date', 'asc');
 
     if (communityId) {
@@ -531,7 +515,7 @@ export class CommunityRepository {
     // Auto-register host
     await this.attendEvent(id, input.hostId);
 
-    return this.getEventById(id, input.hostId) as Promise<CommunityEvent>;
+    return this.getEventById(id, input.hostId);
   }
 
   async attendEvent(eventId: string, userId: string): Promise<void> {
@@ -553,9 +537,7 @@ export class CommunityRepository {
       registered_at: new Date(),
     });
 
-    await db('community_events')
-      .where({ id: eventId })
-      .increment('attendee_count', 1);
+    await db('community_events').where({ id: eventId }).increment('attendee_count', 1);
   }
 
   async unattendEvent(eventId: string, userId: string): Promise<void> {
@@ -564,13 +546,15 @@ export class CommunityRepository {
       .del();
 
     if (deleted > 0) {
-      await db('community_events')
-        .where({ id: eventId })
-        .decrement('attendee_count', 1);
+      await db('community_events').where({ id: eventId }).decrement('attendee_count', 1);
     }
   }
 
-  async getEventAttendees(eventId: string, limit = 20, offset = 0): Promise<{ attendees: any[]; total: number }> {
+  async getEventAttendees(
+    eventId: string,
+    limit = 20,
+    offset = 0
+  ): Promise<{ attendees: any[]; total: number }> {
     const attendees = await db('community_event_attendees')
       .join('users', 'community_event_attendees.user_id', 'users.id')
       .where('community_event_attendees.event_id', eventId)
@@ -584,9 +568,7 @@ export class CommunityRepository {
       .limit(limit)
       .offset(offset);
 
-    const [{ count }] = await db('community_event_attendees')
-      .where({ event_id: eventId })
-      .count();
+    const [{ count }] = await db('community_event_attendees').where({ event_id: eventId }).count();
 
     return {
       attendees: attendees.map((a: any) => ({
@@ -625,7 +607,10 @@ export class CommunityRepository {
     };
   }
 
-  private mapCommunityWithMembership(c: any, membershipMap: Record<string, string | undefined>): CommunityWithMembership {
+  private mapCommunityWithMembership(
+    c: any,
+    membershipMap: Record<string, string | undefined>
+  ): CommunityWithMembership {
     return {
       ...this.mapCommunity(c),
       isJoined: !!membershipMap[c.id],

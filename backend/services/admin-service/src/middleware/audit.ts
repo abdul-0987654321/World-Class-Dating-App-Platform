@@ -1,8 +1,9 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest, AuditLog } from '../types';
-import { db } from '../infrastructure/database';
-import { logger } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../infrastructure/database';
+import { AuthRequest, AuditLog } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Audit logging middleware
@@ -33,7 +34,7 @@ export const auditLog = (action: string, resource: string) => {
           ipAddress: getIpAddress(req),
           userAgent: req.headers['user-agent'] || '',
           timestamp: new Date(),
-        }).catch(error => {
+        }).catch((error) => {
           logger.error('Failed to create audit log:', error);
         });
       }
@@ -89,8 +90,8 @@ function extractChanges(req: AuthRequest): any {
   const changes = { ...req.body };
 
   // Remove sensitive fields
-  Object.keys(changes).forEach(key => {
-    if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
+  Object.keys(changes).forEach((key) => {
+    if (sensitiveFields.some((field) => key.toLowerCase().includes(field.toLowerCase()))) {
       changes[key] = '[REDACTED]';
     }
   });
@@ -153,13 +154,10 @@ export async function queryAuditLogs(filters: {
   const total = parseInt(count as string);
 
   // Get paginated results
-  const logs = await query
-    .orderBy('created_at', 'desc')
-    .limit(limit)
-    .offset(offset);
+  const logs = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
   return {
-    logs: logs.map(log => ({
+    logs: logs.map((log) => ({
       id: log.id,
       adminId: log.admin_id,
       adminEmail: log.admin_email,

@@ -1,13 +1,14 @@
-import { UserRepository } from '../repositories/user.repository';
-import { ProfileRepository } from '../repositories/profile.repository';
-import { VerificationTokenRepository } from '../repositories/verification-token.repository';
-import { VerificationService } from './verification.service';
-import { CreateUserDto, UserResponse } from '../entities/User.entity';
+import emailService from '../../infrastructure/email/email.service';
 import { hashPassword, comparePassword } from '../../utils/encryption';
 import jwtUtils from '../../utils/jwt';
-import emailService from '../../infrastructure/email/email.service';
 import logger from '../../utils/logger';
 import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validation';
+import { CreateUserDto, UserResponse } from '../entities/User.entity';
+import { ProfileRepository } from '../repositories/profile.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { VerificationTokenRepository } from '../repositories/verification-token.repository';
+
+import { VerificationService } from './verification.service';
 
 export interface LoginDto {
   email: string;
@@ -199,7 +200,9 @@ export class AuthService {
     // Note: In production, invalidate all refresh tokens and sessions
     // This would require Redis or database-based token tracking
 
-    logger.info(`Password reset successfully for user: ${resetToken.user_id}. All sessions should be invalidated.`);
+    logger.info(
+      `Password reset successfully for user: ${resetToken.user_id}. All sessions should be invalidated.`
+    );
   }
 
   private validateRegistrationData(userData: CreateUserDto): void {

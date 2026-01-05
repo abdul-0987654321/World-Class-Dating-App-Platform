@@ -1,7 +1,8 @@
+import { promisify } from 'util';
+import * as zlib from 'zlib';
+
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import * as zlib from 'zlib';
-import { promisify } from 'util';
 
 const gzip = promisify(zlib.gzip);
 const brotliCompress = promisify(zlib.brotliCompress);
@@ -145,9 +146,7 @@ export class CompressionMiddleware implements NestMiddleware {
     }
 
     // Check size threshold
-    const bodySize = Buffer.isBuffer(body)
-      ? body.length
-      : Buffer.byteLength(String(body));
+    const bodySize = Buffer.isBuffer(body) ? body.length : Buffer.byteLength(String(body));
 
     return bodySize >= this.options.threshold;
   }
@@ -162,6 +161,6 @@ export class CompressionMiddleware implements NestMiddleware {
       'application/vnd.api+json',
     ];
 
-    return compressibleTypes.some(type => contentType.includes(type));
+    return compressibleTypes.some((type) => contentType.includes(type));
   }
 }

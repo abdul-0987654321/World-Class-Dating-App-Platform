@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getDbConnection } from '../../infrastructure/database/connection';
+
 import { MentalHealthService } from '../../domain/services/MentalHealth.service';
 import {
   CheckInType,
@@ -10,6 +10,7 @@ import {
   CreateCheckInRequest,
   UpdateWellnessSettingsRequest,
 } from '../../domain/types/mental-health.types';
+import { getDbConnection } from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 
 /**
@@ -440,7 +441,11 @@ export class WellnessController {
    * Get personalized affirmation based on recent mood
    * GET /api/v1/wellness/affirmations/personalized
    */
-  getPersonalizedAffirmation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getPersonalizedAffirmation = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -506,7 +511,11 @@ export class WellnessController {
    * Save reflection response
    * POST /api/v1/wellness/prompts/:promptId/response
    */
-  saveReflectionResponse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  saveReflectionResponse = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {

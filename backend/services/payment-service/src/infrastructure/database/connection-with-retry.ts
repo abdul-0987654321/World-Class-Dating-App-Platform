@@ -1,6 +1,6 @@
-import knex, { Knex } from 'knex';
 import { createLogger } from '@flamoral/backend-shared';
 import dotenv from 'dotenv';
+import knex, { Knex } from 'knex';
 
 dotenv.config();
 
@@ -23,11 +23,24 @@ async function withRetry<T>(
       lastError = error;
 
       // Check if error is retryable
-      const retryableErrors = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', '08003', '08006', '08001', '57P01', '57P02', '57P03'];
-      const isRetryable = retryableErrors.includes(error.code) ||
-                          error.message?.toLowerCase().includes('connection') ||
-                          error.message?.toLowerCase().includes('timeout') ||
-                          error.message?.toLowerCase().includes('network');
+      const retryableErrors = [
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EHOSTUNREACH',
+        'ENETUNREACH',
+        '08003',
+        '08006',
+        '08001',
+        '57P01',
+        '57P02',
+        '57P03',
+      ];
+      const isRetryable =
+        retryableErrors.includes(error.code) ||
+        error.message?.toLowerCase().includes('connection') ||
+        error.message?.toLowerCase().includes('timeout') ||
+        error.message?.toLowerCase().includes('network');
 
       if (!isRetryable || attempt === maxRetries) {
         logger.error(`[DB] Operation failed (non-retryable or max retries reached)`, {
@@ -49,11 +62,11 @@ async function withRetry<T>(
         code: error.code,
       });
 
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+      await new Promise((resolve) => setTimeout(resolve, finalDelay));
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -74,19 +87,19 @@ const config: Knex.Config = {
     max: parseInt(process.env.DB_POOL_MAX || '10', 10),
 
     // Connection acquisition and timeout settings
-    acquireTimeoutMillis: 30000,       // 30 seconds to acquire connection
-    createTimeoutMillis: 30000,        // 30 seconds to create connection
-    destroyTimeoutMillis: 5000,        // 5 seconds to destroy connection
+    acquireTimeoutMillis: 30000, // 30 seconds to acquire connection
+    createTimeoutMillis: 30000, // 30 seconds to create connection
+    destroyTimeoutMillis: 5000, // 5 seconds to destroy connection
 
     // Idle connection management
-    idleTimeoutMillis: 30000,          // Close idle connections after 30 seconds
-    reapIntervalMillis: 1000,          // Check for idle connections every second
+    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+    reapIntervalMillis: 1000, // Check for idle connections every second
 
     // Retry configuration
-    createRetryIntervalMillis: 100,    // Retry failed connections after 100ms
-    propagateCreateError: false,       // Don't propagate create errors immediately, allow retries
+    createRetryIntervalMillis: 100, // Retry failed connections after 100ms
+    propagateCreateError: false, // Don't propagate create errors immediately, allow retries
   },
-  acquireConnectionTimeout: 60000,     // Global connection acquisition timeout
+  acquireConnectionTimeout: 60000, // Global connection acquisition timeout
   migrations: {
     directory: './migrations',
     tableName: 'knex_migrations',
@@ -107,15 +120,19 @@ export async function initializeDatabase(): Promise<Knex> {
     return dbInstance;
   }
 
-  return withRetry(async () => {
-    dbInstance = knex(config);
+  return withRetry(
+    async () => {
+      dbInstance = knex(config);
 
-    // Test the connection
-    await dbInstance.raw('SELECT 1');
+      // Test the connection
+      await dbInstance.raw('SELECT 1');
 
-    logger.info('[DB] Payment service database connected successfully');
-    return dbInstance;
-  }, 5, 1000);
+      logger.info('[DB] Payment service database connected successfully');
+      return dbInstance;
+    },
+    5,
+    1000
+  );
 }
 
 /**
@@ -172,10 +189,14 @@ export async function healthCheck(): Promise<{
 }> {
   try {
     const start = Date.now();
-    await withRetry(async () => {
-      const db = getDatabase();
-      await db.raw('SELECT 1');
-    }, 2, 1000);
+    await withRetry(
+      async () => {
+        const db = getDatabase();
+        await db.raw('SELECT 1');
+      },
+      2,
+      1000
+    );
 
     const latency = Date.now() - start;
 

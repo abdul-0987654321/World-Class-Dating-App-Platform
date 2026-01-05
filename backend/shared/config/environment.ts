@@ -91,8 +91,14 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
       tls: process.env.REDIS_TLS === 'true',
     },
     jwt: {
-      accessTokenSecret: requireEnvVar('JWT_ACCESS_SECRET', process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-access-secret' : undefined),
-      refreshTokenSecret: requireEnvVar('JWT_REFRESH_SECRET', process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-refresh-secret' : undefined),
+      accessTokenSecret: requireEnvVar(
+        'JWT_ACCESS_SECRET',
+        process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-access-secret' : undefined
+      ),
+      refreshTokenSecret: requireEnvVar(
+        'JWT_REFRESH_SECRET',
+        process.env.NODE_ENV !== 'production' ? 'dev-only-jwt-refresh-secret' : undefined
+      ),
       accessTokenExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h',
       refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
     },

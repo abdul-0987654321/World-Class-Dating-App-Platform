@@ -1,17 +1,13 @@
-import {
-  Injectable,
-  ExecutionContext,
-  UnauthorizedException,
-  CanActivate,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { Injectable, ExecutionContext, UnauthorizedException, CanActivate } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
+
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 interface JwtTokenPayload {
-  sub: string;         // User ID
-  userId?: string;     // Alternative user ID field
+  sub: string; // User ID
+  userId?: string; // Alternative user ID field
   email: string;
   roles?: string[];
   subscription?: string;
@@ -24,7 +20,7 @@ interface JwtTokenPayload {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   canActivate(context: ExecutionContext): boolean {

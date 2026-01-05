@@ -5,8 +5,8 @@
  * Request validation for document verification endpoints.
  */
 
-import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
+import Joi from 'joi';
 
 /**
  * Valid document types
@@ -17,13 +17,62 @@ const VALID_DOCUMENT_TYPES = ['passport', 'drivers_license', 'national_id'];
  * Valid ISO 3166-1 alpha-3 country codes (subset of commonly supported)
  */
 const VALID_COUNTRY_CODES = [
-  'USA', 'GBR', 'CAN', 'AUS', 'DEU', 'FRA', 'ITA', 'ESP',
-  'NLD', 'BEL', 'CHE', 'AUT', 'JPN', 'SGP', 'HKG', 'MEX',
-  'BRA', 'ARG', 'IND', 'CHN', 'KOR', 'NZL', 'IRL', 'PRT',
-  'POL', 'CZE', 'DNK', 'NOR', 'SWE', 'FIN', 'GRC', 'TUR',
-  'RUS', 'UKR', 'ZAF', 'EGY', 'ARE', 'SAU', 'ISR', 'THA',
-  'MYS', 'IDN', 'PHL', 'VNM', 'TWN', 'PAK', 'BGD', 'LKA',
-  'NPL', 'MMR', 'KHM', 'LAO', 'MNG', 'KAZ', 'UZB', 'AZE',
+  'USA',
+  'GBR',
+  'CAN',
+  'AUS',
+  'DEU',
+  'FRA',
+  'ITA',
+  'ESP',
+  'NLD',
+  'BEL',
+  'CHE',
+  'AUT',
+  'JPN',
+  'SGP',
+  'HKG',
+  'MEX',
+  'BRA',
+  'ARG',
+  'IND',
+  'CHN',
+  'KOR',
+  'NZL',
+  'IRL',
+  'PRT',
+  'POL',
+  'CZE',
+  'DNK',
+  'NOR',
+  'SWE',
+  'FIN',
+  'GRC',
+  'TUR',
+  'RUS',
+  'UKR',
+  'ZAF',
+  'EGY',
+  'ARE',
+  'SAU',
+  'ISR',
+  'THA',
+  'MYS',
+  'IDN',
+  'PHL',
+  'VNM',
+  'TWN',
+  'PAK',
+  'BGD',
+  'LKA',
+  'NPL',
+  'MMR',
+  'KHM',
+  'LAO',
+  'MNG',
+  'KAZ',
+  'UZB',
+  'AZE',
 ];
 
 /**
@@ -45,15 +94,13 @@ export const documentVerificationSchema = Joi.object({
     .required()
     .messages({
       'string.length': 'country_code must be exactly 3 characters',
-      'string.pattern.base': 'country_code must be a valid ISO 3166-1 alpha-3 code (3 uppercase letters)',
+      'string.pattern.base':
+        'country_code must be a valid ISO 3166-1 alpha-3 code (3 uppercase letters)',
       'any.required': 'country_code is required',
     }),
 
   consent_given: Joi.alternatives()
-    .try(
-      Joi.boolean().valid(true),
-      Joi.string().valid('true')
-    )
+    .try(Joi.boolean().valid(true), Joi.string().valid('true'))
     .required()
     .messages({
       'any.only': 'consent_given must be true',
@@ -65,38 +112,29 @@ export const documentVerificationSchema = Joi.object({
  * Schema for verification status query
  */
 export const verificationStatusQuerySchema = Joi.object({
-  verification_id: Joi.string()
-    .uuid()
-    .optional()
-    .messages({
-      'string.guid': 'verification_id must be a valid UUID',
-    }),
+  verification_id: Joi.string().uuid().optional().messages({
+    'string.guid': 'verification_id must be a valid UUID',
+  }),
 });
 
 /**
  * Schema for verification score params
  */
 export const verificationScoreParamsSchema = Joi.object({
-  verification_id: Joi.string()
-    .uuid()
-    .required()
-    .messages({
-      'string.guid': 'verification_id must be a valid UUID',
-      'any.required': 'verification_id is required',
-    }),
+  verification_id: Joi.string().uuid().required().messages({
+    'string.guid': 'verification_id must be a valid UUID',
+    'any.required': 'verification_id is required',
+  }),
 });
 
 /**
  * Schema for GDPR deletion request
  */
 export const gdprDeletionSchema = Joi.object({
-  confirm_deletion: Joi.boolean()
-    .valid(true)
-    .required()
-    .messages({
-      'any.only': 'confirm_deletion must be true to proceed with deletion',
-      'any.required': 'Please confirm deletion by setting confirm_deletion to true',
-    }),
+  confirm_deletion: Joi.boolean().valid(true).required().messages({
+    'any.only': 'confirm_deletion must be true to proceed with deletion',
+    'any.required': 'Please confirm deletion by setting confirm_deletion to true',
+  }),
 });
 
 /**
@@ -109,7 +147,7 @@ export const validateDocumentVerification = (req: Request, res: Response, next: 
   });
 
   if (error) {
-    const messages = error.details.map(d => d.message);
+    const messages = error.details.map((d) => d.message);
     return res.status(400).json({
       success: false,
       error: 'Validation failed',
@@ -137,7 +175,7 @@ export const validateStatusQuery = (req: Request, res: Response, next: NextFunct
   });
 
   if (error) {
-    const messages = error.details.map(d => d.message);
+    const messages = error.details.map((d) => d.message);
     return res.status(400).json({
       success: false,
       error: 'Validation failed',
@@ -158,7 +196,7 @@ export const validateScoreParams = (req: Request, res: Response, next: NextFunct
   });
 
   if (error) {
-    const messages = error.details.map(d => d.message);
+    const messages = error.details.map((d) => d.message);
     return res.status(400).json({
       success: false,
       error: 'Validation failed',
@@ -180,7 +218,7 @@ export const validateGDPRDeletion = (req: Request, res: Response, next: NextFunc
   });
 
   if (error) {
-    const messages = error.details.map(d => d.message);
+    const messages = error.details.map((d) => d.message);
     return res.status(400).json({
       success: false,
       error: 'Validation failed',
@@ -210,7 +248,10 @@ export const validateFileUploads = (
   // Back is required for driver's license and national ID
   if (['drivers_license', 'national_id'].includes(documentType)) {
     if (!files.document_back || files.document_back.length === 0) {
-      return { valid: false, error: 'document_back is required for driver\'s license and national ID' };
+      return {
+        valid: false,
+        error: "document_back is required for driver's license and national ID",
+      };
     }
   }
 

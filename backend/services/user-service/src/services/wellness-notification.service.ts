@@ -1,12 +1,13 @@
-import { Knex } from 'knex';
 import axios from 'axios';
-import { getDbConnection } from '../infrastructure/database/connection';
+import { Knex } from 'knex';
+
 import { MentalHealthService } from '../domain/services/MentalHealth.service';
 import {
   WellnessSettings,
   ReflectionPromptType,
   BreakTrigger,
 } from '../domain/types/mental-health.types';
+import { getDbConnection } from '../infrastructure/database/connection';
 import logger from '../utils/logger';
 
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3004';
@@ -46,13 +47,12 @@ export class WellnessNotificationService {
     // Get personalized affirmation to include
     const affirmation = await this.mentalHealthService.getPersonalizedAffirmation(userId);
 
-    const title = checkInType === 'daily'
-      ? 'Daily Check-in Time'
-      : 'Weekly Reflection Time';
+    const title = checkInType === 'daily' ? 'Daily Check-in Time' : 'Weekly Reflection Time';
 
-    const body = checkInType === 'daily'
-      ? 'Take a moment to check in with yourself. How are you feeling today?'
-      : "Let's reflect on your dating journey this week. How has it been going?";
+    const body =
+      checkInType === 'daily'
+        ? 'Take a moment to check in with yourself. How are you feeling today?'
+        : "Let's reflect on your dating journey this week. How has it been going?";
 
     await this.sendNotification(userId, {
       type: 'wellness_checkin_reminder',
@@ -204,7 +204,7 @@ export class WellnessNotificationService {
       title: "We're Here for You",
       body: "You're not alone. Here are some resources that can help.",
       data: {
-        resources: topResources.map(r => ({
+        resources: topResources.map((r) => ({
           title: r.title,
           phoneNumber: r.phoneNumber,
           url: r.url,
@@ -234,7 +234,9 @@ export class WellnessNotificationService {
     await this.sendNotification(userId, {
       type: 'wellness_support',
       title: 'A Gentle Reminder',
-      body: affirmation?.message || "Every 'no' brings you closer to the right 'yes'. You're doing great.",
+      body:
+        affirmation?.message ||
+        "Every 'no' brings you closer to the right 'yes'. You're doing great.",
       data: {
         supportType: 'rejection',
         actionUrl: '/wellness/resources?category=rejection_coping',
@@ -251,7 +253,7 @@ export class WellnessNotificationService {
     await this.sendNotification(userId, {
       type: 'wellness_welcome_back',
       title: 'Welcome Back!',
-      body: "We hope your break was refreshing. Remember, you can always take another break if needed.",
+      body: 'We hope your break was refreshing. Remember, you can always take another break if needed.',
       data: {
         actionUrl: '/wellness/check-in',
       },
@@ -274,10 +276,10 @@ export class WellnessNotificationService {
     const usersWithReminders = await this.db('wellness_settings')
       .where('reminder_notifications', true)
       .where('is_on_break', false)
-      .whereRaw(
-        "preferred_checkin_time = ? OR (preferred_checkin_time IS NULL AND ? = '20:00')",
-        [`${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`, '20:00']
-      );
+      .whereRaw("preferred_checkin_time = ? OR (preferred_checkin_time IS NULL AND ? = '20:00')", [
+        `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
+        '20:00',
+      ]);
 
     for (const settings of usersWithReminders) {
       const checkinDays: number[] = settings.checkin_days || [1, 2, 3, 4, 5, 6, 7];
@@ -290,9 +292,12 @@ export class WellnessNotificationService {
       try {
         // Determine check-in type
         const isWeekly = currentDay === 7; // Sunday for weekly
-        const checkInType = isWeekly && settings.weekly_checkin_enabled
-          ? 'weekly'
-          : (settings.daily_checkin_enabled ? 'daily' : null);
+        const checkInType =
+          isWeekly && settings.weekly_checkin_enabled
+            ? 'weekly'
+            : settings.daily_checkin_enabled
+              ? 'daily'
+              : null;
 
         if (checkInType) {
           await this.sendCheckInReminder(settings.user_id, checkInType);
@@ -364,8 +369,10 @@ export class WellnessNotificationService {
    * Process daily affirmations for all users with enabled settings
    */
   private async processDailyAffirmations(): Promise<void> {
-    const usersWithAffirmations = await this.db('wellness_settings')
-      .where('affirmation_notifications', true);
+    const usersWithAffirmations = await this.db('wellness_settings').where(
+      'affirmation_notifications',
+      true
+    );
 
     for (const settings of usersWithAffirmations) {
       try {

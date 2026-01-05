@@ -180,7 +180,9 @@ class CircuitBreaker {
       this.logger.warn('Circuit breaker transitioning to OPEN state (failure in HALF_OPEN)');
       this.state = CircuitState.OPEN;
     } else if (this.failureCount >= this.threshold) {
-      this.logger.warn(`Circuit breaker OPEN: ${this.failureCount} failures exceeded threshold ${this.threshold}`);
+      this.logger.warn(
+        `Circuit breaker OPEN: ${this.failureCount} failures exceeded threshold ${this.threshold}`
+      );
       this.state = CircuitState.OPEN;
     }
   }
@@ -369,7 +371,10 @@ export class ServiceClient {
   /**
    * Make a DELETE request
    */
-  public async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  public async delete<T = any>(
+    url: string,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'DELETE', url });
   }
 
@@ -419,7 +424,9 @@ export class ServiceClient {
     }
 
     // All retries exhausted
-    this.logger.error(`Request failed after ${this.config.maxRetries} retries: ${config.method} ${config.url}`);
+    this.logger.error(
+      `Request failed after ${this.config.maxRetries} retries: ${config.method} ${config.url}`
+    );
     throw this.transformError(lastError);
   }
 
@@ -447,9 +454,7 @@ export class ServiceClient {
   private transformError(error: AxiosError): Error {
     if (!error.response) {
       // Network error or timeout
-      const err = new Error(
-        `Service unavailable: ${this.config.baseURL} - ${error.message}`
-      );
+      const err = new Error(`Service unavailable: ${this.config.baseURL} - ${error.message}`);
       (err as any).code = 'SERVICE_UNAVAILABLE';
       (err as any).originalError = error;
       return err;

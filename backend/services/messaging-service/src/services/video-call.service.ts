@@ -5,9 +5,10 @@
 
 import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
 import { v4 as uuidv4 } from 'uuid';
+
+import { callHistoryRepository } from '../domain/repositories/call-history.repository';
 import { RedisClient } from '../infrastructure/cache/redis';
 import { createLogger } from '../utils/logger';
-import { callHistoryRepository } from '../domain/repositories/call-history.repository';
 
 const logger = createLogger('video-call-service');
 
@@ -101,7 +102,11 @@ export class VideoCallService {
   /**
    * Generate Agora RTC token
    */
-  generateAgoraToken(channelName: string, uid: number, role: 'publisher' | 'subscriber' = 'publisher'): string {
+  generateAgoraToken(
+    channelName: string,
+    uid: number,
+    role: 'publisher' | 'subscriber' = 'publisher'
+  ): string {
     try {
       const expirationTimeInSeconds = this.agoraConfig.tokenExpiryTime;
       const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -134,7 +139,10 @@ export class VideoCallService {
   /**
    * Accept a call
    */
-  async acceptCall(callId: string, calleeId: string): Promise<{
+  async acceptCall(
+    callId: string,
+    calleeId: string
+  ): Promise<{
     callSession: CallSession;
     agoraToken: string;
   }> {
@@ -441,7 +449,11 @@ export class VideoCallService {
   /**
    * Get calls between two users
    */
-  async getCallsBetweenUsers(userId1: string, userId2: string, limit: number = 50): Promise<CallSession[]> {
+  async getCallsBetweenUsers(
+    userId1: string,
+    userId2: string,
+    limit: number = 50
+  ): Promise<CallSession[]> {
     try {
       return await callHistoryRepository.getCallsBetweenUsers(userId1, userId2, limit);
     } catch (error) {

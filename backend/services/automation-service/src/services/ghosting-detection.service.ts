@@ -1,9 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
+import { GhostingDetectionDto, ReEngagementFlowDto } from '../dtos';
 import db from '../infrastructure/database/knex';
 import { TABLES, GhostingDetection, ReEngagementAttempt } from '../models';
-import { GhostingDetectionDto, ReEngagementFlowDto } from '../dtos';
-import config from '../config';
+
 import { ServiceClient } from './service-client';
 
 const logger = createLogger('automation-service:ghosting-detection');
@@ -38,7 +40,8 @@ export class GhostingDetectionService {
         return null;
       }
 
-      const { userId, matchUserId, lastMessageAt, lastMessageFromUserId, messageCount } = conversation;
+      const { userId, matchUserId, lastMessageAt, lastMessageFromUserId, messageCount } =
+        conversation;
 
       // Calculate hours since last reply
       const hoursSinceLastReply = this.calculateHoursSince(lastMessageAt);
@@ -140,7 +143,7 @@ export class GhostingDetectionService {
   private generateReEngagementMessage(attemptNumber: number, detection: GhostingDetection): string {
     const messages = [
       "Don't let this connection fade! Your match might be waiting to hear from you.",
-      "Still interested? A simple message can reignite the spark!",
+      'Still interested? A simple message can reignite the spark!',
       "It's been a while - maybe they're waiting for you to reach out?",
     ];
 
@@ -150,7 +153,10 @@ export class GhostingDetectionService {
   /**
    * Schedule re-engagement notification
    */
-  private async scheduleReEngagementNotification(attempt: ReEngagementAttempt, message: string): Promise<void> {
+  private async scheduleReEngagementNotification(
+    attempt: ReEngagementAttempt,
+    message: string
+  ): Promise<void> {
     await this.notificationClient.post('/api/internal/notifications/send', {
       userId: attempt.user_id,
       type: 're_engagement',
@@ -190,12 +196,10 @@ export class GhostingDetectionService {
       return;
     }
 
-    await db(TABLES.RE_ENGAGEMENT_ATTEMPTS)
-      .where({ ghosting_detection_id: detection.id })
-      .update({
-        was_successful: true,
-        response_received_at: new Date(),
-      });
+    await db(TABLES.RE_ENGAGEMENT_ATTEMPTS).where({ ghosting_detection_id: detection.id }).update({
+      was_successful: true,
+      response_received_at: new Date(),
+    });
 
     await this.resolveGhosting(conversationId, 're_engaged');
   }
@@ -210,7 +214,9 @@ export class GhostingDetectionService {
     return response.data;
   }
 
-  private async getActiveGhostingDetection(conversationId: string): Promise<GhostingDetection | null> {
+  private async getActiveGhostingDetection(
+    conversationId: string
+  ): Promise<GhostingDetection | null> {
     const detection = await db(TABLES.GHOSTING_DETECTIONS)
       .where({
         conversation_id: conversationId,
@@ -222,7 +228,9 @@ export class GhostingDetectionService {
     return detection || null;
   }
 
-  private async getReEngagementAttempts(ghostingDetectionId: string): Promise<ReEngagementAttempt[]> {
+  private async getReEngagementAttempts(
+    ghostingDetectionId: string
+  ): Promise<ReEngagementAttempt[]> {
     return await db(TABLES.RE_ENGAGEMENT_ATTEMPTS)
       .where({ ghosting_detection_id: ghostingDetectionId })
       .orderBy('attempt_number', 'asc');

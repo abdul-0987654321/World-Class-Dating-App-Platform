@@ -3,10 +3,12 @@
  * Handles push notifications for iOS devices using JWT authentication
  */
 
-import apn from '@parse/node-apn';
-import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';
+
+import apn from '@parse/node-apn';
+
+import logger from '../utils/logger';
 
 export interface APNsMessage {
   token: string;
@@ -81,7 +83,9 @@ export class APNsProvider {
           options.key = path.resolve(keyPath);
           logger.info('APNs Provider: Using certificate authentication');
         } else {
-          throw new Error('Missing APNs configuration. Provide either JWT (APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_PATH) or Certificate (APNS_CERT_PATH, APNS_CERT_KEY_PATH)');
+          throw new Error(
+            'Missing APNs configuration. Provide either JWT (APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_PATH) or Certificate (APNS_CERT_PATH, APNS_CERT_KEY_PATH)'
+          );
         }
       }
 
@@ -232,7 +236,7 @@ export class APNsProvider {
         success: false,
         successCount: 0,
         failureCount: message.tokens.length,
-        results: message.tokens.map(token => ({
+        results: message.tokens.map((token) => ({
           token,
           success: false,
           error: 'APNs Provider not initialized',
@@ -281,7 +285,7 @@ export class APNsProvider {
       const result = await this.provider.send(notification, message.tokens);
 
       const results = message.tokens.map((token, index) => {
-        const failed = result.failed.find(f => f.device === token);
+        const failed = result.failed.find((f) => f.device === token);
 
         return {
           token,
@@ -290,8 +294,8 @@ export class APNsProvider {
         };
       });
 
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.filter(r => !r.success).length;
+      const successCount = results.filter((r) => r.success).length;
+      const failureCount = results.filter((r) => !r.success).length;
 
       logger.info('APNs batch notification sent', {
         successCount,
@@ -315,7 +319,7 @@ export class APNsProvider {
         success: false,
         successCount: 0,
         failureCount: message.tokens.length,
-        results: message.tokens.map(token => ({
+        results: message.tokens.map((token) => ({
           token,
           success: false,
           error: error.message,

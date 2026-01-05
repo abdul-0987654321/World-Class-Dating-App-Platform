@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
-import {
-  DDOS_PROTECTION,
-  parseTimeWindow,
-  isWhitelisted,
-} from '../config/rate-limit.config';
 import { Request } from 'express';
+import Redis from 'ioredis';
+
+import { DDOS_PROTECTION, parseTimeWindow, isWhitelisted } from '../config/rate-limit.config';
 
 export interface DDoSCheckResult {
   allowed: boolean;
@@ -126,9 +123,7 @@ export class DDoSProtectionService {
   /**
    * Check burst protection (high frequency in short time)
    */
-  private async checkBurstProtection(
-    clientIp: string,
-  ): Promise<DDoSCheckResult> {
+  private async checkBurstProtection(clientIp: string): Promise<DDoSCheckResult> {
     const config = DDOS_PROTECTION.ip.burst;
     const windowSeconds = parseTimeWindow(config.window);
     const key = `ddos:burst:${clientIp}`;
@@ -152,9 +147,7 @@ export class DDoSProtectionService {
   /**
    * Check sustained traffic protection
    */
-  private async checkSustainedProtection(
-    clientIp: string,
-  ): Promise<DDoSCheckResult> {
+  private async checkSustainedProtection(clientIp: string): Promise<DDoSCheckResult> {
     const config = DDOS_PROTECTION.ip.sustained;
     const windowSeconds = parseTimeWindow(config.window);
     const key = `ddos:sustained:${clientIp}`;
@@ -178,9 +171,7 @@ export class DDoSProtectionService {
   /**
    * Check hourly protection
    */
-  private async checkHourlyProtection(
-    clientIp: string,
-  ): Promise<DDoSCheckResult> {
+  private async checkHourlyProtection(clientIp: string): Promise<DDoSCheckResult> {
     const config = DDOS_PROTECTION.ip.hourly;
     const windowSeconds = parseTimeWindow(config.window);
     const key = `ddos:hourly:${clientIp}`;
@@ -204,10 +195,7 @@ export class DDoSProtectionService {
   /**
    * Increment counter with sliding window
    */
-  private async incrementCounter(
-    key: string,
-    windowSeconds: number,
-  ): Promise<number> {
+  private async incrementCounter(key: string, windowSeconds: number): Promise<number> {
     const now = Date.now();
     const windowStart = now - windowSeconds * 1000;
 
@@ -228,11 +216,7 @@ export class DDoSProtectionService {
   /**
    * Ban IP address temporarily
    */
-  async banIP(
-    ip: string,
-    durationSeconds: number,
-    reason: string,
-  ): Promise<void> {
+  async banIP(ip: string, durationSeconds: number, reason: string): Promise<void> {
     const key = `ddos:banned:${ip}`;
     const banInfo: IPBanInfo = {
       ip,
@@ -244,16 +228,14 @@ export class DDoSProtectionService {
 
     await this.redis.setex(key, durationSeconds, JSON.stringify(banInfo));
 
-    this.logger.warn(
-      `Banned IP ${ip} for ${durationSeconds}s - Reason: ${reason}`,
-    );
+    this.logger.warn(`Banned IP ${ip} for ${durationSeconds}s - Reason: ${reason}`);
   }
 
   /**
    * Check if IP is temporarily banned
    */
   private async isTemporarilyBanned(
-    ip: string,
+    ip: string
   ): Promise<{ banned: boolean; remainingTime?: number }> {
     const key = `ddos:banned:${ip}`;
     const banData = await this.redis.get(key);
@@ -299,23 +281,13 @@ export class DDoSProtectionService {
   /**
    * Record violation and escalate if necessary
    */
-  private async recordViolation(
-    ip: string,
-    type: string,
-    fingerprint: string,
-  ): Promise<void> {
+  private async recordViolation(ip: string, type: string, fingerprint: string): Promise<void> {
     const violationKey = `ddos:violations:${ip}`;
-    const trackingWindow = parseTimeWindow(
-      DDOS_PROTECTION.violations.trackingWindow,
-    );
+    const trackingWindow = parseTimeWindow(DDOS_PROTECTION.violations.trackingWindow);
 
     // Add violation to sorted set
     const now = Date.now();
-    await this.redis.zadd(
-      violationKey,
-      now,
-      `${now}-${type}-${fingerprint}`,
-    );
+    await this.redis.zadd(violationKey, now, `${now}-${type}-${fingerprint}`);
 
     // Remove old violations
     const windowStart = now - trackingWindow * 1000;
@@ -327,21 +299,16 @@ export class DDoSProtectionService {
     // Count violations
     const violationCount = await this.redis.zcard(violationKey);
 
-    this.logger.warn(
-      `Violation recorded for ${ip}: ${type} (Total: ${violationCount})`,
-    );
+    this.logger.warn(`Violation recorded for ${ip}: ${type} (Total: ${violationCount})`);
 
     // Escalate ban if too many violations
     if (violationCount >= DDOS_PROTECTION.violations.maxViolations) {
-      await this.permanentlyBanIP(
-        ip,
-        `Exceeded maximum violations (${violationCount})`,
-      );
+      await this.permanentlyBanIP(ip, `Exceeded maximum violations (${violationCount})`);
     } else {
       // Apply escalating ban duration
       const banIndex = Math.min(
         violationCount - 1,
-        DDOS_PROTECTION.violations.banDurations.length - 1,
+        DDOS_PROTECTION.violations.banDurations.length - 1
       );
       const banDuration = DDOS_PROTECTION.violations.banDurations[banIndex];
 

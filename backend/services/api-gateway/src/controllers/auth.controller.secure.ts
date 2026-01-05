@@ -10,8 +10,9 @@ import {
   Req,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ProxyService } from '../services/proxy.service';
+
 import { Public } from '../decorators/public.decorator';
+import { ProxyService } from '../services/proxy.service';
 
 @Controller('api/auth')
 export class AuthController {
@@ -95,15 +96,20 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(
     @Headers('authorization') authorization: string,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ) {
     // Clear cookies
     res.clearCookie('accessToken', { path: '/' });
     res.clearCookie('refreshToken', { path: '/api/v1/auth/refresh-token' });
 
-    return this.proxyService.post('authService', '/api/v1/auth/logout', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'authService',
+      '/api/v1/auth/logout',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -112,21 +118,16 @@ export class AuthController {
   @Public()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
       throw new Error('Refresh token not found');
     }
 
-    const response = await this.proxyService.post(
-      'authService',
-      '/api/v1/auth/refresh-token',
-      { refreshToken },
-    );
+    const response = await this.proxyService.post('authService', '/api/v1/auth/refresh-token', {
+      refreshToken,
+    });
 
     // Set new access token in httpOnly cookie
     if (response.data?.accessToken) {

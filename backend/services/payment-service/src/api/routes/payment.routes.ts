@@ -1,7 +1,5 @@
-import { Router } from 'express';
-import { PaymentController } from '../controllers/payment.controller';
-import express from 'express';
-import { authenticate } from '../middleware/auth.middleware';
+import express, { Router } from 'express';
+
 import {
   validateBody,
   validateParams,
@@ -12,6 +10,8 @@ import {
   ProcessRefundDto,
   CustomerIdParamDto,
 } from '../../dto';
+import { PaymentController } from '../controllers/payment.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 const paymentController = new PaymentController();

@@ -1,13 +1,5 @@
-import {
-  IsOptional,
-  IsString,
-  IsInt,
-  Min,
-  Max,
-  MaxLength,
-  IsNotEmpty,
-} from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, Max, MaxLength, IsNotEmpty } from 'class-validator';
 
 /**
  * DTO for activating a boost.

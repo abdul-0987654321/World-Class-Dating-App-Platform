@@ -5,16 +5,11 @@
  * Queues and batches notifications
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('notification-worker');
 
@@ -97,7 +92,9 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
   /**
    * Process notification job
    */
-  protected async processJob(job: Job<NotificationJobData>): Promise<JobResult<NotificationResult>> {
+  protected async processJob(
+    job: Job<NotificationJobData>
+  ): Promise<JobResult<NotificationResult>> {
     const { type, userId, notificationType } = job.data;
     const startTime = Date.now();
 
@@ -217,7 +214,7 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
 
       // Send to each channel
       for (const channel of channels) {
-        if (!this.isChannelEnabled(channel, notificationType!, userPrefs)) {
+        if (!this.isChannelEnabled(channel, notificationType, userPrefs)) {
           results.push({
             channel,
             success: false,
@@ -233,8 +230,8 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
             case NotificationChannel.PUSH:
               channelResult = await this.sendPushNotification(
                 userId,
-                finalTitle!,
-                finalBody!,
+                finalTitle,
+                finalBody,
                 data,
                 imageUrl,
                 priority
@@ -244,23 +241,23 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
             case NotificationChannel.EMAIL:
               channelResult = await this.sendEmailNotification(
                 userId,
-                finalTitle!,
-                finalBody!,
+                finalTitle,
+                finalBody,
                 data,
                 actionUrl
               );
               break;
 
             case NotificationChannel.SMS:
-              channelResult = await this.sendSMSNotification(userId, finalBody!);
+              channelResult = await this.sendSMSNotification(userId, finalBody);
               break;
 
             case NotificationChannel.IN_APP:
               channelResult = await this.saveInAppNotification(
                 userId,
-                notificationType!,
-                finalTitle!,
-                finalBody!,
+                notificationType,
+                finalTitle,
+                finalBody,
                 data,
                 imageUrl,
                 actionUrl
@@ -361,7 +358,9 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
   /**
    * Send scheduled notification
    */
-  private async sendScheduledNotification(jobData: NotificationJobData): Promise<NotificationResult> {
+  private async sendScheduledNotification(
+    jobData: NotificationJobData
+  ): Promise<NotificationResult> {
     const { scheduledAt } = jobData;
 
     // Check if it's time to send
@@ -389,7 +388,9 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
   /**
    * Process digest notifications (aggregate multiple notifications into one)
    */
-  private async processDigestNotifications(jobData: NotificationJobData): Promise<NotificationResult> {
+  private async processDigestNotifications(
+    jobData: NotificationJobData
+  ): Promise<NotificationResult> {
     const { userId } = jobData;
 
     if (!userId) {
@@ -555,7 +556,9 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
       case NotificationChannel.SMS:
         if (!prefs.smsEnabled) return false;
         // SMS only for verification and security
-        return [NotificationType.VERIFICATION_UPDATE, NotificationType.SYSTEM].includes(notificationType);
+        return [NotificationType.VERIFICATION_UPDATE, NotificationType.SYSTEM].includes(
+          notificationType
+        );
 
       case NotificationChannel.IN_APP:
         return true; // Always enabled
@@ -823,14 +826,17 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
   }
 
   private groupNotifications(notifications: any[]): Record<string, any[]> {
-    return notifications.reduce((acc, notif) => {
-      const type = notif.type;
-      if (!acc[type]) {
-        acc[type] = [];
-      }
-      acc[type].push(notif);
-      return acc;
-    }, {} as Record<string, any[]>);
+    return notifications.reduce(
+      (acc, notif) => {
+        const type = notif.type;
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(notif);
+        return acc;
+      },
+      {} as Record<string, any[]>
+    );
   }
 
   private createDigestContent(grouped: Record<string, any[]>): {
@@ -841,18 +847,27 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
     const counts: string[] = [];
 
     if (grouped[NotificationType.NEW_LIKE]?.length) {
-      counts.push(`${grouped[NotificationType.NEW_LIKE].length} new like${grouped[NotificationType.NEW_LIKE].length > 1 ? 's' : ''}`);
+      counts.push(
+        `${grouped[NotificationType.NEW_LIKE].length} new like${grouped[NotificationType.NEW_LIKE].length > 1 ? 's' : ''}`
+      );
     }
     if (grouped[NotificationType.NEW_MATCH]?.length) {
-      counts.push(`${grouped[NotificationType.NEW_MATCH].length} new match${grouped[NotificationType.NEW_MATCH].length > 1 ? 'es' : ''}`);
+      counts.push(
+        `${grouped[NotificationType.NEW_MATCH].length} new match${grouped[NotificationType.NEW_MATCH].length > 1 ? 'es' : ''}`
+      );
     }
     if (grouped[NotificationType.NEW_MESSAGE]?.length) {
-      counts.push(`${grouped[NotificationType.NEW_MESSAGE].length} new message${grouped[NotificationType.NEW_MESSAGE].length > 1 ? 's' : ''}`);
+      counts.push(
+        `${grouped[NotificationType.NEW_MESSAGE].length} new message${grouped[NotificationType.NEW_MESSAGE].length > 1 ? 's' : ''}`
+      );
     }
 
     return {
       title: "Here's what you missed",
-      body: counts.length > 0 ? `You have ${counts.join(', ')}!` : 'Check out what happened while you were away.',
+      body:
+        counts.length > 0
+          ? `You have ${counts.join(', ')}!`
+          : 'Check out what happened while you were away.',
       data: {
         digest: true,
         counts: grouped,
@@ -897,8 +912,8 @@ export class NotificationWorker extends BaseWorker<NotificationJobData, Notifica
       options?.priority === NotificationPriority.URGENT
         ? JobPriority.CRITICAL
         : options?.priority === NotificationPriority.HIGH
-        ? JobPriority.HIGH
-        : JobPriority.NORMAL;
+          ? JobPriority.HIGH
+          : JobPriority.NORMAL;
 
     await this.addJob(
       {

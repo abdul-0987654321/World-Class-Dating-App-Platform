@@ -12,7 +12,7 @@ export enum MatchStatus {
   PENDING = 'pending',
   ACTIVE = 'active',
   EXPIRED = 'expired',
-  UNMATCHED = 'unmatched'
+  UNMATCHED = 'unmatched',
 }
 
 export interface Swipe {
@@ -26,7 +26,7 @@ export interface Swipe {
 export enum SwipeAction {
   LIKE = 'like',
   PASS = 'pass',
-  SUPER_LIKE = 'super_like'
+  SUPER_LIKE = 'super_like',
 }
 
 export interface MatchRecommendation {

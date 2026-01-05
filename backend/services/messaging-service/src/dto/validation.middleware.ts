@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { validate, ValidationError } from 'class-validator';
 import { plainToInstance, ClassConstructor } from 'class-transformer';
+import { validate, ValidationError } from 'class-validator';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Validation options for the middleware

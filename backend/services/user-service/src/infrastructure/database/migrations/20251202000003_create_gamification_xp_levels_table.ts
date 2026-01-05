@@ -4,7 +4,13 @@ export async function up(knex: Knex): Promise<void> {
   // User XP and levels table
   await knex.schema.createTable('user_experience', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('user_id')
+      .notNullable()
+      .unique()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
     table.integer('total_xp').defaultTo(0).comment('Total experience points earned');
     table.integer('current_level').defaultTo(1).comment('Current user level');
     table.integer('current_level_xp').defaultTo(0).comment('XP progress in current level');
@@ -28,7 +34,10 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.integer('amount').notNullable().comment('XP amount (positive or negative)');
     table.enum('type', ['earned', 'bonus', 'deducted', 'penalty']).notNullable();
-    table.string('source').notNullable().comment('Where XP came from (swipe, message, achievement, etc.)');
+    table
+      .string('source')
+      .notNullable()
+      .comment('Where XP came from (swipe, message, achievement, etc.)');
     table.text('description');
     table.jsonb('metadata').comment('Additional context');
     table.integer('level_before').notNullable();
@@ -73,9 +82,13 @@ export async function up(knex: Knex): Promise<void> {
     table.string('action_key').notNullable().unique().comment('Unique identifier for action');
     table.string('action_name').notNullable();
     table.text('description');
-    table.enum('category', ['profile', 'social', 'activity', 'engagement', 'premium']).notNullable();
+    table
+      .enum('category', ['profile', 'social', 'activity', 'engagement', 'premium'])
+      .notNullable();
     table.integer('base_xp').notNullable().comment('Base XP awarded');
-    table.integer('max_daily_count').comment('Max times per day this can award XP (null = unlimited)');
+    table
+      .integer('max_daily_count')
+      .comment('Max times per day this can award XP (null = unlimited)');
     table.integer('cooldown_minutes').comment('Minutes before can earn XP again from this action');
     table.boolean('is_repeatable').defaultTo(true);
     table.float('multiplier').defaultTo(1.0).comment('XP multiplier');
@@ -94,7 +107,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_level_unlocks', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('level_id').notNullable().references('id').inTable('level_definitions').onDelete('CASCADE');
+    table
+      .uuid('level_id')
+      .notNullable()
+      .references('id')
+      .inTable('level_definitions')
+      .onDelete('CASCADE');
     table.integer('level').notNullable();
     table.boolean('reward_claimed').defaultTo(false);
     table.timestamp('unlocked_at').defaultTo(knex.fn.now());

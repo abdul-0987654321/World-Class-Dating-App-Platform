@@ -1,8 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import cron from 'node-cron';
 import { createLogger } from '@flamoral/backend-shared';
-import db from '../infrastructure/database/knex';
-import { TABLES, ScheduledMessage } from '../models';
+import cron from 'node-cron';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
 import {
   CreateScheduledMessageDto,
   UpdateScheduledMessageDto,
@@ -10,7 +10,9 @@ import {
   MatchWarmupSequenceDto,
   ScheduleType,
 } from '../dtos';
-import config from '../config';
+import db from '../infrastructure/database/knex';
+import { TABLES, ScheduledMessage } from '../models';
+
 import { ServiceClient } from './service-client';
 
 const logger = createLogger('automation-service:scheduled-message');
@@ -38,7 +40,9 @@ export class ScheduledMessageService {
   /**
    * Create a scheduled message
    */
-  async createScheduledMessage(dto: CreateScheduledMessageDto): Promise<ScheduledMessageResponseDto> {
+  async createScheduledMessage(
+    dto: CreateScheduledMessageDto
+  ): Promise<ScheduledMessageResponseDto> {
     try {
       const id = uuidv4();
 
@@ -125,7 +129,9 @@ export class ScheduledMessageService {
   /**
    * Create match warmup sequence
    */
-  async createMatchWarmupSequence(dto: MatchWarmupSequenceDto): Promise<ScheduledMessageResponseDto[]> {
+  async createMatchWarmupSequence(
+    dto: MatchWarmupSequenceDto
+  ): Promise<ScheduledMessageResponseDto[]> {
     const results: ScheduledMessageResponseDto[] = [];
 
     for (const warmupMsg of dto.sequence) {
@@ -238,12 +244,10 @@ export class ScheduledMessageService {
     } catch (error: any) {
       logger.error('Send failed', { error: error.message });
 
-      await db(TABLES.SCHEDULED_MESSAGES)
-        .where({ id: messageId })
-        .update({
-          status: 'failed',
-          error_message: error.message,
-        });
+      await db(TABLES.SCHEDULED_MESSAGES).where({ id: messageId }).update({
+        status: 'failed',
+        error_message: error.message,
+      });
     }
   }
 

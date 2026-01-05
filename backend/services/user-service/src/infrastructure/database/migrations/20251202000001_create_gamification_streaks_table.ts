@@ -50,9 +50,22 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_streak_milestones', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('milestone_id').notNullable().references('id').inTable('streak_milestones').onDelete('CASCADE');
-    table.uuid('streak_id').notNullable().references('id').inTable('user_streaks').onDelete('CASCADE');
-    table.integer('streak_at_achievement').notNullable().comment('Streak count when milestone was reached');
+    table
+      .uuid('milestone_id')
+      .notNullable()
+      .references('id')
+      .inTable('streak_milestones')
+      .onDelete('CASCADE');
+    table
+      .uuid('streak_id')
+      .notNullable()
+      .references('id')
+      .inTable('user_streaks')
+      .onDelete('CASCADE');
+    table
+      .integer('streak_at_achievement')
+      .notNullable()
+      .comment('Streak count when milestone was reached');
     table.boolean('reward_claimed').defaultTo(false);
     table.timestamp('achieved_at').defaultTo(knex.fn.now());
     table.timestamp('claimed_at');

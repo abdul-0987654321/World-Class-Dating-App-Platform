@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { ExperienceRepository } from '../repositories/Experience.repository';
+
 import {
   UserExperience,
   XPTransaction,
@@ -8,6 +8,7 @@ import {
   LevelUpResult,
   XPAwardResult,
 } from '../entities/Experience.entity';
+import { ExperienceRepository } from '../repositories/Experience.repository';
 
 export class ExperienceService {
   private repository: ExperienceRepository;
@@ -51,7 +52,8 @@ export class ExperienceService {
       if (xpSource.cooldownMinutes) {
         const lastTransaction = await repository.findLastTransactionBySource(userId, actionKey);
         if (lastTransaction) {
-          const minutesSince = (Date.now() - new Date(lastTransaction.createdAt).getTime()) / 1000 / 60;
+          const minutesSince =
+            (Date.now() - new Date(lastTransaction.createdAt).getTime()) / 1000 / 60;
           if (minutesSince < xpSource.cooldownMinutes) {
             return {
               awarded: false,
@@ -223,7 +225,11 @@ export class ExperienceService {
     return this.awardXP(userId, 'VERIFY_PHOTO');
   }
 
-  async trackMatch(userId: string, isSuperLike: boolean = false, isMutualSuperLike: boolean = false): Promise<XPAwardResult> {
+  async trackMatch(
+    userId: string,
+    isSuperLike: boolean = false,
+    isMutualSuperLike: boolean = false
+  ): Promise<XPAwardResult> {
     if (isMutualSuperLike) {
       return this.awardXP(userId, 'MUTUAL_SUPER_LIKE');
     } else if (isSuperLike) {
@@ -245,7 +251,11 @@ export class ExperienceService {
     return this.awardXP(userId, 'DAILY_LOGIN');
   }
 
-  async trackMessage(userId: string, isFirstMessage: boolean = false, isQuickResponse: boolean = false): Promise<XPAwardResult> {
+  async trackMessage(
+    userId: string,
+    isFirstMessage: boolean = false,
+    isQuickResponse: boolean = false
+  ): Promise<XPAwardResult> {
     if (isFirstMessage) {
       await this.awardXP(userId, 'FIRST_MESSAGE');
     }
@@ -267,7 +277,12 @@ export class ExperienceService {
     return this.awardXP(userId, 'REFER_FRIEND');
   }
 
-  private async awardCoins(db: Knex, userId: string, amount: number, reason: string): Promise<void> {
+  private async awardCoins(
+    db: Knex,
+    userId: string,
+    amount: number,
+    reason: string
+  ): Promise<void> {
     const existingCoins = await db('coins').where({ user_id: userId }).first();
 
     if (existingCoins) {

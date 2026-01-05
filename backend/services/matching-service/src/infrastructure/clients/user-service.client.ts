@@ -3,8 +3,8 @@
  * Handles communication with the user service
  */
 
-import { ServiceClient } from '@flamoral/backend-shared';
-import { createLogger } from '@flamoral/backend-shared';
+import { ServiceClient, createLogger } from '@flamoral/backend-shared';
+
 import config from '../../config';
 
 const logger = createLogger('user-service-client');
@@ -85,7 +85,7 @@ export class UserServiceClient {
       const profiles = response.data as UserProfile[];
 
       const profileMap = new Map<string, UserProfile>();
-      profiles.forEach(profile => {
+      profiles.forEach((profile) => {
         profileMap.set(profile.id, profile);
       });
 
@@ -121,7 +121,9 @@ export class UserServiceClient {
       }
       return 'free';
     } catch (error: any) {
-      logger.warn(`Failed to get subscription tier for ${userId}, defaulting to free: ${error.message}`);
+      logger.warn(
+        `Failed to get subscription tier for ${userId}, defaulting to free: ${error.message}`
+      );
       return 'free';
     }
   }

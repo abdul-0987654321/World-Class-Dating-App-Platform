@@ -1,12 +1,13 @@
 import express from 'express';
-import { authenticateAdmin, requirePermission, requireRole } from '../middleware/auth';
+
 import { auditLog, queryAuditLogs } from '../middleware/audit';
-import { Permission, AdminRole, AuthRequest } from '../types';
-import { DashboardService } from '../services/dashboard.service';
-import { UsersService } from '../services/users.service';
-import { HealthService } from '../services/health.service';
+import { authenticateAdmin, requirePermission, requireRole } from '../middleware/auth';
 import { ABTestService } from '../services/abtest.service';
+import { DashboardService } from '../services/dashboard.service';
+import { HealthService } from '../services/health.service';
 import { TicketsService } from '../services/tickets.service';
+import { UsersService } from '../services/users.service';
+import { Permission, AdminRole, AuthRequest } from '../types';
 
 const router = express.Router();
 
@@ -19,12 +20,13 @@ const ticketsService = new TicketsService();
 
 // ==================== Dashboard ====================
 
-router.get('/dashboard',
+router.get(
+  '/dashboard',
   authenticateAdmin,
   requirePermission(Permission.ANALYTICS_VIEW),
   async (req: AuthRequest, res) => {
     try {
-      const timeRange = req.query.range as 'today' | 'week' | 'month' || 'today';
+      const timeRange = (req.query.range as 'today' | 'week' | 'month') || 'today';
       const stats = await dashboardService.getDashboardStats(timeRange);
       const activities = await dashboardService.getRecentActivity(20);
 
@@ -43,7 +45,8 @@ router.get('/dashboard',
 
 // ==================== User Management ====================
 
-router.get('/users',
+router.get(
+  '/users',
   authenticateAdmin,
   requirePermission(Permission.USER_VIEW),
   async (req: AuthRequest, res) => {
@@ -63,7 +66,8 @@ router.get('/users',
   }
 );
 
-router.get('/users/:userId',
+router.get(
+  '/users/:userId',
   authenticateAdmin,
   requirePermission(Permission.USER_VIEW),
   async (req: AuthRequest, res) => {
@@ -76,7 +80,8 @@ router.get('/users/:userId',
   }
 );
 
-router.post('/users/:userId/ban',
+router.post(
+  '/users/:userId/ban',
   authenticateAdmin,
   requirePermission(Permission.USER_BAN),
   auditLog('ban_user', 'user'),
@@ -90,7 +95,8 @@ router.post('/users/:userId/ban',
   }
 );
 
-router.post('/users/:userId/unban',
+router.post(
+  '/users/:userId/unban',
   authenticateAdmin,
   requirePermission(Permission.USER_BAN),
   auditLog('unban_user', 'user'),
@@ -104,7 +110,8 @@ router.post('/users/:userId/unban',
   }
 );
 
-router.post('/users/:userId/verify',
+router.post(
+  '/users/:userId/verify',
   authenticateAdmin,
   requirePermission(Permission.USER_EDIT),
   auditLog('verify_user', 'user'),
@@ -118,7 +125,8 @@ router.post('/users/:userId/verify',
   }
 );
 
-router.delete('/users/:userId',
+router.delete(
+  '/users/:userId',
   authenticateAdmin,
   requirePermission(Permission.USER_DELETE),
   auditLog('delete_user', 'user'),
@@ -132,7 +140,8 @@ router.delete('/users/:userId',
   }
 );
 
-router.post('/users/:userId/reset-password',
+router.post(
+  '/users/:userId/reset-password',
   authenticateAdmin,
   requirePermission(Permission.USER_EDIT),
   auditLog('reset_password', 'user'),
@@ -148,7 +157,8 @@ router.post('/users/:userId/reset-password',
 
 // ==================== System Health ====================
 
-router.get('/health',
+router.get(
+  '/health',
   authenticateAdmin,
   requirePermission(Permission.HEALTH_VIEW),
   async (req: AuthRequest, res) => {
@@ -161,7 +171,8 @@ router.get('/health',
   }
 );
 
-router.get('/health/services/:serviceName/logs',
+router.get(
+  '/health/services/:serviceName/logs',
   authenticateAdmin,
   requirePermission(Permission.HEALTH_VIEW),
   async (req: AuthRequest, res) => {
@@ -175,7 +186,8 @@ router.get('/health/services/:serviceName/logs',
   }
 );
 
-router.post('/health/services/:serviceName/restart',
+router.post(
+  '/health/services/:serviceName/restart',
   authenticateAdmin,
   requireRole(AdminRole.ADMIN),
   requirePermission(Permission.HEALTH_MANAGE),
@@ -192,7 +204,8 @@ router.post('/health/services/:serviceName/restart',
 
 // ==================== A/B Tests ====================
 
-router.get('/ab-tests',
+router.get(
+  '/ab-tests',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_VIEW),
   async (req: AuthRequest, res) => {
@@ -211,7 +224,8 @@ router.get('/ab-tests',
   }
 );
 
-router.get('/ab-tests/:testId',
+router.get(
+  '/ab-tests/:testId',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_VIEW),
   async (req: AuthRequest, res) => {
@@ -224,7 +238,8 @@ router.get('/ab-tests/:testId',
   }
 );
 
-router.post('/ab-tests',
+router.post(
+  '/ab-tests',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_CREATE),
   auditLog('create_ab_test', 'ab_test'),
@@ -232,7 +247,7 @@ router.post('/ab-tests',
     try {
       const test = await abTestService.createTest({
         ...req.body,
-        createdBy: req.admin!.id,
+        createdBy: req.admin.id,
       });
       res.json({ success: true, data: test });
     } catch (error: any) {
@@ -241,7 +256,8 @@ router.post('/ab-tests',
   }
 );
 
-router.put('/ab-tests/:testId',
+router.put(
+  '/ab-tests/:testId',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_EDIT),
   auditLog('update_ab_test', 'ab_test'),
@@ -255,7 +271,8 @@ router.put('/ab-tests/:testId',
   }
 );
 
-router.post('/ab-tests/:testId/start',
+router.post(
+  '/ab-tests/:testId/start',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_EDIT),
   auditLog('start_ab_test', 'ab_test'),
@@ -269,7 +286,8 @@ router.post('/ab-tests/:testId/start',
   }
 );
 
-router.post('/ab-tests/:testId/pause',
+router.post(
+  '/ab-tests/:testId/pause',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_EDIT),
   auditLog('pause_ab_test', 'ab_test'),
@@ -283,7 +301,8 @@ router.post('/ab-tests/:testId/pause',
   }
 );
 
-router.post('/ab-tests/:testId/complete',
+router.post(
+  '/ab-tests/:testId/complete',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_EDIT),
   auditLog('complete_ab_test', 'ab_test'),
@@ -297,7 +316,8 @@ router.post('/ab-tests/:testId/complete',
   }
 );
 
-router.delete('/ab-tests/:testId',
+router.delete(
+  '/ab-tests/:testId',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_DELETE),
   auditLog('delete_ab_test', 'ab_test'),
@@ -311,7 +331,8 @@ router.delete('/ab-tests/:testId',
   }
 );
 
-router.get('/ab-tests/:testId/metrics',
+router.get(
+  '/ab-tests/:testId/metrics',
   authenticateAdmin,
   requirePermission(Permission.AB_TEST_VIEW),
   async (req: AuthRequest, res) => {
@@ -326,7 +347,8 @@ router.get('/ab-tests/:testId/metrics',
 
 // ==================== Support Tickets ====================
 
-router.get('/tickets',
+router.get(
+  '/tickets',
   authenticateAdmin,
   requirePermission(Permission.TICKET_VIEW),
   async (req: AuthRequest, res) => {
@@ -347,7 +369,8 @@ router.get('/tickets',
   }
 );
 
-router.get('/tickets/stats',
+router.get(
+  '/tickets/stats',
   authenticateAdmin,
   requirePermission(Permission.TICKET_VIEW),
   async (req: AuthRequest, res) => {
@@ -360,7 +383,8 @@ router.get('/tickets/stats',
   }
 );
 
-router.get('/tickets/:ticketId',
+router.get(
+  '/tickets/:ticketId',
   authenticateAdmin,
   requirePermission(Permission.TICKET_VIEW),
   async (req: AuthRequest, res) => {
@@ -373,7 +397,8 @@ router.get('/tickets/:ticketId',
   }
 );
 
-router.post('/tickets/:ticketId/assign',
+router.post(
+  '/tickets/:ticketId/assign',
   authenticateAdmin,
   requirePermission(Permission.TICKET_RESPOND),
   auditLog('assign_ticket', 'ticket'),
@@ -381,8 +406,8 @@ router.post('/tickets/:ticketId/assign',
     try {
       await ticketsService.assignTicket(
         req.params.ticketId,
-        req.admin!.id,
-        `${req.admin!.firstName} ${req.admin!.lastName}`
+        req.admin.id,
+        `${req.admin.firstName} ${req.admin.lastName}`
       );
       res.json({ success: true, message: 'Ticket assigned successfully' });
     } catch (error: any) {
@@ -391,7 +416,8 @@ router.post('/tickets/:ticketId/assign',
   }
 );
 
-router.post('/tickets/:ticketId/messages',
+router.post(
+  '/tickets/:ticketId/messages',
   authenticateAdmin,
   requirePermission(Permission.TICKET_RESPOND),
   auditLog('add_ticket_message', 'ticket'),
@@ -399,7 +425,7 @@ router.post('/tickets/:ticketId/messages',
     try {
       await ticketsService.addMessage(
         req.params.ticketId,
-        req.admin!.id,
+        req.admin.id,
         'admin',
         req.body.content,
         req.body.attachments
@@ -411,7 +437,8 @@ router.post('/tickets/:ticketId/messages',
   }
 );
 
-router.put('/tickets/:ticketId/status',
+router.put(
+  '/tickets/:ticketId/status',
   authenticateAdmin,
   requirePermission(Permission.TICKET_CLOSE),
   auditLog('update_ticket_status', 'ticket'),
@@ -425,7 +452,8 @@ router.put('/tickets/:ticketId/status',
   }
 );
 
-router.put('/tickets/:ticketId/priority',
+router.put(
+  '/tickets/:ticketId/priority',
   authenticateAdmin,
   requirePermission(Permission.TICKET_RESPOND),
   auditLog('update_ticket_priority', 'ticket'),
@@ -441,7 +469,8 @@ router.put('/tickets/:ticketId/priority',
 
 // ==================== Audit Logs ====================
 
-router.get('/audit-logs',
+router.get(
+  '/audit-logs',
   authenticateAdmin,
   requirePermission(Permission.AUDIT_VIEW),
   async (req: AuthRequest, res) => {

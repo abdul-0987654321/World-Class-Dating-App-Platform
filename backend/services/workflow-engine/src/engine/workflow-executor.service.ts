@@ -1,18 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workflow } from '../models/workflow.entity';
-import { WorkflowExecution } from '../models/workflow-execution.entity';
-import { ConditionEvaluatorService } from '../conditions/condition-evaluator.service';
+import { v4 as uuidv4 } from 'uuid';
+
 import { ActionExecutorService } from '../actions/action-executor.service';
-import { RetryService } from '../services/retry.service';
+import { ConditionEvaluatorService } from '../conditions/condition-evaluator.service';
 import {
   ExecutionContext,
   ExecutionStatus,
   TriggerType,
   WorkflowStatus,
 } from '../interfaces/workflow.interface';
-import { v4 as uuidv4 } from 'uuid';
+import { WorkflowExecution } from '../models/workflow-execution.entity';
+import { Workflow } from '../models/workflow.entity';
+import { RetryService } from '../services/retry.service';
 
 @Injectable()
 export class WorkflowExecutorService {
@@ -25,7 +26,7 @@ export class WorkflowExecutorService {
     private readonly executionRepository: Repository<WorkflowExecution>,
     private readonly conditionEvaluator: ConditionEvaluatorService,
     private readonly actionExecutor: ActionExecutorService,
-    private readonly retryService: RetryService,
+    private readonly retryService: RetryService
   ) {}
 
   /**
@@ -35,7 +36,7 @@ export class WorkflowExecutorService {
     triggerType: TriggerType,
     triggerData: Record<string, any>,
     userId?: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, any>
   ): Promise<string[]> {
     const executionIds: string[] = [];
 
@@ -50,28 +51,17 @@ export class WorkflowExecutorService {
         },
       });
 
-      const matchingWorkflows = workflows.filter(
-        (w) => w.trigger.type === triggerType,
-      );
+      const matchingWorkflows = workflows.filter((w) => w.trigger.type === triggerType);
 
-      this.logger.log(
-        `Found ${matchingWorkflows.length} workflows for trigger ${triggerType}`,
-      );
+      this.logger.log(`Found ${matchingWorkflows.length} workflows for trigger ${triggerType}`);
 
       // Execute each matching workflow
       for (const workflow of matchingWorkflows) {
         try {
-          const executionId = await this.executeWorkflow(
-            workflow,
-            triggerData,
-            userId,
-            metadata,
-          );
+          const executionId = await this.executeWorkflow(workflow, triggerData, userId, metadata);
           executionIds.push(executionId);
         } catch (error) {
-          this.logger.error(
-            `Failed to execute workflow ${workflow.id}: ${error.message}`,
-          );
+          this.logger.error(`Failed to execute workflow ${workflow.id}: ${error.message}`);
         }
       }
     } catch (error) {
@@ -89,7 +79,7 @@ export class WorkflowExecutorService {
     triggerData: Record<string, any>,
     userId?: string,
     metadata?: Record<string, any>,
-    attempt: number = 0,
+    attempt: number = 0
   ): Promise<string> {
     const executionId = uuidv4();
     const startTime = new Date();
@@ -108,9 +98,7 @@ export class WorkflowExecutorService {
 
     await this.executionRepository.save(execution);
 
-    this.logger.log(
-      `Starting execution ${executionId} for workflow ${workflow.id}`,
-    );
+    this.logger.log(`Starting execution ${executionId} for workflow ${workflow.id}`);
 
     try {
       // Create execution context
@@ -131,14 +119,12 @@ export class WorkflowExecutorService {
       if (workflow.conditions && workflow.conditions.length > 0) {
         const evaluation = await this.conditionEvaluator.evaluateConditions(
           workflow.conditions,
-          context,
+          context
         );
         conditionsEvaluated = evaluation.passed;
         conditionResults = evaluation.results;
 
-        this.logger.log(
-          `Conditions evaluated: ${conditionsEvaluated} for workflow ${workflow.id}`,
-        );
+        this.logger.log(`Conditions evaluated: ${conditionsEvaluated} for workflow ${workflow.id}`);
 
         // Update execution with condition results
         execution.conditionsEvaluated = conditionsEvaluated;
@@ -149,14 +135,9 @@ export class WorkflowExecutorService {
       // Execute actions only if conditions pass
       let actionsExecuted = [];
       if (conditionsEvaluated) {
-        actionsExecuted = await this.actionExecutor.executeActions(
-          workflow.actions,
-          context,
-        );
+        actionsExecuted = await this.actionExecutor.executeActions(workflow.actions, context);
       } else {
-        this.logger.log(
-          `Skipping actions for workflow ${workflow.id} - conditions not met`,
-        );
+        this.logger.log(`Skipping actions for workflow ${workflow.id} - conditions not met`);
       }
 
       // Mark execution as completed
@@ -174,15 +155,12 @@ export class WorkflowExecutorService {
       await this.updateWorkflowStats(workflow.id, true);
 
       this.logger.log(
-        `Completed execution ${executionId} for workflow ${workflow.id} in ${duration}ms`,
+        `Completed execution ${executionId} for workflow ${workflow.id} in ${duration}ms`
       );
 
       return executionId;
     } catch (error) {
-      this.logger.error(
-        `Execution ${executionId} failed: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Execution ${executionId} failed: ${error.message}`, error.stack);
 
       // Check if we should retry
       const shouldRetry = await this.retryService.shouldRetry(attempt);
@@ -195,13 +173,7 @@ export class WorkflowExecutorService {
         // Schedule retry with exponential backoff
         const retryDelay = this.retryService.getRetryDelay(attempt);
         setTimeout(() => {
-          this.executeWorkflow(
-            workflow,
-            triggerData,
-            userId,
-            metadata,
-            attempt + 1,
-          );
+          this.executeWorkflow(workflow, triggerData, userId, metadata, attempt + 1);
         }, retryDelay);
       } else {
         // Mark as failed
@@ -227,10 +199,7 @@ export class WorkflowExecutorService {
   /**
    * Update workflow statistics
    */
-  private async updateWorkflowStats(
-    workflowId: string,
-    success: boolean,
-  ): Promise<void> {
+  private async updateWorkflowStats(workflowId: string, success: boolean): Promise<void> {
     try {
       const workflow = await this.workflowRepository.findOne({
         where: { id: workflowId },
@@ -248,9 +217,7 @@ export class WorkflowExecutorService {
         await this.workflowRepository.save(workflow);
       }
     } catch (error) {
-      this.logger.error(
-        `Failed to update workflow stats: ${error.message}`,
-      );
+      this.logger.error(`Failed to update workflow stats: ${error.message}`);
     }
   }
 
@@ -269,7 +236,7 @@ export class WorkflowExecutorService {
    */
   async getWorkflowExecutions(
     workflowId: string,
-    limit: number = 50,
+    limit: number = 50
   ): Promise<WorkflowExecution[]> {
     return this.executionRepository.find({
       where: { workflowId },
@@ -289,8 +256,7 @@ export class WorkflowExecutorService {
     if (execution && execution.status === ExecutionStatus.RUNNING) {
       execution.status = ExecutionStatus.CANCELLED;
       execution.endTime = new Date();
-      execution.duration =
-        execution.endTime.getTime() - execution.startTime.getTime();
+      execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
       await this.executionRepository.save(execution);
     }
   }

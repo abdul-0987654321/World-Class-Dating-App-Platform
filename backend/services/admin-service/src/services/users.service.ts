@@ -1,5 +1,6 @@
-import { db } from '../infrastructure/database';
 import axios from 'axios';
+
+import { db } from '../infrastructure/database';
 import { logger } from '../utils/logger';
 
 export class UsersService {
@@ -14,16 +15,13 @@ export class UsersService {
     const offset = (page - 1) * limit;
 
     let query = db('users')
-      .select(
-        'users.*',
-        db.raw('COUNT(DISTINCT reports.id) as report_count')
-      )
+      .select('users.*', db.raw('COUNT(DISTINCT reports.id) as report_count'))
       .leftJoin('reports', 'users.id', 'reports.reported_user_id')
       .groupBy('users.id');
 
     // Search filter
     if (filters.search) {
-      query = query.where(function() {
+      query = query.where(function () {
         this.where('email', 'ilike', `%${filters.search}%`)
           .orWhere('first_name', 'ilike', `%${filters.search}%`)
           .orWhere('last_name', 'ilike', `%${filters.search}%`)
@@ -53,13 +51,10 @@ export class UsersService {
     const total = parseInt(count as string);
 
     // Get paginated results
-    const users = await query
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset);
+    const users = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
     return {
-      users: users.map(user => ({
+      users: users.map((user) => ({
         id: user.id,
         email: user.email,
         firstName: user.first_name,
@@ -93,18 +88,9 @@ export class UsersService {
         .orWhere('user2_id', userId)
         .count('* as count')
         .first(),
-      db('reports')
-        .where('reported_user_id', userId)
-        .orderBy('created_at', 'desc')
-        .limit(10),
-      db('subscription_history')
-        .where('user_id', userId)
-        .orderBy('created_at', 'desc')
-        .limit(10),
-      db('login_history')
-        .where('user_id', userId)
-        .orderBy('created_at', 'desc')
-        .limit(20),
+      db('reports').where('reported_user_id', userId).orderBy('created_at', 'desc').limit(10),
+      db('subscription_history').where('user_id', userId).orderBy('created_at', 'desc').limit(10),
+      db('login_history').where('user_id', userId).orderBy('created_at', 'desc').limit(20),
     ]);
 
     return {
@@ -119,15 +105,13 @@ export class UsersService {
   async banUser(userId: string, reason: string, duration?: number) {
     const banUntil = duration ? new Date(Date.now() + duration * 1000) : null;
 
-    await db('users')
-      .where({ id: userId })
-      .update({
-        is_banned: true,
-        ban_reason: reason,
-        banned_at: db.fn.now(),
-        ban_until: banUntil,
-        updated_at: db.fn.now(),
-      });
+    await db('users').where({ id: userId }).update({
+      is_banned: true,
+      ban_reason: reason,
+      banned_at: db.fn.now(),
+      ban_until: banUntil,
+      updated_at: db.fn.now(),
+    });
 
     await db('user_actions').insert({
       user_id: userId,
@@ -140,15 +124,13 @@ export class UsersService {
   }
 
   async unbanUser(userId: string) {
-    await db('users')
-      .where({ id: userId })
-      .update({
-        is_banned: false,
-        ban_reason: null,
-        banned_at: null,
-        ban_until: null,
-        updated_at: db.fn.now(),
-      });
+    await db('users').where({ id: userId }).update({
+      is_banned: false,
+      ban_reason: null,
+      banned_at: null,
+      ban_until: null,
+      updated_at: db.fn.now(),
+    });
 
     await db('user_actions').insert({
       user_id: userId,
@@ -160,27 +142,23 @@ export class UsersService {
   }
 
   async verifyUser(userId: string) {
-    await db('users')
-      .where({ id: userId })
-      .update({
-        is_verified: true,
-        verified_at: db.fn.now(),
-        updated_at: db.fn.now(),
-      });
+    await db('users').where({ id: userId }).update({
+      is_verified: true,
+      verified_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    });
 
     logger.info(`User verified: ${userId}`);
   }
 
   async deleteUser(userId: string, reason: string) {
     // Soft delete
-    await db('users')
-      .where({ id: userId })
-      .update({
-        is_active: false,
-        deleted_at: db.fn.now(),
-        deletion_reason: reason,
-        updated_at: db.fn.now(),
-      });
+    await db('users').where({ id: userId }).update({
+      is_active: false,
+      deleted_at: db.fn.now(),
+      deletion_reason: reason,
+      updated_at: db.fn.now(),
+    });
 
     // Schedule data anonymization
     await db('deletion_queue').insert({
@@ -208,13 +186,11 @@ export class UsersService {
     const resetToken = this.generateResetToken();
     const resetExpiry = new Date(Date.now() + 3600000); // 1 hour
 
-    await db('users')
-      .where({ id: userId })
-      .update({
-        password_reset_token: resetToken,
-        password_reset_expires: resetExpiry,
-        updated_at: db.fn.now(),
-      });
+    await db('users').where({ id: userId }).update({
+      password_reset_token: resetToken,
+      password_reset_expires: resetExpiry,
+      updated_at: db.fn.now(),
+    });
 
     // Send password reset email (integrate with notification service)
     // await this.sendPasswordResetEmail(userId, resetToken);

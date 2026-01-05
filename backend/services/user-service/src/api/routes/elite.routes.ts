@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { EliteController } from '../controllers/elite.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireEliteTier } from '../middleware/elite-tier.middleware';
@@ -276,7 +277,10 @@ router.delete('/coach/sessions/:id', eliteController.cancelSession.bind(eliteCon
  *       400:
  *         description: Rescheduling failed
  */
-router.put('/coach/sessions/:id/reschedule', eliteController.rescheduleSession.bind(eliteController));
+router.put(
+  '/coach/sessions/:id/reschedule',
+  eliteController.rescheduleSession.bind(eliteController)
+);
 
 /**
  * @swagger
@@ -313,7 +317,10 @@ router.put('/coach/sessions/:id/reschedule', eliteController.rescheduleSession.b
  *       400:
  *         description: Submission failed
  */
-router.post('/coach/sessions/:id/feedback', eliteController.submitSessionFeedback.bind(eliteController));
+router.post(
+  '/coach/sessions/:id/feedback',
+  eliteController.submitSessionFeedback.bind(eliteController)
+);
 
 // ============ Concierge Service Routes ============
 

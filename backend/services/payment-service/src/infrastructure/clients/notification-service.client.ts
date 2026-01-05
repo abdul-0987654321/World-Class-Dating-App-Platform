@@ -1,9 +1,17 @@
-import logger from '../../utils/logger';
 import { ServiceClient } from '@flamoral/backend-shared';
+
+import logger from '../../utils/logger';
 
 interface SendNotificationDto {
   userId: string;
-  type: 'payment_success' | 'payment_failed' | 'subscription_updated' | 'subscription_canceled' | 'subscription_renewed' | 'trial_ending' | 'upcoming_payment';
+  type:
+    | 'payment_success'
+    | 'payment_failed'
+    | 'subscription_updated'
+    | 'subscription_canceled'
+    | 'subscription_renewed'
+    | 'trial_ending'
+    | 'upcoming_payment';
   title: string;
   body: string;
   data?: Record<string, any>;
@@ -56,7 +64,9 @@ export class NotificationServiceClient {
       userId,
       type: 'payment_failed',
       title: 'Payment Failed',
-      body: reason || 'Your payment could not be processed. Please check your payment method and try again.',
+      body:
+        reason ||
+        'Your payment could not be processed. Please check your payment method and try again.',
       data: { reason },
     });
   }
@@ -90,7 +100,12 @@ export class NotificationServiceClient {
   /**
    * Send subscription renewed notification
    */
-  async notifySubscriptionRenewed(userId: string, planName: string, amount: number, nextBillingDate: Date): Promise<void> {
+  async notifySubscriptionRenewed(
+    userId: string,
+    planName: string,
+    amount: number,
+    nextBillingDate: Date
+  ): Promise<void> {
     await this.sendNotification({
       userId,
       type: 'subscription_renewed',
@@ -103,7 +118,12 @@ export class NotificationServiceClient {
   /**
    * Send trial ending notification
    */
-  async notifyTrialEnding(userId: string, planName: string, endsAt: Date, daysRemaining: number): Promise<void> {
+  async notifyTrialEnding(
+    userId: string,
+    planName: string,
+    endsAt: Date,
+    daysRemaining: number
+  ): Promise<void> {
     await this.sendNotification({
       userId,
       type: 'trial_ending',

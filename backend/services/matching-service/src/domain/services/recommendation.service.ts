@@ -3,12 +3,14 @@
  * Provides personalized user recommendations
  */
 
-import swipeRepository from '../repositories/swipe.repository';
-import matchRepository from '../repositories/match.repository';
-import matchingAlgorithm from './matching-algorithm.service';
-import { RecommendationRequest, UserProfile, UserPreferences, MatchScore } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
+
+import { RecommendationRequest, UserProfile, UserPreferences, MatchScore } from '../../types';
+import matchRepository from '../repositories/match.repository';
+import swipeRepository from '../repositories/swipe.repository';
+
+import matchingAlgorithm from './matching-algorithm.service';
 
 const logger = createLogger('recommendation-service');
 

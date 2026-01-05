@@ -1,17 +1,12 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Workflow } from '../models/workflow.entity';
-import { WorkflowExecution } from '../models/workflow-execution.entity';
-import { ExecutionStatus } from '../interfaces/workflow.interface';
+
 import { InternalServiceGuard } from '../guards/internal-service.guard';
+import { ExecutionStatus } from '../interfaces/workflow.interface';
+import { WorkflowExecution } from '../models/workflow-execution.entity';
+import { Workflow } from '../models/workflow.entity';
 
 @ApiTags('analytics')
 @Controller('analytics')
@@ -22,7 +17,7 @@ export class AnalyticsController {
     @InjectRepository(Workflow)
     private readonly workflowRepository: Repository<Workflow>,
     @InjectRepository(WorkflowExecution)
-    private readonly executionRepository: Repository<WorkflowExecution>,
+    private readonly executionRepository: Repository<WorkflowExecution>
   ) {}
 
   @Get('workflows/performance')
@@ -31,7 +26,7 @@ export class AnalyticsController {
   @ApiQuery({ name: 'endDate', required: false, type: String })
   async getWorkflowPerformance(
     @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('endDate') endDate?: string
   ) {
     const workflows = await this.workflowRepository.find();
 
@@ -83,7 +78,7 @@ export class AnalyticsController {
           averageDuration: avgDuration?.avg || 0,
           lastExecutedAt: workflow.lastExecutedAt,
         };
-      }),
+      })
     );
 
     return performanceData.sort((a, b) => b.executions - a.executions);
@@ -98,7 +93,7 @@ export class AnalyticsController {
     @Param('id') id: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('interval') interval: 'hour' | 'day' | 'week' | 'month' = 'day',
+    @Query('interval') interval: 'hour' | 'day' | 'week' | 'month' = 'day'
   ) {
     const queryBuilder = this.executionRepository
       .createQueryBuilder('execution')
@@ -110,9 +105,7 @@ export class AnalyticsController {
       });
     }
 
-    const executions = await queryBuilder
-      .orderBy('execution.createdAt', 'ASC')
-      .getMany();
+    const executions = await queryBuilder.orderBy('execution.createdAt', 'ASC').getMany();
 
     // Group by interval
     const timeline = this.groupByInterval(executions, interval);
@@ -126,7 +119,7 @@ export class AnalyticsController {
   @ApiQuery({ name: 'endDate', required: false, type: String })
   async getTriggerPopularity(
     @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('endDate') endDate?: string
   ) {
     const workflows = await this.workflowRepository.find();
 
@@ -208,9 +201,7 @@ export class AnalyticsController {
     });
 
     const successRate =
-      totalExecutions > 0
-        ? ((successfulExecutions / totalExecutions) * 100).toFixed(2)
-        : '0';
+      totalExecutions > 0 ? ((successfulExecutions / totalExecutions) * 100).toFixed(2) : '0';
 
     const topWorkflows = await this.workflowRepository.find({
       order: { executionCount: 'DESC' },
@@ -238,7 +229,7 @@ export class AnalyticsController {
    */
   private groupByInterval(
     executions: WorkflowExecution[],
-    interval: 'hour' | 'day' | 'week' | 'month',
+    interval: 'hour' | 'day' | 'week' | 'month'
   ) {
     const groups = new Map<string, any>();
 
@@ -291,6 +282,6 @@ export class AnalyticsController {
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 }

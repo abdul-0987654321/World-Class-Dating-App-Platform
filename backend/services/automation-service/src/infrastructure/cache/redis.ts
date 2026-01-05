@@ -1,5 +1,6 @@
-import { createClient, RedisClientType } from 'redis';
 import { createLogger } from '@flamoral/backend-shared';
+import { createClient, RedisClientType } from 'redis';
+
 import config from '../../config';
 
 const logger = createLogger('automation-service:redis');

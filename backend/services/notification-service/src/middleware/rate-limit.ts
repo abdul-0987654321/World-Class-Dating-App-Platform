@@ -4,6 +4,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Redis } from 'ioredis';
+
 import { config } from '../config';
 import logger from '../utils/logger';
 

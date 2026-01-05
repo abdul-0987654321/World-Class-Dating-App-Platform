@@ -1,5 +1,6 @@
-import { createLogger } from '../../utils/logger';
 import { Message } from '../../types';
+import { createLogger } from '../../utils/logger';
+
 import { domainEncryptionService } from './encryption.service';
 
 const logger = createLogger('message-encryption-handler');
@@ -45,10 +46,12 @@ export class MessageEncryptionHandler {
         throw new Error('Encrypted message missing iv or authTag');
       }
 
-      if (!domainEncryptionService.validateEncryptionMetadata({
-        iv: messageData.encryption.iv,
-        authTag: messageData.encryption.authTag,
-      })) {
+      if (
+        !domainEncryptionService.validateEncryptionMetadata({
+          iv: messageData.encryption.iv,
+          authTag: messageData.encryption.authTag,
+        })
+      ) {
         throw new Error('Invalid encryption metadata');
       }
 
@@ -114,12 +117,7 @@ export class MessageEncryptionHandler {
     authTag: string
   ): Promise<string> {
     try {
-      return await domainEncryptionService.decryptMessage(
-        ciphertext,
-        sessionKey,
-        iv,
-        authTag
-      );
+      return await domainEncryptionService.decryptMessage(ciphertext, sessionKey, iv, authTag);
     } catch (error: any) {
       logger.error('Failed to decrypt message content:', error);
       throw error;
@@ -141,7 +139,7 @@ export class MessageEncryptionHandler {
     encryptedCount: number;
     totalCount: number;
   } {
-    const encryptedCount = messages.filter(m => this.isMessageEncrypted(m)).length;
+    const encryptedCount = messages.filter((m) => this.isMessageEncrypted(m)).length;
     const totalCount = messages.length;
 
     return {

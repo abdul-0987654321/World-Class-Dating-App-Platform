@@ -1,14 +1,15 @@
 import Stripe from 'stripe';
-import { db } from '../../infrastructure/database/connection';
-import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+
 import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
-import logger from '../../utils/logger';
+import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+import { db } from '../../infrastructure/database/connection';
 import {
   PaymentIntentMetadata,
   SubscriptionMetadata,
   CoinPackage,
   BoostProduct,
 } from '../../types/stripe-events.types';
+import logger from '../../utils/logger';
 
 const userServiceClient = new UserServiceClient();
 const notificationServiceClient = new NotificationServiceClient();
@@ -70,9 +71,7 @@ export class WebhookService {
       throw new Error('User ID not found in subscription metadata');
     }
 
-    const planId = await this.getPlanIdFromStripePriceId(
-      subscription.items.data[0]?.price.id
-    );
+    const planId = await this.getPlanIdFromStripePriceId(subscription.items.data[0]?.price.id);
 
     const planName = await this.getPlanName(planId);
 
@@ -85,12 +84,8 @@ export class WebhookService {
       billing_cycle: this.getBillingCycle(subscription),
       current_period_start: new Date(subscription.current_period_start * 1000),
       current_period_end: new Date(subscription.current_period_end * 1000),
-      trial_start: subscription.trial_start
-        ? new Date(subscription.trial_start * 1000)
-        : null,
-      trial_end: subscription.trial_end
-        ? new Date(subscription.trial_end * 1000)
-        : null,
+      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
       metadata: JSON.stringify(subscription.metadata),
     });
 
@@ -101,7 +96,11 @@ export class WebhookService {
     });
 
     // Send notification to user
-    await notificationServiceClient.notifySubscriptionUpdated(userId, planName, subscription.status);
+    await notificationServiceClient.notifySubscriptionUpdated(
+      userId,
+      planName,
+      subscription.status
+    );
 
     logger.info(`Subscription created for user ${userId}: ${planName} (${subscription.status})`);
   }
@@ -118,9 +117,7 @@ export class WebhookService {
       return;
     }
 
-    const planId = await this.getPlanIdFromStripePriceId(
-      subscription.items.data[0]?.price.id
-    );
+    const planId = await this.getPlanIdFromStripePriceId(subscription.items.data[0]?.price.id);
 
     const planName = await this.getPlanName(planId);
 
@@ -133,12 +130,8 @@ export class WebhookService {
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000),
         cancel_at_period_end: subscription.cancel_at_period_end,
-        canceled_at: subscription.canceled_at
-          ? new Date(subscription.canceled_at * 1000)
-          : null,
-        cancel_at: subscription.cancel_at
-          ? new Date(subscription.cancel_at * 1000)
-          : null,
+        canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+        cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null,
         updated_at: new Date(),
       });
 
@@ -149,9 +142,15 @@ export class WebhookService {
     });
 
     // Send notification to user
-    await notificationServiceClient.notifySubscriptionUpdated(existingSub.user_id, planName, subscription.status);
+    await notificationServiceClient.notifySubscriptionUpdated(
+      existingSub.user_id,
+      planName,
+      subscription.status
+    );
 
-    logger.info(`Subscription updated for user ${existingSub.user_id}: ${planName} (${subscription.status})`);
+    logger.info(
+      `Subscription updated for user ${existingSub.user_id}: ${planName} (${subscription.status})`
+    );
   }
 
   async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
@@ -169,13 +168,11 @@ export class WebhookService {
     const planName = await this.getPlanName(existingSub.plan_id);
     const periodEnd = new Date(subscription.current_period_end * 1000);
 
-    await db('user_subscriptions')
-      .where({ stripe_subscription_id: subscription.id })
-      .update({
-        status: 'canceled',
-        canceled_at: new Date(),
-        updated_at: new Date(),
-      });
+    await db('user_subscriptions').where({ stripe_subscription_id: subscription.id }).update({
+      status: 'canceled',
+      canceled_at: new Date(),
+      updated_at: new Date(),
+    });
 
     // Downgrade user to free tier
     await userServiceClient.updateUserSubscription(existingSub.user_id, {
@@ -184,7 +181,11 @@ export class WebhookService {
     });
 
     // Notify user about cancellation
-    await notificationServiceClient.notifySubscriptionCanceled(existingSub.user_id, planName, periodEnd);
+    await notificationServiceClient.notifySubscriptionCanceled(
+      existingSub.user_id,
+      planName,
+      periodEnd
+    );
 
     logger.info(`Subscription canceled for user ${existingSub.user_id}: ${planName}`);
   }
@@ -198,7 +199,9 @@ export class WebhookService {
 
     if (existingSub && subscription.trial_end) {
       const trialEndDate = new Date(subscription.trial_end * 1000);
-      const daysRemaining = Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil(
+        (trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      );
       const planName = await this.getPlanName(existingSub.plan_id);
 
       // Trigger notification to user about trial ending
@@ -209,7 +212,9 @@ export class WebhookService {
         daysRemaining
       );
 
-      logger.info(`Trial ending notification sent to user ${existingSub.user_id} (${daysRemaining} days remaining)`);
+      logger.info(
+        `Trial ending notification sent to user ${existingSub.user_id} (${daysRemaining} days remaining)`
+      );
     }
   }
 
@@ -225,9 +230,7 @@ export class WebhookService {
       return;
     }
 
-    const planId = await this.getPlanIdFromStripePriceId(
-      subscription.items.data[0]?.price.id
-    );
+    const planId = await this.getPlanIdFromStripePriceId(subscription.items.data[0]?.price.id);
 
     const planName = await this.getPlanName(planId);
 
@@ -278,15 +281,14 @@ export class WebhookService {
   async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing invoice payment succeeded: ${invoice.id}`);
 
-    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    const userId =
+      invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
     if (!userId) {
       logger.warn('User ID not found for invoice');
       return;
     }
 
-    const subscriptionId = await this.getSubscriptionIdFromStripe(
-      invoice.subscription as string
-    );
+    const subscriptionId = await this.getSubscriptionIdFromStripe(invoice.subscription as string);
 
     const amount = (invoice.amount_paid || 0) / 100;
     const description = invoice.lines.data[0]?.description || 'Subscription';
@@ -306,9 +308,7 @@ export class WebhookService {
 
     // Get subscription details for notification
     if (subscriptionId) {
-      const subscription = await db('user_subscriptions')
-        .where({ id: subscriptionId })
-        .first();
+      const subscription = await db('user_subscriptions').where({ id: subscriptionId }).first();
 
       if (subscription) {
         const planName = await this.getPlanName(subscription.plan_id);
@@ -330,7 +330,8 @@ export class WebhookService {
   async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing invoice payment failed: ${invoice.id}`);
 
-    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    const userId =
+      invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
     if (!userId) {
       logger.warn('User ID not found for failed invoice');
       return;
@@ -395,13 +396,16 @@ export class WebhookService {
 
     await notificationServiceClient.notifyUpcomingPayment(userId, amount, billingDate);
 
-    logger.info(`Upcoming payment notification sent to user ${userId}: $${amount} on ${billingDate.toLocaleDateString()}`);
+    logger.info(
+      `Upcoming payment notification sent to user ${userId}: $${amount} on ${billingDate.toLocaleDateString()}`
+    );
   }
 
   async handleInvoicePaymentActionRequired(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing invoice payment action required: ${invoice.id}`);
 
-    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    const userId =
+      invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
     if (!userId) {
       logger.warn('User ID not found for invoice requiring action');
       return;
@@ -428,7 +432,8 @@ export class WebhookService {
   async handleInvoiceFinalized(invoice: Stripe.Invoice): Promise<void> {
     logger.info(`Processing invoice finalized: ${invoice.id}`);
 
-    const userId = invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
+    const userId =
+      invoice.metadata?.user_id || (await this.getUserIdFromCustomer(invoice.customer as string));
     if (!userId) {
       logger.warn('User ID not found for finalized invoice');
       return;
@@ -467,7 +472,9 @@ export class WebhookService {
 
         case 'subscription':
           // Subscriptions are handled via subscription events
-          logger.info(`Payment for subscription ${paymentIntent.id} - handled by subscription webhook`);
+          logger.info(
+            `Payment for subscription ${paymentIntent.id} - handled by subscription webhook`
+          );
           break;
 
         default:
@@ -546,7 +553,9 @@ export class WebhookService {
     const userId = metadata?.user_id;
 
     if (!userId) {
-      logger.warn(`Payment intent ${paymentIntent.id} requiring action missing user_id in metadata`);
+      logger.warn(
+        `Payment intent ${paymentIntent.id} requiring action missing user_id in metadata`
+      );
       return;
     }
 
@@ -709,17 +718,20 @@ export class WebhookService {
 
       const refundAmount = refund.amount / 100;
       const totalAmount = transaction.amount;
-      const isPartialRefund = refund.amount < (totalAmount * 100);
+      const isPartialRefund = refund.amount < totalAmount * 100;
 
       // Log refund details
-      logger.info(`Refund created for transaction ${transaction.id}: $${refundAmount} (${isPartialRefund ? 'partial' : 'full'})`);
+      logger.info(
+        `Refund created for transaction ${transaction.id}: $${refundAmount} (${isPartialRefund ? 'partial' : 'full'})`
+      );
 
       // Update original transaction if not already updated by charge.refunded
-      const currentTransaction = await db('transactions')
-        .where({ id: transaction.id })
-        .first();
+      const currentTransaction = await db('transactions').where({ id: transaction.id }).first();
 
-      if (currentTransaction.status !== 'refunded' && currentTransaction.status !== 'partially_refunded') {
+      if (
+        currentTransaction.status !== 'refunded' &&
+        currentTransaction.status !== 'partially_refunded'
+      ) {
         await db('transactions')
           .where({ id: transaction.id })
           .update({
@@ -791,7 +803,12 @@ export class WebhookService {
       await db('transactions')
         .where({ id: refundTransaction.id })
         .update({
-          status: refund.status === 'succeeded' ? 'succeeded' : refund.status === 'failed' ? 'failed' : 'pending',
+          status:
+            refund.status === 'succeeded'
+              ? 'succeeded'
+              : refund.status === 'failed'
+                ? 'failed'
+                : 'pending',
           failure_message: refund.failure_reason || null,
           processed_at: refund.status === 'succeeded' ? new Date() : null,
           updated_at: new Date(),
@@ -837,7 +854,9 @@ export class WebhookService {
         });
 
       // Notify admin about dispute
-      logger.error(`ADMIN ALERT: Dispute created for transaction ${transaction.id} - User: ${transaction.user_id}, Amount: $${transaction.amount}, Reason: ${dispute.reason}`);
+      logger.error(
+        `ADMIN ALERT: Dispute created for transaction ${transaction.id} - User: ${transaction.user_id}, Amount: $${transaction.amount}, Reason: ${dispute.reason}`
+      );
 
       // In production, send notification to admin/support team
       // await notificationService.notifyAdminDispute(transaction, dispute);
@@ -884,9 +903,7 @@ export class WebhookService {
     }
 
     // Delete payment methods
-    await db('payment_methods')
-      .where({ stripe_customer_id: customer.id })
-      .delete();
+    await db('payment_methods').where({ stripe_customer_id: customer.id }).delete();
 
     logger.info(`Customer data cleaned up for: ${customer.id}`);
   }
@@ -920,9 +937,7 @@ export class WebhookService {
   async handlePaymentMethodDetached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
     logger.info(`Payment method detached: ${paymentMethod.id}`);
 
-    await db('payment_methods')
-      .where({ stripe_payment_method_id: paymentMethod.id })
-      .delete();
+    await db('payment_methods').where({ stripe_payment_method_id: paymentMethod.id }).delete();
   }
 
   // Helper Methods
@@ -951,9 +966,7 @@ export class WebhookService {
   }
 
   private async getUserIdFromCustomer(customerId: string): Promise<string | null> {
-    const sub = await db('user_subscriptions')
-      .where({ stripe_customer_id: customerId })
-      .first();
+    const sub = await db('user_subscriptions').where({ stripe_customer_id: customerId }).first();
     return sub?.user_id || null;
   }
 
@@ -1029,7 +1042,9 @@ export class WebhookService {
     // Send success notification
     await notificationServiceClient.notifyPaymentSuccess(userId, amount, coinPackage.name);
 
-    logger.info(`Coin purchase processed for user ${userId}: ${totalCoins} coins (${coinPackage.name})`);
+    logger.info(
+      `Coin purchase processed for user ${userId}: ${totalCoins} coins (${coinPackage.name})`
+    );
   }
 
   /**
@@ -1048,9 +1063,9 @@ export class WebhookService {
 
     // Parse duration from SKU (e.g., BOOST_30MIN, BOOST_1HR, BOOST_3HR)
     const durationMap: Record<string, number> = {
-      'BOOST_30MIN': 30,
-      'BOOST_1HR': 60,
-      'BOOST_3HR': 180,
+      BOOST_30MIN: 30,
+      BOOST_1HR: 60,
+      BOOST_3HR: 180,
     };
 
     const durationMinutes = durationMap[productSku] || 60; // Default to 1 hour
@@ -1081,7 +1096,9 @@ export class WebhookService {
     // Send success notification
     await notificationServiceClient.notifyPaymentSuccess(userId, amount, productName);
 
-    logger.info(`Boost purchase processed for user ${userId}: ${productName} (${durationMinutes} minutes)`);
+    logger.info(
+      `Boost purchase processed for user ${userId}: ${productName} (${durationMinutes} minutes)`
+    );
   }
 
   /**
@@ -1243,13 +1260,11 @@ export class WebhookService {
 
     // If full refund, downgrade user to free tier immediately
     if (!isPartialRefund) {
-      await db('user_subscriptions')
-        .where({ id: subscription.id })
-        .update({
-          status: 'canceled',
-          canceled_at: new Date(),
-          updated_at: new Date(),
-        });
+      await db('user_subscriptions').where({ id: subscription.id }).update({
+        status: 'canceled',
+        canceled_at: new Date(),
+        updated_at: new Date(),
+      });
 
       await userServiceClient.updateUserSubscription(userId, {
         subscription_tier: 'free',
@@ -1295,7 +1310,9 @@ export class WebhookService {
 
     if (now <= gracePeriodEnd) {
       // Still within grace period - send reminder
-      const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil(
+        (gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       await notificationServiceClient.sendNotification({
         userId: subscription.user_id,
@@ -1308,16 +1325,16 @@ export class WebhookService {
         },
       });
 
-      logger.info(`Grace period notification sent to user ${subscription.user_id} - ${daysRemaining} days remaining`);
+      logger.info(
+        `Grace period notification sent to user ${subscription.user_id} - ${daysRemaining} days remaining`
+      );
     } else {
       // Grace period expired - downgrade to free
-      await db('user_subscriptions')
-        .where({ id: subscription.id })
-        .update({
-          status: 'canceled',
-          canceled_at: new Date(),
-          updated_at: new Date(),
-        });
+      await db('user_subscriptions').where({ id: subscription.id }).update({
+        status: 'canceled',
+        canceled_at: new Date(),
+        updated_at: new Date(),
+      });
 
       await userServiceClient.updateUserSubscription(subscription.user_id, {
         subscription_tier: 'free',

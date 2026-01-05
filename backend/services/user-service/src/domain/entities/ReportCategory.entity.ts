@@ -103,5 +103,5 @@ export function getCategoriesBySeverity(
   categories: ReportCategory[],
   severity: ReportCategory['severity']
 ): ReportCategory[] {
-  return categories.filter(cat => cat.severity === severity && cat.active);
+  return categories.filter((cat) => cat.severity === severity && cat.active);
 }

@@ -9,16 +9,14 @@ export class MatchRepository {
     const user1_id = data.user1_id < data.user2_id ? data.user1_id : data.user2_id;
     const user2_id = data.user1_id < data.user2_id ? data.user2_id : data.user1_id;
 
-    const [match] = await db(this.tableName)
-      .insert({ user1_id, user2_id })
-      .returning('*');
+    const [match] = await db(this.tableName).insert({ user1_id, user2_id }).returning('*');
     return match;
   }
 
   async findByUserId(userId: string, isActive: boolean = true): Promise<MatchEntity[]> {
     return db(this.tableName)
       .where({ is_active: isActive })
-      .andWhere(function() {
+      .andWhere(function () {
         this.where({ user1_id: userId }).orWhere({ user2_id: userId });
       })
       .orderBy('matched_at', 'desc');
@@ -28,9 +26,7 @@ export class MatchRepository {
     const minId = user1Id < user2Id ? user1Id : user2Id;
     const maxId = user1Id < user2Id ? user2Id : user1Id;
 
-    const match = await db(this.tableName)
-      .where({ user1_id: minId, user2_id: maxId })
-      .first();
+    const match = await db(this.tableName).where({ user1_id: minId, user2_id: maxId }).first();
     return match || null;
   }
 
@@ -65,7 +61,7 @@ export class MatchRepository {
   async countActiveMatches(userId: string): Promise<number> {
     const result = await db(this.tableName)
       .where({ is_active: true })
-      .andWhere(function() {
+      .andWhere(function () {
         this.where({ user1_id: userId }).orWhere({ user2_id: userId });
       })
       .count('* as count')
@@ -79,7 +75,7 @@ export class MatchRepository {
 
     return db(this.tableName)
       .where({ is_active: true })
-      .andWhere(function() {
+      .andWhere(function () {
         this.where({ user1_id: userId }).orWhere({ user2_id: userId });
       })
       .where('matched_at', '>=', cutoffDate)
@@ -89,11 +85,11 @@ export class MatchRepository {
   async getMatchedUserIds(userId: string): Promise<string[]> {
     const matches = await db(this.tableName)
       .where({ is_active: true })
-      .andWhere(function() {
+      .andWhere(function () {
         this.where({ user1_id: userId }).orWhere({ user2_id: userId });
       })
       .select('user1_id', 'user2_id');
 
-    return matches.map((m: any) => m.user1_id === userId ? m.user2_id : m.user1_id);
+    return matches.map((m: any) => (m.user1_id === userId ? m.user2_id : m.user1_id));
   }
 }

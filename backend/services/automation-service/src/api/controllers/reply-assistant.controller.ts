@@ -1,8 +1,9 @@
-import { Response } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { ReplyAssistantService } from '../../services/reply-assistant.service';
+import { Response } from 'express';
+
 import { GenerateReplyDto } from '../../dtos';
+import { ReplyAssistantService } from '../../services/reply-assistant.service';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('automation-service:reply-assistant-controller');
 const replyAssistantService = new ReplyAssistantService();
@@ -10,15 +11,12 @@ const replyAssistantService = new ReplyAssistantService();
 /**
  * Generate reply suggestions
  */
-export const generateReplies = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const generateReplies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { conversationId, messageHistory, tone, maxLength, includeEmoji } = req.body;
 
     const dto: GenerateReplyDto = {
-      userId: req.userId!,
+      userId: req.userId,
       conversationId,
       messageHistory,
       tone,

@@ -80,7 +80,19 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable();
     table.uuid('template_id').references('id').inTable('notification_templates');
     table.enum('type', ['push', 'email', 'sms']).notNullable();
-    table.enum('category', ['match', 'message', 'like', 'super_like', 'profile_view', 'boost', 'system', 'marketing', 'security']).notNullable();
+    table
+      .enum('category', [
+        'match',
+        'message',
+        'like',
+        'super_like',
+        'profile_view',
+        'boost',
+        'system',
+        'marketing',
+        'security',
+      ])
+      .notNullable();
     table.string('title', 255);
     table.text('body').notNullable();
     table.jsonb('data').defaultTo('{}'); // Additional payload data
@@ -136,7 +148,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('to_phone', 20).notNullable();
     table.string('from_phone', 20);
     table.text('message').notNullable();
-    table.enum('status', ['queued', 'processing', 'sent', 'delivered', 'failed']).defaultTo('queued');
+    table
+      .enum('status', ['queued', 'processing', 'sent', 'delivered', 'failed'])
+      .defaultTo('queued');
     table.string('external_id', 100);
     table.text('error_message');
     table.integer('retry_count').defaultTo(0);
@@ -197,7 +211,8 @@ export async function up(knex: Knex): Promise<void> {
       subject: 'Welcome to Flamoral! 💝',
       title: 'Welcome to Flamoral',
       body: 'Hi {{first_name}}, welcome to Flamoral! Start swiping to find your match.',
-      html_body: '<h1>Welcome to Flamoral!</h1><p>Hi {{first_name}},</p><p>Welcome to Flamoral! Start swiping to find your match.</p>',
+      html_body:
+        '<h1>Welcome to Flamoral!</h1><p>Hi {{first_name}},</p><p>Welcome to Flamoral! Start swiping to find your match.</p>',
       variables: JSON.stringify(['first_name']),
     },
     {
@@ -222,7 +237,7 @@ export async function up(knex: Knex): Promise<void> {
       type: 'sms',
       category: 'security',
       title: 'Security Alert',
-      body: 'New login to your Flamoral account from {{device}}. If this wasn\'t you, secure your account.',
+      body: "New login to your Flamoral account from {{device}}. If this wasn't you, secure your account.",
       variables: JSON.stringify(['device', 'location']),
     },
   ]);

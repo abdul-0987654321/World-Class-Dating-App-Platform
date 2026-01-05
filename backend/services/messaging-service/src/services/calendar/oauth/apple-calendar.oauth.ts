@@ -7,8 +7,10 @@
  * then guide users to create an app-specific password for CalDAV access
  */
 
+import * as crypto from 'crypto';
+
 import axios, { AxiosError } from 'axios';
-import { createLogger } from '../../../utils/logger';
+
 import { appleCalendarConfig, appleCalDAVConfig } from '../../../config/calendar.config';
 import {
   CalendarOAuthTokens,
@@ -16,7 +18,7 @@ import {
   CalendarEventResult,
   TimeSlot,
 } from '../../../types/calendar.types';
-import * as crypto from 'crypto';
+import { createLogger } from '../../../utils/logger';
 
 const logger = createLogger('apple-calendar-oauth');
 
@@ -31,7 +33,10 @@ function generateUID(): string {
  * Format date to iCalendar format
  */
 function formatICalDate(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  return date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 }
 
 /**
@@ -59,13 +64,13 @@ function generateICalEvent(event: CalendarEvent, uid: string): string {
   }
 
   if (event.attendees) {
-    event.attendees.forEach(attendee => {
+    event.attendees.forEach((attendee) => {
       lines.push(`ATTENDEE;CN=${attendee.name || attendee.email}:mailto:${attendee.email}`);
     });
   }
 
   if (event.reminders) {
-    event.reminders.forEach(reminder => {
+    event.reminders.forEach((reminder) => {
       lines.push('BEGIN:VALARM');
       lines.push(`ACTION:${reminder.method === 'email' ? 'EMAIL' : 'DISPLAY'}`);
       lines.push(`TRIGGER:-PT${reminder.minutes}M`);
@@ -110,7 +115,8 @@ function parseICalEvents(icalData: string): CalendarEvent[] {
 
       const uid = getProperty('UID');
       const summary = getProperty('SUMMARY');
-      const dtstart = getProperty('DTSTART') || eventStr.match(/DTSTART[^:]*:(.+?)(?:\r?\n|$)/)?.[1];
+      const dtstart =
+        getProperty('DTSTART') || eventStr.match(/DTSTART[^:]*:(.+?)(?:\r?\n|$)/)?.[1];
       const dtend = getProperty('DTEND') || eventStr.match(/DTEND[^:]*:(.+?)(?:\r?\n|$)/)?.[1];
 
       const startTime = parseICalDate(dtstart);
@@ -190,9 +196,7 @@ export class AppleCalendarOAuth {
       const { access_token, refresh_token, expires_in, id_token } = tokenResponse.data;
 
       // Decode ID token to get user email
-      const payload = JSON.parse(
-        Buffer.from(id_token.split('.')[1], 'base64').toString()
-      );
+      const payload = JSON.parse(Buffer.from(id_token.split('.')[1], 'base64').toString());
 
       const tokens: CalendarOAuthTokens = {
         accessToken: access_token,
@@ -210,7 +214,10 @@ export class AppleCalendarOAuth {
       return { tokens, email, calendarId };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to exchange code for tokens:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to exchange code for tokens:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to authenticate with Apple: ${axiosError.message}`);
     }
   }
@@ -255,7 +262,10 @@ export class AppleCalendarOAuth {
    * Set app-specific password for CalDAV access
    * Users must generate this from appleid.apple.com
    */
-  static setAppSpecificPassword(tokens: CalendarOAuthTokens, appPassword: string): CalendarOAuthTokens {
+  static setAppSpecificPassword(
+    tokens: CalendarOAuthTokens,
+    appPassword: string
+  ): CalendarOAuthTokens {
     // Store the app-specific password in the accessToken field for CalDAV auth
     return {
       ...tokens,
@@ -298,7 +308,10 @@ export class AppleCalendarOAuth {
       };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to refresh access token:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to refresh access token:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to refresh Apple token: ${axiosError.message}`);
     }
   }

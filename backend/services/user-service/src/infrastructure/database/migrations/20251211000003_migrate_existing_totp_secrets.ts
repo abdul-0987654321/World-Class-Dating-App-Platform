@@ -1,5 +1,7 @@
-import { Knex } from 'knex';
 import crypto from 'crypto';
+
+import { Knex } from 'knex';
+
 import logger from '../../../utils/logger';
 
 /**
@@ -27,20 +29,16 @@ const deriveEncryptionKey = (): Buffer => {
   const keySalt = process.env.TOTP_ENCRYPTION_KEY_SALT;
 
   if (!masterKey || !keySalt) {
-    throw new Error('TOTP_ENCRYPTION_MASTER_KEY and TOTP_ENCRYPTION_KEY_SALT must be set in environment');
+    throw new Error(
+      'TOTP_ENCRYPTION_MASTER_KEY and TOTP_ENCRYPTION_KEY_SALT must be set in environment'
+    );
   }
 
   if (masterKey.length < 32) {
     throw new Error('TOTP_ENCRYPTION_MASTER_KEY must be at least 32 characters long');
   }
 
-  return crypto.pbkdf2Sync(
-    masterKey,
-    keySalt,
-    PBKDF2_ITERATIONS,
-    KEY_LENGTH,
-    'sha512'
-  );
+  return crypto.pbkdf2Sync(masterKey, keySalt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha512');
 };
 
 /**
@@ -49,10 +47,7 @@ const deriveEncryptionKey = (): Buffer => {
 const encryptData = (plaintext: string, key: Buffer, keyVersion: number): string => {
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final()
-  ]);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
   return `${keyVersion}:${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
@@ -77,7 +72,7 @@ const isEncrypted = (data: string): boolean => {
 
   // Check if other parts look like base64
   const base64Regex = /^[A-Za-z0-9+/]+=*$/;
-  return parts.slice(1).every(part => base64Regex.test(part));
+  return parts.slice(1).every((part) => base64Regex.test(part));
 };
 
 export async function up(knex: Knex): Promise<void> {
@@ -143,13 +138,13 @@ export async function up(knex: Knex): Promise<void> {
 
             // Copy to secret_encrypted if not already there
             if (!record.secret_encrypted) {
-              await knex('user_two_factor_auth')
-                .where({ id: record.id })
-                .update({
-                  secret_encrypted: record.secret,
-                  encryption_key_version: keyVersion
-                });
-              logger.info(`Copied encrypted secret to secret_encrypted column for user ${record.user_id}`);
+              await knex('user_two_factor_auth').where({ id: record.id }).update({
+                secret_encrypted: record.secret,
+                encryption_key_version: keyVersion,
+              });
+              logger.info(
+                `Copied encrypted secret to secret_encrypted column for user ${record.user_id}`
+              );
             }
             skippedCount++;
             continue;
@@ -170,13 +165,11 @@ export async function up(knex: Knex): Promise<void> {
           const encryptedSecret = encryptData(secretToEncrypt, encryptionKey, keyVersion);
 
           // Update the record
-          await knex('user_two_factor_auth')
-            .where({ id: record.id })
-            .update({
-              secret_encrypted: encryptedSecret,
-              encryption_key_version: keyVersion,
-              updated_at: new Date()
-            });
+          await knex('user_two_factor_auth').where({ id: record.id }).update({
+            secret_encrypted: encryptedSecret,
+            encryption_key_version: keyVersion,
+            updated_at: new Date(),
+          });
 
           encryptedCount++;
           logger.debug(`Encrypted TOTP secret for user ${record.user_id}`);
@@ -190,7 +183,9 @@ export async function up(knex: Knex): Promise<void> {
       }
     }
 
-    logger.info(`Migration completed: ${encryptedCount} encrypted, ${skippedCount} skipped, ${errorCount} errors`);
+    logger.info(
+      `Migration completed: ${encryptedCount} encrypted, ${skippedCount} skipped, ${errorCount} errors`
+    );
 
     // If we have the old column and successfully encrypted everything, we can drop it
     if (hasOldColumn && errorCount === 0) {
@@ -200,7 +195,6 @@ export async function up(knex: Knex): Promise<void> {
       });
       logger.info('Old secret column dropped');
     }
-
   } catch (error) {
     logger.error('Migration failed:', error);
     throw error;
@@ -212,7 +206,10 @@ export async function down(knex: Knex): Promise<void> {
   logger.warn('WARNING: This will NOT decrypt existing secrets. Manual intervention required.');
 
   // Check if columns exist
-  const hasEncryptedColumn = await knex.schema.hasColumn('user_two_factor_auth', 'secret_encrypted');
+  const hasEncryptedColumn = await knex.schema.hasColumn(
+    'user_two_factor_auth',
+    'secret_encrypted'
+  );
   const hasOldColumn = await knex.schema.hasColumn('user_two_factor_auth', 'secret');
 
   if (hasEncryptedColumn && !hasOldColumn) {
@@ -226,7 +223,10 @@ export async function down(knex: Knex): Promise<void> {
   }
 
   // Remove encryption columns if they exist
-  const hasKeyVersionColumn = await knex.schema.hasColumn('user_two_factor_auth', 'encryption_key_version');
+  const hasKeyVersionColumn = await knex.schema.hasColumn(
+    'user_two_factor_auth',
+    'encryption_key_version'
+  );
   if (hasKeyVersionColumn) {
     await knex.schema.alterTable('user_two_factor_auth', (table) => {
       table.dropColumn('encryption_key_version');

@@ -79,7 +79,7 @@ function sanitize(data: any): any {
   }
 
   if (Array.isArray(data)) {
-    return data.map(item => sanitize(item));
+    return data.map((item) => sanitize(item));
   }
 
   if (typeof data === 'object') {
@@ -89,9 +89,7 @@ function sanitize(data: any): any {
       const lowerKey = key.toLowerCase();
 
       // Check if this field should be masked
-      const isSensitive = SENSITIVE_FIELDS.some(
-        field => lowerKey.includes(field.toLowerCase())
-      );
+      const isSensitive = SENSITIVE_FIELDS.some((field) => lowerKey.includes(field.toLowerCase()));
 
       if (isSensitive) {
         sanitized[key] = '[REDACTED]';
@@ -117,17 +115,17 @@ const sanitizeFormat = winston.format((info) => {
 
   // Sanitize all metadata except standard winston fields
   const metadataKeys = Object.keys(sanitizedInfo).filter(
-    key => !['level', 'message', 'timestamp', 'service', 'stack'].includes(key)
+    (key) => !['level', 'message', 'timestamp', 'service', 'stack'].includes(key)
   );
 
-  metadataKeys.forEach(key => {
+  metadataKeys.forEach((key) => {
     sanitizedInfo[key] = sanitize(sanitizedInfo[key]);
   });
 
   // Sanitize the message itself if it contains sensitive data patterns
   if (typeof sanitizedInfo.message === 'string') {
     // Remove potential tokens from message
-    sanitizedInfo.message = (sanitizedInfo.message as string).replace(
+    sanitizedInfo.message = sanitizedInfo.message.replace(
       /\b[A-Za-z0-9_-]{32,}\b/g,
       '[REDACTED_TOKEN]'
     );
@@ -162,10 +160,10 @@ const createLogger = (serviceName: string) => {
 
           // Only show metadata in non-production or if explicitly enabled
           if (!isProduction || process.env.LOG_METADATA === 'true') {
-            const metadataKeys = Object.keys(metadata).filter(key => key !== 'stack');
+            const metadataKeys = Object.keys(metadata).filter((key) => key !== 'stack');
             if (metadataKeys.length > 0) {
               const metadataObj: any = {};
-              metadataKeys.forEach(key => {
+              metadataKeys.forEach((key) => {
                 metadataObj[key] = metadata[key];
               });
               msg += ` ${JSON.stringify(metadataObj)}`;

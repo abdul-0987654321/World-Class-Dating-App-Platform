@@ -30,9 +30,8 @@ class Logger {
   }
 
   error(message: string, error?: any): void {
-    const errorMeta = error instanceof Error
-      ? { message: error.message, stack: error.stack }
-      : error;
+    const errorMeta =
+      error instanceof Error ? { message: error.message, stack: error.stack } : error;
     console.error(this.formatMessage('error', message, errorMeta));
   }
 }

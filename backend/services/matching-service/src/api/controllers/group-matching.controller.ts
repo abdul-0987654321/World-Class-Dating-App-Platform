@@ -3,9 +3,10 @@
  * Handles HTTP requests for group matching features
  */
 
-import { Request, Response } from 'express';
-import groupMatchingService from '../../domain/services/group-matching.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import groupMatchingService from '../../domain/services/group-matching.service';
 import {
   CreateGroupDto,
   UpdateGroupDto,
@@ -15,10 +16,7 @@ import {
   TransferAdminDto,
   ActivitySuggestionsQueryDto,
 } from '../../dto/group-matching.dto';
-import {
-  GroupLookingFor,
-  GroupFeedFilters,
-} from '../../types/group-matching.types';
+import { GroupLookingFor, GroupFeedFilters } from '../../types/group-matching.types';
 
 const logger = createLogger('group-matching-controller');
 
@@ -517,10 +515,7 @@ export class GroupMatchingController {
     // Determine status code based on error type
     let statusCode = 500;
 
-    if (
-      message.includes('not found') ||
-      message.includes('Not found')
-    ) {
+    if (message.includes('not found') || message.includes('Not found')) {
       statusCode = 404;
     } else if (
       message.includes('Only the') ||

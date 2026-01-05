@@ -1,8 +1,9 @@
-import { Knex } from 'knex';
-import db from '../../infrastructure/database/connection';
-import { Swipe } from '../entities/Swipe.entity';
-import { SwipeAction } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
+
+import db from '../../infrastructure/database/connection';
+import { SwipeAction } from '../../types';
+import { Swipe } from '../entities/Swipe.entity';
 
 const logger = createLogger('swipe-repository');
 
@@ -129,9 +130,7 @@ export class SwipeRepository {
    */
   async getSwipedUserIds(userId: string): Promise<string[]> {
     try {
-      const swipes = await this.db('swipes')
-        .where({ user_id: userId })
-        .select('target_user_id');
+      const swipes = await this.db('swipes').where({ user_id: userId }).select('target_user_id');
 
       return swipes.map((s) => s.target_user_id);
     } catch (error) {
@@ -182,10 +181,12 @@ export class SwipeRepository {
   /**
    * Find swipes by swiper ID with pagination
    */
-  async findBySwiperId(userId: string, options?: { limit?: number; offset?: number; direction?: string }): Promise<Swipe[]> {
+  async findBySwiperId(
+    userId: string,
+    options?: { limit?: number; offset?: number; direction?: string }
+  ): Promise<Swipe[]> {
     try {
-      let query = this.db('swipes')
-        .where({ user_id: userId });
+      let query = this.db('swipes').where({ user_id: userId });
 
       if (options?.direction) {
         query = query.andWhere('action', options.direction);
@@ -212,15 +213,14 @@ export class SwipeRepository {
    */
   async countBySwiperId(userId: string, direction?: string): Promise<number> {
     try {
-      let query = this.db('swipes')
-        .where({ user_id: userId });
+      let query = this.db('swipes').where({ user_id: userId });
 
       if (direction) {
         query = query.andWhere('action', direction);
       }
 
       const result = await query.count('* as count').first();
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to count swipes by swiper ID', error);
       throw error;
@@ -249,9 +249,7 @@ export class SwipeRepository {
    */
   async deleteById(swipeId: string): Promise<boolean> {
     try {
-      const deleted = await this.db('swipes')
-        .where({ id: swipeId })
-        .delete();
+      const deleted = await this.db('swipes').where({ id: swipeId }).delete();
 
       return deleted > 0;
     } catch (error) {

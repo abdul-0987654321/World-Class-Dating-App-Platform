@@ -29,9 +29,7 @@ export function isUserBlocked(
   blockerId: string,
   blockedId: string
 ): boolean {
-  return blocks.some(
-    block => block.blockerId === blockerId && block.blockedId === blockedId
-  );
+  return blocks.some((block) => block.blockerId === blockerId && block.blockedId === blockedId);
 }
 
 // Check if users have blocked each other (bidirectional)
@@ -40,20 +38,17 @@ export function areUsersBlockedBidirectional(
   userAId: string,
   userBId: string
 ): boolean {
-  return (
-    isUserBlocked(blocks, userAId, userBId) ||
-    isUserBlocked(blocks, userBId, userAId)
-  );
+  return isUserBlocked(blocks, userAId, userBId) || isUserBlocked(blocks, userBId, userAId);
 }
 
 // Get all users blocked by a specific user
 export function getBlockedUserIds(blocks: BlockedUser[], blockerId: string): string[] {
-  return blocks.filter(block => block.blockerId === blockerId).map(block => block.blockedId);
+  return blocks.filter((block) => block.blockerId === blockerId).map((block) => block.blockedId);
 }
 
 // Get all users who have blocked a specific user
 export function getBlockerUserIds(blocks: BlockedUser[], blockedId: string): string[] {
-  return blocks.filter(block => block.blockedId === blockedId).map(block => block.blockerId);
+  return blocks.filter((block) => block.blockedId === blockedId).map((block) => block.blockerId);
 }
 
 // Get all user IDs to exclude from discovery (blocked + blockers)

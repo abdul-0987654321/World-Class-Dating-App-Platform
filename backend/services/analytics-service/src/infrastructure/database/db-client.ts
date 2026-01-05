@@ -2,9 +2,10 @@
  * PostgreSQL Database Client for Analytics Service
  */
 
-import { Pool, PoolClient, QueryResult } from 'pg';
-import config from '../../config';
 import { createLogger } from '@flamoral/backend-shared';
+import { Pool, PoolClient, QueryResult } from 'pg';
+
+import config from '../../config';
 
 const logger = createLogger('db-client');
 

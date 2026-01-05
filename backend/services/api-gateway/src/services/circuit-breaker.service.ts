@@ -46,7 +46,7 @@ export class CircuitBreakerService {
   async execute<T>(
     circuitKey: string,
     fn: () => Promise<T>,
-    fallback?: () => Promise<T>,
+    fallback?: () => Promise<T>
   ): Promise<T> {
     const circuit = this.getCircuit(circuitKey);
 
@@ -134,9 +134,7 @@ export class CircuitBreakerService {
     } else if (circuit.state === CircuitState.CLOSED) {
       // Check if we've exceeded the failure threshold
       if (circuit.failures >= this.config.failureThreshold) {
-        this.logger.error(
-          `Circuit ${circuitKey} opening after ${circuit.failures} failures`,
-        );
+        this.logger.error(`Circuit ${circuitKey} opening after ${circuit.failures} failures`);
         this.openCircuit(circuitKey);
       }
     }
@@ -178,7 +176,7 @@ export class CircuitBreakerService {
       });
     }
 
-    return this.circuits.get(circuitKey)!;
+    return this.circuits.get(circuitKey);
   }
 
   /**
@@ -236,13 +234,9 @@ export class CircuitBreakerService {
       totalFailures: circuit.totalFailures,
       totalSuccesses: circuit.totalSuccesses,
       failureRate:
-        circuit.totalRequests > 0
-          ? (circuit.totalFailures / circuit.totalRequests) * 100
-          : 0,
+        circuit.totalRequests > 0 ? (circuit.totalFailures / circuit.totalRequests) * 100 : 0,
       uptime:
-        circuit.totalRequests > 0
-          ? (circuit.totalSuccesses / circuit.totalRequests) * 100
-          : 100,
+        circuit.totalRequests > 0 ? (circuit.totalSuccesses / circuit.totalRequests) * 100 : 100,
     };
   }
 }

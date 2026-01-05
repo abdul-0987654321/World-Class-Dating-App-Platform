@@ -3,15 +3,16 @@
  * Handles swipe mechanics and match creation
  */
 
-import swipeRepository from '../repositories/swipe.repository';
-import matchRepository from '../repositories/match.repository';
-import swipeHistoryRepository from '../repositories/swipe-history.repository';
+import { createLogger } from '@flamoral/backend-shared';
+
+import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
+import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
-import { createLogger } from '@flamoral/backend-shared';
-import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
-import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
+import matchRepository from '../repositories/match.repository';
+import swipeHistoryRepository from '../repositories/swipe-history.repository';
+import swipeRepository from '../repositories/swipe.repository';
 
 const logger = createLogger('swipe-service');
 
@@ -196,7 +197,9 @@ export class SwipeService {
     // Identify which user is the woman
     const womanUserId = isUser1Female ? user1Id : user2Id;
 
-    logger.info(`Women-first messaging enabled for match between ${user1Id} and ${user2Id}, woman: ${womanUserId}`);
+    logger.info(
+      `Women-first messaging enabled for match between ${user1Id} and ${user2Id}, woman: ${womanUserId}`
+    );
 
     return {
       requiresWomenFirst: true,
@@ -234,7 +237,9 @@ export class SwipeService {
       const deleted = await swipeRepository.deleteById(lastSwipe.id);
 
       if (deleted) {
-        logger.info(`Successfully undid swipe ${lastSwipe.id} for user ${userId} on target ${lastSwipe.targetUserId}`);
+        logger.info(
+          `Successfully undid swipe ${lastSwipe.id} for user ${userId} on target ${lastSwipe.targetUserId}`
+        );
 
         // Track undo event in analytics
         await analyticsServiceClient.trackUndoSwipe({

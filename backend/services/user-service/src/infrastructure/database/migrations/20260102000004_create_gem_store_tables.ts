@@ -6,7 +6,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary();
     table.string('name', 100).notNullable();
     table.text('description').notNullable();
-    table.enum('type', ['boost', 'superlike', 'spotlight', 'gift', 'utility', 'cosmetic']).notNullable();
+    table
+      .enum('type', ['boost', 'superlike', 'spotlight', 'gift', 'utility', 'cosmetic'])
+      .notNullable();
     table.integer('gem_cost').notNullable();
     table.integer('duration_minutes').nullable(); // For time-based items
     table.integer('quantity').nullable(); // For pack items (e.g., 5 super likes)
@@ -26,7 +28,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('gem_purchases', (table) => {
     table.uuid('id').primary();
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('item_id').notNullable().references('id').inTable('gem_store_items').onDelete('RESTRICT');
+    table
+      .uuid('item_id')
+      .notNullable()
+      .references('id')
+      .inTable('gem_store_items')
+      .onDelete('RESTRICT');
     table.string('item_name', 100).notNullable(); // Snapshot at purchase time
     table.string('item_type', 50).notNullable(); // Snapshot at purchase time
     table.integer('gems_cost').notNullable();
@@ -35,7 +42,10 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('purchased_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('activated_at').nullable();
     table.timestamp('expires_at').nullable();
-    table.enum('status', ['pending', 'active', 'used', 'expired', 'refunded']).notNullable().defaultTo('active');
+    table
+      .enum('status', ['pending', 'active', 'used', 'expired', 'refunded'])
+      .notNullable()
+      .defaultTo('active');
     table.uuid('recipient_id').nullable().references('id').inTable('users').onDelete('SET NULL'); // For gifts
     table.jsonb('metadata').nullable();
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
@@ -58,7 +68,8 @@ export async function up(knex: Knex): Promise<void> {
     {
       id: knex.raw('gen_random_uuid()'),
       name: 'Profile Boost',
-      description: 'Get 10x more visibility for 30 minutes. Your profile appears at the top of discovery.',
+      description:
+        'Get 10x more visibility for 30 minutes. Your profile appears at the top of discovery.',
       type: 'boost',
       gem_cost: 50,
       duration_minutes: 30,
@@ -88,7 +99,8 @@ export async function up(knex: Knex): Promise<void> {
     {
       id: knex.raw('gen_random_uuid()'),
       name: 'Spotlight',
-      description: 'Be featured prominently in discovery for 1 hour. Get seen by up to 10x more people.',
+      description:
+        'Be featured prominently in discovery for 1 hour. Get seen by up to 10x more people.',
       type: 'spotlight',
       gem_cost: 100,
       duration_minutes: 60,

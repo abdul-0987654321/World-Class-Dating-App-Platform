@@ -66,10 +66,7 @@ export function formatTransactionReason(
 }
 
 // Validate transaction amount
-export function validateTransactionAmount(
-  type: CoinTransaction['type'],
-  amount: number
-): void {
+export function validateTransactionAmount(type: CoinTransaction['type'], amount: number): void {
   if (type === 'spent' && amount > 0) {
     throw new Error('Spent transactions must have negative amount');
   }

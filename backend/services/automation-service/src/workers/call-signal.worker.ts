@@ -5,16 +5,11 @@
  * Tracks call quality metrics
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('call-signal-worker');
 
@@ -460,15 +455,12 @@ export class CallSignalWorker extends BaseWorker<CallSignalJobData, CallSignalRe
    */
   private async checkUserOnline(userId: string): Promise<boolean> {
     try {
-      const response = await axios.get(
-        `${API_GATEWAY_URL}/api/v1/internal/presence/${userId}`,
-        {
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 3000,
-        }
-      );
+      const response = await axios.get(`${API_GATEWAY_URL}/api/v1/internal/presence/${userId}`, {
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 3000,
+      });
 
       return response.data.isOnline === true;
     } catch (error) {
@@ -633,15 +625,12 @@ export class CallSignalWorker extends BaseWorker<CallSignalJobData, CallSignalRe
    */
   private async getCallStatus(callId: string): Promise<CallStatus | null> {
     try {
-      const response = await axios.get(
-        `${MESSAGING_SERVICE_URL}/api/v1/internal/calls/${callId}`,
-        {
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 5000,
-        }
-      );
+      const response = await axios.get(`${MESSAGING_SERVICE_URL}/api/v1/internal/calls/${callId}`, {
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 5000,
+      });
 
       return response.data.status as CallStatus;
     } catch (error) {
@@ -708,10 +697,7 @@ export class CallSignalWorker extends BaseWorker<CallSignalJobData, CallSignalRe
   /**
    * Store quality metrics
    */
-  private async storeQualityMetrics(
-    callId: string,
-    metrics?: CallQualityMetrics
-  ): Promise<void> {
+  private async storeQualityMetrics(callId: string, metrics?: CallQualityMetrics): Promise<void> {
     if (!metrics) return;
 
     try {

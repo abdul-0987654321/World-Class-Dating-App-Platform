@@ -3,9 +3,11 @@
  * Handles device token registration, updates, and management
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../config/database';
 import logger from '../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
+
 import { DeviceToken } from './push-notification-delivery.service';
 
 export interface RegisterDeviceRequest {
@@ -265,9 +267,7 @@ export class DeviceManagementService {
   /**
    * Update device last active timestamp
    */
-  async updateLastActive(
-    deviceToken: string
-  ): Promise<{ success: boolean; error?: string }> {
+  async updateLastActive(deviceToken: string): Promise<{ success: boolean; error?: string }> {
     try {
       await db('user_devices').where({ device_token: deviceToken }).update({
         last_active_at: new Date(),
@@ -358,33 +358,19 @@ export class DeviceManagementService {
         baseQuery = baseQuery.where({ user_id: userId });
       }
 
-      const [
-        totalCount,
-        activeCount,
-        inactiveCount,
-        iosCount,
-        androidCount,
-        webCount,
-      ] = await Promise.all([
-        baseQuery.clone().count('* as count').first(),
-        baseQuery.clone().where({ is_active: true }).count('* as count').first(),
-        baseQuery.clone().where({ is_active: false }).count('* as count').first(),
-        baseQuery
-          .clone()
-          .where({ platform: 'ios', is_active: true })
-          .count('* as count')
-          .first(),
-        baseQuery
-          .clone()
-          .where({ platform: 'android', is_active: true })
-          .count('* as count')
-          .first(),
-        baseQuery
-          .clone()
-          .where({ platform: 'web', is_active: true })
-          .count('* as count')
-          .first(),
-      ]);
+      const [totalCount, activeCount, inactiveCount, iosCount, androidCount, webCount] =
+        await Promise.all([
+          baseQuery.clone().count('* as count').first(),
+          baseQuery.clone().where({ is_active: true }).count('* as count').first(),
+          baseQuery.clone().where({ is_active: false }).count('* as count').first(),
+          baseQuery.clone().where({ platform: 'ios', is_active: true }).count('* as count').first(),
+          baseQuery
+            .clone()
+            .where({ platform: 'android', is_active: true })
+            .count('* as count')
+            .first(),
+          baseQuery.clone().where({ platform: 'web', is_active: true }).count('* as count').first(),
+        ]);
 
       const stats = {
         total: parseInt((totalCount as any).count),
@@ -409,9 +395,7 @@ export class DeviceManagementService {
   /**
    * Bulk register devices
    */
-  async bulkRegisterDevices(
-    devices: RegisterDeviceRequest[]
-  ): Promise<{
+  async bulkRegisterDevices(devices: RegisterDeviceRequest[]): Promise<{
     success: boolean;
     registered?: number;
     failed?: number;

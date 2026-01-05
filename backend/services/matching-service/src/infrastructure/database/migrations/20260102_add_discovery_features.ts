@@ -16,13 +16,16 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('pick_user_id').notNullable();
     table.float('score').notNullable().defaultTo(0);
     table.text('reasons'); // JSON array of reasons
-    table.enum('category', [
-      'top_pick',
-      'high_compatibility',
-      'new_user',
-      'recently_active',
-      'mutual_interest',
-    ]).notNullable().defaultTo('high_compatibility');
+    table
+      .enum('category', [
+        'top_pick',
+        'high_compatibility',
+        'new_user',
+        'recently_active',
+        'mutual_interest',
+      ])
+      .notNullable()
+      .defaultTo('high_compatibility');
     table.timestamp('expires_at').notNullable();
     table.boolean('viewed').notNullable().defaultTo(false);
     table.timestamp('viewed_at');

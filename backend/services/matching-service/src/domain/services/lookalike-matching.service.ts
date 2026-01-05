@@ -11,11 +11,17 @@
  * - Caching of embeddings for efficient searches
  */
 
-import { RekognitionClient, DetectFacesCommand, CompareFacesCommand } from '@aws-sdk/client-rekognition';
 import { createHash } from 'crypto';
-import axios from 'axios';
-import db from '../../infrastructure/database/connection';
+
+import {
+  RekognitionClient,
+  DetectFacesCommand,
+  CompareFacesCommand,
+} from '@aws-sdk/client-rekognition';
 import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+
+import db from '../../infrastructure/database/connection';
 import {
   FaceEmbedding,
   BoundingBox,
@@ -440,7 +446,9 @@ export class LookalikeMatchingService {
    * @param request - FindSimilarProfilesRequest with user ID and reference image
    * @returns FindSimilarProfilesResult with matching profiles
    */
-  async findSimilarProfiles(request: FindSimilarProfilesRequest): Promise<FindSimilarProfilesResult> {
+  async findSimilarProfiles(
+    request: FindSimilarProfilesRequest
+  ): Promise<FindSimilarProfilesResult> {
     const startTime = Date.now();
     const {
       userId,
@@ -499,10 +507,7 @@ export class LookalikeMatchingService {
       }> = [];
 
       for (const stored of storedEmbeddings) {
-        const score = this.getSimilarityScore(
-          embeddingResult.embedding,
-          stored.embedding
-        );
+        const score = this.getSimilarityScore(embeddingResult.embedding, stored.embedding);
 
         if (score >= minSimilarity) {
           scoredProfiles.push({
@@ -704,7 +709,9 @@ export class LookalikeMatchingService {
       if (rateLimit.lastSearchAt) {
         const timeSinceLastSearch = now.getTime() - rateLimit.lastSearchAt.getTime();
         if (timeSinceLastSearch < limits.minTimeBetweenSearchesMs) {
-          const waitTime = Math.ceil((limits.minTimeBetweenSearchesMs - timeSinceLastSearch) / 1000);
+          const waitTime = Math.ceil(
+            (limits.minTimeBetweenSearchesMs - timeSinceLastSearch) / 1000
+          );
           return {
             allowed: false,
             reason: `Please wait ${waitTime} seconds before searching again.`,
@@ -755,9 +762,7 @@ export class LookalikeMatchingService {
    * Get rate limit record for a user
    */
   private async getRateLimit(userId: string): Promise<LookalikeRateLimit | null> {
-    const row = await db('lookalike_rate_limits')
-      .where('user_id', userId)
-      .first();
+    const row = await db('lookalike_rate_limits').where('user_id', userId).first();
 
     if (!row) return null;
 
@@ -779,9 +784,7 @@ export class LookalikeMatchingService {
     const today = now.toISOString().split('T')[0];
     const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 
-    const existing = await db('lookalike_rate_limits')
-      .where('user_id', userId)
-      .first();
+    const existing = await db('lookalike_rate_limits').where('user_id', userId).first();
 
     if (existing) {
       // Check if we need to reset counters
@@ -859,9 +862,7 @@ export class LookalikeMatchingService {
   /**
    * Fetch user profiles from user service
    */
-  private async fetchUserProfiles(
-    userIds: string[]
-  ): Promise<Map<string, any>> {
+  private async fetchUserProfiles(userIds: string[]): Promise<Map<string, any>> {
     try {
       const response = await axios.post(
         `${this.userServiceUrl}/api/users/batch`,
@@ -869,9 +870,7 @@ export class LookalikeMatchingService {
         { timeout: 10000 }
       );
 
-      return new Map(
-        (response.data || []).map((user: any) => [user.userId || user.id, user])
-      );
+      return new Map((response.data || []).map((user: any) => [user.userId || user.id, user]));
     } catch (error) {
       logger.error('Failed to fetch user profiles', { userIds, error });
       return new Map();
@@ -968,10 +967,7 @@ export class LookalikeMatchingService {
   /**
    * Get search history for a user
    */
-  async getSearchHistory(
-    userId: string,
-    limit: number = 10
-  ): Promise<LookalikeSearch[]> {
+  async getSearchHistory(userId: string, limit: number = 10): Promise<LookalikeSearch[]> {
     const rows = await db('lookalike_searches')
       .where('user_id', userId)
       .orderBy('created_at', 'desc')

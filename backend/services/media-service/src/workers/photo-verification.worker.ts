@@ -1,9 +1,10 @@
-import Queue from 'bull';
-import queueManager from '../infrastructure/queue/queue-manager';
-import { QueueName } from '../infrastructure/queue/queue-config';
-import { PhotoVerificationJobData, JobResult } from '../infrastructure/queue/job-types';
-import photoVerificationService from '../domain/services/photo-verification.service';
 import { createLogger } from '@flamoral/backend-shared';
+import Queue from 'bull';
+
+import photoVerificationService from '../domain/services/photo-verification.service';
+import { PhotoVerificationJobData, JobResult } from '../infrastructure/queue/job-types';
+import { QueueName } from '../infrastructure/queue/queue-config';
+import queueManager from '../infrastructure/queue/queue-manager';
 
 const logger = createLogger('photo-verification-worker');
 
@@ -32,7 +33,9 @@ export const processPhotoVerificationJob = async (
 
     await job.progress(100);
 
-    logger.info(`Photo verification completed for media ${mediaId}: ${result.verified ? 'verified' : 'not verified'}`);
+    logger.info(
+      `Photo verification completed for media ${mediaId}: ${result.verified ? 'verified' : 'not verified'}`
+    );
 
     return {
       success: true,

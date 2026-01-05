@@ -1,10 +1,10 @@
-import { ReferralCodeRepository } from '../repositories/referral-code.repository';
-import { ReferralRepository, ReferralStats } from '../repositories/referral.repository';
-import { CoinRepository } from '../repositories/coin.repository';
-import { CoinTransactionRepository } from '../repositories/coin-transaction.repository';
-import { SubscriptionRepository } from '../repositories/subscription.repository';
-import { UserRepository } from '../repositories/user.repository';
-import { ProfileRepository } from '../repositories/profile.repository';
+import logger from '../../utils/logger';
+import { TRANSACTION_TYPES, REFERENCE_TYPES } from '../entities/CoinTransaction.entity';
+import {
+  Referral,
+  REFERRAL_STATUS,
+  REFERRAL_COMPLETION_CONDITIONS,
+} from '../entities/Referral.entity';
 import {
   ReferralCode,
   generateReferralCode,
@@ -13,13 +13,13 @@ import {
   DEFAULT_MAX_USES,
   DEFAULT_EXPIRY_DAYS,
 } from '../entities/ReferralCode.entity';
-import {
-  Referral,
-  REFERRAL_STATUS,
-  REFERRAL_COMPLETION_CONDITIONS,
-} from '../entities/Referral.entity';
-import { TRANSACTION_TYPES, REFERENCE_TYPES } from '../entities/CoinTransaction.entity';
-import logger from '../../utils/logger';
+import { CoinTransactionRepository } from '../repositories/coin-transaction.repository';
+import { CoinRepository } from '../repositories/coin.repository';
+import { ProfileRepository } from '../repositories/profile.repository';
+import { ReferralCodeRepository } from '../repositories/referral-code.repository';
+import { ReferralRepository, ReferralStats } from '../repositories/referral.repository';
+import { SubscriptionRepository } from '../repositories/subscription.repository';
+import { UserRepository } from '../repositories/user.repository';
 
 export interface GenerateCodeResult {
   code: ReferralCode;
@@ -228,7 +228,9 @@ export class ReferralService {
   /**
    * Get referral statistics for a user
    */
-  async getStats(userId: string): Promise<ReferralStats & { activeCode?: ReferralCode; shareUrl?: string }> {
+  async getStats(
+    userId: string
+  ): Promise<ReferralStats & { activeCode?: ReferralCode; shareUrl?: string }> {
     const stats = await this.referralRepository.getReferralStats(userId);
     const activeCode = await this.referralCodeRepository.findActiveByUserId(userId);
 

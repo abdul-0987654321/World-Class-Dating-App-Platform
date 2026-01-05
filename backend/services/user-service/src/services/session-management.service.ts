@@ -1,6 +1,8 @@
-import { Knex } from 'knex';
 import crypto from 'crypto';
+
 import { Request, Response, NextFunction } from 'express';
+import { Knex } from 'knex';
+
 import logger from '../utils/logger';
 
 // Extend Express Request type to include session
@@ -124,7 +126,8 @@ export class SessionManagementService {
       }
 
       // Check inactivity timeout
-      const inactiveMinutes = (Date.now() - new Date(session.last_activity_at).getTime()) / (60 * 1000);
+      const inactiveMinutes =
+        (Date.now() - new Date(session.last_activity_at).getTime()) / (60 * 1000);
       if (inactiveMinutes > this.INACTIVITY_TIMEOUT_MINUTES) {
         await this.revokeSession(session.id, 'inactivity_timeout');
         return { isValid: false, reason: 'Session timed out due to inactivity' };
@@ -167,7 +170,8 @@ export class SessionManagementService {
       const session = validation.session;
 
       // Check if session is close to expiry
-      const minutesUntilExpiry = (new Date(session.expires_at).getTime() - Date.now()) / (60 * 1000);
+      const minutesUntilExpiry =
+        (new Date(session.expires_at).getTime() - Date.now()) / (60 * 1000);
 
       if (minutesUntilExpiry < this.SESSION_REFRESH_THRESHOLD_MINUTES) {
         const newExpiresAt = new Date(Date.now() + this.SESSION_DURATION_HOURS * 60 * 60 * 1000);
@@ -195,18 +199,13 @@ export class SessionManagementService {
   /**
    * Revoke session
    */
-  async revokeSession(
-    sessionId: string,
-    reason: string = 'manual_revocation'
-  ): Promise<void> {
+  async revokeSession(sessionId: string, reason: string = 'manual_revocation'): Promise<void> {
     try {
-      await this.db('security_sessions')
-        .where({ id: sessionId })
-        .update({
-          is_active: false,
-          revoked_at: new Date(),
-          revoke_reason: reason,
-        });
+      await this.db('security_sessions').where({ id: sessionId }).update({
+        is_active: false,
+        revoked_at: new Date(),
+        revoke_reason: reason,
+      });
 
       logger.info(`Session ${sessionId} revoked: ${reason}`);
     } catch (error) {
@@ -224,8 +223,7 @@ export class SessionManagementService {
     reason: string = 'revoke_all'
   ): Promise<number> {
     try {
-      let query = this.db('security_sessions')
-        .where({ user_id: userId, is_active: true });
+      let query = this.db('security_sessions').where({ user_id: userId, is_active: true });
 
       if (exceptSessionId) {
         query = query.whereNot({ id: exceptSessionId });
@@ -266,9 +264,7 @@ export class SessionManagementService {
    */
   async getSessionById(sessionId: string): Promise<SecuritySession | null> {
     try {
-      return this.db('security_sessions')
-        .where({ id: sessionId })
-        .first();
+      return this.db('security_sessions').where({ id: sessionId }).first();
     } catch (error) {
       logger.error(`Failed to get session by ID: ${error}`);
       return null;
@@ -316,7 +312,9 @@ export class SessionManagementService {
 
       // IP can change (mobile networks), so we log but don't fail
       if (session.ip_address !== currentFingerprint.ipAddress) {
-        logger.warn(`IP address changed for session ${sessionId}: ${session.ip_address} -> ${currentFingerprint.ipAddress}`);
+        logger.warn(
+          `IP address changed for session ${sessionId}: ${session.ip_address} -> ${currentFingerprint.ipAddress}`
+        );
       }
 
       if (!fingerprintMatches) {
@@ -340,9 +338,8 @@ export class SessionManagementService {
       const inactivityCutoff = new Date(Date.now() - this.INACTIVITY_TIMEOUT_MINUTES * 60 * 1000);
       const count = await this.db('security_sessions')
         .where('expires_at', '<', new Date())
-        .orWhere(function() {
-          this.where('is_active', true)
-            .where('last_activity_at', '<', inactivityCutoff);
+        .orWhere(function () {
+          this.where('is_active', true).where('last_activity_at', '<', inactivityCutoff);
         })
         .update({
           is_active: false,
@@ -420,19 +417,28 @@ export class SessionManagementService {
       }
 
       const totalSessions = await query.clone().count('* as count').first();
-      const activeSessions = await query.clone().where({ is_active: true }).count('* as count').first();
-      const expiredSessions = await query.clone().where('expires_at', '<', new Date()).count('* as count').first();
+      const activeSessions = await query
+        .clone()
+        .where({ is_active: true })
+        .count('* as count')
+        .first();
+      const expiredSessions = await query
+        .clone()
+        .where('expires_at', '<', new Date())
+        .count('* as count')
+        .first();
 
-      const deviceBreakdown = await query.clone()
+      const deviceBreakdown = await query
+        .clone()
         .where({ is_active: true })
         .groupBy('device_type')
         .select('device_type')
         .count('* as count');
 
       return {
-        totalSessions: parseInt(totalSessions?.count as string || '0'),
-        activeSessions: parseInt(activeSessions?.count as string || '0'),
-        expiredSessions: parseInt(expiredSessions?.count as string || '0'),
+        totalSessions: parseInt((totalSessions?.count as string) || '0'),
+        activeSessions: parseInt((activeSessions?.count as string) || '0'),
+        expiredSessions: parseInt((expiredSessions?.count as string) || '0'),
         deviceBreakdown,
         generatedAt: new Date().toISOString(),
       };

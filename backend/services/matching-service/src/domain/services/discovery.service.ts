@@ -3,13 +3,15 @@
  * Handles discovery feed, likes, passes, and super-likes with tier enforcement
  */
 
-import swipeRepository from '../repositories/swipe.repository';
-import matchRepository from '../repositories/match.repository';
-import swipeService from './swipe.service';
-import recommendationService from './recommendation.service';
-import { SwipeAction, UserProfile, MatchScore } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
+
+import { SwipeAction, UserProfile, MatchScore } from '../../types';
+import matchRepository from '../repositories/match.repository';
+import swipeRepository from '../repositories/swipe.repository';
+
+import recommendationService from './recommendation.service';
+import swipeService from './swipe.service';
 
 const logger = createLogger('discovery-service');
 
@@ -121,7 +123,13 @@ export class DiscoveryService {
       const offset = cursor ? parseInt(Buffer.from(cursor, 'base64').toString(), 10) : 0;
 
       // Fetch candidates from user service
-      const candidates = await this.fetchCandidates(userId, userPreferences, excludedUserIds, limit + 1, offset);
+      const candidates = await this.fetchCandidates(
+        userId,
+        userPreferences,
+        excludedUserIds,
+        limit + 1,
+        offset
+      );
 
       // Check if there are more candidates (for pagination)
       const hasMore = candidates.length > limit;
@@ -189,13 +197,17 @@ export class DiscoveryService {
     try {
       // Get user's subscription tier
       const tier = await this.getUserTier(userId);
-      const dailyCap = DAILY_LIKE_CAPS[tier as keyof typeof DAILY_LIKE_CAPS] || DAILY_LIKE_CAPS.free;
+      const dailyCap =
+        DAILY_LIKE_CAPS[tier as keyof typeof DAILY_LIKE_CAPS] || DAILY_LIKE_CAPS.free;
 
       // Check daily limit
       const todayLikeCount = await this.getTodayLikeCount(userId);
 
       if (todayLikeCount >= dailyCap) {
-        logger.info(`User ${userId} has exceeded daily like limit (${dailyCap})`, { tier, todayLikeCount });
+        logger.info(`User ${userId} has exceeded daily like limit (${dailyCap})`, {
+          tier,
+          todayLikeCount,
+        });
 
         // Create audit record for rate limit
         await this.createAuditRecord({
@@ -308,7 +320,10 @@ export class DiscoveryService {
       const todaySuperLikeCount = await this.getTodaySuperLikeCount(userId);
 
       if (todaySuperLikeCount >= dailyCap) {
-        logger.info(`User ${userId} has exceeded daily super-like limit (${dailyCap})`, { tier, todaySuperLikeCount });
+        logger.info(`User ${userId} has exceeded daily super-like limit (${dailyCap})`, {
+          tier,
+          todaySuperLikeCount,
+        });
 
         await this.createAuditRecord({
           userId,
@@ -363,18 +378,25 @@ export class DiscoveryService {
   async getDiscoveryStats(userId: string): Promise<DiscoveryStats> {
     try {
       const tier = await this.getUserTier(userId);
-      const dailyLikeLimit = DAILY_LIKE_CAPS[tier as keyof typeof DAILY_LIKE_CAPS] || DAILY_LIKE_CAPS.free;
-      const dailySuperLikeLimit = DAILY_SUPERLIKE_CAPS[tier as keyof typeof DAILY_SUPERLIKE_CAPS] || 0;
+      const dailyLikeLimit =
+        DAILY_LIKE_CAPS[tier as keyof typeof DAILY_LIKE_CAPS] || DAILY_LIKE_CAPS.free;
+      const dailySuperLikeLimit =
+        DAILY_SUPERLIKE_CAPS[tier as keyof typeof DAILY_SUPERLIKE_CAPS] || 0;
 
       const likesUsedToday = await this.getTodayLikeCount(userId);
       const superLikesUsedToday = await this.getTodaySuperLikeCount(userId);
 
       // Calculate reset time (midnight UTC)
       const now = new Date();
-      const resetTime = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+      const resetTime = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0)
+      );
 
       return {
-        remainingLikes: Math.max(0, dailyLikeLimit === Infinity ? Infinity : dailyLikeLimit - likesUsedToday),
+        remainingLikes: Math.max(
+          0,
+          dailyLikeLimit === Infinity ? Infinity : dailyLikeLimit - likesUsedToday
+        ),
         remainingSuperLikes: Math.max(0, dailySuperLikeLimit - superLikesUsedToday),
         dailyLikeLimit: dailyLikeLimit === Infinity ? -1 : dailyLikeLimit, // -1 indicates unlimited
         dailySuperLikeLimit,
@@ -396,9 +418,12 @@ export class DiscoveryService {
    */
   private async getUserTier(userId: string): Promise<string> {
     try {
-      const response = await axios.get(`${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`, {
-        timeout: 5000,
-      });
+      const response = await axios.get(
+        `${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`,
+        {
+          timeout: 5000,
+        }
+      );
       return response.data?.tier || 'free';
     } catch (error) {
       logger.warn(`Failed to get user tier for ${userId}, defaulting to free`, error);
@@ -472,17 +497,21 @@ export class DiscoveryService {
     offset: number
   ): Promise<any[]> {
     try {
-      const response = await axios.post(`${this.userServiceUrl}/api/users/search`, {
-        ageMin: preferences.ageMin,
-        ageMax: preferences.ageMax,
-        genderPreference: preferences.genderPreference,
-        maxDistance: preferences.maxDistance,
-        excludedUserIds,
-        limit,
-        offset,
-      }, {
-        timeout: 10000,
-      });
+      const response = await axios.post(
+        `${this.userServiceUrl}/api/users/search`,
+        {
+          ageMin: preferences.ageMin,
+          ageMax: preferences.ageMax,
+          genderPreference: preferences.genderPreference,
+          maxDistance: preferences.maxDistance,
+          excludedUserIds,
+          limit,
+          offset,
+        },
+        {
+          timeout: 10000,
+        }
+      );
       return response.data || [];
     } catch (error) {
       logger.error('Failed to fetch candidates', error);
@@ -493,17 +522,24 @@ export class DiscoveryService {
   /**
    * Check if any candidates exist for the user's preferences
    */
-  private async checkCandidatesExist(userId: string, preferences: any): Promise<{ exist: boolean; count?: number }> {
+  private async checkCandidatesExist(
+    userId: string,
+    preferences: any
+  ): Promise<{ exist: boolean; count?: number }> {
     try {
-      const response = await axios.post(`${this.userServiceUrl}/api/users/search/count`, {
-        ageMin: preferences.ageMin,
-        ageMax: preferences.ageMax,
-        genderPreference: preferences.genderPreference,
-        maxDistance: preferences.maxDistance,
-        excludedUserIds: [userId],
-      }, {
-        timeout: 5000,
-      });
+      const response = await axios.post(
+        `${this.userServiceUrl}/api/users/search/count`,
+        {
+          ageMin: preferences.ageMin,
+          ageMax: preferences.ageMax,
+          genderPreference: preferences.genderPreference,
+          maxDistance: preferences.maxDistance,
+          excludedUserIds: [userId],
+        },
+        {
+          timeout: 5000,
+        }
+      );
       return { exist: response.data?.count > 0, count: response.data?.count };
     } catch (error) {
       logger.warn('Failed to check if candidates exist', error);
@@ -546,16 +582,20 @@ export class DiscoveryService {
     metadata?: Record<string, any>;
   }): Promise<void> {
     try {
-      await axios.post(`${this.auditServiceUrl}/api/v1/audit/events`, {
-        event_type: params.eventType,
-        actor_user_id: params.userId,
-        subject_user_id: params.targetUserId,
-        metadata: params.metadata,
-        created_at: new Date().toISOString(),
-        correlation_id: `discovery-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      }, {
-        timeout: 3000,
-      });
+      await axios.post(
+        `${this.auditServiceUrl}/api/v1/audit/events`,
+        {
+          event_type: params.eventType,
+          actor_user_id: params.userId,
+          subject_user_id: params.targetUserId,
+          metadata: params.metadata,
+          created_at: new Date().toISOString(),
+          correlation_id: `discovery-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        },
+        {
+          timeout: 3000,
+        }
+      );
     } catch (error) {
       // Don't fail the operation if audit fails, just log
       logger.warn('Failed to create audit record', { eventType: params.eventType, error });

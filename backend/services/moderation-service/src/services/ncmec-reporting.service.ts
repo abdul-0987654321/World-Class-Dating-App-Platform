@@ -18,9 +18,9 @@
 
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import db from '../infrastructure/database/connection';
+
 import config from '../config';
+import db from '../infrastructure/database/connection';
 import {
   NCMECReport,
   NCMECReportStatus,
@@ -28,6 +28,7 @@ import {
   NCMECReportResponse,
   CSAMDetectionResult,
 } from '../types/csam.types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ncmec-reporting-service');
 
@@ -123,7 +124,6 @@ export class NCMECReportingService {
             ncmec_reference_number: submissionResult.referenceNumber,
             submitted_at: new Date(),
           };
-
         } catch (submissionError: any) {
           logger.error('NCMEC REPORT SUBMISSION FAILED', {
             reportId,
@@ -144,23 +144,19 @@ export class NCMECReportingService {
 
           throw submissionError;
         }
-
       } else {
         logger.warn('NCMEC REPORTING DISABLED - Report created but not submitted', {
           reportId,
         });
 
         // Update status to pending (will be submitted when enabled)
-        await db('ncmec_reports')
-          .where('id', reportId)
-          .update({
-            status: NCMECReportStatus.PENDING,
-            updated_at: new Date(),
-          });
+        await db('ncmec_reports').where('id', reportId).update({
+          status: NCMECReportStatus.PENDING,
+          updated_at: new Date(),
+        });
 
         return report;
       }
-
     } catch (error: any) {
       logger.error('NCMEC REPORT CREATION FAILED', {
         reportId,
@@ -221,18 +217,14 @@ export class NCMECReportingService {
         endpoint: this.cybertiplineEndpoint,
       });
 
-      const response = await axios.post(
-        `${this.cybertiplineEndpoint}/api/report`,
-        requestPayload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.cybertiplineApiKey}`,
-            'X-ESP-ID': this.espId,
-          },
-          timeout: 30000, // 30 second timeout
-        }
-      );
+      const response = await axios.post(`${this.cybertiplineEndpoint}/api/report`, requestPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.cybertiplineApiKey}`,
+          'X-ESP-ID': this.espId,
+        },
+        timeout: 30000, // 30 second timeout
+      });
 
       return {
         success: true,
@@ -242,7 +234,6 @@ export class NCMECReportingService {
         status: response.data.status,
         message: response.data.message,
       };
-
     } catch (error: any) {
       logger.error('NCMEC API submission failed', {
         error: error.message,
@@ -288,7 +279,6 @@ export class NCMECReportingService {
       }
 
       return user;
-
     } catch (error: any) {
       logger.error('Failed to get user information', error);
       return {
@@ -335,10 +325,7 @@ export class NCMECReportingService {
   /**
    * Generate secure access URL for law enforcement
    */
-  private async generateSecureAccessUrl(
-    contentId: string,
-    detectionId: string
-  ): Promise<string> {
+  private async generateSecureAccessUrl(contentId: string, detectionId: string): Promise<string> {
     // Generate a secure token for law enforcement access
     const token = uuidv4();
 
@@ -444,13 +431,11 @@ export class NCMECReportingService {
           retryCount,
         });
 
-        await db('ncmec_reports')
-          .where('id', reportId)
-          .update({
-            status: NCMECReportStatus.FAILED,
-            error_message: 'Max retries exceeded',
-            updated_at: new Date(),
-          });
+        await db('ncmec_reports').where('id', reportId).update({
+          status: NCMECReportStatus.FAILED,
+          error_message: 'Max retries exceeded',
+          updated_at: new Date(),
+        });
 
         return;
       }
@@ -459,19 +444,16 @@ export class NCMECReportingService {
       const retryDelayMinutes = Math.pow(2, retryCount) * 5; // 5, 10, 20, 40, 80 minutes
       const retryAt = new Date(Date.now() + retryDelayMinutes * 60 * 1000);
 
-      await db('ncmec_reports')
-        .where('id', reportId)
-        .update({
-          next_retry_at: retryAt,
-          updated_at: new Date(),
-        });
+      await db('ncmec_reports').where('id', reportId).update({
+        next_retry_at: retryAt,
+        updated_at: new Date(),
+      });
 
       logger.info('NCMEC report retry scheduled', {
         reportId,
         retryCount: retryCount + 1,
         retryAt: retryAt.toISOString(),
       });
-
     } catch (error: any) {
       logger.error('Failed to schedule report retry', error);
     }
@@ -496,11 +478,7 @@ export class NCMECReportingService {
           const incidentDetails = report.incident_details;
           const userInfo = report.user_info;
 
-          const submissionResult = await this.submitToNCMEC(
-            report,
-            incidentDetails,
-            userInfo
-          );
+          const submissionResult = await this.submitToNCMEC(report, incidentDetails, userInfo);
 
           await this.updateReportAfterSubmission(
             report.id,
@@ -512,7 +490,6 @@ export class NCMECReportingService {
             reportId: report.id,
             retryCount: report.retry_count + 1,
           });
-
         } catch (error: any) {
           logger.error('NCMEC report retry failed', {
             reportId: report.id,
@@ -533,7 +510,6 @@ export class NCMECReportingService {
       logger.info('Failed NCMEC reports retry complete', {
         processed: failedReports.length,
       });
-
     } catch (error: any) {
       logger.error('Failed to retry NCMEC reports', error);
     }
@@ -555,10 +531,7 @@ export class NCMECReportingService {
   /**
    * Get reports by status
    */
-  async getReportsByStatus(
-    status: NCMECReportStatus,
-    limit: number = 50
-  ): Promise<NCMECReport[]> {
+  async getReportsByStatus(status: NCMECReportStatus, limit: number = 50): Promise<NCMECReport[]> {
     try {
       const reports = await db('ncmec_reports')
         .where('status', status)
@@ -591,7 +564,9 @@ export class NCMECReportingService {
         .where('created_at', '>=', startDate)
         .select(
           db.raw('COUNT(*) as total_reports'),
-          db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as submitted', [NCMECReportStatus.SUBMITTED]),
+          db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as submitted', [
+            NCMECReportStatus.SUBMITTED,
+          ]),
           db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as pending', [NCMECReportStatus.PENDING]),
           db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as failed', [NCMECReportStatus.FAILED]),
           db.raw('AVG(confidence_score) as avg_confidence')
@@ -603,7 +578,6 @@ export class NCMECReportingService {
         startDate,
         ...stats,
       };
-
     } catch (error: any) {
       logger.error('Failed to get report statistics', error);
       throw error;

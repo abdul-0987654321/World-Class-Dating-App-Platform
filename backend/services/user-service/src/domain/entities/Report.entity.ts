@@ -105,7 +105,11 @@ export function isActionable(report: Report): boolean {
 
 // Check if report is resolved
 export function isResolved(report: Report): boolean {
-  return report.status === 'resolved' || report.status === 'dismissed' || report.status === 'action_taken';
+  return (
+    report.status === 'resolved' ||
+    report.status === 'dismissed' ||
+    report.status === 'action_taken'
+  );
 }
 
 // Get severity-based priority score (for sorting)
@@ -159,7 +163,7 @@ export function calculateReportStats(reports: Report[]): ReportStats {
   let totalResolutionTime = 0;
   let resolvedCount = 0;
 
-  reports.forEach(report => {
+  reports.forEach((report) => {
     // Status counts
     if (report.status === 'pending') stats.pending++;
     if (report.status === 'investigating') stats.investigating++;

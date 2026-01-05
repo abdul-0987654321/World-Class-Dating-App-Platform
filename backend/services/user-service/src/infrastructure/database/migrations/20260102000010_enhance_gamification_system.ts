@@ -9,7 +9,9 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('weekly_bonus_rewards', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.integer('week_number').notNullable().comment('Which week milestone (1, 2, 3, etc.)');
-    table.enum('reward_type', ['coins', 'super_likes', 'boosts', 'premium_trial', 'badge']).notNullable();
+    table
+      .enum('reward_type', ['coins', 'super_likes', 'boosts', 'premium_trial', 'badge'])
+      .notNullable();
     table.integer('reward_amount').notNullable();
     table.uuid('badge_id').references('id').inTable('profile_badges').onDelete('SET NULL');
     table.string('title').notNullable();
@@ -90,24 +92,28 @@ export async function up(knex: Knex): Promise<void> {
     table.string('icon_name').notNullable();
     table.string('icon_color');
     table.string('background_color');
-    table.enum('category', [
-      'dating',          // Dating-related achievements
-      'social',          // Social interactions
-      'profile',         // Profile completion
-      'engagement',      // App engagement
-      'streak',          // Streak-based
-      'special',         // Special events
-      'collector'        // Collecting items
-    ]).notNullable();
+    table
+      .enum('category', [
+        'dating', // Dating-related achievements
+        'social', // Social interactions
+        'profile', // Profile completion
+        'engagement', // App engagement
+        'streak', // Streak-based
+        'special', // Special events
+        'collector', // Collecting items
+      ])
+      .notNullable();
     table.enum('rarity', ['common', 'uncommon', 'rare', 'epic', 'legendary']).defaultTo('common');
-    table.enum('unlock_type', [
-      'count',           // Reach a count (matches, messages, etc.)
-      'streak',          // Maintain a streak
-      'milestone',       // Reach a milestone
-      'time_based',      // Time-limited
-      'special_action',  // Specific action required
-      'collection'       // Collect multiple items
-    ]).notNullable();
+    table
+      .enum('unlock_type', [
+        'count', // Reach a count (matches, messages, etc.)
+        'streak', // Maintain a streak
+        'milestone', // Reach a milestone
+        'time_based', // Time-limited
+        'special_action', // Specific action required
+        'collection', // Collect multiple items
+      ])
+      .notNullable();
     table.jsonb('unlock_requirements').notNullable().comment('Requirements to unlock badge');
     table.integer('coin_reward').defaultTo(0);
     table.integer('xp_reward').defaultTo(0);
@@ -128,7 +134,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_achievement_badges', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('badge_id').notNullable().references('id').inTable('achievement_badges').onDelete('CASCADE');
+    table
+      .uuid('badge_id')
+      .notNullable()
+      .references('id')
+      .inTable('achievement_badges')
+      .onDelete('CASCADE');
     table.integer('current_tier').defaultTo(1);
     table.integer('current_progress').defaultTo(0);
     table.integer('target_progress').notNullable();
@@ -501,7 +512,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_coin_earnings', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('event_id').notNullable().references('id').inTable('coin_earning_events').onDelete('CASCADE');
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('coin_earning_events')
+      .onDelete('CASCADE');
     table.integer('coins_earned').notNullable();
     table.decimal('multiplier_applied', 5, 2).defaultTo(1.0);
     table.string('source').comment('Where the event occurred');
@@ -606,7 +622,13 @@ export async function up(knex: Knex): Promise<void> {
   // User gamification summary (denormalized for quick access)
   await knex.schema.createTable('user_gamification_summary', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('user_id')
+      .notNullable()
+      .unique()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
 
     // Currency
     table.integer('total_coins_earned').defaultTo(0);
@@ -664,15 +686,90 @@ export async function up(knex: Knex): Promise<void> {
   // Insert default levels
   await knex('gamification_levels').insert([
     { level: 1, xp_required: 0, title: 'Newcomer', icon_name: 'seedling', icon_color: '#8BC34A' },
-    { level: 2, xp_required: 100, title: 'Explorer', icon_name: 'compass', icon_color: '#4CAF50', coin_reward: 25 },
-    { level: 3, xp_required: 250, title: 'Rising Star', icon_name: 'star', icon_color: '#FFEB3B', coin_reward: 50 },
-    { level: 4, xp_required: 500, title: 'Social Spark', icon_name: 'zap', icon_color: '#FF9800', coin_reward: 75, super_likes_reward: 1 },
-    { level: 5, xp_required: 1000, title: 'Connection Pro', icon_name: 'users', icon_color: '#2196F3', coin_reward: 100, super_likes_reward: 2 },
-    { level: 6, xp_required: 2000, title: 'Heart Hunter', icon_name: 'heart', icon_color: '#E91E63', coin_reward: 150, super_likes_reward: 2, boosts_reward: 1 },
-    { level: 7, xp_required: 3500, title: 'Love Expert', icon_name: 'award', icon_color: '#9C27B0', coin_reward: 200, super_likes_reward: 3, boosts_reward: 1 },
-    { level: 8, xp_required: 5000, title: 'Dating Guru', icon_name: 'sparkles', icon_color: '#673AB7', coin_reward: 300, super_likes_reward: 5, boosts_reward: 2 },
-    { level: 9, xp_required: 7500, title: 'Romance Master', icon_name: 'crown', icon_color: '#FF5722', coin_reward: 500, super_likes_reward: 5, boosts_reward: 2 },
-    { level: 10, xp_required: 10000, title: 'Love Legend', icon_name: 'diamond', icon_color: '#00BCD4', coin_reward: 1000, super_likes_reward: 10, boosts_reward: 5 },
+    {
+      level: 2,
+      xp_required: 100,
+      title: 'Explorer',
+      icon_name: 'compass',
+      icon_color: '#4CAF50',
+      coin_reward: 25,
+    },
+    {
+      level: 3,
+      xp_required: 250,
+      title: 'Rising Star',
+      icon_name: 'star',
+      icon_color: '#FFEB3B',
+      coin_reward: 50,
+    },
+    {
+      level: 4,
+      xp_required: 500,
+      title: 'Social Spark',
+      icon_name: 'zap',
+      icon_color: '#FF9800',
+      coin_reward: 75,
+      super_likes_reward: 1,
+    },
+    {
+      level: 5,
+      xp_required: 1000,
+      title: 'Connection Pro',
+      icon_name: 'users',
+      icon_color: '#2196F3',
+      coin_reward: 100,
+      super_likes_reward: 2,
+    },
+    {
+      level: 6,
+      xp_required: 2000,
+      title: 'Heart Hunter',
+      icon_name: 'heart',
+      icon_color: '#E91E63',
+      coin_reward: 150,
+      super_likes_reward: 2,
+      boosts_reward: 1,
+    },
+    {
+      level: 7,
+      xp_required: 3500,
+      title: 'Love Expert',
+      icon_name: 'award',
+      icon_color: '#9C27B0',
+      coin_reward: 200,
+      super_likes_reward: 3,
+      boosts_reward: 1,
+    },
+    {
+      level: 8,
+      xp_required: 5000,
+      title: 'Dating Guru',
+      icon_name: 'sparkles',
+      icon_color: '#673AB7',
+      coin_reward: 300,
+      super_likes_reward: 5,
+      boosts_reward: 2,
+    },
+    {
+      level: 9,
+      xp_required: 7500,
+      title: 'Romance Master',
+      icon_name: 'crown',
+      icon_color: '#FF5722',
+      coin_reward: 500,
+      super_likes_reward: 5,
+      boosts_reward: 2,
+    },
+    {
+      level: 10,
+      xp_required: 10000,
+      title: 'Love Legend',
+      icon_name: 'diamond',
+      icon_color: '#00BCD4',
+      coin_reward: 1000,
+      super_likes_reward: 10,
+      boosts_reward: 5,
+    },
   ]);
 }
 

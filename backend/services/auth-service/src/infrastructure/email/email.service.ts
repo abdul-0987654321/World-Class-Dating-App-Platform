@@ -1,4 +1,5 @@
 import { EmailClient, EmailMessage } from '@azure/communication-email';
+
 import { config } from '../../config';
 import logger from '../../utils/logger';
 
@@ -9,9 +10,11 @@ class EmailService {
   constructor() {
     const connectionString = config.email.azureConnectionString;
     if (!connectionString) {
-      logger.warn('Azure Communication Services connection string not configured - emails will not be sent');
+      logger.warn(
+        'Azure Communication Services connection string not configured - emails will not be sent'
+      );
     }
-    this.emailClient = connectionString ? new EmailClient(connectionString) : null as any;
+    this.emailClient = connectionString ? new EmailClient(connectionString) : (null as any);
     this.senderAddress = config.email.from;
   }
 

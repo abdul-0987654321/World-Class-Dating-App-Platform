@@ -7,6 +7,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtHeader, SigningKeyCallback, JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import jwksRsa, { JwksClient, SigningKey } from 'jwks-rsa';
+
 import createLogger from '../utils/logger';
 
 const logger = createLogger('b2c-authorization');
@@ -51,8 +52,8 @@ const config: B2CConfig = {
     'saas-operator': process.env.GROUP_ID_SAAS_OPERATOR || '',
     'saas-admin': process.env.GROUP_ID_SAAS_ADMIN || '',
     // Special status
-    banned: process.env.GROUP_ID_BANNED || ''
-  }
+    banned: process.env.GROUP_ID_BANNED || '',
+  },
 };
 
 // JWKS client for token signature verification
@@ -70,7 +71,7 @@ function getJwksClient(): JwksClient {
     cache: true,
     cacheMaxAge: 600000, // 10 minutes
     rateLimit: true,
-    jwksRequestsPerMinute: 10
+    jwksRequestsPerMinute: 10,
   });
 
   return jwksClient;
@@ -83,11 +84,11 @@ function getJwksClient(): JwksClient {
 export type SubscriptionTier = 'free' | 'standard' | 'premium';
 
 export interface FlamoralUser {
-  id: string;  // Required by base Express.Request.user type
-  userId: string;  // Alias for id (for B2C compatibility)
+  id: string; // Required by base Express.Request.user type
+  userId: string; // Alias for id (for B2C compatibility)
   email: string;
   displayName?: string;
-  role?: 'user' | 'admin' | 'moderator' | 'support';  // Optional role field for compatibility
+  role?: 'user' | 'admin' | 'moderator' | 'support'; // Optional role field for compatibility
   groups: string[];
   subscriptionTier: SubscriptionTier;
   isVerified: boolean;
@@ -130,7 +131,7 @@ async function validateToken(token: string): Promise<JwtPayload> {
       {
         audience: config.clientId,
         issuer,
-        algorithms: ['RS256']
+        algorithms: ['RS256'],
       },
       (err: VerifyErrors | null, decoded: string | JwtPayload | undefined) => {
         if (err) {
@@ -154,7 +155,11 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
   // Determine subscription tier based on group membership (check in order: premium > standard > free)
   const isPremium = groups.includes(config.groups['saas-premium']);
   const isStandard = groups.includes(config.groups['saas-standard']);
-  const subscriptionTier: SubscriptionTier = isPremium ? 'premium' : isStandard ? 'standard' : 'free';
+  const subscriptionTier: SubscriptionTier = isPremium
+    ? 'premium'
+    : isStandard
+      ? 'standard'
+      : 'free';
 
   // Extract user ID (B2C uses 'sub' or 'oid' claims)
   const userId = payload.sub || payload.oid || '';
@@ -163,11 +168,17 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
   const isAdmin = groups.includes(config.groups['saas-admin']);
   const isOperator = groups.includes(config.groups['saas-operator']);
   const isModerator = groups.includes(config.groups['saas-moderator']);
-  const role: 'user' | 'admin' | 'moderator' | 'support' = isAdmin ? 'admin' : isOperator ? 'support' : isModerator ? 'moderator' : 'user';
+  const role: 'user' | 'admin' | 'moderator' | 'support' = isAdmin
+    ? 'admin'
+    : isOperator
+      ? 'support'
+      : isModerator
+        ? 'moderator'
+        : 'user';
 
   return {
-    id: userId,  // Required by Express.Request.user base type
-    userId,  // Alias for B2C compatibility
+    id: userId, // Required by Express.Request.user base type
+    userId, // Alias for B2C compatibility
     email: payload.emails?.[0] || payload.email || '',
     displayName: payload.name || payload.given_name || '',
     role,
@@ -178,7 +189,7 @@ function extractUserFromToken(payload: JwtPayload): FlamoralUser {
     isOperator,
     isAdmin,
     isBanned: groups.includes(config.groups.banned),
-    rawClaims: payload
+    rawClaims: payload,
   };
 }
 
@@ -192,7 +203,8 @@ export async function authenticateB2C(
   next: NextFunction
 ): Promise<void | Response> {
   // Generate correlation ID for request tracing
-  const correlationId = (req.headers['x-correlation-id'] as string) ||
+  const correlationId =
+    (req.headers['x-correlation-id'] as string) ||
     `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   req.correlationId = correlationId;
   res.setHeader('X-Correlation-ID', correlationId);
@@ -205,7 +217,7 @@ export async function authenticateB2C(
         success: false,
         error: 'unauthorized',
         message: 'Missing or invalid authorization header',
-        correlationId
+        correlationId,
       });
     }
 
@@ -223,13 +235,12 @@ export async function authenticateB2C(
         error: 'forbidden',
         message: 'Account has been suspended. Contact support for assistance.',
         code: 'ACCOUNT_BANNED',
-        correlationId
+        correlationId,
       });
     }
 
     req.user = user;
     return next();
-
   } catch (error: any) {
     logger.error('B2C Authentication failed', { error: error.message, correlationId });
 
@@ -240,7 +251,7 @@ export async function authenticateB2C(
         error: 'unauthorized',
         message: 'Token has expired',
         code: 'TOKEN_EXPIRED',
-        correlationId
+        correlationId,
       });
     }
 
@@ -250,7 +261,7 @@ export async function authenticateB2C(
         error: 'unauthorized',
         message: 'Invalid token',
         code: 'INVALID_TOKEN',
-        correlationId
+        correlationId,
       });
     }
 
@@ -258,7 +269,7 @@ export async function authenticateB2C(
       success: false,
       error: 'unauthorized',
       message: 'Authentication failed',
-      correlationId
+      correlationId,
     });
   }
 }
@@ -271,7 +282,7 @@ export async function authenticateB2C(
 const tierHierarchy: Record<SubscriptionTier, number> = {
   free: 0,
   standard: 1,
-  premium: 2
+  premium: 2,
 };
 
 export function requireTier(tier: SubscriptionTier) {
@@ -281,7 +292,7 @@ export function requireTier(tier: SubscriptionTier) {
         success: false,
         error: 'unauthorized',
         message: 'Authentication required',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -296,7 +307,7 @@ export function requireTier(tier: SubscriptionTier) {
         message: `${tierName} subscription required`,
         code: `${tier.toUpperCase()}_REQUIRED`,
         upgradeUrl: '/subscription/upgrade',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -322,7 +333,7 @@ export function requireVerified(
       success: false,
       error: 'unauthorized',
       message: 'Authentication required',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -333,7 +344,7 @@ export function requireVerified(
       message: 'Identity verification required',
       code: 'VERIFICATION_REQUIRED',
       verifyUrl: '/profile/verify',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -354,7 +365,7 @@ export function requireModerator(
       success: false,
       error: 'unauthorized',
       message: 'Authentication required',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -362,7 +373,7 @@ export function requireModerator(
   if (!req.user.isModerator && !req.user.isAdmin) {
     logger.warn(`Non-moderator access attempt: ${req.user.userId}`, {
       correlationId: req.correlationId,
-      path: req.path
+      path: req.path,
     });
 
     return res.status(403).json({
@@ -370,7 +381,7 @@ export function requireModerator(
       error: 'forbidden',
       message: 'Moderator access required',
       code: 'MODERATOR_REQUIRED',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -391,7 +402,7 @@ export function requireOperator(
       success: false,
       error: 'unauthorized',
       message: 'Authentication required',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -399,7 +410,7 @@ export function requireOperator(
   if (!req.user.isOperator && !req.user.isAdmin) {
     logger.warn(`Non-operator access attempt: ${req.user.userId}`, {
       correlationId: req.correlationId,
-      path: req.path
+      path: req.path,
     });
 
     return res.status(403).json({
@@ -407,7 +418,7 @@ export function requireOperator(
       error: 'forbidden',
       message: 'Operator access required',
       code: 'OPERATOR_REQUIRED',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -418,24 +429,20 @@ export function requireOperator(
 // MIDDLEWARE: REQUIRE ADMIN (Internal Staff Only)
 // ============================================================================
 
-export function requireAdmin(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): void | Response {
+export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction): void | Response {
   if (!req.user) {
     return res.status(401).json({
       success: false,
       error: 'unauthorized',
       message: 'Authentication required',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
   if (!req.user.isAdmin) {
     logger.warn(`Non-admin access attempt: ${req.user.userId}`, {
       correlationId: req.correlationId,
-      path: req.path
+      path: req.path,
     });
 
     return res.status(403).json({
@@ -443,7 +450,7 @@ export function requireAdmin(
       error: 'forbidden',
       message: 'Administrator access required',
       code: 'ADMIN_REQUIRED',
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
     });
   }
 
@@ -461,7 +468,7 @@ export function requireGroup(groupId: string) {
         success: false,
         error: 'unauthorized',
         message: 'Authentication required',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -471,7 +478,7 @@ export function requireGroup(groupId: string) {
         error: 'forbidden',
         message: 'Insufficient permissions',
         code: 'GROUP_REQUIRED',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -492,52 +499,52 @@ const hasTierLevel = (user: FlamoralUser, minTier: SubscriptionTier): boolean =>
 
 const featureMatrix: Record<string, FeatureCheck> = {
   // Free features (all authenticated users)
-  'basic_matching': () => true,
-  'send_message': () => true,
-  'view_profile': () => true,
-  'limited_likes': () => true,
-  'report_user': () => true,
+  basic_matching: () => true,
+  send_message: () => true,
+  view_profile: () => true,
+  limited_likes: () => true,
+  report_user: () => true,
 
   // Standard features (standard tier and above)
-  'extended_likes': (u) => hasTierLevel(u, 'standard'),
-  'rewind_swipe': (u) => hasTierLevel(u, 'standard'),
-  'basic_filters': (u) => hasTierLevel(u, 'standard'),
-  'reduced_ads': (u) => hasTierLevel(u, 'standard'),
+  extended_likes: (u) => hasTierLevel(u, 'standard'),
+  rewind_swipe: (u) => hasTierLevel(u, 'standard'),
+  basic_filters: (u) => hasTierLevel(u, 'standard'),
+  reduced_ads: (u) => hasTierLevel(u, 'standard'),
 
   // Premium features (premium tier only)
-  'unlimited_likes': (u) => u.subscriptionTier === 'premium',
-  'see_who_liked': (u) => u.subscriptionTier === 'premium',
-  'read_receipts': (u) => u.subscriptionTier === 'premium',
-  'priority_matching': (u) => u.subscriptionTier === 'premium',
-  'boost_profile': (u) => u.subscriptionTier === 'premium',
-  'advanced_filters': (u) => u.subscriptionTier === 'premium',
-  'no_ads': (u) => u.subscriptionTier === 'premium',
-  'incognito_mode': (u) => u.subscriptionTier === 'premium',
+  unlimited_likes: (u) => u.subscriptionTier === 'premium',
+  see_who_liked: (u) => u.subscriptionTier === 'premium',
+  read_receipts: (u) => u.subscriptionTier === 'premium',
+  priority_matching: (u) => u.subscriptionTier === 'premium',
+  boost_profile: (u) => u.subscriptionTier === 'premium',
+  advanced_filters: (u) => u.subscriptionTier === 'premium',
+  no_ads: (u) => u.subscriptionTier === 'premium',
+  incognito_mode: (u) => u.subscriptionTier === 'premium',
 
   // Verified features
-  'verified_badge': (u) => u.isVerified,
-  'verified_only_mode': (u) => u.isVerified,
-  'higher_trust_score': (u) => u.isVerified,
+  verified_badge: (u) => u.isVerified,
+  verified_only_mode: (u) => u.isVerified,
+  higher_trust_score: (u) => u.isVerified,
 
   // Moderator features (internal staff)
-  'review_reports': (u) => u.isModerator || u.isOperator || u.isAdmin,
-  'issue_warnings': (u) => u.isModerator || u.isOperator || u.isAdmin,
-  'temp_suspend': (u) => u.isModerator || u.isOperator || u.isAdmin,
-  'view_user_history': (u) => u.isModerator || u.isOperator || u.isAdmin,
+  review_reports: (u) => u.isModerator || u.isOperator || u.isAdmin,
+  issue_warnings: (u) => u.isModerator || u.isOperator || u.isAdmin,
+  temp_suspend: (u) => u.isModerator || u.isOperator || u.isAdmin,
+  view_user_history: (u) => u.isModerator || u.isOperator || u.isAdmin,
 
   // Operator features (operations staff)
-  'view_system_health': (u) => u.isOperator || u.isAdmin,
-  'manage_deployments': (u) => u.isOperator || u.isAdmin,
-  'view_metrics': (u) => u.isOperator || u.isAdmin,
-  'manage_feature_flags': (u) => u.isOperator || u.isAdmin,
+  view_system_health: (u) => u.isOperator || u.isAdmin,
+  manage_deployments: (u) => u.isOperator || u.isAdmin,
+  view_metrics: (u) => u.isOperator || u.isAdmin,
+  manage_feature_flags: (u) => u.isOperator || u.isAdmin,
 
   // Admin features (internal staff)
-  'perm_ban': (u) => u.isAdmin,
-  'manage_users': (u) => u.isAdmin,
-  'view_analytics': (u) => u.isAdmin,
-  'system_config': (u) => u.isAdmin,
-  'manage_moderators': (u) => u.isAdmin,
-  'manage_operators': (u) => u.isAdmin
+  perm_ban: (u) => u.isAdmin,
+  manage_users: (u) => u.isAdmin,
+  view_analytics: (u) => u.isAdmin,
+  system_config: (u) => u.isAdmin,
+  manage_moderators: (u) => u.isAdmin,
+  manage_operators: (u) => u.isAdmin,
 };
 
 export function canAccessFeature(user: FlamoralUser, feature: string): boolean {
@@ -556,7 +563,7 @@ export function requireFeature(feature: string) {
         success: false,
         error: 'unauthorized',
         message: 'Authentication required',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -566,7 +573,7 @@ export function requireFeature(feature: string) {
         error: 'forbidden',
         message: `Feature '${feature}' not available`,
         code: 'FEATURE_NOT_AVAILABLE',
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
     }
 
@@ -578,8 +585,4 @@ export function requireFeature(feature: string) {
 // EXPORTS
 // ============================================================================
 
-export {
-  config as b2cConfig,
-  validateToken,
-  extractUserFromToken
-};
+export { config as b2cConfig, validateToken, extractUserFromToken };

@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import {
   AchievementDefinition,
   UserAchievement,
@@ -29,17 +30,13 @@ export class AchievementRepository {
   }
 
   async findDefinitionById(id: string): Promise<AchievementDefinition | null> {
-    const result = await this.db('achievement_definitions')
-      .where({ id })
-      .first();
+    const result = await this.db('achievement_definitions').where({ id }).first();
 
     return result ? this.mapToAchievementDefinition(result) : null;
   }
 
   async findDefinitionByKey(key: string): Promise<AchievementDefinition | null> {
-    const result = await this.db('achievement_definitions')
-      .where({ key })
-      .first();
+    const result = await this.db('achievement_definitions').where({ key }).first();
 
     return result ? this.mapToAchievementDefinition(result) : null;
   }
@@ -98,7 +95,8 @@ export class AchievementRepository {
     if (input.tier !== undefined) updateData.tier = input.tier;
     if (input.points !== undefined) updateData.points = input.points;
     if (input.coinReward !== undefined) updateData.coin_reward = input.coinReward;
-    if (input.requirements !== undefined) updateData.requirements = JSON.stringify(input.requirements);
+    if (input.requirements !== undefined)
+      updateData.requirements = JSON.stringify(input.requirements);
     if (input.targetValue !== undefined) updateData.target_value = input.targetValue;
     if (input.iconName !== undefined) updateData.icon_name = input.iconName;
     if (input.badgeColor !== undefined) updateData.badge_color = input.badgeColor;
@@ -143,9 +141,7 @@ export class AchievementRepository {
     return {
       ...this.mapToUserAchievement(result),
       definition: this.mapToAchievementDefinition(
-        typeof result.achievement === 'string'
-          ? JSON.parse(result.achievement)
-          : result.achievement
+        typeof result.achievement === 'string' ? JSON.parse(result.achievement) : result.achievement
       ),
     };
   }
@@ -184,7 +180,7 @@ export class AchievementRepository {
       .select('ua.*', this.db.raw('row_to_json(ad.*) as achievement'))
       .orderBy('ad.display_order', 'asc');
 
-    return results.map(r => ({
+    return results.map((r) => ({
       ...this.mapToUserAchievement(r),
       definition: this.mapToAchievementDefinition(
         typeof r.achievement === 'string' ? JSON.parse(r.achievement) : r.achievement
@@ -210,9 +206,7 @@ export class AchievementRepository {
     return {
       ...this.mapToUserAchievement(result),
       definition: this.mapToAchievementDefinition(
-        typeof result.achievement === 'string'
-          ? JSON.parse(result.achievement)
-          : result.achievement
+        typeof result.achievement === 'string' ? JSON.parse(result.achievement) : result.achievement
       ),
     };
   }
@@ -277,12 +271,14 @@ export class AchievementRepository {
     return this.createUserAchievement({
       user_id: userId,
       achievement_id: achievementId,
-      target_progress: target
+      target_progress: target,
     });
   }
 
   // Achievement Progress Logs
-  async createProgressLog(log: Omit<AchievementProgressLog, 'id' | 'created_at'>): Promise<AchievementProgressLog> {
+  async createProgressLog(
+    log: Omit<AchievementProgressLog, 'id' | 'created_at'>
+  ): Promise<AchievementProgressLog> {
     const [result] = await this.db('achievement_progress_logs')
       .insert({
         user_id: log.user_id,
@@ -311,9 +307,7 @@ export class AchievementRepository {
 
   // User Achievement Stats
   async findUserStats(userId: string): Promise<UserAchievementStats | null> {
-    const result = await this.db('user_achievement_stats')
-      .where({ user_id: userId })
-      .first();
+    const result = await this.db('user_achievement_stats').where({ user_id: userId }).first();
 
     return result ? this.mapToUserAchievementStats(result) : null;
   }
@@ -336,11 +330,15 @@ export class AchievementRepository {
       updated_at: this.db.fn.now(),
     };
 
-    if (input.total_achievements !== undefined) updateData.total_achievements = input.total_achievements;
-    if (input.completed_achievements !== undefined) updateData.completed_achievements = input.completed_achievements;
-    if (input.in_progress_achievements !== undefined) updateData.in_progress_achievements = input.in_progress_achievements;
+    if (input.total_achievements !== undefined)
+      updateData.total_achievements = input.total_achievements;
+    if (input.completed_achievements !== undefined)
+      updateData.completed_achievements = input.completed_achievements;
+    if (input.in_progress_achievements !== undefined)
+      updateData.in_progress_achievements = input.in_progress_achievements;
     if (input.total_xp_earned !== undefined) updateData.total_xp_earned = input.total_xp_earned;
-    if (input.total_coins_earned !== undefined) updateData.total_coins_earned = input.total_coins_earned;
+    if (input.total_coins_earned !== undefined)
+      updateData.total_coins_earned = input.total_coins_earned;
 
     const [result] = await this.db('user_achievement_stats')
       .where({ user_id: userId })
@@ -371,13 +369,13 @@ export class AchievementRepository {
     const totalPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
 
     const tierCounts = {
-      bronzeCount: unlockedAchievements.filter(a => a.tier === 'bronze').length,
-      silverCount: unlockedAchievements.filter(a => a.tier === 'silver').length,
-      goldCount: unlockedAchievements.filter(a => a.tier === 'gold').length,
-      platinumCount: unlockedAchievements.filter(a => a.tier === 'platinum').length,
-      diamondCount: unlockedAchievements.filter(a => a.tier === 'diamond').length,
-      hiddenUnlocked: unlockedAchievements.filter(a => a.is_hidden).length,
-      secretUnlocked: unlockedAchievements.filter(a => a.is_secret).length,
+      bronzeCount: unlockedAchievements.filter((a) => a.tier === 'bronze').length,
+      silverCount: unlockedAchievements.filter((a) => a.tier === 'silver').length,
+      goldCount: unlockedAchievements.filter((a) => a.tier === 'gold').length,
+      platinumCount: unlockedAchievements.filter((a) => a.tier === 'platinum').length,
+      diamondCount: unlockedAchievements.filter((a) => a.tier === 'diamond').length,
+      hiddenUnlocked: unlockedAchievements.filter((a) => a.is_hidden).length,
+      secretUnlocked: unlockedAchievements.filter((a) => a.is_secret).length,
     };
 
     const totalDefinitions = await this.db('achievement_definitions')
@@ -405,17 +403,19 @@ export class AchievementRepository {
   }
 
   // Leaderboard
-  async getTopUsersByPoints(limit: number = 10): Promise<Array<{
-    userId: string;
-    totalPoints: number;
-    totalAchievements: number;
-  }>> {
+  async getTopUsersByPoints(limit: number = 10): Promise<
+    Array<{
+      userId: string;
+      totalPoints: number;
+      totalAchievements: number;
+    }>
+  > {
     const results = await this.db('user_achievement_stats')
       .select('user_id', 'total_points', 'total_achievements')
       .orderBy('total_points', 'desc')
       .limit(limit);
 
-    return results.map(r => ({
+    return results.map((r) => ({
       userId: r.user_id,
       totalPoints: r.total_points,
       totalAchievements: r.total_achievements,
@@ -433,9 +433,8 @@ export class AchievementRepository {
       tier: row.tier,
       points: row.points,
       coinReward: row.coin_reward,
-      requirements: typeof row.requirements === 'string'
-        ? JSON.parse(row.requirements)
-        : row.requirements,
+      requirements:
+        typeof row.requirements === 'string' ? JSON.parse(row.requirements) : row.requirements,
       targetValue: row.target_value,
       iconName: row.icon_name,
       badgeColor: row.badge_color,
@@ -476,9 +475,7 @@ export class AchievementRepository {
       actionType: row.action_type,
       progressIncrement: row.progress_increment,
       progressAfter: row.progress_after,
-      metadata: typeof row.metadata === 'string'
-        ? JSON.parse(row.metadata)
-        : row.metadata,
+      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata,
       createdAt: row.created_at,
     };
   }

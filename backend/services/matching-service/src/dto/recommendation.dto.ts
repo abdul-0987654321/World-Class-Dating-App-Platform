@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsOptional,
   IsInt,
@@ -8,7 +9,6 @@ import {
   Max,
   ArrayMaxSize,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * Query parameters for getting recommendations.

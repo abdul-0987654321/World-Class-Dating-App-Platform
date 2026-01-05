@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+
 import authController from '../controllers/auth.controller';
 import { authenticate, internalAuth } from '../middleware/auth.middleware';
 import {
@@ -45,10 +46,16 @@ const normalizeRegisterBody = (req: Request, _res: Response, next: NextFunction)
       if (req.body.consents.terms_accepted !== undefined && req.body.consents.terms === undefined) {
         req.body.consents.terms = req.body.consents.terms_accepted;
       }
-      if (req.body.consents.privacy_accepted !== undefined && req.body.consents.privacy === undefined) {
+      if (
+        req.body.consents.privacy_accepted !== undefined &&
+        req.body.consents.privacy === undefined
+      ) {
         req.body.consents.privacy = req.body.consents.privacy_accepted;
       }
-      if (req.body.consents.marketing_emails !== undefined && req.body.consents.marketing === undefined) {
+      if (
+        req.body.consents.marketing_emails !== undefined &&
+        req.body.consents.marketing === undefined
+      ) {
         req.body.consents.marketing = req.body.consents.marketing_emails;
       }
     }
@@ -163,11 +170,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post(
-  '/logout',
-  authenticate,
-  authController.logout.bind(authController)
-);
+router.post('/logout', authenticate, authController.logout.bind(authController));
 
 /**
  * @swagger
@@ -334,11 +337,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/me',
-  authenticate,
-  authController.me.bind(authController)
-);
+router.get('/me', authenticate, authController.me.bind(authController));
 
 /**
  * @swagger
@@ -365,11 +364,7 @@ router.get(
  *       401:
  *         description: Invalid token
  */
-router.post(
-  '/validate-token',
-  internalAuth,
-  authController.validateToken.bind(authController)
-);
+router.post('/validate-token', internalAuth, authController.validateToken.bind(authController));
 
 // ==================== Two-Factor Authentication (2FA) Routes ====================
 
@@ -387,11 +382,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/2fa/status',
-  authenticate,
-  authController.get2FAStatus.bind(authController)
-);
+router.get('/2fa/status', authenticate, authController.get2FAStatus.bind(authController));
 
 /**
  * @swagger

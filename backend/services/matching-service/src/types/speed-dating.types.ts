@@ -3,9 +3,15 @@
  * Types for speed dating events, WebSocket events, and API responses
  */
 
-import { SpeedDatingEvent, SpeedDatingEventStatus } from '../domain/entities/SpeedDatingEvent.entity';
-import { SpeedDatingParticipant, ParticipantStatus } from '../domain/entities/SpeedDatingParticipant.entity';
+import {
+  SpeedDatingEvent,
+  SpeedDatingEventStatus,
+} from '../domain/entities/SpeedDatingEvent.entity';
 import { SpeedDatingMatch } from '../domain/entities/SpeedDatingMatch.entity';
+import {
+  SpeedDatingParticipant,
+  ParticipantStatus,
+} from '../domain/entities/SpeedDatingParticipant.entity';
 
 // ==================== WebSocket Event Types ====================
 
@@ -33,11 +39,7 @@ export interface ServerToClientEvents {
     participant: SpeedDatingParticipant;
     stats: EventStats;
   }) => void;
-  event_started: (data: {
-    event: SpeedDatingEvent;
-    message: string;
-    timestamp: string;
-  }) => void;
+  event_started: (data: { event: SpeedDatingEvent; message: string; timestamp: string }) => void;
   event_completed: (data: {
     event: SpeedDatingEvent;
     matchesCreated: number;
@@ -46,16 +48,8 @@ export interface ServerToClientEvents {
   }) => void;
 
   // Participant events
-  participant_joined: (data: {
-    participantId: string;
-    userId: string;
-    timestamp: string;
-  }) => void;
-  participant_left: (data: {
-    participantId: string;
-    userId: string;
-    timestamp: string;
-  }) => void;
+  participant_joined: (data: { participantId: string; userId: string; timestamp: string }) => void;
+  participant_left: (data: { participantId: string; userId: string; timestamp: string }) => void;
   participant_checked_in: (data: {
     participantId: string;
     userId: string;
@@ -63,10 +57,7 @@ export interface ServerToClientEvents {
   }) => void;
 
   // Check-in
-  checked_in: (data: {
-    participant: SpeedDatingParticipant;
-    message: string;
-  }) => void;
+  checked_in: (data: { participant: SpeedDatingParticipant; message: string }) => void;
 
   // Round events
   round_started: (data: {
@@ -97,36 +88,20 @@ export interface ServerToClientEvents {
     mutual: boolean;
     match?: SpeedDatingMatch;
   }) => void;
-  mutual_match: (data: {
-    match: SpeedDatingMatch;
-    partnerId: string;
-  }) => void;
+  mutual_match: (data: { match: SpeedDatingMatch; partnerId: string }) => void;
 
   // Messaging
-  round_message: (data: {
-    from: string;
-    message: string;
-    timestamp: string;
-  }) => void;
-  message_sent: (data: {
-    message: string;
-    timestamp: string;
-  }) => void;
+  round_message: (data: { from: string; message: string; timestamp: string }) => void;
+  message_sent: (data: { message: string; timestamp: string }) => void;
 
   // Stats updates
   stats_updated: (data: EventStats) => void;
 
   // Countdown
-  countdown: (data: {
-    type: 'round' | 'break';
-    secondsRemaining: number;
-  }) => void;
+  countdown: (data: { type: 'round' | 'break'; secondsRemaining: number }) => void;
 
   // Final results
-  your_results: (data: {
-    matchCount: number;
-    matches: SpeedDatingMatch[];
-  }) => void;
+  your_results: (data: { matchCount: number; matches: SpeedDatingMatch[] }) => void;
 }
 
 // ==================== API Response Types ====================

@@ -3,8 +3,18 @@
  * Represents dating coach sessions for Elite tier members
  */
 
-export type CoachingSessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
-export type CoachingSessionType = 'initial_consultation' | 'follow_up' | 'profile_review' | 'date_prep' | 'post_date_debrief';
+export type CoachingSessionStatus =
+  | 'scheduled'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+export type CoachingSessionType =
+  | 'initial_consultation'
+  | 'follow_up'
+  | 'profile_review'
+  | 'date_prep'
+  | 'post_date_debrief';
 
 export interface CoachingSession {
   id: string;

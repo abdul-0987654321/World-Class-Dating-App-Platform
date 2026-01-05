@@ -1,19 +1,20 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+
+import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
+import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
+import { chatExportService } from '../../services/chat-export.service';
+import { enhancedReactionsService } from '../../services/enhanced-reactions.service';
+import { gifIntegrationService } from '../../services/gif-integration.service';
+import { icebreakerService } from '../../services/icebreaker.service';
+import { messageSearchService } from '../../services/message-search.service';
+import { photoSharingService } from '../../services/photo-sharing.service';
+import { pinnedMessagesService } from '../../services/pinned-messages.service';
+import { voiceMessageService } from '../../services/voice-message.service';
+import { Message, MessageType, MessageStatus } from '../../types';
 import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { messageRepository } from '../../domain/repositories/message.repository';
-import { conversationRepository } from '../../domain/repositories/conversation.repository';
-import { enhancedReactionsService } from '../../services/enhanced-reactions.service';
-import { pinnedMessagesService } from '../../services/pinned-messages.service';
-import { messageSearchService } from '../../services/message-search.service';
-import { gifIntegrationService } from '../../services/gif-integration.service';
-import { voiceMessageService } from '../../services/voice-message.service';
-import { photoSharingService } from '../../services/photo-sharing.service';
-import { chatExportService } from '../../services/chat-export.service';
-import { icebreakerService } from '../../services/icebreaker.service';
-import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
-import { Message, MessageType, MessageStatus } from '../../types';
 
 const logger = createLogger('enhanced-messaging-controller');
 
@@ -24,7 +25,7 @@ export class EnhancedMessagingController {
    */
   async addReaction(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId, emoji } = req.body;
 
@@ -62,7 +63,7 @@ export class EnhancedMessagingController {
    */
   async removeReaction(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId } = req.body;
 
@@ -94,7 +95,7 @@ export class EnhancedMessagingController {
    */
   async getReactions(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId } = req.query;
 
@@ -130,7 +131,7 @@ export class EnhancedMessagingController {
    */
   async pinMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId, messageId } = req.params;
 
       const pinnedMessage = await pinnedMessagesService.pinMessage(
@@ -159,7 +160,7 @@ export class EnhancedMessagingController {
    */
   async unpinMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId, messageId } = req.params;
 
       await pinnedMessagesService.unpinMessage(messageId, conversationId, userId);
@@ -206,16 +207,8 @@ export class EnhancedMessagingController {
    */
   async searchMessages(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
-      const {
-        conversationId,
-        query,
-        type,
-        startDate,
-        endDate,
-        limit,
-        offset,
-      } = req.body;
+      const userId = req.user.userId;
+      const { conversationId, query, type, startDate, endDate, limit, offset } = req.body;
 
       const results = await messageSearchService.searchMessages({
         conversationId,
@@ -250,7 +243,7 @@ export class EnhancedMessagingController {
    */
   async getSharedMedia(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const { type = 'image', limit = 50, offset = 0 } = req.query;
 
@@ -319,9 +312,7 @@ export class EnhancedMessagingController {
     try {
       const { limit = 20 } = req.query;
 
-      const gifs = await gifIntegrationService.getTrendingGifs(
-        parseInt(limit as string)
-      );
+      const gifs = await gifIntegrationService.getTrendingGifs(parseInt(limit as string));
 
       return res.status(200).json({
         success: true,
@@ -363,7 +354,7 @@ export class EnhancedMessagingController {
    */
   async exportChat(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const { format = 'json', startDate, endDate, includeMedia = false } = req.body;
 
@@ -396,7 +387,7 @@ export class EnhancedMessagingController {
    */
   async getIcebreakerSuggestions(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { otherUserId, count = 5 } = req.query;
 
       if (!otherUserId) {
@@ -473,7 +464,7 @@ export class EnhancedMessagingController {
    */
   async trackIcebreakerUsage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { icebreakerId } = req.params;
 
       await icebreakerService.trackUsage(icebreakerId, userId);

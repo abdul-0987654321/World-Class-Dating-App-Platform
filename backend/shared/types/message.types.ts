@@ -26,7 +26,7 @@ export enum MessageType {
   VIDEO = 'video',
   VOICE = 'voice',
   GIF = 'gif',
-  STICKER = 'sticker'
+  STICKER = 'sticker',
 }
 
 export interface MessageMetadata {

@@ -13,7 +13,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('id_verifications', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('request_id').nullable().references('request_id').inTable('verification_requests').onDelete('SET NULL');
+    table
+      .uuid('request_id')
+      .nullable()
+      .references('request_id')
+      .inTable('verification_requests')
+      .onDelete('SET NULL');
 
     // Provider information
     table.enum('provider', ['jumio', 'onfido', 'mock']).notNullable();
@@ -24,30 +29,24 @@ export async function up(knex: Knex): Promise<void> {
     table.string('country_code', 3).notNullable();
 
     // Status tracking
-    table.enum('status', [
-      'initiated',
-      'pending',
-      'processing',
-      'approved',
-      'declined',
-      'expired',
-      'error',
-    ]).notNullable().defaultTo('initiated');
+    table
+      .enum('status', [
+        'initiated',
+        'pending',
+        'processing',
+        'approved',
+        'declined',
+        'expired',
+        'error',
+      ])
+      .notNullable()
+      .defaultTo('initiated');
 
     // Verification results
-    table.enum('document_check_result', [
-      'clear',
-      'consider',
-      'rejected',
-      'caution',
-      'not_performed',
-    ]).nullable();
-    table.enum('face_match_result', [
-      'match',
-      'no_match',
-      'not_performed',
-      'error',
-    ]).nullable();
+    table
+      .enum('document_check_result', ['clear', 'consider', 'rejected', 'caution', 'not_performed'])
+      .nullable();
+    table.enum('face_match_result', ['match', 'no_match', 'not_performed', 'error']).nullable();
     table.decimal('confidence_score', 5, 4).nullable();
 
     // Extracted data (JSON fields)

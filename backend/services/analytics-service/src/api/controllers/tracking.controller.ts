@@ -3,17 +3,18 @@
  * Handles event tracking, attribution, session, and funnel tracking
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
-import trackingEventRepository from '../../domain/repositories/tracking-event.repository';
+
 import attributionRepository from '../../domain/repositories/attribution.repository';
 import funnelRepository from '../../domain/repositories/funnel.repository';
+import trackingEventRepository from '../../domain/repositories/tracking-event.repository';
 import {
   CreateTrackingEventRequest,
   CreateAttributionRequest,
   UpdateFunnelStepRequest,
   ApiResponse,
 } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('tracking-controller');
 
@@ -140,11 +141,7 @@ export async function markRegistration(req: Request, res: Response) {
       });
     }
 
-    const attribution = await attributionRepository.markRegistration(
-      userId,
-      source,
-      campaign
-    );
+    const attribution = await attributionRepository.markRegistration(userId, source, campaign);
 
     res.status(200).json({
       success: true,
@@ -176,12 +173,7 @@ export async function createSession(req: Request, res: Response) {
     }
 
     // Create funnel entry with landing page view
-    const funnel = await funnelRepository.create(
-      sessionId,
-      userId,
-      utmSource,
-      utmCampaign
-    );
+    const funnel = await funnelRepository.create(sessionId, userId, utmSource, utmCampaign);
 
     res.status(201).json({
       success: true,

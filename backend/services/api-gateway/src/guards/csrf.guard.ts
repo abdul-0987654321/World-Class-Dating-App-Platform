@@ -1,8 +1,10 @@
+import * as crypto from 'crypto';
+
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+
 import { SKIP_CSRF_KEY, REQUIRE_CSRF_KEY } from '../decorators/csrf.decorator';
-import * as crypto from 'crypto';
 
 /**
  * CSRF Guard

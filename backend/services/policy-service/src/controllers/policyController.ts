@@ -26,7 +26,11 @@ const SUPPORTED_REGIONS = [
 const POLICY_TYPES = [
   { id: 'privacy', name: 'Privacy Policy', description: 'How we collect and use your data' },
   { id: 'terms', name: 'Terms of Service', description: 'Terms and conditions for using Flamoral' },
-  { id: 'trust-safety', name: 'Trust & Safety', description: 'Community guidelines and safety policies' },
+  {
+    id: 'trust-safety',
+    name: 'Trust & Safety',
+    description: 'Community guidelines and safety policies',
+  },
   { id: 'cookies', name: 'Cookie Policy', description: 'How we use cookies and tracking' },
   { id: 'gdpr', name: 'GDPR Notice', description: 'EU data protection rights' },
   { id: 'ccpa', name: 'CCPA Notice', description: 'California privacy rights' },
@@ -34,28 +38,33 @@ const POLICY_TYPES = [
 
 // Policy storage - maps policy type to policy data
 const policyRegistry: Record<string, any> = {
-  'privacy': privacyPolicy,
-  'terms': termsOfService,
+  privacy: privacyPolicy,
+  terms: termsOfService,
   'trust-safety': trustSafetyPolicy,
 };
 
 // Version history storage (in production, this would be in a database)
-const versionHistory: Map<string, Array<{
-  version: string;
-  publishedAt: string;
-  changedBy: string;
-  changes: string;
-}>> = new Map();
+const versionHistory: Map<
+  string,
+  Array<{
+    version: string;
+    publishedAt: string;
+    changedBy: string;
+    changes: string;
+  }>
+> = new Map();
 
 // Initialize version history from policies
 Object.entries(policyRegistry).forEach(([type, policy]) => {
   if (policy?.version) {
-    versionHistory.set(type, [{
-      version: policy.version,
-      publishedAt: policy.effectiveDate || new Date().toISOString(),
-      changedBy: 'system',
-      changes: 'Initial policy version',
-    }]);
+    versionHistory.set(type, [
+      {
+        version: policy.version,
+        publishedAt: policy.effectiveDate || new Date().toISOString(),
+        changedBy: 'system',
+        changes: 'Initial policy version',
+      },
+    ]);
   }
 });
 
@@ -87,7 +96,7 @@ export class PolicyController {
     const { region, policyType, language, format, version } = params;
 
     // Validate policy type
-    const policyTypeConfig = POLICY_TYPES.find(p => p.id === policyType);
+    const policyTypeConfig = POLICY_TYPES.find((p) => p.id === policyType);
     if (!policyTypeConfig) {
       throw new Error(`Invalid policy type: ${policyType}`);
     }
@@ -101,15 +110,16 @@ export class PolicyController {
     // If specific version requested, check version history
     if (version && policy.version !== version) {
       const history = versionHistory.get(policyType);
-      const historicalVersion = history?.find(v => v.version === version);
+      const historicalVersion = history?.find((v) => v.version === version);
       if (!historicalVersion) {
         throw new Error(`Version ${version} not found for policy ${policyType}`);
       }
     }
 
     // Get region-specific adjustments
-    const regionConfig = SUPPORTED_REGIONS.find(r => r.code === region) ||
-      SUPPORTED_REGIONS.find(r => r.code === 'GLOBAL');
+    const regionConfig =
+      SUPPORTED_REGIONS.find((r) => r.code === region) ||
+      SUPPORTED_REGIONS.find((r) => r.code === 'GLOBAL');
 
     // Format response based on requested format
     const response = {
@@ -158,7 +168,7 @@ export class PolicyController {
         html += `<div class="content">${section.content}</div>`;
         if (section.examples) {
           html += `<ul class="examples">`;
-          section.examples.forEach((ex: string) => html += `<li>${ex}</li>`);
+          section.examples.forEach((ex: string) => (html += `<li>${ex}</li>`));
           html += `</ul>`;
         }
         html += `</section>`;
@@ -178,7 +188,7 @@ export class PolicyController {
         md += `## ${section.title}\n\n`;
         md += `${section.content}\n\n`;
         if (section.examples) {
-          section.examples.forEach((ex: string) => md += `- ${ex}\n`);
+          section.examples.forEach((ex: string) => (md += `- ${ex}\n`));
           md += '\n';
         }
       });
@@ -214,8 +224,8 @@ export class PolicyController {
       throw new Error(`Policy not found: ${policyType}`);
     }
 
-    const policyTypeConfig = POLICY_TYPES.find(p => p.id === policyType);
-    const regionConfig = SUPPORTED_REGIONS.find(r => r.code === region);
+    const policyTypeConfig = POLICY_TYPES.find((p) => p.id === policyType);
+    const regionConfig = SUPPORTED_REGIONS.find((r) => r.code === region);
 
     return {
       policyType: policyTypeConfig,
@@ -225,10 +235,11 @@ export class PolicyController {
       effectiveDate: policy.effectiveDate,
       summary: policy.summary,
       sectionCount: policy.sections?.length || 0,
-      sections: policy.sections?.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-      })) || [],
+      sections:
+        policy.sections?.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+        })) || [],
       userRights: policy.userRights || [],
       contactInfo: policy.contactInfo,
     };
@@ -238,7 +249,7 @@ export class PolicyController {
    * Gets list of supported regions
    */
   async getSupportedRegions() {
-    return SUPPORTED_REGIONS.map(region => ({
+    return SUPPORTED_REGIONS.map((region) => ({
       ...region,
       hasLocalizedContent: ['US', 'EU', 'UK', 'GLOBAL'].includes(region.code),
     }));
@@ -248,7 +259,7 @@ export class PolicyController {
    * Gets list of available policy types
    */
   async getPolicyTypes() {
-    return POLICY_TYPES.map(type => ({
+    return POLICY_TYPES.map((type) => ({
       ...type,
       available: !!policyRegistry[type.id],
       currentVersion: policyRegistry[type.id]?.version || null,
@@ -275,7 +286,7 @@ export class PolicyController {
     }
 
     // Check for required sections based on region
-    const regionConfig = SUPPORTED_REGIONS.find(r => r.code === region);
+    const regionConfig = SUPPORTED_REGIONS.find((r) => r.code === region);
 
     if (regionConfig?.regulations.includes('GDPR')) {
       const gdprRequirements = [
@@ -285,7 +296,7 @@ export class PolicyController {
         { pattern: /retention/i, message: 'Missing data retention information' },
       ];
 
-      gdprRequirements.forEach(req => {
+      gdprRequirements.forEach((req) => {
         if (!req.pattern.test(content)) {
           warnings.push(`GDPR: ${req.message}`);
         }
@@ -299,7 +310,7 @@ export class PolicyController {
         { pattern: /opt.out/i, message: 'Missing opt-out information' },
       ];
 
-      ccpaRequirements.forEach(req => {
+      ccpaRequirements.forEach((req) => {
         if (!req.pattern.test(content)) {
           warnings.push(`CCPA: ${req.message}`);
         }
@@ -315,7 +326,7 @@ export class PolicyController {
         { pattern: /contact/i, message: 'Missing contact information' },
       ];
 
-      privacyRequirements.forEach(req => {
+      privacyRequirements.forEach((req) => {
         if (!req.pattern.test(content)) {
           warnings.push(`Privacy Policy: ${req.message}`);
         }
@@ -327,8 +338,16 @@ export class PolicyController {
       errors,
       warnings,
       compliance: {
-        gdpr: regionConfig?.regulations.includes('GDPR') ? (warnings.filter(w => w.startsWith('GDPR')).length === 0 ? 'compliant' : 'review-needed') : 'not-applicable',
-        ccpa: regionConfig?.regulations.includes('CCPA') ? (warnings.filter(w => w.startsWith('CCPA')).length === 0 ? 'compliant' : 'review-needed') : 'not-applicable',
+        gdpr: regionConfig?.regulations.includes('GDPR')
+          ? warnings.filter((w) => w.startsWith('GDPR')).length === 0
+            ? 'compliant'
+            : 'review-needed'
+          : 'not-applicable',
+        ccpa: regionConfig?.regulations.includes('CCPA')
+          ? warnings.filter((w) => w.startsWith('CCPA')).length === 0
+            ? 'compliant'
+            : 'review-needed'
+          : 'not-applicable',
       },
       analyzedAt: new Date().toISOString(),
     };

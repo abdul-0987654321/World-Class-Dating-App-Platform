@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import recommendationService from '../../domain/services/recommendation.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import recommendationService from '../../domain/services/recommendation.service';
 
 const logger = createLogger('recommendation-controller');
 

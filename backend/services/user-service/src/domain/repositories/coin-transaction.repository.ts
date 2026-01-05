@@ -1,5 +1,5 @@
-import { CoinTransaction, CoinTransactionCreateInput } from '../entities/CoinTransaction.entity';
 import db from '../../infrastructure/database/connection';
+import { CoinTransaction, CoinTransactionCreateInput } from '../entities/CoinTransaction.entity';
 
 export class CoinTransactionRepository {
   private tableName = 'coin_transactions';
@@ -18,17 +18,13 @@ export class CoinTransactionRepository {
       created_at: now,
     };
 
-    const [transaction] = await db(this.tableName)
-      .insert(transactionData)
-      .returning('*');
+    const [transaction] = await db(this.tableName).insert(transactionData).returning('*');
 
     return this.mapToEntity(transaction);
   }
 
   async findById(id: string): Promise<CoinTransaction | null> {
-    const transaction = await db(this.tableName)
-      .where({ id })
-      .first();
+    const transaction = await db(this.tableName).where({ id }).first();
 
     return transaction ? this.mapToEntity(transaction) : null;
   }
@@ -43,9 +39,7 @@ export class CoinTransactionRepository {
       endDate?: Date;
     }
   ): Promise<CoinTransaction[]> {
-    let query = db(this.tableName)
-      .where({ user_id: userId })
-      .orderBy('created_at', 'desc');
+    let query = db(this.tableName).where({ user_id: userId }).orderBy('created_at', 'desc');
 
     if (options?.type) {
       query = query.where({ type: options.type });
@@ -91,12 +85,9 @@ export class CoinTransactionRepository {
   }
 
   async countByUserId(userId: string): Promise<number> {
-    const result = await db(this.tableName)
-      .where({ user_id: userId })
-      .count('* as count')
-      .first();
+    const result = await db(this.tableName).where({ user_id: userId }).count('* as count').first();
 
-    return parseInt(result?.count as string || '0', 10);
+    return parseInt((result?.count as string) || '0', 10);
   }
 
   async getUserTransactionSummary(userId: string): Promise<{
@@ -154,9 +145,7 @@ export class CoinTransactionRepository {
 
   // Delete old transactions (for cleanup/archival)
   async deleteOlderThan(date: Date): Promise<number> {
-    return await db(this.tableName)
-      .where('created_at', '<', date)
-      .del();
+    return await db(this.tableName).where('created_at', '<', date).del();
   }
 
   // Map database row to entity

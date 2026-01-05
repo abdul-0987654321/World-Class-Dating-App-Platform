@@ -72,7 +72,7 @@ export function calculateBoostEffectiveness(boost: Boost): number {
 
   // Simple effectiveness score: (likes + matches * 2) / expected impressions
   const expectedImpressions = boost.durationMinutes * 10; // Assume 10 impressions per minute baseline
-  const actualValue = boost.likesGained + (boost.matchesGained * 2);
+  const actualValue = boost.likesGained + boost.matchesGained * 2;
 
   return actualValue / expectedImpressions;
 }

@@ -6,14 +6,15 @@
  */
 
 import { Request, Response } from 'express';
+
 import { backgroundCheckService } from '../../services/background-check.service';
-import logger from '../../utils/logger';
 import {
   BackgroundCheckTier,
   InitiateBackgroundCheckRequest,
   BACKGROUND_CHECK_TIER_CONFIG,
 } from '../../types/background-check.types';
 import { VerificationProvider } from '../../types/id-verification-provider.types';
+import logger from '../../utils/logger';
 
 export class BackgroundCheckController {
   /**
@@ -79,8 +80,12 @@ export class BackgroundCheckController {
       const response = await backgroundCheckService.initiateBackgroundCheck(request);
 
       if (!response.success) {
-        const statusCode = response.error_code === 'ELITE_REQUIRED' ? 403 :
-          response.error_code === 'CONSENT_REQUIRED' ? 400 : 400;
+        const statusCode =
+          response.error_code === 'ELITE_REQUIRED'
+            ? 403
+            : response.error_code === 'CONSENT_REQUIRED'
+              ? 400
+              : 400;
 
         return res.status(statusCode).json({
           success: false,
@@ -289,16 +294,18 @@ export class BackgroundCheckController {
       const hasElite = !!subscription;
       const hasProvidersAvailable = backgroundCheckService.getAvailableProviders().length > 0;
 
-      let eligibility = {
+      const eligibility = {
         eligible: hasElite && hasProvidersAvailable,
         has_elite_subscription: hasElite,
         providers_available: hasProvidersAvailable,
-        existing_check: existingCheck ? {
-          status: existingCheck.status,
-          tier: existingCheck.tier,
-          expires_at: existingCheck.expires_at,
-          badge_awarded: existingCheck.badge_awarded,
-        } : null,
+        existing_check: existingCheck
+          ? {
+              status: existingCheck.status,
+              tier: existingCheck.tier,
+              expires_at: existingCheck.expires_at,
+              badge_awarded: existingCheck.badge_awarded,
+            }
+          : null,
         reason: '',
       };
 
@@ -306,10 +313,17 @@ export class BackgroundCheckController {
         eligibility.reason = 'Elite subscription required for background checks';
       } else if (!hasProvidersAvailable) {
         eligibility.reason = 'Background check service temporarily unavailable';
-      } else if (existingCheck && ['initiated', 'pending', 'processing'].includes(existingCheck.status)) {
+      } else if (
+        existingCheck &&
+        ['initiated', 'pending', 'processing'].includes(existingCheck.status)
+      ) {
         eligibility.eligible = false;
         eligibility.reason = 'Background check already in progress';
-      } else if (existingCheck?.status === 'clear' && existingCheck.expires_at && new Date(existingCheck.expires_at) > new Date()) {
+      } else if (
+        existingCheck?.status === 'clear' &&
+        existingCheck.expires_at &&
+        new Date(existingCheck.expires_at) > new Date()
+      ) {
         eligibility.eligible = false;
         eligibility.reason = 'Valid background check already exists';
       }

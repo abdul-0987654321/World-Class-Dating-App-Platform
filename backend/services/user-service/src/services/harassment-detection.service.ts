@@ -188,11 +188,7 @@ class HarassmentDetectionService {
       categoryScores.blackmail_coercion || 0,
       categoryScores.pressure_tactics || 0
     );
-    const harassmentScore = Math.max(
-      threatScore,
-      sexualHarassmentScore,
-      manipulationScore * 0.9
-    );
+    const harassmentScore = Math.max(threatScore, sexualHarassmentScore, manipulationScore * 0.9);
 
     // Calculate overall risk score (weighted average with max emphasis)
     const scores = [threatScore, hateSpeechScore, sexualHarassmentScore, manipulationScore];
@@ -253,7 +249,7 @@ class HarassmentDetectionService {
         senderId,
         recipientId,
         overallRiskScore,
-        detectedCategories: detectedPatterns.map(p => p.category),
+        detectedCategories: detectedPatterns.map((p) => p.category),
         recommendedAction,
       });
     }
@@ -274,7 +270,7 @@ class HarassmentDetectionService {
     }>,
     conversationId: string
   ): Promise<ConversationRiskProfile> {
-    const participants = [...new Set(messages.flatMap(m => [m.senderId, m.recipientId]))];
+    const participants = [...new Set(messages.flatMap((m) => [m.senderId, m.recipientId]))];
     const results: HarassmentDetectionResult[] = [];
 
     for (const message of messages) {
@@ -287,15 +283,16 @@ class HarassmentDetectionService {
       results.push(result);
     }
 
-    const flaggedMessages = results.filter(r => r.isFlagged);
-    const riskScores = results.map(r => r.overallRiskScore);
+    const flaggedMessages = results.filter((r) => r.isFlagged);
+    const riskScores = results.map((r) => r.overallRiskScore);
     const averageRiskScore = riskScores.reduce((a, b) => a + b, 0) / riskScores.length;
     const highestRiskScore = Math.max(...riskScores);
 
     // Determine risk trend (compare first half to second half)
     const midpoint = Math.floor(riskScores.length / 2);
     const firstHalfAvg = riskScores.slice(0, midpoint).reduce((a, b) => a + b, 0) / midpoint;
-    const secondHalfAvg = riskScores.slice(midpoint).reduce((a, b) => a + b, 0) / (riskScores.length - midpoint);
+    const secondHalfAvg =
+      riskScores.slice(midpoint).reduce((a, b) => a + b, 0) / (riskScores.length - midpoint);
 
     let riskTrend: ConversationRiskProfile['riskTrend'] = 'stable';
     if (secondHalfAvg > firstHalfAvg + 0.1) {
@@ -353,19 +350,19 @@ class HarassmentDetectionService {
 
     const detections = await query.limit(limit);
 
-    const flaggedCount = detections.filter(d => d.is_flagged).length;
-    const riskScores = detections.map(d => d.overall_risk_score);
-    const averageRiskScore = riskScores.length > 0
-      ? riskScores.reduce((a, b) => a + b, 0) / riskScores.length
-      : 0;
+    const flaggedCount = detections.filter((d) => d.is_flagged).length;
+    const riskScores = detections.map((d) => d.overall_risk_score);
+    const averageRiskScore =
+      riskScores.length > 0 ? riskScores.reduce((a, b) => a + b, 0) / riskScores.length : 0;
 
     // Count categories
     const categoryCounts: Record<string, number> = {};
     for (const detection of detections) {
       if (detection.detected_patterns) {
-        const patterns = typeof detection.detected_patterns === 'string'
-          ? JSON.parse(detection.detected_patterns)
-          : detection.detected_patterns;
+        const patterns =
+          typeof detection.detected_patterns === 'string'
+            ? JSON.parse(detection.detected_patterns)
+            : detection.detected_patterns;
         for (const pattern of patterns) {
           categoryCounts[pattern.category] = (categoryCounts[pattern.category] || 0) + 1;
         }
@@ -436,7 +433,7 @@ class HarassmentDetectionService {
     const history = await this.getUserHarassmentHistory(userId);
 
     // Calculate harassment risk score (0-100 scale, inverted for safety)
-    let harassmentRiskScore = Math.min(history.averageRiskScore * 100, 100);
+    const harassmentRiskScore = Math.min(history.averageRiskScore * 100, 100);
 
     // Get existing safety score or create new one
     const existing = await db('user_safety_scores').where('user_id', userId).first();
@@ -465,11 +462,13 @@ class HarassmentDetectionService {
   /**
    * Get pending reviews for moderators
    */
-  async getPendingReviews(options: {
-    limit?: number;
-    minRiskScore?: number;
-    status?: string;
-  } = {}): Promise<any[]> {
+  async getPendingReviews(
+    options: {
+      limit?: number;
+      minRiskScore?: number;
+      status?: string;
+    } = {}
+  ): Promise<any[]> {
     const { limit = 50, minRiskScore = 0.5, status = 'pending' } = options;
 
     return db('harassment_detection_results')
@@ -489,20 +488,25 @@ class HarassmentDetectionService {
     reviewerId: string,
     decision: {
       status: 'confirmed' | 'dismissed' | 'escalated';
-      action?: 'none' | 'warning_sent' | 'message_hidden' | 'user_warned' | 'user_suspended' | 'user_banned' | 'escalated_to_law_enforcement';
+      action?:
+        | 'none'
+        | 'warning_sent'
+        | 'message_hidden'
+        | 'user_warned'
+        | 'user_suspended'
+        | 'user_banned'
+        | 'escalated_to_law_enforcement';
       notes?: string;
     }
   ): Promise<void> {
-    await db('harassment_detection_results')
-      .where('id', detectionId)
-      .update({
-        review_status: decision.status,
-        reviewed_by: reviewerId,
-        reviewed_at: new Date(),
-        reviewer_notes: decision.notes,
-        action_taken: decision.action,
-        updated_at: new Date(),
-      });
+    await db('harassment_detection_results').where('id', detectionId).update({
+      review_status: decision.status,
+      reviewed_by: reviewerId,
+      reviewed_at: new Date(),
+      reviewer_notes: decision.notes,
+      action_taken: decision.action,
+      updated_at: new Date(),
+    });
 
     // Log moderator action
     const detection = await db('harassment_detection_results').where('id', detectionId).first();
@@ -529,7 +533,13 @@ class HarassmentDetectionService {
       .replace(/[0-9]/g, (match) => {
         // Common leetspeak substitutions
         const leetMap: Record<string, string> = {
-          '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b',
+          '0': 'o',
+          '1': 'i',
+          '3': 'e',
+          '4': 'a',
+          '5': 's',
+          '7': 't',
+          '8': 'b',
         };
         return leetMap[match] || match;
       })
@@ -548,13 +558,14 @@ class HarassmentDetectionService {
       return 'No concerning patterns detected in this content.';
     }
 
-    const categories = patterns.map(p => p.category.replace(/_/g, ' '));
+    const categories = patterns.map((p) => p.category.replace(/_/g, ' '));
     const uniqueCategories = [...new Set(categories)];
 
     let explanation = `Detected ${uniqueCategories.length} category(ies) of concerning content: ${uniqueCategories.join(', ')}. `;
 
     if (riskScore >= THRESHOLDS.escalate_to_authorities) {
-      explanation += 'This content contains severe threats or harassment that may warrant law enforcement involvement.';
+      explanation +=
+        'This content contains severe threats or harassment that may warrant law enforcement involvement.';
     } else if (riskScore >= THRESHOLDS.auto_block) {
       explanation += 'This content is highly concerning and warrants immediate action.';
     } else if (riskScore >= THRESHOLDS.immediate_review) {

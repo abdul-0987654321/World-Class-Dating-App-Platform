@@ -316,7 +316,7 @@ export class TimeSeriesRepository {
 
     const result = await dbClient.query(query, [startDate, endDate]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       period: row.period.toISOString(),
       value: parseFloat(row.value || '0'),
     }));

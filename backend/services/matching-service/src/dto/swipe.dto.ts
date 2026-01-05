@@ -1,4 +1,5 @@
 import { IsUUID, IsEnum, IsNotEmpty } from 'class-validator';
+
 import { SwipeAction } from '../types';
 
 /**

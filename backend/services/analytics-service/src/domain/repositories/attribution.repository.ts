@@ -41,11 +41,13 @@ export class AttributionRepository {
       RETURNING *
     `;
 
-    const touchpointData = JSON.stringify([{
-      source: data.source,
-      campaign: data.campaign,
-      timestamp: new Date(),
-    }]);
+    const touchpointData = JSON.stringify([
+      {
+        source: data.source,
+        campaign: data.campaign,
+        timestamp: new Date(),
+      },
+    ]);
 
     const values = [
       data.userId,
@@ -157,14 +159,16 @@ export class AttributionRepository {
   async getAttributionSummary(
     startDate?: Date,
     endDate?: Date
-  ): Promise<{
-    firstTouchSource: string;
-    lastTouchSource: string;
-    totalUsers: number;
-    registeredUsers: number;
-    avgTouchpoints: number;
-    conversionRate: number;
-  }[]> {
+  ): Promise<
+    {
+      firstTouchSource: string;
+      lastTouchSource: string;
+      totalUsers: number;
+      registeredUsers: number;
+      avgTouchpoints: number;
+      conversionRate: number;
+    }[]
+  > {
     let query = `
       SELECT
         first_touch_source,
@@ -203,7 +207,7 @@ export class AttributionRepository {
       conversion_rate: string;
     }>(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       firstTouchSource: row.first_touch_source,
       lastTouchSource: row.last_touch_source,
       totalUsers: parseInt(row.total_users, 10),
@@ -280,7 +284,7 @@ export class AttributionRepository {
       registrations: string;
     }>(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       source: row.source,
       count: parseInt(row.count, 10),
       registrations: parseInt(row.registrations, 10),

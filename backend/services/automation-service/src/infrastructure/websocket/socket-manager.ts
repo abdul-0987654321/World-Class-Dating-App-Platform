@@ -1,7 +1,8 @@
-import { Server, Socket } from 'socket.io';
-import { verify } from 'jsonwebtoken';
-import config from '../../config';
 import { createLogger } from '@flamoral/backend-shared';
+import { verify } from 'jsonwebtoken';
+import { Server, Socket } from 'socket.io';
+
+import config from '../../config';
 import { cache } from '../cache/redis';
 
 const logger = createLogger('automation-service:socket');
@@ -103,7 +104,7 @@ export class SocketManager {
     if (!this.userSockets.has(userId)) {
       this.userSockets.set(userId, new Set());
     }
-    this.userSockets.get(userId)!.add(socketId);
+    this.userSockets.get(userId).add(socketId);
 
     // Update online status in cache
     cache.set(`user:${userId}:online`, true, 300); // 5 minutes TTL

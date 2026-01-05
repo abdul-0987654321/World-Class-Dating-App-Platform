@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { gemService } from '../../domain/services/gem.service';
+
 import { GEM_PRICES } from '../../domain/entities/Gem.entity';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { gemService } from '../../domain/services/gem.service';
 import logger from '../../utils/logger';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.use(authMiddleware);
  */
 router.get('/balance', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const gem = await gemService.getBalance(userId);
 
     res.json({
@@ -94,7 +95,7 @@ router.get('/items', async (req: Request, res: Response) => {
  */
 router.post('/spend', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { itemType, metadata } = req.body;
 
     if (!itemType || !(itemType in GEM_PRICES)) {
@@ -153,7 +154,7 @@ router.post('/spend', async (req: Request, res: Response) => {
  */
 router.post('/activate', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { featureType } = req.body;
 
     if (!featureType || !(featureType in GEM_PRICES)) {
@@ -220,7 +221,7 @@ router.post('/activate', async (req: Request, res: Response) => {
  */
 router.post('/gift', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { recipientId, giftType, message } = req.body;
 
     if (!recipientId || !giftType) {
@@ -293,7 +294,7 @@ router.post('/gift', async (req: Request, res: Response) => {
  */
 router.get('/transactions', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -331,7 +332,7 @@ router.get('/transactions', async (req: Request, res: Response) => {
  */
 router.get('/analytics', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const analytics = await gemService.getSpendingAnalytics(userId);
 
     res.json({
@@ -367,7 +368,7 @@ router.get('/analytics', async (req: Request, res: Response) => {
  */
 router.get('/can-afford/:itemType', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { itemType } = req.params;
 
     if (!(itemType in GEM_PRICES)) {
@@ -377,10 +378,7 @@ router.get('/can-afford/:itemType', async (req: Request, res: Response) => {
       });
     }
 
-    const canAfford = await gemService.canAfford(
-      userId,
-      itemType as keyof typeof GEM_PRICES
-    );
+    const canAfford = await gemService.canAfford(userId, itemType as keyof typeof GEM_PRICES);
     const price = GEM_PRICES[itemType as keyof typeof GEM_PRICES];
     const balance = (await gemService.getBalance(userId)).balance;
 
@@ -516,7 +514,7 @@ router.get('/store/:itemId', async (req: Request, res: Response) => {
  */
 router.post('/purchase/:itemId', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { itemId } = req.params;
 
     const result = await gemService.purchaseItem(userId, itemId);
@@ -571,7 +569,7 @@ router.post('/purchase/:itemId', async (req: Request, res: Response) => {
  */
 router.get('/purchases', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -609,7 +607,7 @@ router.get('/purchases', async (req: Request, res: Response) => {
  */
 router.get('/active', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const activeItems = await gemService.getActiveItems(userId);
 
     res.json({
@@ -647,7 +645,7 @@ router.get('/active', async (req: Request, res: Response) => {
  */
 router.post('/activate/:purchaseId', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { purchaseId } = req.params;
 
     const result = await gemService.activateBoost(userId, purchaseId);
@@ -713,7 +711,7 @@ router.post('/activate/:purchaseId', async (req: Request, res: Response) => {
  */
 router.post('/gift/:recipientId', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { recipientId } = req.params;
     const { itemId, message } = req.body;
 
@@ -782,7 +780,7 @@ router.post('/gift/:recipientId', async (req: Request, res: Response) => {
  */
 router.get('/gifts/received', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -822,7 +820,7 @@ router.get('/gifts/received', async (req: Request, res: Response) => {
  */
 router.post('/use/superlike', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const result = await gemService.useSuperLike(userId);
 
     if (!result.success) {
@@ -864,7 +862,7 @@ router.post('/use/superlike', async (req: Request, res: Response) => {
  */
 router.post('/use/undo', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const result = await gemService.useUndoPass(userId);
 
     if (!result.success) {
@@ -904,7 +902,7 @@ router.post('/use/undo', async (req: Request, res: Response) => {
  */
 router.get('/purchase-stats', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const stats = await gemService.getPurchaseStats(userId);
 
     res.json({

@@ -13,12 +13,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('mime_type', 100).nullable(); // MIME type of the file
 
     // Processing status
-    table.enum('processing_status', [
-      'pending',
-      'processing',
-      'completed',
-      'failed'
-    ]).defaultTo('pending');
+    table
+      .enum('processing_status', ['pending', 'processing', 'completed', 'failed'])
+      .defaultTo('pending');
     table.text('processing_error').nullable();
     table.timestamp('processed_at').nullable();
 

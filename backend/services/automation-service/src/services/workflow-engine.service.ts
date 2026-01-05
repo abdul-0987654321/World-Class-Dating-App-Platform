@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
-import db from '../infrastructure/database/knex';
-import { TABLES, AutomationFlow, FlowExecution } from '../models';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
 import {
   FlowExecutionDto,
   FlowExecutionResultDto,
@@ -9,9 +9,11 @@ import {
   ConditionType,
   ActionType,
 } from '../dtos';
+import db from '../infrastructure/database/knex';
+import { TABLES, AutomationFlow, FlowExecution } from '../models';
+
 import { IcebreakerService } from './icebreaker.service';
 import { ServiceClient } from './service-client';
-import config from '../config';
 
 const logger = createLogger('automation-service:workflow-engine');
 
@@ -185,7 +187,10 @@ export class WorkflowEngineService {
   /**
    * Evaluate a single condition
    */
-  private async evaluateCondition(condition: any, executionDto: FlowExecutionDto): Promise<boolean> {
+  private async evaluateCondition(
+    condition: any,
+    executionDto: FlowExecutionDto
+  ): Promise<boolean> {
     // Implement condition evaluation logic based on condition type
     switch (condition.type) {
       case ConditionType.TIME_ELAPSED:
@@ -293,7 +298,10 @@ export class WorkflowEngineService {
   /**
    * Condition evaluation helpers
    */
-  private async evaluateTimeElapsed(condition: any, executionDto: FlowExecutionDto): Promise<boolean> {
+  private async evaluateTimeElapsed(
+    condition: any,
+    executionDto: FlowExecutionDto
+  ): Promise<boolean> {
     const referenceTime = new Date(executionDto.triggerData.referenceTime || Date.now());
     const elapsedMs = Date.now() - referenceTime.getTime();
     const thresholdMs = condition.value * 1000; // Assuming value is in seconds
@@ -303,7 +311,10 @@ export class WorkflowEngineService {
       : elapsedMs < thresholdMs;
   }
 
-  private async evaluateMessageCount(condition: any, executionDto: FlowExecutionDto): Promise<boolean> {
+  private async evaluateMessageCount(
+    condition: any,
+    executionDto: FlowExecutionDto
+  ): Promise<boolean> {
     const messageCount = executionDto.triggerData.messageCount || 0;
 
     switch (condition.operator) {
@@ -318,7 +329,10 @@ export class WorkflowEngineService {
     }
   }
 
-  private async evaluateUserActivity(condition: any, executionDto: FlowExecutionDto): Promise<boolean> {
+  private async evaluateUserActivity(
+    condition: any,
+    executionDto: FlowExecutionDto
+  ): Promise<boolean> {
     // Placeholder - would check user's recent activity
     return true;
   }
@@ -335,7 +349,10 @@ export class WorkflowEngineService {
     await db(TABLES.FLOW_EXECUTIONS).insert(execution);
   }
 
-  private async updateExecution(executionId: string, updates: Partial<FlowExecution>): Promise<void> {
+  private async updateExecution(
+    executionId: string,
+    updates: Partial<FlowExecution>
+  ): Promise<void> {
     await db(TABLES.FLOW_EXECUTIONS).where({ id: executionId }).update(updates);
   }
 

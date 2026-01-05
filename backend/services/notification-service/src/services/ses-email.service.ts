@@ -1,4 +1,10 @@
-import { SESClient, SendEmailCommand, SendRawEmailCommand, SendBulkTemplatedEmailCommand } from '@aws-sdk/client-ses';
+import {
+  SESClient,
+  SendEmailCommand,
+  SendRawEmailCommand,
+  SendBulkTemplatedEmailCommand,
+} from '@aws-sdk/client-ses';
+
 import { db } from '../config/database';
 import logger from '../utils/logger';
 
@@ -39,12 +45,13 @@ export class SESEmailService {
   constructor() {
     this.sesClient = new SESClient({
       region: process.env.AWS_SES_REGION || process.env.AWS_REGION || 'us-east-1',
-      credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-        ? {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-          }
-        : undefined, // Use IAM role if no explicit credentials
+      credentials:
+        process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            }
+          : undefined, // Use IAM role if no explicit credentials
     });
 
     this.fromEmail = process.env.EMAIL_FROM || 'noreply@flamoral.com';
@@ -81,12 +88,8 @@ export class SESEmailService {
             Charset: 'UTF-8',
           },
           Body: {
-            Text: options.text
-              ? { Data: options.text, Charset: 'UTF-8' }
-              : undefined,
-            Html: options.html
-              ? { Data: options.html, Charset: 'UTF-8' }
-              : undefined,
+            Text: options.text ? { Data: options.text, Charset: 'UTF-8' } : undefined,
+            Html: options.html ? { Data: options.html, Charset: 'UTF-8' } : undefined,
           },
         },
         ReplyToAddresses: options.replyTo ? [options.replyTo] : undefined,
@@ -124,7 +127,7 @@ export class SESEmailService {
       const toAddresses = Array.isArray(options.to) ? options.to : [options.to];
       const boundary = `----=_Part_${Date.now().toString(36)}`;
 
-      let rawEmail = [
+      const rawEmail = [
         `From: ${this.fromAddress}`,
         `To: ${toAddresses.join(', ')}`,
         `Subject: ${options.subject}`,
@@ -243,9 +246,7 @@ export class SESEmailService {
             results.successful++;
           } else {
             results.failed++;
-            results.errors.push(
-              `${batch[index].email}: ${status.Error || 'Unknown error'}`
-            );
+            results.errors.push(`${batch[index].email}: ${status.Error || 'Unknown error'}`);
           }
         });
       } catch (error: any) {
@@ -266,11 +267,7 @@ export class SESEmailService {
   /**
    * Send welcome email to new user
    */
-  async sendWelcomeEmail(
-    userId: string,
-    email: string,
-    firstName: string
-  ): Promise<void> {
+  async sendWelcomeEmail(userId: string, email: string, firstName: string): Promise<void> {
     const template = await this.getTemplate('welcome_email');
     if (!template) {
       logger.warn('Welcome email template not found');
@@ -336,10 +333,7 @@ export class SESEmailService {
     const htmlBody = template.html_body
       ? this.replaceVariables(template.html_body, variables)
       : this.wrapInHtmlTemplate(body);
-    const subject = this.replaceVariables(
-      template.subject || "It's a Match!",
-      variables
-    );
+    const subject = this.replaceVariables(template.subject || "It's a Match!", variables);
 
     const [notification] = await db('notifications')
       .insert({
@@ -390,10 +384,7 @@ export class SESEmailService {
     };
 
     const body = this.replaceVariables(template.body, variables);
-    const subject = this.replaceVariables(
-      template.subject || 'Your Weekly Digest',
-      variables
-    );
+    const subject = this.replaceVariables(template.subject || 'Your Weekly Digest', variables);
 
     const [notification] = await db('notifications')
       .insert({
@@ -510,7 +501,9 @@ export class SESEmailService {
     return this.sendEmail({
       to: email,
       subject,
-      text: `Security Alert: ${alertType}. ${Object.entries(details).map(([k, v]) => `${k}: ${v}`).join(', ')}`,
+      text: `Security Alert: ${alertType}. ${Object.entries(details)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ')}`,
       html,
     });
   }
@@ -551,11 +544,13 @@ export class SESEmailService {
         const retryCount = email.retry_count + 1;
         const shouldRetry = retryCount < 3;
 
-        await db('email_queue').where({ id: email.id }).update({
-          status: shouldRetry ? 'queued' : 'failed',
-          error_message: result.error,
-          retry_count: retryCount,
-        });
+        await db('email_queue')
+          .where({ id: email.id })
+          .update({
+            status: shouldRetry ? 'queued' : 'failed',
+            error_message: result.error,
+            retry_count: retryCount,
+          });
 
         if (!shouldRetry) {
           await db('notifications')
@@ -575,10 +570,7 @@ export class SESEmailService {
     return db('notification_preferences').where({ user_id: userId }).first();
   }
 
-  private replaceVariables(
-    template: string,
-    variables: Record<string, string>
-  ): string {
+  private replaceVariables(template: string, variables: Record<string, string>): string {
     let result = template;
     for (const [key, value] of Object.entries(variables)) {
       result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);

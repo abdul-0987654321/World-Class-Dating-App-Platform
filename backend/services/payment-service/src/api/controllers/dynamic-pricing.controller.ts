@@ -11,8 +11,9 @@
  * - Admin operations
  */
 
-import { Request, Response } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
 import { DynamicPricingService } from '../../domain/services/dynamic-pricing.service';
 import {
   GetPersonalizedPriceRequest,
@@ -46,13 +47,8 @@ export class DynamicPricingController {
    */
   async getPersonalizedPrice(req: Request, res: Response): Promise<Response> {
     try {
-      const {
-        userId,
-        planId,
-        billingCycle,
-        countryCode,
-        includePromotions,
-      } = req.body as GetPersonalizedPriceRequest;
+      const { userId, planId, billingCycle, countryCode, includePromotions } =
+        req.body as GetPersonalizedPriceRequest;
 
       if (!userId || !planId) {
         return res.status(400).json({
@@ -129,7 +125,14 @@ export class DynamicPricingController {
   async getPriceCatalog(req: Request, res: Response): Promise<Response> {
     try {
       const { countryCode } = req.params;
-      const tiers: SubscriptionTierCode[] = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'];
+      const tiers: SubscriptionTierCode[] = [
+        'free',
+        'basic',
+        'plus',
+        'premium',
+        'premium_plus',
+        'elite',
+      ];
       const billingCycles: BillingCycleType[] = ['monthly', '3_months', '6_months', 'yearly'];
 
       const catalog: Record<string, Record<string, unknown>> = {};
@@ -510,11 +513,18 @@ export class DynamicPricingController {
       const promotionData = req.body as CreatePromotionRequest;
 
       // Basic validation
-      if (!promotionData.code || !promotionData.name || !promotionData.discountType ||
-          promotionData.discountValue === undefined || !promotionData.startsAt || !promotionData.endsAt) {
+      if (
+        !promotionData.code ||
+        !promotionData.name ||
+        !promotionData.discountType ||
+        promotionData.discountValue === undefined ||
+        !promotionData.startsAt ||
+        !promotionData.endsAt
+      ) {
         return res.status(400).json({
           success: false,
-          message: 'Code, name, discount type, discount value, start date, and end date are required',
+          message:
+            'Code, name, discount type, discount value, start date, and end date are required',
         });
       }
 
@@ -525,7 +535,10 @@ export class DynamicPricingController {
         });
       }
 
-      if (!promotionData.applicableBillingCycles || promotionData.applicableBillingCycles.length === 0) {
+      if (
+        !promotionData.applicableBillingCycles ||
+        promotionData.applicableBillingCycles.length === 0
+      ) {
         return res.status(400).json({
           success: false,
           message: 'At least one applicable billing cycle is required',
@@ -622,7 +635,7 @@ export class DynamicPricingController {
         });
       }
 
-      const hasControl = experimentData.variants.some(v => v.isControl);
+      const hasControl = experimentData.variants.some((v) => v.isControl);
       if (!hasControl) {
         return res.status(400).json({
           success: false,
@@ -733,8 +746,13 @@ export class DynamicPricingController {
         finalAmount,
       } = req.body;
 
-      if (!userId || !promotionId || discountAmount === undefined ||
-          originalAmount === undefined || finalAmount === undefined) {
+      if (
+        !userId ||
+        !promotionId ||
+        discountAmount === undefined ||
+        originalAmount === undefined ||
+        finalAmount === undefined
+      ) {
         return res.status(400).json({
           success: false,
           message: 'Missing required fields for recording promotion usage',

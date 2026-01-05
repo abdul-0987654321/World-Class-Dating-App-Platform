@@ -39,7 +39,12 @@ export async function up(knex: Knex): Promise<void> {
   // Ad clicks table - tracks ad clicks
   await knex.schema.createTable('ad_clicks', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('impression_id').notNullable().references('id').inTable('ad_impressions').onDelete('CASCADE');
+    table
+      .uuid('impression_id')
+      .notNullable()
+      .references('id')
+      .inTable('ad_impressions')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable();
     table.enum('ad_type', ['banner', 'interstitial', 'rewarded']).notNullable();
     table.timestamp('click_time').notNullable().defaultTo(knex.fn.now());
@@ -56,7 +61,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().index();
     table.string('reward_id', 50).notNullable();
-    table.enum('reward_type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial']).notNullable();
+    table
+      .enum('reward_type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial'])
+      .notNullable();
     table.integer('amount').notNullable();
     table.string('transaction_id', 100).notNullable().unique();
     table.uuid('impression_id').references('id').inTable('ad_impressions');
@@ -65,7 +72,10 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('earned_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('claimed_at');
     table.timestamp('expires_at');
-    table.enum('status', ['pending', 'claimed', 'expired', 'failed']).notNullable().defaultTo('pending');
+    table
+      .enum('status', ['pending', 'claimed', 'expired', 'failed'])
+      .notNullable()
+      .defaultTo('pending');
 
     table.index('reward_type');
     table.index('status');
@@ -115,7 +125,9 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('reward_analytics', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.date('date').notNullable();
-    table.enum('reward_type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial']).notNullable();
+    table
+      .enum('reward_type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial'])
+      .notNullable();
     table.integer('total_earned').notNullable().defaultTo(0);
     table.integer('total_claimed').notNullable().defaultTo(0);
     table.decimal('total_value', 12, 2).notNullable().defaultTo(0);
@@ -152,7 +164,9 @@ export async function up(knex: Knex): Promise<void> {
   // Reward configurations table - stores reward settings
   await knex.schema.createTable('reward_configurations', (table) => {
     table.string('id', 50).primary();
-    table.enum('type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial']).notNullable();
+    table
+      .enum('type', ['coins', 'super_likes', 'boosts', 'rewinds', 'premium_trial'])
+      .notNullable();
     table.integer('amount').notNullable();
     table.string('display_name', 100).notNullable();
     table.text('description');

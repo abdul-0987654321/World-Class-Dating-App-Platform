@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { DiscoveryService, DiscoveryFilters } from '../../domain/services/discovery.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class DiscoveryController {
   private discoveryService: DiscoveryService;
@@ -12,13 +13,15 @@ export class DiscoveryController {
 
   async getDiscoveryProfiles(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const limit = parseInt(req.query.limit as string) || 10;
 
       const filters: DiscoveryFilters = {
         age_min: req.query.age_min ? parseInt(req.query.age_min as string) : undefined,
         age_max: req.query.age_max ? parseInt(req.query.age_max as string) : undefined,
-        distance_max: req.query.distance_max ? parseInt(req.query.distance_max as string) : undefined,
+        distance_max: req.query.distance_max
+          ? parseInt(req.query.distance_max as string)
+          : undefined,
         gender: req.query.gender as string,
       };
 
@@ -40,7 +43,7 @@ export class DiscoveryController {
 
   async getProfileById(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { profileId } = req.params;
 
       const profile = await this.discoveryService.getProfileById(userId, profileId);

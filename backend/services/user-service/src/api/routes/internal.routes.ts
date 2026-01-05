@@ -1,12 +1,12 @@
 import { createLogger } from '../../utils/logger';
 const logger = createLogger('InternalRoutes');
 
-import { Router } from 'express';
-import { SubscriptionService } from '../../domain/services/subscription.service';
-import { CoinService } from '../../domain/services/coin.service';
+import { Router, Request, Response } from 'express';
+
 import { BoostService } from '../../domain/services/boost.service';
+import { CoinService } from '../../domain/services/coin.service';
+import { SubscriptionService } from '../../domain/services/subscription.service';
 import { authenticateInternal } from '../middleware/internal-auth.middleware';
-import { Request, Response } from 'express';
 
 const router = Router();
 

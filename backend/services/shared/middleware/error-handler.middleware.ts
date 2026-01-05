@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { Logger } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 
 export interface StandardError {
   statusCode: number;
@@ -54,7 +54,10 @@ export class ConflictError extends AppError {
 }
 
 export class TooManyRequestsError extends AppError {
-  constructor(message: string = 'Too many requests', public retryAfter?: number) {
+  constructor(
+    message: string = 'Too many requests',
+    public retryAfter?: number
+  ) {
     super(429, message, { retryAfter });
   }
 }

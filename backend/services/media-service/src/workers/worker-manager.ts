@@ -1,9 +1,11 @@
-import { startImageProcessingWorker } from './image-processing.worker';
-import { startContentModerationWorker } from './content-moderation.worker';
-import { startPhotoVerificationWorker } from './photo-verification.worker';
-import { startDeepfakeDetectionWorker } from './deepfake-detection.worker';
-import queueManager from '../infrastructure/queue/queue-manager';
 import { createLogger } from '@flamoral/backend-shared';
+
+import queueManager from '../infrastructure/queue/queue-manager';
+
+import { startContentModerationWorker } from './content-moderation.worker';
+import { startDeepfakeDetectionWorker } from './deepfake-detection.worker';
+import { startImageProcessingWorker } from './image-processing.worker';
+import { startPhotoVerificationWorker } from './photo-verification.worker';
 
 const logger = createLogger('worker-manager');
 

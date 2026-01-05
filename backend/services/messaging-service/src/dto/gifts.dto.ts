@@ -1,5 +1,5 @@
-import { IsString, IsUUID, IsOptional, IsEnum, IsInt, Min, Max, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsString, IsUUID, IsOptional, IsEnum, IsInt, Min, Max, MaxLength } from 'class-validator';
 
 /**
  * Gift history filter type

@@ -181,12 +181,15 @@ export interface JumioBackgroundCheckWorkflow {
 /**
  * Tier configuration - what checks are included in each tier
  */
-export const BACKGROUND_CHECK_TIER_CONFIG: Record<BackgroundCheckTier, {
-  checks: CheckType[];
-  validity_days: number;
-  price_coins: number;
-  description: string;
-}> = {
+export const BACKGROUND_CHECK_TIER_CONFIG: Record<
+  BackgroundCheckTier,
+  {
+    checks: CheckType[];
+    validity_days: number;
+    price_coins: number;
+    description: string;
+  }
+> = {
   basic: {
     checks: ['identity', 'watchlist'],
     validity_days: 180,

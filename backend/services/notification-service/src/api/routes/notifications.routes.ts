@@ -4,9 +4,10 @@
  */
 
 import { Router } from 'express';
-import { notificationController } from '../controllers/notification.controller';
+
 import { requireAuth } from '../../middleware/auth';
 import { notificationRateLimiter, apiRateLimiter } from '../../middleware/rate-limit';
+import { notificationController } from '../controllers/notification.controller';
 
 const router = Router();
 
@@ -66,7 +67,12 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.post('/send', requireAuth, notificationRateLimiter, notificationController.sendNotification.bind(notificationController));
+router.post(
+  '/send',
+  requireAuth,
+  notificationRateLimiter,
+  notificationController.sendNotification.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -95,7 +101,12 @@ router.post('/send', requireAuth, notificationRateLimiter, notificationControlle
  *       200:
  *         description: Notifications retrieved successfully
  */
-router.get('/', requireAuth, apiRateLimiter, notificationController.getNotifications.bind(notificationController));
+router.get(
+  '/',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.getNotifications.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -109,7 +120,12 @@ router.get('/', requireAuth, apiRateLimiter, notificationController.getNotificat
  *       200:
  *         description: Unread count retrieved
  */
-router.get('/unread-count', requireAuth, apiRateLimiter, notificationController.getUnreadCount.bind(notificationController));
+router.get(
+  '/unread-count',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.getUnreadCount.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -131,7 +147,12 @@ router.get('/unread-count', requireAuth, apiRateLimiter, notificationController.
  *       404:
  *         description: Notification not found
  */
-router.put('/:id/read', requireAuth, apiRateLimiter, notificationController.markAsRead.bind(notificationController));
+router.put(
+  '/:id/read',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.markAsRead.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -145,7 +166,12 @@ router.put('/:id/read', requireAuth, apiRateLimiter, notificationController.mark
  *       200:
  *         description: All notifications marked as read
  */
-router.put('/read-all', requireAuth, apiRateLimiter, notificationController.markAllAsRead.bind(notificationController));
+router.put(
+  '/read-all',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.markAllAsRead.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -167,7 +193,12 @@ router.put('/read-all', requireAuth, apiRateLimiter, notificationController.mark
  *       404:
  *         description: Notification not found
  */
-router.delete('/:id', requireAuth, apiRateLimiter, notificationController.deleteNotification.bind(notificationController));
+router.delete(
+  '/:id',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.deleteNotification.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -181,7 +212,12 @@ router.delete('/:id', requireAuth, apiRateLimiter, notificationController.delete
  *       200:
  *         description: Preferences retrieved
  */
-router.get('/preferences', requireAuth, apiRateLimiter, notificationController.getPreferences.bind(notificationController));
+router.get(
+  '/preferences',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.getPreferences.bind(notificationController)
+);
 
 /**
  * @swagger
@@ -218,6 +254,11 @@ router.get('/preferences', requireAuth, apiRateLimiter, notificationController.g
  *       200:
  *         description: Preferences updated
  */
-router.put('/preferences', requireAuth, apiRateLimiter, notificationController.updatePreferences.bind(notificationController));
+router.put(
+  '/preferences',
+  requireAuth,
+  apiRateLimiter,
+  notificationController.updatePreferences.bind(notificationController)
+);
 
 export default router;

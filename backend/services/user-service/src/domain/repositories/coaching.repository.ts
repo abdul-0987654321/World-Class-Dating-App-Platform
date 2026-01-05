@@ -53,7 +53,10 @@ export class CoachingRepository {
     return session || null;
   }
 
-  async updateSession(id: string, data: CoachingSessionUpdateInput): Promise<CoachingSession | null> {
+  async updateSession(
+    id: string,
+    data: CoachingSessionUpdateInput
+  ): Promise<CoachingSession | null> {
     const [session] = await db(this.sessionsTable)
       .where({ id })
       .update({
@@ -65,7 +68,10 @@ export class CoachingRepository {
     return session || null;
   }
 
-  async getUserSessions(userId: string, includeHistorical = false): Promise<CoachingSessionWithCoach[]> {
+  async getUserSessions(
+    userId: string,
+    includeHistorical = false
+  ): Promise<CoachingSessionWithCoach[]> {
     let query = db(this.sessionsTable)
       .select(
         `${this.sessionsTable}.*`,
@@ -134,9 +140,7 @@ export class CoachingRepository {
   }
 
   async listActiveCoaches(): Promise<CoachWithDetails[]> {
-    const coaches = await db(this.coachesTable)
-      .where('is_active', true)
-      .orderBy('rating', 'desc');
+    const coaches = await db(this.coachesTable).where('is_active', true).orderBy('rating', 'desc');
 
     return coaches.map((c: any) => this.parseCoach(c));
   }
@@ -148,7 +152,7 @@ export class CoachingRepository {
 
     // Calculate new average rating
     const totalSessions = coach.total_sessions + 1;
-    const newRating = ((coach.rating * coach.total_sessions) + rating) / totalSessions;
+    const newRating = (coach.rating * coach.total_sessions + rating) / totalSessions;
 
     await db(this.coachesTable)
       .where({ id: coachId })

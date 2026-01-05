@@ -7,9 +7,10 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
+
 import { PolicyController } from '../controllers/policyController';
-import { VersionController } from '../controllers/versionController';
 import { UpdateController } from '../controllers/updateController';
+import { VersionController } from '../controllers/versionController';
 import {
   authMiddleware,
   apiKeyMiddleware,
@@ -17,10 +18,10 @@ import {
   internalApiKeyAuth,
   requireAdmin,
   optionalAuth,
-  AuthenticatedRequest
+  AuthenticatedRequest,
 } from '../middleware/auth';
-import { rateLimitMiddleware } from '../middleware/rateLimit';
 import { cacheMiddleware } from '../middleware/cache';
+import { rateLimitMiddleware } from '../middleware/rateLimit';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -36,7 +37,7 @@ const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      errors: errors.array()
+      errors: errors.array(),
     });
   }
   next();
@@ -73,7 +74,10 @@ router.get(
       .withMessage('Invalid policy type'),
     query('language').optional().isString().isLength({ min: 2, max: 2 }),
     query('format').optional().isIn(['json', 'markdown', 'html']),
-    query('version').optional().isString().matches(/^\d+\.\d+\.\d+$/),
+    query('version')
+      .optional()
+      .isString()
+      .matches(/^\d+\.\d+\.\d+$/),
   ],
   validateRequest,
   rateLimitMiddleware({ windowMs: 60000, max: 100 }), // 100 requests per minute
@@ -89,28 +93,28 @@ router.get(
       format,
       version,
       ip: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get('user-agent'),
     });
 
     const policy = await policyController.getPolicy({
-      region: region as string,
-      policyType: policyType as string,
+      region: region,
+      policyType: policyType,
       language: language as string,
       format: format as string,
-      version: version as string | undefined
+      version: version as string | undefined,
     });
 
     if (!policy) {
       return res.status(404).json({
         success: false,
         error: 'Policy not found',
-        message: `No policy found for region '${region}' and type '${policyType}'`
+        message: `No policy found for region '${region}' and type '${policyType}'`,
       });
     }
 
     res.status(200).json({
       success: true,
-      data: policy
+      data: policy,
     });
   })
 );
@@ -124,7 +128,14 @@ router.get(
   '/policies/:region/:policyType/summary',
   [
     param('region').isString().notEmpty(),
-    param('policyType').isIn(['privacy', 'terms', 'cookie', 'community-guidelines', 'content', 'dpa']),
+    param('policyType').isIn([
+      'privacy',
+      'terms',
+      'cookie',
+      'community-guidelines',
+      'content',
+      'dpa',
+    ]),
     query('language').optional().isString().isLength({ min: 2, max: 2 }),
   ],
   validateRequest,
@@ -135,21 +146,21 @@ router.get(
     const { language = 'en' } = req.query;
 
     const summary = await policyController.getPolicySummary({
-      region: region as string,
-      policyType: policyType as string,
-      language: language as string
+      region: region,
+      policyType: policyType,
+      language: language as string,
     });
 
     if (!summary) {
       return res.status(404).json({
         success: false,
-        error: 'Policy not found'
+        error: 'Policy not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      data: summary
+      data: summary,
     });
   })
 );
@@ -163,7 +174,14 @@ router.get(
   '/policies/:region/:policyType/versions',
   [
     param('region').isString().notEmpty(),
-    param('policyType').isIn(['privacy', 'terms', 'cookie', 'community-guidelines', 'content', 'dpa']),
+    param('policyType').isIn([
+      'privacy',
+      'terms',
+      'cookie',
+      'community-guidelines',
+      'content',
+      'dpa',
+    ]),
     query('limit').optional().isInt({ min: 1, max: 100 }),
     query('offset').optional().isInt({ min: 0 }),
   ],
@@ -175,15 +193,15 @@ router.get(
     const { limit = 10, offset = 0 } = req.query;
 
     const versions = await versionController.getVersionHistory({
-      region: region as string,
-      policyType: policyType as string,
+      region: region,
+      policyType: policyType,
       limit: parseInt(limit as string),
-      offset: parseInt(offset as string)
+      offset: parseInt(offset as string),
     });
 
     res.status(200).json({
       success: true,
-      data: versions
+      data: versions,
     });
   })
 );
@@ -197,9 +215,20 @@ router.get(
   '/policies/:region/:policyType/diff/:v1/:v2',
   [
     param('region').isString().notEmpty(),
-    param('policyType').isIn(['privacy', 'terms', 'cookie', 'community-guidelines', 'content', 'dpa']),
-    param('v1').matches(/^\d+\.\d+\.\d+$/).withMessage('Invalid version format for v1'),
-    param('v2').matches(/^\d+\.\d+\.\d+$/).withMessage('Invalid version format for v2'),
+    param('policyType').isIn([
+      'privacy',
+      'terms',
+      'cookie',
+      'community-guidelines',
+      'content',
+      'dpa',
+    ]),
+    param('v1')
+      .matches(/^\d+\.\d+\.\d+$/)
+      .withMessage('Invalid version format for v1'),
+    param('v2')
+      .matches(/^\d+\.\d+\.\d+$/)
+      .withMessage('Invalid version format for v2'),
     query('format').optional().isIn(['json', 'unified', 'split']),
   ],
   validateRequest,
@@ -210,23 +239,23 @@ router.get(
     const { format = 'json' } = req.query;
 
     const diff = await versionController.compareVersions({
-      region: region as string,
-      policyType: policyType as string,
+      region: region,
+      policyType: policyType,
       version1: v1,
       version2: v2,
-      format: format as string
+      format: format as string,
     });
 
     if (!diff) {
       return res.status(404).json({
         success: false,
-        error: 'One or both versions not found'
+        error: 'One or both versions not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      data: diff
+      data: diff,
     });
   })
 );
@@ -245,7 +274,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: regions
+      data: regions,
     });
   })
 );
@@ -264,7 +293,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: types
+      data: types,
     });
   })
 );
@@ -289,14 +318,23 @@ router.post(
     body('legalChange').optional().isObject(),
     body('legalChange.jurisdiction').optional().isString(),
     body('legalChange.law').optional().isString(),
-    body('legalChange.changeType').optional().isIn(['enactment', 'amendment', 'repeal', 'guidance']),
+    body('legalChange.changeType')
+      .optional()
+      .isIn(['enactment', 'amendment', 'repeal', 'guidance']),
     body('legalChange.effectiveDate').optional().isISO8601(),
     body('legalChange.description').optional().isString(),
     body('legalChange.sourceUrl').optional().isURL(),
     body('affectedPolicies').isArray().notEmpty(),
     body('updateInstructions').optional().isString(),
     body('region').isString().notEmpty(),
-    body('policyType').isIn(['privacy', 'terms', 'cookie', 'community-guidelines', 'content', 'dpa']),
+    body('policyType').isIn([
+      'privacy',
+      'terms',
+      'cookie',
+      'community-guidelines',
+      'content',
+      'dpa',
+    ]),
   ],
   validateRequest,
   asyncHandler(async (req: Request, res: Response) => {
@@ -304,7 +342,7 @@ router.post(
       source: req.body.source,
       region: req.body.region,
       policyType: req.body.policyType,
-      apiKey: req.headers['x-api-key']
+      apiKey: req.headers['x-api-key'],
     });
 
     const result = await updateController.triggerUpdate(req.body);
@@ -312,7 +350,7 @@ router.post(
     res.status(202).json({
       success: true,
       message: 'Update initiated',
-      data: result
+      data: result,
     });
   })
 );
@@ -332,7 +370,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: status
+      data: status,
     });
   })
 );
@@ -349,7 +387,14 @@ router.post(
   [
     body('content').isString().notEmpty(),
     body('region').isString().notEmpty(),
-    body('policyType').isIn(['privacy', 'terms', 'cookie', 'community-guidelines', 'content', 'dpa']),
+    body('policyType').isIn([
+      'privacy',
+      'terms',
+      'cookie',
+      'community-guidelines',
+      'content',
+      'dpa',
+    ]),
   ],
   validateRequest,
   asyncHandler(async (req: Request, res: Response) => {
@@ -357,7 +402,7 @@ router.post(
 
     res.status(200).json({
       success: true,
-      data: validation
+      data: validation,
     });
   })
 );
@@ -384,7 +429,7 @@ router.post(
     logger.info('Policy publication request', {
       policyId: req.body.policyId,
       version: req.body.version,
-      user: req.user?.id
+      user: req.user?.id,
     });
 
     const result = await updateController.publishPolicy(req.body);
@@ -392,7 +437,7 @@ router.post(
     res.status(200).json({
       success: true,
       message: 'Policy published successfully',
-      data: result
+      data: result,
     });
   })
 );
@@ -413,7 +458,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: pending
+      data: pending,
     });
   })
 );
@@ -441,14 +486,14 @@ router.post(
       policyId: req.body.policyId,
       version: req.body.version,
       status: req.body.status,
-      reviewer: req.body.reviewer
+      reviewer: req.body.reviewer,
     });
 
     const result = await updateController.submitReview(req.body);
 
     res.status(200).json({
       success: true,
-      data: result
+      data: result,
     });
   })
 );
@@ -478,7 +523,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: auditLog
+      data: auditLog,
     });
   })
 );
@@ -504,7 +549,7 @@ router.post(
     logger.info('Translation request', {
       policyId: req.body.policyId,
       version: req.body.version,
-      targetLanguages: req.body.targetLanguages
+      targetLanguages: req.body.targetLanguages,
     });
 
     const result = await updateController.requestTranslation(req.body);
@@ -512,7 +557,7 @@ router.post(
     res.status(202).json({
       success: true,
       message: 'Translation request submitted',
-      data: result
+      data: result,
     });
   })
 );
@@ -533,7 +578,7 @@ router.get(
 
     res.status(200).json({
       success: true,
-      data: status
+      data: status,
     });
   })
 );
@@ -546,7 +591,7 @@ router.get('/health', (req: Request, res: Response) => {
     success: true,
     service: 'policy-service',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -558,13 +603,13 @@ router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     error: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
 
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred',
   });
 });
 

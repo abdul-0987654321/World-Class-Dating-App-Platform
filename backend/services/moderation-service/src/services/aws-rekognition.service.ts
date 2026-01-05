@@ -1,8 +1,9 @@
 import { RekognitionClient, DetectModerationLabelsCommand } from '@aws-sdk/client-rekognition';
 import axios from 'axios';
+
 import config from '../config';
-import { createLogger } from '../utils/logger';
 import { ImageModerationResult, ViolationType } from '../types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('aws-rekognition-service');
 
@@ -161,7 +162,11 @@ export class AWSRekognitionService {
       }
 
       // Rude Gestures
-      if (labelLower.includes('rude') || labelLower.includes('gesture') || parentLower === 'rude gestures') {
+      if (
+        labelLower.includes('rude') ||
+        labelLower.includes('gesture') ||
+        parentLower === 'rude gestures'
+      ) {
         categories.rude = Math.max(categories.rude, confidence);
       }
 
@@ -171,12 +176,20 @@ export class AWSRekognitionService {
       }
 
       // Tobacco
-      if (labelLower.includes('tobacco') || labelLower.includes('smoking') || parentLower === 'tobacco') {
+      if (
+        labelLower.includes('tobacco') ||
+        labelLower.includes('smoking') ||
+        parentLower === 'tobacco'
+      ) {
         categories.tobacco = Math.max(categories.tobacco, confidence);
       }
 
       // Alcohol
-      if (labelLower.includes('alcohol') || labelLower.includes('drinking') || parentLower === 'alcohol') {
+      if (
+        labelLower.includes('alcohol') ||
+        labelLower.includes('drinking') ||
+        parentLower === 'alcohol'
+      ) {
         categories.alcohol = Math.max(categories.alcohol, confidence);
       }
 
@@ -186,7 +199,11 @@ export class AWSRekognitionService {
       }
 
       // Hate Symbols
-      if (labelLower.includes('hate') || labelLower.includes('symbol') || parentLower === 'hate symbols') {
+      if (
+        labelLower.includes('hate') ||
+        labelLower.includes('symbol') ||
+        parentLower === 'hate symbols'
+      ) {
         categories.hate = Math.max(categories.hate, confidence);
       }
     }

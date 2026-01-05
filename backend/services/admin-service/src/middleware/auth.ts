@@ -1,13 +1,16 @@
 import { Response, NextFunction } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
+
+import { db } from '../infrastructure/database';
 import { AuthRequest, AdminRole, Permission, ROLE_PERMISSIONS } from '../types';
 import { logger } from '../utils/logger';
-import { db } from '../infrastructure/database';
 
 // SECURITY: Admin JWT secret MUST be set in environment variables
 const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET;
 if (!JWT_ADMIN_SECRET) {
-  throw new Error('CRITICAL SECURITY ERROR: JWT_ADMIN_SECRET environment variable is required for admin authentication. Never use default values.');
+  throw new Error(
+    'CRITICAL SECURITY ERROR: JWT_ADMIN_SECRET environment variable is required for admin authentication. Never use default values.'
+  );
 }
 
 // Validate admin secret strength (minimum 32 characters)
@@ -41,9 +44,7 @@ export const authenticateAdmin = async (
     const decoded = jwt.verify(token, JWT_ADMIN_SECRET) as JWTPayload;
 
     // Fetch admin user from database
-    const admin = await db('admins')
-      .where({ id: decoded.adminId, is_active: true })
-      .first();
+    const admin = await db('admins').where({ id: decoded.adminId, is_active: true }).first();
 
     if (!admin) {
       res.status(401).json({ error: 'Invalid or expired token' });
@@ -65,9 +66,7 @@ export const authenticateAdmin = async (
     };
 
     // Update last activity
-    await db('admins')
-      .where({ id: admin.id })
-      .update({ last_activity: db.fn.now() });
+    await db('admins').where({ id: admin.id }).update({ last_activity: db.fn.now() });
 
     next();
   } catch (error) {
@@ -92,7 +91,7 @@ export const requirePermission = (permission: Permission) => {
       logger.warn(`Permission denied: ${req.admin.email} attempted ${permission}`);
       res.status(403).json({
         error: 'Insufficient permissions',
-        required: permission
+        required: permission,
       });
       return;
     }
@@ -123,11 +122,13 @@ export const requireRole = (role: AdminRole) => {
     const requiredRoleLevel = roleHierarchy[role];
 
     if (userRoleLevel < requiredRoleLevel) {
-      logger.warn(`Role requirement not met: ${req.admin.email} has ${req.admin.role}, needs ${role}`);
+      logger.warn(
+        `Role requirement not met: ${req.admin.email} has ${req.admin.role}, needs ${role}`
+      );
       res.status(403).json({
         error: 'Insufficient role',
         required: role,
-        current: req.admin.role
+        current: req.admin.role,
       });
       return;
     }
@@ -158,9 +159,7 @@ export const canAccessUserData = async (
   }
 
   // Check if user is in a restricted category
-  const user = await db('users')
-    .where({ id: userId })
-    .first();
+  const user = await db('users').where({ id: userId }).first();
 
   if (!user) {
     res.status(404).json({ error: 'User not found' });
@@ -174,10 +173,14 @@ export const canAccessUserData = async (
 /**
  * Generate admin JWT token
  */
-export const generateAdminToken = (admin: { id: string; email: string; role: AdminRole }): string => {
+export const generateAdminToken = (admin: {
+  id: string;
+  email: string;
+  role: AdminRole;
+}): string => {
   const expiresIn = (process.env.ADMIN_SESSION_DURATION || '12h') as SignOptions['expiresIn'];
   const options: SignOptions = {
-    expiresIn
+    expiresIn,
   };
 
   return jwt.sign(

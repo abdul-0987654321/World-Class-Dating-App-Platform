@@ -1,7 +1,8 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
+
 import config from '../config';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('automation-service:auth-middleware');
 

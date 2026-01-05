@@ -20,27 +20,32 @@ export async function up(knex: Knex): Promise<void> {
 
     // Check tier and status
     table.enum('tier', ['basic', 'standard', 'comprehensive']).notNullable().defaultTo('basic');
-    table.enum('status', [
-      'initiated',
-      'pending',
-      'processing',
-      'clear',
-      'consider',
-      'flagged',
-      'error',
-      'expired',
-    ]).notNullable().defaultTo('initiated');
+    table
+      .enum('status', [
+        'initiated',
+        'pending',
+        'processing',
+        'clear',
+        'consider',
+        'flagged',
+        'error',
+        'expired',
+      ])
+      .notNullable()
+      .defaultTo('initiated');
 
     // Check results
     table.jsonb('checks_performed').nullable();
     table.boolean('identity_verified').notNullable().defaultTo(false);
-    table.enum('watchlist_result', [
-      'clear',
-      'possible_match',
-      'confirmed_match',
-      'not_performed',
-      'error',
-    ]).nullable();
+    table
+      .enum('watchlist_result', [
+        'clear',
+        'possible_match',
+        'confirmed_match',
+        'not_performed',
+        'error',
+      ])
+      .nullable();
     table.jsonb('watchlist_details').nullable();
     table.decimal('overall_score', 5, 4).nullable();
     table.jsonb('flags').nullable();

@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../infrastructure/database';
 import { ABTest } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
 export class ABTestService {
@@ -69,12 +70,14 @@ export class ABTestService {
       name: data.name,
       description: data.description,
       status: 'draft',
-      variants: JSON.stringify(data.variants.map(v => ({
-        id: uuidv4(),
-        ...v,
-        users: 0,
-        conversions: 0,
-      }))),
+      variants: JSON.stringify(
+        data.variants.map((v) => ({
+          id: uuidv4(),
+          ...v,
+          users: 0,
+          conversions: 0,
+        }))
+      ),
       metrics: JSON.stringify(data.metrics),
       created_by: data.createdBy,
       created_at: db.fn.now(),
@@ -104,33 +107,32 @@ export class ABTestService {
   }
 
   async startTest(testId: string): Promise<void> {
-    await db('ab_tests')
-      .where({ id: testId })
-      .update({
-        status: 'running',
-        start_date: db.fn.now(),
-        updated_at: db.fn.now(),
-      });
+    await db('ab_tests').where({ id: testId }).update({
+      status: 'running',
+      start_date: db.fn.now(),
+      updated_at: db.fn.now(),
+    });
 
     logger.info(`A/B test started: ${testId}`);
   }
 
   async pauseTest(testId: string): Promise<void> {
-    await db('ab_tests')
-      .where({ id: testId })
-      .update({
-        status: 'paused',
-        updated_at: db.fn.now(),
-      });
+    await db('ab_tests').where({ id: testId }).update({
+      status: 'paused',
+      updated_at: db.fn.now(),
+    });
 
     logger.info(`A/B test paused: ${testId}`);
   }
 
-  async completeTest(testId: string, results: {
-    winner?: string;
-    confidence: number;
-    summary: string;
-  }): Promise<void> {
+  async completeTest(
+    testId: string,
+    results: {
+      winner?: string;
+      confidence: number;
+      summary: string;
+    }
+  ): Promise<void> {
     await db('ab_tests')
       .where({ id: testId })
       .update({
@@ -162,7 +164,7 @@ export class ABTestService {
 
     return {
       testId,
-      metrics: test.variants.map(variant => ({
+      metrics: test.variants.map((variant) => ({
         variantId: variant.id,
         variantName: variant.name,
         users: variant.users,

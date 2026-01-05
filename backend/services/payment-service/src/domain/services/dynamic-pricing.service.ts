@@ -11,11 +11,12 @@
  * - Complete audit logging
  */
 
-import Stripe from 'stripe';
-import { Knex } from 'knex';
 import { createLogger } from '@flamoral/backend-shared';
-import { db } from '../../infrastructure/database/connection';
+import { Knex } from 'knex';
+import Stripe from 'stripe';
+
 import { SUBSCRIPTION_TIERS, getTierByKey } from '../../config/stripe-products';
+import { db } from '../../infrastructure/database/connection';
 import {
   PricingResult,
   PriceAdjustment,
@@ -172,7 +173,7 @@ export class DynamicPricingService {
           description: `Experiment variant: ${experimentPrice.variantName}`,
           adjustmentType: 'fixed_amount',
           adjustmentValue: experimentPrice.price * 100,
-          amountAdjusted: basePrice - (experimentPrice.price * 100),
+          amountAdjusted: basePrice - experimentPrice.price * 100,
           priority: 100,
           source: experimentPrice.experimentId,
         });
@@ -216,8 +217,12 @@ export class DynamicPricingService {
       // 3. Apply personalized pricing
       if (!experimentInfo) {
         const personalized = await this.getPersonalizedPricingData(userId);
-        if (personalized && personalized.recommendedDiscount && personalized.recommendedDiscount > 0) {
-          const discountMultiplier = 1 - (personalized.recommendedDiscount / 100);
+        if (
+          personalized &&
+          personalized.recommendedDiscount &&
+          personalized.recommendedDiscount > 0
+        ) {
+          const discountMultiplier = 1 - personalized.recommendedDiscount / 100;
           const adjustedPrice = Math.round(finalPrice * discountMultiplier);
 
           personalizedAdjustment = {
@@ -347,7 +352,11 @@ export class DynamicPricingService {
       return result;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error calculating personalized price:', { error: errorMessage, userId, planId });
+      logger.error('Error calculating personalized price:', {
+        error: errorMessage,
+        userId,
+        planId,
+      });
       throw new Error(`Failed to calculate personalized price: ${errorMessage}`);
     }
   }
@@ -411,16 +420,18 @@ export class DynamicPricingService {
         currencySymbol: getCurrencySymbol(regional.currencyCode),
         savings: savings / 100,
         savingsPercentage: Math.round((savings / basePrice) * 10000) / 100,
-        adjustments: [{
-          type: 'regional',
-          name: 'Regional Pricing',
-          description: `Price adjusted for ${countryCode}`,
-          adjustmentType: 'percentage',
-          adjustmentValue: (1 - regional.priceMultiplier) * 100,
-          amountAdjusted: savings / 100,
-          priority: 90,
-          source: regional.id,
-        }],
+        adjustments: [
+          {
+            type: 'regional',
+            name: 'Regional Pricing',
+            description: `Price adjusted for ${countryCode}`,
+            adjustmentType: 'percentage',
+            adjustmentValue: (1 - regional.priceMultiplier) * 100,
+            amountAdjusted: savings / 100,
+            priority: 90,
+            source: regional.id,
+          },
+        ],
         promotionsApplied: [],
         regionalAdjustment,
         stripePriceId: STRIPE_PRICE_IDS[tierCode]?.[billingCycle] || '',
@@ -550,7 +561,10 @@ export class DynamicPricingService {
       }
 
       // Check targeting rules
-      const targetingValid = await this.validatePromotionTargeting(promotion.targeting_rules, userId);
+      const targetingValid = await this.validatePromotionTargeting(
+        promotion.targeting_rules,
+        userId
+      );
       if (!targetingValid.valid) {
         return {
           success: false,
@@ -608,8 +622,12 @@ export class DynamicPricingService {
         description: promotion.description,
         discountType: promotion.discount_type,
         discountValue: Number(promotion.discount_value),
-        minPurchaseAmount: promotion.min_purchase_amount ? Number(promotion.min_purchase_amount) : undefined,
-        maxDiscountAmount: promotion.max_discount_amount ? Number(promotion.max_discount_amount) : undefined,
+        minPurchaseAmount: promotion.min_purchase_amount
+          ? Number(promotion.min_purchase_amount)
+          : undefined,
+        maxDiscountAmount: promotion.max_discount_amount
+          ? Number(promotion.max_discount_amount)
+          : undefined,
         applicablePlans: promotion.applicable_plans || [],
         applicableBillingCycles: promotion.applicable_billing_cycles || [],
         excludedPlans: promotion.excluded_plans || [],
@@ -666,13 +684,15 @@ export class DynamicPricingService {
     return this.getActivePromotionsForUser(request);
   }
 
-  private async getActivePromotionsForUser(request: GetActivePromotionsRequest): Promise<Promotion[]> {
+  private async getActivePromotionsForUser(
+    request: GetActivePromotionsRequest
+  ): Promise<Promotion[]> {
     const { userId, planId, billingCycle, countryCode } = request;
 
     try {
       const now = new Date();
 
-      let query = this.db('promotions')
+      const query = this.db('promotions')
         .where('is_active', true)
         .where('starts_at', '<=', now)
         .where('ends_at', '>', now)
@@ -691,7 +711,11 @@ export class DynamicPricingService {
 
         // Check billing cycle applicability
         const applicableCycles = promo.applicable_billing_cycles || [];
-        if (billingCycle && applicableCycles.length > 0 && !applicableCycles.includes(billingCycle)) {
+        if (
+          billingCycle &&
+          applicableCycles.length > 0 &&
+          !applicableCycles.includes(billingCycle)
+        ) {
           continue;
         }
 
@@ -725,7 +749,10 @@ export class DynamicPricingService {
           }
 
           // Check targeting rules
-          const targetingValid = await this.validatePromotionTargeting(promo.targeting_rules, userId);
+          const targetingValid = await this.validatePromotionTargeting(
+            promo.targeting_rules,
+            userId
+          );
           if (!targetingValid.valid) {
             continue;
           }
@@ -734,7 +761,11 @@ export class DynamicPricingService {
         // Check country targeting
         if (countryCode && promo.targeting_rules) {
           const rules = promo.targeting_rules;
-          if (rules.countries && rules.countries.length > 0 && !rules.countries.includes(countryCode)) {
+          if (
+            rules.countries &&
+            rules.countries.length > 0 &&
+            !rules.countries.includes(countryCode)
+          ) {
             continue;
           }
           if (rules.excludedCountries && rules.excludedCountries.includes(countryCode)) {
@@ -749,8 +780,12 @@ export class DynamicPricingService {
           description: promo.description,
           discountType: promo.discount_type,
           discountValue: Number(promo.discount_value),
-          minPurchaseAmount: promo.min_purchase_amount ? Number(promo.min_purchase_amount) : undefined,
-          maxDiscountAmount: promo.max_discount_amount ? Number(promo.max_discount_amount) : undefined,
+          minPurchaseAmount: promo.min_purchase_amount
+            ? Number(promo.min_purchase_amount)
+            : undefined,
+          maxDiscountAmount: promo.max_discount_amount
+            ? Number(promo.max_discount_amount)
+            : undefined,
           applicablePlans: promo.applicable_plans || [],
           applicableBillingCycles: promo.applicable_billing_cycles || [],
           excludedPlans: promo.excluded_plans || [],
@@ -807,9 +842,7 @@ export class DynamicPricingService {
         .returning('*');
 
       // Increment promotion usage count
-      await this.db('promotions')
-        .where('id', promotionId)
-        .increment('current_uses', 1);
+      await this.db('promotions').where('id', promotionId).increment('current_uses', 1);
 
       return {
         id: usage.id,
@@ -825,7 +858,11 @@ export class DynamicPricingService {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error recording promotion usage:', { error: errorMessage, userId, promotionId });
+      logger.error('Error recording promotion usage:', {
+        error: errorMessage,
+        userId,
+        promotionId,
+      });
       throw new Error(`Failed to record promotion usage: ${errorMessage}`);
     }
   }
@@ -853,9 +890,7 @@ export class DynamicPricingService {
           .where('id', existing.variant_id)
           .first();
 
-        const experiment = await this.db('price_experiments')
-          .where('id', experimentId)
-          .first();
+        const experiment = await this.db('price_experiments').where('id', experimentId).first();
 
         if (!variant || !experiment) return null;
 
@@ -914,7 +949,11 @@ export class DynamicPricingService {
       return this.mapToExperimentPrice(experiment, selectedVariant, billingCycle, new Date());
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error running price experiment:', { error: errorMessage, experimentId, userId });
+      logger.error('Error running price experiment:', {
+        error: errorMessage,
+        experimentId,
+        userId,
+      });
       throw new Error(`Failed to run price experiment: ${errorMessage}`);
     }
   }
@@ -970,7 +1009,11 @@ export class DynamicPricingService {
         });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error recording experiment conversion:', { error: errorMessage, userId, experimentId });
+      logger.error('Error recording experiment conversion:', {
+        error: errorMessage,
+        userId,
+        experimentId,
+      });
     }
   }
 
@@ -979,22 +1022,22 @@ export class DynamicPricingService {
    */
   async getExperimentResults(experimentId: string): Promise<ExperimentResults> {
     try {
-      const experiment = await this.db('price_experiments')
-        .where('id', experimentId)
-        .first();
+      const experiment = await this.db('price_experiments').where('id', experimentId).first();
 
       if (!experiment) {
         throw new Error('Experiment not found');
       }
 
-      const variants = await this.db('price_experiment_variants')
-        .where('experiment_id', experimentId);
+      const variants = await this.db('price_experiment_variants').where(
+        'experiment_id',
+        experimentId
+      );
 
       const variantResults: VariantResults[] = [];
       let controlRate = 0;
 
       for (const variant of variants) {
-        const stats = await this.db('user_experiment_assignments')
+        const stats = (await this.db('user_experiment_assignments')
           .where('experiment_id', experimentId)
           .where('variant_id', variant.id)
           .select(
@@ -1002,7 +1045,13 @@ export class DynamicPricingService {
             this.db.raw('COUNT(CASE WHEN has_converted THEN 1 END) as conversions'),
             this.db.raw('SUM(revenue_generated) as total_revenue')
           )
-          .first() as unknown as { participants: string | number; conversions: string | number; total_revenue: string | number } | undefined;
+          .first()) as unknown as
+          | {
+              participants: string | number;
+              conversions: string | number;
+              total_revenue: string | number;
+            }
+          | undefined;
 
         const participants = Number(stats?.participants || 0);
         const conversions = Number(stats?.conversions || 0);
@@ -1047,18 +1096,21 @@ export class DynamicPricingService {
         if (!result.isControl && controlRate > 0) {
           result.relativeUplift = ((result.conversionRate - controlRate) / controlRate) * 100;
           // Simplified p-value calculation
-          result.pValue = this.calculatePValue(result, variantResults.find(v => v.isControl)!);
+          result.pValue = this.calculatePValue(
+            result,
+            variantResults.find((v) => v.isControl)
+          );
         }
       }
 
       const totalParticipants = variantResults.reduce((sum, v) => sum + v.participants, 0);
-      const isSignificant = variantResults.some(v => v.pValue !== undefined && v.pValue < 0.05);
+      const isSignificant = variantResults.some((v) => v.pValue !== undefined && v.pValue < 0.05);
 
       // Determine winner
       let winner: string | undefined;
       if (isSignificant) {
         const bestVariant = variantResults
-          .filter(v => !v.isControl && v.pValue !== undefined && v.pValue < 0.05)
+          .filter((v) => !v.isControl && v.pValue !== undefined && v.pValue < 0.05)
           .sort((a, b) => b.conversionRate - a.conversionRate)[0];
         if (bestVariant && bestVariant.conversionRate > controlRate) {
           winner = bestVariant.variantName;
@@ -1076,7 +1128,11 @@ export class DynamicPricingService {
         winner,
         statisticalSignificance: experiment.statistical_significance_target,
         isSignificant,
-        recommendations: this.generateExperimentRecommendations(variantResults, isSignificant, winner),
+        recommendations: this.generateExperimentRecommendations(
+          variantResults,
+          isSignificant,
+          winner
+        ),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -1092,16 +1148,19 @@ export class DynamicPricingService {
   /**
    * Get available bundles for a user
    */
-  async getAvailableBundles(userId: string, currentTier?: SubscriptionTierCode): Promise<PricingBundle[]> {
+  async getAvailableBundles(
+    userId: string,
+    currentTier?: SubscriptionTierCode
+  ): Promise<PricingBundle[]> {
     try {
       const now = new Date();
 
-      let query = this.db('pricing_bundles')
+      const query = this.db('pricing_bundles')
         .where('is_active', true)
-        .where(function() {
+        .where(function () {
           this.whereNull('available_from').orWhere('available_from', '<=', now);
         })
-        .where(function() {
+        .where(function () {
           this.whereNull('available_until').orWhere('available_until', '>', now);
         })
         .orderBy('sort_order', 'asc');
@@ -1180,13 +1239,20 @@ export class DynamicPricingService {
       const engagementScore = this.calculateEngagementScore(behaviorFactors);
 
       // Calculate conversion likelihood (0-1)
-      const conversionLikelihood = this.calculateConversionLikelihood(behaviorFactors, engagementScore);
+      const conversionLikelihood = this.calculateConversionLikelihood(
+        behaviorFactors,
+        engagementScore
+      );
 
       // Calculate price sensitivity (0-1, higher = more sensitive)
       const priceSensitivity = this.calculatePriceSensitivity(behaviorFactors);
 
       // Determine user segment
-      const userSegment = this.determineUserSegment(behaviorFactors, engagementScore, conversionLikelihood);
+      const userSegment = this.determineUserSegment(
+        behaviorFactors,
+        engagementScore,
+        conversionLikelihood
+      );
 
       // Calculate recommended discount
       const recommendedDiscount = this.calculateRecommendedDiscount(
@@ -1238,8 +1304,12 @@ export class DynamicPricingService {
         engagementScore: Number(record.engagement_score),
         conversionLikelihood: Number(record.conversion_likelihood),
         priceSensitivity: Number(record.price_sensitivity),
-        lifetimeValuePrediction: record.lifetime_value_prediction ? Number(record.lifetime_value_prediction) : undefined,
-        recommendedDiscount: record.recommended_discount ? Number(record.recommended_discount) : undefined,
+        lifetimeValuePrediction: record.lifetime_value_prediction
+          ? Number(record.lifetime_value_prediction)
+          : undefined,
+        recommendedDiscount: record.recommended_discount
+          ? Number(record.recommended_discount)
+          : undefined,
         userSegment: record.user_segment,
         tierRecommendations,
         behaviorFactors,
@@ -1249,7 +1319,9 @@ export class DynamicPricingService {
         messagesSent: record.messages_sent,
         lastActiveAt: record.last_active_at ? new Date(record.last_active_at) : undefined,
         hasEverSubscribed: record.has_ever_subscribed,
-        lastSubscriptionEnd: record.last_subscription_end ? new Date(record.last_subscription_end) : undefined,
+        lastSubscriptionEnd: record.last_subscription_end
+          ? new Date(record.last_subscription_end)
+          : undefined,
         calculatedAt: new Date(record.calculated_at),
         expiresAt: record.expires_at ? new Date(record.expires_at) : undefined,
         metadata: record.metadata || {},
@@ -1303,8 +1375,12 @@ export class DynamicPricingService {
         description: promo.description,
         discountType: promo.discount_type,
         discountValue: Number(promo.discount_value),
-        minPurchaseAmount: promo.min_purchase_amount ? Number(promo.min_purchase_amount) : undefined,
-        maxDiscountAmount: promo.max_discount_amount ? Number(promo.max_discount_amount) : undefined,
+        minPurchaseAmount: promo.min_purchase_amount
+          ? Number(promo.min_purchase_amount)
+          : undefined,
+        maxDiscountAmount: promo.max_discount_amount
+          ? Number(promo.max_discount_amount)
+          : undefined,
         applicablePlans: promo.applicable_plans || [],
         applicableBillingCycles: promo.applicable_billing_cycles || [],
         excludedPlans: promo.excluded_plans || [],
@@ -1338,7 +1414,7 @@ export class DynamicPricingService {
     try {
       const existing = await this.db('regional_pricing')
         .where('country_code', request.countryCode)
-        .where(function() {
+        .where(function () {
           if (request.regionCode) {
             this.where('region_code', request.regionCode);
           } else {
@@ -1349,13 +1425,18 @@ export class DynamicPricingService {
 
       const data: Record<string, unknown> = {};
       if (request.currencyCode !== undefined) data.currency_code = request.currencyCode;
-      if (request.purchasingPowerIndex !== undefined) data.purchasing_power_index = request.purchasingPowerIndex;
+      if (request.purchasingPowerIndex !== undefined)
+        data.purchasing_power_index = request.purchasingPowerIndex;
       if (request.priceMultiplier !== undefined) data.price_multiplier = request.priceMultiplier;
-      if (request.minPriceMultiplier !== undefined) data.min_price_multiplier = request.minPriceMultiplier;
-      if (request.maxPriceMultiplier !== undefined) data.max_price_multiplier = request.maxPriceMultiplier;
-      if (request.currencyConversionRate !== undefined) data.currency_conversion_rate = request.currencyConversionRate;
+      if (request.minPriceMultiplier !== undefined)
+        data.min_price_multiplier = request.minPriceMultiplier;
+      if (request.maxPriceMultiplier !== undefined)
+        data.max_price_multiplier = request.maxPriceMultiplier;
+      if (request.currencyConversionRate !== undefined)
+        data.currency_conversion_rate = request.currencyConversionRate;
       if (request.isActive !== undefined) data.is_active = request.isActive;
-      if (request.tierOverrides !== undefined) data.tier_overrides = JSON.stringify(request.tierOverrides);
+      if (request.tierOverrides !== undefined)
+        data.tier_overrides = JSON.stringify(request.tierOverrides);
       if (request.effectiveFrom !== undefined) data.effective_from = request.effectiveFrom;
       if (request.effectiveUntil !== undefined) data.effective_until = request.effectiveUntil;
       if (request.metadata !== undefined) data.metadata = JSON.stringify(request.metadata);
@@ -1491,13 +1572,10 @@ export class DynamicPricingService {
    */
   async startExperiment(experimentId: string): Promise<void> {
     try {
-      await this.db('price_experiments')
-        .where('id', experimentId)
-        .where('status', 'draft')
-        .update({
-          status: 'running',
-          starts_at: new Date(),
-        });
+      await this.db('price_experiments').where('id', experimentId).where('status', 'draft').update({
+        status: 'running',
+        starts_at: new Date(),
+      });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Error starting experiment:', { error: errorMessage, experimentId });
@@ -1625,15 +1703,17 @@ export class DynamicPricingService {
         .where('country_code', countryCode)
         .where('is_active', true)
         .where('effective_from', '<=', now)
-        .where(function() {
+        .where(function () {
           this.whereNull('effective_until').orWhere('effective_until', '>', now);
         })
         .orderBy('effective_from', 'desc');
 
       if (regionCode) {
-        query = query.where(function() {
-          this.where('region_code', regionCode).orWhereNull('region_code');
-        }).orderBy('region_code', 'desc');
+        query = query
+          .where(function () {
+            this.where('region_code', regionCode).orWhereNull('region_code');
+          })
+          .orderBy('region_code', 'desc');
       }
 
       const record = await query.first();
@@ -1667,7 +1747,7 @@ export class DynamicPricingService {
     try {
       const record = await this.db('personalized_pricing')
         .where('user_id', userId)
-        .where(function() {
+        .where(function () {
           this.whereNull('expires_at').orWhere('expires_at', '>', new Date());
         })
         .first();
@@ -1680,8 +1760,12 @@ export class DynamicPricingService {
         engagementScore: Number(record.engagement_score),
         conversionLikelihood: Number(record.conversion_likelihood),
         priceSensitivity: Number(record.price_sensitivity),
-        lifetimeValuePrediction: record.lifetime_value_prediction ? Number(record.lifetime_value_prediction) : undefined,
-        recommendedDiscount: record.recommended_discount ? Number(record.recommended_discount) : undefined,
+        lifetimeValuePrediction: record.lifetime_value_prediction
+          ? Number(record.lifetime_value_prediction)
+          : undefined,
+        recommendedDiscount: record.recommended_discount
+          ? Number(record.recommended_discount)
+          : undefined,
         userSegment: record.user_segment,
         tierRecommendations: record.tier_recommendations || [],
         behaviorFactors: record.behavior_factors || {},
@@ -1691,7 +1775,9 @@ export class DynamicPricingService {
         messagesSent: record.messages_sent,
         lastActiveAt: record.last_active_at ? new Date(record.last_active_at) : undefined,
         hasEverSubscribed: record.has_ever_subscribed,
-        lastSubscriptionEnd: record.last_subscription_end ? new Date(record.last_subscription_end) : undefined,
+        lastSubscriptionEnd: record.last_subscription_end
+          ? new Date(record.last_subscription_end)
+          : undefined,
         calculatedAt: new Date(record.calculated_at),
         expiresAt: record.expires_at ? new Date(record.expires_at) : undefined,
         metadata: record.metadata || {},
@@ -1712,10 +1798,10 @@ export class DynamicPricingService {
 
       const rules = await this.db('pricing_rules')
         .where('is_active', true)
-        .where(function() {
+        .where(function () {
           this.whereNull('starts_at').orWhere('starts_at', '<=', now);
         })
-        .where(function() {
+        .where(function () {
           this.whereNull('ends_at').orWhere('ends_at', '>', now);
         })
         .orderBy('priority', 'desc');
@@ -1786,7 +1872,7 @@ export class DynamicPricingService {
       if (subscription) {
         const monthsActive = Math.floor(
           (Date.now() - new Date(subscription.current_period_start).getTime()) /
-          (30 * 24 * 60 * 60 * 1000)
+            (30 * 24 * 60 * 60 * 1000)
         );
         if (monthsActive < conditions.minSubscriptionMonths) return false;
       } else {
@@ -1883,9 +1969,7 @@ export class DynamicPricingService {
 
     // Check has ever subscribed requirement
     if (rules.hasEverSubscribed !== undefined) {
-      const anySubscription = await this.db('user_subscriptions')
-        .where('user_id', userId)
-        .first();
+      const anySubscription = await this.db('user_subscriptions').where('user_id', userId).first();
 
       if (rules.hasEverSubscribed && !anySubscription) {
         return { valid: false, reason: 'Promotion requires previous subscription' };
@@ -1936,7 +2020,9 @@ export class DynamicPricingService {
     return true;
   }
 
-  private selectVariantByWeight<T extends { id: string; traffic_weight: number }>(variants: T[]): T {
+  private selectVariantByWeight<T extends { id: string; traffic_weight: number }>(
+    variants: T[]
+  ): T {
     const totalWeight = variants.reduce((sum, v) => sum + Number(v.traffic_weight), 0);
     let random = Math.random() * totalWeight;
 
@@ -2013,7 +2099,7 @@ export class DynamicPricingService {
     if (n1 === 0 || n2 === 0) return 1;
 
     const pooledP = (p1 * n1 + p2 * n2) / (n1 + n2);
-    const se = Math.sqrt(pooledP * (1 - pooledP) * (1/n1 + 1/n2));
+    const se = Math.sqrt(pooledP * (1 - pooledP) * (1 / n1 + 1 / n2));
 
     if (se === 0) return 1;
 
@@ -2024,18 +2110,18 @@ export class DynamicPricingService {
   }
 
   private normalCDF(x: number): number {
-    const a1 =  0.254829592;
+    const a1 = 0.254829592;
     const a2 = -0.284496736;
-    const a3 =  1.421413741;
+    const a3 = 1.421413741;
     const a4 = -1.453152027;
-    const a5 =  1.061405429;
-    const p  =  0.3275911;
+    const a5 = 1.061405429;
+    const p = 0.3275911;
 
     const sign = x < 0 ? -1 : 1;
     x = Math.abs(x) / Math.sqrt(2);
 
     const t = 1.0 / (1.0 + p * x);
-    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    const y = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
 
     return 0.5 * (1.0 + sign * y);
   }
@@ -2050,23 +2136,30 @@ export class DynamicPricingService {
     if (!isSignificant) {
       const totalParticipants = results.reduce((sum, r) => sum + r.participants, 0);
       if (totalParticipants < 1000) {
-        recommendations.push('Continue running the experiment to gather more data for statistical significance.');
+        recommendations.push(
+          'Continue running the experiment to gather more data for statistical significance.'
+        );
       } else {
-        recommendations.push('Consider extending the experiment duration or increasing traffic allocation.');
+        recommendations.push(
+          'Consider extending the experiment duration or increasing traffic allocation.'
+        );
       }
     }
 
     if (winner) {
-      recommendations.push(`Consider implementing the winning variant "${winner}" as the default pricing.`);
+      recommendations.push(
+        `Consider implementing the winning variant "${winner}" as the default pricing.`
+      );
     }
 
-    const bestRevenue = results.reduce((best, r) =>
-      r.revenuePerUser > best.revenuePerUser ? r : best
-    , results[0]);
+    const bestRevenue = results.reduce(
+      (best, r) => (r.revenuePerUser > best.revenuePerUser ? r : best),
+      results[0]
+    );
 
     if (bestRevenue && !bestRevenue.isControl) {
       recommendations.push(
-        `Variant "${bestRevenue.variantName}" shows ${((bestRevenue.revenuePerUser / results.find(r => r.isControl)!.revenuePerUser - 1) * 100).toFixed(1)}% higher revenue per user.`
+        `Variant "${bestRevenue.variantName}" shows ${((bestRevenue.revenuePerUser / results.find((r) => r.isControl).revenuePerUser - 1) * 100).toFixed(1)}% higher revenue per user.`
       );
     }
 
@@ -2094,15 +2187,17 @@ export class DynamicPricingService {
     return 'Personalized offer based on your activity';
   }
 
-  private async fetchUserBehaviorFactors(userId: string): Promise<BehaviorFactors & {
-    daysSinceSignup?: number;
-    totalSessions?: number;
-    matchesCount?: number;
-    messagesSent?: number;
-    lastActiveAt?: Date;
-    hasEverSubscribed?: boolean;
-    lastSubscriptionEnd?: Date;
-  }> {
+  private async fetchUserBehaviorFactors(userId: string): Promise<
+    BehaviorFactors & {
+      daysSinceSignup?: number;
+      totalSessions?: number;
+      matchesCount?: number;
+      messagesSent?: number;
+      lastActiveAt?: Date;
+      hasEverSubscribed?: boolean;
+      lastSubscriptionEnd?: Date;
+    }
+  > {
     // In a real implementation, this would fetch data from user-service
     // For now, return default values that would be populated by the user service
     return {
@@ -2134,7 +2229,7 @@ export class DynamicPricingService {
     const activityScore = Math.min(100, (factors.dailyActiveStreak || 0) * 5);
     score += activityScore * 0.2;
 
-    const sessionScore = Math.min(100, (factors.averageSessionDuration || 0) / 10 * 100);
+    const sessionScore = Math.min(100, ((factors.averageSessionDuration || 0) / 10) * 100);
     score += sessionScore * 0.2;
 
     // Interaction metrics (40%)

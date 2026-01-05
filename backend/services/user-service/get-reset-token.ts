@@ -1,13 +1,12 @@
 import knex from 'knex';
+
 import config from './src/infrastructure/database/knexfile';
 
 const db = knex(config.development);
 
 (async () => {
   try {
-    const users = await db('users')
-      .where('email', 'test.user@example.com')
-      .first();
+    const users = await db('users').where('email', 'test.user@example.com').first();
 
     if (!users) {
       console.log('User not found');
@@ -19,7 +18,7 @@ const db = knex(config.development);
       .where({
         user_id: users.id,
         type: 'password_reset',
-        is_used: false
+        is_used: false,
       })
       .orderBy('created_at', 'desc')
       .limit(1);

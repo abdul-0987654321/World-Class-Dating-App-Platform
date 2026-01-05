@@ -1,9 +1,10 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { createLogger } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
 import verificationRoutes from './api/routes/verification.routes';
 
 // Load environment variables
@@ -24,28 +25,30 @@ const allowedOrigins = process.env.CORS_ORIGINS?.split(',').filter(Boolean) || [
 if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
   logger.error('CRITICAL: CORS_ORIGINS not configured in production! Defaulting to strict mode.');
 }
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, server-to-server)
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-    // Check if origin is in allowed list
-    if (allowedOrigins.length === 0 && process.env.NODE_ENV !== 'production') {
-      // Development mode without explicit origins - allow all
-      callback(null, true);
-      return;
-    }
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, server-to-server)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      // Check if origin is in allowed list
+      if (allowedOrigins.length === 0 && process.env.NODE_ENV !== 'production') {
+        // Development mode without explicit origins - allow all
+        callback(null, true);
+        return;
+      }
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logger.warn(`CORS blocked request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -67,9 +70,9 @@ app.get('/health', async (req: Request, res: Response) => {
   };
 
   // Verify service URLs are configured (not actually calling them to avoid circular dependencies)
-  checks.servicesConfigured = Object.values(serviceUrls).every(url => url && url.length > 0);
+  checks.servicesConfigured = Object.values(serviceUrls).every((url) => url && url.length > 0);
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'api-gateway',

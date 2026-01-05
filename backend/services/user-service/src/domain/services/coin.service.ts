@@ -1,8 +1,12 @@
-import { CoinRepository } from '../repositories/coin.repository';
-import { CoinTransactionRepository } from '../repositories/coin-transaction.repository';
-import { CoinProductRepository } from '../repositories/coin-product.repository';
 import { Coin, hasEnoughCoins, COIN_PRICES } from '../entities/Coin.entity';
-import { TRANSACTION_TYPES, REFERENCE_TYPES, formatTransactionReason } from '../entities/CoinTransaction.entity';
+import {
+  TRANSACTION_TYPES,
+  REFERENCE_TYPES,
+  formatTransactionReason,
+} from '../entities/CoinTransaction.entity';
+import { CoinProductRepository } from '../repositories/coin-product.repository';
+import { CoinTransactionRepository } from '../repositories/coin-transaction.repository';
+import { CoinRepository } from '../repositories/coin.repository';
 
 export class CoinService {
   private coinRepository: CoinRepository;
@@ -168,7 +172,8 @@ export class CoinService {
     reason: string
   ): Promise<{ coin: Coin; transaction: any }> {
     // Get original transaction
-    const originalTransaction = await this.coinTransactionRepository.findById(originalTransactionId);
+    const originalTransaction =
+      await this.coinTransactionRepository.findById(originalTransactionId);
     if (!originalTransaction) {
       throw new Error('Original transaction not found');
     }
@@ -257,7 +262,10 @@ export class CoinService {
   /**
    * Spend coins on super like
    */
-  async spendCoinsOnSuperLike(userId: string, targetUserId: string): Promise<{ coin: Coin; transaction: any }> {
+  async spendCoinsOnSuperLike(
+    userId: string,
+    targetUserId: string
+  ): Promise<{ coin: Coin; transaction: any }> {
     return await this.spendCoins(
       userId,
       COIN_PRICES.SUPER_LIKE,
@@ -270,7 +278,10 @@ export class CoinService {
   /**
    * Spend coins on rewind
    */
-  async spendCoinsOnRewind(userId: string, swipeId: string): Promise<{ coin: Coin; transaction: any }> {
+  async spendCoinsOnRewind(
+    userId: string,
+    swipeId: string
+  ): Promise<{ coin: Coin; transaction: any }> {
     return await this.spendCoins(
       userId,
       COIN_PRICES.REWIND,
@@ -294,9 +305,7 @@ export class CoinService {
       limit: 100,
     });
 
-    const dailyReward = transactions.find(
-      t => t.referenceType === REFERENCE_TYPES.DAILY_REWARD
-    );
+    const dailyReward = transactions.find((t) => t.referenceType === REFERENCE_TYPES.DAILY_REWARD);
 
     if (dailyReward) {
       return null; // Already claimed today

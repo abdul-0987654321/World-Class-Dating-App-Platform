@@ -6,8 +6,10 @@
 
 import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
+
 import { RedisClient } from '../infrastructure/cache/redis';
 import { createLogger } from '../utils/logger';
+
 import { VideoCallService, CallSession } from './video-call.service';
 
 const logger = createLogger('webrtc-signaling-service');
@@ -115,11 +117,7 @@ export class WebRTCSignalingService {
   private readonly CALL_TIMEOUT_MS = 60000; // 60 seconds ring timeout
   private readonly MAX_CALL_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours max
 
-  constructor(
-    io: Server,
-    redis: RedisClient,
-    videoCallService: VideoCallService
-  ) {
+  constructor(io: Server, redis: RedisClient, videoCallService: VideoCallService) {
     this.io = io;
     this.redis = redis;
     this.videoCallService = videoCallService;
@@ -215,114 +213,143 @@ export class WebRTCSignalingService {
     logger.info('User connected for WebRTC signaling', { userId, socketId: socket.id });
 
     // Handle call offer (initiating a call)
-    socket.on('call:offer', async (data: {
-      calleeId: string;
-      calleeName: string;
-      callType: 'video' | 'audio';
-      sdp: RTCSessionDescriptionInit;
-    }, callback: (response: any) => void) => {
-      try {
-        const result = await this.handleCallOffer(socket, userId, data);
-        callback(result);
-      } catch (error: any) {
-        logger.error('Error handling call:offer', { error, userId });
-        callback({ success: false, error: error.message || 'Failed to initiate call' });
+    socket.on(
+      'call:offer',
+      async (
+        data: {
+          calleeId: string;
+          calleeName: string;
+          callType: 'video' | 'audio';
+          sdp: RTCSessionDescriptionInit;
+        },
+        callback: (response: any) => void
+      ) => {
+        try {
+          const result = await this.handleCallOffer(socket, userId, data);
+          callback(result);
+        } catch (error: any) {
+          logger.error('Error handling call:offer', { error, userId });
+          callback({ success: false, error: error.message || 'Failed to initiate call' });
+        }
       }
-    });
+    );
 
     // Handle call answer (accepting a call)
-    socket.on('call:answer', async (data: {
-      callId: string;
-      sdp: RTCSessionDescriptionInit;
-    }, callback: (response: any) => void) => {
-      try {
-        const result = await this.handleCallAnswer(socket, userId, data);
-        callback(result);
-      } catch (error: any) {
-        logger.error('Error handling call:answer', { error, userId });
-        callback({ success: false, error: error.message || 'Failed to answer call' });
+    socket.on(
+      'call:answer',
+      async (
+        data: {
+          callId: string;
+          sdp: RTCSessionDescriptionInit;
+        },
+        callback: (response: any) => void
+      ) => {
+        try {
+          const result = await this.handleCallAnswer(socket, userId, data);
+          callback(result);
+        } catch (error: any) {
+          logger.error('Error handling call:answer', { error, userId });
+          callback({ success: false, error: error.message || 'Failed to answer call' });
+        }
       }
-    });
+    );
 
     // Handle call rejection
-    socket.on('call:reject', async (data: {
-      callId: string;
-      reason?: string;
-    }, callback: (response: any) => void) => {
-      try {
-        const result = await this.handleCallReject(socket, userId, data);
-        callback(result);
-      } catch (error: any) {
-        logger.error('Error handling call:reject', { error, userId });
-        callback({ success: false, error: error.message || 'Failed to reject call' });
+    socket.on(
+      'call:reject',
+      async (
+        data: {
+          callId: string;
+          reason?: string;
+        },
+        callback: (response: any) => void
+      ) => {
+        try {
+          const result = await this.handleCallReject(socket, userId, data);
+          callback(result);
+        } catch (error: any) {
+          logger.error('Error handling call:reject', { error, userId });
+          callback({ success: false, error: error.message || 'Failed to reject call' });
+        }
       }
-    });
+    );
 
     // Handle call hangup
-    socket.on('call:hangup', async (data: {
-      callId: string;
-      reason?: string;
-      duration?: number;
-    }, callback: (response: any) => void) => {
-      try {
-        const result = await this.handleCallHangup(socket, userId, data);
-        callback(result);
-      } catch (error: any) {
-        logger.error('Error handling call:hangup', { error, userId });
-        callback({ success: false, error: error.message || 'Failed to end call' });
+    socket.on(
+      'call:hangup',
+      async (
+        data: {
+          callId: string;
+          reason?: string;
+          duration?: number;
+        },
+        callback: (response: any) => void
+      ) => {
+        try {
+          const result = await this.handleCallHangup(socket, userId, data);
+          callback(result);
+        } catch (error: any) {
+          logger.error('Error handling call:hangup', { error, userId });
+          callback({ success: false, error: error.message || 'Failed to end call' });
+        }
       }
-    });
+    );
 
     // Handle ICE candidate
-    socket.on('call:ice-candidate', async (data: {
-      callId: string;
-      candidate: RTCIceCandidateInit;
-    }) => {
-      try {
-        await this.handleIceCandidate(socket, userId, data);
-      } catch (error) {
-        logger.error('Error handling call:ice-candidate', { error, userId });
+    socket.on(
+      'call:ice-candidate',
+      async (data: { callId: string; candidate: RTCIceCandidateInit }) => {
+        try {
+          await this.handleIceCandidate(socket, userId, data);
+        } catch (error) {
+          logger.error('Error handling call:ice-candidate', { error, userId });
+        }
       }
-    });
+    );
 
     // Handle media toggle (mute/unmute audio/video)
-    socket.on('call:media-toggle', async (data: {
-      callId: string;
-      audio: boolean;
-      video: boolean;
-    }) => {
-      try {
-        await this.handleMediaToggle(socket, userId, data);
-      } catch (error) {
-        logger.error('Error handling call:media-toggle', { error, userId });
+    socket.on(
+      'call:media-toggle',
+      async (data: { callId: string; audio: boolean; video: boolean }) => {
+        try {
+          await this.handleMediaToggle(socket, userId, data);
+        } catch (error) {
+          logger.error('Error handling call:media-toggle', { error, userId });
+        }
       }
-    });
+    );
 
     // Handle call renegotiation (for adding/removing tracks)
-    socket.on('call:renegotiate', async (data: {
-      callId: string;
-      sdp: RTCSessionDescriptionInit;
-    }, callback: (response: any) => void) => {
-      try {
-        const result = await this.handleRenegotiation(socket, userId, data);
-        callback(result);
-      } catch (error: any) {
-        logger.error('Error handling call:renegotiate', { error, userId });
-        callback({ success: false, error: error.message || 'Failed to renegotiate' });
+    socket.on(
+      'call:renegotiate',
+      async (
+        data: {
+          callId: string;
+          sdp: RTCSessionDescriptionInit;
+        },
+        callback: (response: any) => void
+      ) => {
+        try {
+          const result = await this.handleRenegotiation(socket, userId, data);
+          callback(result);
+        } catch (error: any) {
+          logger.error('Error handling call:renegotiate', { error, userId });
+          callback({ success: false, error: error.message || 'Failed to renegotiate' });
+        }
       }
-    });
+    );
 
     // Handle call quality report
-    socket.on('call:quality-report', async (data: {
-      callId: string;
-      report: CallQualityReport;
-    }) => {
-      try {
-        await this.handleQualityReport(socket, userId, data);
-      } catch (error) {
-        logger.error('Error handling call:quality-report', { error, userId });
+    socket.on(
+      'call:quality-report',
+      async (data: { callId: string; report: CallQualityReport }) => {
+        try {
+          await this.handleQualityReport(socket, userId, data);
+        } catch (error) {
+          logger.error('Error handling call:quality-report', { error, userId });
+        }
       }
-    });
+    );
 
     // Handle disconnect
     socket.on('disconnect', async () => {
@@ -536,9 +563,8 @@ export class WebRTCSignalingService {
     await this.videoCallService.endCall(callId, userId, duration);
 
     // Notify other participant
-    const otherUserId = callSession.callerId === userId
-      ? callSession.calleeId
-      : callSession.callerId;
+    const otherUserId =
+      callSession.callerId === userId ? callSession.calleeId : callSession.callerId;
     const otherSocketId = this.connectedUsers.get(otherUserId);
 
     if (otherSocketId) {
@@ -581,9 +607,8 @@ export class WebRTCSignalingService {
     }
 
     // Forward ICE candidate to other participant
-    const otherUserId = callSession.callerId === userId
-      ? callSession.calleeId
-      : callSession.callerId;
+    const otherUserId =
+      callSession.callerId === userId ? callSession.calleeId : callSession.callerId;
     const otherSocketId = this.connectedUsers.get(otherUserId);
 
     if (otherSocketId) {
@@ -620,9 +645,8 @@ export class WebRTCSignalingService {
     if (!callSession) return;
 
     // Forward to other participant
-    const otherUserId = callSession.callerId === userId
-      ? callSession.calleeId
-      : callSession.callerId;
+    const otherUserId =
+      callSession.callerId === userId ? callSession.calleeId : callSession.callerId;
     const otherSocketId = this.connectedUsers.get(otherUserId);
 
     if (otherSocketId) {
@@ -654,9 +678,8 @@ export class WebRTCSignalingService {
     }
 
     // Forward renegotiation to other participant
-    const otherUserId = callSession.callerId === userId
-      ? callSession.calleeId
-      : callSession.callerId;
+    const otherUserId =
+      callSession.callerId === userId ? callSession.calleeId : callSession.callerId;
     const otherSocketId = this.connectedUsers.get(otherUserId);
 
     if (otherSocketId) {
@@ -714,16 +737,15 @@ export class WebRTCSignalingService {
 
       const session: CallSession = JSON.parse(sessionData);
 
-      if ((session.callerId === userId || session.calleeId === userId) &&
-          (session.status === 'connected' || session.status === 'ringing')) {
-
+      if (
+        (session.callerId === userId || session.calleeId === userId) &&
+        (session.status === 'connected' || session.status === 'ringing')
+      ) {
         // End the call
         await this.videoCallService.endCall(session.callId, userId);
 
         // Notify other participant
-        const otherUserId = session.callerId === userId
-          ? session.calleeId
-          : session.callerId;
+        const otherUserId = session.callerId === userId ? session.calleeId : session.callerId;
         const otherSocketId = this.connectedUsers.get(otherUserId);
 
         if (otherSocketId) {

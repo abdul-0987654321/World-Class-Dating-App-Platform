@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response, NextFunction } from 'express';
 
 const logger = createLogger('automation-service:service-auth');
 
@@ -42,7 +43,10 @@ export const authenticateService = (
 
   // Validate service key is provided
   if (!serviceKey) {
-    logger.warn('Authentication failed: Missing X-Service-Key header', { method: req.method, path: req.path });
+    logger.warn('Authentication failed: Missing X-Service-Key header', {
+      method: req.method,
+      path: req.path,
+    });
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -53,7 +57,10 @@ export const authenticateService = (
 
   // Validate request ID
   if (!requestId) {
-    logger.warn('Authentication failed: Missing X-Request-ID header', { method: req.method, path: req.path });
+    logger.warn('Authentication failed: Missing X-Request-ID header', {
+      method: req.method,
+      path: req.path,
+    });
     return res.status(401).json({
       success: false,
       error: 'Request ID required',
@@ -66,7 +73,11 @@ export const authenticateService = (
   const isValid = timingSafeEqual(serviceKey, expectedKey);
 
   if (!isValid) {
-    logger.warn('Authentication failed: Invalid service key', { sourceService: sourceService || 'unknown', method: req.method, path: req.path });
+    logger.warn('Authentication failed: Invalid service key', {
+      sourceService: sourceService || 'unknown',
+      method: req.method,
+      path: req.path,
+    });
     return res.status(403).json({
       success: false,
       error: 'Invalid service credentials',
@@ -81,7 +92,13 @@ export const authenticateService = (
 
   // Log successful authentication
   const duration = Date.now() - startTime;
-  logger.info('Service authenticated', { serviceId: req.serviceId, method: req.method, path: req.path, requestId: req.requestId, duration });
+  logger.info('Service authenticated', {
+    serviceId: req.serviceId,
+    method: req.method,
+    path: req.path,
+    requestId: req.requestId,
+    duration,
+  });
 
   // Continue to next middleware
   next();

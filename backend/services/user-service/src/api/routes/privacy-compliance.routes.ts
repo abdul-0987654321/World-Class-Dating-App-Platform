@@ -1,13 +1,13 @@
-import { Router } from 'express';
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
+import Joi from 'joi';
+
+import db from '../../infrastructure/database/connection';
+import { CCPAComplianceService } from '../../services/ccpa-compliance.service';
+import { ConsentManagementService } from '../../services/consent-management.service';
+import { GDPRComplianceService } from '../../services/gdpr-compliance.service';
+import logger from '../../utils/logger';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
-import Joi from 'joi';
-import db from '../../infrastructure/database/connection';
-import { GDPRComplianceService } from '../../services/gdpr-compliance.service';
-import { ConsentManagementService } from '../../services/consent-management.service';
-import { CCPAComplianceService } from '../../services/ccpa-compliance.service';
-import logger from '../../utils/logger';
 
 const router = Router();
 
@@ -48,7 +48,7 @@ const deletionCancellationSchema = Joi.object({
  */
 router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     // Get consents
     const consents = await consentService.getUserConsents(userId);
@@ -97,7 +97,7 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/consents', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const consentTypes = await consentService.getAllConsentTypes(userId);
 
     res.json({
@@ -128,7 +128,7 @@ router.post(
   validate(consentSchema),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { consentType, consentGiven } = req.body;
       const ipAddress = req.ip;
       const userAgent = req.headers['user-agent'];
@@ -168,7 +168,7 @@ router.post(
   validate(bulkConsentSchema),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { consents } = req.body;
       const ipAddress = req.ip;
       const userAgent = req.headers['user-agent'];
@@ -203,7 +203,7 @@ router.post(
  */
 router.get('/consents/history', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { consentType } = req.query;
 
     const history = await consentService.getConsentHistory(
@@ -233,7 +233,7 @@ router.get('/consents/history', authenticate, async (req: Request, res: Response
  */
 router.post('/data-export/request', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const exportRequest = await gdprService.requestDataExport(userId);
 
@@ -260,7 +260,7 @@ router.post('/data-export/request', authenticate, async (req: Request, res: Resp
  */
 router.get('/data-export/status/:requestId', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { requestId } = req.params;
 
     const exportRequest = await gdprService.getExportRequestStatus(requestId, userId);
@@ -292,61 +292,65 @@ router.get('/data-export/status/:requestId', authenticate, async (req: Request, 
  *     summary: Download data export
  *     tags: [Privacy & Compliance]
  */
-router.get('/data-export/download/:requestId', authenticate, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { requestId } = req.params;
+router.get(
+  '/data-export/download/:requestId',
+  authenticate,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { requestId } = req.params;
 
-    const exportRequest = await gdprService.getExportRequestStatus(requestId, userId);
+      const exportRequest = await gdprService.getExportRequestStatus(requestId, userId);
 
-    if (!exportRequest) {
-      return res.status(404).json({
+      if (!exportRequest) {
+        return res.status(404).json({
+          success: false,
+          message: 'Export request not found',
+        });
+      }
+
+      if (exportRequest.status !== 'completed') {
+        return res.status(400).json({
+          success: false,
+          message: 'Export is not ready yet',
+        });
+      }
+
+      if (!exportRequest.file_path) {
+        return res.status(404).json({
+          success: false,
+          message: 'Export file not found',
+        });
+      }
+
+      // Check if expired
+      if (exportRequest.expires_at && new Date() > new Date(exportRequest.expires_at)) {
+        return res.status(410).json({
+          success: false,
+          message: 'Export has expired',
+        });
+      }
+
+      // Log data access
+      await ccpaService.logDataAccess(
+        userId,
+        'export',
+        'all_categories',
+        userId,
+        'User data export download',
+        req.ip
+      );
+
+      res.download(exportRequest.file_path);
+    } catch (error) {
+      logger.error(`Failed to download export: ${error}`);
+      res.status(500).json({
         success: false,
-        message: 'Export request not found',
+        message: 'Failed to download export',
       });
     }
-
-    if (exportRequest.status !== 'completed') {
-      return res.status(400).json({
-        success: false,
-        message: 'Export is not ready yet',
-      });
-    }
-
-    if (!exportRequest.file_path) {
-      return res.status(404).json({
-        success: false,
-        message: 'Export file not found',
-      });
-    }
-
-    // Check if expired
-    if (exportRequest.expires_at && new Date() > new Date(exportRequest.expires_at)) {
-      return res.status(410).json({
-        success: false,
-        message: 'Export has expired',
-      });
-    }
-
-    // Log data access
-    await ccpaService.logDataAccess(
-      userId,
-      'export',
-      'all_categories',
-      userId,
-      'User data export download',
-      req.ip
-    );
-
-    res.download(exportRequest.file_path);
-  } catch (error) {
-    logger.error(`Failed to download export: ${error}`);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download export',
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -357,15 +361,11 @@ router.get('/data-export/download/:requestId', authenticate, async (req: Request
  */
 router.post('/account-deletion/request', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const ipAddress = req.ip;
     const userAgent = req.headers['user-agent'];
 
-    const deletionRequest = await gdprService.requestAccountDeletion(
-      userId,
-      ipAddress,
-      userAgent
-    );
+    const deletionRequest = await gdprService.requestAccountDeletion(userId, ipAddress, userAgent);
 
     res.json({
       success: true,
@@ -397,7 +397,7 @@ router.post(
   validate(deletionCancellationSchema),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { cancellationToken } = req.body;
 
       const cancelled = await gdprService.cancelAccountDeletion(userId, cancellationToken);
@@ -429,7 +429,7 @@ router.post(
   validate(optOutSchema),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { optOutType } = req.body;
       const ipAddress = req.ip;
       const userAgent = req.headers['user-agent'];
@@ -475,17 +475,12 @@ router.post(
   validate(optOutSchema),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { optOutType } = req.body;
       const ipAddress = req.ip;
       const userAgent = req.headers['user-agent'];
 
-      const optOut = await ccpaService.optInToDataUse(
-        userId,
-        optOutType,
-        ipAddress,
-        userAgent
-      );
+      const optOut = await ccpaService.optInToDataUse(userId, optOutType, ipAddress, userAgent);
 
       res.json({
         success: true,
@@ -511,7 +506,7 @@ router.post(
  */
 router.get('/ccpa/data-disclosure', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const disclosure = await ccpaService.getDataDisclosure(userId);
 
@@ -537,7 +532,7 @@ router.get('/ccpa/data-disclosure', authenticate, async (req: Request, res: Resp
  */
 router.get('/ccpa/access-logs', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -565,7 +560,7 @@ router.get('/ccpa/access-logs', authenticate, async (req: Request, res: Response
  */
 router.get('/ccpa/do-not-sell', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const info = await ccpaService.handleDoNotSellLink(userId);
 
@@ -591,7 +586,7 @@ router.get('/ccpa/do-not-sell', authenticate, async (req: Request, res: Response
  */
 router.get('/ccpa/compliance-status', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const status = await ccpaService.getComplianceStatus(userId);
 

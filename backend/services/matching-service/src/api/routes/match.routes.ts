@@ -1,8 +1,9 @@
 import { Router } from 'express';
+
+import { GetMatchesQueryDto, RecentMatchesQueryDto } from '../../dto';
 import matchController from '../controllers/match.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validateQuery } from '../middleware/validation.middleware';
-import { GetMatchesQueryDto, RecentMatchesQueryDto } from '../../dto';
 
 const router = Router();
 
@@ -10,10 +11,18 @@ const router = Router();
 router.use(authenticate);
 
 // GET /api/matches - Get all matches
-router.get('/', validateQuery(GetMatchesQueryDto), matchController.getMatches.bind(matchController));
+router.get(
+  '/',
+  validateQuery(GetMatchesQueryDto),
+  matchController.getMatches.bind(matchController)
+);
 
 // GET /api/matches/recent - Get recent matches
-router.get('/recent', validateQuery(RecentMatchesQueryDto), matchController.getRecentMatches.bind(matchController));
+router.get(
+  '/recent',
+  validateQuery(RecentMatchesQueryDto),
+  matchController.getRecentMatches.bind(matchController)
+);
 
 // GET /api/matches/count - Get match count
 router.get('/count', matchController.getMatchCount.bind(matchController));

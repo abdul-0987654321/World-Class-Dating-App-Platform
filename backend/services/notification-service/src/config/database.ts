@@ -2,9 +2,10 @@
  * Database Connection Configuration
  */
 
-import knex from 'knex';
-import { config } from './index';
 import { createLogger } from '@flamoral/backend-shared';
+import knex from 'knex';
+
+import { config } from './index';
 
 const logger = createLogger('database');
 

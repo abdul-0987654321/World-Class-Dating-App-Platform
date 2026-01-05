@@ -35,7 +35,17 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('plan_id').notNullable().references('id').inTable('subscription_plans');
     table.string('stripe_subscription_id', 100).unique();
     table.string('stripe_customer_id', 100);
-    table.enum('status', ['active', 'canceled', 'past_due', 'unpaid', 'trialing', 'incomplete', 'incomplete_expired']).defaultTo('active');
+    table
+      .enum('status', [
+        'active',
+        'canceled',
+        'past_due',
+        'unpaid',
+        'trialing',
+        'incomplete',
+        'incomplete_expired',
+      ])
+      .defaultTo('active');
     table.enum('billing_cycle', ['monthly', 'yearly']).defaultTo('monthly');
     table.timestamp('current_period_start');
     table.timestamp('current_period_end');
@@ -83,8 +93,21 @@ export async function up(knex: Knex): Promise<void> {
     table.string('stripe_payment_intent_id', 100);
     table.string('stripe_invoice_id', 100);
     table.string('stripe_charge_id', 100);
-    table.enum('type', ['subscription', 'one_time', 'coin_purchase', 'boost_purchase', 'refund']).notNullable();
-    table.enum('status', ['pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded', 'partially_refunded', 'disputed']).defaultTo('pending');
+    table
+      .enum('type', ['subscription', 'one_time', 'coin_purchase', 'boost_purchase', 'refund'])
+      .notNullable();
+    table
+      .enum('status', [
+        'pending',
+        'processing',
+        'succeeded',
+        'failed',
+        'canceled',
+        'refunded',
+        'partially_refunded',
+        'disputed',
+      ])
+      .defaultTo('pending');
     table.decimal('amount', 10, 2).notNullable();
     table.string('currency', 3).defaultTo('USD');
     table.text('description');
@@ -140,7 +163,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('stripe_event_id', 100).unique().notNullable();
     table.string('event_type', 100).notNullable();
     table.jsonb('payload').notNullable();
-    table.enum('status', ['pending', 'processed', 'failed', 'permanently_failed']).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'processed', 'failed', 'permanently_failed'])
+      .defaultTo('pending');
     table.text('error_message');
     table.integer('retry_count').defaultTo(0);
     table.timestamp('processed_at');
@@ -231,7 +256,14 @@ export async function up(knex: Knex): Promise<void> {
   await knex('coin_packages').insert([
     { name: '10 Coins', coin_amount: 10, price: 4.99, bonus_coins: 0, sort_order: 0 },
     { name: '25 Coins', coin_amount: 25, price: 9.99, bonus_coins: 2, sort_order: 1 },
-    { name: '50 Coins', coin_amount: 50, price: 17.99, bonus_coins: 5, is_popular: true, sort_order: 2 },
+    {
+      name: '50 Coins',
+      coin_amount: 50,
+      price: 17.99,
+      bonus_coins: 5,
+      is_popular: true,
+      sort_order: 2,
+    },
     { name: '100 Coins', coin_amount: 100, price: 29.99, bonus_coins: 15, sort_order: 3 },
     { name: '250 Coins', coin_amount: 250, price: 59.99, bonus_coins: 50, sort_order: 4 },
   ]);

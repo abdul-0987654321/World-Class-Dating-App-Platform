@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { SwipeService } from '../../domain/services/swipe.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class SwipeController {
   private swipeService: SwipeService;
@@ -23,7 +24,7 @@ export class SwipeController {
 
   async like(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { target_user_id } = req.body;
 
       if (!target_user_id) {
@@ -39,7 +40,7 @@ export class SwipeController {
 
       return res.status(200).json({
         success: true,
-        message: result.is_match ? 'It\'s a match!' : 'Like sent',
+        message: result.is_match ? "It's a match!" : 'Like sent',
         data: result,
       });
     } catch (error: any) {
@@ -63,7 +64,7 @@ export class SwipeController {
 
   async pass(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { target_user_id } = req.body;
 
       if (!target_user_id) {
@@ -91,7 +92,7 @@ export class SwipeController {
 
   async superLike(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { target_user_id } = req.body;
 
       if (!target_user_id) {
@@ -107,7 +108,7 @@ export class SwipeController {
 
       return res.status(200).json({
         success: true,
-        message: result.is_match ? 'It\'s a match!' : 'Super Like sent',
+        message: result.is_match ? "It's a match!" : 'Super Like sent',
         data: result,
       });
     } catch (error: any) {
@@ -131,7 +132,7 @@ export class SwipeController {
 
   async getLikesReceived(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const limit = parseInt(req.query.limit as string) || 50;
 
       const likes = await this.swipeService.getLikesReceived(userId, limit);
@@ -151,7 +152,7 @@ export class SwipeController {
 
   async getSuperLikesReceived(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const superLikes = await this.swipeService.getSuperLikesReceived(userId);
 
@@ -170,7 +171,7 @@ export class SwipeController {
 
   async getSwipeStats(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const stats = await this.swipeService.getSwipeStats(userId);
 
@@ -186,5 +187,4 @@ export class SwipeController {
       });
     }
   }
-
 }

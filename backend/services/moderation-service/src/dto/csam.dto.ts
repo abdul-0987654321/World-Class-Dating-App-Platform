@@ -6,6 +6,7 @@
  * as they are generated server-side.
  */
 
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsUUID,
@@ -17,7 +18,6 @@ import {
   IsObject,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * DTO for POST /api/csam/detect

@@ -17,9 +17,7 @@
 
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticate } from '../middleware/auth.middleware';
-import { validateBody, validateParams, validateQuery } from '../middleware/validation.middleware';
-import lookalikeController from '../controllers/lookalike.controller';
+
 import {
   LookalikeSearchDto,
   StoreEmbeddingDto,
@@ -28,6 +26,9 @@ import {
   AnalyzeImageDto,
 } from '../../dto/lookalike.dto';
 import { LOOKALIKE_CONFIG } from '../../types/lookalike.types';
+import lookalikeController from '../controllers/lookalike.controller';
+import { authenticate } from '../middleware/auth.middleware';
+import { validateBody, validateParams, validateQuery } from '../middleware/validation.middleware';
 
 const router = Router();
 
@@ -333,10 +334,7 @@ router.post(
  *                     count:
  *                       type: integer
  */
-router.get(
-  '/embeddings',
-  lookalikeController.getEmbeddings.bind(lookalikeController)
-);
+router.get('/embeddings', lookalikeController.getEmbeddings.bind(lookalikeController));
 
 /**
  * @swagger
@@ -424,10 +422,7 @@ router.delete(
  *                     featureAvailable:
  *                       type: boolean
  */
-router.get(
-  '/rate-limit',
-  lookalikeController.getRateLimitStatus.bind(lookalikeController)
-);
+router.get('/rate-limit', lookalikeController.getRateLimitStatus.bind(lookalikeController));
 
 /**
  * @swagger

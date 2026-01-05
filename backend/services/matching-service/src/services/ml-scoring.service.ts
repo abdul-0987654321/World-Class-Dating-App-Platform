@@ -63,20 +63,20 @@ class MLScoringService {
       // Calculate weighted overall score
       const weights = {
         profileCompatibility: 0.25,
-        interestAlignment: 0.20,
-        behavioralMatch: 0.20,
+        interestAlignment: 0.2,
+        behavioralMatch: 0.2,
         locationFit: 0.15,
-        activityPattern: 0.10,
-        conversationLikelihood: 0.10,
+        activityPattern: 0.1,
+        conversationLikelihood: 0.1,
       };
 
       const overallScore = Math.round(
         breakdown.profileCompatibility * weights.profileCompatibility +
-        breakdown.interestAlignment * weights.interestAlignment +
-        breakdown.behavioralMatch * weights.behavioralMatch +
-        breakdown.locationFit * weights.locationFit +
-        breakdown.activityPattern * weights.activityPattern +
-        breakdown.conversationLikelihood * weights.conversationLikelihood
+          breakdown.interestAlignment * weights.interestAlignment +
+          breakdown.behavioralMatch * weights.behavioralMatch +
+          breakdown.locationFit * weights.locationFit +
+          breakdown.activityPattern * weights.activityPattern +
+          breakdown.conversationLikelihood * weights.conversationLikelihood
       );
 
       // Generate reasons
@@ -252,7 +252,7 @@ class MLScoringService {
     }
 
     // Calculate Jaccard similarity
-    const intersection = new Set([...userInterests].filter(x => targetInterests.has(x)));
+    const intersection = new Set([...userInterests].filter((x) => targetInterests.has(x)));
     const union = new Set([...userInterests, ...targetInterests]);
 
     const similarity = intersection.size / union.size;
@@ -378,14 +378,14 @@ class MLScoringService {
     // Haversine formula
     const R = 6371; // Earth's radius in km
 
-    const lat1 = loc1.latitude * Math.PI / 180;
-    const lat2 = loc2.latitude * Math.PI / 180;
-    const deltaLat = (loc2.latitude - loc1.latitude) * Math.PI / 180;
-    const deltaLon = (loc2.longitude - loc1.longitude) * Math.PI / 180;
+    const lat1 = (loc1.latitude * Math.PI) / 180;
+    const lat2 = (loc2.latitude * Math.PI) / 180;
+    const deltaLat = ((loc2.latitude - loc1.latitude) * Math.PI) / 180;
+    const deltaLon = ((loc2.longitude - loc1.longitude) * Math.PI) / 180;
 
-    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) *
-      Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -405,7 +405,7 @@ class MLScoringService {
    */
   private getProfileCompleteness(profile: any): number {
     const requiredFields = ['age', 'location', 'interests', 'education', 'occupation'];
-    const filledFields = requiredFields.filter(field => profile[field]).length;
+    const filledFields = requiredFields.filter((field) => profile[field]).length;
     return filledFields / requiredFields.length;
   }
 

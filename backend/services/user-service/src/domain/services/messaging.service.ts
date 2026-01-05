@@ -1,13 +1,10 @@
-import { ConversationRepository } from '../repositories/conversation.repository';
-import { MessageRepository } from '../repositories/message.repository';
-import { MatchRepository } from '../repositories/match.repository';
-import { UserRepository } from '../repositories/user.repository';
-import { PhotoRepository } from '../repositories/photo.repository';
-import {
-  ConversationResponse,
-  CreateConversationDto,
-} from '../entities/Conversation.entity';
+import { ConversationResponse, CreateConversationDto } from '../entities/Conversation.entity';
 import { MessageResponse, SendMessageDto } from '../entities/Message.entity';
+import { ConversationRepository } from '../repositories/conversation.repository';
+import { MatchRepository } from '../repositories/match.repository';
+import { MessageRepository } from '../repositories/message.repository';
+import { PhotoRepository } from '../repositories/photo.repository';
+import { UserRepository } from '../repositories/user.repository';
 
 export class MessagingService {
   private conversationRepo: ConversationRepository;
@@ -33,10 +30,7 @@ export class MessagingService {
   /**
    * Get or create a conversation between two users
    */
-  async getOrCreateConversation(
-    user1Id: string,
-    user2Id: string
-  ): Promise<ConversationResponse> {
+  async getOrCreateConversation(user1Id: string, user2Id: string): Promise<ConversationResponse> {
     // Check if conversation already exists
     let conversation = await this.conversationRepo.findByUserIds(user1Id, user2Id);
 
@@ -111,10 +105,7 @@ export class MessagingService {
   /**
    * Send a message
    */
-  async sendMessage(
-    senderId: string,
-    data: SendMessageDto
-  ): Promise<MessageResponse> {
+  async sendMessage(senderId: string, data: SendMessageDto): Promise<MessageResponse> {
     const { receiver_id, content } = data;
 
     if (!content || content.trim().length === 0) {
@@ -158,11 +149,7 @@ export class MessagingService {
       throw new Error('Unauthorized to access this conversation');
     }
 
-    const messages = await this.messageRepo.findByConversationId(
-      conversationId,
-      limit,
-      offset
-    );
+    const messages = await this.messageRepo.findByConversationId(conversationId, limit, offset);
 
     return messages.map(this.mapMessageToResponse);
   }
@@ -216,9 +203,7 @@ export class MessagingService {
     currentUserId: string
   ): Promise<ConversationResponse> {
     const otherUserId =
-      conversation.user1_id === currentUserId
-        ? conversation.user2_id
-        : conversation.user1_id;
+      conversation.user1_id === currentUserId ? conversation.user2_id : conversation.user1_id;
 
     const otherUser = await this.userRepo.findById(otherUserId);
 

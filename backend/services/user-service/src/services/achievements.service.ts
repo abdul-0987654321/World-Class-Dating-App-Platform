@@ -4,6 +4,7 @@
  */
 
 import { Pool } from 'pg';
+
 import {
   Achievement,
   CreateAchievementDTO,
@@ -12,6 +13,10 @@ import {
   RequirementType,
 } from '../domain/entities/Achievement.entity';
 import {
+  CreateAchievementProgressEventDTO,
+  AchievementProgressEvent,
+} from '../domain/entities/AchievementProgressEvent.entity';
+import {
   UserAchievement,
   UserAchievementWithDetails,
   CreateUserAchievementDTO,
@@ -19,10 +24,6 @@ import {
   AchievementProgressUpdate,
   UserAchievementStats,
 } from '../domain/entities/UserAchievement.entity';
-import {
-  CreateAchievementProgressEventDTO,
-  AchievementProgressEvent,
-} from '../domain/entities/AchievementProgressEvent.entity';
 
 export interface AchievementUnlockResult {
   unlocked: boolean;
@@ -141,7 +142,10 @@ export class AchievementsService {
   /**
    * Update achievement (admin only)
    */
-  async updateAchievement(achievementId: string, updates: Record<string, any>): Promise<Achievement | null> {
+  async updateAchievement(
+    achievementId: string,
+    updates: Record<string, any>
+  ): Promise<Achievement | null> {
     const setClauses: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -274,7 +278,10 @@ export class AchievementsService {
   /**
    * Get user's achievements with details
    */
-  async getUserAchievements(userId: string, includeHidden = false): Promise<UserAchievementWithDetails[]> {
+  async getUserAchievements(
+    userId: string,
+    includeHidden = false
+  ): Promise<UserAchievementWithDetails[]> {
     const query = `
       SELECT
         ua.*,
@@ -337,7 +344,11 @@ export class AchievementsService {
   /**
    * Toggle achievement showcase on profile
    */
-  async toggleAchievementShowcase(userId: string, achievementId: string, show: boolean): Promise<boolean> {
+  async toggleAchievementShowcase(
+    userId: string,
+    achievementId: string,
+    show: boolean
+  ): Promise<boolean> {
     // Check current showcase count
     if (show) {
       const countResult = await this.db.query(
@@ -463,7 +474,10 @@ export class AchievementsService {
   /**
    * Unlock an achievement and grant rewards
    */
-  private async unlockAchievement(userId: string, achievementId: string): Promise<AchievementUnlockResult> {
+  private async unlockAchievement(
+    userId: string,
+    achievementId: string
+  ): Promise<AchievementUnlockResult> {
     const achievement = await this.getAchievementById(achievementId);
 
     if (!achievement) {
@@ -534,7 +548,10 @@ export class AchievementsService {
   /**
    * Update user achievement
    */
-  private async updateUserAchievement(userAchievementId: string, updates: UpdateUserAchievementDTO): Promise<void> {
+  private async updateUserAchievement(
+    userAchievementId: string,
+    updates: UpdateUserAchievementDTO
+  ): Promise<void> {
     const setClauses: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -588,7 +605,9 @@ export class AchievementsService {
   /**
    * Log progress event
    */
-  private async logProgressEvent(data: CreateAchievementProgressEventDTO): Promise<AchievementProgressEvent> {
+  private async logProgressEvent(
+    data: CreateAchievementProgressEventDTO
+  ): Promise<AchievementProgressEvent> {
     const query = `
       INSERT INTO achievement_progress_events (user_id, event_type, event_value, metadata)
       VALUES ($1, $2, $3, $4)

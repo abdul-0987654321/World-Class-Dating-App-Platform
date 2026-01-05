@@ -1,8 +1,9 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { ModeService } from '../../domain/services/mode.service';
+
 import { UserMode } from '../../domain/entities/Profile.entity';
+import { ModeService } from '../../domain/services/mode.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class ModeController {
   private modeService: ModeService;
@@ -17,7 +18,7 @@ export class ModeController {
    */
   async getUserModes(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const modes = await this.modeService.getUserModes(userId);
 
       return res.status(200).json({
@@ -40,7 +41,7 @@ export class ModeController {
    */
   async getUserMode(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const mode = req.params.mode as UserMode;
 
       // Validate mode
@@ -73,7 +74,7 @@ export class ModeController {
    */
   async updateUserMode(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const mode = req.params.mode as UserMode;
       const { enabled, preferences } = req.body;
 
@@ -111,7 +112,7 @@ export class ModeController {
    */
   async enableMode(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const mode = req.params.mode as UserMode;
 
       // Validate mode
@@ -145,7 +146,7 @@ export class ModeController {
    */
   async disableMode(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const mode = req.params.mode as UserMode;
 
       // Validate mode
@@ -179,7 +180,7 @@ export class ModeController {
    */
   async switchMode(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { mode } = req.body;
 
       // Validate mode
@@ -213,7 +214,7 @@ export class ModeController {
    */
   async updateModePreferences(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const mode = req.params.mode as UserMode;
       const preferences = req.body;
 
@@ -225,11 +226,7 @@ export class ModeController {
         });
       }
 
-      const updatedMode = await this.modeService.updateModePreferences(
-        userId,
-        mode,
-        preferences
-      );
+      const updatedMode = await this.modeService.updateModePreferences(userId, mode, preferences);
 
       return res.status(200).json({
         success: true,

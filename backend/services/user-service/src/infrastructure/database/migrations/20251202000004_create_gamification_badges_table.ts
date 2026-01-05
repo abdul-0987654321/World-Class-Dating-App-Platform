@@ -7,20 +7,18 @@ export async function up(knex: Knex): Promise<void> {
     table.string('key').notNullable().unique().comment('Unique identifier for badge');
     table.string('name').notNullable();
     table.text('description').notNullable();
-    table.enum('type', [
-      'verification',
-      'status',
-      'achievement',
-      'special',
-      'seasonal',
-      'premium'
-    ]).notNullable();
+    table
+      .enum('type', ['verification', 'status', 'achievement', 'special', 'seasonal', 'premium'])
+      .notNullable();
     table.enum('rarity', ['common', 'uncommon', 'rare', 'epic', 'legendary']).defaultTo('common');
     table.string('icon_name').notNullable();
     table.string('icon_color');
     table.string('background_color');
     table.jsonb('requirements').comment('Requirements to earn badge');
-    table.boolean('is_auto_awarded').defaultTo(false).comment('Automatically awarded when requirements met');
+    table
+      .boolean('is_auto_awarded')
+      .defaultTo(false)
+      .comment('Automatically awarded when requirements met');
     table.boolean('is_permanent').defaultTo(true).comment('Badge never expires');
     table.integer('duration_days').comment('Days badge is valid (if not permanent)');
     table.boolean('is_visible_on_profile').defaultTo(true);
@@ -40,7 +38,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_profile_badges', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('badge_id').notNullable().references('id').inTable('profile_badges').onDelete('CASCADE');
+    table
+      .uuid('badge_id')
+      .notNullable()
+      .references('id')
+      .inTable('profile_badges')
+      .onDelete('CASCADE');
     table.boolean('is_equipped').defaultTo(true).comment('Whether badge is shown on profile');
     table.integer('display_order').comment('Order of badge display');
     table.timestamp('earned_at').defaultTo(knex.fn.now());
@@ -78,7 +81,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_badge_collections', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('collection_id').notNullable().references('id').inTable('badge_collections').onDelete('CASCADE');
+    table
+      .uuid('collection_id')
+      .notNullable()
+      .references('id')
+      .inTable('badge_collections')
+      .onDelete('CASCADE');
     table.boolean('is_completed').defaultTo(false);
     table.timestamp('completed_at');
     table.boolean('reward_claimed').defaultTo(false);
@@ -332,7 +340,7 @@ export async function up(knex: Knex): Promise<void> {
     {
       key: 'VALENTINE_2025',
       name: 'Valentine 2025',
-      description: 'Active during Valentine\'s Day 2025',
+      description: "Active during Valentine's Day 2025",
       type: 'seasonal',
       rarity: 'rare',
       icon_name: 'heart',

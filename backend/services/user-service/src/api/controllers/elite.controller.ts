@@ -1,9 +1,10 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { VipEventService } from '../../domain/services/vip-event.service';
-import { EliteCoachService } from '../../domain/services/elite-coach.service';
+
 import { ConciergeService } from '../../domain/services/concierge.service';
+import { EliteCoachService } from '../../domain/services/elite-coach.service';
+import { VipEventService } from '../../domain/services/vip-event.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class EliteController {
   private vipEventService: VipEventService;
@@ -24,7 +25,7 @@ export class EliteController {
    */
   async listEvents(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { type, has_availability } = req.query;
 
       const events = await this.vipEventService.listUpcomingEvents(userId, {
@@ -52,7 +53,7 @@ export class EliteController {
    */
   async getEvent(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const event = await this.vipEventService.getEvent(id, userId);
@@ -85,7 +86,7 @@ export class EliteController {
    */
   async registerForEvent(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const result = await this.vipEventService.registerForEvent(userId, id);
@@ -119,7 +120,7 @@ export class EliteController {
    */
   async cancelRegistration(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
       const { reason } = req.body;
 
@@ -153,13 +154,10 @@ export class EliteController {
    */
   async getMyEvents(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { include_historical } = req.query;
 
-      const events = await this.vipEventService.getMyEvents(
-        userId,
-        include_historical === 'true'
-      );
+      const events = await this.vipEventService.getMyEvents(userId, include_historical === 'true');
 
       return res.json({
         success: true,
@@ -183,7 +181,7 @@ export class EliteController {
    */
   async getAssignedCoach(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const coach = await this.eliteCoachService.getAssignedCoach(userId);
 
@@ -221,7 +219,7 @@ export class EliteController {
    */
   async scheduleSession(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { date, topic, type, duration } = req.body;
 
       if (!date) {
@@ -268,7 +266,7 @@ export class EliteController {
    */
   async getSessionHistory(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { include_upcoming } = req.query;
 
       const sessions = await this.eliteCoachService.getSessionHistory(
@@ -296,7 +294,7 @@ export class EliteController {
    */
   async cancelSession(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const result = await this.eliteCoachService.cancelSession(userId, id);
@@ -329,7 +327,7 @@ export class EliteController {
    */
   async rescheduleSession(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
       const { date } = req.body;
 
@@ -341,11 +339,7 @@ export class EliteController {
         });
       }
 
-      const result = await this.eliteCoachService.rescheduleSession(
-        userId,
-        id,
-        new Date(date)
-      );
+      const result = await this.eliteCoachService.rescheduleSession(userId, id, new Date(date));
 
       if (!result.success) {
         return res.status(400).json({
@@ -376,7 +370,7 @@ export class EliteController {
    */
   async submitSessionFeedback(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
       const { rating, feedback } = req.body;
 
@@ -444,7 +438,7 @@ export class EliteController {
    */
   async submitConciergeRequest(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { type, description, priority, budget_range, preferred_date, location_preference } =
         req.body;
 
@@ -494,7 +488,7 @@ export class EliteController {
    */
   async getMyConciergeRequests(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { status, limit, offset } = req.query;
 
       const requests = await this.conciergeService.getMyRequests(userId, {
@@ -523,7 +517,7 @@ export class EliteController {
    */
   async getConciergeRequestStatus(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const request = await this.conciergeService.getRequestStatus(userId, id);
@@ -556,7 +550,7 @@ export class EliteController {
    */
   async addConciergeMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
       const { message } = req.body;
 
@@ -599,7 +593,7 @@ export class EliteController {
    */
   async cancelConciergeRequest(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const result = await this.conciergeService.cancelRequest(userId, id);

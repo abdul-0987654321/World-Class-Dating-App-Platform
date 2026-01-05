@@ -4,9 +4,10 @@
  */
 
 import express, { Request, Response } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
+
 import { searchService } from '../../services/search.service';
 import { logger } from '../../utils/logger';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -140,7 +141,7 @@ const router = express.Router();
  */
 router.post('/advanced', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const filters = req.body;
 
     // Validate filters
@@ -194,7 +195,7 @@ router.post('/advanced', requireAuth, async (req: Request, res: Response) => {
  */
 router.get('/filters', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const filters = await searchService.getSavedFilters(userId);
 
@@ -246,7 +247,7 @@ router.get('/filters', requireAuth, async (req: Request, res: Response) => {
  */
 router.post('/filters', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { name, filters } = req.body;
 
     if (!name || !filters) {
@@ -294,7 +295,7 @@ router.post('/filters', requireAuth, async (req: Request, res: Response) => {
  */
 router.delete('/filters/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { id } = req.params;
 
     const result = await searchService.deleteFilterPreset(userId, id);
@@ -348,7 +349,7 @@ router.delete('/filters/:id', requireAuth, async (req: Request, res: Response) =
  */
 router.get('/username', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const query = req.query.q as string;
 
     if (!query || query.length < 2) {

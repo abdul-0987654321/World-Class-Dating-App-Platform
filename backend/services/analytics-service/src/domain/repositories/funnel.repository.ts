@@ -227,7 +227,7 @@ export class FunnelRepository {
 
     const result = await dbClient.query<any>(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       utmSource: row.utm_source || 'direct',
       totalSessions: parseInt(row.total_sessions, 10),
       landingViews: parseInt(row.landing_views, 10),
@@ -286,11 +286,13 @@ export class FunnelRepository {
   /**
    * Get drop-off analysis
    */
-  async getDropoffAnalysis(utmSource?: string): Promise<{
-    step: string;
-    count: number;
-    percentage: number;
-  }[]> {
+  async getDropoffAnalysis(utmSource?: string): Promise<
+    {
+      step: string;
+      count: number;
+      percentage: number;
+    }[]
+  > {
     let query = `
       SELECT
         dropped_at_step as step,
@@ -311,7 +313,7 @@ export class FunnelRepository {
 
     const result = await dbClient.query<any>(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       step: row.step,
       count: parseInt(row.count, 10),
       percentage: parseFloat(row.percentage),

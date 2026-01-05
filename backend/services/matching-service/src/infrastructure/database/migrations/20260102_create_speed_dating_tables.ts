@@ -23,7 +23,8 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('current_round').notNullable().defaultTo(0);
 
     // Status
-    table.enum('status', ['upcoming', 'active', 'completed', 'cancelled'])
+    table
+      .enum('status', ['upcoming', 'active', 'completed', 'cancelled'])
       .notNullable()
       .defaultTo('upcoming')
       .index();
@@ -59,13 +60,25 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Foreign keys
-    table.uuid('event_id').notNullable()
-      .references('id').inTable('speed_dating_events')
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_events')
       .onDelete('CASCADE');
     table.uuid('user_id').notNullable().index();
 
     // Status
-    table.enum('status', ['registered', 'checked_in', 'waiting', 'in_round', 'completed', 'left', 'removed'])
+    table
+      .enum('status', [
+        'registered',
+        'checked_in',
+        'waiting',
+        'in_round',
+        'completed',
+        'left',
+        'removed',
+      ])
       .notNullable()
       .defaultTo('registered')
       .index();
@@ -99,20 +112,29 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Foreign keys
-    table.uuid('event_id').notNullable()
-      .references('id').inTable('speed_dating_events')
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_events')
       .onDelete('CASCADE');
     table.integer('round_number').notNullable();
 
     // Participant who expressed interest
-    table.uuid('participant_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('participant_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
     table.uuid('user_id').notNullable();
 
     // Target of interest
-    table.uuid('target_participant_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('target_participant_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
     table.uuid('target_user_id').notNullable();
 
@@ -137,16 +159,25 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Foreign keys
-    table.uuid('event_id').notNullable()
-      .references('id').inTable('speed_dating_events')
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_events')
       .onDelete('CASCADE');
 
     // Participants (alphabetically sorted by user_id to prevent duplicates)
-    table.uuid('participant_a_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('participant_a_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
-    table.uuid('participant_b_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('participant_b_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
     table.uuid('user_a_id').notNullable().index();
     table.uuid('user_b_id').notNullable().index();
@@ -181,25 +212,35 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Foreign keys
-    table.uuid('event_id').notNullable()
-      .references('id').inTable('speed_dating_events')
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_events')
       .onDelete('CASCADE');
 
     // Round info
     table.integer('round_number').notNullable();
 
     // Participants paired
-    table.uuid('participant_a_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('participant_a_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
-    table.uuid('participant_b_id').notNullable()
-      .references('id').inTable('speed_dating_participants')
+    table
+      .uuid('participant_b_id')
+      .notNullable()
+      .references('id')
+      .inTable('speed_dating_participants')
       .onDelete('CASCADE');
     table.uuid('user_a_id').notNullable();
     table.uuid('user_b_id').notNullable();
 
     // Status
-    table.enum('status', ['scheduled', 'active', 'completed', 'skipped'])
+    table
+      .enum('status', ['scheduled', 'active', 'completed', 'skipped'])
       .notNullable()
       .defaultTo('scheduled');
 
@@ -258,9 +299,15 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   // Drop triggers
-  await knex.raw('DROP TRIGGER IF EXISTS update_speed_dating_matches_updated_at ON speed_dating_matches');
-  await knex.raw('DROP TRIGGER IF EXISTS update_speed_dating_participants_updated_at ON speed_dating_participants');
-  await knex.raw('DROP TRIGGER IF EXISTS update_speed_dating_events_updated_at ON speed_dating_events');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS update_speed_dating_matches_updated_at ON speed_dating_matches'
+  );
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS update_speed_dating_participants_updated_at ON speed_dating_participants'
+  );
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS update_speed_dating_events_updated_at ON speed_dating_events'
+  );
 
   // Drop function
   await knex.raw('DROP FUNCTION IF EXISTS update_speed_dating_updated_at');

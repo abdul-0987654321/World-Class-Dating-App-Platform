@@ -22,7 +22,7 @@ export class LoggingMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     // Generate correlation ID
-    const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+    const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
 
     // Attach correlation ID to request
     (req as any).correlationId = correlationId;
@@ -41,7 +41,7 @@ export class LoggingMiddleware implements NestMiddleware {
     let responseBody: any;
 
     // Override res.end to capture response
-    res.end = function(chunk?: any, encoding?: any, callback?: any): Response {
+    res.end = function (chunk?: any, encoding?: any, callback?: any): Response {
       if (chunk) {
         responseBody = chunk;
       }
@@ -131,7 +131,12 @@ export class StructuredLogger {
 
   error(message: string, error?: Error, data?: any, correlationId?: string) {
     this.logger.error(
-      this.formatLog('error', message, { ...data, error: error?.message, stack: error?.stack }, correlationId)
+      this.formatLog(
+        'error',
+        message,
+        { ...data, error: error?.message, stack: error?.stack },
+        correlationId
+      )
     );
   }
 

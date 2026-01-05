@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsUUID,
@@ -9,7 +10,6 @@ import {
   Min,
   Max,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * DTO for identity key pair

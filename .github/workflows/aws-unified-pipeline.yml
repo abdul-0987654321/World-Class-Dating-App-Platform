@@ -12,9 +12,10 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
-  # Scheduled production deployment at 9:00 PM UTC daily
+  # Scheduled production deployment - Tuesday 1/6/2026 at 9:00 PM CST (3:00 AM UTC 1/7/2026)
+  # After initial deployment, change to daily: '0 21 * * *' for 9 PM UTC
   schedule:
-    - cron: '0 21 * * *'  # 9:00 PM UTC (4:00 PM EST / 5:00 PM EDT)
+    - cron: '0 3 7 1 *'  # 3:00 AM UTC on Jan 7 (9:00 PM CST on Jan 6, 2026)
   workflow_call:
     inputs:
       environment:

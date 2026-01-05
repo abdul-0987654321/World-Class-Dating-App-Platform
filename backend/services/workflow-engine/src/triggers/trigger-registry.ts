@@ -95,9 +95,7 @@ export const TRIGGER_REGISTRY: TriggerDefinition[] = [
 /**
  * Get trigger definition by type
  */
-export function getTriggerDefinition(
-  type: TriggerType,
-): TriggerDefinition | undefined {
+export function getTriggerDefinition(type: TriggerType): TriggerDefinition | undefined {
   return TRIGGER_REGISTRY.find((t) => t.type === type);
 }
 
@@ -113,16 +111,14 @@ export function getAllTriggerTypes(): TriggerType[] {
  */
 export function validateTriggerData(
   type: TriggerType,
-  data: Record<string, any>,
+  data: Record<string, any>
 ): { valid: boolean; missingFields: string[] } {
   const definition = getTriggerDefinition(type);
   if (!definition) {
     return { valid: false, missingFields: [] };
   }
 
-  const missingFields = definition.expectedData.filter(
-    (field) => !(field in data),
-  );
+  const missingFields = definition.expectedData.filter((field) => !(field in data));
 
   return {
     valid: missingFields.length === 0,

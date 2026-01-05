@@ -3,13 +3,14 @@
  */
 
 import Bull, { Queue, Job } from 'bull';
+
 import { config } from '../config';
-import logger from '../utils/logger';
-import { NotificationPayload, NotificationChannel } from '../types';
+import { db } from '../config/database';
 import { pushNotificationService } from '../services/push-notification.service';
 import { sesEmailService } from '../services/ses-email.service';
 import { snsSMSService } from '../services/sns-sms.service';
-import { db } from '../config/database';
+import { NotificationPayload, NotificationChannel } from '../types';
+import logger from '../utils/logger';
 
 // Create notification queue
 export const notificationQueue: Queue = new Bull('notifications', {
@@ -309,14 +310,10 @@ async function saveInAppNotification(payload: NotificationPayload): Promise<{
 }
 
 // Queue management functions
-export async function addNotificationJob(
-  payload: NotificationPayload
-): Promise<Job> {
+export async function addNotificationJob(payload: NotificationPayload): Promise<Job> {
   const job = await notificationQueue.add('send-notification', payload, {
     priority: payload.priority === 'urgent' ? 1 : payload.priority === 'high' ? 2 : 3,
-    delay: payload.scheduledAt
-      ? new Date(payload.scheduledAt).getTime() - Date.now()
-      : 0,
+    delay: payload.scheduledAt ? new Date(payload.scheduledAt).getTime() - Date.now() : 0,
   });
 
   return job;

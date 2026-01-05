@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
 
 const logger = createLogger('csam-tables-migration');
 

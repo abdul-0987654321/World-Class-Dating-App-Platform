@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import logger from '../utils/logger';
 
 export interface ApiError extends Error {
@@ -155,11 +156,7 @@ export const errorHandler = (
 /**
  * Handle 404 Not Found errors
  */
-export const notFoundHandler = (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): void => {
+export const notFoundHandler = (req: Request, res: Response, _next: NextFunction): void => {
   logger.warn('Route not found', {
     url: req.originalUrl,
     method: req.method,

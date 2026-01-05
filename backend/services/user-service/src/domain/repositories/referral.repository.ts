@@ -1,3 +1,4 @@
+import db from '../../infrastructure/database/connection';
 import {
   Referral,
   ReferralCreateInput,
@@ -5,7 +6,6 @@ import {
   ReferralStatus,
   REFERRAL_STATUS,
 } from '../entities/Referral.entity';
-import db from '../../infrastructure/database/connection';
 
 export interface ReferralStats {
   totalReferrals: number;
@@ -31,25 +31,19 @@ export class ReferralRepository {
       updated_at: now,
     };
 
-    const [referral] = await db(this.tableName)
-      .insert(referralData)
-      .returning('*');
+    const [referral] = await db(this.tableName).insert(referralData).returning('*');
 
     return this.mapToEntity(referral);
   }
 
   async findById(id: string): Promise<Referral | null> {
-    const referral = await db(this.tableName)
-      .where({ id })
-      .first();
+    const referral = await db(this.tableName).where({ id }).first();
 
     return referral ? this.mapToEntity(referral) : null;
   }
 
   async findByReferredId(referredId: string): Promise<Referral | null> {
-    const referral = await db(this.tableName)
-      .where({ referred_id: referredId })
-      .first();
+    const referral = await db(this.tableName).where({ referred_id: referredId }).first();
 
     return referral ? this.mapToEntity(referral) : null;
   }
@@ -103,14 +97,13 @@ export class ReferralRepository {
     };
 
     if (input.status !== undefined) updateData.status = input.status;
-    if (input.referrerRewardedAt !== undefined) updateData.referrer_rewarded_at = input.referrerRewardedAt;
-    if (input.referredRewardedAt !== undefined) updateData.referred_rewarded_at = input.referredRewardedAt;
+    if (input.referrerRewardedAt !== undefined)
+      updateData.referrer_rewarded_at = input.referrerRewardedAt;
+    if (input.referredRewardedAt !== undefined)
+      updateData.referred_rewarded_at = input.referredRewardedAt;
     if (input.completedAt !== undefined) updateData.completed_at = input.completedAt;
 
-    const [referral] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [referral] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(referral);
   }
@@ -142,15 +135,11 @@ export class ReferralRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async hasBeenReferred(userId: string): Promise<boolean> {
-    const result = await db(this.tableName)
-      .where({ referred_id: userId })
-      .first();
+    const result = await db(this.tableName).where({ referred_id: userId }).first();
     return !!result;
   }
 
@@ -162,10 +151,7 @@ export class ReferralRepository {
     return Number(result?.count || 0);
   }
 
-  async countByReferrerIdAndStatus(
-    referrerId: string,
-    status: ReferralStatus
-  ): Promise<number> {
+  async countByReferrerIdAndStatus(referrerId: string, status: ReferralStatus): Promise<number> {
     const result = await db(this.tableName)
       .where({ referrer_id: referrerId, status })
       .count('id as count')
@@ -174,14 +160,19 @@ export class ReferralRepository {
   }
 
   async getReferralStats(userId: string): Promise<ReferralStats> {
-    const [stats] = await db(this.tableName)
+    const [stats] = (await db(this.tableName)
       .where({ referrer_id: userId })
       .select(
         db.raw('COUNT(*) as total_referrals'),
         db.raw(`COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_referrals`),
         db.raw(`COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_referrals`),
         db.raw(`COUNT(CASE WHEN status = 'rewarded' THEN 1 END) as rewarded_referrals`)
-      ) as unknown as { total_referrals: string; pending_referrals: string; completed_referrals: string; rewarded_referrals: string }[];
+      )) as unknown as {
+      total_referrals: string;
+      pending_referrals: string;
+      completed_referrals: string;
+      rewarded_referrals: string;
+    }[];
 
     // Calculate estimated rewards based on completed referrals
     const rewardedCount = Number(stats?.rewarded_referrals || 0);

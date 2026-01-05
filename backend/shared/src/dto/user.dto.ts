@@ -1,5 +1,5 @@
-import { IsOptional, IsString, MinLength, MaxLength, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsOptional, IsString, MinLength, MaxLength, IsDate } from 'class-validator';
 
 /**
  * DTO for updating user profile information.

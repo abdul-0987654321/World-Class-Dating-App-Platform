@@ -3,10 +3,11 @@
  * Handles all user settings management
  */
 
-import db from '../database';
 import bcrypt from 'bcrypt';
-import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+
+import db from '../database';
+import logger from '../utils/logger';
 
 interface AccountUpdates {
   email?: string;
@@ -188,10 +189,12 @@ export class SettingsService {
 
       // Update if there are changes
       if (Object.keys(updateData).length > 0) {
-        await db('users').where({ id: userId }).update({
-          ...updateData,
-          updated_at: new Date(),
-        });
+        await db('users')
+          .where({ id: userId })
+          .update({
+            ...updateData,
+            updated_at: new Date(),
+          });
 
         logger.info('Account settings updated', { userId, changes: Object.keys(updateData) });
       }
@@ -233,10 +236,12 @@ export class SettingsService {
       }
 
       if (Object.keys(updateData).length > 0) {
-        await db('users').where({ id: userId }).update({
-          ...updateData,
-          updated_at: new Date(),
-        });
+        await db('users')
+          .where({ id: userId })
+          .update({
+            ...updateData,
+            updated_at: new Date(),
+          });
 
         logger.info('Privacy settings updated', { userId, changes: Object.keys(updateData) });
       }
@@ -284,10 +289,12 @@ export class SettingsService {
       }
 
       if (Object.keys(updateData).length > 0) {
-        await db('users').where({ id: userId }).update({
-          ...updateData,
-          updated_at: new Date(),
-        });
+        await db('users')
+          .where({ id: userId })
+          .update({
+            ...updateData,
+            updated_at: new Date(),
+          });
 
         logger.info('Notification settings updated', { userId, changes: Object.keys(updateData) });
       }
@@ -332,10 +339,12 @@ export class SettingsService {
       }
 
       if (Object.keys(updateData).length > 0) {
-        await db('users').where({ id: userId }).update({
-          ...updateData,
-          updated_at: new Date(),
-        });
+        await db('users')
+          .where({ id: userId })
+          .update({
+            ...updateData,
+            updated_at: new Date(),
+          });
 
         logger.info('Match preferences updated', { userId, changes: Object.keys(updateData) });
       }
@@ -423,9 +432,7 @@ export class SettingsService {
       // Gather all user data
       const userData = await db('users').where({ id: userId }).first();
       const photos = await db('photos').where({ user_id: userId });
-      const matches = await db('matches')
-        .where({ user1_id: userId })
-        .orWhere({ user2_id: userId });
+      const matches = await db('matches').where({ user1_id: userId }).orWhere({ user2_id: userId });
       const messages = await db('messages')
         .where({ sender_id: userId })
         .orWhere({ receiver_id: userId });
@@ -496,15 +503,17 @@ export class SettingsService {
       });
 
       // Soft delete: Mark as inactive and anonymize data
-      await db('users').where({ id: userId }).update({
-        is_active: false,
-        email: `deleted_${userId}@flamoral.com`,
-        phone: null,
-        first_name: 'Deleted',
-        last_name: 'User',
-        bio: null,
-        deleted_at: new Date(),
-      });
+      await db('users')
+        .where({ id: userId })
+        .update({
+          is_active: false,
+          email: `deleted_${userId}@flamoral.com`,
+          phone: null,
+          first_name: 'Deleted',
+          last_name: 'User',
+          bio: null,
+          deleted_at: new Date(),
+        });
 
       // Delete sensitive data
       await db('photos').where({ user_id: userId }).delete();

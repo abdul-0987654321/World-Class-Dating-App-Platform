@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { BlockController } from '../controllers/block.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -64,7 +65,13 @@ const blockController = new BlockController();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/:blockedId', authenticate, validate(blockUserParamsSchema, 'params'), validate(blockUserSchema), blockController.blockUser.bind(blockController));
+router.post(
+  '/:blockedId',
+  authenticate,
+  validate(blockUserParamsSchema, 'params'),
+  validate(blockUserSchema),
+  blockController.blockUser.bind(blockController)
+);
 
 /**
  * @swagger
@@ -97,7 +104,12 @@ router.post('/:blockedId', authenticate, validate(blockUserParamsSchema, 'params
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:blockedId', authenticate, validate(blockUserParamsSchema, 'params'), blockController.unblockUser.bind(blockController));
+router.delete(
+  '/:blockedId',
+  authenticate,
+  validate(blockUserParamsSchema, 'params'),
+  blockController.unblockUser.bind(blockController)
+);
 
 /**
  * @swagger
@@ -165,6 +177,11 @@ router.get('/list', authenticate, blockController.getBlockedUsers.bind(blockCont
  *                       type: boolean
  *                       description: Whether target user blocked the current user
  */
-router.get('/check/:targetUserId', authenticate, validate(checkBlockedParamsSchema, 'params'), blockController.checkBlocked.bind(blockController));
+router.get(
+  '/check/:targetUserId',
+  authenticate,
+  validate(checkBlockedParamsSchema, 'params'),
+  blockController.checkBlocked.bind(blockController)
+);
 
 export default router;

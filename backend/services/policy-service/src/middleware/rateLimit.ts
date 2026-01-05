@@ -55,9 +55,10 @@ function getClientIdentifier(req: Request): string {
 
   // Fall back to IP address
   const forwarded = req.headers['x-forwarded-for'];
-  const ip = typeof forwarded === 'string'
-    ? forwarded.split(',')[0].trim()
-    : req.socket?.remoteAddress || 'unknown';
+  const ip =
+    typeof forwarded === 'string'
+      ? forwarded.split(',')[0].trim()
+      : req.socket?.remoteAddress || 'unknown';
 
   return `ip:${ip}`;
 }
@@ -136,12 +137,12 @@ export const rateLimitMiddleware = (options: RateLimitOptions) => {
     // Handle skip options
     if (skipFailedRequests || skipSuccessfulRequests) {
       const originalEnd = res.end;
-      res.end = function(this: Response, ...args: any[]) {
+      res.end = function (this: Response, ...args: any[]) {
         if (skipFailedRequests && res.statusCode >= 400) {
-          entry!.tokens++;
+          entry.tokens++;
         }
         if (skipSuccessfulRequests && res.statusCode < 400) {
-          entry!.tokens++;
+          entry.tokens++;
         }
         return originalEnd.apply(this, args);
       } as any;

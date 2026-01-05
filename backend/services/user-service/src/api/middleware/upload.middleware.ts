@@ -1,5 +1,6 @@
-import multer from 'multer';
 import { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
+
 import fileValidationUtil from '../../utils/file-validation.util';
 import logger from '../../utils/logger';
 
@@ -9,11 +10,7 @@ const storage = multer.memoryStorage();
 
 // Initial file filter (basic MIME type check)
 // Full validation happens in security middleware
-const fileFilter = (
-  _req: Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimeTypes = [
     'image/jpeg',
     'image/jpg',

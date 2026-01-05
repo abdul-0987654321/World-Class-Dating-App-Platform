@@ -1,6 +1,7 @@
 import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
-import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
+
+import db from '../database';
 import logger from '../utils/logger';
 
 /**
@@ -41,11 +42,7 @@ export class VideoChatService {
    * @param role - Publisher (1) or Subscriber (2)
    * @returns Agora token
    */
-  generateToken(
-    channelName: string,
-    uid: number = 0,
-    role: number = RtcRole.PUBLISHER
-  ): string {
+  generateToken(channelName: string, uid: number = 0, role: number = RtcRole.PUBLISHER): string {
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + this.tokenExpirationTime;
 
@@ -101,16 +98,16 @@ export class VideoChatService {
           daily_audio_limit: this.FREE_DAILY_AUDIO_LIMIT,
         })
         .returning('*')
-        .then(rows => rows[0]);
+        .then((rows) => rows[0]);
     }
 
-    const minutesUsed = callType === 'video'
-      ? limitRecord.daily_video_minutes_used
-      : limitRecord.daily_audio_minutes_used;
+    const minutesUsed =
+      callType === 'video'
+        ? limitRecord.daily_video_minutes_used
+        : limitRecord.daily_audio_minutes_used;
 
-    const dailyLimit = callType === 'video'
-      ? limitRecord.daily_video_limit
-      : limitRecord.daily_audio_limit;
+    const dailyLimit =
+      callType === 'video' ? limitRecord.daily_video_limit : limitRecord.daily_audio_limit;
 
     const remainingMinutes = dailyLimit - minutesUsed;
 
@@ -155,8 +152,10 @@ export class VideoChatService {
       // Check if users are matched
       const match = await db('matches')
         .where(function () {
-          this.where({ user1_id: callerId, user2_id: receiverId })
-            .orWhere({ user1_id: receiverId, user2_id: callerId });
+          this.where({ user1_id: callerId, user2_id: receiverId }).orWhere({
+            user1_id: receiverId,
+            user2_id: callerId,
+          });
         })
         .andWhere({ matched: true })
         .first();
@@ -211,9 +210,8 @@ export class VideoChatService {
       }
 
       // Check caller's coin balance (for free users)
-      const costPerMinute = callType === 'video'
-        ? this.VIDEO_COST_PER_MINUTE
-        : this.AUDIO_COST_PER_MINUTE;
+      const costPerMinute =
+        callType === 'video' ? this.VIDEO_COST_PER_MINUTE : this.AUDIO_COST_PER_MINUTE;
 
       if (!isPremium && caller.coin_balance < costPerMinute) {
         return {
@@ -226,8 +224,8 @@ export class VideoChatService {
       const maxDuration = isPremium
         ? undefined // Unlimited for premium
         : callType === 'video'
-        ? Math.min(this.FREE_MAX_CALL_DURATION_VIDEO, limitCheck.remainingMinutes!)
-        : Math.min(this.FREE_MAX_CALL_DURATION_AUDIO, limitCheck.remainingMinutes!);
+          ? Math.min(this.FREE_MAX_CALL_DURATION_VIDEO, limitCheck.remainingMinutes)
+          : Math.min(this.FREE_MAX_CALL_DURATION_AUDIO, limitCheck.remainingMinutes);
 
       // Create call record
       const callId = uuidv4();
@@ -323,12 +321,10 @@ export class VideoChatService {
       }
 
       // Update call status
-      await db('video_calls')
-        .where({ id: callId })
-        .update({
-          status: 'active',
-          started_at: new Date(),
-        });
+      await db('video_calls').where({ id: callId }).update({
+        status: 'active',
+        started_at: new Date(),
+      });
 
       // Generate token for receiver
       const token = this.generateToken(call.channel_name);
@@ -417,9 +413,8 @@ export class VideoChatService {
         if (!isPremium && duration > 0) {
           const today = new Date().toISOString().split('T')[0];
 
-          const updateField = call.call_type === 'video'
-            ? 'daily_video_minutes_used'
-            : 'daily_audio_minutes_used';
+          const updateField =
+            call.call_type === 'video' ? 'daily_video_minutes_used' : 'daily_audio_minutes_used';
 
           await db('call_duration_limits')
             .where({ user_id: call.caller_id, limit_date: today })
@@ -428,16 +423,13 @@ export class VideoChatService {
 
         // Charge coins for free users
         if (!isPremium && duration > 0) {
-          const costPerMinute = call.call_type === 'video'
-            ? this.VIDEO_COST_PER_MINUTE
-            : this.AUDIO_COST_PER_MINUTE;
+          const costPerMinute =
+            call.call_type === 'video' ? this.VIDEO_COST_PER_MINUTE : this.AUDIO_COST_PER_MINUTE;
 
           coinsCharged = duration * costPerMinute;
 
           // Deduct coins
-          await db('users')
-            .where({ id: call.caller_id })
-            .decrement('coin_balance', coinsCharged);
+          await db('users').where({ id: call.caller_id }).decrement('coin_balance', coinsCharged);
 
           // Log transaction
           await db('coin_transactions').insert({
@@ -527,12 +519,13 @@ export class VideoChatService {
 
       return {
         success: true,
-        calls: calls.map(call => ({
+        calls: calls.map((call) => ({
           ...call,
           isCaller: call.caller_id === userId,
           otherUser: {
             id: call.caller_id === userId ? call.receiver_id : call.caller_id,
-            firstName: call.caller_id === userId ? call.receiver_first_name : call.caller_first_name,
+            firstName:
+              call.caller_id === userId ? call.receiver_first_name : call.caller_first_name,
             lastName: call.caller_id === userId ? call.receiver_last_name : call.caller_last_name,
           },
         })),

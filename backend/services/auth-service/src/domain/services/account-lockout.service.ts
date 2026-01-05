@@ -1,6 +1,6 @@
 import redisCache from '../../infrastructure/cache/redis';
-import logger from '../../utils/logger';
 import emailService from '../../infrastructure/email/email.service';
+import logger from '../../utils/logger';
 
 export interface LockoutInfo {
   userId: string;
@@ -62,14 +62,12 @@ class AccountLockoutService {
       lockoutInfo = await this.getLockoutInfo(userId);
     } else {
       // Save updated info
-      await redisCache.set(
-        key,
-        JSON.stringify(lockoutInfo),
-        this.defaultConfig.attemptWindow
-      );
+      await redisCache.set(key, JSON.stringify(lockoutInfo), this.defaultConfig.attemptWindow);
     }
 
-    logger.info(`Failed login attempt recorded for user ${userId}. Attempts: ${lockoutInfo.failedAttempts}`);
+    logger.info(
+      `Failed login attempt recorded for user ${userId}. Attempts: ${lockoutInfo.failedAttempts}`
+    );
 
     return lockoutInfo;
   }
@@ -101,11 +99,7 @@ class AccountLockoutService {
       canUnlockAt: lockoutUntil,
     };
 
-    await redisCache.set(
-      key,
-      JSON.stringify(lockoutInfo),
-      this.defaultConfig.lockoutDuration
-    );
+    await redisCache.set(key, JSON.stringify(lockoutInfo), this.defaultConfig.lockoutDuration);
 
     logger.warn(`Account locked for user ${userId}. Reason: ${reason}`);
 
@@ -203,13 +197,11 @@ class AccountLockoutService {
     };
 
     // Store with long expiry (1 year)
-    await redisCache.set(
-      key,
-      JSON.stringify(lockoutInfo),
-      365 * 24 * 60 * 60
-    );
+    await redisCache.set(key, JSON.stringify(lockoutInfo), 365 * 24 * 60 * 60);
 
-    logger.warn(`Account permanently locked for user ${userId}. Reason: ${reason}. By: ${lockedBy}`);
+    logger.warn(
+      `Account permanently locked for user ${userId}. Reason: ${reason}. By: ${lockedBy}`
+    );
   }
 
   /**
@@ -243,11 +235,7 @@ class AccountLockoutService {
       lockoutInfo.isLocked = false;
       lockoutInfo.lockoutUntil = undefined;
 
-      await redisCache.set(
-        key,
-        JSON.stringify(lockoutInfo),
-        this.defaultConfig.attemptWindow
-      );
+      await redisCache.set(key, JSON.stringify(lockoutInfo), this.defaultConfig.attemptWindow);
     }
 
     logger.info(`Failed attempts reset for user ${userId}`);

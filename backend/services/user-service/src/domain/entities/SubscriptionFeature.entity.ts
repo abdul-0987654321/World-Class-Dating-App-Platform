@@ -42,7 +42,7 @@ export function hasFeatureAccess(
   features: SubscriptionFeature[],
   featureKey: string
 ): FeatureAccess {
-  const feature = features.find(f => f.featureKey === featureKey && f.active);
+  const feature = features.find((f) => f.featureKey === featureKey && f.active);
 
   if (!feature) {
     return { hasAccess: false, enabled: false };
@@ -65,7 +65,7 @@ export function getFeatureLimit(
   featureKey: string,
   defaultValue: number = 0
 ): number {
-  const feature = features.find(f => f.featureKey === featureKey && f.active);
+  const feature = features.find((f) => f.featureKey === featureKey && f.active);
 
   if (!feature || !feature.featureValue.limit) {
     return defaultValue;

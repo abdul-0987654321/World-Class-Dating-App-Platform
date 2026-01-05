@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { VerificationService } from '../../domain/services/verification.service';
 import logger from '../../utils/logger';
 

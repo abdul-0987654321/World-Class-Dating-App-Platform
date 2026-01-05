@@ -1,15 +1,15 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
+import { createLogger, createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { createLogger } from '@flamoral/backend-shared';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
 import mediaRoutes from './api/routes/media.routes';
-import s3StorageService from './infrastructure/storage/s3-storage.service';
-import workerManager from './workers/worker-manager';
 import config from './config';
 import db from './infrastructure/database/connection';
+import s3StorageService from './infrastructure/storage/s3-storage.service';
+import workerManager from './workers/worker-manager';
 
 // Load environment variables
 dotenv.config();
@@ -44,14 +44,20 @@ const app: Application = express();
 const PORT = config.port;
 
 // Middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -70,7 +76,7 @@ app.get('/health', async (_req: Request, res: Response) => {
     logger.error('Database health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'media-service',

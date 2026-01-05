@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { ChallengeRepository } from '../repositories/Challenge.repository';
+
 import {
   ChallengeDefinition,
   UserChallenge,
@@ -8,6 +8,7 @@ import {
   ChallengeProgressUpdate,
   ChallengeCompletionResult,
 } from '../entities/Challenge.entity';
+import { ChallengeRepository } from '../repositories/Challenge.repository';
 
 export class ChallengeService {
   private repository: ChallengeRepository;
@@ -20,15 +21,18 @@ export class ChallengeService {
     return this.repository.findUserChallengesByStatus(userId, 'active');
   }
 
-  async getAvailableChallenges(userId: string, type?: ChallengeType): Promise<ChallengeDefinition[]> {
+  async getAvailableChallenges(
+    userId: string,
+    type?: ChallengeType
+  ): Promise<ChallengeDefinition[]> {
     const allChallenges = type
       ? await this.repository.findChallengesByType(type)
       : await this.repository.findActiveChallenges();
 
     const userChallenges = await this.repository.findUserChallenges(userId);
-    const userChallengeIds = new Set(userChallenges.map(uc => uc.challenge_id));
+    const userChallengeIds = new Set(userChallenges.map((uc) => uc.challenge_id));
 
-    return allChallenges.filter(challenge => {
+    return allChallenges.filter((challenge) => {
       // Filter out challenges user already has (unless repeatable)
       const isRepeatable = (challenge as any).is_repeatable;
       if (!isRepeatable && userChallengeIds.has(challenge.id)) {
@@ -122,9 +126,10 @@ export class ChallengeService {
         if (update.challenge_id && userChallenge.challenge_id !== update.challenge_id) continue;
 
         // Update progress
-        const newProgress = update.set_progress !== undefined
-          ? update.set_progress
-          : userChallenge.current_progress + (update.progress_increment || 1);
+        const newProgress =
+          update.set_progress !== undefined
+            ? update.set_progress
+            : userChallenge.current_progress + (update.progress_increment || 1);
         const progressPercentage = (newProgress / userChallenge.target_progress) * 100;
 
         await repository.updateUserChallenge(userChallenge.id, {
@@ -173,7 +178,11 @@ export class ChallengeService {
     });
   }
 
-  private async awardChallengeRewards(db: Knex, user_id: string, challenge: ChallengeDefinition): Promise<void> {
+  private async awardChallengeRewards(
+    db: Knex,
+    user_id: string,
+    challenge: ChallengeDefinition
+  ): Promise<void> {
     const challengeName = (challenge as any).name || 'Challenge';
 
     if (challenge.coin_reward > 0) {
@@ -265,7 +274,12 @@ export class ChallengeService {
     });
   }
 
-  private async awardCoins(db: Knex, user_id: string, amount: number, reason: string): Promise<void> {
+  private async awardCoins(
+    db: Knex,
+    user_id: string,
+    amount: number,
+    reason: string
+  ): Promise<void> {
     const existingCoins = await db('coins').where({ user_id }).first();
     if (existingCoins) {
       await db('coins')

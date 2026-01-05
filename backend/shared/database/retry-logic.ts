@@ -34,22 +34,22 @@ const defaultLogger: Logger = {
  * Common database error codes that should trigger retries
  */
 const RETRYABLE_ERROR_CODES = [
-  'ECONNREFUSED',   // Connection refused
-  'ECONNRESET',     // Connection reset
-  'ETIMEDOUT',      // Connection timeout
-  'EHOSTUNREACH',   // Host unreachable
-  'ENETUNREACH',    // Network unreachable
-  'EAI_AGAIN',      // DNS lookup timeout
-  'EPIPE',          // Broken pipe
-  '08003',          // PostgreSQL: connection does not exist
-  '08006',          // PostgreSQL: connection failure
-  '08001',          // PostgreSQL: unable to establish connection
-  '57P01',          // PostgreSQL: admin shutdown
-  '57P02',          // PostgreSQL: crash shutdown
-  '57P03',          // PostgreSQL: cannot connect now
-  '53300',          // PostgreSQL: too many connections
-  '40001',          // PostgreSQL: serialization failure
-  '40P01',          // PostgreSQL: deadlock detected
+  'ECONNREFUSED', // Connection refused
+  'ECONNRESET', // Connection reset
+  'ETIMEDOUT', // Connection timeout
+  'EHOSTUNREACH', // Host unreachable
+  'ENETUNREACH', // Network unreachable
+  'EAI_AGAIN', // DNS lookup timeout
+  'EPIPE', // Broken pipe
+  '08003', // PostgreSQL: connection does not exist
+  '08006', // PostgreSQL: connection failure
+  '08001', // PostgreSQL: unable to establish connection
+  '57P01', // PostgreSQL: admin shutdown
+  '57P02', // PostgreSQL: crash shutdown
+  '57P03', // PostgreSQL: cannot connect now
+  '53300', // PostgreSQL: too many connections
+  '40001', // PostgreSQL: serialization failure
+  '40P01', // PostgreSQL: deadlock detected
 ];
 
 /**
@@ -81,7 +81,7 @@ export function isRetryableError(error: any, customRetryableCodes?: string[]): b
     'transient',
   ];
 
-  return retryablePatterns.some(pattern => errorMessage.includes(pattern));
+  return retryablePatterns.some((pattern) => errorMessage.includes(pattern));
 }
 
 /**
@@ -114,7 +114,7 @@ export function calculateDelay(
  * Sleep for a specified duration
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -168,9 +168,7 @@ export async function withRetry<T>(
           maxRetries,
           totalAttempts: attempt,
         });
-        throw new Error(
-          `Max retries (${maxRetries}) exceeded. Last error: ${error.message}`
-        );
+        throw new Error(`Max retries (${maxRetries}) exceeded. Last error: ${error.message}`);
       }
 
       // Calculate delay for next retry
@@ -201,7 +199,7 @@ export async function withRetry<T>(
   }
 
   // This should never be reached, but TypeScript needs it
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -272,11 +270,11 @@ export function wrapKnexWithRetry(knex: any, logger: Logger = defaultLogger): an
   const originalRaw = knex.raw.bind(knex);
 
   // Wrap the raw query method
-  knex.raw = function(...args: any[]) {
+  knex.raw = function (...args: any[]) {
     const query = originalRaw(...args);
     const originalThen = query.then.bind(query);
 
-    query.then = function(onFulfilled?: any, onRejected?: any) {
+    query.then = function (onFulfilled?: any, onRejected?: any) {
       return withRetry(
         () => originalThen(),
         {

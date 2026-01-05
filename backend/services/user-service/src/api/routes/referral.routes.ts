@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { ReferralController } from '../controllers/referral.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -61,11 +62,7 @@ const referralController = new ReferralController();
  *       500:
  *         description: Server error
  */
-router.post(
-  '/generate',
-  authenticate,
-  referralController.generateCode.bind(referralController)
-);
+router.post('/generate', authenticate, referralController.generateCode.bind(referralController));
 
 /**
  * @swagger
@@ -184,11 +181,7 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.get(
-  '/stats',
-  authenticate,
-  referralController.getStats.bind(referralController)
-);
+router.get('/stats', authenticate, referralController.getStats.bind(referralController));
 
 /**
  * @swagger
@@ -282,11 +275,7 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.get(
-  '/',
-  authenticate,
-  referralController.getReferrals.bind(referralController)
-);
+router.get('/', authenticate, referralController.getReferrals.bind(referralController));
 
 /**
  * @swagger
@@ -336,10 +325,6 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.get(
-  '/my-referral',
-  authenticate,
-  referralController.getMyReferral.bind(referralController)
-);
+router.get('/my-referral', authenticate, referralController.getMyReferral.bind(referralController));
 
 export default router;

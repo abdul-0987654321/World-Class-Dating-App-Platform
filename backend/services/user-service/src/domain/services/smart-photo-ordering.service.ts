@@ -43,14 +43,14 @@ class SmartPhotoOrderingService {
     }
 
     // Calculate scores for each photo
-    const photoScores = photos.map(photo => this.calculatePhotoScore(photo));
+    const photoScores = photos.map((photo) => this.calculatePhotoScore(photo));
 
     // Sort by score (descending)
     photoScores.sort((a, b) => b.score - a.score);
 
     // Update positions
     const orderedPhotos = photoScores.map((scoreData, index) => {
-      const photo = photos.find(p => p.id === scoreData.photoId)!;
+      const photo = photos.find((p) => p.id === scoreData.photoId);
       return {
         ...photo,
         position: index,
@@ -81,10 +81,10 @@ class SmartPhotoOrderingService {
     // Weighted average
     const weights = {
       engagement: 0.35,
-      quality: 0.20,
+      quality: 0.2,
       recency: 0.15,
-      aiScore: 0.20,
-      faceScore: 0.10,
+      aiScore: 0.2,
+      faceScore: 0.1,
     };
 
     const score =
@@ -117,16 +117,13 @@ class SmartPhotoOrderingService {
 
     // Calculate engagement metrics
     const likeRate = (likes / views) * 100;
-    const swipeRightRate = swipeRights / (swipeRights + swipeLefts) * 100;
+    const swipeRightRate = (swipeRights / (swipeRights + swipeLefts)) * 100;
     const engagementRate = photo.metrics.engagementRate || 0;
     const conversionRate = photo.metrics.conversionRate || 0;
 
     // Weighted score
     const score =
-      likeRate * 0.25 +
-      swipeRightRate * 0.35 +
-      engagementRate * 0.25 +
-      conversionRate * 0.15;
+      likeRate * 0.25 + swipeRightRate * 0.35 + engagementRate * 0.25 + conversionRate * 0.15;
 
     return Math.min(Math.round(score), 100);
   }
@@ -197,9 +194,8 @@ class SmartPhotoOrderingService {
 
     // Calculate rates
     const likeRate = views > 0 ? (likes / views) * 100 : 0;
-    const swipeRightRate = (swipeRights + swipeLefts) > 0
-      ? (swipeRights / (swipeRights + swipeLefts)) * 100
-      : 0;
+    const swipeRightRate =
+      swipeRights + swipeLefts > 0 ? (swipeRights / (swipeRights + swipeLefts)) * 100 : 0;
 
     // Generate insights
     if (likeRate > 70) {
@@ -212,7 +208,7 @@ class SmartPhotoOrderingService {
 
     if (swipeRightRate > 60) {
       insights.push('This photo generates positive interest.');
-    } else if (swipeRightRate < 30 && (swipeRights + swipeLefts) > 50) {
+    } else if (swipeRightRate < 30 && swipeRights + swipeLefts > 50) {
       insights.push('This photo may be decreasing your match rate.');
     }
 
@@ -220,7 +216,8 @@ class SmartPhotoOrderingService {
       insights.push('Photos with clear face visibility typically perform better.');
     }
 
-    const daysSinceUpload = (Date.now() - new Date(photo.uploadedAt).getTime()) / (1000 * 60 * 60 * 24);
+    const daysSinceUpload =
+      (Date.now() - new Date(photo.uploadedAt).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSinceUpload > 180) {
       insights.push('Consider adding newer photos to keep your profile fresh.');
     }
@@ -253,7 +250,7 @@ class SmartPhotoOrderingService {
     }
 
     // Calculate scores
-    const scores = photos.map(photo => ({
+    const scores = photos.map((photo) => ({
       photo,
       score: this.calculatePhotoScore(photo).score,
     }));
@@ -262,7 +259,7 @@ class SmartPhotoOrderingService {
     scores.sort((a, b) => b.score - a.score);
 
     // Prefer photos with faces as primary
-    const topPhotosWithFaces = scores.filter(s => s.photo.faceDetected);
+    const topPhotosWithFaces = scores.filter((s) => s.photo.faceDetected);
 
     if (topPhotosWithFaces.length > 0) {
       return topPhotosWithFaces[0].photo;
@@ -309,9 +306,10 @@ class SmartPhotoOrderingService {
     const totalSwipeLefts = photos.reduce((sum, p) => sum + (p.metrics?.swipeLefts || 0), 0);
 
     const avgLikeRate = totalViews > 0 ? (totalLikes / totalViews) * 100 : 0;
-    const avgSwipeRightRate = (totalSwipeRights + totalSwipeLefts) > 0
-      ? (totalSwipeRights / (totalSwipeRights + totalSwipeLefts)) * 100
-      : 0;
+    const avgSwipeRightRate =
+      totalSwipeRights + totalSwipeLefts > 0
+        ? (totalSwipeRights / (totalSwipeRights + totalSwipeLefts)) * 100
+        : 0;
 
     const topPerformer = photos.reduce((best, photo) => {
       const bestScore = this.calculatePhotoScore(best).score;
@@ -342,15 +340,17 @@ class SmartPhotoOrderingService {
     const recommendations: string[] = [];
 
     if (photos.length < 3) {
-      recommendations.push('Add more photos (aim for 5-6) to showcase different aspects of your life');
+      recommendations.push(
+        'Add more photos (aim for 5-6) to showcase different aspects of your life'
+      );
     }
 
-    const photosWithFaces = photos.filter(p => p.faceDetected).length;
+    const photosWithFaces = photos.filter((p) => p.faceDetected).length;
     if (photosWithFaces === 0) {
       recommendations.push('Include at least one clear photo of your face');
     }
 
-    const recentPhotos = photos.filter(p => {
+    const recentPhotos = photos.filter((p) => {
       const days = (Date.now() - new Date(p.uploadedAt).getTime()) / (1000 * 60 * 60 * 24);
       return days <= 90;
     }).length;

@@ -12,12 +12,14 @@
  * https://paystack.com/docs/payments/webhooks/
  */
 
+import crypto from 'crypto';
+
+import axios from 'axios';
+
+import notificationClient from '../../infrastructure/clients/notification-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import { db } from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
-import crypto from 'crypto';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
-import notificationClient from '../../infrastructure/clients/notification-service.client';
-import axios from 'axios';
 
 // Paystack event types
 export type PaystackEventType =
@@ -91,10 +93,7 @@ export class PaystackWebhookService {
       return false;
     }
 
-    const hash = crypto
-      .createHmac('sha512', this.webhookSecret)
-      .update(payload)
-      .digest('hex');
+    const hash = crypto.createHmac('sha512', this.webhookSecret).update(payload).digest('hex');
 
     return hash === signature;
   }
@@ -266,7 +265,11 @@ export class PaystackWebhookService {
         tier: userServiceClient.mapTierName(metadata.tier),
         status: 'active',
       });
-      await notificationClient.notifyPaymentSuccess(userId, amountInCurrency, `${metadata.tier} Subscription`);
+      await notificationClient.notifyPaymentSuccess(
+        userId,
+        amountInCurrency,
+        `${metadata.tier} Subscription`
+      );
     } else if (metadata?.coinAmount) {
       await userServiceClient.addCoins({
         userId,
@@ -275,7 +278,11 @@ export class PaystackWebhookService {
         stripePaymentId: reference,
         productSku: `coins_${metadata.coinAmount}`,
       });
-      await notificationClient.notifyPaymentSuccess(userId, amountInCurrency, `${metadata.coinAmount} Coins`);
+      await notificationClient.notifyPaymentSuccess(
+        userId,
+        amountInCurrency,
+        `${metadata.coinAmount} Coins`
+      );
     }
 
     logger.info('[PAYSTACK] Charge success processed', { reference, userId });
@@ -399,16 +406,16 @@ export class PaystackWebhookService {
       const gracePeriodEnd = new Date();
       gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 3);
 
-      await db('user_subscriptions')
-        .where('user_id', userId)
-        .where('status', 'active')
-        .update({
-          status: 'past_due',
-          updated_at: new Date(),
-        });
+      await db('user_subscriptions').where('user_id', userId).where('status', 'active').update({
+        status: 'past_due',
+        updated_at: new Date(),
+      });
     }
 
-    await notificationClient.notifyPaymentFailed(userId, 'Your payment could not be processed. Please update your payment method.');
+    await notificationClient.notifyPaymentFailed(
+      userId,
+      'Your payment could not be processed. Please update your payment method.'
+    );
     logger.info('[PAYSTACK] Payment failure processed', { reference, userId });
   }
 
@@ -446,7 +453,11 @@ export class PaystackWebhookService {
 
     // Reverse credits
     if (metadata?.coinAmount) {
-      await userServiceClient.subtractCoins(userId, parseInt(metadata.coinAmount), `Refund: ${reference}`);
+      await userServiceClient.subtractCoins(
+        userId,
+        parseInt(metadata.coinAmount),
+        `Refund: ${reference}`
+      );
     }
 
     if (metadata?.tier) {

@@ -109,7 +109,7 @@ export async function seed(knex: Knex): Promise<void> {
       id: knex.raw('gen_random_uuid()'),
       type: 'other',
       label: 'Other',
-      description: 'Report doesn\'t fit into other categories',
+      description: "Report doesn't fit into other categories",
       icon: '❓',
       is_active: true,
       display_order: 10,

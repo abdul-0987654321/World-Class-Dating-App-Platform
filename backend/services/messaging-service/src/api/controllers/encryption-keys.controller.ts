@@ -1,9 +1,10 @@
+import { Container } from '@azure/cosmos';
 import { Response } from 'express';
+
+import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import encryptionService from '../../services/encryption.service';
 import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
-import encryptionService from '../../services/encryption.service';
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
-import { Container } from '@azure/cosmos';
 
 const logger = createLogger('encryption-keys-controller');
 
@@ -71,7 +72,7 @@ export class EncryptionKeysController {
    */
   async uploadKeys(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { identityKey, signedPreKey, oneTimePreKeys } = req.body;
 
       // Validate required fields
@@ -159,7 +160,7 @@ export class EncryptionKeysController {
    */
   async getUserKeys(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const currentUserId = req.user!.userId;
+      const currentUserId = req.user.userId;
       const { userId } = req.params;
 
       // Find user's key bundle
@@ -236,7 +237,7 @@ export class EncryptionKeysController {
    */
   async claimPreKeys(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const currentUserId = req.user!.userId;
+      const currentUserId = req.user.userId;
       const { userId, count = 1 } = req.body;
 
       if (!userId) {
@@ -269,7 +270,10 @@ export class EncryptionKeysController {
       const keyBundle = resources[0];
 
       // Claim requested number of one-time pre-keys
-      const claimedKeys = keyBundle.oneTimePreKeys.slice(0, Math.min(count, keyBundle.oneTimePreKeys.length));
+      const claimedKeys = keyBundle.oneTimePreKeys.slice(
+        0,
+        Math.min(count, keyBundle.oneTimePreKeys.length)
+      );
 
       if (claimedKeys.length === 0) {
         return res.status(404).json({
@@ -285,10 +289,12 @@ export class EncryptionKeysController {
       // Update bundle
       await this.keysContainer.item(keyBundle.id, userId).replace(keyBundle);
 
-      logger.info(`User ${currentUserId} claimed ${claimedKeys.length} one-time pre-keys from user ${userId}`);
+      logger.info(
+        `User ${currentUserId} claimed ${claimedKeys.length} one-time pre-keys from user ${userId}`
+      );
 
       // Return public keys only
-      const response = claimedKeys.map(key => ({
+      const response = claimedKeys.map((key) => ({
         keyId: key.keyId,
         publicKey: key.publicKey,
       }));
@@ -315,7 +321,7 @@ export class EncryptionKeysController {
    */
   async generateKeys(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       // Generate identity key pair
       const identityKeyPair = await encryptionService.generateIdentityKeyPair();
@@ -335,7 +341,8 @@ export class EncryptionKeysController {
           signedPreKey,
           oneTimePreKeys,
         },
-        message: 'Keys generated successfully. Please store the private keys securely and upload the public keys.',
+        message:
+          'Keys generated successfully. Please store the private keys securely and upload the public keys.',
       });
     } catch (error: any) {
       logger.error('Failed to generate keys:', error);
@@ -352,7 +359,7 @@ export class EncryptionKeysController {
    */
   async createSessionKey(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId, rootKey, chainKey } = req.body;
 
       if (!conversationId || !rootKey || !chainKey) {
@@ -399,11 +406,12 @@ export class EncryptionKeysController {
    */
   async getSessionKey(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       const querySpec = {
-        query: 'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
+        query:
+          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
         parameters: [
           { name: '@conversationId', value: conversationId },
           { name: '@userId', value: userId },
@@ -411,9 +419,7 @@ export class EncryptionKeysController {
         ],
       };
 
-      const { resources } = await this.keysContainer.items
-        .query<SessionKey>(querySpec)
-        .fetchAll();
+      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
 
       if (resources.length === 0) {
         return res.status(404).json({
@@ -441,7 +447,7 @@ export class EncryptionKeysController {
    */
   async updateSessionKey(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const { chainKey, messageNumber } = req.body;
 
@@ -453,7 +459,8 @@ export class EncryptionKeysController {
       }
 
       const querySpec = {
-        query: 'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
+        query:
+          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
         parameters: [
           { name: '@conversationId', value: conversationId },
           { name: '@userId', value: userId },
@@ -461,9 +468,7 @@ export class EncryptionKeysController {
         ],
       };
 
-      const { resources } = await this.keysContainer.items
-        .query<SessionKey>(querySpec)
-        .fetchAll();
+      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
 
       if (resources.length === 0) {
         return res.status(404).json({
@@ -500,11 +505,12 @@ export class EncryptionKeysController {
    */
   async deleteSessionKey(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       const querySpec = {
-        query: 'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
+        query:
+          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
         parameters: [
           { name: '@conversationId', value: conversationId },
           { name: '@userId', value: userId },
@@ -512,9 +518,7 @@ export class EncryptionKeysController {
         ],
       };
 
-      const { resources } = await this.keysContainer.items
-        .query<SessionKey>(querySpec)
-        .fetchAll();
+      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
 
       if (resources.length > 0) {
         const sessionKey = resources[0];

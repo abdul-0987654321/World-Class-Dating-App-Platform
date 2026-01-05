@@ -51,21 +51,21 @@ class ProfileScoringService {
 
     // Calculate weighted overall score
     const weights = {
-      photos: 0.30,      // 30% - Most important
-      bio: 0.20,         // 20%
-      interests: 0.15,   // 15%
-      preferences: 0.10, // 10%
+      photos: 0.3, // 30% - Most important
+      bio: 0.2, // 20%
+      interests: 0.15, // 15%
+      preferences: 0.1, // 10%
       verification: 0.15, // 15%
-      activity: 0.10,    // 10%
+      activity: 0.1, // 10%
     };
 
     const overall = Math.round(
       breakdown.photos * weights.photos +
-      breakdown.bio * weights.bio +
-      breakdown.interests * weights.interests +
-      breakdown.preferences * weights.preferences +
-      breakdown.verification * weights.verification +
-      breakdown.activity * weights.activity
+        breakdown.bio * weights.bio +
+        breakdown.interests * weights.interests +
+        breakdown.preferences * weights.preferences +
+        breakdown.verification * weights.verification +
+        breakdown.activity * weights.activity
     );
 
     const completionPercentage = this.calculateCompletionPercentage(profile);
@@ -132,7 +132,7 @@ class ProfileScoringService {
     let score = 0;
 
     const fields = ['ageRange', 'distance', 'gender', 'relationshipType'];
-    const filledFields = fields.filter(field => preferences[field] !== undefined).length;
+    const filledFields = fields.filter((field) => preferences[field] !== undefined).length;
 
     score = (filledFields / fields.length) * 100;
 

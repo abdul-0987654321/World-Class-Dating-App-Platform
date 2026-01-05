@@ -9,8 +9,8 @@ import { trustSafetyPolicy } from '../../policies/trust-safety-policy';
 
 // Policy registry
 const policyRegistry: Record<string, any> = {
-  'privacy': privacyPolicy,
-  'terms': termsOfService,
+  privacy: privacyPolicy,
+  terms: termsOfService,
   'trust-safety': trustSafetyPolicy,
 };
 
@@ -150,7 +150,7 @@ export class VersionController {
     return {
       policyType,
       region,
-      versions: paginatedHistory.map(v => ({
+      versions: paginatedHistory.map((v) => ({
         version: v.version,
         publishedAt: v.publishedAt,
         changedBy: v.changedBy,
@@ -179,8 +179,8 @@ export class VersionController {
       throw new Error(`No version history found for policy: ${policyType}`);
     }
 
-    const v1Entry = history.find(v => v.version === version1);
-    const v2Entry = history.find(v => v.version === version2);
+    const v1Entry = history.find((v) => v.version === version1);
+    const v2Entry = history.find((v) => v.version === version2);
 
     if (!v1Entry) {
       throw new Error(`Version ${version1} not found for policy ${policyType}`);
@@ -200,9 +200,9 @@ export class VersionController {
     const v1Sections = new Set(v1Entry.sections || []);
     const v2Sections = new Set(v2Entry.sections || []);
 
-    const addedSections = [...v2Sections].filter(s => !v1Sections.has(s));
-    const removedSections = [...v1Sections].filter(s => !v2Sections.has(s));
-    const modifiedSections = [...v1Sections].filter(s => v2Sections.has(s));
+    const addedSections = [...v2Sections].filter((s) => !v1Sections.has(s));
+    const removedSections = [...v1Sections].filter((s) => !v2Sections.has(s));
+    const modifiedSections = [...v1Sections].filter((s) => v2Sections.has(s));
 
     const comparison = {
       policyType,
@@ -226,7 +226,7 @@ export class VersionController {
       timeline: {
         daysBetween: Math.floor(
           (new Date(v2Entry.publishedAt).getTime() - new Date(v1Entry.publishedAt).getTime()) /
-          (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         ),
       },
     };
@@ -313,35 +313,27 @@ ${comparison.differences.sectionsRemoved.map((s: string) => `- ${s}`).join('\n')
    * Gets audit log entries
    */
   async getAuditLog(params: AuditLogParams) {
-    const {
-      policyType,
-      action,
-      userId,
-      startDate,
-      endDate,
-      limit = 50,
-      offset = 0,
-    } = params;
+    const { policyType, action, userId, startDate, endDate, limit = 50, offset = 0 } = params;
 
     let filteredLog = [...auditLog];
 
     // Apply filters
     if (policyType) {
-      filteredLog = filteredLog.filter(e => e.policyType === policyType);
+      filteredLog = filteredLog.filter((e) => e.policyType === policyType);
     }
     if (action) {
-      filteredLog = filteredLog.filter(e => e.action === action);
+      filteredLog = filteredLog.filter((e) => e.action === action);
     }
     if (userId) {
-      filteredLog = filteredLog.filter(e => e.userId === userId);
+      filteredLog = filteredLog.filter((e) => e.userId === userId);
     }
     if (startDate) {
       const start = new Date(startDate);
-      filteredLog = filteredLog.filter(e => new Date(e.timestamp) >= start);
+      filteredLog = filteredLog.filter((e) => new Date(e.timestamp) >= start);
     }
     if (endDate) {
       const end = new Date(endDate);
-      filteredLog = filteredLog.filter(e => new Date(e.timestamp) <= end);
+      filteredLog = filteredLog.filter((e) => new Date(e.timestamp) <= end);
     }
 
     // Paginate

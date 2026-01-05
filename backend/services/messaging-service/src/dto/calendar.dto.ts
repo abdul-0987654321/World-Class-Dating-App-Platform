@@ -2,9 +2,31 @@
  * Calendar DTOs for request/response validation
  */
 
-import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, IsDate, IsObject, ValidateNested, Min, Max, IsArray, IsDateString, IsLatitude, IsLongitude } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CalendarProvider, VenueCategory, ReminderTiming, DateProposalStatus, ScheduledDateStatus } from '../types/calendar.types';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsBoolean,
+  IsDate,
+  IsObject,
+  ValidateNested,
+  Min,
+  Max,
+  IsArray,
+  IsDateString,
+  IsLatitude,
+  IsLongitude,
+} from 'class-validator';
+
+import {
+  CalendarProvider,
+  VenueCategory,
+  ReminderTiming,
+  DateProposalStatus,
+  ScheduledDateStatus,
+} from '../types/calendar.types';
 
 // ============================================================================
 // CALENDAR CONNECTION DTOs

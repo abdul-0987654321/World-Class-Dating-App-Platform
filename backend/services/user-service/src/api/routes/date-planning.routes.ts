@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+
 import { DatePlanningController } from '../controllers/date-planning.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -192,11 +193,7 @@ router.get(
  *       404:
  *         description: Match not found
  */
-router.post(
-  '/',
-  authenticate,
-  datePlanningController.createDatePlan.bind(datePlanningController)
-);
+router.post('/', authenticate, datePlanningController.createDatePlan.bind(datePlanningController));
 
 /**
  * @swagger
@@ -219,11 +216,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/',
-  authenticate,
-  datePlanningController.getDatePlans.bind(datePlanningController)
-);
+router.get('/', authenticate, datePlanningController.getDatePlans.bind(datePlanningController));
 
 /**
  * @swagger

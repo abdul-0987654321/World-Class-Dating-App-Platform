@@ -3,18 +3,19 @@
  * Provides venue recommendations for dates using Google Places API
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import axios, { AxiosError } from 'axios';
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
-import cosmosClient from '../../infrastructure/database/cosmos-client';
+import axios, { AxiosError } from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
 import { calendarConfig } from '../../config/calendar.config';
+import cosmosClient from '../../infrastructure/database/cosmos-client';
 import {
   VenueSuggestion,
   VenueCategory,
   VenueBookmark,
   VenueSearchParams,
 } from '../../types/calendar.types';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('venue-suggestions-service');
 
@@ -129,10 +130,9 @@ export class VenueSuggestionsService {
       }
 
       // Execute nearby search
-      const response = await axios.get(
-        `${calendarConfig.googlePlaces.baseUrl}/nearbysearch/json`,
-        { params: searchParams }
-      );
+      const response = await axios.get(`${calendarConfig.googlePlaces.baseUrl}/nearbysearch/json`, {
+        params: searchParams,
+      });
 
       if (response.data.status !== 'OK' && response.data.status !== 'ZERO_RESULTS') {
         logger.error('Google Places API error:', response.data.status);
@@ -154,7 +154,7 @@ export class VenueSuggestionsService {
 
       // Fetch additional details for top results
       const detailedVenues = await Promise.all(
-        venues.slice(0, 5).map(async venue => {
+        venues.slice(0, 5).map(async (venue) => {
           if (venue.placeId) {
             const details = await this.getPlaceDetails(venue.placeId);
             return { ...venue, ...details };
@@ -185,16 +185,13 @@ export class VenueSuggestionsService {
     }
 
     try {
-      const response = await axios.get(
-        `${calendarConfig.googlePlaces.baseUrl}/details/json`,
-        {
-          params: {
-            place_id: placeId,
-            fields: 'formatted_phone_number,website,opening_hours,reviews,photos',
-            key: apiKey,
-          },
-        }
-      );
+      const response = await axios.get(`${calendarConfig.googlePlaces.baseUrl}/details/json`, {
+        params: {
+          place_id: placeId,
+          fields: 'formatted_phone_number,website,opening_hours,reviews,photos',
+          key: apiKey,
+        },
+      });
 
       if (response.data.status !== 'OK') {
         return {};
@@ -216,7 +213,7 @@ export class VenueSuggestionsService {
         result.opening_hours.weekday_text.forEach((text: string) => {
           const [day, hours] = text.split(': ');
           if (day && hours) {
-            details.openingHours![day] = hours;
+            details.openingHours[day] = hours;
           }
         });
       }
@@ -259,7 +256,11 @@ export class VenueSuggestionsService {
         categories = [VenueCategory.RESTAURANT, VenueCategory.BAR, VenueCategory.CONCERT_VENUE];
         break;
       case 'activity':
-        categories = [VenueCategory.ACTIVITY_CENTER, VenueCategory.SPORTS_VENUE, VenueCategory.PARK];
+        categories = [
+          VenueCategory.ACTIVITY_CENTER,
+          VenueCategory.SPORTS_VENUE,
+          VenueCategory.PARK,
+        ];
         break;
       default:
         categories = [VenueCategory.RESTAURANT, VenueCategory.CAFE, VenueCategory.BAR];
@@ -287,7 +288,7 @@ export class VenueSuggestionsService {
 
     // Search for each category and combine results
     const venuesByCategory = await Promise.all(
-      categories.map(category =>
+      categories.map((category) =>
         this.searchVenues({
           latitude,
           longitude,
@@ -351,7 +352,7 @@ export class VenueSuggestionsService {
     if (!types || types.length === 0) return VenueCategory.OTHER;
 
     for (const [category, placeTypes] of Object.entries(CATEGORY_TO_PLACE_TYPES)) {
-      if (types.some(t => placeTypes.includes(t))) {
+      if (types.some((t) => placeTypes.includes(t))) {
         return category as VenueCategory;
       }
     }
@@ -472,17 +473,17 @@ export class VenueSuggestionsService {
     // Filter by category if specified
     let filtered = mockVenues;
     if (params.category) {
-      filtered = mockVenues.filter(v => v.category === params.category);
+      filtered = mockVenues.filter((v) => v.category === params.category);
     }
 
     // Filter by rating
     if (params.minRating) {
-      filtered = filtered.filter(v => (v.rating || 0) >= params.minRating!);
+      filtered = filtered.filter((v) => (v.rating || 0) >= params.minRating);
     }
 
     // Filter by price
     if (params.maxPriceLevel) {
-      filtered = filtered.filter(v => (v.priceLevel || 0) <= params.maxPriceLevel!);
+      filtered = filtered.filter((v) => (v.priceLevel || 0) <= params.maxPriceLevel);
     }
 
     // Apply limit
@@ -497,7 +498,11 @@ export class VenueSuggestionsService {
   /**
    * Bookmark a venue for a user
    */
-  async bookmarkVenue(userId: string, venue: VenueSuggestion, notes?: string): Promise<VenueBookmark> {
+  async bookmarkVenue(
+    userId: string,
+    venue: VenueSuggestion,
+    notes?: string
+  ): Promise<VenueBookmark> {
     await this.ensureInitialized();
 
     const now = new Date();
@@ -510,7 +515,7 @@ export class VenueSuggestionsService {
       createdAt: now,
     };
 
-    await this.bookmarksContainer!.items.create(bookmark);
+    await this.bookmarksContainer.items.create(bookmark);
     logger.info(`Created bookmark ${bookmark.id} for user ${userId}`);
 
     return bookmark;
@@ -523,7 +528,7 @@ export class VenueSuggestionsService {
     await this.ensureInitialized();
 
     try {
-      await this.bookmarksContainer!.item(bookmarkId, userId).delete();
+      await this.bookmarksContainer.item(bookmarkId, userId).delete();
       logger.info(`Deleted bookmark ${bookmarkId}`);
     } catch (error) {
       logger.warn('Failed to delete bookmark:', error);
@@ -558,8 +563,11 @@ export class VenueSuggestionsService {
       query += ` LIMIT ${options.limit}`;
     }
 
-    const { resources } = await this.bookmarksContainer!.items
-      .query({ query, parameters })
+    const { resources } = await this.bookmarksContainer.items
+      .query({
+        query,
+        parameters,
+      })
       .fetchAll();
 
     return resources;
@@ -579,7 +587,7 @@ export class VenueSuggestionsService {
       ],
     };
 
-    const { resources } = await this.bookmarksContainer!.items.query(query).fetchAll();
+    const { resources } = await this.bookmarksContainer.items.query(query).fetchAll();
     return (resources[0] || 0) > 0;
   }
 }

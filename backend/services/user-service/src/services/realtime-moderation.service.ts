@@ -5,9 +5,13 @@
  */
 
 import { db } from '../infrastructure/database';
-import { harassmentDetectionService, HarassmentDetectionResult } from './harassment-detection.service';
-import { enhancedBlockService } from './enhanced-block.service';
 import logger from '../utils/logger';
+
+import { enhancedBlockService } from './enhanced-block.service';
+import {
+  harassmentDetectionService,
+  HarassmentDetectionResult,
+} from './harassment-detection.service';
 
 export interface ModerationDecision {
   allow: boolean;
@@ -168,14 +172,16 @@ class RealtimeModerationService {
   /**
    * Get moderation queue items
    */
-  async getModerationQueue(options: {
-    status?: string;
-    isUrgent?: boolean;
-    contentType?: string;
-    limit?: number;
-    offset?: number;
-    assignedTo?: string;
-  } = {}): Promise<{
+  async getModerationQueue(
+    options: {
+      status?: string;
+      isUrgent?: boolean;
+      contentType?: string;
+      limit?: number;
+      offset?: number;
+      assignedTo?: string;
+    } = {}
+  ): Promise<{
     items: ModerationQueueItem[];
     total: number;
     hasMore: boolean;
@@ -263,14 +269,18 @@ class RealtimeModerationService {
     moderatorId: string,
     decision: {
       status: 'approved' | 'rejected' | 'escalated';
-      actionTaken?: 'approved' | 'hidden' | 'removed' | 'user_warned' | 'user_suspended' | 'user_banned';
+      actionTaken?:
+        | 'approved'
+        | 'hidden'
+        | 'removed'
+        | 'user_warned'
+        | 'user_suspended'
+        | 'user_banned';
       notes?: string;
     }
   ): Promise<ModerationQueueItem | null> {
     try {
-      const queueItem = await db('realtime_moderation_queue')
-        .where({ id: queueItemId })
-        .first();
+      const queueItem = await db('realtime_moderation_queue').where({ id: queueItemId }).first();
 
       if (!queueItem) {
         throw new Error('Queue item not found');
@@ -330,13 +340,14 @@ class RealtimeModerationService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const [stats] = await db('realtime_moderation_queue')
-        .select(
-          db.raw("COUNT(*) FILTER (WHERE status = 'pending') as pending"),
-          db.raw("COUNT(*) FILTER (WHERE status = 'in_review') as in_review"),
-          db.raw("COUNT(*) FILTER (WHERE is_urgent = true AND status = 'pending') as urgent"),
-          db.raw(`COUNT(*) FILTER (WHERE processed_at >= '${today.toISOString()}') as processed_today`)
-        ) as { pending: string; in_review: string; urgent: string; processed_today: string }[];
+      const [stats] = (await db('realtime_moderation_queue').select(
+        db.raw("COUNT(*) FILTER (WHERE status = 'pending') as pending"),
+        db.raw("COUNT(*) FILTER (WHERE status = 'in_review') as in_review"),
+        db.raw("COUNT(*) FILTER (WHERE is_urgent = true AND status = 'pending') as urgent"),
+        db.raw(
+          `COUNT(*) FILTER (WHERE processed_at >= '${today.toISOString()}') as processed_today`
+        )
+      )) as { pending: string; in_review: string; urgent: string; processed_today: string }[];
 
       // Calculate average wait time for processed items
       const processedItems = await db('realtime_moderation_queue')
@@ -399,7 +410,7 @@ class RealtimeModerationService {
     content: ContentToModerate
   ): ModerationDecision {
     const riskScore = detectionResult.overallRiskScore;
-    const flaggedCategories = detectionResult.detectedPatterns.map(p => p.category);
+    const flaggedCategories = detectionResult.detectedPatterns.map((p) => p.category);
 
     // Determine action based on risk score
     if (riskScore >= THRESHOLDS.autoBlockUser) {
@@ -489,10 +500,7 @@ class RealtimeModerationService {
     }
   }
 
-  private async updateUserForViolation(
-    userId: string,
-    actionTaken: string
-  ): Promise<void> {
+  private async updateUserForViolation(userId: string, actionTaken: string): Promise<void> {
     try {
       const existing = await db('user_safety_scores').where('user_id', userId).first();
 
@@ -539,9 +547,9 @@ class RealtimeModerationService {
       isAutoFlagged: record.is_auto_flagged,
       riskScore: record.risk_score,
       flaggedCategories: record.flagged_categories
-        ? (typeof record.flagged_categories === 'string'
+        ? typeof record.flagged_categories === 'string'
           ? JSON.parse(record.flagged_categories)
-          : record.flagged_categories)
+          : record.flagged_categories
         : [],
       status: record.status,
       assignedTo: record.assigned_to,

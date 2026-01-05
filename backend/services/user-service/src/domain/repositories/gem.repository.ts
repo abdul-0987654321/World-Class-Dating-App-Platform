@@ -1,4 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   Gem,
   GemCreateInput,
@@ -7,8 +10,6 @@ import {
   GemSpendingCategory,
   GEM_PRICES,
 } from '../entities/Gem.entity';
-import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
 
 export class GemRepository {
   /**
@@ -47,7 +48,7 @@ export class GemRepository {
     };
 
     await db('gems').insert(gem);
-    return this.getByUserId(input.userId) as Promise<Gem>;
+    return this.getByUserId(input.userId);
   }
 
   /**
@@ -91,7 +92,7 @@ export class GemRepository {
 
     logger.info(`Added ${amount} gems to user ${userId}`, { type, description });
 
-    return this.getByUserId(userId) as Promise<Gem>;
+    return this.getByUserId(userId);
   }
 
   /**
@@ -133,7 +134,7 @@ export class GemRepository {
 
     logger.info(`User ${userId} spent ${amount} gems on ${itemType}`, { category });
 
-    return this.getByUserId(userId) as Promise<Gem>;
+    return this.getByUserId(userId);
   }
 
   /**
@@ -181,11 +182,7 @@ export class GemRepository {
   /**
    * Get transaction history
    */
-  async getTransactionHistory(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemTransaction[]> {
+  async getTransactionHistory(userId: string, limit = 50, offset = 0): Promise<GemTransaction[]> {
     const transactions = await db('gem_transactions')
       .where({ user_id: userId })
       .orderBy('created_at', 'desc')

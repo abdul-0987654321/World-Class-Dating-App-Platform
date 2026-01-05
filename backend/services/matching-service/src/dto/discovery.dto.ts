@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsUUID,
   IsOptional,
@@ -8,7 +9,6 @@ import {
   MaxLength,
   IsNotEmpty,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * Query parameters for getting discovery feed.

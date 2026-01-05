@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { PaymentService } from '../../domain/services/payment.service';
 import logger from '../../utils/logger';
 
@@ -173,10 +174,7 @@ export class PaymentController {
         });
       }
 
-      const paymentMethod = await this.paymentService.addPaymentMethod(
-        customerId,
-        paymentMethodId
-      );
+      const paymentMethod = await this.paymentService.addPaymentMethod(customerId, paymentMethodId);
 
       return res.status(200).json({
         success: true,
@@ -204,11 +202,7 @@ export class PaymentController {
         });
       }
 
-      const refund = await this.paymentService.processRefund(
-        paymentIntentId,
-        amount,
-        reason
-      );
+      const refund = await this.paymentService.processRefund(paymentIntentId, amount, reason);
 
       return res.status(200).json({
         success: true,

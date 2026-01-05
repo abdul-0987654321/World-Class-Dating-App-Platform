@@ -1,7 +1,8 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 import { GiftTransaction } from '../../services/virtual-gifts.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('gift-transaction-repository');
 
@@ -51,9 +52,14 @@ export class GiftTransactionRepository {
   /**
    * Find gift transaction by ID
    */
-  async findById(transactionId: string, recipientId: string): Promise<GiftTransactionDocument | null> {
+  async findById(
+    transactionId: string,
+    recipientId: string
+  ): Promise<GiftTransactionDocument | null> {
     try {
-      const { resource } = await this.container.item(transactionId, recipientId).read<GiftTransactionDocument>();
+      const { resource } = await this.container
+        .item(transactionId, recipientId)
+        .read<GiftTransactionDocument>();
       return resource || null;
     } catch (error: any) {
       if (error.code === 404) {
@@ -141,7 +147,9 @@ export class GiftTransactionRepository {
       }
 
       const querySpec = { query, parameters };
-      const { resources } = await this.container.items.query<GiftTransactionDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<GiftTransactionDocument>(querySpec)
+        .fetchAll();
 
       return resources;
     } catch (error: any) {

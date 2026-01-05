@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+
 import logger from '../../utils/logger';
 
 // Apple IAP receipt validation endpoints
@@ -134,7 +135,9 @@ export class AppleIAPService {
 
     // Validate bundle ID
     if (receipt.bundle_id !== this.expectedBundleId) {
-      logger.warn(`Bundle ID mismatch: expected ${this.expectedBundleId}, got ${receipt.bundle_id}`);
+      logger.warn(
+        `Bundle ID mismatch: expected ${this.expectedBundleId}, got ${receipt.bundle_id}`
+      );
       return {
         isValid: false,
         environment: response.environment,
@@ -212,10 +215,10 @@ export class AppleIAPService {
     }
 
     return {
-      productId: validation.productId!,
-      transactionId: validation.transactionId!,
-      originalTransactionId: validation.originalTransactionId!,
-      purchaseDate: validation.purchaseDate!,
+      productId: validation.productId,
+      transactionId: validation.transactionId,
+      originalTransactionId: validation.originalTransactionId,
+      purchaseDate: validation.purchaseDate,
       expiresDate: validation.expiresDate,
       isActive: true,
       willAutoRenew: validation.autoRenewStatus || false,

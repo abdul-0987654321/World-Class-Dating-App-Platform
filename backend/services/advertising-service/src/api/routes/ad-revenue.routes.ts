@@ -4,8 +4,9 @@
  */
 
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+
 import adRevenueController from '../controllers/ad-revenue.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 

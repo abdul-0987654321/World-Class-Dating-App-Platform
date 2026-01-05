@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import logger from '../utils/logger';
 
 interface CCPAOptOut {
@@ -52,11 +53,7 @@ export class CCPAComplianceService {
   /**
    * Record "Do Not Sell My Personal Information" opt-out
    */
-  async optOutOfSale(
-    userId: string,
-    ipAddress?: string,
-    userAgent?: string
-  ): Promise<CCPAOptOut> {
+  async optOutOfSale(userId: string, ipAddress?: string, userAgent?: string): Promise<CCPAOptOut> {
     try {
       const [optOut] = await this.db('ccpa_opt_outs')
         .insert({
@@ -199,9 +196,7 @@ export class CCPAComplianceService {
    */
   async getUserOptOuts(userId: string): Promise<Record<string, CCPAOptOut | null>> {
     try {
-      const optOuts = await this.db('ccpa_opt_outs')
-        .where({ user_id: userId })
-        .select('*');
+      const optOuts = await this.db('ccpa_opt_outs').where({ user_id: userId }).select('*');
 
       const result: Record<string, CCPAOptOut | null> = {
         do_not_sell: null,
@@ -209,7 +204,7 @@ export class CCPAComplianceService {
         limit_sensitive_data: null,
       };
 
-      optOuts.forEach(optOut => {
+      optOuts.forEach((optOut) => {
         result[optOut.opt_out_type] = optOut;
       });
 
@@ -291,7 +286,7 @@ export class CCPAComplianceService {
 
       return {
         logs,
-        total: parseInt(total?.count as string || '0'),
+        total: parseInt((total?.count as string) || '0'),
       };
     } catch (error) {
       logger.error(`Failed to get data access logs: ${error}`);
@@ -443,11 +438,11 @@ export class CCPAComplianceService {
         recentAccessLogs: accessLogs.logs,
         totalAccessLogs: accessLogs.total,
         rightsExercised: {
-          optOutRequests: Object.values(optOuts).filter(o => o?.opted_out).length,
+          optOutRequests: Object.values(optOuts).filter((o) => o?.opted_out).length,
           lastUpdated: Math.max(
             ...Object.values(optOuts)
-              .filter(o => o?.opted_out_at)
-              .map(o => o!.opted_out_at!.getTime())
+              .filter((o) => o?.opted_out_at)
+              .map((o) => o.opted_out_at.getTime())
           ),
         },
         complianceVersion: '1.0',
@@ -472,7 +467,8 @@ export class CCPAComplianceService {
           doNotSell: optOuts.do_not_sell?.opted_out || false,
           doNotShare: optOuts.do_not_share?.opted_out || false,
         },
-        message: 'You have the right to opt-out of the sale or sharing of your personal information.',
+        message:
+          'You have the right to opt-out of the sale or sharing of your personal information.',
         actions: {
           optOut: '/api/privacy/ccpa/opt-out',
           optIn: '/api/privacy/ccpa/opt-in',

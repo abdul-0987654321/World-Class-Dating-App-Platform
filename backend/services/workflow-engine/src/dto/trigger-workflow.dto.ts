@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsObject, IsOptional, IsEnum } from 'class-validator';
+
 import { TriggerType } from '../interfaces/workflow.interface';
 
 export class TriggerWorkflowDto {

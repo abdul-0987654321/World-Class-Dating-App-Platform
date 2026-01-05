@@ -7,10 +7,9 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import db from '../infrastructure/database/connection';
-import logger from '../utils/logger';
+
 import config from '../config';
-import { JumioProvider, OnfidoProvider, MockProvider } from './providers';
+import db from '../infrastructure/database/connection';
 import {
   IIDVerificationProvider,
   VerificationProvider,
@@ -24,29 +23,32 @@ import {
   UserVerificationUpdate,
   VerificationLevel,
 } from '../types/id-verification-provider.types';
+import logger from '../utils/logger';
+
+import { JumioProvider, OnfidoProvider, MockProvider } from './providers';
 
 // Provider region preferences
 const REGION_PROVIDER_PREFERENCES: Record<string, VerificationProvider> = {
   // EU countries prefer Onfido due to GDPR compliance features
-  'DEU': 'onfido',
-  'FRA': 'onfido',
-  'GBR': 'onfido',
-  'ITA': 'onfido',
-  'ESP': 'onfido',
-  'NLD': 'onfido',
-  'BEL': 'onfido',
-  'AUT': 'onfido',
-  'CHE': 'onfido',
+  DEU: 'onfido',
+  FRA: 'onfido',
+  GBR: 'onfido',
+  ITA: 'onfido',
+  ESP: 'onfido',
+  NLD: 'onfido',
+  BEL: 'onfido',
+  AUT: 'onfido',
+  CHE: 'onfido',
   // Americas use Jumio as primary
-  'USA': 'jumio',
-  'CAN': 'jumio',
-  'MEX': 'jumio',
-  'BRA': 'jumio',
+  USA: 'jumio',
+  CAN: 'jumio',
+  MEX: 'jumio',
+  BRA: 'jumio',
   // Asia-Pacific
-  'AUS': 'jumio',
-  'JPN': 'jumio',
-  'SGP': 'jumio',
-  'HKG': 'jumio',
+  AUS: 'jumio',
+  JPN: 'jumio',
+  SGP: 'jumio',
+  HKG: 'jumio',
 };
 
 export class IDVerificationService {
@@ -67,33 +69,44 @@ export class IDVerificationService {
 
     // Initialize Jumio if configured
     if (providerConfig?.jumio?.apiKey && providerConfig?.jumio?.apiSecret) {
-      this.providers.set('jumio', new JumioProvider({
-        api_key: providerConfig.jumio.apiKey,
-        api_secret: providerConfig.jumio.apiSecret,
-        base_url: providerConfig.jumio.baseUrl || 'https://api.jumio.com',
-        workflow_id: providerConfig.jumio.workflowId,
-        callback_url: providerConfig.jumio.callbackUrl || `${config.service.baseUrl}/api/v1/verification/id/webhook`,
-      }));
+      this.providers.set(
+        'jumio',
+        new JumioProvider({
+          api_key: providerConfig.jumio.apiKey,
+          api_secret: providerConfig.jumio.apiSecret,
+          base_url: providerConfig.jumio.baseUrl || 'https://api.jumio.com',
+          workflow_id: providerConfig.jumio.workflowId,
+          callback_url:
+            providerConfig.jumio.callbackUrl ||
+            `${config.service.baseUrl}/api/v1/verification/id/webhook`,
+        })
+      );
       logger.info('Jumio provider initialized');
     }
 
     // Initialize Onfido if configured
     if (providerConfig?.onfido?.apiToken) {
-      this.providers.set('onfido', new OnfidoProvider({
-        api_token: providerConfig.onfido.apiToken,
-        base_url: providerConfig.onfido.baseUrl || 'https://api.onfido.com',
-        webhook_token: providerConfig.onfido.webhookToken || '',
-        workflow_id: providerConfig.onfido.workflowId,
-      }));
+      this.providers.set(
+        'onfido',
+        new OnfidoProvider({
+          api_token: providerConfig.onfido.apiToken,
+          base_url: providerConfig.onfido.baseUrl || 'https://api.onfido.com',
+          webhook_token: providerConfig.onfido.webhookToken || '',
+          workflow_id: providerConfig.onfido.workflowId,
+        })
+      );
       logger.info('Onfido provider initialized');
     }
 
     // Always initialize mock provider for development/testing
-    this.providers.set('mock', new MockProvider({
-      default_result: 'approved',
-      processing_delay_ms: providerConfig?.mock?.processingDelayMs || 3000,
-      simulate_errors: providerConfig?.mock?.simulateErrors || false,
-    }));
+    this.providers.set(
+      'mock',
+      new MockProvider({
+        default_result: 'approved',
+        processing_delay_ms: providerConfig?.mock?.processingDelayMs || 3000,
+        simulate_errors: providerConfig?.mock?.simulateErrors || false,
+      })
+    );
     logger.info('Mock provider initialized');
 
     // Verify at least one provider is available
@@ -158,7 +171,9 @@ export class IDVerificationService {
   /**
    * Initiate ID verification for a user
    */
-  async initiateVerification(request: InitiateIDVerificationRequest): Promise<InitiateIDVerificationResponse> {
+  async initiateVerification(
+    request: InitiateIDVerificationRequest
+  ): Promise<InitiateIDVerificationResponse> {
     const selectedProvider = this.selectProvider(request);
 
     try {
@@ -252,9 +267,7 @@ export class IDVerificationService {
       });
 
       // Update id_verifications with request_id
-      await db('id_verifications')
-        .where({ id: verificationId })
-        .update({ request_id: requestId });
+      await db('id_verifications').where({ id: verificationId }).update({ request_id: requestId });
 
       logger.info('ID verification initiated', {
         verificationId,
@@ -299,7 +312,8 @@ export class IDVerificationService {
       const providerInstance = this.getProvider(provider);
 
       // Validate webhook signature
-      const signature = headers['x-jumio-signature'] || headers['x-sha2-signature'] || headers['signature'] || '';
+      const signature =
+        headers['x-jumio-signature'] || headers['x-sha2-signature'] || headers['signature'] || '';
       if (!providerInstance.validateWebhookSignature(rawBody, signature)) {
         logger.warn('Invalid webhook signature', { provider });
         return { success: false, error: 'Invalid signature' };
@@ -333,7 +347,9 @@ export class IDVerificationService {
           document_check_result: result.document_check,
           face_match_result: result.face_match,
           confidence_score: result.confidence_score,
-          document_details: result.document_details ? JSON.stringify(result.document_details) : null,
+          document_details: result.document_details
+            ? JSON.stringify(result.document_details)
+            : null,
           extracted_data: result.extracted_data ? JSON.stringify(result.extracted_data) : null,
           decline_reasons: result.decline_reasons ? JSON.stringify(result.decline_reasons) : null,
           warnings: result.warnings ? JSON.stringify(result.warnings) : null,
@@ -380,7 +396,10 @@ export class IDVerificationService {
   /**
    * Get verification status
    */
-  async getVerificationStatus(verificationId: string, userId: string): Promise<IDVerificationStatusResponse | null> {
+  async getVerificationStatus(
+    verificationId: string,
+    userId: string
+  ): Promise<IDVerificationStatusResponse | null> {
     const verification = await db('id_verifications')
       .where({
         id: verificationId,
@@ -396,16 +415,16 @@ export class IDVerificationService {
     if (['initiated', 'pending', 'processing'].includes(verification.status)) {
       try {
         const provider = this.getProvider(verification.provider);
-        const providerStatus = await provider.getVerificationStatus(verification.external_reference_id);
+        const providerStatus = await provider.getVerificationStatus(
+          verification.external_reference_id
+        );
 
         if (providerStatus.status !== verification.status) {
           // Update local record
-          await db('id_verifications')
-            .where({ id: verificationId })
-            .update({
-              status: providerStatus.status,
-              updated_at: new Date(),
-            });
+          await db('id_verifications').where({ id: verificationId }).update({
+            status: providerStatus.status,
+            updated_at: new Date(),
+          });
           verification.status = providerStatus.status;
         }
       } catch (error) {
@@ -422,21 +441,29 @@ export class IDVerificationService {
       initiated_at: verification.initiated_at,
       completed_at: verification.completed_at,
       expires_at: verification.expires_at,
-      result: verification.completed_at ? {
-        verification_id: verification.id,
-        external_reference_id: verification.external_reference_id,
-        provider: verification.provider,
-        status: verification.status,
-        document_check: verification.document_check_result || 'not_performed',
-        face_match: verification.face_match_result || 'not_performed',
-        document_type: verification.document_type,
-        document_details: verification.document_details ? JSON.parse(verification.document_details) : undefined,
-        extracted_data: verification.extracted_data ? JSON.parse(verification.extracted_data) : undefined,
-        confidence_score: verification.confidence_score,
-        decline_reasons: verification.decline_reasons ? JSON.parse(verification.decline_reasons) : undefined,
-        warnings: verification.warnings ? JSON.parse(verification.warnings) : undefined,
-        completed_at: verification.completed_at,
-      } : undefined,
+      result: verification.completed_at
+        ? {
+            verification_id: verification.id,
+            external_reference_id: verification.external_reference_id,
+            provider: verification.provider,
+            status: verification.status,
+            document_check: verification.document_check_result || 'not_performed',
+            face_match: verification.face_match_result || 'not_performed',
+            document_type: verification.document_type,
+            document_details: verification.document_details
+              ? JSON.parse(verification.document_details)
+              : undefined,
+            extracted_data: verification.extracted_data
+              ? JSON.parse(verification.extracted_data)
+              : undefined,
+            confidence_score: verification.confidence_score,
+            decline_reasons: verification.decline_reasons
+              ? JSON.parse(verification.decline_reasons)
+              : undefined,
+            warnings: verification.warnings ? JSON.parse(verification.warnings) : undefined,
+            completed_at: verification.completed_at,
+          }
+        : undefined,
     };
   }
 
@@ -489,27 +516,28 @@ export class IDVerificationService {
         id_document_type: verification.document_type,
       };
 
-      await db('users')
-        .where({ id: userId })
-        .update({
-          verification_level: update.verification_level,
-          is_id_verified: update.is_id_verified,
-          id_verified_at: update.id_verified_at,
-          is_verified: true, // Also mark as generally verified
-          verified_at: new Date(),
-          updated_at: new Date(),
-        });
+      await db('users').where({ id: userId }).update({
+        verification_level: update.verification_level,
+        is_id_verified: update.is_id_verified,
+        id_verified_at: update.id_verified_at,
+        is_verified: true, // Also mark as generally verified
+        verified_at: new Date(),
+        updated_at: new Date(),
+      });
 
       // Store verification metadata
-      await db('user_verification_metadata').insert({
-        id: uuidv4(),
-        user_id: userId,
-        verification_type: 'id',
-        provider: verification.provider,
-        document_type: verification.document_type,
-        verified_at: new Date(),
-        created_at: new Date(),
-      }).onConflict(['user_id', 'verification_type']).merge();
+      await db('user_verification_metadata')
+        .insert({
+          id: uuidv4(),
+          user_id: userId,
+          verification_type: 'id',
+          provider: verification.provider,
+          document_type: verification.document_type,
+          verified_at: new Date(),
+          created_at: new Date(),
+        })
+        .onConflict(['user_id', 'verification_type'])
+        .merge();
 
       logger.info('User verification level updated', {
         userId,
@@ -529,13 +557,13 @@ export class IDVerificationService {
    */
   private mapStatusToRequestStatus(status: IDVerificationStatus): string {
     const mapping: Record<IDVerificationStatus, string> = {
-      'initiated': 'pending',
-      'pending': 'pending',
-      'processing': 'in_review',
-      'approved': 'approved',
-      'declined': 'denied',
-      'expired': 'expired',
-      'error': 'denied',
+      initiated: 'pending',
+      pending: 'pending',
+      processing: 'in_review',
+      approved: 'approved',
+      declined: 'denied',
+      expired: 'expired',
+      error: 'denied',
     };
     return mapping[status] || 'pending';
   }
@@ -545,9 +573,9 @@ export class IDVerificationService {
    */
   private getFallbackProvider(primary: VerificationProvider): VerificationProvider | null {
     const fallbacks: Record<VerificationProvider, VerificationProvider | null> = {
-      'jumio': 'onfido',
-      'onfido': 'jumio',
-      'mock': null,
+      jumio: 'onfido',
+      onfido: 'jumio',
+      mock: null,
     };
 
     const fallback = fallbacks[primary];

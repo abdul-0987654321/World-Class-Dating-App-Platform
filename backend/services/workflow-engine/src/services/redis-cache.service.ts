@@ -129,11 +129,7 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   /**
    * Get or set pattern - get from cache or compute and cache
    */
-  async getOrSet<T>(
-    key: string,
-    factory: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
     try {
       // Try to get from cache
       const cached = await this.get<T>(key);
@@ -240,11 +236,7 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   /**
    * Get sorted set range
    */
-  async getSortedSetRange(
-    key: string,
-    start: number = 0,
-    stop: number = -1,
-  ): Promise<string[]> {
+  async getSortedSetRange(key: string, start: number = 0, stop: number = -1): Promise<string[]> {
     try {
       return await this.redisClient.zrange(key, start, stop);
     } catch (error) {
@@ -267,11 +259,7 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   /**
    * Get list range
    */
-  async getListRange(
-    key: string,
-    start: number = 0,
-    stop: number = -1,
-  ): Promise<string[]> {
+  async getListRange(key: string, start: number = 0, stop: number = -1): Promise<string[]> {
     try {
       return await this.redisClient.lrange(key, start, stop);
     } catch (error) {
@@ -283,19 +271,10 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   /**
    * Acquire distributed lock
    */
-  async acquireLock(
-    lockKey: string,
-    timeout: number = 10000,
-  ): Promise<string | null> {
+  async acquireLock(lockKey: string, timeout: number = 10000): Promise<string | null> {
     const lockValue = `${Date.now()}-${Math.random()}`;
     try {
-      const result = await this.redisClient.set(
-        lockKey,
-        lockValue,
-        'PX',
-        timeout,
-        'NX',
-      );
+      const result = await this.redisClient.set(lockKey, lockValue, 'PX', timeout, 'NX');
       return result === 'OK' ? lockValue : null;
     } catch (error) {
       this.logger.error(`Failed to acquire lock ${lockKey}: ${error.message}`);

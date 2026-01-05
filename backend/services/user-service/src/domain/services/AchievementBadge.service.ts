@@ -148,7 +148,7 @@ export class AchievementBadgeService {
    */
   async getUnlockedBadges(userId: string): Promise<UserAchievementBadge[]> {
     const badges = await this.getUserBadges(userId);
-    return badges.filter(b => b.isUnlocked);
+    return badges.filter((b) => b.isUnlocked);
   }
 
   /**
@@ -156,7 +156,7 @@ export class AchievementBadgeService {
    */
   async getDisplayedBadges(userId: string): Promise<UserAchievementBadge[]> {
     const badges = await this.getUserBadges(userId);
-    return badges.filter(b => b.isDisplayed && b.isUnlocked);
+    return badges.filter((b) => b.isDisplayed && b.isUnlocked);
   }
 
   /**
@@ -165,11 +165,11 @@ export class AchievementBadgeService {
   async initializeUserBadges(userId: string): Promise<void> {
     const allBadges = await this.getAllBadges(true);
     const existingBadges = await this.getUserBadges(userId);
-    const existingBadgeIds = new Set(existingBadges.map(b => b.badgeId));
+    const existingBadgeIds = new Set(existingBadges.map((b) => b.badgeId));
 
     const toInsert = allBadges
-      .filter(badge => !existingBadgeIds.has(badge.id))
-      .map(badge => ({
+      .filter((badge) => !existingBadgeIds.has(badge.id))
+      .map((badge) => ({
         user_id: userId,
         badge_id: badge.id,
         current_tier: 1,
@@ -254,13 +254,11 @@ export class AchievementBadgeService {
     const newProgress = increment ? previousProgress + value : value;
 
     // Update progress
-    await this.db('user_achievement_badges')
-      .where('id', userBadge.id)
-      .update({
-        current_progress: newProgress,
-        last_progress_at: this.db.fn.now(),
-        updated_at: this.db.fn.now(),
-      });
+    await this.db('user_achievement_badges').where('id', userBadge.id).update({
+      current_progress: newProgress,
+      last_progress_at: this.db.fn.now(),
+      updated_at: this.db.fn.now(),
+    });
 
     // Check if unlocked
     const justUnlocked = !userBadge.is_unlocked && newProgress >= userBadge.target_progress;
@@ -382,12 +380,10 @@ export class AchievementBadgeService {
       }
     }
 
-    await this.db('user_achievement_badges')
-      .where('id', userBadge.id)
-      .update({
-        is_displayed: display,
-        updated_at: this.db.fn.now(),
-      });
+    await this.db('user_achievement_badges').where('id', userBadge.id).update({
+      is_displayed: display,
+      updated_at: this.db.fn.now(),
+    });
   }
 
   /**
@@ -412,12 +408,10 @@ export class AchievementBadgeService {
 
     const badge = await this.db('achievement_badges').where('id', badgeId).first();
 
-    await this.db('user_achievement_badges')
-      .where('id', userBadge.id)
-      .update({
-        reward_claimed: true,
-        updated_at: this.db.fn.now(),
-      });
+    await this.db('user_achievement_badges').where('id', userBadge.id).update({
+      reward_claimed: true,
+      updated_at: this.db.fn.now(),
+    });
 
     return {
       coins: badge.coin_reward,
@@ -440,7 +434,7 @@ export class AchievementBadgeService {
     const userBadges = await this.getUserBadges(userId);
     const allBadges = await this.getAllBadges(true);
 
-    const unlocked = userBadges.filter(b => b.isUnlocked);
+    const unlocked = userBadges.filter((b) => b.isUnlocked);
 
     const rarityCounts: Record<BadgeRarity, number> = {
       common: 0,
@@ -535,7 +529,10 @@ export class AchievementBadgeService {
     }
   }
 
-  private async updateGamificationSummary(userId: string, updates: Record<string, any>): Promise<void> {
+  private async updateGamificationSummary(
+    userId: string,
+    updates: Record<string, any>
+  ): Promise<void> {
     const existing = await this.db('user_gamification_summary').where({ user_id: userId }).first();
 
     if (existing) {
@@ -561,9 +558,10 @@ export class AchievementBadgeService {
       category: row.category,
       rarity: row.rarity,
       unlockType: row.unlock_type,
-      unlockRequirements: typeof row.unlock_requirements === 'string'
-        ? JSON.parse(row.unlock_requirements)
-        : row.unlock_requirements || {},
+      unlockRequirements:
+        typeof row.unlock_requirements === 'string'
+          ? JSON.parse(row.unlock_requirements)
+          : row.unlock_requirements || {},
       coinReward: row.coin_reward || 0,
       xpReward: row.xp_reward || 0,
       isHidden: row.is_hidden,

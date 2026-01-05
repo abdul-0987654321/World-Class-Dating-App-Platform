@@ -1,10 +1,11 @@
 import { Response } from 'express';
-import { createLogger } from '../../utils/logger';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { typingIndicatorService } from '../../services/typing-indicator.service';
+import { createLogger } from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('conversation-typing-controller');
 
@@ -18,7 +19,7 @@ export class ConversationTypingController {
    */
   async sendTypingIndicator(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const { isTyping } = req.body;
 
@@ -39,10 +40,7 @@ export class ConversationTypingController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this conversation',
@@ -97,7 +95,7 @@ export class ConversationTypingController {
    */
   async getTypingUsers(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       // Verify conversation exists and user is participant
@@ -110,10 +108,7 @@ export class ConversationTypingController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this conversation',

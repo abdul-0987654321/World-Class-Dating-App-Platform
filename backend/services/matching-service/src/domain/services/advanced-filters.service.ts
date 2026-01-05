@@ -86,12 +86,18 @@ export class AdvancedFiltersService {
     }
 
     // Distance validation
-    if (filters.maxDistance !== undefined && (filters.maxDistance < 1 || filters.maxDistance > 500)) {
+    if (
+      filters.maxDistance !== undefined &&
+      (filters.maxDistance < 1 || filters.maxDistance > 500)
+    ) {
       errors.push('Distance must be between 1 and 500 km');
     }
 
     // Photos validation
-    if (filters.hasPhotosMin !== undefined && (filters.hasPhotosMin < 1 || filters.hasPhotosMin > 10)) {
+    if (
+      filters.hasPhotosMin !== undefined &&
+      (filters.hasPhotosMin < 1 || filters.hasPhotosMin > 10)
+    ) {
       errors.push('Minimum photos must be between 1 and 10');
     }
 

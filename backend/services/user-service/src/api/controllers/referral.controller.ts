@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { ReferralService } from '../../domain/services/referral.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class ReferralController {
   private referralService: ReferralService;
@@ -84,9 +85,8 @@ export class ReferralController {
     } catch (error: any) {
       logger.error('Apply referral code error:', error);
 
-      const statusCode = error.message.includes('Invalid') || error.message.includes('already')
-        ? 400
-        : 500;
+      const statusCode =
+        error.message.includes('Invalid') || error.message.includes('already') ? 400 : 500;
 
       return res.status(statusCode).json({
         success: false,

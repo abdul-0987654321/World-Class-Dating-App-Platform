@@ -1,10 +1,10 @@
-import { MatchRepository } from '../repositories/match.repository';
-import { UserRepository } from '../repositories/user.repository';
-import { ProfileRepository } from '../repositories/profile.repository';
-import { PhotoRepository } from '../repositories/photo.repository';
-import { PromptRepository } from '../repositories/prompt.repository';
-import { OpeningMoveRepository } from '../repositories/opening-move.repository';
 import { MatchResponse, MatchDetailResponse } from '../entities/Match.entity';
+import { MatchRepository } from '../repositories/match.repository';
+import { OpeningMoveRepository } from '../repositories/opening-move.repository';
+import { PhotoRepository } from '../repositories/photo.repository';
+import { ProfileRepository } from '../repositories/profile.repository';
+import { PromptRepository } from '../repositories/prompt.repository';
+import { UserRepository } from '../repositories/user.repository';
 
 export class MatchService {
   private matchRepository: MatchRepository;
@@ -153,12 +153,14 @@ export class MatchService {
         image_url: om.image_url,
         template: om.template,
       })),
-      opening_response: openingResponse ? {
-        id: openingResponse.id,
-        opening_move_id: openingResponse.opening_move_id,
-        response_text: openingResponse.response_text,
-        responded_at: openingResponse.responded_at,
-      } : undefined,
+      opening_response: openingResponse
+        ? {
+            id: openingResponse.id,
+            opening_move_id: openingResponse.opening_move_id,
+            response_text: openingResponse.response_text,
+            responded_at: openingResponse.responded_at,
+          }
+        : undefined,
       requires_response: requiresResponse,
     };
   }

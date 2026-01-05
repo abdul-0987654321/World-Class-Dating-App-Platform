@@ -17,17 +17,13 @@
  * 7. Comprehensive audit logging
  */
 
-import axios from 'axios';
 import crypto from 'crypto';
+
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import db from '../infrastructure/database/connection';
+
 import config from '../config';
-import ncmecReportingService from './ncmec-reporting.service';
-import csamQuarantineService from './csam-quarantine.service';
-import csamAuditService from './csam-audit.service';
-import staffNotificationService from './staff-notification.service';
-import perceptualHashService from './perceptual-hash.service';
+import db from '../infrastructure/database/connection';
 import {
   CSAMDetectionResult,
   CSAMDetectionStatus,
@@ -36,6 +32,13 @@ import {
   PhotoDNAResponse,
   ContentQuarantineRecord,
 } from '../types/csam.types';
+import { createLogger } from '../utils/logger';
+
+import csamAuditService from './csam-audit.service';
+import csamQuarantineService from './csam-quarantine.service';
+import ncmecReportingService from './ncmec-reporting.service';
+import perceptualHashService from './perceptual-hash.service';
+import staffNotificationService from './staff-notification.service';
 
 const logger = createLogger('csam-detection-service');
 
@@ -125,7 +128,11 @@ export class CSAMDetectionService {
         ncmecHashId: ncmecMatch.hashId,
         internalMatch: internalMatch.matched,
         cloudMatch: cloudMatch.matched,
-        matchSource: this.determineMatchSource(ncmecMatch.matched, internalMatch.matched, cloudMatch.matched),
+        matchSource: this.determineMatchSource(
+          ncmecMatch.matched,
+          internalMatch.matched,
+          cloudMatch.matched
+        ),
         detectionMethod: 'photodna_perceptual_hybrid',
         detectedAt: new Date(),
         processingTimeMs: Date.now() - detectionStartTime,
@@ -162,7 +169,6 @@ export class CSAMDetectionService {
       });
 
       return detectionResult;
-
     } catch (error: any) {
       logger.error('CSAM DETECTION FAILED - CRITICAL ERROR', {
         detectionId,
@@ -235,7 +241,6 @@ export class CSAMDetectionService {
         method: 'photodna',
         details: response.data,
       };
-
     } catch (error: any) {
       logger.error('PhotoDNA hash generation failed', error);
 
@@ -285,7 +290,6 @@ export class CSAMDetectionService {
       }
 
       return { matched: false, confidence: 0 };
-
     } catch (error: any) {
       logger.error('NCMEC database check failed', error);
       return { matched: false, confidence: 0 };
@@ -318,9 +322,9 @@ export class CSAMDetectionService {
 
       if (perceptualResults.length > 0) {
         logger.warn('INTERNAL PERCEPTUAL HASH MATCH', {
-          matches: perceptualResults.length
+          matches: perceptualResults.length,
         });
-        return { matched: true, confidence: 0.90 };
+        return { matched: true, confidence: 0.9 };
       }
 
       // Check similar perceptual hashes (Hamming distance)
@@ -333,7 +337,6 @@ export class CSAMDetectionService {
       }
 
       return { matched: false, confidence: 0 };
-
     } catch (error: any) {
       logger.error('Internal database check failed', error);
       return { matched: false, confidence: 0 };
@@ -375,7 +378,6 @@ export class CSAMDetectionService {
         matched: response.data.matched || false,
         confidence: response.data.confidence || 0,
       };
-
     } catch (error: any) {
       logger.error('PhotoDNA cloud matching failed', error);
       return { matched: false, confidence: 0 };
@@ -398,15 +400,11 @@ export class CSAMDetectionService {
       // Calculate Hamming distance for each
       const similarHashes = knownHashes.filter((record) => {
         if (!record.perceptual_hash) return false;
-        const distance = this.calculateHammingDistance(
-          perceptualHash,
-          record.perceptual_hash
-        );
+        const distance = this.calculateHammingDistance(perceptualHash, record.perceptual_hash);
         return distance <= maxDistance;
       });
 
       return similarHashes;
-
     } catch (error: any) {
       logger.error('Similar hash search failed', error);
       return [];
@@ -430,10 +428,7 @@ export class CSAMDetectionService {
   /**
    * Determine severity level based on confidence and match source
    */
-  private determineSeverity(
-    confidenceScore: number,
-    ncmecMatch: boolean
-  ): CSAMSeverityLevel {
+  private determineSeverity(confidenceScore: number, ncmecMatch: boolean): CSAMSeverityLevel {
     if (ncmecMatch) {
       return CSAMSeverityLevel.CRITICAL; // NCMEC match = critical
     }
@@ -442,9 +437,9 @@ export class CSAMDetectionService {
       return CSAMSeverityLevel.CRITICAL;
     } else if (confidenceScore >= 0.85) {
       return CSAMSeverityLevel.HIGH;
-    } else if (confidenceScore >= 0.70) {
+    } else if (confidenceScore >= 0.7) {
       return CSAMSeverityLevel.MEDIUM;
-    } else if (confidenceScore >= 0.50) {
+    } else if (confidenceScore >= 0.5) {
       return CSAMSeverityLevel.LOW;
     }
 
@@ -555,7 +550,6 @@ export class CSAMDetectionService {
         detectionId: detectionResult.detectionId,
         quarantineId: quarantineRecord.id,
       });
-
     } catch (error: any) {
       logger.error('CSAM HANDLING FAILED - CRITICAL ERROR', {
         detectionId: detectionResult.detectionId,
@@ -578,9 +572,7 @@ export class CSAMDetectionService {
   /**
    * Add detected CSAM hash to internal database
    */
-  private async addToInternalDatabase(
-    detectionResult: CSAMDetectionResult
-  ): Promise<void> {
+  private async addToInternalDatabase(detectionResult: CSAMDetectionResult): Promise<void> {
     try {
       // Check if hash already exists
       const existing = await db('csam_known_hashes')
@@ -619,7 +611,6 @@ export class CSAMDetectionService {
           detectionCount: existing.detection_count + 1,
         });
       }
-
     } catch (error: any) {
       logger.error('Failed to add hash to internal database', error);
       // Don't throw - this is not critical for immediate safety
@@ -629,10 +620,7 @@ export class CSAMDetectionService {
   /**
    * Block all content from user
    */
-  private async blockUserContent(
-    userId: string,
-    detectionId: string
-  ): Promise<void> {
+  private async blockUserContent(userId: string, detectionId: string): Promise<void> {
     try {
       await db('user_content_blocks').insert({
         id: uuidv4(),
@@ -644,7 +632,6 @@ export class CSAMDetectionService {
       });
 
       logger.warn('USER CONTENT BLOCKED', { userId, detectionId });
-
     } catch (error: any) {
       logger.error('Failed to block user content', error);
       throw error; // This is critical
@@ -659,24 +646,21 @@ export class CSAMDetectionService {
     detectionResult: CSAMDetectionResult
   ): Promise<void> {
     try {
-      await db('user_moderation_records')
-        .where('user_id', userId)
-        .update({
-          status: 'csam_investigation',
-          csam_flag: true,
-          csam_detection_id: detectionResult.detectionId,
-          csam_flagged_at: new Date(),
-          permanently_banned: true,
-          banned_at: new Date(),
-          banned_reason: 'CSAM detection - automatic permanent ban',
-          updated_at: new Date(),
-        });
+      await db('user_moderation_records').where('user_id', userId).update({
+        status: 'csam_investigation',
+        csam_flag: true,
+        csam_detection_id: detectionResult.detectionId,
+        csam_flagged_at: new Date(),
+        permanently_banned: true,
+        banned_at: new Date(),
+        banned_reason: 'CSAM detection - automatic permanent ban',
+        updated_at: new Date(),
+      });
 
       logger.warn('USER FLAGGED FOR CSAM INVESTIGATION', {
         userId,
         detectionId: detectionResult.detectionId,
       });
-
     } catch (error: any) {
       logger.error('Failed to flag user for investigation', error);
       throw error; // This is critical
@@ -714,7 +698,6 @@ export class CSAMDetectionService {
         contentId,
         userId,
       });
-
     } catch (quarantineError: any) {
       logger.error('CRITICAL: Failed to quarantine content after detection failure', {
         contentId,
@@ -757,7 +740,6 @@ export class CSAMDetectionService {
       };
 
       await db('csam_detection_logs').insert(log);
-
     } catch (error: any) {
       logger.error('Failed to log CSAM detection', error);
       // Don't throw - logging failure shouldn't block detection
@@ -772,9 +754,7 @@ export class CSAMDetectionService {
       logger.info('Loading NCMEC hash database...');
 
       // Load hashes from database
-      const hashes = await db('csam_known_hashes')
-        .where('source', 'ncmec')
-        .select('hash');
+      const hashes = await db('csam_known_hashes').where('source', 'ncmec').select('hash');
 
       hashes.forEach((record) => {
         if (record.hash) {
@@ -783,7 +763,6 @@ export class CSAMDetectionService {
       });
 
       logger.info(`NCMEC hash database loaded: ${this.ncmecHashDatabase.size} hashes`);
-
     } catch (error: any) {
       logger.error('Failed to initialize NCMEC hash database', error);
     }
@@ -803,7 +782,6 @@ export class CSAMDetectionService {
       await this.initializeNCMECHashDatabase();
 
       logger.info('NCMEC hash database refreshed successfully');
-
     } catch (error: any) {
       logger.error('Failed to refresh NCMEC hash database', error);
     }
@@ -836,7 +814,10 @@ export class CSAMDetectionService {
         .select(
           db.raw('COUNT(*) as total_detections'),
           db.raw('COUNT(CASE WHEN is_csam = true THEN 1 END) as positive_detections'),
-          db.raw('COUNT(CASE WHEN status = ? THEN 1 END, ?)', [CSAMDetectionStatus.ERROR, 'errors']),
+          db.raw('COUNT(CASE WHEN status = ? THEN 1 END, ?)', [
+            CSAMDetectionStatus.ERROR,
+            'errors',
+          ]),
           db.raw('AVG(confidence_score) as avg_confidence'),
           db.raw('AVG(processing_time_ms) as avg_processing_time')
         )
@@ -847,7 +828,6 @@ export class CSAMDetectionService {
         startDate,
         ...stats,
       };
-
     } catch (error: any) {
       logger.error('Failed to get detection statistics', error);
       throw error;

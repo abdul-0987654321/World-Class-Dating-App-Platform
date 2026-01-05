@@ -1,5 +1,6 @@
-import { createClient, RedisClientType } from 'redis';
 import { createLogger } from '@flamoral/backend-shared';
+import { createClient, RedisClientType } from 'redis';
+
 import config from '../../config';
 
 const logger = createLogger('automation-service:redis-retry');
@@ -22,11 +23,19 @@ async function withRetry<T>(
       lastError = error;
 
       // Check if error is retryable
-      const retryableErrors = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', 'NR_CLOSED', 'CONNECTION_CLOSED'];
-      const isRetryable = retryableErrors.includes(error.code) ||
-                          error.message?.toLowerCase().includes('connection') ||
-                          error.message?.toLowerCase().includes('timeout') ||
-                          error.message?.toLowerCase().includes('closed');
+      const retryableErrors = [
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EHOSTUNREACH',
+        'NR_CLOSED',
+        'CONNECTION_CLOSED',
+      ];
+      const isRetryable =
+        retryableErrors.includes(error.code) ||
+        error.message?.toLowerCase().includes('connection') ||
+        error.message?.toLowerCase().includes('timeout') ||
+        error.message?.toLowerCase().includes('closed');
 
       if (!isRetryable || attempt === maxRetries) {
         logger.error(`Redis ${operationName} failed`, {
@@ -48,11 +57,11 @@ async function withRetry<T>(
         error: error.message,
       });
 
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+      await new Promise((resolve) => setTimeout(resolve, finalDelay));
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -91,43 +100,48 @@ export async function initializeRedis(): Promise<RedisClientType> {
     return redisClient;
   }
 
-  return await withRetry(async () => {
-    redisClient = createClient({
-      socket: {
-        host: config.redis.host,
-        port: config.redis.port,
-        connectTimeout: 10000,
-        reconnectStrategy: createReconnectStrategy,
-      },
-      password: config.redis.password,
-      database: config.redis.db,
-    });
+  return await withRetry(
+    async () => {
+      redisClient = createClient({
+        socket: {
+          host: config.redis.host,
+          port: config.redis.port,
+          connectTimeout: 10000,
+          reconnectStrategy: createReconnectStrategy,
+        },
+        password: config.redis.password,
+        database: config.redis.db,
+      });
 
-    redisClient.on('error', (err) => {
-      logger.error('Redis connection error', err);
-    });
+      redisClient.on('error', (err) => {
+        logger.error('Redis connection error', err);
+      });
 
-    redisClient.on('connect', () => {
-      logger.info('Redis connected successfully');
-    });
+      redisClient.on('connect', () => {
+        logger.info('Redis connected successfully');
+      });
 
-    redisClient.on('ready', () => {
-      logger.info('Redis ready');
-    });
+      redisClient.on('ready', () => {
+        logger.info('Redis ready');
+      });
 
-    redisClient.on('reconnecting', () => {
-      logger.warn('Redis reconnecting...');
-    });
+      redisClient.on('reconnecting', () => {
+        logger.warn('Redis reconnecting...');
+      });
 
-    redisClient.on('disconnect', () => {
-      logger.warn('Redis disconnected');
-    });
+      redisClient.on('disconnect', () => {
+        logger.warn('Redis disconnected');
+      });
 
-    await redisClient.connect();
-    logger.info('Redis connection established');
+      await redisClient.connect();
+      logger.info('Redis connection established');
 
-    return redisClient;
-  }, 'connect', 5, 1000);
+      return redisClient;
+    },
+    'connect',
+    5,
+    1000
+  );
 }
 
 /**
@@ -161,12 +175,7 @@ export const cache = {
   async get<T>(key: string): Promise<T | null> {
     try {
       const client = getRedisClient();
-      const value = await withRetry(
-        () => client.get(key),
-        'get',
-        3,
-        500
-      );
+      const value = await withRetry(() => client.get(key), 'get', 3, 500);
       return value ? (JSON.parse(value as string) as T) : null;
     } catch (error) {
       logger.error('Error getting key', error);
@@ -178,13 +187,18 @@ export const cache = {
     try {
       const client = getRedisClient();
       const serialized = JSON.stringify(value);
-      await withRetry(async () => {
-        if (ttlSeconds) {
-          await client.setEx(key, ttlSeconds, serialized);
-        } else {
-          await client.set(key, serialized);
-        }
-      }, 'set', 3, 500);
+      await withRetry(
+        async () => {
+          if (ttlSeconds) {
+            await client.setEx(key, ttlSeconds, serialized);
+          } else {
+            await client.set(key, serialized);
+          }
+        },
+        'set',
+        3,
+        500
+      );
     } catch (error) {
       logger.error('Error setting key', error);
     }
@@ -193,12 +207,7 @@ export const cache = {
   async delete(key: string): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.del(key),
-        'delete',
-        3,
-        500
-      );
+      await withRetry(() => client.del(key), 'delete', 3, 500);
     } catch (error) {
       logger.error('Error deleting key', error);
     }
@@ -207,12 +216,7 @@ export const cache = {
   async exists(key: string): Promise<boolean> {
     try {
       const client = getRedisClient();
-      const result = await withRetry(
-        () => client.exists(key),
-        'exists',
-        3,
-        500
-      );
+      const result = await withRetry(() => client.exists(key), 'exists', 3, 500);
       return result === 1;
     } catch (error) {
       logger.error('Error checking key existence', error);
@@ -223,12 +227,7 @@ export const cache = {
   async expire(key: string, ttlSeconds: number): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.expire(key, ttlSeconds),
-        'expire',
-        3,
-        500
-      );
+      await withRetry(() => client.expire(key, ttlSeconds), 'expire', 3, 500);
     } catch (error) {
       logger.error('Error setting expiration', error);
     }
@@ -237,12 +236,7 @@ export const cache = {
   async keys(pattern: string): Promise<string[]> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.keys(pattern),
-        'keys',
-        3,
-        500
-      ) || [];
+      return (await withRetry(() => client.keys(pattern), 'keys', 3, 500)) || [];
     } catch (error) {
       logger.error('Error getting keys', error);
       return [];
@@ -252,12 +246,7 @@ export const cache = {
   async incr(key: string): Promise<number> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.incr(key),
-        'incr',
-        3,
-        500
-      );
+      return await withRetry(() => client.incr(key), 'incr', 3, 500);
     } catch (error) {
       logger.error('Error incrementing key', error);
       return 0;
@@ -267,12 +256,7 @@ export const cache = {
   async decr(key: string): Promise<number> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.decr(key),
-        'decr',
-        3,
-        500
-      );
+      return await withRetry(() => client.decr(key), 'decr', 3, 500);
     } catch (error) {
       logger.error('Error decrementing key', error);
       return 0;
@@ -282,12 +266,7 @@ export const cache = {
   async hGet(key: string, field: string): Promise<string | null> {
     try {
       const client = getRedisClient();
-      const result = await withRetry(
-        () => client.hGet(key, field),
-        'hGet',
-        3,
-        500
-      );
+      const result = await withRetry(() => client.hGet(key, field), 'hGet', 3, 500);
       return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Error getting hash field', error);
@@ -298,12 +277,7 @@ export const cache = {
   async hSet(key: string, field: string, value: string): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.hSet(key, field, value),
-        'hSet',
-        3,
-        500
-      );
+      await withRetry(() => client.hSet(key, field, value), 'hSet', 3, 500);
     } catch (error) {
       logger.error('Error setting hash field', error);
     }
@@ -312,12 +286,7 @@ export const cache = {
   async hGetAll(key: string): Promise<Record<string, string>> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.hGetAll(key),
-        'hGetAll',
-        3,
-        500
-      ) || {};
+      return (await withRetry(() => client.hGetAll(key), 'hGetAll', 3, 500)) || {};
     } catch (error) {
       logger.error('Error getting all hash fields', error);
       return {};
@@ -327,12 +296,7 @@ export const cache = {
   async lPush(key: string, ...values: string[]): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.lPush(key, values),
-        'lPush',
-        3,
-        500
-      );
+      await withRetry(() => client.lPush(key, values), 'lPush', 3, 500);
     } catch (error) {
       logger.error('Error pushing to list', error);
     }
@@ -341,12 +305,7 @@ export const cache = {
   async rPush(key: string, ...values: string[]): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.rPush(key, values),
-        'rPush',
-        3,
-        500
-      );
+      await withRetry(() => client.rPush(key, values), 'rPush', 3, 500);
     } catch (error) {
       logger.error('Error pushing to list', error);
     }
@@ -355,12 +314,7 @@ export const cache = {
   async lRange(key: string, start: number, stop: number): Promise<string[]> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.lRange(key, start, stop),
-        'lRange',
-        3,
-        500
-      ) || [];
+      return (await withRetry(() => client.lRange(key, start, stop), 'lRange', 3, 500)) || [];
     } catch (error) {
       logger.error('Error getting list range', error);
       return [];
@@ -370,12 +324,7 @@ export const cache = {
   async sAdd(key: string, ...members: string[]): Promise<void> {
     try {
       const client = getRedisClient();
-      await withRetry(
-        () => client.sAdd(key, members),
-        'sAdd',
-        3,
-        500
-      );
+      await withRetry(() => client.sAdd(key, members), 'sAdd', 3, 500);
     } catch (error) {
       logger.error('Error adding to set', error);
     }
@@ -384,12 +333,7 @@ export const cache = {
   async sMembers(key: string): Promise<string[]> {
     try {
       const client = getRedisClient();
-      return await withRetry(
-        () => client.sMembers(key),
-        'sMembers',
-        3,
-        500
-      ) || [];
+      return (await withRetry(() => client.sMembers(key), 'sMembers', 3, 500)) || [];
     } catch (error) {
       logger.error('Error getting set members', error);
       return [];
@@ -399,12 +343,7 @@ export const cache = {
   async sIsMember(key: string, member: string): Promise<boolean> {
     try {
       const client = getRedisClient();
-      const result = await withRetry(
-        () => client.sIsMember(key, member),
-        'sIsMember',
-        3,
-        500
-      );
+      const result = await withRetry(() => client.sIsMember(key, member), 'sIsMember', 3, 500);
       return Boolean(result);
     } catch (error) {
       logger.error('Error checking set membership', error);

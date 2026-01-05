@@ -4,9 +4,10 @@
  */
 
 import express, { Request, Response } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
+
 import { settingsService } from '../../services/settings.service';
 import logger from '../../utils/logger';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ const router = express.Router();
  */
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const settings = await settingsService.getAllSettings(userId);
 
     res.status(200).json({
@@ -94,7 +95,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
  */
 router.patch('/account', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const updates = req.body;
 
     const result = await settingsService.updateAccountSettings(userId, updates);
@@ -150,7 +151,7 @@ router.patch('/account', requireAuth, async (req: Request, res: Response) => {
  */
 router.patch('/privacy', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const privacySettings = req.body;
 
     const result = await settingsService.updatePrivacySettings(userId, privacySettings);
@@ -206,13 +207,10 @@ router.patch('/privacy', requireAuth, async (req: Request, res: Response) => {
  */
 router.patch('/notifications', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const notificationSettings = req.body;
 
-    const result = await settingsService.updateNotificationSettings(
-      userId,
-      notificationSettings
-    );
+    const result = await settingsService.updateNotificationSettings(userId, notificationSettings);
 
     res.status(200).json(result);
   } catch (error: any) {
@@ -259,7 +257,7 @@ router.patch('/notifications', requireAuth, async (req: Request, res: Response) 
  */
 router.patch('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const preferences = req.body;
 
     const result = await settingsService.updateMatchPreferences(userId, preferences);
@@ -301,7 +299,7 @@ router.patch('/preferences', requireAuth, async (req: Request, res: Response) =>
  */
 router.get('/blocked-users', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const result = await settingsService.getBlockedUsers(userId);
 
     res.status(200).json(result);
@@ -340,7 +338,7 @@ router.get('/blocked-users', requireAuth, async (req: Request, res: Response) =>
  */
 router.delete('/blocked-users/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
-    const blockerId = req.user!.id;
+    const blockerId = req.user.id;
     const blockedUserId = req.params.userId;
 
     const result = await settingsService.unblockUser(blockerId, blockedUserId);
@@ -390,7 +388,7 @@ router.delete('/blocked-users/:userId', requireAuth, async (req: Request, res: R
  */
 router.post('/data-export', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const result = await settingsService.exportUserData(userId);
 
     res.status(200).json(result);
@@ -439,7 +437,7 @@ router.post('/data-export', requireAuth, async (req: Request, res: Response) => 
  */
 router.delete('/account', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { password, reason, feedback } = req.body;
 
     if (!password || !reason) {

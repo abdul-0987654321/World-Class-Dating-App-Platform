@@ -1,7 +1,10 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { db } from '../../infrastructure/database/connection';
-import { TicketmasterClient } from '../../infrastructure/clients/ticketmaster.client';
+
 import { EventbriteClient } from '../../infrastructure/clients/eventbrite.client';
+import { TicketmasterClient } from '../../infrastructure/clients/ticketmaster.client';
+import { db } from '../../infrastructure/database/connection';
+import { EventSearchParams, Ticket } from '../../types';
+import { generateAffiliateTrackingId, calculateCommission } from '../entities/Affiliate.entity';
 import {
   Event,
   TicketPurchase,
@@ -9,11 +12,6 @@ import {
   TICKET_STATUS,
 } from '../entities/Event.entity';
 import { Partner } from '../entities/Partner.entity';
-import { EventSearchParams, Ticket } from '../../types';
-import {
-  generateAffiliateTrackingId,
-  calculateCommission,
-} from '../entities/Affiliate.entity';
 
 const logger = createLogger('events-service');
 
@@ -21,10 +19,7 @@ export class EventsService {
   private ticketmasterClient: TicketmasterClient;
   private eventbriteClient: EventbriteClient;
 
-  constructor(
-    ticketmasterClient?: TicketmasterClient,
-    eventbriteClient?: EventbriteClient
-  ) {
+  constructor(ticketmasterClient?: TicketmasterClient, eventbriteClient?: EventbriteClient) {
     this.ticketmasterClient = ticketmasterClient || new TicketmasterClient();
     this.eventbriteClient = eventbriteClient || new EventbriteClient();
   }
@@ -39,9 +34,7 @@ export class EventsService {
     const results: { events: any[]; source: string }[] = [];
 
     // Get active event partners
-    const partners = await db('partners')
-      .where('type', 'events')
-      .where('status', 'active');
+    const partners = await db('partners').where('type', 'events').where('status', 'active');
 
     for (const partner of partners) {
       try {
@@ -60,7 +53,7 @@ export class EventsService {
 
         results.push({
           source: partner.integrationType,
-          events: events.map(e => ({
+          events: events.map((e) => ({
             ...e,
             partnerId: partner.id,
             partnerName: partner.name,
@@ -125,7 +118,7 @@ export class EventsService {
       } else if (partner.integrationType === 'eventbrite') {
         const client = new EventbriteClient(partner.apiKey, partner.affiliateId);
         const ticketClasses = await client.getTicketClasses(eventExternalId);
-        const available = ticketClasses.some(tc => tc.available > 0);
+        const available = ticketClasses.some((tc) => tc.available > 0);
         return { available, ticketTypes: ticketClasses };
       }
     } catch (error: any) {
@@ -145,9 +138,7 @@ export class EventsService {
    * Note: Actual ticket purchase typically happens through partner's checkout flow
    * This tracks the purchase after redirect back to our app
    */
-  async createTicketPurchase(
-    input: TicketPurchaseCreateInput
-  ): Promise<TicketPurchase> {
+  async createTicketPurchase(input: TicketPurchaseCreateInput): Promise<TicketPurchase> {
     const partner = await this.getPartner(input.partnerId);
     if (!partner) {
       throw new Error('Partner not found');
@@ -164,17 +155,14 @@ export class EventsService {
     }
 
     // Generate affiliate tracking ID
-    const affiliateTrackingId = generateAffiliateTrackingId(
-      input.userId,
-      input.partnerId,
-      'event'
-    );
+    const affiliateTrackingId = generateAffiliateTrackingId(input.userId, input.partnerId, 'event');
 
     // Calculate commission
-    const commissionAmount = calculateCommission(
-      input.totalAmount * 100, // Convert to cents
-      partner.commissionRate
-    ) / 100; // Convert back to dollars
+    const commissionAmount =
+      calculateCommission(
+        input.totalAmount * 100, // Convert to cents
+        partner.commissionRate
+      ) / 100; // Convert back to dollars
 
     // Store purchase in database
     const [purchase] = await db('ticket_purchases')
@@ -252,10 +240,7 @@ export class EventsService {
   /**
    * Cancel a ticket purchase
    */
-  async cancelTicketPurchase(
-    purchaseId: string,
-    userId: string
-  ): Promise<TicketPurchase> {
+  async cancelTicketPurchase(purchaseId: string, userId: string): Promise<TicketPurchase> {
     const purchase = await db('ticket_purchases')
       .where('id', purchaseId)
       .where('user_id', userId)
@@ -294,13 +279,8 @@ export class EventsService {
   /**
    * Get user's ticket purchases
    */
-  async getUserTicketPurchases(
-    userId: string,
-    status?: string
-  ): Promise<TicketPurchase[]> {
-    let query = db('ticket_purchases')
-      .where('user_id', userId)
-      .orderBy('created_at', 'desc');
+  async getUserTicketPurchases(userId: string, status?: string): Promise<TicketPurchase[]> {
+    let query = db('ticket_purchases').where('user_id', userId).orderBy('created_at', 'desc');
 
     if (status) {
       query = query.where('status', status);
@@ -309,11 +289,11 @@ export class EventsService {
     const purchases = await query;
 
     // Join with event data
-    const eventIds = purchases.map(p => p.event_id);
+    const eventIds = purchases.map((p) => p.event_id);
     const events = await db('events').whereIn('id', eventIds);
-    const eventMap = new Map(events.map(e => [e.id, e]));
+    const eventMap = new Map(events.map((e) => [e.id, e]));
 
-    return purchases.map(p => ({
+    return purchases.map((p) => ({
       ...this.mapTicketPurchase(p),
       event: eventMap.get(p.event_id),
     }));
@@ -343,12 +323,10 @@ export class EventsService {
     const results = await this.searchEvents('system', params);
 
     // Flatten and sort by start date
-    const allEvents = results.flatMap(r => r.events);
+    const allEvents = results.flatMap((r) => r.events);
     return allEvents
-      .filter(e => !e.isSoldOut)
-      .sort((a, b) =>
-        new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()
-      )
+      .filter((e) => !e.isSoldOut)
+      .sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime())
       .slice(0, 20);
   }
 
@@ -370,21 +348,15 @@ export class EventsService {
     };
 
     const results = await this.searchEvents('system', params);
-    const allEvents = results.flatMap(r => r.events);
+    const allEvents = results.flatMap((r) => r.events);
 
-    return allEvents
-      .filter(e => !e.isSoldOut)
-      .slice(0, limit);
+    return allEvents.filter((e) => !e.isSoldOut).slice(0, limit);
   }
 
   /**
    * Generate purchase redirect URL
    */
-  generatePurchaseUrl(
-    partnerId: string,
-    eventExternalId: string,
-    userId: string
-  ): string {
+  generatePurchaseUrl(partnerId: string, eventExternalId: string, userId: string): string {
     const trackingId = generateAffiliateTrackingId(userId, partnerId, 'event');
 
     // This would be determined by the partner type

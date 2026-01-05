@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { db } from '../../infrastructure/database/connection';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { db } from '../../infrastructure/database/connection';
 
 const router = express.Router();
 const logger = createLogger('order-routes');
@@ -33,9 +34,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Build query for unified order history
-    let query = db('order_history')
-      .where('user_id', req.user.id)
-      .orderBy('created_at', 'desc');
+    let query = db('order_history').where('user_id', req.user.id).orderBy('created_at', 'desc');
 
     if (orderType) {
       query = query.where('order_type', orderType);
@@ -53,11 +52,11 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     const orders = await query.limit(limitNum).offset(offset);
 
     // Enrich with partner info
-    const partnerIds = [...new Set(orders.map(o => o.partner_id))];
+    const partnerIds = [...new Set(orders.map((o) => o.partner_id))];
     const partners = await db('partners').whereIn('id', partnerIds);
-    const partnerMap = new Map(partners.map(p => [p.id, p]));
+    const partnerMap = new Map(partners.map((p) => [p.id, p]));
 
-    const enrichedOrders = orders.map(order => ({
+    const enrichedOrders = orders.map((order) => ({
       id: order.id,
       userId: order.user_id,
       matchId: order.match_id,
@@ -69,12 +68,14 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       commission: order.commission ? parseFloat(order.commission) : null,
       createdAt: order.created_at,
       updatedAt: order.updated_at,
-      partner: partnerMap.get(order.partner_id) ? {
-        id: partnerMap.get(order.partner_id).id,
-        name: partnerMap.get(order.partner_id).name,
-        type: partnerMap.get(order.partner_id).type,
-        logoUrl: partnerMap.get(order.partner_id).logo_url,
-      } : null,
+      partner: partnerMap.get(order.partner_id)
+        ? {
+            id: partnerMap.get(order.partner_id).id,
+            name: partnerMap.get(order.partner_id).name,
+            type: partnerMap.get(order.partner_id).type,
+            logoUrl: partnerMap.get(order.partner_id).logo_url,
+          }
+        : null,
     }));
 
     res.json({
@@ -175,15 +176,10 @@ router.get('/:orderType/:orderId', async (req: AuthRequest, res: Response) => {
 
     switch (orderType) {
       case 'reservation':
-        order = await db('reservations')
-          .where('id', orderId)
-          .where('user_id', req.user.id)
-          .first();
+        order = await db('reservations').where('id', orderId).where('user_id', req.user.id).first();
 
         if (order) {
-          const restaurant = await db('restaurants')
-            .where('id', order.restaurant_id)
-            .first();
+          const restaurant = await db('restaurants').where('id', order.restaurant_id).first();
           details = {
             ...order,
             restaurant,
@@ -198,37 +194,30 @@ router.get('/:orderType/:orderId', async (req: AuthRequest, res: Response) => {
           .first();
 
         if (order) {
-          const event = await db('events')
-            .where('id', order.event_id)
-            .first();
+          const event = await db('events').where('id', order.event_id).first();
           details = {
             ...order,
-            tickets: typeof order.tickets === 'string'
-              ? JSON.parse(order.tickets)
-              : order.tickets,
+            tickets: typeof order.tickets === 'string' ? JSON.parse(order.tickets) : order.tickets,
             event,
           };
         }
         break;
 
       case 'gift':
-        order = await db('gift_orders')
-          .where('id', orderId)
-          .where('user_id', req.user.id)
-          .first();
+        order = await db('gift_orders').where('id', orderId).where('user_id', req.user.id).first();
 
         if (order) {
           details = {
             ...order,
-            items: typeof order.items === 'string'
-              ? JSON.parse(order.items)
-              : order.items,
-            shippingAddress: typeof order.shipping_address === 'string'
-              ? JSON.parse(order.shipping_address)
-              : order.shipping_address,
-            deliveryOption: typeof order.delivery_option === 'string'
-              ? JSON.parse(order.delivery_option)
-              : order.delivery_option,
+            items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+            shippingAddress:
+              typeof order.shipping_address === 'string'
+                ? JSON.parse(order.shipping_address)
+                : order.shipping_address,
+            deliveryOption:
+              typeof order.delivery_option === 'string'
+                ? JSON.parse(order.delivery_option)
+                : order.delivery_option,
           };
         }
         break;
@@ -248,22 +237,22 @@ router.get('/:orderType/:orderId', async (req: AuthRequest, res: Response) => {
     }
 
     // Get partner info
-    const partner = await db('partners')
-      .where('id', order.partner_id)
-      .first();
+    const partner = await db('partners').where('id', order.partner_id).first();
 
     res.json({
       success: true,
       data: {
         ...details,
-        partner: partner ? {
-          id: partner.id,
-          name: partner.name,
-          type: partner.type,
-          logoUrl: partner.logo_url,
-          contactEmail: partner.contact_email,
-          contactPhone: partner.contact_phone,
-        } : null,
+        partner: partner
+          ? {
+              id: partner.id,
+              name: partner.name,
+              type: partner.type,
+              logoUrl: partner.logo_url,
+              contactEmail: partner.contact_email,
+              contactPhone: partner.contact_phone,
+            }
+          : null,
       },
     });
   } catch (error: any) {

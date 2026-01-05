@@ -11,9 +11,10 @@
  * - Triggers all required legal compliance actions
  */
 
-import { Request, Response, NextFunction } from 'express';
-import axios from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+import { Request, Response, NextFunction } from 'express';
+
 import config from '../config';
 
 const logger = createLogger('csam-detection-middleware');
@@ -52,7 +53,7 @@ export async function csamDetectionMiddleware(
       return next();
     }
 
-    const file = req.file as Express.Multer.File;
+    const file = req.file;
     if (!file) {
       return next();
     }
@@ -91,7 +92,8 @@ export async function csamDetectionMiddleware(
           success: false,
           error: 'Content blocked due to policy violation',
           code: 'CONTENT_BLOCKED',
-          message: 'This content cannot be uploaded. If you believe this is an error, please contact support.',
+          message:
+            'This content cannot be uploaded. If you believe this is an error, please contact support.',
           detectionId: detectionResult.detectionId,
         });
 
@@ -112,7 +114,6 @@ export async function csamDetectionMiddleware(
 
       // Continue to next middleware
       next();
-
     } catch (detectionError: any) {
       logger.error('CSAM detection failed - FAIL SECURE', {
         contentId,
@@ -141,7 +142,6 @@ export async function csamDetectionMiddleware(
 
       return;
     }
-
   } catch (error: any) {
     logger.error('CSAM middleware error', error);
 
@@ -197,7 +197,6 @@ async function performCSAMDetection(
       blocked: result.isCSAM || false,
       quarantined: result.quarantined || false,
     };
-
   } catch (error: any) {
     logger.error('CSAM detection API call failed', {
       contentId,
@@ -244,7 +243,6 @@ async function quarantineForReview(
       userId,
       reason: 'detection_failure',
     });
-
   } catch (error: any) {
     logger.error('Failed to quarantine content for review', {
       contentId,
@@ -284,12 +282,9 @@ export async function checkCSAMDetectionHealth(): Promise<{
   try {
     const startTime = Date.now();
 
-    const response = await axios.get(
-      `${MODERATION_SERVICE_URL}/api/csam/health`,
-      {
-        timeout: 5000,
-      }
-    );
+    const response = await axios.get(`${MODERATION_SERVICE_URL}/api/csam/health`, {
+      timeout: 5000,
+    });
 
     const responseTime = Date.now() - startTime;
 
@@ -298,7 +293,6 @@ export async function checkCSAMDetectionHealth(): Promise<{
       enabled: true,
       responseTime,
     };
-
   } catch (error: any) {
     logger.error('CSAM detection service health check failed', error);
 

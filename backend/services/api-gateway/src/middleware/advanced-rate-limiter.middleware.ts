@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  NestMiddleware,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response, NextFunction } from 'express';
 import Redis from 'ioredis';
+
 import {
   getRateLimitRule,
   parseTimeWindow,
@@ -91,18 +86,12 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
 
       // Check rate limit using sliding window
       const windowSeconds = parseTimeWindow(rule.window);
-      const result = await this.checkSlidingWindow(
-        primaryKey,
-        rule.max,
-        windowSeconds,
-      );
+      const result = await this.checkSlidingWindow(primaryKey, rule.max, windowSeconds);
 
       if (!result.allowed) {
         const resetTime = Math.ceil(result.resetAfter / 1000);
 
-        this.logger.warn(
-          `Rate limit exceeded for ${primaryKey} - ${method} ${path}`,
-        );
+        this.logger.warn(`Rate limit exceeded for ${primaryKey} - ${method} ${path}`);
 
         // Set rate limit headers
         this.setRateLimitHeaders(res, rule.max, 0, resetTime);
@@ -116,7 +105,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
             limit: rule.max,
             window: rule.window,
           },
-          HttpStatus.TOO_MANY_REQUESTS,
+          HttpStatus.TOO_MANY_REQUESTS
         );
       }
 
@@ -125,7 +114,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
         res,
         rule.max,
         result.remaining,
-        Math.ceil(result.resetAfter / 1000),
+        Math.ceil(result.resetAfter / 1000)
       );
 
       next();
@@ -147,7 +136,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
   private async checkSlidingWindow(
     key: string,
     limit: number,
-    windowSeconds: number,
+    windowSeconds: number
   ): Promise<{
     allowed: boolean;
     remaining: number;
@@ -207,14 +196,11 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
     res: Response,
     limit: number,
     remaining: number,
-    resetAfter: number,
+    resetAfter: number
   ): void {
     res.setHeader('X-RateLimit-Limit', limit.toString());
     res.setHeader('X-RateLimit-Remaining', remaining.toString());
-    res.setHeader(
-      'X-RateLimit-Reset',
-      (Date.now() + resetAfter * 1000).toString(),
-    );
+    res.setHeader('X-RateLimit-Reset', (Date.now() + resetAfter * 1000).toString());
 
     if (remaining === 0) {
       res.setHeader('Retry-After', resetAfter.toString());
@@ -274,11 +260,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
     const overrideHeader = req.headers['x-admin-override'];
     const overrideSecret = DDOS_PROTECTION.adminOverride.secret;
 
-    return (
-      overrideSecret &&
-      overrideHeader &&
-      overrideHeader === overrideSecret
-    );
+    return overrideSecret && overrideHeader && overrideHeader === overrideSecret;
   }
 
   /**
@@ -288,7 +270,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
     identifier: string,
     type: 'user' | 'ip',
     method?: string,
-    path?: string,
+    path?: string
   ): Promise<void> {
     let pattern: string;
 
@@ -302,9 +284,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
 
     if (keys.length > 0) {
       await this.redis.del(...keys);
-      this.logger.log(
-        `Reset ${keys.length} rate limit key(s) for ${type}:${identifier}`,
-      );
+      this.logger.log(`Reset ${keys.length} rate limit key(s) for ${type}:${identifier}`);
     }
   }
 
@@ -315,7 +295,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
     identifier: string,
     type: 'user' | 'ip',
     method: string,
-    path: string,
+    path: string
   ): Promise<{
     limit: number;
     remaining: number;
@@ -323,8 +303,7 @@ export class AdvancedRateLimiterMiddleware implements NestMiddleware {
     current: number;
   }> {
     const key = `ratelimit:${type}:${identifier}:${method}:${path}`;
-    const tier =
-      type === 'user' ? SubscriptionTier.FREE : SubscriptionTier.FREE;
+    const tier = type === 'user' ? SubscriptionTier.FREE : SubscriptionTier.FREE;
     const rule = getRateLimitRule(method, path, tier);
     const windowSeconds = parseTimeWindow(rule.window);
     const now = Date.now();

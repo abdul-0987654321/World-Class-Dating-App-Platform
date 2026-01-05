@@ -3,7 +3,7 @@ import {
   PromptEntity,
   UserPromptEntity,
   CreateUserPromptDto,
-  UpdateUserPromptDto
+  UpdateUserPromptDto,
 } from '../entities/Prompt.entity';
 
 export class PromptRepository {
@@ -12,9 +12,7 @@ export class PromptRepository {
 
   // Prompt methods
   async findAllActivePrompts(): Promise<PromptEntity[]> {
-    return db(this.promptsTable)
-      .where({ is_active: true })
-      .orderBy('display_order', 'asc');
+    return db(this.promptsTable).where({ is_active: true }).orderBy('display_order', 'asc');
   }
 
   async findPromptById(id: string): Promise<PromptEntity | null> {

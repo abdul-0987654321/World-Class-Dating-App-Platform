@@ -3,10 +3,10 @@
  * Manages real-time typing indicators with Redis for cross-instance coordination
  */
 
-import { createLogger } from '../utils/logger';
+import config from '../config';
 import redisClient from '../infrastructure/cache/redis';
 import { TypingIndicator } from '../types';
-import config from '../config';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('typing-indicator-service');
 
@@ -54,11 +54,7 @@ export class TypingIndicatorService {
       };
 
       // Store typing state with TTL
-      await redisClient.getClient().setEx(
-        key,
-        TYPING_TTL,
-        JSON.stringify(typingState)
-      );
+      await redisClient.getClient().setEx(key, TYPING_TTL, JSON.stringify(typingState));
 
       // Update last typing timestamp
       this.lastTypingUpdate.set(key, now);
@@ -168,14 +164,17 @@ export class TypingIndicatorService {
    * Get typing state for all active conversations for a user
    * Useful for showing who is typing in the conversation list
    */
-  async getTypingStateForUser(userId: string, conversationIds: string[]): Promise<Map<string, string[]>> {
+  async getTypingStateForUser(
+    userId: string,
+    conversationIds: string[]
+  ): Promise<Map<string, string[]>> {
     try {
       const typingMap = new Map<string, string[]>();
 
       for (const conversationId of conversationIds) {
         const typingUsers = await this.getTypingUsers(conversationId);
         // Filter out the requesting user
-        const otherTypingUsers = typingUsers.filter(id => id !== userId);
+        const otherTypingUsers = typingUsers.filter((id) => id !== userId);
         if (otherTypingUsers.length > 0) {
           typingMap.set(conversationId, otherTypingUsers);
         }
@@ -231,10 +230,7 @@ export class TypingIndicatorService {
    */
   private async publishTypingEvent(indicator: TypingIndicator): Promise<void> {
     try {
-      await redisClient.getClient().publish(
-        this.pubSubChannel,
-        JSON.stringify(indicator)
-      );
+      await redisClient.getClient().publish(this.pubSubChannel, JSON.stringify(indicator));
     } catch (error: any) {
       logger.error('Failed to publish typing event:', error);
     }

@@ -1,4 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
+
 import { RateLimitRule } from '../config/rate-limit.config';
 
 /**
@@ -24,8 +25,7 @@ export const SKIP_RATE_LIMIT_KEY = 'skipRateLimit';
  * }
  * ```
  */
-export const RateLimit = (config: RateLimitRule) =>
-  SetMetadata(RATE_LIMIT_KEY, config);
+export const RateLimit = (config: RateLimitRule) => SetMetadata(RATE_LIMIT_KEY, config);
 
 /**
  * Skip rate limiting for specific endpoint
@@ -54,8 +54,7 @@ export const SkipRateLimit = () => SetMetadata(SKIP_RATE_LIMIT_KEY, true);
  * }
  * ```
  */
-export const StrictRateLimit = () =>
-  RateLimit({ window: '15m', max: 3 });
+export const StrictRateLimit = () => RateLimit({ window: '15m', max: 3 });
 
 /**
  * Apply relaxed rate limiting (useful for read-heavy operations)
@@ -69,5 +68,4 @@ export const StrictRateLimit = () =>
  * }
  * ```
  */
-export const RelaxedRateLimit = () =>
-  RateLimit({ window: '1m', max: 300 });
+export const RelaxedRateLimit = () => RateLimit({ window: '1m', max: 300 });

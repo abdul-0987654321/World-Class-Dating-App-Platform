@@ -1,4 +1,5 @@
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+
 import logger from './logger';
 
 let containerClient: ContainerClient | null = null;

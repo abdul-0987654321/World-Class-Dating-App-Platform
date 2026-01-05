@@ -21,7 +21,10 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('end_date').notNullable();
 
     // Status and settings
-    table.enum('status', ['scheduled', 'active', 'completed', 'cancelled']).notNullable().defaultTo('scheduled');
+    table
+      .enum('status', ['scheduled', 'active', 'completed', 'cancelled'])
+      .notNullable()
+      .defaultTo('scheduled');
     table.boolean('is_active').defaultTo(false);
     table.boolean('show_on_profile').defaultTo(true);
     table.boolean('match_before_arrival').defaultTo(true);
@@ -46,7 +49,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('travel_history', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('destination_id').notNullable().references('id').inTable('travel_destinations').onDelete('CASCADE');
+    table
+      .uuid('destination_id')
+      .notNullable()
+      .references('id')
+      .inTable('travel_destinations')
+      .onDelete('CASCADE');
 
     table.string('city', 200).notNullable();
     table.string('country', 100).notNullable();
@@ -184,7 +192,7 @@ export async function up(knex: Knex): Promise<void> {
     'popular_destinations',
     'travel_buddy_preferences',
     'location_changes',
-    'travel_mode_settings'
+    'travel_mode_settings',
   ];
 
   for (const table of tables) {
@@ -204,7 +212,7 @@ export async function down(knex: Knex): Promise<void> {
     'travel_history',
     'travel_destinations',
     'popular_destinations',
-    'travel_mode_settings'
+    'travel_mode_settings',
   ];
 
   for (const table of tables) {

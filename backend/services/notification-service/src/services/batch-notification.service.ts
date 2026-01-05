@@ -3,15 +3,17 @@
  * Handles sending notifications to multiple users efficiently
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
+import { config } from '../config';
 import { db } from '../config/database';
 import logger from '../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
+
 import {
   pushNotificationDeliveryService,
   PushNotificationPayload,
   NotificationType,
 } from './push-notification-delivery.service';
-import { config } from '../config';
 
 export interface BatchJob {
   id: string;
@@ -59,9 +61,7 @@ export class BatchNotificationService {
   /**
    * Send notification to multiple users
    */
-  async sendBatch(
-    request: BatchNotificationRequest
-  ): Promise<{
+  async sendBatch(request: BatchNotificationRequest): Promise<{
     success: boolean;
     jobId: string;
     totalUsers: number;
@@ -159,14 +159,10 @@ export class BatchNotificationService {
         const batchResults = await Promise.all(
           batch.map(async (userId) => {
             try {
-              const result = await pushNotificationDeliveryService.sendToUser(
-                userId,
-                job.payload,
-                {
-                  skipQuietHours: !respectQuietHours,
-                  skipPreferences: !respectPreferences,
-                }
-              );
+              const result = await pushNotificationDeliveryService.sendToUser(userId, job.payload, {
+                skipQuietHours: !respectQuietHours,
+                skipPreferences: !respectPreferences,
+              });
 
               return {
                 userId,
@@ -215,7 +211,7 @@ export class BatchNotificationService {
         totalUsers: job.totalUsers,
         sent: job.sentCount,
         failed: job.failedCount,
-        duration: job.completedAt.getTime() - job.startedAt!.getTime(),
+        duration: job.completedAt.getTime() - job.startedAt.getTime(),
       });
 
       // Save batch job to database for history
@@ -242,9 +238,7 @@ export class BatchNotificationService {
   /**
    * Send notification to segmented users
    */
-  async sendToSegment(
-    request: SegmentedNotificationRequest
-  ): Promise<{
+  async sendToSegment(request: SegmentedNotificationRequest): Promise<{
     success: boolean;
     jobId: string;
     totalUsers: number;
@@ -282,11 +276,11 @@ export class BatchNotificationService {
   /**
    * Get user IDs based on segment criteria
    */
-  private async getUserIdsForSegment(segment: SegmentedNotificationRequest['segment']): Promise<string[]> {
+  private async getUserIdsForSegment(
+    segment: SegmentedNotificationRequest['segment']
+  ): Promise<string[]> {
     try {
-      let query = db('user_devices')
-        .distinct('user_id')
-        .where({ is_active: true });
+      let query = db('user_devices').distinct('user_id').where({ is_active: true });
 
       switch (segment.type) {
         case 'all':
@@ -342,9 +336,7 @@ export class BatchNotificationService {
       }
 
       // Check database for completed jobs
-      const dbJob = await db('batch_notification_jobs')
-        .where({ id: jobId })
-        .first();
+      const dbJob = await db('batch_notification_jobs').where({ id: jobId }).first();
 
       if (!dbJob) {
         return { success: false, error: 'Job not found' };
@@ -561,8 +553,8 @@ export class BatchNotificationService {
           pending: pendingCount,
           processing: processingCount,
           completed24h: parseInt((completed24h as any)?.count || '0'),
-          totalSent24h: parseInt((sent24h as any)?.total || '0'),
-          averageSuccessRate: parseFloat((avgSuccessRate as any)?.rate || '0'),
+          totalSent24h: parseInt(sent24h?.total || '0'),
+          averageSuccessRate: parseFloat(avgSuccessRate?.rate || '0'),
         },
       };
     } catch (error: any) {

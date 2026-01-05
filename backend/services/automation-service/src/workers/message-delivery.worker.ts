@@ -5,16 +5,11 @@
  * Tracks delivery status
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('message-delivery-worker');
 
@@ -61,7 +56,10 @@ export interface MessageDeliveryResult {
 /**
  * Message Delivery Worker
  */
-export class MessageDeliveryWorker extends BaseWorker<MessageDeliveryJobData, MessageDeliveryResult> {
+export class MessageDeliveryWorker extends BaseWorker<
+  MessageDeliveryJobData,
+  MessageDeliveryResult
+> {
   private readonly maxDeliveryRetries = 5;
   private readonly offlineQueueTTL = 7 * 24 * 60 * 60; // 7 days in seconds
 
@@ -72,7 +70,9 @@ export class MessageDeliveryWorker extends BaseWorker<MessageDeliveryJobData, Me
   /**
    * Process message delivery job
    */
-  protected async processJob(job: Job<MessageDeliveryJobData>): Promise<JobResult<MessageDeliveryResult>> {
+  protected async processJob(
+    job: Job<MessageDeliveryJobData>
+  ): Promise<JobResult<MessageDeliveryResult>> {
     const { type, messageId, recipientId, deliveryAttempt = 1 } = job.data;
     const startTime = Date.now();
 
@@ -265,14 +265,18 @@ export class MessageDeliveryWorker extends BaseWorker<MessageDeliveryJobData, Me
   /**
    * Process batch delivery (for delivering offline messages when user comes online)
    */
-  private async processBatchDelivery(jobData: MessageDeliveryJobData): Promise<MessageDeliveryResult> {
+  private async processBatchDelivery(
+    jobData: MessageDeliveryJobData
+  ): Promise<MessageDeliveryResult> {
     const { recipientId } = jobData;
 
     try {
       // Get all pending messages for user
       const pendingMessages = await this.getPendingMessages(recipientId);
 
-      logger.info(`Processing batch delivery: ${pendingMessages.length} messages for user ${recipientId}`);
+      logger.info(
+        `Processing batch delivery: ${pendingMessages.length} messages for user ${recipientId}`
+      );
 
       let deliveredCount = 0;
 
@@ -311,15 +315,12 @@ export class MessageDeliveryWorker extends BaseWorker<MessageDeliveryJobData, Me
    */
   private async checkUserOnlineStatus(userId: string): Promise<boolean> {
     try {
-      const response = await axios.get(
-        `${API_GATEWAY_URL}/api/v1/internal/presence/${userId}`,
-        {
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 3000,
-        }
-      );
+      const response = await axios.get(`${API_GATEWAY_URL}/api/v1/internal/presence/${userId}`, {
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 3000,
+      });
 
       return response.data.isOnline === true;
     } catch (error: any) {
@@ -508,7 +509,9 @@ export class MessageDeliveryWorker extends BaseWorker<MessageDeliveryJobData, Me
       await redis.expire(queueKey, this.offlineQueueTTL);
       await redis.quit();
 
-      logger.debug(`Queued message ${jobData.messageId} for offline delivery to ${jobData.recipientId}`);
+      logger.debug(
+        `Queued message ${jobData.messageId} for offline delivery to ${jobData.recipientId}`
+      );
     } catch (error: any) {
       logger.error(`Failed to queue message for offline delivery:`, error);
     }

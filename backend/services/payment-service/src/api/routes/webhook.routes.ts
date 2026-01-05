@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import express from 'express';
-import { WebhookController } from '../controllers/webhook.controller';
-import paystackWebhookService from '../../domain/services/paystack-webhook.service';
-import flutterwaveWebhookService from '../../domain/services/flutterwave-webhook.service';
-import logger from '../../utils/logger';
+import express, { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+
+import flutterwaveWebhookService from '../../domain/services/flutterwave-webhook.service';
+import paystackWebhookService from '../../domain/services/paystack-webhook.service';
+import logger from '../../utils/logger';
+import { WebhookController } from '../controllers/webhook.controller';
 
 const router = Router();
 const webhookController = new WebhookController();
@@ -61,18 +61,14 @@ const webhookController = new WebhookController();
  * - payment_method.attached
  * - payment_method.detached
  */
-router.post(
-  '/stripe',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
-    try {
-      await webhookController.handleStripeWebhook(req, res);
-    } catch (error: any) {
-      logger.error('Webhook route error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
+router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    await webhookController.handleStripeWebhook(req, res);
+  } catch (error: any) {
+    logger.error('Webhook route error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-);
+});
 
 /**
  * Health check endpoint for webhook service
@@ -133,10 +129,9 @@ router.post('/paystack', express.json(), async (req, res) => {
     const eventId = req.body.data?.reference || req.body.data?.id?.toString() || uuidv4();
 
     // Process the webhook asynchronously
-    paystackWebhookService.processWebhook(req.body, eventId)
-      .catch((error) => {
-        logger.error('[PAYSTACK] Async webhook processing error:', error.message);
-      });
+    paystackWebhookService.processWebhook(req.body, eventId).catch((error) => {
+      logger.error('[PAYSTACK] Async webhook processing error:', error.message);
+    });
 
     // Respond immediately to Paystack
     res.status(200).json({ received: true });
@@ -179,10 +174,9 @@ router.post('/flutterwave', express.json(), async (req, res) => {
     const eventId = req.body.data?.tx_ref || req.body.data?.id?.toString() || uuidv4();
 
     // Process the webhook asynchronously
-    flutterwaveWebhookService.processWebhook(req.body, eventId)
-      .catch((error) => {
-        logger.error('[FLUTTERWAVE] Async webhook processing error:', error.message);
-      });
+    flutterwaveWebhookService.processWebhook(req.body, eventId).catch((error) => {
+      logger.error('[FLUTTERWAVE] Async webhook processing error:', error.message);
+    });
 
     // Respond immediately to Flutterwave
     res.status(200).json({ received: true });

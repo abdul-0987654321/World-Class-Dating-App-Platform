@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   DatingBehaviorSegment,
   RelationshipIntentTarget,
@@ -143,10 +144,7 @@ export class TargetingService {
       { factor: 'profile_freshness', score: 90, weight: 0.15 },
     ];
 
-    const qualityScore = qualityFactors.reduce(
-      (sum, f) => sum + f.score * f.weight,
-      0
-    );
+    const qualityScore = qualityFactors.reduce((sum, f) => sum + f.score * f.weight, 0);
 
     let tier: ProfileQualityAdTier['tier'];
     if (qualityScore >= 90) tier = 'platinum';
@@ -159,17 +157,18 @@ export class TargetingService {
       quality_score: qualityScore,
       tier,
       quality_factors: qualityFactors,
-      eligible_ad_categories: tier === 'platinum'
-        ? ['luxury', 'premium', 'exclusive']
-        : ['standard', 'value'],
+      eligible_ad_categories:
+        tier === 'platinum' ? ['luxury', 'premium', 'exclusive'] : ['standard', 'value'],
       ad_priority_boost: tier === 'platinum' ? 2.0 : tier === 'gold' ? 1.5 : 1.0,
     };
   }
 
   // Feature 6: Geographic Dating Market Targeting
-  async analyzeGeoDatingMarket(
-    location: { city: string; country: string; coordinates: { lat: number; lng: number } }
-  ): Promise<GeoDatingMarket> {
+  async analyzeGeoDatingMarket(location: {
+    city: string;
+    country: string;
+    coordinates: { lat: number; lng: number };
+  }): Promise<GeoDatingMarket> {
     return {
       market_id: uuidv4(),
       location: {
@@ -285,7 +284,7 @@ export class TargetingService {
           satisfaction_score: 4.5,
         },
         upgrade_propensity: {
-          likelihood_to_upgrade: 0.10,
+          likelihood_to_upgrade: 0.1,
           recommended_upgrade_path: 'diamond',
           upgrade_triggers: ['exclusive_events', 'personal_coaching', 'priority_support'],
           price_sensitivity: 'low',
@@ -328,16 +327,54 @@ export class TargetingService {
     return {
       user_id: userId,
       primary_interests: [
-        { interest_id: 'travel', category: 'lifestyle', name: 'Travel', affinity_score: 0.9, source: 'stated', confidence: 0.95 },
-        { interest_id: 'fitness', category: 'health', name: 'Fitness', affinity_score: 0.85, source: 'behavioral', confidence: 0.88 },
+        {
+          interest_id: 'travel',
+          category: 'lifestyle',
+          name: 'Travel',
+          affinity_score: 0.9,
+          source: 'stated',
+          confidence: 0.95,
+        },
+        {
+          interest_id: 'fitness',
+          category: 'health',
+          name: 'Fitness',
+          affinity_score: 0.85,
+          source: 'behavioral',
+          confidence: 0.88,
+        },
       ],
       secondary_interests: [
-        { interest_id: 'cooking', category: 'lifestyle', name: 'Cooking', affinity_score: 0.7, source: 'inferred', confidence: 0.75 },
-        { interest_id: 'music', category: 'entertainment', name: 'Music', affinity_score: 0.65, source: 'stated', confidence: 0.9 },
+        {
+          interest_id: 'cooking',
+          category: 'lifestyle',
+          name: 'Cooking',
+          affinity_score: 0.7,
+          source: 'inferred',
+          confidence: 0.75,
+        },
+        {
+          interest_id: 'music',
+          category: 'entertainment',
+          name: 'Music',
+          affinity_score: 0.65,
+          source: 'stated',
+          confidence: 0.9,
+        },
       ],
       interest_connections: [
-        { from_interest: 'travel', to_interest: 'cooking', connection_strength: 0.6, relationship_type: 'complementary' },
-        { from_interest: 'fitness', to_interest: 'cooking', connection_strength: 0.7, relationship_type: 'complementary' },
+        {
+          from_interest: 'travel',
+          to_interest: 'cooking',
+          connection_strength: 0.6,
+          relationship_type: 'complementary',
+        },
+        {
+          from_interest: 'fitness',
+          to_interest: 'cooking',
+          connection_strength: 0.7,
+          relationship_type: 'complementary',
+        },
       ],
       cross_category_opportunities: [
         {

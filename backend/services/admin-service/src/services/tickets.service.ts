@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../infrastructure/database';
 import { SupportTicket } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
 export class TicketsService {
@@ -16,7 +17,12 @@ export class TicketsService {
     const offset = (page - 1) * limit;
 
     let query = db('support_tickets')
-      .select('support_tickets.*', 'users.email as user_email', 'users.first_name as user_first_name', 'users.last_name as user_last_name')
+      .select(
+        'support_tickets.*',
+        'users.email as user_email',
+        'users.first_name as user_first_name',
+        'users.last_name as user_last_name'
+      )
       .leftJoin('users', 'support_tickets.user_id', 'users.id');
 
     if (filters.status) {
@@ -46,7 +52,12 @@ export class TicketsService {
 
   async getTicket(ticketId: string): Promise<SupportTicket> {
     const ticket = await db('support_tickets')
-      .select('support_tickets.*', 'users.email as user_email', 'users.first_name as user_first_name', 'users.last_name as user_last_name')
+      .select(
+        'support_tickets.*',
+        'users.email as user_email',
+        'users.first_name as user_first_name',
+        'users.last_name as user_last_name'
+      )
       .leftJoin('users', 'support_tickets.user_id', 'users.id')
       .where('support_tickets.id', ticketId)
       .first();
@@ -62,7 +73,7 @@ export class TicketsService {
 
     return {
       ...this.formatTicket(ticket),
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         id: msg.id,
         senderId: msg.sender_id,
         senderType: msg.sender_type,
@@ -100,19 +111,23 @@ export class TicketsService {
   }
 
   async assignTicket(ticketId: string, adminId: string, adminName: string): Promise<void> {
-    await db('support_tickets')
-      .where({ id: ticketId })
-      .update({
-        assigned_to: adminId,
-        assigned_to_name: adminName,
-        status: 'in_progress',
-        updated_at: db.fn.now(),
-      });
+    await db('support_tickets').where({ id: ticketId }).update({
+      assigned_to: adminId,
+      assigned_to_name: adminName,
+      status: 'in_progress',
+      updated_at: db.fn.now(),
+    });
 
     logger.info(`Ticket assigned: ${ticketId} to ${adminName}`);
   }
 
-  async addMessage(ticketId: string, senderId: string, senderType: 'user' | 'admin', content: string, attachments?: string[]): Promise<void> {
+  async addMessage(
+    ticketId: string,
+    senderId: string,
+    senderType: 'user' | 'admin',
+    content: string,
+    attachments?: string[]
+  ): Promise<void> {
     const messageId = uuidv4();
 
     await db('ticket_messages').insert({
@@ -127,19 +142,15 @@ export class TicketsService {
 
     // Update ticket status if admin responded
     if (senderType === 'admin') {
-      await db('support_tickets')
-        .where({ id: ticketId })
-        .update({
-          status: 'waiting_user',
-          updated_at: db.fn.now(),
-        });
+      await db('support_tickets').where({ id: ticketId }).update({
+        status: 'waiting_user',
+        updated_at: db.fn.now(),
+      });
     } else {
-      await db('support_tickets')
-        .where({ id: ticketId })
-        .update({
-          status: 'in_progress',
-          updated_at: db.fn.now(),
-        });
+      await db('support_tickets').where({ id: ticketId }).update({
+        status: 'in_progress',
+        updated_at: db.fn.now(),
+      });
     }
 
     logger.info(`Message added to ticket: ${ticketId}`);
@@ -155,43 +166,43 @@ export class TicketsService {
       updates.resolved_at = db.fn.now();
     }
 
-    await db('support_tickets')
-      .where({ id: ticketId })
-      .update(updates);
+    await db('support_tickets').where({ id: ticketId }).update(updates);
 
     logger.info(`Ticket status updated: ${ticketId} to ${status}`);
   }
 
   async updateTicketPriority(ticketId: string, priority: string): Promise<void> {
-    await db('support_tickets')
-      .where({ id: ticketId })
-      .update({
-        priority,
-        updated_at: db.fn.now(),
-      });
+    await db('support_tickets').where({ id: ticketId }).update({
+      priority,
+      updated_at: db.fn.now(),
+    });
 
     logger.info(`Ticket priority updated: ${ticketId} to ${priority}`);
   }
 
   async getTicketStats() {
-    const [open, inProgress, waitingUser, resolved, byPriority, avgResponseTime] = await Promise.all([
-      db('support_tickets').where({ status: 'open' }).count('* as count').first(),
-      db('support_tickets').where({ status: 'in_progress' }).count('* as count').first(),
-      db('support_tickets').where({ status: 'waiting_user' }).count('* as count').first(),
-      db('support_tickets').where({ status: 'resolved' }).count('* as count').first(),
-      db('support_tickets').select('priority').count('* as count').groupBy('priority'),
-      this.calculateAvgResponseTime(),
-    ]);
+    const [open, inProgress, waitingUser, resolved, byPriority, avgResponseTime] =
+      await Promise.all([
+        db('support_tickets').where({ status: 'open' }).count('* as count').first(),
+        db('support_tickets').where({ status: 'in_progress' }).count('* as count').first(),
+        db('support_tickets').where({ status: 'waiting_user' }).count('* as count').first(),
+        db('support_tickets').where({ status: 'resolved' }).count('* as count').first(),
+        db('support_tickets').select('priority').count('* as count').groupBy('priority'),
+        this.calculateAvgResponseTime(),
+      ]);
 
     return {
       open: parseInt(open?.count as string) || 0,
       inProgress: parseInt(inProgress?.count as string) || 0,
       waitingUser: parseInt(waitingUser?.count as string) || 0,
       resolved: parseInt(resolved?.count as string) || 0,
-      byPriority: byPriority.reduce((acc, item) => {
-        acc[item.priority] = parseInt(item.count as string);
-        return acc;
-      }, {} as Record<string, number>),
+      byPriority: byPriority.reduce(
+        (acc, item) => {
+          acc[item.priority] = parseInt(item.count as string);
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
       avgResponseTime,
     };
   }
@@ -200,11 +211,16 @@ export class TicketsService {
     // Calculate average time from ticket creation to first admin response
     const result = await db('support_tickets')
       .select(
-        db.raw('AVG(EXTRACT(EPOCH FROM (ticket_messages.created_at - support_tickets.created_at))) as avg_seconds')
+        db.raw(
+          'AVG(EXTRACT(EPOCH FROM (ticket_messages.created_at - support_tickets.created_at))) as avg_seconds'
+        )
       )
-      .join('ticket_messages', function() {
-        this.on('support_tickets.id', '=', 'ticket_messages.ticket_id')
-          .andOn('ticket_messages.sender_type', '=', db.raw('?', ['admin']));
+      .join('ticket_messages', function () {
+        this.on('support_tickets.id', '=', 'ticket_messages.ticket_id').andOn(
+          'ticket_messages.sender_type',
+          '=',
+          db.raw('?', ['admin'])
+        );
       })
       .whereNotNull('ticket_messages.created_at')
       .first();

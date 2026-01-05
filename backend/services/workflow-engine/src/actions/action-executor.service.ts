@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+
 import {
   ActionConfig,
   ActionType,
@@ -19,7 +20,7 @@ export class ActionExecutorService {
    */
   async executeActions(
     actions: ActionConfig[],
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<ActionExecutionResult[]> {
     const results: ActionExecutionResult[] = [];
 
@@ -44,9 +45,7 @@ export class ActionExecutorService {
           result: actionResult,
         };
 
-        this.logger.log(
-          `Action ${action.type} executed successfully in ${duration}ms`,
-        );
+        this.logger.log(`Action ${action.type} executed successfully in ${duration}ms`);
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -75,10 +74,7 @@ export class ActionExecutorService {
   /**
    * Execute a single action
    */
-  private async executeAction(
-    action: ActionConfig,
-    context: ExecutionContext,
-  ): Promise<any> {
+  private async executeAction(action: ActionConfig, context: ExecutionContext): Promise<any> {
     switch (action.type) {
       case ActionType.SEND_PUSH:
         return this.sendPushNotification(action.config, context);
@@ -106,11 +102,9 @@ export class ActionExecutorService {
    */
   private async sendPushNotification(
     config: Record<string, any>,
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<any> {
-    const notificationServiceUrl = this.configService.get<string>(
-      'services.notificationService',
-    );
+    const notificationServiceUrl = this.configService.get<string>('services.notificationService');
 
     const response = await axios.post(
       `${notificationServiceUrl}/api/notifications/push`,
@@ -122,11 +116,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -135,13 +127,8 @@ export class ActionExecutorService {
   /**
    * Send SMS
    */
-  private async sendSMS(
-    config: Record<string, any>,
-    context: ExecutionContext,
-  ): Promise<any> {
-    const notificationServiceUrl = this.configService.get<string>(
-      'services.notificationService',
-    );
+  private async sendSMS(config: Record<string, any>, context: ExecutionContext): Promise<any> {
+    const notificationServiceUrl = this.configService.get<string>('services.notificationService');
 
     const response = await axios.post(
       `${notificationServiceUrl}/api/notifications/sms`,
@@ -151,11 +138,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -164,13 +149,8 @@ export class ActionExecutorService {
   /**
    * Send email
    */
-  private async sendEmail(
-    config: Record<string, any>,
-    context: ExecutionContext,
-  ): Promise<any> {
-    const notificationServiceUrl = this.configService.get<string>(
-      'services.notificationService',
-    );
+  private async sendEmail(config: Record<string, any>, context: ExecutionContext): Promise<any> {
+    const notificationServiceUrl = this.configService.get<string>('services.notificationService');
 
     const response = await axios.post(
       `${notificationServiceUrl}/api/notifications/email`,
@@ -183,11 +163,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -198,11 +176,9 @@ export class ActionExecutorService {
    */
   private async sendInAppMessage(
     config: Record<string, any>,
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<any> {
-    const notificationServiceUrl = this.configService.get<string>(
-      'services.notificationService',
-    );
+    const notificationServiceUrl = this.configService.get<string>('services.notificationService');
 
     const response = await axios.post(
       `${notificationServiceUrl}/api/notifications/in-app`,
@@ -215,11 +191,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -228,13 +202,8 @@ export class ActionExecutorService {
   /**
    * Add coins to user account
    */
-  private async addCoins(
-    config: Record<string, any>,
-    context: ExecutionContext,
-  ): Promise<any> {
-    const paymentServiceUrl = this.configService.get<string>(
-      'services.paymentService',
-    );
+  private async addCoins(config: Record<string, any>, context: ExecutionContext): Promise<any> {
+    const paymentServiceUrl = this.configService.get<string>('services.paymentService');
 
     const response = await axios.post(
       `${paymentServiceUrl}/api/coins/add`,
@@ -249,11 +218,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -264,11 +231,9 @@ export class ActionExecutorService {
    */
   private async activateBoost(
     config: Record<string, any>,
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<any> {
-    const userServiceUrl = this.configService.get<string>(
-      'services.userService',
-    );
+    const userServiceUrl = this.configService.get<string>('services.userService');
 
     const response = await axios.post(
       `${userServiceUrl}/api/users/${context.userId}/boost`,
@@ -278,11 +243,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -293,11 +256,9 @@ export class ActionExecutorService {
    */
   private async updateProfileScore(
     config: Record<string, any>,
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<any> {
-    const userServiceUrl = this.configService.get<string>(
-      'services.userService',
-    );
+    const userServiceUrl = this.configService.get<string>('services.userService');
 
     const response = await axios.patch(
       `${userServiceUrl}/api/profiles/${context.userId}/score`,
@@ -307,11 +268,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;
@@ -320,13 +279,8 @@ export class ActionExecutorService {
   /**
    * Promote user (increase visibility)
    */
-  private async promoteUser(
-    config: Record<string, any>,
-    context: ExecutionContext,
-  ): Promise<any> {
-    const matchingServiceUrl = this.configService.get<string>(
-      'services.matchingService',
-    );
+  private async promoteUser(config: Record<string, any>, context: ExecutionContext): Promise<any> {
+    const matchingServiceUrl = this.configService.get<string>('services.matchingService');
 
     const response = await axios.post(
       `${matchingServiceUrl}/api/promotion/promote`,
@@ -337,11 +291,9 @@ export class ActionExecutorService {
       },
       {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      },
+      }
     );
 
     return response.data;

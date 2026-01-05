@@ -1,13 +1,14 @@
 import 'reflect-metadata'; // Required for class-validator decorators
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import moderationRoutes from './routes/moderation.routes';
-import internalRoutes from './routes/internal.routes';
-import config from './config';
-import { createLogger } from './utils/logger';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
+import config from './config';
+import internalRoutes from './routes/internal.routes';
+import moderationRoutes from './routes/moderation.routes';
+import { createLogger } from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -22,7 +23,8 @@ const validator = createValidator('moderation-service', [
   {
     name: 'AWS_ACCESS_KEY_ID',
     required: false,
-    description: 'AWS access key ID for Rekognition image moderation (optional - uses IAM role if not set)',
+    description:
+      'AWS access key ID for Rekognition image moderation (optional - uses IAM role if not set)',
     sensitive: true,
   },
   {
@@ -95,12 +97,12 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 
   // In degraded mode, service is still healthy but with limited functionality
-  const allServicesUp = Object.values(checks).every(v => v);
+  const allServicesUp = Object.values(checks).every((v) => v);
   const isDegradedMode = process.env.ALLOW_DEGRADED_MODE === 'true';
   const healthy = allServicesUp || isDegradedMode;
 
   res.status(healthy ? 200 : 503).json({
-    status: allServicesUp ? 'healthy' : (isDegradedMode ? 'degraded' : 'unhealthy'),
+    status: allServicesUp ? 'healthy' : isDegradedMode ? 'degraded' : 'unhealthy',
     service: 'moderation-service',
     timestamp: new Date().toISOString(),
     degradedMode: isDegradedMode && !allServicesUp,

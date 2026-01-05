@@ -1,8 +1,9 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
 import db from '../../infrastructure/database/connection';
 import { ModerationStatus } from '../../types';
 import { VoiceNoteMetadata } from '../services/voice-note.service';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('voice-note-repository');
 
@@ -144,9 +145,10 @@ export class VoiceNoteRepository {
       size: record.size,
       duration: record.duration,
       url: record.url,
-      waveformData: typeof record.waveform_data === 'string'
-        ? JSON.parse(record.waveform_data)
-        : record.waveform_data,
+      waveformData:
+        typeof record.waveform_data === 'string'
+          ? JSON.parse(record.waveform_data)
+          : record.waveform_data,
       context: record.context,
       promptId: record.prompt_id,
       conversationId: record.conversation_id,

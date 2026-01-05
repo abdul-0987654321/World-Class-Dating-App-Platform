@@ -240,3 +240,49 @@ export interface UpdatePreferencesRequest {
   quietHoursEnd?: string;
   timezone?: string;
 }
+
+// ============================================================================
+// AWS SNS Push Provider Types
+// ============================================================================
+
+export interface PushMessage {
+  token: string; // Device token or endpoint ARN
+  title: string;
+  body: string;
+  imageUrl?: string;
+  data?: Record<string, string>;
+  priority?: 'high' | 'normal';
+  badge?: number;
+  sound?: string;
+  channelId?: string; // Android notification channel
+}
+
+export interface BatchPushMessage {
+  tokens: string[];
+  title: string;
+  body: string;
+  imageUrl?: string;
+  data?: Record<string, string>;
+  priority?: 'high' | 'normal';
+}
+
+export interface PushResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+export interface BatchPushResult {
+  success: boolean;
+  successCount: number;
+  failureCount: number;
+  results: Array<{ token: string; success: boolean; error?: string; messageId?: string }>;
+}
+
+export interface EndpointResult {
+  success: boolean;
+  endpointArn?: string;
+  error?: string;
+}
+
+export type Platform = 'android' | 'ios' | 'web';

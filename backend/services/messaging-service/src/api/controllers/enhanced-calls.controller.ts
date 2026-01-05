@@ -4,12 +4,13 @@
  */
 
 import { Request, Response } from 'express';
-import { createLogger } from '../../utils/logger';
-import { callHistoryRepository } from '../../domain/repositories/call-history.repository';
-import { VideoCallService } from '../../services/video-call.service';
-import { getDefaultICEConfig } from '../../config/webrtc.config';
-import redisClient from '../../infrastructure/cache/redis';
+
 import config from '../../config';
+import { getDefaultICEConfig } from '../../config/webrtc.config';
+import { callHistoryRepository } from '../../domain/repositories/call-history.repository';
+import redisClient from '../../infrastructure/cache/redis';
+import { VideoCallService } from '../../services/video-call.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('enhanced-calls-controller');
 

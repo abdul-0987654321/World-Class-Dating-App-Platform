@@ -4,6 +4,7 @@ import {
   SetSMSAttributesCommand,
   CheckIfPhoneNumberIsOptedOutCommand,
 } from '@aws-sdk/client-sns';
+
 import { db } from '../config/database';
 import logger from '../utils/logger';
 
@@ -212,10 +213,7 @@ export class SNSSMSService {
   /**
    * Send match notification SMS (promotional)
    */
-  async sendMatchNotification(
-    phoneNumber: string,
-    matchName: string
-  ): Promise<SendResult> {
+  async sendMatchNotification(phoneNumber: string, matchName: string): Promise<SendResult> {
     const message = `You have a new match on Flamoral! ${matchName} liked you back. Open the app to start chatting.`;
 
     return this.sendSMS({
@@ -262,11 +260,13 @@ export class SNSSMSService {
         const retryCount = (sms.retry_count || 0) + 1;
         const shouldRetry = retryCount < 3;
 
-        await db('sms_queue').where({ id: sms.id }).update({
-          status: shouldRetry ? 'queued' : 'failed',
-          error_message: result.error,
-          retry_count: retryCount,
-        });
+        await db('sms_queue')
+          .where({ id: sms.id })
+          .update({
+            status: shouldRetry ? 'queued' : 'failed',
+            error_message: result.error,
+            retry_count: retryCount,
+          });
 
         if (!shouldRetry && sms.notification_id) {
           await db('notifications')

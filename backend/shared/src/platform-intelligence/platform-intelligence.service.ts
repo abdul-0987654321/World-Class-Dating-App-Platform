@@ -26,7 +26,10 @@ export class UserSupportService {
   /**
    * Get contextual help for a user based on their situation
    */
-  async getContextualHelp(context: UserSupportContext, issue: string): Promise<{
+  async getContextualHelp(
+    context: UserSupportContext,
+    issue: string
+  ): Promise<{
     title: string;
     content: string;
     steps: string[];
@@ -38,8 +41,8 @@ export class UserSupportService {
     if (issue.includes('match') || issue.includes('discover')) {
       return {
         title: flows.noMatches.title,
-        content: 'Let\'s figure out why you\'re not getting matches.',
-        steps: flows.noMatches.steps.map(s => s.question || s.suggestion || ''),
+        content: "Let's figure out why you're not getting matches.",
+        steps: flows.noMatches.steps.map((s) => s.question || s.suggestion || ''),
         resolution: flows.noMatches.resolution,
       };
     }
@@ -47,8 +50,8 @@ export class UserSupportService {
     if (issue.includes('message') || issue.includes('chat')) {
       return {
         title: flows.missingMessages.title,
-        content: 'Let\'s check why messages aren\'t appearing.',
-        steps: flows.missingMessages.steps.map(s => s.question || s.info || s.action || ''),
+        content: "Let's check why messages aren't appearing.",
+        steps: flows.missingMessages.steps.map((s) => s.question || s.info || s.action || ''),
         resolution: flows.missingMessages.resolution,
       };
     }
@@ -56,8 +59,8 @@ export class UserSupportService {
     if (issue.includes('subscription') || issue.includes('payment') || issue.includes('billing')) {
       return {
         title: flows.subscriptionIssue.title,
-        content: 'Let\'s resolve your subscription issue.',
-        steps: flows.subscriptionIssue.steps.map(s => s.action || s.info || ''),
+        content: "Let's resolve your subscription issue.",
+        steps: flows.subscriptionIssue.steps.map((s) => s.action || s.info || ''),
         resolution: flows.subscriptionIssue.resolution,
       };
     }
@@ -65,8 +68,8 @@ export class UserSupportService {
     if (issue.includes('report') || issue.includes('block')) {
       return {
         title: flows.reportingUser.title,
-        content: 'Here\'s how to report someone.',
-        steps: flows.reportingUser.steps.map(s => s.action || s.info || ''),
+        content: "Here's how to report someone.",
+        steps: flows.reportingUser.steps.map((s) => s.action || s.info || ''),
         resolution: flows.reportingUser.assurance,
       };
     }
@@ -136,8 +139,9 @@ export class TrustSafetyService {
       priority,
       suggestedAction: categoryConfig.autoAction,
       reviewTimeTarget: categoryConfig.reviewTime,
-      requiresHumanReview: categoryConfig.autoAction === 'none' ||
-                           categoryConfig.autoAction === 'immediate-suspension',
+      requiresHumanReview:
+        categoryConfig.autoAction === 'none' ||
+        categoryConfig.autoAction === 'immediate-suspension',
     };
   }
 
@@ -152,8 +156,8 @@ export class TrustSafetyService {
     const patterns = TRUST_SAFETY_AI.abusePatterns;
 
     for (const [patternType, config] of Object.entries(patterns)) {
-      const matchedSignals = config.signals.filter(s =>
-        signals.some(signal => signal.toLowerCase().includes(s.toLowerCase()))
+      const matchedSignals = config.signals.filter((s) =>
+        signals.some((signal) => signal.toLowerCase().includes(s.toLowerCase()))
       );
 
       if (matchedSignals.length >= 2) {
@@ -190,8 +194,8 @@ export class TrustSafetyService {
     const actionConfig = matrix[offenseType][moderationCase.severity];
 
     // Check if this triggers escalation
-    const needsEscalation = TRUST_SAFETY_AI.actionMatrix.escalationTriggers.some(
-      trigger => moderationCase.category.includes(trigger.toLowerCase().replace(/ /g, '-'))
+    const needsEscalation = TRUST_SAFETY_AI.actionMatrix.escalationTriggers.some((trigger) =>
+      moderationCase.category.includes(trigger.toLowerCase().replace(/ /g, '-'))
     );
 
     if (needsEscalation) {
@@ -206,9 +210,8 @@ export class TrustSafetyService {
       action: actionConfig.action as ModerationAction,
       duration: 'duration' in actionConfig ? actionConfig.duration : undefined,
       message: 'message' in actionConfig ? actionConfig.message : 'Action taken.',
-      requiresHumanApproval: 'requiresHumanApproval' in actionConfig
-        ? actionConfig.requiresHumanApproval
-        : false,
+      requiresHumanApproval:
+        'requiresHumanApproval' in actionConfig ? actionConfig.requiresHumanApproval : false,
     };
   }
 
@@ -228,7 +231,7 @@ export class TrustSafetyService {
     if (config.cannotAppeal.includes(action)) {
       return {
         canAppeal: false,
-        reason: 'This action type cannot be appealed.'
+        reason: 'This action type cannot be appealed.',
       };
     }
 
@@ -319,7 +322,10 @@ export class AdminPlatformService {
       riskLevel = 'low';
     }
 
-    const approvals = ADMIN_PLATFORM_AI.changeAssessment.requiredApprovals as Record<string, string[]>;
+    const approvals = ADMIN_PLATFORM_AI.changeAssessment.requiredApprovals as Record<
+      string,
+      string[]
+    >;
     const approvalKey = riskLevel === 'critical' ? 'critical' : `${riskLevel}Risk`;
 
     return {
@@ -343,7 +349,9 @@ export class DiagnosisOpsService {
   /**
    * Get diagnosis flow for an issue type
    */
-  getDiagnosisFlow(issueType: 'missingMatches' | 'messageDeliveryFailure' | 'loginFailure' | 'subscriptionIssue'): {
+  getDiagnosisFlow(
+    issueType: 'missingMatches' | 'messageDeliveryFailure' | 'loginFailure' | 'subscriptionIssue'
+  ): {
     name: string;
     correlations: Array<{
       check: string;
@@ -354,7 +362,7 @@ export class DiagnosisOpsService {
     const flow = DIAGNOSIS_OPS_AI.diagnosisFlows[issueType];
     return {
       name: flow.name,
-      correlations: flow.correlations.map(c => ({
+      correlations: flow.correlations.map((c) => ({
         check: c.check,
         expect: c.expect,
       })),
@@ -374,7 +382,7 @@ export class DiagnosisOpsService {
     const actions = DIAGNOSIS_OPS_AI.selfHealingActions;
 
     // Check automatic actions
-    const autoAction = actions.automatic.find(a => a.trigger === trigger);
+    const autoAction = actions.automatic.find((a) => a.trigger === trigger);
     if (autoAction) {
       return {
         action: autoAction.action,
@@ -385,7 +393,7 @@ export class DiagnosisOpsService {
     }
 
     // Check semi-automatic actions
-    const semiAction = actions.semiAutomatic.find(a => a.trigger === trigger);
+    const semiAction = actions.semiAutomatic.find((a) => a.trigger === trigger);
     if (semiAction) {
       return {
         action: semiAction.action,
@@ -396,7 +404,7 @@ export class DiagnosisOpsService {
     }
 
     // Check manual actions
-    const manualAction = actions.manual.find(a => a.trigger === trigger);
+    const manualAction = actions.manual.find((a) => a.trigger === trigger);
     if (manualAction) {
       return {
         action: manualAction.action,
@@ -455,7 +463,7 @@ export class GlobalizationService {
    */
   shouldOfferLgbtqSafetyMode(region: string): boolean {
     const safetyConfig = GLOBALIZATION_AI.safetyAdaptations.lgbtqSafetyMode;
-    return safetyConfig.regions.some(r =>
+    return safetyConfig.regions.some((r) =>
       region.toLowerCase().includes(r.toLowerCase().replace('parts-of-', ''))
     );
   }

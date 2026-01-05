@@ -4,10 +4,11 @@
  * Premium feature that puts user's profile at the top of discovery
  */
 
-import { Knex } from 'knex';
-import db from '../../infrastructure/database/connection';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
+
 import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
+import db from '../../infrastructure/database/connection';
 
 const logger = createLogger('boost-service');
 
@@ -104,7 +105,8 @@ export class BoostService {
       // Track boost activation in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost', eventName: 'boost_activated',
+        eventType: 'boost',
+        eventName: 'boost_activated',
         eventData: {
           boostId: boost.id,
           duration,
@@ -214,10 +216,7 @@ export class BoostService {
         return;
       }
 
-      await this.db('boosts')
-        .where('id', boost.id)
-        .increment('impressions', 1);
-
+      await this.db('boosts').where('id', boost.id).increment('impressions', 1);
     } catch (error) {
       logger.error('Failed to track impression', error);
       // Don't throw - this is a tracking operation
@@ -235,20 +234,18 @@ export class BoostService {
         return;
       }
 
-      await this.db('boosts')
-        .where('id', boost.id)
-        .increment('profile_views', 1);
+      await this.db('boosts').where('id', boost.id).increment('profile_views', 1);
 
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost', eventName: 'profile_view',
+        eventType: 'boost',
+        eventName: 'profile_view',
         eventData: {
           boostId: boost.id,
           viewerId,
         },
       });
-
     } catch (error) {
       logger.error('Failed to track profile view', error);
     }
@@ -265,20 +262,18 @@ export class BoostService {
         return;
       }
 
-      await this.db('boosts')
-        .where('id', boost.id)
-        .increment('likes', 1);
+      await this.db('boosts').where('id', boost.id).increment('likes', 1);
 
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost', eventName: 'like_received',
+        eventType: 'boost',
+        eventName: 'like_received',
         eventData: {
           boostId: boost.id,
           likerId,
         },
       });
-
     } catch (error) {
       logger.error('Failed to track like', error);
     }
@@ -295,20 +290,18 @@ export class BoostService {
         return;
       }
 
-      await this.db('boosts')
-        .where('id', boost.id)
-        .increment('matches', 1);
+      await this.db('boosts').where('id', boost.id).increment('matches', 1);
 
       // Track in analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost', eventName: 'match',
+        eventType: 'boost',
+        eventName: 'match',
         eventData: {
           boostId: boost.id,
           matchedUserId,
         },
       });
-
     } catch (error) {
       logger.error('Failed to track match', error);
     }
@@ -322,9 +315,7 @@ export class BoostService {
       const activeBoost = await this.getActiveBoost(userId);
 
       // Get all boosts for lifetime stats
-      const allBoosts = await this.db('boosts')
-        .where('user_id', userId)
-        .select('*');
+      const allBoosts = await this.db('boosts').where('user_id', userId).select('*');
 
       const lifetimeStats = allBoosts.reduce(
         (acc, boost) => ({
@@ -376,7 +367,7 @@ export class BoostService {
         .count('* as count')
         .first();
 
-      return parseInt(count?.count as string || '0', 10);
+      return parseInt((count?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get today boost count', error);
       throw error;
@@ -419,20 +410,19 @@ export class BoostService {
 
       const now = new Date();
 
-      await this.db('boosts')
-        .where('id', boost.id)
-        .update({
-          active: false,
-          expires_at: now,
-          updated_at: now,
-        });
+      await this.db('boosts').where('id', boost.id).update({
+        active: false,
+        expires_at: now,
+        updated_at: now,
+      });
 
       logger.info(`Boost cancelled for user ${userId}`, { boostId: boost.id, reason });
 
       // Track cancellation
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'boost', eventName: 'cancelled',
+        eventType: 'boost',
+        eventName: 'cancelled',
         eventData: {
           boostId: boost.id,
           reason,

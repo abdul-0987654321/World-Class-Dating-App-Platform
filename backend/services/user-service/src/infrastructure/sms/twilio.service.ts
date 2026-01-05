@@ -1,22 +1,17 @@
 import twilio from 'twilio';
-import config from '../../config';
 import winston from 'winston';
+
+import config from '../../config';
 
 const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
+  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   defaultMeta: { service: 'twilio-service' },
   transports: [
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
-    })
-  ]
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+    }),
+  ],
 });
 
 export class TwilioService {
@@ -46,7 +41,10 @@ export class TwilioService {
   /**
    * Send SMS message
    */
-  async sendSMS(phoneNumber: string, message: string): Promise<{
+  async sendSMS(
+    phoneNumber: string,
+    message: string
+  ): Promise<{
     success: boolean;
     messageId?: string;
     error?: string;
@@ -62,7 +60,7 @@ export class TwilioService {
     try {
       logger.info(`Sending SMS to ${phoneNumber}`);
 
-      const result = await this.client!.messages.create({
+      const result = await this.client.messages.create({
         body: message,
         from: this.fromNumber,
         to: phoneNumber,
@@ -87,7 +85,10 @@ export class TwilioService {
   /**
    * Send verification code via SMS
    */
-  async sendVerificationCode(phoneNumber: string, code: string): Promise<{
+  async sendVerificationCode(
+    phoneNumber: string,
+    code: string
+  ): Promise<{
     success: boolean;
     messageId?: string;
     error?: string;

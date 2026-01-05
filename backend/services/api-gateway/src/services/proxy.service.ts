@@ -48,7 +48,7 @@ export class ProxyService {
       (error) => {
         this.logger.error(`Request error for ${name}:`, error.message);
         return Promise.reject(error);
-      },
+      }
     );
 
     // Response interceptor for logging
@@ -60,7 +60,7 @@ export class ProxyService {
       (error) => {
         this.logger.error(`Response error from ${name}:`, error.message);
         return Promise.reject(error);
-      },
+      }
     );
 
     this.services.set(name, axiosInstance);
@@ -83,7 +83,7 @@ export class ProxyService {
     method: string,
     path: string,
     data?: any,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     const service = this.getService(serviceName);
 
@@ -114,7 +114,7 @@ export class ProxyService {
   async get<T = any>(
     serviceName: string,
     path: string,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     return this.forward<T>(serviceName, 'GET', path, undefined, headers);
   }
@@ -126,7 +126,7 @@ export class ProxyService {
     serviceName: string,
     path: string,
     data?: any,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     return this.forward<T>(serviceName, 'POST', path, data, headers);
   }
@@ -138,7 +138,7 @@ export class ProxyService {
     serviceName: string,
     path: string,
     data?: any,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     return this.forward<T>(serviceName, 'PUT', path, data, headers);
   }
@@ -150,7 +150,7 @@ export class ProxyService {
     serviceName: string,
     path: string,
     data?: any,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     return this.forward<T>(serviceName, 'PATCH', path, data, headers);
   }
@@ -161,7 +161,7 @@ export class ProxyService {
   async delete<T = any>(
     serviceName: string,
     path: string,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<T> {
     return this.forward<T>(serviceName, 'DELETE', path, undefined, headers);
   }

@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
-import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
+
 import { photoVerificationService } from '../../services/photo-verification.service';
 import logger from '../../utils/logger';
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -118,7 +119,7 @@ router.post(
   upload.single('selfie'),
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const selfieFile = req.file;
 
       if (!selfieFile) {
@@ -128,10 +129,7 @@ router.post(
         });
       }
 
-      const result = await photoVerificationService.initiateVerification(
-        userId,
-        selfieFile
-      );
+      const result = await photoVerificationService.initiateVerification(userId, selfieFile);
 
       if (!result.success) {
         return res.status(400).json(result);
@@ -200,7 +198,7 @@ router.post(
  */
 router.get('/status', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const result = await photoVerificationService.getVerificationStatus(userId);
 
     if (!result.success) {
@@ -301,33 +299,25 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
  *       403:
  *         description: Not authorized (admin only)
  */
-router.get(
-  '/admin/pending',
-  requireAuth,
-  requireAdmin,
-  async (req: Request, res: Response) => {
-    try {
-      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+router.get('/admin/pending', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
-      const result = await photoVerificationService.getPendingVerifications(
-        limit,
-        offset
-      );
+    const result = await photoVerificationService.getPendingVerifications(limit, offset);
 
-      res.status(200).json(result);
-    } catch (error: any) {
-      logger.error('Failed to get pending verifications', {
-        error: error.message,
-      });
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error('Failed to get pending verifications', {
+      error: error.message,
+    });
 
-      res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve pending verifications',
-      });
-    }
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve pending verifications',
+    });
   }
-);
+});
 
 /**
  * @swagger
@@ -395,12 +385,9 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { verificationId } = req.params;
-      const reviewedBy = req.user!.id;
+      const reviewedBy = req.user.id;
 
-      const result = await photoVerificationService.approveVerification(
-        verificationId,
-        reviewedBy
-      );
+      const result = await photoVerificationService.approveVerification(verificationId, reviewedBy);
 
       if (!result.success) {
         return res.status(400).json(result);
@@ -503,7 +490,7 @@ router.post(
     try {
       const { verificationId } = req.params;
       const { reason } = req.body;
-      const reviewedBy = req.user!.id;
+      const reviewedBy = req.user.id;
 
       if (!reason || reason.trim().length === 0) {
         return res.status(400).json({

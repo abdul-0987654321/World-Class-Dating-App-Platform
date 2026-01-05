@@ -3,11 +3,12 @@
  * Scheduled tasks for managing speed dating events
  */
 
-import * as cron from 'node-cron';
-import speedDatingService from '../domain/services/speed-dating.service';
-import speedDatingRepository from '../domain/repositories/speed-dating.repository';
-import { SpeedDatingEventStatus } from '../domain/entities/SpeedDatingEvent.entity';
 import { createLogger } from '@flamoral/backend-shared';
+import * as cron from 'node-cron';
+
+import { SpeedDatingEventStatus } from '../domain/entities/SpeedDatingEvent.entity';
+import speedDatingRepository from '../domain/repositories/speed-dating.repository';
+import speedDatingService from '../domain/services/speed-dating.service';
 
 const logger = createLogger('speed-dating-job');
 

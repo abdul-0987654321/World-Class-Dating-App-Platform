@@ -1,11 +1,13 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { rabbitmqClient } from './rabbitmq-client';
-import { WorkflowEngineService } from '../services/workflow-engine.service';
-import { IcebreakerService } from '../services/icebreaker.service';
+
+import config from '../config';
 import { FlowExecutionDto, TriggerType } from '../dtos';
 import db from '../infrastructure/database/knex';
 import { TABLES } from '../models';
-import config from '../config';
+import { IcebreakerService } from '../services/icebreaker.service';
+import { WorkflowEngineService } from '../services/workflow-engine.service';
+
+import { rabbitmqClient } from './rabbitmq-client';
 
 const logger = createLogger('automation-service:match-events');
 

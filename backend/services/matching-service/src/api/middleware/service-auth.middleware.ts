@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response, NextFunction } from 'express';
 
 const logger = createLogger('service-auth-middleware');
 
@@ -52,7 +53,9 @@ export const authenticateService = (
 
   // Validate service key is provided
   if (!serviceKey) {
-    logger.warn(`[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`);
+    logger.warn(
+      `[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`
+    );
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -63,7 +66,9 @@ export const authenticateService = (
 
   // Validate request ID
   if (!requestId) {
-    logger.warn(`[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`);
+    logger.warn(
+      `[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`
+    );
     return res.status(401).json({
       success: false,
       error: 'Request ID required',

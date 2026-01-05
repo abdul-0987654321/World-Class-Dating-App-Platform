@@ -1,11 +1,12 @@
 import { Response } from 'express';
-import { createLogger } from '../../utils/logger';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { messageRepository } from '../../domain/repositories/message.repository';
+
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { MessageStatus } from '../../types';
+import { createLogger } from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('read-receipt-controller');
 
@@ -16,7 +17,7 @@ export class ReadReceiptController {
    */
   async markConversationAsRead(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
 
       // Verify conversation exists and user is participant
@@ -29,10 +30,7 @@ export class ReadReceiptController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this conversation',
@@ -46,10 +44,7 @@ export class ReadReceiptController {
           : conversation.participant1Id;
 
       // Get all unread messages in the conversation sent by the other user
-      const unreadMessages = await messageRepository.getUnreadMessages(
-        conversationId,
-        userId
-      );
+      const unreadMessages = await messageRepository.getUnreadMessages(conversationId, userId);
 
       if (unreadMessages.length === 0) {
         return res.status(200).json({
@@ -88,17 +83,12 @@ export class ReadReceiptController {
           senderId: otherParticipantId,
         }),
         // Redis pub/sub for event propagation
-        messageEventsService.publishMessageRead(
-          conversationId,
-          messageIds,
-          userId,
-          [otherParticipantId]
-        ),
+        messageEventsService.publishMessageRead(conversationId, messageIds, userId, [
+          otherParticipantId,
+        ]),
       ]);
 
-      logger.info(
-        `Marked ${messageIds.length} messages as read in conversation ${conversationId}`
-      );
+      logger.info(`Marked ${messageIds.length} messages as read in conversation ${conversationId}`);
 
       return res.status(200).json({
         success: true,
@@ -124,7 +114,7 @@ export class ReadReceiptController {
    */
   async markMessageAsRead(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { messageId } = req.params;
       const { conversationId } = req.body;
 
@@ -145,10 +135,7 @@ export class ReadReceiptController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this conversation',
@@ -192,12 +179,9 @@ export class ReadReceiptController {
           senderId: message.senderId,
         }),
         // Redis pub/sub for event propagation
-        messageEventsService.publishMessageRead(
-          conversationId,
-          [messageId],
-          userId,
-          [message.senderId]
-        ),
+        messageEventsService.publishMessageRead(conversationId, [messageId], userId, [
+          message.senderId,
+        ]),
       ]);
 
       logger.info(`Message ${messageId} marked as read`);

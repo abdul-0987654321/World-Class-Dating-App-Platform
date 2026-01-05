@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { EventsService } from '../../domain/services/events.service';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { EventsService } from '../../domain/services/events.service';
 
 const router = express.Router();
 const logger = createLogger('event-routes');
@@ -47,7 +48,7 @@ router.get('/search', async (req: AuthRequest, res: Response) => {
       longitude: parseFloat(longitude as string),
       startDate: startDate as string,
       endDate: endDate as string,
-      category: category ? (category as string).split(',') as any : undefined,
+      category: category ? ((category as string).split(',') as any) : undefined,
       priceMin: priceMin ? parseFloat(priceMin as string) : undefined,
       priceMax: priceMax ? parseFloat(priceMax as string) : undefined,
       dateFriendlyOnly: dateFriendlyOnly === 'true',
@@ -251,10 +252,7 @@ router.delete('/purchases/:purchaseId', async (req: AuthRequest, res: Response) 
 
     const { purchaseId } = req.params;
 
-    const purchase = await eventsService.cancelTicketPurchase(
-      purchaseId,
-      req.user.id
-    );
+    const purchase = await eventsService.cancelTicketPurchase(purchaseId, req.user.id);
 
     res.json({
       success: true,

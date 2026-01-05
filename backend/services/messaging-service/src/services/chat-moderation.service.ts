@@ -5,14 +5,16 @@
  * Updated: Uses Redis for distributed spam tracking across all pods
  */
 
-import { createLogger } from '../utils/logger';
 import axios from 'axios';
+
 import { redisClient } from '../infrastructure/cache/redis';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('chat-moderation');
 
 // Moderation service URL
-const MODERATION_SERVICE_URL = process.env.MODERATION_SERVICE_URL || 'http://moderation-service:3008';
+const MODERATION_SERVICE_URL =
+  process.env.MODERATION_SERVICE_URL || 'http://moderation-service:3008';
 
 // Redis key prefixes for spam tracking (distributed across all pods)
 const REDIS_KEYS = {
@@ -32,7 +34,14 @@ export interface ModerationResult {
 }
 
 export interface ModerationFlag {
-  type: 'spam' | 'harassment' | 'scam' | 'explicit' | 'personal_info' | 'prohibited_content' | 'link';
+  type:
+    | 'spam'
+    | 'harassment'
+    | 'scam'
+    | 'explicit'
+    | 'personal_info'
+    | 'prohibited_content'
+    | 'link';
   severity: 'low' | 'medium' | 'high' | 'critical';
   details?: string;
 }
@@ -152,7 +161,9 @@ class ChatModerationService {
 
     // Log moderation decision
     if (flags.length > 0) {
-      logger.info(`Message moderated: userId=${senderId}, action=${result.action}, flags=${JSON.stringify(flags)}`);
+      logger.info(
+        `Message moderated: userId=${senderId}, action=${result.action}, flags=${JSON.stringify(flags)}`
+      );
     }
 
     return result;
@@ -327,7 +338,10 @@ class ChatModerationService {
   /**
    * Call AI moderation service
    */
-  private async callAIModerationService(content: string, userId: string): Promise<{ flags: ModerationFlag[] }> {
+  private async callAIModerationService(
+    content: string,
+    userId: string
+  ): Promise<{ flags: ModerationFlag[] }> {
     const response = await axios.post(
       `${MODERATION_SERVICE_URL}/api/moderation/analyze`,
       {
@@ -438,7 +452,9 @@ class ChatModerationService {
   /**
    * Report a message or conversation
    */
-  async reportContent(data: ReportData): Promise<{ success: boolean; reportId?: string; error?: string }> {
+  async reportContent(
+    data: ReportData
+  ): Promise<{ success: boolean; reportId?: string; error?: string }> {
     try {
       // Store report in database
       const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

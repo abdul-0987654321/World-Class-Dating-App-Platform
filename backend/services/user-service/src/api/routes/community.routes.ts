@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+
 import { communityController } from '../controllers/community.controller';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 

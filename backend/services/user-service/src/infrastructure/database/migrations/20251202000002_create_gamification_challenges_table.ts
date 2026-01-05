@@ -7,8 +7,12 @@ export async function up(knex: Knex): Promise<void> {
     table.string('key').notNullable().unique().comment('Unique identifier for challenge');
     table.string('title').notNullable();
     table.text('description').notNullable();
-    table.enum('type', ['daily', 'weekly', 'monthly', 'special_event', 'limited_time']).notNullable();
-    table.enum('category', ['social', 'activity', 'engagement', 'profile', 'premium']).notNullable();
+    table
+      .enum('type', ['daily', 'weekly', 'monthly', 'special_event', 'limited_time'])
+      .notNullable();
+    table
+      .enum('category', ['social', 'activity', 'engagement', 'profile', 'premium'])
+      .notNullable();
     table.enum('difficulty', ['easy', 'medium', 'hard', 'expert']).defaultTo('easy');
     table.jsonb('requirements').notNullable().comment('Challenge requirements and goals');
     table.integer('target_value').notNullable().comment('Goal to complete challenge');
@@ -40,8 +44,15 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_challenges', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('challenge_id').notNullable().references('id').inTable('challenge_definitions').onDelete('CASCADE');
-    table.enum('status', ['not_started', 'in_progress', 'completed', 'failed', 'expired']).defaultTo('not_started');
+    table
+      .uuid('challenge_id')
+      .notNullable()
+      .references('id')
+      .inTable('challenge_definitions')
+      .onDelete('CASCADE');
+    table
+      .enum('status', ['not_started', 'in_progress', 'completed', 'failed', 'expired'])
+      .defaultTo('not_started');
     table.integer('progress').defaultTo(0).comment('Current progress toward goal');
     table.integer('target').notNullable().comment('Target value to complete');
     table.float('progress_percentage').defaultTo(0);
@@ -68,8 +79,18 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('challenge_progress_logs', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('challenge_id').notNullable().references('id').inTable('challenge_definitions').onDelete('CASCADE');
-    table.uuid('user_challenge_id').notNullable().references('id').inTable('user_challenges').onDelete('CASCADE');
+    table
+      .uuid('challenge_id')
+      .notNullable()
+      .references('id')
+      .inTable('challenge_definitions')
+      .onDelete('CASCADE');
+    table
+      .uuid('user_challenge_id')
+      .notNullable()
+      .references('id')
+      .inTable('user_challenges')
+      .onDelete('CASCADE');
     table.string('action_type').notNullable().comment('Action that triggered progress');
     table.integer('progress_increment').defaultTo(1);
     table.integer('progress_after').notNullable();

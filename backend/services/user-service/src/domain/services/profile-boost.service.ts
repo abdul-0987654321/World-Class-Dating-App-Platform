@@ -1,5 +1,5 @@
-import logger from '../../utils/logger';
 import db from '../../infrastructure/database/connection';
+import logger from '../../utils/logger';
 
 export interface ProfileBoost {
   id: string;
@@ -110,9 +110,7 @@ class ProfileBoostService {
       throw new Error('Scheduled time must be in the future');
     }
 
-    const endTime = new Date(
-      scheduledTime.getTime() + schedule.duration * 60 * 1000
-    );
+    const endTime = new Date(scheduledTime.getTime() + schedule.duration * 60 * 1000);
 
     const boost: ProfileBoost = {
       id: this.generateBoostId(),
@@ -307,13 +305,16 @@ class ProfileBoostService {
     const thursday = this.getNextDayOfWeek(4, 21); // 4 = Thursday
     recommendations.push(thursday);
 
-    return recommendations.filter(date => date > now).slice(0, 3);
+    return recommendations.filter((date) => date > now).slice(0, 3);
   }
 
   /**
    * Check if user can use boost
    */
-  async canUseBoost(userId: string, boostType: 'standard' | 'premium' | 'super'): Promise<{
+  async canUseBoost(
+    userId: string,
+    boostType: 'standard' | 'premium' | 'super'
+  ): Promise<{
     canUse: boolean;
     reason?: string;
   }> {
@@ -329,8 +330,7 @@ class ProfileBoostService {
     // Check cooldown period (e.g., 6 hours between boosts)
     const lastBoost = await this.getLastBoost(userId);
     if (lastBoost) {
-      const hoursSinceLastBoost =
-        (Date.now() - lastBoost.endTime.getTime()) / (1000 * 60 * 60);
+      const hoursSinceLastBoost = (Date.now() - lastBoost.endTime.getTime()) / (1000 * 60 * 60);
 
       if (hoursSinceLastBoost < 6) {
         return {

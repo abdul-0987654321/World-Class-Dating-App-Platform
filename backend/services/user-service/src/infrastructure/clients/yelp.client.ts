@@ -4,7 +4,8 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import logger from '../../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   Venue,
   VenueType,
@@ -14,7 +15,7 @@ import {
   PRICE_RANGES,
   EXTERNAL_SOURCES,
 } from '../../domain/entities/Venue.entity';
-import { v4 as uuidv4 } from 'uuid';
+import logger from '../../utils/logger';
 
 export interface YelpConfig {
   apiKey: string;

@@ -1,6 +1,8 @@
 import { Server as HttpServer } from 'http';
-import { Server as SocketIOServer, Socket } from 'socket.io';
+
 import jwt from 'jsonwebtoken';
+import { Server as SocketIOServer, Socket } from 'socket.io';
+
 import logger from '../../utils/logger';
 
 interface AuthenticatedSocket extends Socket {
@@ -75,7 +77,7 @@ export class SocketServer {
    */
   private setupEventHandlers() {
     this.io.on('connection', (socket: AuthenticatedSocket) => {
-      const userId = socket.userId!;
+      const userId = socket.userId;
       logger.info(`User connected: ${userId} (socket: ${socket.id})`);
 
       // Store user's socket ID
@@ -143,82 +145,81 @@ export class SocketServer {
       // ===== VIDEO CALL EVENTS =====
 
       // Handle incoming call notification (sent to receiver)
-      socket.on('call_initiated', (data: {
-        callId: string;
-        callerId: string;
-        receiverId: string;
-        callType: 'video' | 'audio';
-      }) => {
-        const receiverSocketId = this.userSockets.get(data.receiverId);
-        if (receiverSocketId) {
-          this.io.to(receiverSocketId).emit('incoming_call', {
-            callId: data.callId,
-            callerId: data.callerId,
-            callType: data.callType,
-          });
-          logger.info(`Incoming call sent to ${data.receiverId}`, { callId: data.callId });
+      socket.on(
+        'call_initiated',
+        (data: {
+          callId: string;
+          callerId: string;
+          receiverId: string;
+          callType: 'video' | 'audio';
+        }) => {
+          const receiverSocketId = this.userSockets.get(data.receiverId);
+          if (receiverSocketId) {
+            this.io.to(receiverSocketId).emit('incoming_call', {
+              callId: data.callId,
+              callerId: data.callerId,
+              callType: data.callType,
+            });
+            logger.info(`Incoming call sent to ${data.receiverId}`, { callId: data.callId });
+          }
         }
-      });
+      );
 
       // Handle call accepted
-      socket.on('call_accepted', (data: {
-        callId: string;
-        callerId: string;
-        receiverId: string;
-      }) => {
-        const callerSocketId = this.userSockets.get(data.callerId);
-        if (callerSocketId) {
-          this.io.to(callerSocketId).emit('call_accepted', {
-            callId: data.callId,
-            receiverId: data.receiverId,
-          });
-          logger.info(`Call accepted notification sent to ${data.callerId}`, { callId: data.callId });
+      socket.on(
+        'call_accepted',
+        (data: { callId: string; callerId: string; receiverId: string }) => {
+          const callerSocketId = this.userSockets.get(data.callerId);
+          if (callerSocketId) {
+            this.io.to(callerSocketId).emit('call_accepted', {
+              callId: data.callId,
+              receiverId: data.receiverId,
+            });
+            logger.info(`Call accepted notification sent to ${data.callerId}`, {
+              callId: data.callId,
+            });
+          }
         }
-      });
+      );
 
       // Handle call rejected/declined
-      socket.on('call_rejected', (data: {
-        callId: string;
-        callerId: string;
-        receiverId: string;
-        reason?: string;
-      }) => {
-        const callerSocketId = this.userSockets.get(data.callerId);
-        if (callerSocketId) {
-          this.io.to(callerSocketId).emit('call_rejected', {
-            callId: data.callId,
-            receiverId: data.receiverId,
-            reason: data.reason || 'declined',
-          });
-          logger.info(`Call rejected notification sent to ${data.callerId}`, { callId: data.callId });
+      socket.on(
+        'call_rejected',
+        (data: { callId: string; callerId: string; receiverId: string; reason?: string }) => {
+          const callerSocketId = this.userSockets.get(data.callerId);
+          if (callerSocketId) {
+            this.io.to(callerSocketId).emit('call_rejected', {
+              callId: data.callId,
+              receiverId: data.receiverId,
+              reason: data.reason || 'declined',
+            });
+            logger.info(`Call rejected notification sent to ${data.callerId}`, {
+              callId: data.callId,
+            });
+          }
         }
-      });
+      );
 
       // Handle call ended
-      socket.on('call_ended', (data: {
-        callId: string;
-        callerId: string;
-        receiverId: string;
-        duration?: number;
-      }) => {
-        const otherUserId = userId === data.callerId ? data.receiverId : data.callerId;
-        const otherSocketId = this.userSockets.get(otherUserId);
+      socket.on(
+        'call_ended',
+        (data: { callId: string; callerId: string; receiverId: string; duration?: number }) => {
+          const otherUserId = userId === data.callerId ? data.receiverId : data.callerId;
+          const otherSocketId = this.userSockets.get(otherUserId);
 
-        if (otherSocketId) {
-          this.io.to(otherSocketId).emit('call_ended', {
-            callId: data.callId,
-            endedBy: userId,
-            duration: data.duration,
-          });
-          logger.info(`Call ended notification sent to ${otherUserId}`, { callId: data.callId });
+          if (otherSocketId) {
+            this.io.to(otherSocketId).emit('call_ended', {
+              callId: data.callId,
+              endedBy: userId,
+              duration: data.duration,
+            });
+            logger.info(`Call ended notification sent to ${otherUserId}`, { callId: data.callId });
+          }
         }
-      });
+      );
 
       // Handle call busy (receiver is already in another call)
-      socket.on('call_busy', (data: {
-        callId: string;
-        callerId: string;
-      }) => {
+      socket.on('call_busy', (data: { callId: string; callerId: string }) => {
         const callerSocketId = this.userSockets.get(data.callerId);
         if (callerSocketId) {
           this.io.to(callerSocketId).emit('call_busy', {
@@ -229,20 +230,19 @@ export class SocketServer {
       });
 
       // Handle ICE candidates for WebRTC signaling
-      socket.on('ice_candidate', (data: {
-        callId: string;
-        targetUserId: string;
-        candidate: any;
-      }) => {
-        const targetSocketId = this.userSockets.get(data.targetUserId);
-        if (targetSocketId) {
-          this.io.to(targetSocketId).emit('ice_candidate', {
-            callId: data.callId,
-            fromUserId: userId,
-            candidate: data.candidate,
-          });
+      socket.on(
+        'ice_candidate',
+        (data: { callId: string; targetUserId: string; candidate: any }) => {
+          const targetSocketId = this.userSockets.get(data.targetUserId);
+          if (targetSocketId) {
+            this.io.to(targetSocketId).emit('ice_candidate', {
+              callId: data.callId,
+              fromUserId: userId,
+              candidate: data.candidate,
+            });
+          }
         }
-      });
+      );
     });
   }
 
@@ -330,7 +330,10 @@ export class SocketServer {
   /**
    * Notify other party that call ended
    */
-  notifyCallEnded(userId: string, callData: { callId: string; endedBy: string; duration?: number }) {
+  notifyCallEnded(
+    userId: string,
+    callData: { callId: string; endedBy: string; duration?: number }
+  ) {
     const socketId = this.userSockets.get(userId);
     if (socketId) {
       this.io.to(socketId).emit('call_ended', callData);

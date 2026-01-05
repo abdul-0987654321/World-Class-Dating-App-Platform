@@ -1,11 +1,12 @@
 import express from 'express';
-import restaurantRoutes from './restaurant.routes';
-import eventRoutes from './event.routes';
-import giftRoutes from './gift.routes';
+
 import affiliateRoutes from './affiliate.routes';
 import datePlannerRoutes from './date-planner.routes';
-import partnerAdminRoutes from './partner-admin.routes';
+import eventRoutes from './event.routes';
+import giftRoutes from './gift.routes';
 import orderRoutes from './order.routes';
+import partnerAdminRoutes from './partner-admin.routes';
+import restaurantRoutes from './restaurant.routes';
 
 const router = express.Router();
 

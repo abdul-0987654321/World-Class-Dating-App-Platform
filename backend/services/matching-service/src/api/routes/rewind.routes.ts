@@ -5,6 +5,7 @@
  */
 
 import { Router } from 'express';
+
 import rewindController from '../controllers/rewind.controller';
 import { authenticate } from '../middleware/auth.middleware';
 

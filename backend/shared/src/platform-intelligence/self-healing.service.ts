@@ -145,7 +145,8 @@ export class SelfHealingService {
     const lastExecution = this.cooldowns.get(trigger);
     if (!lastExecution) return false;
 
-    const config = SELF_HEALING_CONFIG.triggers[trigger as keyof typeof SELF_HEALING_CONFIG.triggers];
+    const config =
+      SELF_HEALING_CONFIG.triggers[trigger as keyof typeof SELF_HEALING_CONFIG.triggers];
     if (!config) return false;
 
     const cooldownMs = config.cooldown * 1000;
@@ -183,7 +184,8 @@ export class SelfHealingService {
    * Trigger a self-healing action
    */
   triggerAction(trigger: string, context: string): SelfHealingAction | null {
-    const triggerConfig = SELF_HEALING_CONFIG.triggers[trigger as keyof typeof SELF_HEALING_CONFIG.triggers];
+    const triggerConfig =
+      SELF_HEALING_CONFIG.triggers[trigger as keyof typeof SELF_HEALING_CONFIG.triggers];
     if (!triggerConfig) {
       console.error(`Unknown trigger: ${trigger}`);
       return null;
@@ -201,7 +203,8 @@ export class SelfHealingService {
       return null;
     }
 
-    const actionConfig = SELF_HEALING_CONFIG.actions[triggerConfig.action as keyof typeof SELF_HEALING_CONFIG.actions];
+    const actionConfig =
+      SELF_HEALING_CONFIG.actions[triggerConfig.action as keyof typeof SELF_HEALING_CONFIG.actions];
     if (!actionConfig) {
       console.error(`Unknown action: ${triggerConfig.action}`);
       return null;
@@ -291,14 +294,16 @@ export class SelfHealingService {
     });
 
     // In production, this would send notification to Slack/PagerDuty
-    console.log(`[APPROVAL REQUIRED] ${action.action} for ${context} - notify ${action.requiresApproval}`);
+    console.log(
+      `[APPROVAL REQUIRED] ${action.action} for ${context} - notify ${action.requiresApproval}`
+    );
   }
 
   /**
    * Approve a pending action
    */
   async approveAction(actionId: string, approver: string): Promise<boolean> {
-    const event = this.events.find(e => e.id === actionId && e.result === 'pending-approval');
+    const event = this.events.find((e) => e.id === actionId && e.result === 'pending-approval');
     if (!event) return false;
 
     console.log(`Action ${actionId} approved by ${approver}`);
@@ -310,7 +315,7 @@ export class SelfHealingService {
    * Rollback a reversible action
    */
   async rollbackAction(actionId: string): Promise<boolean> {
-    const event = this.events.find(e => e.id === actionId && e.action.status === 'completed');
+    const event = this.events.find((e) => e.id === actionId && e.action.status === 'completed');
     if (!event || !event.action.reversible) return false;
 
     console.log(`Rolling back action ${actionId}`);
@@ -342,9 +347,9 @@ export class SelfHealingService {
     pendingApprovals: number;
     lastAction: string | null;
   } {
-    const successful = this.events.filter(e => e.result === 'success').length;
-    const failed = this.events.filter(e => e.result === 'failure').length;
-    const pending = this.events.filter(e => e.result === 'pending-approval').length;
+    const successful = this.events.filter((e) => e.result === 'success').length;
+    const failed = this.events.filter((e) => e.result === 'failure').length;
+    const pending = this.events.filter((e) => e.result === 'pending-approval').length;
     const lastEvent = this.events[this.events.length - 1];
 
     return {

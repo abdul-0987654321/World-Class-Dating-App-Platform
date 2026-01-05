@@ -3,9 +3,10 @@
  * Handles passport/travel mode API endpoints
  */
 
-import { Request, Response } from 'express';
-import passportModeService from '../../domain/services/passport-mode.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import passportModeService from '../../domain/services/passport-mode.service';
 
 const logger = createLogger('passport-controller');
 
@@ -25,15 +26,17 @@ export class PassportController {
         data: {
           enabled: status.enabled,
           tier: status.tier,
-          active_location: status.activeLocation ? {
-            id: status.activeLocation.id,
-            city: status.activeLocation.city,
-            country: status.activeLocation.country,
-            latitude: status.activeLocation.latitude,
-            longitude: status.activeLocation.longitude,
-            start_date: status.activeLocation.startDate.toISOString(),
-            end_date: status.activeLocation.endDate.toISOString(),
-          } : null,
+          active_location: status.activeLocation
+            ? {
+                id: status.activeLocation.id,
+                city: status.activeLocation.city,
+                country: status.activeLocation.country,
+                latitude: status.activeLocation.latitude,
+                longitude: status.activeLocation.longitude,
+                start_date: status.activeLocation.startDate.toISOString(),
+                end_date: status.activeLocation.endDate.toISOString(),
+              }
+            : null,
           saved_locations: status.savedLocations.map((loc) => ({
             id: loc.id,
             city: loc.city,
@@ -113,7 +116,9 @@ export class PassportController {
         res.status(statusCode).json({
           success: false,
           error: result.error,
-          code: result.error?.includes('requires Plus') ? 'TIER_NOT_SUFFICIENT' : 'SET_LOCATION_ERROR',
+          code: result.error?.includes('requires Plus')
+            ? 'TIER_NOT_SUFFICIENT'
+            : 'SET_LOCATION_ERROR',
           correlation_id: (req as any).correlationId || 'unknown',
         });
         return;

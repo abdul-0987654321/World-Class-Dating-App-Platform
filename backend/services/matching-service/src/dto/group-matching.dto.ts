@@ -3,6 +3,7 @@
  * Data Transfer Objects for group matching endpoints
  */
 
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsOptional,
@@ -18,7 +19,7 @@ import {
   IsObject,
   ArrayMaxSize,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+
 import { GroupLookingFor } from '../types/group-matching.types';
 
 // ==================== Location DTO ====================

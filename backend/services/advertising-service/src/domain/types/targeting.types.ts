@@ -41,7 +41,12 @@ export interface MatchPreferences {
 // Feature 2: Relationship Intent Targeting
 export interface RelationshipIntentTarget {
   id: string;
-  intent: 'casual_dating' | 'serious_relationship' | 'marriage_minded' | 'new_friends' | 'networking';
+  intent:
+    | 'casual_dating'
+    | 'serious_relationship'
+    | 'marriage_minded'
+    | 'new_friends'
+    | 'networking';
   signals: RelationshipSignal[];
   confidence_score: number;
   ad_compatibility: AdCompatibility;

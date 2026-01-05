@@ -1,11 +1,20 @@
 import { Knex } from 'knex';
-import { ProfileBadge, UserProfileBadge, BadgeType, BadgeCollection, UserBadgeCollection } from '../entities/Badge.entity';
+
+import {
+  ProfileBadge,
+  UserProfileBadge,
+  BadgeType,
+  BadgeCollection,
+  UserBadgeCollection,
+} from '../entities/Badge.entity';
 
 export class BadgeRepository {
   constructor(private db: Knex) {}
 
   async findAllBadges(): Promise<ProfileBadge[]> {
-    const badges = await this.db('profile_badges').where({ is_active: true }).orderBy('display_priority', 'desc');
+    const badges = await this.db('profile_badges')
+      .where({ is_active: true })
+      .orderBy('display_priority', 'desc');
     return badges.map(this.mapBadgeToEntity);
   }
 
@@ -20,7 +29,10 @@ export class BadgeRepository {
   }
 
   async findAutoAwardBadges(): Promise<ProfileBadge[]> {
-    const badges = await this.db('profile_badges').where({ is_auto_awarded: true, is_active: true });
+    const badges = await this.db('profile_badges').where({
+      is_auto_awarded: true,
+      is_active: true,
+    });
     return badges.map(this.mapBadgeToEntity);
   }
 
@@ -102,7 +114,10 @@ export class BadgeRepository {
     return collections.map(this.mapCollectionToEntity);
   }
 
-  async findUserCollection(userId: string, collectionId: string): Promise<UserBadgeCollection | null> {
+  async findUserCollection(
+    userId: string,
+    collectionId: string
+  ): Promise<UserBadgeCollection | null> {
     const collection = await this.db('user_badge_collections')
       .where({ user_id: userId, collection_id: collectionId })
       .first();

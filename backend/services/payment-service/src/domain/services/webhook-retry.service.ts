@@ -1,7 +1,9 @@
-import { db } from '../../infrastructure/database/connection';
-import { WebhookService } from './webhook.service';
-import logger from '../../utils/logger';
 import Stripe from 'stripe';
+
+import { db } from '../../infrastructure/database/connection';
+import logger from '../../utils/logger';
+
+import { WebhookService } from './webhook.service';
 
 /**
  * Webhook Retry Service
@@ -24,7 +26,7 @@ export class WebhookRetryService {
     const failedEvents = await db('stripe_webhook_events')
       .where({ status: 'failed' })
       .where('retry_count', '<', this.MAX_RETRIES)
-      .whereRaw('created_at > NOW() - INTERVAL \'24 HOURS\'') // Only retry events from last 24 hours
+      .whereRaw("created_at > NOW() - INTERVAL '24 HOURS'") // Only retry events from last 24 hours
       .orderBy('created_at', 'asc')
       .limit(100);
 
@@ -50,7 +52,9 @@ export class WebhookRetryService {
     }
 
     try {
-      logger.info(`Retrying webhook event ${eventRecord.stripe_event_id} (attempt ${retryCount + 1}/${this.MAX_RETRIES})`);
+      logger.info(
+        `Retrying webhook event ${eventRecord.stripe_event_id} (attempt ${retryCount + 1}/${this.MAX_RETRIES})`
+      );
 
       const stripeEvent = JSON.parse(eventRecord.payload) as Stripe.Event;
 
@@ -73,12 +77,10 @@ export class WebhookRetryService {
       logger.error(`Retry failed for event ${eventRecord.stripe_event_id}:`, error);
 
       // Update error message
-      await db('stripe_webhook_events')
-        .where({ id: eventRecord.id })
-        .update({
-          error_message: error.message,
-          updated_at: new Date(),
-        });
+      await db('stripe_webhook_events').where({ id: eventRecord.id }).update({
+        error_message: error.message,
+        updated_at: new Date(),
+      });
 
       // If max retries reached, mark as permanently failed
       if (retryCount + 1 >= this.MAX_RETRIES) {
@@ -94,95 +96,95 @@ export class WebhookRetryService {
     switch (event.type) {
       // Subscription events
       case 'customer.subscription.created':
-        await this.webhookService.handleSubscriptionCreated(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleSubscriptionCreated(event.data.object);
         break;
       case 'customer.subscription.updated':
-        await this.webhookService.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleSubscriptionUpdated(event.data.object);
         break;
       case 'customer.subscription.deleted':
-        await this.webhookService.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleSubscriptionDeleted(event.data.object);
         break;
       case 'customer.subscription.trial_will_end':
-        await this.webhookService.handleTrialWillEnd(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleTrialWillEnd(event.data.object);
         break;
       case 'customer.subscription.pending_update_applied':
-        await this.webhookService.handleSubscriptionPendingUpdateApplied(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleSubscriptionPendingUpdateApplied(event.data.object);
         break;
       case 'customer.subscription.pending_update_expired':
-        await this.webhookService.handleSubscriptionPendingUpdateExpired(event.data.object as Stripe.Subscription);
+        await this.webhookService.handleSubscriptionPendingUpdateExpired(event.data.object);
         break;
 
       // Invoice events
       case 'invoice.paid':
       case 'invoice.payment_succeeded':
-        await this.webhookService.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
+        await this.webhookService.handleInvoicePaymentSucceeded(event.data.object);
         break;
       case 'invoice.payment_failed':
-        await this.webhookService.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+        await this.webhookService.handleInvoicePaymentFailed(event.data.object);
         break;
       case 'invoice.payment_action_required':
-        await this.webhookService.handleInvoicePaymentActionRequired(event.data.object as Stripe.Invoice);
+        await this.webhookService.handleInvoicePaymentActionRequired(event.data.object);
         break;
       case 'invoice.upcoming':
-        await this.webhookService.handleInvoiceUpcoming(event.data.object as Stripe.Invoice);
+        await this.webhookService.handleInvoiceUpcoming(event.data.object);
         break;
       case 'invoice.finalized':
-        await this.webhookService.handleInvoiceFinalized(event.data.object as Stripe.Invoice);
+        await this.webhookService.handleInvoiceFinalized(event.data.object);
         break;
 
       // Payment intent events
       case 'payment_intent.succeeded':
-        await this.webhookService.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+        await this.webhookService.handlePaymentIntentSucceeded(event.data.object);
         break;
       case 'payment_intent.payment_failed':
-        await this.webhookService.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+        await this.webhookService.handlePaymentIntentFailed(event.data.object);
         break;
       case 'payment_intent.canceled':
-        await this.webhookService.handlePaymentIntentCanceled(event.data.object as Stripe.PaymentIntent);
+        await this.webhookService.handlePaymentIntentCanceled(event.data.object);
         break;
       case 'payment_intent.requires_action':
-        await this.webhookService.handlePaymentIntentRequiresAction(event.data.object as Stripe.PaymentIntent);
+        await this.webhookService.handlePaymentIntentRequiresAction(event.data.object);
         break;
 
       // Checkout events
       case 'checkout.session.completed':
-        await this.webhookService.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        await this.webhookService.handleCheckoutSessionCompleted(event.data.object);
         break;
       case 'checkout.session.expired':
-        await this.webhookService.handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+        await this.webhookService.handleCheckoutSessionExpired(event.data.object);
         break;
 
       // Charge events
       case 'charge.succeeded':
-        await this.webhookService.handleChargeSucceeded(event.data.object as Stripe.Charge);
+        await this.webhookService.handleChargeSucceeded(event.data.object);
         break;
       case 'charge.failed':
-        await this.webhookService.handleChargeFailed(event.data.object as Stripe.Charge);
+        await this.webhookService.handleChargeFailed(event.data.object);
         break;
       case 'charge.refunded':
-        await this.webhookService.handleChargeRefunded(event.data.object as Stripe.Charge);
+        await this.webhookService.handleChargeRefunded(event.data.object);
         break;
       case 'charge.dispute.created':
-        await this.webhookService.handleDisputeCreated(event.data.object as Stripe.Dispute);
+        await this.webhookService.handleDisputeCreated(event.data.object);
         break;
 
       // Customer events
       case 'customer.created':
-        await this.webhookService.handleCustomerCreated(event.data.object as Stripe.Customer);
+        await this.webhookService.handleCustomerCreated(event.data.object);
         break;
       case 'customer.updated':
-        await this.webhookService.handleCustomerUpdated(event.data.object as Stripe.Customer);
+        await this.webhookService.handleCustomerUpdated(event.data.object);
         break;
       case 'customer.deleted':
-        await this.webhookService.handleCustomerDeleted(event.data.object as Stripe.Customer);
+        await this.webhookService.handleCustomerDeleted(event.data.object);
         break;
 
       // Payment method events
       case 'payment_method.attached':
-        await this.webhookService.handlePaymentMethodAttached(event.data.object as Stripe.PaymentMethod);
+        await this.webhookService.handlePaymentMethodAttached(event.data.object);
         break;
       case 'payment_method.detached':
-        await this.webhookService.handlePaymentMethodDetached(event.data.object as Stripe.PaymentMethod);
+        await this.webhookService.handlePaymentMethodDetached(event.data.object);
         break;
 
       default:
@@ -194,7 +196,9 @@ export class WebhookRetryService {
    * Handle permanently failed events
    */
   private async handlePermanentFailure(eventRecord: any, error: Error): Promise<void> {
-    logger.error(`Webhook event ${eventRecord.stripe_event_id} permanently failed after ${this.MAX_RETRIES} retries`);
+    logger.error(
+      `Webhook event ${eventRecord.stripe_event_id} permanently failed after ${this.MAX_RETRIES} retries`
+    );
 
     // Update status to permanently failed
     await db('stripe_webhook_events')

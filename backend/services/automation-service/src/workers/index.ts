@@ -17,15 +17,16 @@ export { notificationWorker, NotificationWorker } from './notification.worker';
 export { cleanupRetentionWorker, CleanupRetentionWorker } from './cleanup-retention.worker';
 
 import { createLogger } from '@flamoral/backend-shared';
+
+import { callSignalWorker } from './call-signal.worker';
+import { cleanupRetentionWorker } from './cleanup-retention.worker';
 import { discoveryRankingWorker } from './discovery-ranking.worker';
 import { matchCreationWorker } from './match-creation.worker';
 import { messageDeliveryWorker } from './message-delivery.worker';
-import { callSignalWorker } from './call-signal.worker';
-import { verificationWorker } from './verification.worker';
 import { moderationTriageWorker } from './moderation-triage.worker';
-import { subscriptionSyncWorker } from './subscription-sync.worker';
 import { notificationWorker } from './notification.worker';
-import { cleanupRetentionWorker } from './cleanup-retention.worker';
+import { subscriptionSyncWorker } from './subscription-sync.worker';
+import { verificationWorker } from './verification.worker';
 
 const logger = createLogger('worker-manager');
 

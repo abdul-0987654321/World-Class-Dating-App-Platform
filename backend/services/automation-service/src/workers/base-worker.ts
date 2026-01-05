@@ -3,9 +3,9 @@
  * Provides common patterns for Bull queue workers with DLQ, retry logic, and metrics
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import Queue, { Job, JobOptions, Queue as BullQueue } from 'bull';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('base-worker');
 
@@ -14,7 +14,7 @@ export const getRedisConfig = () => ({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379', 10),
   password: process.env.REDIS_PASSWORD || undefined,
-  maxRetriesPerRequest: null as null,
+  maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
 
@@ -309,7 +309,10 @@ export abstract class BaseWorker<TJobData extends BaseJobData, TResult = any> {
   /**
    * Add a job to the queue
    */
-  async addJob(data: Omit<TJobData, 'correlationId' | 'createdAt'>, options?: JobOptions): Promise<Job<TJobData>> {
+  async addJob(
+    data: Omit<TJobData, 'correlationId' | 'createdAt'>,
+    options?: JobOptions
+  ): Promise<Job<TJobData>> {
     const jobData = {
       ...data,
       correlationId: uuidv4(),
@@ -396,10 +399,7 @@ export abstract class BaseWorker<TJobData extends BaseJobData, TResult = any> {
 /**
  * Helper to create job data with correlation ID
  */
-export function createJobData<T extends object>(
-  data: T,
-  source?: string
-): T & BaseJobData {
+export function createJobData<T extends object>(data: T, source?: string): T & BaseJobData {
   return {
     ...data,
     correlationId: uuidv4(),

@@ -1,5 +1,6 @@
 import sgMail from '@sendgrid/mail';
 import nodemailer from 'nodemailer';
+
 import logger from '../../utils/logger';
 
 export interface EmailTemplate {
@@ -66,7 +67,9 @@ export class EmailService {
         await sgMail.send(msg);
         logger.info(`Email sent via SendGrid to ${template.to}: ${template.subject}`);
       } else {
-        logger.warn(`Email not sent (no email service configured): ${template.subject} to ${template.to}`);
+        logger.warn(
+          `Email not sent (no email service configured): ${template.subject} to ${template.to}`
+        );
       }
     } catch (error: any) {
       logger.error('Email sending failed:', error);
@@ -74,7 +77,11 @@ export class EmailService {
     }
   }
 
-  async sendVerificationEmail(email: string, firstName: string, verificationToken: string): Promise<void> {
+  async sendVerificationEmail(
+    email: string,
+    firstName: string,
+    verificationToken: string
+  ): Promise<void> {
     const verificationUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
 
     const html = `
@@ -141,7 +148,11 @@ export class EmailService {
     });
   }
 
-  async sendPasswordResetEmail(email: string, firstName: string, resetToken: string): Promise<void> {
+  async sendPasswordResetEmail(
+    email: string,
+    firstName: string,
+    resetToken: string
+  ): Promise<void> {
     const resetUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
     const html = `

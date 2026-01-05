@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+
 import { logger } from '../utils/logger';
 
 /**
@@ -68,7 +69,7 @@ export const authMiddleware = async (
       res.status(401).json({
         success: false,
         error: 'Authentication required',
-        message: 'No authentication token provided'
+        message: 'No authentication token provided',
       });
       return;
     }
@@ -84,7 +85,7 @@ export const authMiddleware = async (
         userId: decoded.userId || decoded.id || decoded.sub,
         email: decoded.email,
         role: decoded.role,
-        isAdmin: decoded.role === 'admin' || decoded.isAdmin === true
+        isAdmin: decoded.role === 'admin' || decoded.isAdmin === true,
       };
 
       logger.debug('User authenticated', { userId: req.user.id, email: req.user.email });
@@ -95,7 +96,7 @@ export const authMiddleware = async (
         res.status(401).json({
           success: false,
           error: 'Token expired',
-          message: 'Authentication token has expired'
+          message: 'Authentication token has expired',
         });
         return;
       }
@@ -104,7 +105,7 @@ export const authMiddleware = async (
       res.status(401).json({
         success: false,
         error: 'Invalid token',
-        message: 'Authentication token is invalid'
+        message: 'Authentication token is invalid',
       });
       return;
     }
@@ -113,7 +114,7 @@ export const authMiddleware = async (
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: 'An error occurred during authentication'
+      message: 'An error occurred during authentication',
     });
   }
 };
@@ -135,15 +136,15 @@ export const apiKeyMiddleware = (
   next: NextFunction
 ): void => {
   try {
-    const apiKey = req.headers['x-api-key'] as string ||
-                   req.headers['x-internal-api-key'] as string;
+    const apiKey =
+      (req.headers['x-api-key'] as string) || (req.headers['x-internal-api-key'] as string);
 
     if (!apiKey) {
       logger.warn('Missing API key', { ip: req.ip, path: req.path });
       res.status(401).json({
         success: false,
         error: 'API key required',
-        message: 'No API key provided in request headers'
+        message: 'No API key provided in request headers',
       });
       return;
     }
@@ -153,7 +154,7 @@ export const apiKeyMiddleware = (
       res.status(401).json({
         success: false,
         error: 'Invalid API key',
-        message: 'The provided API key is not valid'
+        message: 'The provided API key is not valid',
       });
       return;
     }
@@ -167,7 +168,7 @@ export const apiKeyMiddleware = (
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: 'An error occurred during API key authentication'
+      message: 'An error occurred during API key authentication',
     });
   }
 };
@@ -201,7 +202,7 @@ export const requireAdmin = (
     res.status(401).json({
       success: false,
       error: 'Authentication required',
-      message: 'You must be authenticated to access this resource'
+      message: 'You must be authenticated to access this resource',
     });
     return;
   }
@@ -211,12 +212,12 @@ export const requireAdmin = (
     logger.warn('Admin access denied - insufficient privileges', {
       userId: req.user.id,
       role: req.user.role,
-      path: req.path
+      path: req.path,
     });
     res.status(403).json({
       success: false,
       error: 'Admin access required',
-      message: 'You do not have sufficient privileges to access this resource'
+      message: 'You do not have sufficient privileges to access this resource',
     });
     return;
   }
@@ -250,7 +251,7 @@ export const optionalAuth = async (
           userId: decoded.userId || decoded.id || decoded.sub,
           email: decoded.email,
           role: decoded.role,
-          isAdmin: decoded.role === 'admin' || decoded.isAdmin === true
+          isAdmin: decoded.role === 'admin' || decoded.isAdmin === true,
         };
         logger.debug('Optional auth: user authenticated', { userId: req.user.id });
       } catch (jwtError) {

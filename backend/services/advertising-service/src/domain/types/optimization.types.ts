@@ -96,7 +96,13 @@ export interface TouchPoint {
 }
 
 export interface AttributionModel {
-  model_type: 'last_click' | 'first_click' | 'linear' | 'time_decay' | 'position_based' | 'data_driven';
+  model_type:
+    | 'last_click'
+    | 'first_click'
+    | 'linear'
+    | 'time_decay'
+    | 'position_based'
+    | 'data_driven';
   lookback_window_days: number;
   cross_device_enabled: boolean;
   view_through_enabled: boolean;
@@ -420,7 +426,11 @@ export interface SegmentLTV {
 }
 
 export interface LTVOptimizationAction {
-  action_type: 'increase_acquisition_spend' | 'reduce_acquisition_spend' | 'retention_focus' | 'upsell_campaign';
+  action_type:
+    | 'increase_acquisition_spend'
+    | 'reduce_acquisition_spend'
+    | 'retention_focus'
+    | 'upsell_campaign';
   target_segment: string;
   expected_ltv_impact: number;
   recommended_budget: number;

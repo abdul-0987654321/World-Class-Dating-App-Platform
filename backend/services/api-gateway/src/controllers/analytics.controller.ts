@@ -10,6 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('analytics')
@@ -39,7 +40,7 @@ export class AnalyticsController {
   async getProfileViews(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -59,7 +60,7 @@ export class AnalyticsController {
   async getMatchStats(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -79,7 +80,7 @@ export class AnalyticsController {
   async getMessageStats(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -99,7 +100,7 @@ export class AnalyticsController {
   async getLikeStats(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -119,10 +120,7 @@ export class AnalyticsController {
   @Post('events')
   @ApiOperation({ summary: 'Track analytics event' })
   @HttpCode(HttpStatus.CREATED)
-  async trackEvent(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async trackEvent(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('analyticsService', '/api/analytics/events', body, {
       Authorization: authorization,
     });
@@ -134,10 +132,7 @@ export class AnalyticsController {
   @Post('pageviews')
   @ApiOperation({ summary: 'Track page view' })
   @HttpCode(HttpStatus.CREATED)
-  async trackPageView(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async trackPageView(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('analyticsService', '/api/analytics/pageviews', body, {
       Authorization: authorization,
     });
@@ -149,10 +144,7 @@ export class AnalyticsController {
   @Post('actions')
   @ApiOperation({ summary: 'Track user action' })
   @HttpCode(HttpStatus.CREATED)
-  async trackAction(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async trackAction(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('analyticsService', '/api/analytics/actions', body, {
       Authorization: authorization,
     });
@@ -168,7 +160,7 @@ export class AnalyticsController {
   async getEngagement(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -200,7 +192,7 @@ export class AnalyticsController {
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
-    @Query('granularity') granularity?: string,
+    @Query('granularity') granularity?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -223,7 +215,7 @@ export class AnalyticsController {
   async getPlatformStats(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -254,7 +246,7 @@ export class AnalyticsController {
   async getRevenueAnalytics(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -274,7 +266,7 @@ export class AnalyticsController {
   async getRetention(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -296,7 +288,7 @@ export class AnalyticsController {
   async getFunnel(
     @Headers('authorization') authorization: string,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const queryString = new URLSearchParams();
     if (from) queryString.append('from', from);
@@ -315,7 +307,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Get A/B test results (admin)' })
   async getABTestResults(
     @Headers('authorization') authorization: string,
-    @Param('testId') testId: string,
+    @Param('testId') testId: string
   ) {
     return this.proxyService.get('analyticsService', `/api/analytics/ab-tests/${testId}`, {
       Authorization: authorization,
@@ -330,10 +322,7 @@ export class AnalyticsController {
   @Post('export')
   @ApiOperation({ summary: 'Export analytics data' })
   @HttpCode(HttpStatus.OK)
-  async exportData(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async exportData(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('analyticsService', '/api/analytics/export', body, {
       Authorization: authorization,
     });

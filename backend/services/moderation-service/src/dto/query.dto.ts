@@ -4,6 +4,7 @@
  * These DTOs validate query parameters for GET endpoints.
  */
 
+import { Type, Transform } from 'class-transformer';
 import {
   IsOptional,
   IsInt,
@@ -14,7 +15,6 @@ import {
   IsDateString,
   IsBoolean,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
 
 /**
  * Time range options for statistics

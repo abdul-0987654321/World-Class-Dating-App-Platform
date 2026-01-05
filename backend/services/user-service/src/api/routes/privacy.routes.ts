@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { PrivacyController } from '../controllers/privacy.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -104,7 +105,12 @@ router.get('/settings', authenticate, privacyController.getPrivacySettings.bind(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/settings', authenticate, validate(updatePrivacySettingsSchema), privacyController.updatePrivacySettings.bind(privacyController));
+router.put(
+  '/settings',
+  authenticate,
+  validate(updatePrivacySettingsSchema),
+  privacyController.updatePrivacySettings.bind(privacyController)
+);
 
 /**
  * @swagger
@@ -147,7 +153,12 @@ router.put('/settings', authenticate, validate(updatePrivacySettingsSchema), pri
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/incognito/toggle', authenticate, validate(toggleIncognitoSchema), privacyController.toggleIncognito.bind(privacyController));
+router.post(
+  '/incognito/toggle',
+  authenticate,
+  validate(toggleIncognitoSchema),
+  privacyController.toggleIncognito.bind(privacyController)
+);
 
 /**
  * @swagger
@@ -195,6 +206,11 @@ router.post('/incognito/toggle', authenticate, validate(toggleIncognitoSchema), 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/preset', authenticate, validate(applyPresetSchema), privacyController.applyPreset.bind(privacyController));
+router.post(
+  '/preset',
+  authenticate,
+  validate(applyPresetSchema),
+  privacyController.applyPreset.bind(privacyController)
+);
 
 export default router;

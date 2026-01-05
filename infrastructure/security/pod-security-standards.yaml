@@ -1,0 +1,263 @@
+# =============================================================================
+# Pod Security Standards (PSS) - Replaces deprecated PodSecurityPolicy
+# =============================================================================
+# Kubernetes 1.25+ uses Pod Security Standards via namespace labels
+# Apply these labels to namespaces to enforce security policies
+# =============================================================================
+
+---
+# Production Namespace with Restricted PSS
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-prod
+  labels:
+    # Enforce restricted policy (most secure)
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    # Warn on violations of baseline policy
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    # Audit baseline violations
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    environment: production
+    managed-by: helm
+---
+# Staging Namespace with Baseline PSS
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-staging
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    environment: staging
+    managed-by: helm
+---
+# Development Namespace with Baseline PSS
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flamoral-dev
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    environment: development
+    managed-by: helm
+---
+# Monitoring Namespace - Privileged (required for node-exporter, etc.)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: baseline
+    pod-security.kubernetes.io/warn-version: latest
+    environment: infrastructure
+---
+# Kyverno ClusterPolicy for additional enforcement
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Only allow images from approved AWS ECR registry
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral-prod
+                - flamoral-staging
+                - flamoral-dev
+      validate:
+        message: "Images must be from approved AWS ECR registry"
+        pattern:
+          spec:
+            containers:
+              - image: "*.dkr.ecr.*.amazonaws.com/flamoral/*"
+            initContainers:
+              - image: "*.dkr.ecr.*.amazonaws.com/flamoral/*"
+---
+# Kyverno ClusterPolicy to require resource limits
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require Resource Limits
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-resources
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral-prod
+      validate:
+        message: "Containers must have memory and CPU limits defined"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+---
+# Kyverno ClusterPolicy to require security context
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-run-as-non-root
+  annotations:
+    policies.kyverno.io/title: Require runAsNonRoot
+    policies.kyverno.io/category: Pod Security Standards
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-security-context
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral-prod
+                - flamoral-staging
+      validate:
+        message: "Containers must run as non-root"
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+---
+# Kyverno ClusterPolicy to disallow hostPath volumes
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-path
+  annotations:
+    policies.kyverno.io/title: Disallow hostPath Volumes
+    policies.kyverno.io/category: Pod Security Standards
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: host-path
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - flamoral-prod
+                - flamoral-staging
+                - flamoral-dev
+      validate:
+        message: "hostPath volumes are not allowed"
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"
+---
+# Network Policy - Default Deny All for Production
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: flamoral-prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Network Policy - Allow DNS egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: flamoral-prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Network Policy - Allow internal service communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal-services
+  namespace: flamoral-prod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: flamoral-platform
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: flamoral-platform
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: flamoral-platform
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443

@@ -17,15 +17,18 @@ export async function up(knex: Knex): Promise<void> {
     table.string('callee_name', 255).notNullable();
     table.string('callee_avatar', 500);
     table.enum('call_type', ['video', 'audio']).notNullable();
-    table.enum('status', [
-      'initiated',
-      'ringing',
-      'connected',
-      'ended',
-      'rejected',
-      'missed',
-      'failed'
-    ]).notNullable().defaultTo('initiated');
+    table
+      .enum('status', [
+        'initiated',
+        'ringing',
+        'connected',
+        'ended',
+        'rejected',
+        'missed',
+        'failed',
+      ])
+      .notNullable()
+      .defaultTo('initiated');
     table.timestamp('start_time').notNullable().defaultTo(knex.fn.now());
     table.timestamp('connected_at');
     table.timestamp('end_time');
@@ -50,30 +53,37 @@ export async function up(knex: Knex): Promise<void> {
   // Create call_events table for detailed event logging
   await knex.schema.createTable('call_events', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('(gen_random_uuid())'));
-    table.uuid('call_id').notNullable().references('id').inTable('call_sessions').onDelete('CASCADE');
+    table
+      .uuid('call_id')
+      .notNullable()
+      .references('id')
+      .inTable('call_sessions')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable(); // User who triggered the event
-    table.enum('event_type', [
-      'initiated',
-      'ringing',
-      'accepted',
-      'rejected',
-      'ended',
-      'missed',
-      'failed',
-      'ice_candidate',
-      'sdp_offer',
-      'sdp_answer',
-      'quality_update',
-      'recording_consent',
-      'reconnecting',
-      'reconnected',
-      'muted',
-      'unmuted',
-      'video_enabled',
-      'video_disabled',
-      'screen_share_started',
-      'screen_share_stopped'
-    ]).notNullable();
+    table
+      .enum('event_type', [
+        'initiated',
+        'ringing',
+        'accepted',
+        'rejected',
+        'ended',
+        'missed',
+        'failed',
+        'ice_candidate',
+        'sdp_offer',
+        'sdp_answer',
+        'quality_update',
+        'recording_consent',
+        'reconnecting',
+        'reconnected',
+        'muted',
+        'unmuted',
+        'video_enabled',
+        'video_disabled',
+        'screen_share_started',
+        'screen_share_stopped',
+      ])
+      .notNullable();
     table.jsonb('event_data').defaultTo('{}'); // Event-specific data
     table.string('ip_address', 45); // IPv4 or IPv6
     table.string('user_agent', 500);

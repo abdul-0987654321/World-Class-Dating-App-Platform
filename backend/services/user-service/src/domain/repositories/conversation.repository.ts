@@ -53,26 +53,28 @@ export class ConversationRepository {
     return conversations;
   }
 
-  async findByUserIdWithDetails(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<any[]> {
+  async findByUserIdWithDetails(userId: string, limit = 50, offset = 0): Promise<any[]> {
     const conversations = await db(this.table)
       .select(
         'conversations.*',
-        db.raw(`
+        db.raw(
+          `
           CASE
             WHEN conversations.user1_id = ? THEN conversations.user2_id
             ELSE conversations.user1_id
           END as other_user_id
-        `, [userId]),
-        db.raw(`
+        `,
+          [userId]
+        ),
+        db.raw(
+          `
           CASE
             WHEN conversations.user1_id = ? THEN conversations.unread_count_user1
             ELSE conversations.unread_count_user2
           END as unread_count
-        `, [userId])
+        `,
+          [userId]
+        )
       )
       .where('user1_id', userId)
       .orWhere('user2_id', userId)
@@ -88,26 +90,25 @@ export class ConversationRepository {
     if (!conversation) return;
 
     if (conversation.user1_id === userId) {
-      await db(this.table)
-        .where({ id: conversationId })
-        .update({ unread_count_user1: 0 });
+      await db(this.table).where({ id: conversationId }).update({ unread_count_user1: 0 });
     } else if (conversation.user2_id === userId) {
-      await db(this.table)
-        .where({ id: conversationId })
-        .update({ unread_count_user2: 0 });
+      await db(this.table).where({ id: conversationId }).update({ unread_count_user2: 0 });
     }
   }
 
   async getTotalUnreadCount(userId: string): Promise<number> {
     const result = await db(this.table)
       .sum({
-        total: db.raw(`
+        total: db.raw(
+          `
           CASE
             WHEN user1_id = ? THEN unread_count_user1
             WHEN user2_id = ? THEN unread_count_user2
             ELSE 0
           END
-        `, [userId, userId])
+        `,
+          [userId, userId]
+        ),
       })
       .where('user1_id', userId)
       .orWhere('user2_id', userId)

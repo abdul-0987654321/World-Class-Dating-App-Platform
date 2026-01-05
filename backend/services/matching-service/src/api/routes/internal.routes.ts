@@ -2,10 +2,11 @@ import { createLogger } from '@flamoral/backend-shared';
 const logger = createLogger('InternalRoutes');
 
 import { Router, Request, Response } from 'express';
-import { authenticateService } from '../middleware/service-auth.middleware';
+
 import { MatchRepository } from '../../domain/repositories/match.repository';
 import { SwipeRepository } from '../../domain/repositories/swipe.repository';
 import { MatchStatus } from '../../types';
+import { authenticateService } from '../middleware/service-auth.middleware';
 
 const router = Router();
 
@@ -105,13 +106,21 @@ router.get('/users/:userId/matches', async (req: Request, res: Response) => {
     // Get user's matches
     const matches = await matchRepository.findByUserId(
       userId,
-      status === 'active' ? MatchStatus.MATCHED : (status === 'unmatched' ? MatchStatus.UNMATCHED : undefined)
+      status === 'active'
+        ? MatchStatus.MATCHED
+        : status === 'unmatched'
+          ? MatchStatus.UNMATCHED
+          : undefined
     );
 
     // Get total count for pagination
     const total = await matchRepository.countByUserId(
       userId,
-      status === 'active' ? MatchStatus.MATCHED : (status === 'unmatched' ? MatchStatus.UNMATCHED : undefined)
+      status === 'active'
+        ? MatchStatus.MATCHED
+        : status === 'unmatched'
+          ? MatchStatus.UNMATCHED
+          : undefined
     );
 
     return res.status(200).json({
@@ -414,7 +423,10 @@ router.get('/users/:userId/swipes', async (req: Request, res: Response) => {
     });
 
     // Get total count for pagination
-    const total = await swipeRepository.countBySwiperId(userId, direction !== 'all' ? direction : undefined);
+    const total = await swipeRepository.countBySwiperId(
+      userId,
+      direction !== 'all' ? direction : undefined
+    );
 
     return res.status(200).json({
       success: true,

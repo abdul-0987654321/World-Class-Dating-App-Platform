@@ -1,8 +1,9 @@
 import { Router } from 'express';
+
 import { AuthController } from '../controllers/auth.controller';
-import { validate } from '../middleware/validation.middleware';
-import { authLimiter } from '../middleware/rate-limit.middleware';
 import { authenticateToken } from '../middleware/auth.middleware';
+import { authLimiter } from '../middleware/rate-limit.middleware';
+import { validate } from '../middleware/validation.middleware';
 import { registerSchema, loginSchema } from '../validators/user.validator';
 
 const router = Router();
@@ -489,7 +490,11 @@ router.post('/facebook', authLimiter, authController.facebookLogin.bind(authCont
  *       401:
  *         description: Unauthorized
  */
-router.post('/social/link', authenticateToken, authController.linkSocialAccount.bind(authController));
+router.post(
+  '/social/link',
+  authenticateToken,
+  authController.linkSocialAccount.bind(authController)
+);
 
 /**
  * @swagger
@@ -519,7 +524,11 @@ router.post('/social/link', authenticateToken, authController.linkSocialAccount.
  *       401:
  *         description: Unauthorized
  */
-router.post('/social/unlink', authenticateToken, authController.unlinkSocialAccount.bind(authController));
+router.post(
+  '/social/unlink',
+  authenticateToken,
+  authController.unlinkSocialAccount.bind(authController)
+);
 
 /**
  * @swagger
@@ -560,7 +569,11 @@ router.post('/social/unlink', authenticateToken, authController.unlinkSocialAcco
  *       401:
  *         description: Unauthorized
  */
-router.get('/social/linked', authenticateToken, authController.getLinkedAccounts.bind(authController));
+router.get(
+  '/social/linked',
+  authenticateToken,
+  authController.getLinkedAccounts.bind(authController)
+);
 
 /**
  * @swagger
@@ -590,6 +603,10 @@ router.get('/social/linked', authenticateToken, authController.getLinkedAccounts
  *       401:
  *         description: Unauthorized
  */
-router.post('/social/refresh', authenticateToken, authController.refreshSocialToken.bind(authController));
+router.post(
+  '/social/refresh',
+  authenticateToken,
+  authController.refreshSocialToken.bind(authController)
+);
 
 export default router;

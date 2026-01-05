@@ -83,6 +83,22 @@ const testTheme = {
     fast: '100ms ease-in-out',
     slow: '300ms ease-in-out',
   },
+  breakpoints: {
+    xs: '320px',
+    sm: '576px',
+    md: '768px',
+    lg: '992px',
+    xl: '1200px',
+    xxl: '1400px',
+  },
+  zIndex: {
+    dropdown: 1000,
+    sticky: 1020,
+    fixed: 1030,
+    modal: 1040,
+    popover: 1050,
+    tooltip: 1060,
+  },
 };
 
 // Types

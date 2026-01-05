@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { DiscoveryController } from '../controllers/discovery.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -85,6 +86,10 @@ router.get('/', authenticate, discoveryController.getDiscoveryProfiles.bind(disc
  *       404:
  *         description: Profile not found
  */
-router.get('/:profileId', authenticate, discoveryController.getProfileById.bind(discoveryController));
+router.get(
+  '/:profileId',
+  authenticate,
+  discoveryController.getProfileById.bind(discoveryController)
+);
 
 export default router;

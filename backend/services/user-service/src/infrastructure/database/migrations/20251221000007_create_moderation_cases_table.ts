@@ -3,24 +3,34 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('moderation_cases', (table) => {
     table.uuid('case_id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('subject_user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('subject_user_id')
+      .notNullable()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
     table.uuid('reporter_id').nullable().references('id').inTable('users').onDelete('SET NULL'); // User who reported, if applicable
-    table.enum('case_type', [
-      'user_report',
-      'content_violation',
-      'automated_detection',
-      'appeal',
-      'escalation',
-      'proactive_review'
-    ]).notNullable();
-    table.enum('status', [
-      'open',
-      'under_review',
-      'pending_action',
-      'resolved',
-      'dismissed',
-      'escalated'
-    ]).notNullable().defaultTo('open');
+    table
+      .enum('case_type', [
+        'user_report',
+        'content_violation',
+        'automated_detection',
+        'appeal',
+        'escalation',
+        'proactive_review',
+      ])
+      .notNullable();
+    table
+      .enum('status', [
+        'open',
+        'under_review',
+        'pending_action',
+        'resolved',
+        'dismissed',
+        'escalated',
+      ])
+      .notNullable()
+      .defaultTo('open');
     table.enum('priority', ['low', 'medium', 'high', 'critical']).notNullable().defaultTo('medium');
     table.uuid('assigned_to').nullable().references('id').inTable('users').onDelete('SET NULL'); // Moderator assigned
     table.text('description').nullable();

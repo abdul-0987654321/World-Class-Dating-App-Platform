@@ -4,10 +4,11 @@
  * Uses AWS SNS for push notifications (AWS-Only compliance)
  */
 
-import { NotificationType } from '../types';
+import { snsPushProvider } from '../providers/sns-push.provider';
 import { notificationTemplateService } from '../services/notification-template.service';
 import { quietHoursService } from '../services/quiet-hours.service';
-import { snsPushProvider } from '../providers/sns-push.provider';
+import { NotificationType } from '../types';
+
 // Deprecated providers - kept for backward compatibility
 // import { fcmProvider } from '../providers/fcm.provider';
 // import { apnsProvider } from '../providers/apns.provider';
@@ -26,9 +27,7 @@ export interface SendNotificationParams {
 /**
  * Send notification with template rendering and quiet hours check
  */
-export async function sendNotificationWithTemplate(
-  params: SendNotificationParams
-): Promise<{
+export async function sendNotificationWithTemplate(params: SendNotificationParams): Promise<{
   success: boolean;
   scheduled?: boolean;
   scheduledFor?: Date;
@@ -36,10 +35,7 @@ export async function sendNotificationWithTemplate(
 }> {
   try {
     // Check quiet hours
-    const quietHoursCheck = await quietHoursService.shouldSendNow(
-      params.userId,
-      params.type
-    );
+    const quietHoursCheck = await quietHoursService.shouldSendNow(params.userId, params.type);
 
     if (!quietHoursCheck.shouldSend) {
       logger.info('Notification scheduled due to quiet hours', {
@@ -207,7 +203,7 @@ export function formatNotificationData(
     type,
   };
 
-  Object.keys(data).forEach(key => {
+  Object.keys(data).forEach((key) => {
     const value = data[key];
     stringData[key] = typeof value === 'string' ? value : JSON.stringify(value);
   });
@@ -232,10 +228,7 @@ export function shouldBatchNotification(type: NotificationType): boolean {
 /**
  * Get optimal time to send notification
  */
-export async function getOptimalSendTime(
-  userId: string,
-  type: NotificationType
-): Promise<Date> {
+export async function getOptimalSendTime(userId: string, type: NotificationType): Promise<Date> {
   // For urgent notifications, send immediately
   if (!shouldBatchNotification(type)) {
     return new Date();

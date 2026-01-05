@@ -245,7 +245,7 @@ export class FeatureFlagService {
 
     // Check region restriction
     if (flag.regions && context?.region) {
-      if (!flag.regions.some(r => context.region?.includes(r))) {
+      if (!flag.regions.some((r) => context.region?.includes(r))) {
         return false;
       }
     }
@@ -301,7 +301,7 @@ export class FeatureFlagService {
     let hash = 0;
     for (let i = 0; i < userId.length; i++) {
       const char = userId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash);

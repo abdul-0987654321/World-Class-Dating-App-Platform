@@ -315,7 +315,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
                           : isPast
                           ? 'rgba(128,128,128,0.1)'
                           : 'rgba(255,255,255,0.05)',
-                        ringColor: isCurrent ? 'var(--accent-pink)' : undefined,
+                        ['--tw-ring-color' as string]: isCurrent ? 'var(--accent-pink)' : undefined,
                       }}
                     >
                       <p

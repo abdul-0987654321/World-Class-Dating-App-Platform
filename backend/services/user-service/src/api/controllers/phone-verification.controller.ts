@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import phoneVerificationService from '../../domain/services/phone-verification.service';
 import { createLogger } from '../../utils/logger';
 
@@ -32,10 +33,7 @@ export class PhoneVerificationController {
 
       logger.info(`Send verification code request from user ${userId}`);
 
-      const result = await phoneVerificationService.sendVerificationCode(
-        userId,
-        phoneNumber
-      );
+      const result = await phoneVerificationService.sendVerificationCode(userId, phoneNumber);
 
       if (!result.success) {
         res.status(400).json(result);
@@ -178,10 +176,7 @@ export class PhoneVerificationController {
 
       logger.info(`Update phone number request from user ${userId}`);
 
-      const result = await phoneVerificationService.updatePhoneNumber(
-        userId,
-        phoneNumber
-      );
+      const result = await phoneVerificationService.updatePhoneNumber(userId, phoneNumber);
 
       if (!result.success) {
         res.status(400).json(result);

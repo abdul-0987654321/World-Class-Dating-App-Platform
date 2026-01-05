@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import {
-  ConditionConfig,
-  ConditionType,
-  ExecutionContext,
-} from '../interfaces/workflow.interface';
+
+import { ConditionConfig, ConditionType, ExecutionContext } from '../interfaces/workflow.interface';
 
 @Injectable()
 export class ConditionEvaluatorService {
@@ -18,7 +15,7 @@ export class ConditionEvaluatorService {
    */
   async evaluateConditions(
     conditions: ConditionConfig[],
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<{ passed: boolean; results: Record<string, boolean> }> {
     if (!conditions || conditions.length === 0) {
       return { passed: true, results: {} };
@@ -46,13 +43,9 @@ export class ConditionEvaluatorService {
           currentLogic = condition.logicalOperator;
         }
 
-        this.logger.debug(
-          `Condition ${conditionKey} evaluated to ${conditionResult}`,
-        );
+        this.logger.debug(`Condition ${conditionKey} evaluated to ${conditionResult}`);
       } catch (error) {
-        this.logger.error(
-          `Failed to evaluate condition ${condition.type}: ${error.message}`,
-        );
+        this.logger.error(`Failed to evaluate condition ${condition.type}: ${error.message}`);
         results[condition.type] = false;
         if (currentLogic === 'AND') {
           overallResult = false;
@@ -68,7 +61,7 @@ export class ConditionEvaluatorService {
    */
   private async evaluateCondition(
     condition: ConditionConfig,
-    context: ExecutionContext,
+    context: ExecutionContext
   ): Promise<boolean> {
     let actualValue: any;
 
@@ -116,9 +109,7 @@ export class ConditionEvaluatorService {
         return Array.isArray(expected) && !expected.includes(actual);
       case 'contains':
         return (
-          typeof actual === 'string' &&
-          typeof expected === 'string' &&
-          actual.includes(expected)
+          typeof actual === 'string' && typeof expected === 'string' && actual.includes(expected)
         );
       default:
         return false;
@@ -130,14 +121,10 @@ export class ConditionEvaluatorService {
    */
   private async checkUserPremium(userId: string): Promise<boolean> {
     try {
-      const userServiceUrl = this.configService.get<string>(
-        'services.userService',
-      );
+      const userServiceUrl = this.configService.get<string>('services.userService');
       const response = await axios.get(`${userServiceUrl}/api/users/${userId}`, {
         headers: {
-          'X-Internal-Service-Key': this.configService.get<string>(
-            'internalServiceKey',
-          ),
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
       });
       return response.data?.subscription?.isPremium || false;
@@ -152,24 +139,15 @@ export class ConditionEvaluatorService {
    */
   private async getProfileCompletePercentage(userId: string): Promise<number> {
     try {
-      const userServiceUrl = this.configService.get<string>(
-        'services.userService',
-      );
-      const response = await axios.get(
-        `${userServiceUrl}/api/profiles/${userId}`,
-        {
-          headers: {
-            'X-Internal-Service-Key': this.configService.get<string>(
-              'internalServiceKey',
-            ),
-          },
+      const userServiceUrl = this.configService.get<string>('services.userService');
+      const response = await axios.get(`${userServiceUrl}/api/profiles/${userId}`, {
+        headers: {
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      );
+      });
       return response.data?.profileCompleteness || 0;
     } catch (error) {
-      this.logger.error(
-        `Failed to get profile completion percentage: ${error.message}`,
-      );
+      this.logger.error(`Failed to get profile completion percentage: ${error.message}`);
       return 0;
     }
   }
@@ -179,19 +157,12 @@ export class ConditionEvaluatorService {
    */
   private async getMatchCount(userId: string): Promise<number> {
     try {
-      const matchingServiceUrl = this.configService.get<string>(
-        'services.matchingService',
-      );
-      const response = await axios.get(
-        `${matchingServiceUrl}/api/matches/${userId}/count`,
-        {
-          headers: {
-            'X-Internal-Service-Key': this.configService.get<string>(
-              'internalServiceKey',
-            ),
-          },
+      const matchingServiceUrl = this.configService.get<string>('services.matchingService');
+      const response = await axios.get(`${matchingServiceUrl}/api/matches/${userId}/count`, {
+        headers: {
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      );
+      });
       return response.data?.count || 0;
     } catch (error) {
       this.logger.error(`Failed to get match count: ${error.message}`);
@@ -204,19 +175,12 @@ export class ConditionEvaluatorService {
    */
   private async getMessageCount(userId: string): Promise<number> {
     try {
-      const userServiceUrl = this.configService.get<string>(
-        'services.userService',
-      );
-      const response = await axios.get(
-        `${userServiceUrl}/api/users/${userId}/message-count`,
-        {
-          headers: {
-            'X-Internal-Service-Key': this.configService.get<string>(
-              'internalServiceKey',
-            ),
-          },
+      const userServiceUrl = this.configService.get<string>('services.userService');
+      const response = await axios.get(`${userServiceUrl}/api/users/${userId}/message-count`, {
+        headers: {
+          'X-Internal-Service-Key': this.configService.get<string>('internalServiceKey'),
         },
-      );
+      });
       return response.data?.count || 0;
     } catch (error) {
       this.logger.error(`Failed to get message count: ${error.message}`);

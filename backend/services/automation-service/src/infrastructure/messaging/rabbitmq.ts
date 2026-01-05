@@ -1,6 +1,7 @@
-import amqp, { Channel, ConsumeMessage } from 'amqplib';
-import config from '../../config';
 import { createLogger } from '@flamoral/backend-shared';
+import amqp, { Channel, ConsumeMessage } from 'amqplib';
+
+import config from '../../config';
 
 const logger = createLogger('automation-service:rabbitmq');
 
@@ -133,17 +134,12 @@ export class RabbitMQManager {
     try {
       const messageBuffer = Buffer.from(JSON.stringify(message));
 
-      const published = this.channel.publish(
-        config.rabbitmq.exchange,
-        routingKey,
-        messageBuffer,
-        {
-          persistent: true,
-          timestamp: Date.now(),
-          contentType: 'application/json',
-          ...options,
-        }
-      );
+      const published = this.channel.publish(config.rabbitmq.exchange, routingKey, messageBuffer, {
+        persistent: true,
+        timestamp: Date.now(),
+        contentType: 'application/json',
+        ...options,
+      });
 
       if (published) {
         logger.debug('Message published', { routingKey });
@@ -189,7 +185,7 @@ export class RabbitMQManager {
             await handler(content);
 
             // Acknowledge message
-            this.channel!.ack(msg);
+            this.channel.ack(msg);
             logger.debug('Message processed successfully', { queue });
           } catch (error: any) {
             logger.error('Error processing message', {
@@ -198,7 +194,7 @@ export class RabbitMQManager {
             });
 
             // Reject and requeue on error
-            this.channel!.nack(msg, false, true);
+            this.channel.nack(msg, false, true);
           }
         },
         {
@@ -226,11 +222,7 @@ export class RabbitMQManager {
     }
 
     try {
-      await this.channel.bindQueue(
-        queue,
-        config.rabbitmq.exchange,
-        routingPattern
-      );
+      await this.channel.bindQueue(queue, config.rabbitmq.exchange, routingPattern);
 
       logger.info('Queue bound to exchange', { queue, routingPattern });
     } catch (error: any) {
@@ -246,11 +238,7 @@ export class RabbitMQManager {
   /**
    * Send to queue directly
    */
-  async sendToQueue(
-    queue: string,
-    message: any,
-    options?: amqp.Options.Publish
-  ): Promise<boolean> {
+  async sendToQueue(queue: string, message: any, options?: amqp.Options.Publish): Promise<boolean> {
     if (!this.channel) {
       logger.error('Cannot send to queue: Channel not initialized');
       return false;

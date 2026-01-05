@@ -1,8 +1,9 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { communityService, CommunityService } from '../../domain/services/community.service';
+
 import { CommunityCategory } from '../../domain/entities/Community.entity';
+import { communityService, CommunityService } from '../../domain/services/community.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class CommunityController {
   private service: CommunityService;
@@ -37,7 +38,7 @@ export class CommunityController {
 
   async getJoinedCommunities(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const communities = await this.service.getJoinedCommunities(userId);
       return res.status(200).json({ success: true, data: { communities } });
     } catch (error: any) {
@@ -78,7 +79,7 @@ export class CommunityController {
 
   async createCommunity(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { name, description, icon, coverImage, category, color, rules } = req.body;
 
       if (!name || !description || !icon || !category) {
@@ -108,7 +109,7 @@ export class CommunityController {
 
   async joinCommunity(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { communityId } = req.params;
       const result = await this.service.joinCommunity(communityId, userId);
       if (!result.success) {
@@ -123,7 +124,7 @@ export class CommunityController {
 
   async leaveCommunity(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { communityId } = req.params;
       const result = await this.service.leaveCommunity(communityId, userId);
       if (!result.success) {
@@ -142,7 +143,9 @@ export class CommunityController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
       const result = await this.service.getMembers(communityId, page, limit);
-      return res.status(200).json({ success: true, data: { items: result.members, total: result.total } });
+      return res
+        .status(200)
+        .json({ success: true, data: { items: result.members, total: result.total } });
     } catch (error: any) {
       logger.error('Error getting members:', error);
       return res.status(500).json({ success: false, message: error.message });
@@ -153,12 +156,14 @@ export class CommunityController {
 
   async getPosts(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { communityId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
       const result = await this.service.getPosts(communityId, userId, page, limit);
-      return res.status(200).json({ success: true, data: { items: result.posts, total: result.total } });
+      return res
+        .status(200)
+        .json({ success: true, data: { items: result.posts, total: result.total } });
     } catch (error: any) {
       logger.error('Error getting posts:', error);
       return res.status(500).json({ success: false, message: error.message });
@@ -167,7 +172,7 @@ export class CommunityController {
 
   async createPost(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { communityId } = req.params;
       const { content, images } = req.body;
 
@@ -188,7 +193,7 @@ export class CommunityController {
 
   async updatePost(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       const { content, images } = req.body;
       const result = await this.service.updatePost(postId, userId, content, images);
@@ -204,7 +209,7 @@ export class CommunityController {
 
   async deletePost(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       const result = await this.service.deletePost(postId, userId);
       if (!result.success) {
@@ -219,7 +224,7 @@ export class CommunityController {
 
   async likePost(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       await this.service.likePost(postId, userId);
       return res.status(200).json({ success: true, message: 'Post liked' });
@@ -231,7 +236,7 @@ export class CommunityController {
 
   async unlikePost(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       await this.service.unlikePost(postId, userId);
       return res.status(200).json({ success: true, message: 'Post unliked' });
@@ -245,12 +250,14 @@ export class CommunityController {
 
   async getComments(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
       const result = await this.service.getComments(postId, userId, page, limit);
-      return res.status(200).json({ success: true, data: { items: result.comments, total: result.total } });
+      return res
+        .status(200)
+        .json({ success: true, data: { items: result.comments, total: result.total } });
     } catch (error: any) {
       logger.error('Error getting comments:', error);
       return res.status(500).json({ success: false, message: error.message });
@@ -259,7 +266,7 @@ export class CommunityController {
 
   async createComment(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId } = req.params;
       const { content, parentId } = req.body;
 
@@ -277,7 +284,7 @@ export class CommunityController {
 
   async deleteComment(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { postId, commentId } = req.params;
       const result = await this.service.deleteComment(commentId, postId, userId);
       if (!result.success) {
@@ -292,7 +299,7 @@ export class CommunityController {
 
   async likeComment(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { commentId } = req.params;
       await this.service.likeComment(commentId, userId);
       return res.status(200).json({ success: true, message: 'Comment liked' });
@@ -344,7 +351,7 @@ export class CommunityController {
 
   async attendEvent(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { eventId } = req.params;
       const result = await this.service.attendEvent(eventId, userId);
       if (!result.success) {
@@ -359,7 +366,7 @@ export class CommunityController {
 
   async unattendEvent(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const { eventId } = req.params;
       const result = await this.service.unattendEvent(eventId, userId);
       return res.status(200).json({ success: true, message: result.message });
@@ -375,7 +382,9 @@ export class CommunityController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
       const result = await this.service.getEventAttendees(eventId, page, limit);
-      return res.status(200).json({ success: true, data: { items: result.attendees, total: result.total } });
+      return res
+        .status(200)
+        .json({ success: true, data: { items: result.attendees, total: result.total } });
     } catch (error: any) {
       logger.error('Error getting attendees:', error);
       return res.status(500).json({ success: false, message: error.message });

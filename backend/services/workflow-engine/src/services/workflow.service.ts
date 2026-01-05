@@ -1,10 +1,11 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workflow } from '../models/workflow.entity';
-import { WorkflowStatus } from '../interfaces/workflow.interface';
+
 import { CreateWorkflowDto } from '../dto/create-workflow.dto';
 import { UpdateWorkflowDto } from '../dto/update-workflow.dto';
+import { WorkflowStatus } from '../interfaces/workflow.interface';
+import { Workflow } from '../models/workflow.entity';
 
 @Injectable()
 export class WorkflowService {
@@ -12,7 +13,7 @@ export class WorkflowService {
 
   constructor(
     @InjectRepository(Workflow)
-    private readonly workflowRepository: Repository<Workflow>,
+    private readonly workflowRepository: Repository<Workflow>
   ) {}
 
   /**
@@ -88,7 +89,10 @@ export class WorkflowService {
     const workflow = await this.findOne(id);
 
     // Don't allow updating active workflows without explicit pause
-    if (workflow.status === WorkflowStatus.ACTIVE && updateWorkflowDto.status !== WorkflowStatus.PAUSED) {
+    if (
+      workflow.status === WorkflowStatus.ACTIVE &&
+      updateWorkflowDto.status !== WorkflowStatus.PAUSED
+    ) {
       throw new BadRequestException('Cannot update active workflow. Pause it first.');
     }
 
@@ -178,9 +182,8 @@ export class WorkflowService {
   }> {
     const workflow = await this.findOne(id);
 
-    const successRate = workflow.executionCount > 0
-      ? (workflow.successCount / workflow.executionCount) * 100
-      : 0;
+    const successRate =
+      workflow.executionCount > 0 ? (workflow.successCount / workflow.executionCount) * 100 : 0;
 
     return {
       executionCount: workflow.executionCount,

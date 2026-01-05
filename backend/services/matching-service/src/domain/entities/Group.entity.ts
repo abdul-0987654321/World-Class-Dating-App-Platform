@@ -3,11 +3,7 @@
  * Represents a group of friends for group-to-group matching
  */
 
-import {
-  GroupStatus,
-  GroupPreferences,
-  GroupLookingFor,
-} from '../../types/group-matching.types';
+import { GroupStatus, GroupPreferences, GroupLookingFor } from '../../types/group-matching.types';
 
 export class Group {
   id: string;

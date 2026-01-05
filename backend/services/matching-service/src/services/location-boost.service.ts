@@ -72,7 +72,7 @@ class LocationBoostService {
   }
 
   private findBoostZone(distance: number): LocationBoostConfig | null {
-    return this.DEFAULT_BOOST_ZONES.find(zone => distance <= zone.radius) || null;
+    return this.DEFAULT_BOOST_ZONES.find((zone) => distance <= zone.radius) || null;
   }
 
   private getBaseLocationScore(distance: number): number {
@@ -90,14 +90,14 @@ class LocationBoostService {
     loc2: { latitude: number; longitude: number }
   ): number {
     const R = 6371;
-    const lat1 = loc1.latitude * Math.PI / 180;
-    const lat2 = loc2.latitude * Math.PI / 180;
-    const deltaLat = (loc2.latitude - loc1.latitude) * Math.PI / 180;
-    const deltaLon = (loc2.longitude - loc1.longitude) * Math.PI / 180;
+    const lat1 = (loc1.latitude * Math.PI) / 180;
+    const lat2 = (loc2.latitude * Math.PI) / 180;
+    const deltaLat = ((loc2.latitude - loc1.latitude) * Math.PI) / 180;
+    const deltaLon = ((loc2.longitude - loc1.longitude) * Math.PI) / 180;
 
-    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) *
-      Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 

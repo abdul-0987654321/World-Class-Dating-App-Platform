@@ -1,6 +1,3 @@
-import { SubscriptionRepository } from '../repositories/subscription.repository';
-import { SubscriptionFeatureRepository } from '../repositories/subscription-feature.repository';
-import { UsageLimitRepository } from '../repositories/usage-limit.repository';
 import {
   Subscription,
   SubscriptionCreateInput,
@@ -9,10 +6,13 @@ import {
   TIER_HIERARCHY,
   GRACE_PERIOD_DAYS,
   TRIAL_DAYS_BY_TIER,
-  BILLING_CYCLES
+  BILLING_CYCLES,
 } from '../entities/Subscription.entity';
 import { FeatureAccess, hasFeatureAccess } from '../entities/SubscriptionFeature.entity';
 import { FREE_TIER_LIMITS, RESOURCE_TYPES } from '../entities/UsageLimit.entity';
+import { SubscriptionFeatureRepository } from '../repositories/subscription-feature.repository';
+import { SubscriptionRepository } from '../repositories/subscription.repository';
+import { UsageLimitRepository } from '../repositories/usage-limit.repository';
 
 export class SubscriptionService {
   private subscriptionRepository: SubscriptionRepository;
@@ -25,7 +25,8 @@ export class SubscriptionService {
     usageLimitRepository?: UsageLimitRepository
   ) {
     this.subscriptionRepository = subscriptionRepository || new SubscriptionRepository();
-    this.subscriptionFeatureRepository = subscriptionFeatureRepository || new SubscriptionFeatureRepository();
+    this.subscriptionFeatureRepository =
+      subscriptionFeatureRepository || new SubscriptionFeatureRepository();
     this.usageLimitRepository = usageLimitRepository || new UsageLimitRepository();
   }
 
@@ -79,10 +80,7 @@ export class SubscriptionService {
   /**
    * Cancel subscription
    */
-  async cancelSubscription(
-    userId: string,
-    immediately: boolean = false
-  ): Promise<Subscription> {
+  async cancelSubscription(userId: string, immediately: boolean = false): Promise<Subscription> {
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     if (!subscription) {
       throw new Error('Subscription not found');
@@ -127,7 +125,9 @@ export class SubscriptionService {
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     if (!subscription) {
       // No subscription means free tier
-      const freeFeatures = await this.subscriptionFeatureRepository.findByTier(SUBSCRIPTION_TIERS.FREE);
+      const freeFeatures = await this.subscriptionFeatureRepository.findByTier(
+        SUBSCRIPTION_TIERS.FREE
+      );
       return hasFeatureAccess(freeFeatures, featureKey);
     }
 
@@ -152,7 +152,8 @@ export class SubscriptionService {
     status: Subscription['status'],
     currentPeriodEnd: Date
   ): Promise<Subscription> {
-    const subscription = await this.subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId);
+    const subscription =
+      await this.subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId);
     if (!subscription) {
       throw new Error('Subscription not found for Stripe subscription ID');
     }
@@ -220,9 +221,18 @@ export class SubscriptionService {
     const superLikesFeature = hasFeatureAccess(features, 'daily_super_likes_limit');
 
     const limits = [
-      { resourceType: RESOURCE_TYPES.SWIPES, dailyLimit: swipesFeature.limit || FREE_TIER_LIMITS.swipes },
-      { resourceType: RESOURCE_TYPES.LIKES, dailyLimit: likesFeature.limit || FREE_TIER_LIMITS.likes },
-      { resourceType: RESOURCE_TYPES.SUPER_LIKES, dailyLimit: superLikesFeature.limit || FREE_TIER_LIMITS.super_likes },
+      {
+        resourceType: RESOURCE_TYPES.SWIPES,
+        dailyLimit: swipesFeature.limit || FREE_TIER_LIMITS.swipes,
+      },
+      {
+        resourceType: RESOURCE_TYPES.LIKES,
+        dailyLimit: likesFeature.limit || FREE_TIER_LIMITS.likes,
+      },
+      {
+        resourceType: RESOURCE_TYPES.SUPER_LIKES,
+        dailyLimit: superLikesFeature.limit || FREE_TIER_LIMITS.super_likes,
+      },
       { resourceType: RESOURCE_TYPES.REWINDS, dailyLimit: FREE_TIER_LIMITS.rewinds },
       { resourceType: RESOURCE_TYPES.BOOSTS, dailyLimit: FREE_TIER_LIMITS.boosts },
     ];
@@ -239,7 +249,10 @@ export class SubscriptionService {
   /**
    * Update usage limits when tier changes
    */
-  private async updateUsageLimitsForTier(userId: string, tier: Subscription['tier']): Promise<void> {
+  private async updateUsageLimitsForTier(
+    userId: string,
+    tier: Subscription['tier']
+  ): Promise<void> {
     const features = await this.subscriptionFeatureRepository.findByTier(tier);
 
     const swipesFeature = hasFeatureAccess(features, 'daily_swipes_limit');
@@ -247,13 +260,25 @@ export class SubscriptionService {
     const superLikesFeature = hasFeatureAccess(features, 'daily_super_likes_limit');
 
     const limits = [
-      { resourceType: RESOURCE_TYPES.SWIPES, dailyLimit: swipesFeature.limit || FREE_TIER_LIMITS.swipes },
-      { resourceType: RESOURCE_TYPES.LIKES, dailyLimit: likesFeature.limit || FREE_TIER_LIMITS.likes },
-      { resourceType: RESOURCE_TYPES.SUPER_LIKES, dailyLimit: superLikesFeature.limit || FREE_TIER_LIMITS.super_likes },
+      {
+        resourceType: RESOURCE_TYPES.SWIPES,
+        dailyLimit: swipesFeature.limit || FREE_TIER_LIMITS.swipes,
+      },
+      {
+        resourceType: RESOURCE_TYPES.LIKES,
+        dailyLimit: likesFeature.limit || FREE_TIER_LIMITS.likes,
+      },
+      {
+        resourceType: RESOURCE_TYPES.SUPER_LIKES,
+        dailyLimit: superLikesFeature.limit || FREE_TIER_LIMITS.super_likes,
+      },
     ];
 
     for (const limit of limits) {
-      const existing = await this.usageLimitRepository.findByUserIdAndResource(userId, limit.resourceType);
+      const existing = await this.usageLimitRepository.findByUserIdAndResource(
+        userId,
+        limit.resourceType
+      );
       if (existing) {
         await this.usageLimitRepository.update(existing.id, {
           dailyLimit: limit.dailyLimit,
@@ -312,7 +337,9 @@ export class SubscriptionService {
   /**
    * Check if subscription is in grace period
    */
-  async checkGracePeriod(userId: string): Promise<{ inGracePeriod: boolean; daysRemaining: number }> {
+  async checkGracePeriod(
+    userId: string
+  ): Promise<{ inGracePeriod: boolean; daysRemaining: number }> {
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     if (!subscription || subscription.status !== SUBSCRIPTION_STATUS.GRACE_PERIOD) {
       return { inGracePeriod: false, daysRemaining: 0 };
@@ -324,7 +351,9 @@ export class SubscriptionService {
 
     const now = new Date();
     const gracePeriodEnd = new Date(subscription.gracePeriodEnd);
-    const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.ceil(
+      (gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     return {
       inGracePeriod: daysRemaining > 0,

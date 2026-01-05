@@ -1,8 +1,9 @@
-import { createLogger } from '../utils/logger';
 import axios from 'axios';
 import sharp from 'sharp';
-import { PhotoMetadata } from '../types/enhanced-types';
+
 import config from '../config';
+import { PhotoMetadata } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('photo-sharing-service');
 
@@ -28,10 +29,7 @@ export class PhotoSharingService {
   /**
    * Validate photo file
    */
-  validatePhoto(file: {
-    size: number;
-    mimeType: string;
-  }): { valid: boolean; error?: string } {
+  validatePhoto(file: { size: number; mimeType: string }): { valid: boolean; error?: string } {
     // Check file size
     if (file.size > this.MAX_FILE_SIZE) {
       return {
@@ -231,7 +229,10 @@ export class PhotoSharingService {
         // Compress in original format
         switch (mimeType) {
           case 'image/jpeg':
-            sharpInstance = sharpInstance.jpeg({ quality: this.COMPRESSION_QUALITY, mozjpeg: true });
+            sharpInstance = sharpInstance.jpeg({
+              quality: this.COMPRESSION_QUALITY,
+              mozjpeg: true,
+            });
             break;
           case 'image/png':
             sharpInstance = sharpInstance.png({ compressionLevel: 9, adaptiveFiltering: true });

@@ -15,6 +15,7 @@
  */
 
 import { Server, Socket } from 'socket.io';
+
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('socket-manager-calls');
@@ -33,57 +34,80 @@ export const CallHandlerMixin = {
     userId: string
   ): void {
     // Call accepted - Notify caller that callee accepted
-    socket.on('call:accepted', (data: { callId: string; channelName: string; agoraToken: string }) => {
-      logger.info(`Call accepted notification from user ${userId}`, { callId: data.callId });
-    });
+    socket.on(
+      'call:accepted',
+      (data: { callId: string; channelName: string; agoraToken: string }) => {
+        logger.info(`Call accepted notification from user ${userId}`, { callId: data.callId });
+      }
+    );
 
     // Call rejected - Notify caller that callee rejected
     socket.on('call:rejected', (data: { callId: string; reason?: string }) => {
-      logger.info(`Call rejected notification from user ${userId}`, { callId: data.callId, reason: data.reason });
+      logger.info(`Call rejected notification from user ${userId}`, {
+        callId: data.callId,
+        reason: data.reason,
+      });
     });
 
     // Call ended - Notify other party that call ended
     socket.on('call:ended', (data: { callId: string; duration?: number }) => {
-      logger.info(`Call ended notification from user ${userId}`, { callId: data.callId, duration: data.duration });
+      logger.info(`Call ended notification from user ${userId}`, {
+        callId: data.callId,
+        duration: data.duration,
+      });
     });
 
     // Call quality update - For monitoring call quality
     socket.on('call:quality_update', (data: { callId: string; quality: object }) => {
-      logger.debug(`Call quality update from user ${userId}`, { callId: data.callId, quality: data.quality });
+      logger.debug(`Call quality update from user ${userId}`, {
+        callId: data.callId,
+        quality: data.quality,
+      });
     });
 
     // ICE candidate exchange for WebRTC
-    socket.on('call:ice_candidate', async (data: { callId: string; targetUserId: string; candidate: object }) => {
-      try {
-        const targetSocketId = this.userSocketMap[data.targetUserId];
-        if (targetSocketId) {
-          this.io.to(targetSocketId).emit('call:ice_candidate', {
-            callId: data.callId,
-            fromUserId: userId,
-            candidate: data.candidate,
-          });
+    socket.on(
+      'call:ice_candidate',
+      async (data: { callId: string; targetUserId: string; candidate: object }) => {
+        try {
+          const targetSocketId = this.userSocketMap[data.targetUserId];
+          if (targetSocketId) {
+            this.io.to(targetSocketId).emit('call:ice_candidate', {
+              callId: data.callId,
+              fromUserId: userId,
+              candidate: data.candidate,
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to relay ICE candidate', { error, userId, callId: data.callId });
         }
-      } catch (error) {
-        logger.error('Failed to relay ICE candidate', { error, userId, callId: data.callId });
       }
-    });
+    );
 
     // SDP offer/answer exchange for WebRTC
-    socket.on('call:sdp', async (data: { callId: string; targetUserId: string; sdp: object; type: 'offer' | 'answer' }) => {
-      try {
-        const targetSocketId = this.userSocketMap[data.targetUserId];
-        if (targetSocketId) {
-          this.io.to(targetSocketId).emit('call:sdp', {
-            callId: data.callId,
-            fromUserId: userId,
-            sdp: data.sdp,
-            type: data.type,
-          });
+    socket.on(
+      'call:sdp',
+      async (data: {
+        callId: string;
+        targetUserId: string;
+        sdp: object;
+        type: 'offer' | 'answer';
+      }) => {
+        try {
+          const targetSocketId = this.userSocketMap[data.targetUserId];
+          if (targetSocketId) {
+            this.io.to(targetSocketId).emit('call:sdp', {
+              callId: data.callId,
+              fromUserId: userId,
+              sdp: data.sdp,
+              type: data.type,
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to relay SDP', { error, userId, callId: data.callId });
         }
-      } catch (error) {
-        logger.error('Failed to relay SDP', { error, userId, callId: data.callId });
       }
-    });
+    );
   },
 
   /**
@@ -121,7 +145,9 @@ export const CallHandlerMixin = {
     const socketId = this.userSocketMap[calleeId];
     if (socketId) {
       this.io.to(socketId).emit('call:incoming', callData);
-      logger.info(`Emitted incoming call notification to user ${calleeId}`, { callId: callData.callId });
+      logger.info(`Emitted incoming call notification to user ${calleeId}`, {
+        callId: callData.callId,
+      });
       return true;
     }
     logger.warn(`Callee ${calleeId} not connected, cannot send incoming call notification`);

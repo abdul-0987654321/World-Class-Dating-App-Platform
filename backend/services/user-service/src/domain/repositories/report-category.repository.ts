@@ -1,21 +1,17 @@
-import { ReportCategory } from '../entities/ReportCategory.entity';
 import db from '../../infrastructure/database/connection';
+import { ReportCategory } from '../entities/ReportCategory.entity';
 
 export class ReportCategoryRepository {
   private tableName = 'report_categories';
 
   async findById(id: string): Promise<ReportCategory | null> {
-    const category = await db(this.tableName)
-      .where({ id })
-      .first();
+    const category = await db(this.tableName).where({ id }).first();
 
     return category ? this.mapToEntity(category) : null;
   }
 
   async findByCode(code: string): Promise<ReportCategory | null> {
-    const category = await db(this.tableName)
-      .where({ code })
-      .first();
+    const category = await db(this.tableName).where({ code }).first();
 
     return category ? this.mapToEntity(category) : null;
   }
@@ -71,10 +67,7 @@ export class ReportCategoryRepository {
       updateData.suspension_duration_hours = suspensionDurationHours;
     }
 
-    const [category] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [category] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(category);
   }
@@ -130,13 +123,16 @@ export class ReportCategoryRepository {
   async findAllGroupedBySeverity(): Promise<Record<string, ReportCategory[]>> {
     const categories = await this.findAllActive();
 
-    return categories.reduce((acc, category) => {
-      if (!acc[category.severity]) {
-        acc[category.severity] = [];
-      }
-      acc[category.severity].push(category);
-      return acc;
-    }, {} as Record<string, ReportCategory[]>);
+    return categories.reduce(
+      (acc, category) => {
+        if (!acc[category.severity]) {
+          acc[category.severity] = [];
+        }
+        acc[category.severity].push(category);
+        return acc;
+      },
+      {} as Record<string, ReportCategory[]>
+    );
   }
 
   // Map database row to entity

@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('realtime-http-client');
 
@@ -67,7 +68,9 @@ export class RealtimeHttpClient {
   }): Promise<boolean> {
     try {
       await this.client.post('/messages/publish', data);
-      logger.info(`Message published: ${data.messageId}${data.isBeforeMatch ? ' (before-match)' : ''}`);
+      logger.info(
+        `Message published: ${data.messageId}${data.isBeforeMatch ? ' (before-match)' : ''}`
+      );
       return true;
     } catch (error: any) {
       logger.error(`Failed to publish message ${data.messageId}:`, error.message);
@@ -129,10 +132,7 @@ export class RealtimeHttpClient {
   /**
    * Add a user to a conversation room
    */
-  async joinConversation(data: {
-    conversationId: string;
-    userId: string;
-  }): Promise<boolean> {
+  async joinConversation(data: { conversationId: string; userId: string }): Promise<boolean> {
     try {
       await this.client.post('/conversations/join', data);
       logger.debug(`User ${data.userId} joined conversation ${data.conversationId}`);
@@ -146,10 +146,7 @@ export class RealtimeHttpClient {
   /**
    * Remove a user from a conversation room
    */
-  async leaveConversation(data: {
-    conversationId: string;
-    userId: string;
-  }): Promise<boolean> {
+  async leaveConversation(data: { conversationId: string; userId: string }): Promise<boolean> {
     try {
       await this.client.post('/conversations/leave', data);
       logger.debug(`User ${data.userId} left conversation ${data.conversationId}`);

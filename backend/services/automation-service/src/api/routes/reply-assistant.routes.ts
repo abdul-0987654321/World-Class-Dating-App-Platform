@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authenticateUser } from '../middleware/auth.middleware';
+
 import * as replyAssistantController from '../controllers/reply-assistant.controller';
+import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
 

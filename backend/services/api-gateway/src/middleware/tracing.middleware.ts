@@ -29,7 +29,7 @@ export class TracingMiddleware implements NestMiddleware {
     req.headers['x-request-id'] = requestId;
     req.headers['x-correlation-id'] = correlationId;
     req.headers['x-span-id'] = spanId;
-    req.headers['x-parent-span-id'] = req.headers['x-span-id'] as string || '';
+    req.headers['x-parent-span-id'] = req.headers['x-span-id'] || '';
 
     // Set tracing headers in response
     res.setHeader('X-Request-ID', requestId);
@@ -41,7 +41,7 @@ export class TracingMiddleware implements NestMiddleware {
     const userId = (req as any).user?.userId || (req as any).user?.sub || 'anonymous';
 
     this.logger.log(
-      `[${requestId}] [${correlationId}] ${method} ${originalUrl} - User: ${userId} - IP: ${ip} - UA: ${userAgent}`,
+      `[${requestId}] [${correlationId}] ${method} ${originalUrl} - User: ${userId} - IP: ${ip} - UA: ${userAgent}`
     );
 
     // Log response when finished
@@ -54,7 +54,7 @@ export class TracingMiddleware implements NestMiddleware {
       const logLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'log';
 
       this.logger[logLevel](
-        `[${requestId}] [${correlationId}] ${method} ${originalUrl} ${statusCode} ${contentLength}B - ${duration}ms`,
+        `[${requestId}] [${correlationId}] ${method} ${originalUrl} ${statusCode} ${contentLength}B - ${duration}ms`
       );
 
       // Log to distributed tracing system (could be Jaeger, Zipkin, etc.)

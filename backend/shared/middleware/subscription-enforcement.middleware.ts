@@ -8,6 +8,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+
 import createLogger from '../utils/logger';
 
 const logger = createLogger('subscription-enforcement');
@@ -67,13 +68,16 @@ export const FEATURE_TIER_REQUIREMENTS: Record<string, SubscriptionTier> = {
 };
 
 // Daily usage limits by tier
-export const TIER_DAILY_LIMITS: Record<SubscriptionTier, {
-  swipes: number;
-  likes: number;
-  super_likes: number;
-  boosts: number;
-  messages: number;
-}> = {
+export const TIER_DAILY_LIMITS: Record<
+  SubscriptionTier,
+  {
+    swipes: number;
+    likes: number;
+    super_likes: number;
+    boosts: number;
+    messages: number;
+  }
+> = {
   free: {
     swipes: 50,
     likes: 25,
@@ -179,10 +183,7 @@ export function meetsTierRequirement(
 /**
  * Check if user has access to a specific feature
  */
-export function hasFeatureAccess(
-  userTier: SubscriptionTier,
-  feature: string
-): boolean {
+export function hasFeatureAccess(userTier: SubscriptionTier, feature: string): boolean {
   const requiredTier = FEATURE_TIER_REQUIREMENTS[feature];
   if (!requiredTier) {
     // Feature not in list = available to all
@@ -215,14 +216,8 @@ export function getDailyLimits(tier: SubscriptionTier) {
  * app.use('/api/premium', subscriptionMiddleware);
  * ```
  */
-export function createSubscriptionMiddleware(
-  getSubscription: SubscriptionLookupFn
-) {
-  return async (
-    req: SubscriptionRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+export function createSubscriptionMiddleware(getSubscription: SubscriptionLookupFn) {
+  return async (req: SubscriptionRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user?.id || req.user?.userId;
 
@@ -266,7 +261,12 @@ export function createSubscriptionMiddleware(
 
       req.subscription = {
         tier: isActive ? normalizedTier : 'free',
-        status: subscription.status as 'active' | 'canceled' | 'past_due' | 'grace_period' | 'expired',
+        status: subscription.status as
+          | 'active'
+          | 'canceled'
+          | 'past_due'
+          | 'grace_period'
+          | 'expired',
         isActive,
         currentPeriodEnd: subscription.currentPeriodEnd,
         gracePeriodEnd: subscription.gracePeriodEnd,
@@ -312,7 +312,9 @@ export function requireTier(requiredTier: SubscriptionTier) {
     const subscription = req.subscription;
 
     if (!subscription) {
-      logger.warn('No subscription data on request - ensure subscription middleware is applied first');
+      logger.warn(
+        'No subscription data on request - ensure subscription middleware is applied first'
+      );
       res.status(500).json({
         error: 'subscription_check_failed',
         message: 'Unable to verify subscription status',
@@ -419,15 +421,11 @@ export function requireFeature(feature: string) {
  * @returns Express middleware function
  */
 export function checkUsageLimit(
-  resource: keyof typeof TIER_DAILY_LIMITS['free'],
+  resource: keyof (typeof TIER_DAILY_LIMITS)['free'],
   getUsage: (userId: string, resource: string) => Promise<number>,
   incrementUsage: (userId: string, resource: string) => Promise<void>
 ) {
-  return async (
-    req: SubscriptionRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  return async (req: SubscriptionRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user?.id || req.user?.userId;
 

@@ -3,15 +3,19 @@
  * WeChat-style virtual gifts for in-chat monetization
  */
 
-import { createLogger } from '../utils/logger';
 import axios from 'axios';
-import { giftTransactionRepository, GiftTransactionDocument, GiftStatistics } from '../domain/repositories/gift-transaction.repository';
+
+import {
+  giftTransactionRepository,
+  GiftTransactionDocument,
+  GiftStatistics,
+} from '../domain/repositories/gift-transaction.repository';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('virtual-gifts-service');
 
 // Payment service URL for coin transactions
 const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3004';
-
 
 export interface VirtualGift {
   id: string;
@@ -51,26 +55,170 @@ export interface GiftMessage {
 // Predefined gift catalog
 const GIFT_CATALOG: VirtualGift[] = [
   // Basic gifts (5-15 coins)
-  { id: 'rose', name: 'Rose', emoji: '🌹', price: 5, category: 'basic', description: 'A classic romantic gesture', isActive: true, sortOrder: 1 },
-  { id: 'heart', name: 'Heart', emoji: '❤️', price: 5, category: 'basic', description: 'Show your love', isActive: true, sortOrder: 2 },
-  { id: 'kiss', name: 'Kiss', emoji: '💋', price: 10, category: 'basic', description: 'Blow them a kiss', isActive: true, sortOrder: 3 },
-  { id: 'hug', name: 'Hug', emoji: '🤗', price: 10, category: 'basic', description: 'Virtual warm hug', isActive: true, sortOrder: 4 },
-  { id: 'flowers', name: 'Flowers', emoji: '💐', price: 15, category: 'basic', description: 'A beautiful bouquet', isActive: true, sortOrder: 5 },
-  { id: 'chocolate', name: 'Chocolate', emoji: '🍫', price: 15, category: 'basic', description: 'Sweet treat', isActive: true, sortOrder: 6 },
+  {
+    id: 'rose',
+    name: 'Rose',
+    emoji: '🌹',
+    price: 5,
+    category: 'basic',
+    description: 'A classic romantic gesture',
+    isActive: true,
+    sortOrder: 1,
+  },
+  {
+    id: 'heart',
+    name: 'Heart',
+    emoji: '❤️',
+    price: 5,
+    category: 'basic',
+    description: 'Show your love',
+    isActive: true,
+    sortOrder: 2,
+  },
+  {
+    id: 'kiss',
+    name: 'Kiss',
+    emoji: '💋',
+    price: 10,
+    category: 'basic',
+    description: 'Blow them a kiss',
+    isActive: true,
+    sortOrder: 3,
+  },
+  {
+    id: 'hug',
+    name: 'Hug',
+    emoji: '🤗',
+    price: 10,
+    category: 'basic',
+    description: 'Virtual warm hug',
+    isActive: true,
+    sortOrder: 4,
+  },
+  {
+    id: 'flowers',
+    name: 'Flowers',
+    emoji: '💐',
+    price: 15,
+    category: 'basic',
+    description: 'A beautiful bouquet',
+    isActive: true,
+    sortOrder: 5,
+  },
+  {
+    id: 'chocolate',
+    name: 'Chocolate',
+    emoji: '🍫',
+    price: 15,
+    category: 'basic',
+    description: 'Sweet treat',
+    isActive: true,
+    sortOrder: 6,
+  },
 
   // Premium gifts (50-200 coins)
-  { id: 'teddy', name: 'Teddy Bear', emoji: '🧸', price: 50, category: 'premium', description: 'Cute and cuddly', isActive: true, sortOrder: 10 },
-  { id: 'perfume', name: 'Perfume', emoji: '🧴', price: 75, category: 'premium', description: 'Fragrant luxury', isActive: true, sortOrder: 11 },
-  { id: 'wine', name: 'Wine', emoji: '🍷', price: 100, category: 'premium', description: 'Cheers to us!', isActive: true, sortOrder: 12 },
-  { id: 'ring', name: 'Ring', emoji: '💍', price: 150, category: 'premium', description: 'A promise of commitment', isActive: true, sortOrder: 13 },
-  { id: 'fireworks', name: 'Fireworks', emoji: '🎆', price: 200, category: 'premium', description: 'Celebrate your connection', isActive: true, sortOrder: 14 },
+  {
+    id: 'teddy',
+    name: 'Teddy Bear',
+    emoji: '🧸',
+    price: 50,
+    category: 'premium',
+    description: 'Cute and cuddly',
+    isActive: true,
+    sortOrder: 10,
+  },
+  {
+    id: 'perfume',
+    name: 'Perfume',
+    emoji: '🧴',
+    price: 75,
+    category: 'premium',
+    description: 'Fragrant luxury',
+    isActive: true,
+    sortOrder: 11,
+  },
+  {
+    id: 'wine',
+    name: 'Wine',
+    emoji: '🍷',
+    price: 100,
+    category: 'premium',
+    description: 'Cheers to us!',
+    isActive: true,
+    sortOrder: 12,
+  },
+  {
+    id: 'ring',
+    name: 'Ring',
+    emoji: '💍',
+    price: 150,
+    category: 'premium',
+    description: 'A promise of commitment',
+    isActive: true,
+    sortOrder: 13,
+  },
+  {
+    id: 'fireworks',
+    name: 'Fireworks',
+    emoji: '🎆',
+    price: 200,
+    category: 'premium',
+    description: 'Celebrate your connection',
+    isActive: true,
+    sortOrder: 14,
+  },
 
   // Luxury gifts (500-2000 coins)
-  { id: 'crown', name: 'Crown', emoji: '👑', price: 500, category: 'luxury', description: 'For royalty', isActive: true, sortOrder: 20 },
-  { id: 'diamond', name: 'Diamond', emoji: '💎', price: 750, category: 'luxury', description: 'Rare and precious', isActive: true, sortOrder: 21 },
-  { id: 'castle', name: 'Castle', emoji: '🏰', price: 1000, category: 'luxury', description: 'A fairy tale gift', isActive: true, sortOrder: 22 },
-  { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 1500, category: 'luxury', description: 'Out of this world!', isActive: true, sortOrder: 23 },
-  { id: 'yacht', name: 'Yacht', emoji: '🛥️', price: 2000, category: 'luxury', description: 'Ultimate luxury', isActive: true, sortOrder: 24 },
+  {
+    id: 'crown',
+    name: 'Crown',
+    emoji: '👑',
+    price: 500,
+    category: 'luxury',
+    description: 'For royalty',
+    isActive: true,
+    sortOrder: 20,
+  },
+  {
+    id: 'diamond',
+    name: 'Diamond',
+    emoji: '💎',
+    price: 750,
+    category: 'luxury',
+    description: 'Rare and precious',
+    isActive: true,
+    sortOrder: 21,
+  },
+  {
+    id: 'castle',
+    name: 'Castle',
+    emoji: '🏰',
+    price: 1000,
+    category: 'luxury',
+    description: 'A fairy tale gift',
+    isActive: true,
+    sortOrder: 22,
+  },
+  {
+    id: 'rocket',
+    name: 'Rocket',
+    emoji: '🚀',
+    price: 1500,
+    category: 'luxury',
+    description: 'Out of this world!',
+    isActive: true,
+    sortOrder: 23,
+  },
+  {
+    id: 'yacht',
+    name: 'Yacht',
+    emoji: '🛥️',
+    price: 2000,
+    category: 'luxury',
+    description: 'Ultimate luxury',
+    isActive: true,
+    sortOrder: 24,
+  },
 ];
 
 class VirtualGiftsService {
@@ -82,21 +230,21 @@ class VirtualGiftsService {
    * Get all available gifts
    */
   getGiftCatalog(): VirtualGift[] {
-    return GIFT_CATALOG.filter(g => g.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+    return GIFT_CATALOG.filter((g) => g.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
   /**
    * Get gifts by category
    */
   getGiftsByCategory(category: 'basic' | 'premium' | 'luxury'): VirtualGift[] {
-    return this.getGiftCatalog().filter(g => g.category === category);
+    return this.getGiftCatalog().filter((g) => g.category === category);
   }
 
   /**
    * Get a specific gift by ID
    */
   getGiftById(giftId: string): VirtualGift | undefined {
-    return GIFT_CATALOG.find(g => g.id === giftId);
+    return GIFT_CATALOG.find((g) => g.id === giftId);
   }
 
   /**
@@ -168,7 +316,9 @@ class VirtualGiftsService {
         sentAt: new Date(),
       };
 
-      logger.info(`Gift sent: ${gift.name} from ${senderId} to ${receiverId} for ${gift.price} coins`);
+      logger.info(
+        `Gift sent: ${gift.name} from ${senderId} to ${receiverId} for ${gift.price} coins`
+      );
 
       return { success: true, message: giftMessage };
     } catch (error: any) {
@@ -268,9 +418,16 @@ class VirtualGiftsService {
     offset: number = 0
   ): Promise<GiftTransaction[]> {
     try {
-      logger.info(`Fetching gift history for user ${userId}, type: ${type}, limit: ${limit}, offset: ${offset}`);
+      logger.info(
+        `Fetching gift history for user ${userId}, type: ${type}, limit: ${limit}, offset: ${offset}`
+      );
 
-      const transactions = await giftTransactionRepository.getGiftHistory(userId, type, limit, offset);
+      const transactions = await giftTransactionRepository.getGiftHistory(
+        userId,
+        type,
+        limit,
+        offset
+      );
 
       logger.info(`Found ${transactions.length} gift transactions for user ${userId}`);
 
@@ -290,7 +447,9 @@ class VirtualGiftsService {
 
       const statistics = await giftTransactionRepository.getGiftStatistics(userId);
 
-      logger.info(`Gift statistics for user ${userId}: sent=${statistics.totalSent}, received=${statistics.totalReceived}`);
+      logger.info(
+        `Gift statistics for user ${userId}: sent=${statistics.totalSent}, received=${statistics.totalReceived}`
+      );
 
       return statistics;
     } catch (error: any) {
@@ -302,13 +461,21 @@ class VirtualGiftsService {
   /**
    * Get gifts exchanged in a specific conversation
    */
-  async getConversationGifts(conversationId: string, limit: number = 50): Promise<GiftTransaction[]> {
+  async getConversationGifts(
+    conversationId: string,
+    limit: number = 50
+  ): Promise<GiftTransaction[]> {
     try {
       logger.info(`Fetching gifts for conversation ${conversationId}`);
 
-      const transactions = await giftTransactionRepository.getGiftsByConversation(conversationId, limit);
+      const transactions = await giftTransactionRepository.getGiftsByConversation(
+        conversationId,
+        limit
+      );
 
-      logger.info(`Found ${transactions.length} gift transactions in conversation ${conversationId}`);
+      logger.info(
+        `Found ${transactions.length} gift transactions in conversation ${conversationId}`
+      );
 
       return transactions;
     } catch (error: any) {

@@ -31,7 +31,7 @@ export async function up(knex: Knex): Promise<void> {
       bonus_coins: 0,
       price_usd: 0.99,
       display_order: 1,
-      active: true
+      active: true,
     },
     {
       sku: 'coins_50',
@@ -42,7 +42,7 @@ export async function up(knex: Knex): Promise<void> {
       price_usd: 4.99,
       display_order: 2,
       badge_text: 'POPULAR',
-      active: true
+      active: true,
     },
     {
       sku: 'coins_100',
@@ -52,7 +52,7 @@ export async function up(knex: Knex): Promise<void> {
       bonus_coins: 15,
       price_usd: 9.99,
       display_order: 3,
-      active: true
+      active: true,
     },
     {
       sku: 'coins_250',
@@ -63,7 +63,7 @@ export async function up(knex: Knex): Promise<void> {
       price_usd: 24.99,
       display_order: 4,
       badge_text: 'BEST VALUE',
-      active: true
+      active: true,
     },
     {
       sku: 'coins_500',
@@ -73,7 +73,7 @@ export async function up(knex: Knex): Promise<void> {
       bonus_coins: 125,
       price_usd: 49.99,
       display_order: 5,
-      active: true
+      active: true,
     },
     {
       sku: 'coins_1000',
@@ -83,8 +83,8 @@ export async function up(knex: Knex): Promise<void> {
       bonus_coins: 300,
       price_usd: 99.99,
       display_order: 6,
-      active: true
-    }
+      active: true,
+    },
   ]);
 }
 

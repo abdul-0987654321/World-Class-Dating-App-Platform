@@ -1,13 +1,14 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { createLogger, createValidator, commonValidations } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
+import partnershipRoutes from './api/routes';
 import { db, testConnection } from './infrastructure/database/connection';
 
 // Import routes
-import partnershipRoutes from './api/routes';
 
 // Load environment variables
 dotenv.config();
@@ -73,12 +74,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
 ];
 
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -104,7 +107,7 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('Database health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'partnership-service',
@@ -138,9 +141,7 @@ app.use((err: any, req: Request, res: Response, next: any) => {
 
   res.status(err.status || 500).json({
     success: false,
-    error: process.env.NODE_ENV === 'production'
-      ? 'Internal server error'
-      : err.message,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
   });
 });

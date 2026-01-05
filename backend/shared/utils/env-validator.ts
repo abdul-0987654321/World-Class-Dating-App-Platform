@@ -79,18 +79,21 @@ export class EnvironmentValidator {
 
     if (result.warnings.length > 0) {
       console.warn(`\n[${this.serviceName}] Environment Warnings:`);
-      result.warnings.forEach(w => console.warn(`  - ${w}`));
+      result.warnings.forEach((w) => console.warn(`  - ${w}`));
     }
 
     if (!result.valid) {
-      const errorMessage = `\n[${this.serviceName}] Environment Validation Failed:\n` +
-        result.errors.map(e => `  - ${e}`).join('\n') +
+      const errorMessage =
+        `\n[${this.serviceName}] Environment Validation Failed:\n` +
+        result.errors.map((e) => `  - ${e}`).join('\n') +
         '\n\nPlease set the required environment variables and restart the service.';
 
       if (this.gracefulMode) {
         // In graceful mode, log errors as warnings and continue with degraded functionality
         console.warn(errorMessage);
-        console.warn(`\n[${this.serviceName}] Starting in DEGRADED MODE - some features may not work`);
+        console.warn(
+          `\n[${this.serviceName}] Starting in DEGRADED MODE - some features may not work`
+        );
         return;
       }
 
@@ -110,9 +113,7 @@ export class EnvironmentValidator {
     // Check if required variable is missing
     if (!value) {
       if (isRequired && varConfig.defaultValue === undefined) {
-        this.errors.push(
-          `${varConfig.name} is required. ${varConfig.description}`
-        );
+        this.errors.push(`${varConfig.name} is required. ${varConfig.description}`);
       } else if (varConfig.required && !this.isProduction) {
         this.warnings.push(
           `${varConfig.name} is not set (using default). ${varConfig.description}`
@@ -133,9 +134,7 @@ export class EnvironmentValidator {
         'development',
       ];
       if (weakDefaults.includes(value.toLowerCase())) {
-        this.errors.push(
-          `${varConfig.name} contains an insecure default value in production`
-        );
+        this.errors.push(`${varConfig.name} contains an insecure default value in production`);
       }
     }
 
@@ -155,9 +154,7 @@ export class EnvironmentValidator {
 
     // Custom validation
     if (varConfig.validate && !varConfig.validate(value)) {
-      this.errors.push(
-        `${varConfig.name} failed validation. ${varConfig.description}`
-      );
+      this.errors.push(`${varConfig.name} failed validation. ${varConfig.description}`);
     }
 
     // Numeric validations
@@ -189,7 +186,8 @@ export class EnvironmentValidator {
     for (const varConfig of this.config) {
       const value = process.env[varConfig.name];
       const status = value ? 'SET' : 'NOT SET';
-      const displayValue = varConfig.sensitive && value ? '****' : (value || varConfig.defaultValue || 'N/A');
+      const displayValue =
+        varConfig.sensitive && value ? '****' : value || varConfig.defaultValue || 'N/A';
       const required = varConfig.required ? 'required' : 'optional';
 
       lines.push(`  ${varConfig.name}: ${status} [${required}] = ${displayValue}`);
@@ -218,14 +216,15 @@ export const commonValidations = {
     defaultValue: 'development',
   } as EnvVarConfig,
 
-  port: (defaultPort: number) => ({
-    name: 'PORT',
-    required: false,
-    description: 'Service port number',
-    minValue: 1024,
-    maxValue: 65535,
-    defaultValue: defaultPort,
-  } as EnvVarConfig),
+  port: (defaultPort: number) =>
+    ({
+      name: 'PORT',
+      required: false,
+      description: 'Service port number',
+      minValue: 1024,
+      maxValue: 65535,
+      defaultValue: defaultPort,
+    }) as EnvVarConfig,
 
   jwtAccessSecret: {
     name: 'JWT_ACCESS_SECRET',

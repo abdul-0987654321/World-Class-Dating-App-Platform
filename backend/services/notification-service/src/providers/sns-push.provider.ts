@@ -13,6 +13,7 @@ import {
   SetEndpointAttributesCommand,
   ListEndpointsByPlatformApplicationCommand,
 } from '@aws-sdk/client-sns';
+
 import logger from '../utils/logger';
 
 export interface PushMessage {
@@ -85,7 +86,7 @@ export class SNSPushProvider {
   }
 
   private initialize(): void {
-    const hasAnyPlatform = Object.values(this.platformApplicationArns).some(arn => arn);
+    const hasAnyPlatform = Object.values(this.platformApplicationArns).some((arn) => arn);
 
     if (hasAnyPlatform) {
       this.initialized = true;
@@ -95,7 +96,9 @@ export class SNSPushProvider {
           .map(([platform]) => platform),
       });
     } else {
-      logger.warn('SNS Push Provider: No platform application ARNs configured. Push notifications will be disabled.');
+      logger.warn(
+        'SNS Push Provider: No platform application ARNs configured. Push notifications will be disabled.'
+      );
     }
   }
 
@@ -138,7 +141,9 @@ export class SNSPushProvider {
       // Handle case where endpoint already exists
       if (error.name === 'InvalidParameterException' && error.message?.includes('already exists')) {
         // Extract endpoint ARN from error message or try to find it
-        const arnMatch = error.message.match(/arn:aws:sns:[^:]+:\d+:endpoint\/[^/]+\/[^/]+\/[a-f0-9-]+/);
+        const arnMatch = error.message.match(
+          /arn:aws:sns:[^:]+:\d+:endpoint\/[^/]+\/[^/]+\/[a-f0-9-]+/
+        );
         if (arnMatch) {
           // Update the token if it changed
           await this.updateEndpointToken(arnMatch[0], deviceToken);
@@ -317,12 +322,10 @@ export class SNSPushProvider {
     try {
       // Determine if token is an endpoint ARN or raw device token
       const isEndpointArn = message.token.startsWith('arn:aws:sns:');
-      let targetArn = message.token;
+      const targetArn = message.token;
 
       // Detect platform from ARN
-      const platform = isEndpointArn
-        ? this.detectPlatformFromArn(message.token)
-        : 'android'; // Default to Android if raw token
+      const platform = isEndpointArn ? this.detectPlatformFromArn(message.token) : 'android'; // Default to Android if raw token
 
       // Build the message payload
       const messagePayload = this.buildMessagePayload(message, platform);
@@ -375,7 +378,7 @@ export class SNSPushProvider {
         success: false,
         successCount: 0,
         failureCount: message.tokens.length,
-        results: message.tokens.map(token => ({
+        results: message.tokens.map((token) => ({
           token,
           success: false,
           error: 'SNS Push Provider not initialized',
@@ -383,7 +386,8 @@ export class SNSPushProvider {
       };
     }
 
-    const results: Array<{ token: string; success: boolean; error?: string; messageId?: string }> = [];
+    const results: Array<{ token: string; success: boolean; error?: string; messageId?: string }> =
+      [];
     let successCount = 0;
     let failureCount = 0;
 

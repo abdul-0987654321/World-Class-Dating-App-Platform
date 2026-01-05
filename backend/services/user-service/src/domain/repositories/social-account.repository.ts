@@ -1,5 +1,9 @@
 import db from '../../infrastructure/database/connection';
-import { SocialAccountEntity, CreateSocialAccountDto, UpdateSocialAccountDto } from '../entities/SocialAccount.entity';
+import {
+  SocialAccountEntity,
+  CreateSocialAccountDto,
+  UpdateSocialAccountDto,
+} from '../entities/SocialAccount.entity';
 
 export class SocialAccountRepository {
   private tableName = 'social_accounts';
@@ -34,21 +38,28 @@ export class SocialAccountRepository {
     return accounts;
   }
 
-  async findByProvider(provider: string, providerUserId: string): Promise<SocialAccountEntity | null> {
+  async findByProvider(
+    provider: string,
+    providerUserId: string
+  ): Promise<SocialAccountEntity | null> {
     const account = await db(this.tableName)
       .where({ provider, provider_user_id: providerUserId })
       .first();
     return account || null;
   }
 
-  async findByUserAndProvider(userId: string, provider: string): Promise<SocialAccountEntity | null> {
-    const account = await db(this.tableName)
-      .where({ user_id: userId, provider })
-      .first();
+  async findByUserAndProvider(
+    userId: string,
+    provider: string
+  ): Promise<SocialAccountEntity | null> {
+    const account = await db(this.tableName).where({ user_id: userId, provider }).first();
     return account || null;
   }
 
-  async update(id: string, accountData: UpdateSocialAccountDto): Promise<SocialAccountEntity | null> {
+  async update(
+    id: string,
+    accountData: UpdateSocialAccountDto
+  ): Promise<SocialAccountEntity | null> {
     const updateData: any = {
       ...accountData,
       updated_at: db.fn.now(),
@@ -58,10 +69,7 @@ export class SocialAccountRepository {
       updateData.profile_data = JSON.stringify(accountData.profile_data);
     }
 
-    const [account] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [account] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return account || null;
   }
@@ -100,14 +108,10 @@ export class SocialAccountRepository {
     // Start a transaction
     await db.transaction(async (trx) => {
       // Set all accounts for this user to non-primary
-      await trx(this.tableName)
-        .where({ user_id: userId })
-        .update({ is_primary: false });
+      await trx(this.tableName).where({ user_id: userId }).update({ is_primary: false });
 
       // Set the specified account as primary
-      await trx(this.tableName)
-        .where({ id })
-        .update({ is_primary: true });
+      await trx(this.tableName).where({ id }).update({ is_primary: true });
     });
   }
 }

@@ -1,5 +1,7 @@
-import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+
+import bcrypt from 'bcrypt';
+
 import logger from './logger';
 
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12');
@@ -39,13 +41,7 @@ export const initializeEncryptionKey = (): void => {
   }
 
   // Derive encryption key using PBKDF2
-  encryptionKey = crypto.pbkdf2Sync(
-    masterKey,
-    keySalt,
-    PBKDF2_ITERATIONS,
-    KEY_LENGTH,
-    'sha512'
-  );
+  encryptionKey = crypto.pbkdf2Sync(masterKey, keySalt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha512');
 
   keyVersion = version;
 
@@ -78,10 +74,7 @@ export const encryptData = (plaintext: string): string => {
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
     // Encrypt data
-    const encrypted = Buffer.concat([
-      cipher.update(plaintext, 'utf8'),
-      cipher.final()
-    ]);
+    const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
 
     // Get authentication tag
     const authTag = cipher.getAuthTag();
@@ -130,10 +123,7 @@ export const decryptData = (encryptedString: string): string => {
     decipher.setAuthTag(authTag);
 
     // Decrypt data
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final()
-    ]);
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
 
     return decrypted.toString('utf8');
   } catch (error) {
@@ -231,6 +221,9 @@ export const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, SALT_ROUNDS);
 };
 
-export const comparePassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+export const comparePassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   return await bcrypt.compare(password, hashedPassword);
 };

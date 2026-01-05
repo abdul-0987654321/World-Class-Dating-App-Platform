@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import createLogger from '../utils/logger';
 
 const logger = createLogger('service-client');
@@ -45,7 +46,9 @@ export class ServiceClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (reqConfig) => {
-        logger.debug(`[${this.serviceName}] Request: ${reqConfig.method?.toUpperCase()} ${reqConfig.url}`);
+        logger.debug(
+          `[${this.serviceName}] Request: ${reqConfig.method?.toUpperCase()} ${reqConfig.url}`
+        );
         return reqConfig;
       },
       (error) => {
@@ -113,10 +116,7 @@ export class ServiceClient {
   /**
    * GET request
    */
-  async get<T = any>(
-    path: string,
-    headers?: Record<string, string>
-  ): Promise<ServiceResponse<T>> {
+  async get<T = any>(path: string, headers?: Record<string, string>): Promise<ServiceResponse<T>> {
     return this.request<T>('GET', path, undefined, headers);
   }
 

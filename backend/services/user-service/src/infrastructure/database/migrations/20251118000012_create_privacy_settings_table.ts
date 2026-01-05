@@ -3,7 +3,13 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('privacy_settings', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('user_id')
+      .notNullable()
+      .unique()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
 
     // Incognito mode (premium feature)
     table.boolean('incognito_mode').notNullable().defaultTo(false);
@@ -16,11 +22,10 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('show_age').notNullable().defaultTo(true);
 
     // Profile visibility
-    table.enum('profile_visibility', [
-      'everyone',
-      'matches_only',
-      'private'
-    ]).notNullable().defaultTo('everyone');
+    table
+      .enum('profile_visibility', ['everyone', 'matches_only', 'private'])
+      .notNullable()
+      .defaultTo('everyone');
 
     // Contact hiding
     table.boolean('hide_from_contacts').notNullable().defaultTo(false);

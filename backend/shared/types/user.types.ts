@@ -18,7 +18,7 @@ export enum Gender {
   FEMALE = 'female',
   NON_BINARY = 'non-binary',
   OTHER = 'other',
-  PREFER_NOT_TO_SAY = 'prefer_not_to_say'
+  PREFER_NOT_TO_SAY = 'prefer_not_to_say',
 }
 
 export interface Profile {
@@ -69,7 +69,7 @@ export interface Preferences {
 export enum ShowMePreference {
   MEN = 'men',
   WOMEN = 'women',
-  EVERYONE = 'everyone'
+  EVERYONE = 'everyone',
 }
 
 export interface AuthTokens {

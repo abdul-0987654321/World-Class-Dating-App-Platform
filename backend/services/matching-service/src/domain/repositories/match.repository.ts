@@ -1,8 +1,9 @@
-import { Knex } from 'knex';
-import db from '../../infrastructure/database/connection';
-import { Match } from '../entities/Match.entity';
-import { MatchStatus } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
+
+import db from '../../infrastructure/database/connection';
+import { MatchStatus } from '../../types';
+import { Match } from '../entities/Match.entity';
 
 const logger = createLogger('match-repository');
 
@@ -46,9 +47,7 @@ export class MatchRepository {
    */
   async findById(matchId: string): Promise<Match | null> {
     try {
-      const match = await this.db('matches')
-        .where({ id: matchId })
-        .first();
+      const match = await this.db('matches').where({ id: matchId }).first();
 
       return match ? this.mapToMatch(match) : null;
     } catch (error) {
@@ -83,9 +82,7 @@ export class MatchRepository {
    */
   async findByUserId(userId: string, status?: MatchStatus): Promise<Match[]> {
     try {
-      let query = this.db('matches')
-        .where('user1_id', userId)
-        .orWhere('user2_id', userId);
+      let query = this.db('matches').where('user1_id', userId).orWhere('user2_id', userId);
 
       if (status) {
         query = query.andWhere('status', status);
@@ -129,9 +126,12 @@ export class MatchRepository {
   async update(matchId: string, data: Partial<Match>): Promise<Match | null> {
     try {
       const updateData: any = {};
-      if (data.conversationInitiated !== undefined) updateData.conversation_initiated = data.conversationInitiated;
-      if (data.firstMessageSentBy !== undefined) updateData.first_message_sent_by = data.firstMessageSentBy;
-      if (data.firstMessageSent !== undefined) updateData.first_message_sent = data.firstMessageSent;
+      if (data.conversationInitiated !== undefined)
+        updateData.conversation_initiated = data.conversationInitiated;
+      if (data.firstMessageSentBy !== undefined)
+        updateData.first_message_sent_by = data.firstMessageSentBy;
+      if (data.firstMessageSent !== undefined)
+        updateData.first_message_sent = data.firstMessageSent;
       if (data.status !== undefined) updateData.status = data.status;
 
       const [updated] = await this.db('matches')
@@ -171,9 +171,7 @@ export class MatchRepository {
    */
   async delete(matchId: string): Promise<boolean> {
     try {
-      const deleted = await this.db('matches')
-        .where({ id: matchId })
-        .del();
+      const deleted = await this.db('matches').where({ id: matchId }).del();
 
       return deleted > 0;
     } catch (error) {
@@ -187,9 +185,7 @@ export class MatchRepository {
    */
   async countByUserId(userId: string, status?: MatchStatus): Promise<number> {
     try {
-      let query = this.db('matches')
-        .where('user1_id', userId)
-        .orWhere('user2_id', userId);
+      let query = this.db('matches').where('user1_id', userId).orWhere('user2_id', userId);
 
       if (status) {
         query = query.andWhere('status', status);
@@ -197,7 +193,7 @@ export class MatchRepository {
 
       const result = await query.count('* as count').first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to count matches', error);
       throw error;
@@ -250,14 +246,14 @@ export class MatchRepository {
   async getUserMatchCount(userId: string): Promise<number> {
     try {
       const result = await this.db('matches')
-        .where(function() {
+        .where(function () {
           this.where('user1_id', userId).orWhere('user2_id', userId);
         })
         .andWhere('status', MatchStatus.MATCHED)
         .count('* as count')
         .first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get user match count', error);
       throw error;
@@ -319,7 +315,7 @@ export class MatchRepository {
       }
 
       // Extend by 24 hours
-      const newExpiresAt = new Date(match.expiresAt!);
+      const newExpiresAt = new Date(match.expiresAt);
       newExpiresAt.setHours(newExpiresAt.getHours() + 24);
 
       const [updated] = await this.db('matches')
@@ -433,7 +429,9 @@ export class MatchRepository {
       user2Id: record.user2_id,
       status: record.status,
       mode: record.mode || 'date',
-      compatibilityScore: record.compatibility_score ? parseFloat(record.compatibility_score) : undefined,
+      compatibilityScore: record.compatibility_score
+        ? parseFloat(record.compatibility_score)
+        : undefined,
       matchedAt: new Date(record.matched_at),
       lastActivityAt: new Date(record.last_activity_at),
       unmatchedAt: record.unmatched_at ? new Date(record.unmatched_at) : undefined,

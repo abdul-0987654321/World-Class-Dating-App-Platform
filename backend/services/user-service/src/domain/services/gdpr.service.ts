@@ -1,10 +1,12 @@
-import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
-import emailService from '../../infrastructure/email/email.service';
-import archiver from 'archiver';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
+
+import archiver from 'archiver';
+
+import db from '../../infrastructure/database/connection';
+import emailService from '../../infrastructure/email/email.service';
+import logger from '../../utils/logger';
 
 export interface ConsentRequest {
   userId: string;
@@ -62,7 +64,9 @@ export class GDPRService {
           revoked_at: request.granted ? null : new Date(),
         });
 
-        logger.info(`Consent recorded for user ${request.userId}: ${request.consentType} = ${request.granted}`);
+        logger.info(
+          `Consent recorded for user ${request.userId}: ${request.consentType} = ${request.granted}`
+        );
       }
     } catch (error) {
       logger.error('Error recording consent:', error);
@@ -79,7 +83,7 @@ export class GDPRService {
       const consents = await db('gdpr_consents')
         .select('consent_type', 'granted', 'version', 'granted_at', 'revoked_at')
         .where({ user_id: userId })
-        .whereIn('id', function() {
+        .whereIn('id', function () {
           this.select(db.raw('MAX(id)'))
             .from('gdpr_consents')
             .where({ user_id: userId })
@@ -166,9 +170,7 @@ export class GDPRService {
   private async processDataExport(requestId: string): Promise<void> {
     try {
       // Update status to processing
-      await db('data_export_requests')
-        .where({ id: requestId })
-        .update({ status: 'processing' });
+      await db('data_export_requests').where({ id: requestId }).update({ status: 'processing' });
 
       const request = await db('data_export_requests').where({ id: requestId }).first();
       const userId = request.user_id;
@@ -254,23 +256,27 @@ export class GDPRService {
         db('subscriptions').where({ user_id: userId }).select('*'),
         db('coins').where({ user_id: userId }).first(),
         db('gdpr_consents').where({ user_id: userId }).select('*'),
-        db('login_attempts').where({ user_id: userId }).orderBy('attempted_at', 'desc').limit(100).select('*'),
+        db('login_attempts')
+          .where({ user_id: userId })
+          .orderBy('attempted_at', 'desc')
+          .limit(100)
+          .select('*'),
       ]);
 
       return {
         user: this.sanitizeUserData(user),
         profile,
         preferences,
-        photos: photos.map(p => ({ ...p, url: p.photo_url })), // Include photo URLs
+        photos: photos.map((p) => ({ ...p, url: p.photo_url })), // Include photo URLs
         prompts,
         matches,
         swipes,
-        messages: messages.map(m => ({ ...m, content: '[ENCRYPTED]' })), // Don't include message content
+        messages: messages.map((m) => ({ ...m, content: '[ENCRYPTED]' })), // Don't include message content
         conversations,
         subscriptions,
         coins,
         consents,
-        loginAttempts: loginAttempts.map(la => ({
+        loginAttempts: loginAttempts.map((la) => ({
           attempted_at: la.attempted_at,
           successful: la.successful,
           ip_address: la.ip_address,
@@ -301,7 +307,11 @@ export class GDPRService {
   /**
    * Create export file (JSON or ZIP)
    */
-  private async createExportFile(userId: string, data: any, format: 'json' | 'zip'): Promise<string> {
+  private async createExportFile(
+    userId: string,
+    data: any,
+    format: 'json' | 'zip'
+  ): Promise<string> {
     const exportDir = path.join(__dirname, '../../../exports');
     if (!fs.existsSync(exportDir)) {
       fs.mkdirSync(exportDir, { recursive: true });
@@ -374,9 +384,7 @@ Export generated: ${new Date().toISOString()}
    */
   async getExportStatus(requestId: string): Promise<any> {
     try {
-      const request = await db('data_export_requests')
-        .where({ id: requestId })
-        .first();
+      const request = await db('data_export_requests').where({ id: requestId }).first();
 
       if (!request) {
         throw new Error('Export request not found');
@@ -419,7 +427,9 @@ Export generated: ${new Date().toISOString()}
       const cancellationToken = crypto.randomBytes(32).toString('hex');
 
       // Schedule deletion after grace period
-      const scheduledFor = new Date(Date.now() + this.DELETION_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+      const scheduledFor = new Date(
+        Date.now() + this.DELETION_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
+      );
 
       const [deletionRequest] = await db('deletion_requests')
         .insert({
@@ -470,12 +480,10 @@ Export generated: ${new Date().toISOString()}
         throw new Error('Deletion already completed');
       }
 
-      await db('deletion_requests')
-        .where({ id: request.id })
-        .update({
-          status: 'cancelled',
-          cancelled_at: new Date(),
-        });
+      await db('deletion_requests').where({ id: request.id }).update({
+        status: 'cancelled',
+        cancelled_at: new Date(),
+      });
 
       logger.info(`Deletion cancelled for user ${request.user_id}`);
     } catch (error) {
@@ -516,9 +524,7 @@ Export generated: ${new Date().toISOString()}
         throw new Error('Deletion request not found');
       }
 
-      await db('deletion_requests')
-        .where({ id: requestId })
-        .update({ status: 'processing' });
+      await db('deletion_requests').where({ id: requestId }).update({ status: 'processing' });
 
       const userId = request.user_id;
       const deletedData: any = {};
@@ -540,19 +546,23 @@ Export generated: ${new Date().toISOString()}
             .where('sender_id', userId)
             .orWhere('receiver_id', userId)
             .delete();
-          deletedData.subscriptions = await trx('subscriptions').where({ user_id: userId }).delete();
+          deletedData.subscriptions = await trx('subscriptions')
+            .where({ user_id: userId })
+            .delete();
           deletedData.profile = await trx('profiles').where({ user_id: userId }).delete();
           deletedData.preferences = await trx('preferences').where({ user_id: userId }).delete();
           deletedData.user = await trx('users').where({ id: userId }).delete();
         } else if (request.deletion_type === 'anonymize') {
           // Anonymize data but keep statistical records
-          await trx('users').where({ id: userId }).update({
-            email: `deleted_${userId}@deleted.com`,
-            first_name: 'Deleted',
-            last_name: 'User',
-            phone_number: null,
-            is_active: false,
-          });
+          await trx('users')
+            .where({ id: userId })
+            .update({
+              email: `deleted_${userId}@deleted.com`,
+              first_name: 'Deleted',
+              last_name: 'User',
+              phone_number: null,
+              is_active: false,
+            });
           await trx('profiles').where({ user_id: userId }).update({
             bio: null,
             job_title: null,
@@ -638,7 +648,7 @@ Export generated: ${new Date().toISOString()}
     const firstName = user.first_name || 'User';
     const expiresAtFormatted = expiresAt.toLocaleString('en-US', {
       dateStyle: 'medium',
-      timeStyle: 'short'
+      timeStyle: 'short',
     });
 
     const html = `
@@ -719,11 +729,15 @@ Export generated: ${new Date().toISOString()}
   /**
    * Send deletion scheduled email notification
    */
-  private async sendDeletionScheduledEmail(user: any, cancellationToken: string, scheduledFor: Date): Promise<void> {
+  private async sendDeletionScheduledEmail(
+    user: any,
+    cancellationToken: string,
+    scheduledFor: Date
+  ): Promise<void> {
     const firstName = user.first_name || 'User';
     const scheduledForFormatted = scheduledFor.toLocaleString('en-US', {
       dateStyle: 'full',
-      timeStyle: 'short'
+      timeStyle: 'short',
     });
     const cancellationUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/cancel-deletion?token=${cancellationToken}`;
 

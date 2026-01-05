@@ -10,9 +10,10 @@ import {
   DetectToxicContentCommand,
   ToxicLabels,
 } from '@aws-sdk/client-comprehend';
+
 import config from '../config';
-import { createLogger } from '../utils/logger';
 import { TextModerationResult, ViolationType } from '../types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('text-moderation-service');
 
@@ -212,7 +213,13 @@ export class TextModerationService {
    * Detect violations from toxicity results
    */
   private detectViolations(
-    toxicityResult: { hateSpeech: number; threat: number; insult: number; sexual: number; graphic: number },
+    toxicityResult: {
+      hateSpeech: number;
+      threat: number;
+      insult: number;
+      sexual: number;
+      graphic: number;
+    },
     profanityResult: { score: number; words: string[] }
   ): ViolationType[] {
     const violations: ViolationType[] = [];
@@ -251,7 +258,13 @@ export class TextModerationService {
     profanityScore: number,
     sexuallyScore: number,
     offensiveScore: number,
-    toxicityResult: { hateSpeech: number; threat: number; insult: number; sexual: number; graphic: number }
+    toxicityResult: {
+      hateSpeech: number;
+      threat: number;
+      insult: number;
+      sexual: number;
+      graphic: number;
+    }
   ): number {
     // Weighted average of all scores
     const weights = {

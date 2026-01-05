@@ -9,11 +9,7 @@ export {
 } from './payment.dto';
 
 // IAP DTOs
-export {
-  ValidateReceiptDto,
-  RestorePurchasesDto,
-  IAPProvider,
-} from './iap.dto';
+export { ValidateReceiptDto, RestorePurchasesDto, IAPProvider } from './iap.dto';
 
 // Dynamic Pricing DTOs
 export {

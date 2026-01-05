@@ -11,7 +11,15 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
+
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('conversations', 'messages')
@@ -28,7 +36,12 @@ export class MessagingController {
    */
   @Get('conversations')
   @ApiOperation({ summary: 'Get all conversations' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of conversations to return (default: 20)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of conversations to return (default: 20)',
+  })
   @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' })
   @ApiResponse({
     status: 200,
@@ -81,7 +94,7 @@ export class MessagingController {
   async getConversations(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -98,10 +111,7 @@ export class MessagingController {
    */
   @Post('conversations')
   @HttpCode(HttpStatus.CREATED)
-  async createConversation(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async createConversation(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('messagingService', '/api/conversations', body, {
       Authorization: authorization,
     });
@@ -113,7 +123,7 @@ export class MessagingController {
   @Get('conversations/with/:otherUserId')
   async getOrCreateConversation(
     @Headers('authorization') authorization: string,
-    @Param('otherUserId') otherUserId: string,
+    @Param('otherUserId') otherUserId: string
   ) {
     return this.proxyService.get('messagingService', `/api/conversations/with/${otherUserId}`, {
       Authorization: authorization,
@@ -170,7 +180,7 @@ export class MessagingController {
   @ApiResponse({ status: 404, description: 'Conversation not found' })
   async getConversation(
     @Headers('authorization') authorization: string,
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId') conversationId: string
   ) {
     return this.proxyService.get('messagingService', `/api/conversations/${conversationId}`, {
       Authorization: authorization,
@@ -183,7 +193,7 @@ export class MessagingController {
   @Delete('conversations/:conversationId')
   async deleteConversation(
     @Headers('authorization') authorization: string,
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId') conversationId: string
   ) {
     return this.proxyService.delete('messagingService', `/api/conversations/${conversationId}`, {
       Authorization: authorization,
@@ -196,11 +206,16 @@ export class MessagingController {
   @Put('conversations/:conversationId/read')
   async markConversationAsRead(
     @Headers('authorization') authorization: string,
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId') conversationId: string
   ) {
-    return this.proxyService.put('messagingService', `/api/conversations/${conversationId}/read`, {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.put(
+      'messagingService',
+      `/api/conversations/${conversationId}/read`,
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -211,7 +226,7 @@ export class MessagingController {
     @Headers('authorization') authorization: string,
     @Param('conversationId') conversationId: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -230,10 +245,7 @@ export class MessagingController {
    */
   @Post('messages')
   @HttpCode(HttpStatus.CREATED)
-  async sendMessage(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async sendMessage(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('messagingService', '/api/messages', body, {
       Authorization: authorization,
     });
@@ -256,12 +268,12 @@ export class MessagingController {
   async getMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Query('conversationId') conversationId: string,
+    @Query('conversationId') conversationId: string
   ) {
     return this.proxyService.get(
       'messagingService',
       `/api/messages/${messageId}?conversationId=${conversationId}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -272,7 +284,7 @@ export class MessagingController {
   async updateMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.put('messagingService', `/api/messages/${messageId}`, body, {
       Authorization: authorization,
@@ -286,7 +298,7 @@ export class MessagingController {
   async deleteMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.delete('messagingService', `/api/messages/${messageId}`, {
       Authorization: authorization,
@@ -300,7 +312,7 @@ export class MessagingController {
   async updateMessageStatus(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.put('messagingService', `/api/messages/${messageId}/status`, body, {
       Authorization: authorization,
@@ -315,7 +327,7 @@ export class MessagingController {
   @Get('users/:userId/status')
   async getUserStatus(
     @Headers('authorization') authorization: string,
-    @Param('userId') userId: string,
+    @Param('userId') userId: string
   ) {
     return this.proxyService.get('messagingService', `/api/users/${userId}/status`, {
       Authorization: authorization,

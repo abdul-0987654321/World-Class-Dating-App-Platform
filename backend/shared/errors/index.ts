@@ -31,11 +31,7 @@ export {
 } from './http-status-mapping';
 
 // User-safe error messages
-export {
-  ERROR_MESSAGES,
-  getErrorMessage,
-  getErrorTitle,
-} from './error-messages';
+export { ERROR_MESSAGES, getErrorMessage, getErrorTitle } from './error-messages';
 
 // API Error class and utilities
 export {

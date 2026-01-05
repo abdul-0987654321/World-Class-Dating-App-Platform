@@ -4,16 +4,13 @@
  * Critical safety feature for Flamoral dating platform
  */
 
-import twilioService from '../../infrastructure/sms/twilio.service';
-import emailService from '../../infrastructure/email/email.service';
-import { db } from '../../infrastructure/database';
-import {
-  SOSAlert,
-  EmergencyContact,
-  SafetyCheckin,
-} from '../entities/SOS.entity';
-import logger from '../../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../../infrastructure/database';
+import emailService from '../../infrastructure/email/email.service';
+import twilioService from '../../infrastructure/sms/twilio.service';
+import logger from '../../utils/logger';
+import { SOSAlert, EmergencyContact, SafetyCheckin } from '../entities/SOS.entity';
 
 // ==================== TYPES ====================
 
@@ -111,7 +108,7 @@ export class SOSNotificationService {
     }
 
     // Log summary
-    const successCount = results.filter(r => r.anySucceeded).length;
+    const successCount = results.filter((r) => r.anySucceeded).length;
     logger.info(`SOS alert notifications sent`, {
       alertId: alert.id,
       totalContacts: contacts.length,
@@ -359,8 +356,8 @@ export class SOSNotificationService {
       contactId: contact.id,
       contactName: contact.name,
       results,
-      allSucceeded: results.every(r => r.success),
-      anySucceeded: results.some(r => r.success),
+      allSucceeded: results.every((r) => r.success),
+      anySucceeded: results.some((r) => r.success),
     };
   }
 
@@ -527,8 +524,20 @@ Please check on them immediately or contact emergency services if needed.`;
       case SOSNotificationType.SOS_ALERT:
         return {
           subject: `EMERGENCY: ${userName} needs help - SOS Alert from Flamoral`,
-          html: this.buildEmergencyEmailHtml(contactName, userName, timestamp, locationHtml, alert.reason),
-          text: this.buildEmergencyEmailText(contactName, userName, timestamp, locationText, alert.reason),
+          html: this.buildEmergencyEmailHtml(
+            contactName,
+            userName,
+            timestamp,
+            locationHtml,
+            alert.reason
+          ),
+          text: this.buildEmergencyEmailText(
+            contactName,
+            userName,
+            timestamp,
+            locationText,
+            alert.reason
+          ),
         };
 
       case SOSNotificationType.SOS_CANCELLED:
@@ -598,12 +607,16 @@ Please check on them immediately or contact emergency services if needed.`;
             </td>
           </tr>
           ${locationHtml}
-          ${reason ? `
+          ${
+            reason
+              ? `
           <tr>
             <td style="padding: 10px 0;">
               <strong>Reason:</strong> ${reason}
             </td>
-          </tr>` : ''}
+          </tr>`
+              : ''
+          }
         </table>
 
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">

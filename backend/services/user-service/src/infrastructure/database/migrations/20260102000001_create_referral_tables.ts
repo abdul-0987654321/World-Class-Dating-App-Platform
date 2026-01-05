@@ -29,7 +29,12 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('referrer_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.uuid('referred_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('referral_code_id').notNullable().references('id').inTable('referral_codes').onDelete('CASCADE');
+    table
+      .uuid('referral_code_id')
+      .notNullable()
+      .references('id')
+      .inTable('referral_codes')
+      .onDelete('CASCADE');
     table.string('code', 8).notNullable(); // Denormalized for easy lookup
     table
       .enum('status', ['pending', 'completed', 'rewarded', 'expired', 'cancelled'])

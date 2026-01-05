@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+
 import db from '../infrastructure/database/connection';
 import logger from '../utils/logger';
 
@@ -102,27 +104,19 @@ export class BiometricAuthMiddleware {
       }
 
       // Verify signature using public key
-      const isValid = this.verifySignature(
-        challenge,
-        signature,
-        device.biometric_public_key
-      );
+      const isValid = this.verifySignature(challenge, signature, device.biometric_public_key);
 
       if (isValid) {
         // Mark challenge as used
-        await db('biometric_challenges')
-          .where({ id: storedChallenge.id })
-          .update({
-            used_at: new Date(),
-            verified: true,
-          });
+        await db('biometric_challenges').where({ id: storedChallenge.id }).update({
+          used_at: new Date(),
+          verified: true,
+        });
 
         // Update device last biometric auth
-        await db('user_devices')
-          .where({ id: device.id })
-          .update({
-            last_biometric_auth: new Date(),
-          });
+        await db('user_devices').where({ id: device.id }).update({
+          last_biometric_auth: new Date(),
+        });
 
         logger.info(`Biometric authentication successful for user ${userId}`);
       } else {
@@ -173,14 +167,12 @@ export class BiometricAuthMiddleware {
 
       if (existingDevice) {
         // Update existing device
-        await db('user_devices')
-          .where({ id: existingDevice.id })
-          .update({
-            biometric_type: biometricType,
-            biometric_public_key: publicKey,
-            biometric_enrolled_at: new Date(),
-            is_active: true,
-          });
+        await db('user_devices').where({ id: existingDevice.id }).update({
+          biometric_type: biometricType,
+          biometric_public_key: publicKey,
+          biometric_enrolled_at: new Date(),
+          is_active: true,
+        });
       } else {
         // Insert new device
         await db('user_devices').insert({
@@ -239,7 +231,7 @@ export class BiometricAuthMiddleware {
         .whereNotNull('biometric_public_key')
         .select('*');
 
-      return devices.map(d => ({
+      return devices.map((d) => ({
         deviceId: d.device_id,
         deviceName: d.device_name,
         biometricType: d.biometric_type,
@@ -256,7 +248,11 @@ export class BiometricAuthMiddleware {
    * Middleware to require biometric authentication
    */
   requireBiometric() {
-    return async (req: BiometricAuthRequest, res: Response, next: NextFunction): Promise<void | Response> => {
+    return async (
+      req: BiometricAuthRequest,
+      res: Response,
+      next: NextFunction
+    ): Promise<void | Response> => {
       try {
         const authHeader = req.headers.authorization;
         const biometricToken = req.headers['x-biometric-token'] as string;
@@ -327,9 +323,7 @@ export class BiometricAuthMiddleware {
    */
   async cleanupExpiredChallenges(): Promise<void> {
     try {
-      const result = await db('biometric_challenges')
-        .where('expires_at', '<', new Date())
-        .delete();
+      const result = await db('biometric_challenges').where('expires_at', '<', new Date()).delete();
 
       logger.info(`Cleaned up ${result} expired biometric challenges`);
     } catch (error) {
@@ -351,7 +345,7 @@ export class BiometricAuthMiddleware {
         .limit(limit)
         .select('*');
 
-      return history.map(h => ({
+      return history.map((h) => ({
         deviceId: h.device_id,
         authenticatedAt: h.used_at,
         createdAt: h.created_at,

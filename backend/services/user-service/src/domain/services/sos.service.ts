@@ -1,4 +1,5 @@
-import { sosRepository, SOSRepository } from '../repositories/sos.repository';
+import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   SOSAlert,
   EmergencyContact,
@@ -10,14 +11,14 @@ import {
   DEFAULT_CRISIS_RESOURCES,
   SOS_ALERT_TYPE,
 } from '../entities/SOS.entity';
+import { sosRepository, SOSRepository } from '../repositories/sos.repository';
+
 import {
   sosNotificationService,
   SOSNotificationService,
   ContactNotificationResult,
   SOSNotificationLog,
 } from './sos-notification.service';
-import { db } from '../../infrastructure/database';
-import logger from '../../utils/logger';
 
 export interface SOSNotificationSummary {
   totalContacts: number;
@@ -63,14 +64,18 @@ export class SOSService {
     if (existingAlert) {
       logger.warn(`User ${userId} already has an active SOS alert`);
       const contacts = await this.repository.getUserEmergencyContacts(userId);
-      const notificationStatus = await this.notificationService.getNotificationStatus(existingAlert.id);
+      const notificationStatus = await this.notificationService.getNotificationStatus(
+        existingAlert.id
+      );
       return {
         alert: existingAlert,
         notifiedContacts: contacts,
         notificationSummary: {
           totalContacts: contacts.length,
-          successfullyNotified: notificationStatus.filter(n => n.status === 'sent' || n.status === 'delivered').length,
-          failedNotifications: notificationStatus.filter(n => n.status === 'failed').length,
+          successfullyNotified: notificationStatus.filter(
+            (n) => n.status === 'sent' || n.status === 'delivered'
+          ).length,
+          failedNotifications: notificationStatus.filter((n) => n.status === 'failed').length,
           notificationResults: [],
         },
       };
@@ -101,13 +106,13 @@ export class SOSService {
     const notificationResults = await this.notificationService.sendSOSAlert(user, alert, contacts);
 
     // Calculate notification summary
-    const successfullyNotified = notificationResults.filter(r => r.anySucceeded).length;
-    const failedNotifications = notificationResults.filter(r => !r.anySucceeded).length;
+    const successfullyNotified = notificationResults.filter((r) => r.anySucceeded).length;
+    const failedNotifications = notificationResults.filter((r) => !r.anySucceeded).length;
 
     // Update alert with notified contacts
     const notifiedContactIds = notificationResults
-      .filter(r => r.anySucceeded)
-      .map(r => r.contactId);
+      .filter((r) => r.anySucceeded)
+      .map((r) => r.contactId);
     await this.repository.updateNotifiedContacts(alert.id, notifiedContactIds);
 
     // Log for platform monitoring - CRITICAL SAFETY EVENT
@@ -134,7 +139,7 @@ export class SOSService {
 
     return {
       alert,
-      notifiedContacts: contacts.filter(c => notifiedContactIds.includes(c.id)),
+      notifiedContacts: contacts.filter((c) => notifiedContactIds.includes(c.id)),
       notificationSummary,
     };
   }
@@ -176,9 +181,13 @@ export class SOSService {
     const contacts = await this.repository.getSOSNotifiableContacts(userId);
 
     // Send cancellation notifications
-    const notificationResults = await this.notificationService.sendSOSCancelled(user, alert, contacts);
+    const notificationResults = await this.notificationService.sendSOSCancelled(
+      user,
+      alert,
+      contacts
+    );
 
-    const successCount = notificationResults.filter(r => r.anySucceeded).length;
+    const successCount = notificationResults.filter((r) => r.anySucceeded).length;
     logger.info(`SOS cancellation notifications sent`, {
       alertId,
       contactsNotified: successCount,
@@ -245,7 +254,7 @@ export class SOSService {
     }
 
     // Check for duplicate phone
-    const duplicate = existingContacts.find(c => c.phone === input.phone);
+    const duplicate = existingContacts.find((c) => c.phone === input.phone);
     if (duplicate) {
       throw new Error('This phone number is already added as an emergency contact');
     }
@@ -390,7 +399,7 @@ export class SOSService {
     }
 
     return DEFAULT_CRISIS_RESOURCES.filter(
-      resource => !resource.region || resource.region === region
+      (resource) => !resource.region || resource.region === region
     );
   }
 
@@ -440,9 +449,7 @@ export class SOSService {
       .returning('*');
 
     // Update alert with escalation log reference
-    await db('sos_alerts')
-      .where({ id: alertId })
-      .update({ last_escalation_id: escalationLog.id });
+    await db('sos_alerts').where({ id: alertId }).update({ last_escalation_id: escalationLog.id });
 
     logger.warn(`SOS ALERT ESCALATED: ${alertId}`, {
       alertId,
@@ -490,7 +497,7 @@ export class SOSService {
         if (!user) continue;
 
         const contacts = await this.repository.getSOSNotifiableContacts(checkin.user_id);
-        const notifiableContacts = contacts.filter(c => c.notify_on_checkin_miss);
+        const notifiableContacts = contacts.filter((c) => c.notify_on_checkin_miss);
 
         if (notifiableContacts.length > 0) {
           await this.notificationService.sendCheckinMissedAlert(user, checkin, notifiableContacts);
@@ -563,32 +570,50 @@ export class SOSService {
    */
   private scheduleAutoEscalation(alertId: string, userId: string): void {
     // Schedule first escalation check
-    setTimeout(async () => {
-      try {
-        const alert = await this.repository.getAlertById(alertId);
-        if (alert && alert.status === 'active') {
-          // First escalation - re-notify contacts
-          logger.info(`Auto-escalation check for alert ${alertId} - still active after ${SOSService.AUTO_ESCALATE_AFTER_MINUTES} minutes`);
-          await this.escalateSOS(alertId, `Alert still active after ${SOSService.AUTO_ESCALATE_AFTER_MINUTES} minutes`, false);
+    setTimeout(
+      async () => {
+        try {
+          const alert = await this.repository.getAlertById(alertId);
+          if (alert && alert.status === 'active') {
+            // First escalation - re-notify contacts
+            logger.info(
+              `Auto-escalation check for alert ${alertId} - still active after ${SOSService.AUTO_ESCALATE_AFTER_MINUTES} minutes`
+            );
+            await this.escalateSOS(
+              alertId,
+              `Alert still active after ${SOSService.AUTO_ESCALATE_AFTER_MINUTES} minutes`,
+              false
+            );
+          }
+        } catch (error) {
+          logger.error(`Auto-escalation check failed for ${alertId}:`, error);
         }
-      } catch (error) {
-        logger.error(`Auto-escalation check failed for ${alertId}:`, error);
-      }
-    }, SOSService.AUTO_ESCALATE_AFTER_MINUTES * 60 * 1000);
+      },
+      SOSService.AUTO_ESCALATE_AFTER_MINUTES * 60 * 1000
+    );
 
     // Schedule support team notification
-    setTimeout(async () => {
-      try {
-        const alert = await this.repository.getAlertById(alertId);
-        if (alert && (alert.status === 'active' || alert.status === 'escalated')) {
-          // Escalate to support team
-          logger.warn(`Alert ${alertId} still active after ${SOSService.SUPPORT_ESCALATE_AFTER_MINUTES} minutes - escalating to support`);
-          await this.escalateSOS(alertId, `Alert still active after ${SOSService.SUPPORT_ESCALATE_AFTER_MINUTES} minutes - REQUIRES IMMEDIATE ATTENTION`, true);
+    setTimeout(
+      async () => {
+        try {
+          const alert = await this.repository.getAlertById(alertId);
+          if (alert && (alert.status === 'active' || alert.status === 'escalated')) {
+            // Escalate to support team
+            logger.warn(
+              `Alert ${alertId} still active after ${SOSService.SUPPORT_ESCALATE_AFTER_MINUTES} minutes - escalating to support`
+            );
+            await this.escalateSOS(
+              alertId,
+              `Alert still active after ${SOSService.SUPPORT_ESCALATE_AFTER_MINUTES} minutes - REQUIRES IMMEDIATE ATTENTION`,
+              true
+            );
+          }
+        } catch (error) {
+          logger.error(`Support team escalation failed for ${alertId}:`, error);
         }
-      } catch (error) {
-        logger.error(`Support team escalation failed for ${alertId}:`, error);
-      }
-    }, SOSService.SUPPORT_ESCALATE_AFTER_MINUTES * 60 * 1000);
+      },
+      SOSService.SUPPORT_ESCALATE_AFTER_MINUTES * 60 * 1000
+    );
   }
 
   /**

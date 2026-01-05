@@ -3,12 +3,13 @@
  * Handles FCM (Android/Web) and APNs (iOS) with retry logic and batch sending
  */
 
-import admin from 'firebase-admin';
 import apn from '@parse/node-apn';
+import admin from 'firebase-admin';
+import { v4 as uuidv4 } from 'uuid';
+
+import { config } from '../config';
 import { db } from '../config/database';
 import logger from '../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
-import { config } from '../config';
 
 // Notification Types
 export enum NotificationType {
@@ -197,12 +198,10 @@ export class PushNotificationDeliveryService {
     deviceToken: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      await db('user_devices')
-        .where({ user_id: userId, device_token: deviceToken })
-        .update({
-          is_active: false,
-          updated_at: new Date(),
-        });
+      await db('user_devices').where({ user_id: userId, device_token: deviceToken }).update({
+        is_active: false,
+        updated_at: new Date(),
+      });
 
       logger.info('Device unregistered successfully', { userId, deviceToken });
 
@@ -234,9 +233,7 @@ export class PushNotificationDeliveryService {
    */
   private async isInQuietHours(userId: string): Promise<boolean> {
     try {
-      const prefs = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      const prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
       if (!prefs || !prefs.quiet_hours_enabled) {
         return false;
@@ -276,9 +273,7 @@ export class PushNotificationDeliveryService {
     type: NotificationType
   ): Promise<boolean> {
     try {
-      const prefs = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      const prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
       if (!prefs || !prefs.push_enabled) {
         return false;
@@ -379,7 +374,7 @@ export class PushNotificationDeliveryService {
       results.sent += apnsResult.sent;
       results.failed += apnsResult.failed;
       if (apnsResult.errors) {
-        results.errors!.push(...apnsResult.errors);
+        results.errors.push(...apnsResult.errors);
       }
     }
 
@@ -389,7 +384,7 @@ export class PushNotificationDeliveryService {
       results.sent += fcmResult.sent;
       results.failed += fcmResult.failed;
       if (fcmResult.errors) {
-        results.errors!.push(...fcmResult.errors);
+        results.errors.push(...fcmResult.errors);
       }
     }
 
@@ -672,12 +667,10 @@ export class PushNotificationDeliveryService {
 
     if (tokensToDeactivate.length > 0) {
       try {
-        await db('user_devices')
-          .whereIn('device_token', tokensToDeactivate)
-          .update({
-            is_active: false,
-            updated_at: new Date(),
-          });
+        await db('user_devices').whereIn('device_token', tokensToDeactivate).update({
+          is_active: false,
+          updated_at: new Date(),
+        });
 
         logger.info('Deactivated invalid device tokens', {
           count: tokensToDeactivate.length,
@@ -728,13 +721,7 @@ export class PushNotificationDeliveryService {
         query = query.where({ user_id: userId });
       }
 
-      const [
-        totalDevices,
-        activeDevices,
-        iosCount,
-        androidCount,
-        webCount,
-      ] = await Promise.all([
+      const [totalDevices, activeDevices, iosCount, androidCount, webCount] = await Promise.all([
         query.clone().count('* as count').first(),
         query.clone().where({ is_active: true }).count('* as count').first(),
         query.clone().where({ platform: 'ios', is_active: true }).count('* as count').first(),

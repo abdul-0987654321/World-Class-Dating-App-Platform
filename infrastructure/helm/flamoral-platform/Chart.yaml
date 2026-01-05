@@ -1,0 +1,18 @@
+apiVersion: v2
+name: flamoral-platform
+description: Flamoral Dating Platform - Production-Ready Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - dating
+  - saas
+  - flamoral
+maintainers:
+  - name: Platform Team
+    email: platform@flamoral.com
+dependencies:
+  - name: redis
+    version: "18.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled

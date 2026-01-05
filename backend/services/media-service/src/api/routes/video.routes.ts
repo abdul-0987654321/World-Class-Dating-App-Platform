@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import videoController from '../controllers/video.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { uploadVideo } from '../middleware/upload.middleware';

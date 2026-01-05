@@ -1,5 +1,11 @@
 import { Knex } from 'knex';
-import { UserExperience, XPTransaction, LevelDefinition, XPSource } from '../entities/Experience.entity';
+
+import {
+  UserExperience,
+  XPTransaction,
+  LevelDefinition,
+  XPSource,
+} from '../entities/Experience.entity';
 
 export class ExperienceRepository {
   constructor(private db: Knex) {}
@@ -26,7 +32,10 @@ export class ExperienceRepository {
     return this.mapToEntity(created);
   }
 
-  async updateUserExperience(userId: string, updates: Partial<UserExperience>): Promise<UserExperience> {
+  async updateUserExperience(
+    userId: string,
+    updates: Partial<UserExperience>
+  ): Promise<UserExperience> {
     const [updated] = await this.db('user_experience')
       .where({ user_id: userId })
       .update({
@@ -63,7 +72,11 @@ export class ExperienceRepository {
     return this.mapTransactionToEntity(transaction);
   }
 
-  async findUserTransactions(userId: string, limit: number, offset: number): Promise<XPTransaction[]> {
+  async findUserTransactions(
+    userId: string,
+    limit: number,
+    offset: number
+  ): Promise<XPTransaction[]> {
     const transactions = await this.db('xp_transactions')
       .where({ user_id: userId })
       .orderBy('created_at', 'desc')
@@ -84,7 +97,9 @@ export class ExperienceRepository {
   }
 
   async findXPSourceByKey(actionKey: string): Promise<XPSource | null> {
-    const source = await this.db('xp_sources').where({ action_key: actionKey, is_active: true }).first();
+    const source = await this.db('xp_sources')
+      .where({ action_key: actionKey, is_active: true })
+      .first();
     return source ? this.mapSourceToEntity(source) : null;
   }
 
@@ -132,9 +147,7 @@ export class ExperienceRepository {
   }
 
   async findUserLevelUnlocks(userId: string): Promise<any[]> {
-    return this.db('user_level_unlocks')
-      .where({ user_id: userId })
-      .orderBy('level', 'desc');
+    return this.db('user_level_unlocks').where({ user_id: userId }).orderBy('level', 'desc');
   }
 
   async getTopUsersByXP(limit: number): Promise<any[]> {

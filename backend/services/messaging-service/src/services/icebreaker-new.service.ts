@@ -1,5 +1,5 @@
-import { createLogger } from '../utils/logger';
 import { Icebreaker, IcebreakerSuggestion } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('icebreaker-service');
 
@@ -89,9 +89,7 @@ export class IcebreakerService {
   }
 
   async getByCategory(category: string, count: number = 10): Promise<Icebreaker[]> {
-    const filtered = this.icebreakers
-      .filter(ib => ib.category === category)
-      .slice(0, count);
+    const filtered = this.icebreakers.filter((ib) => ib.category === category).slice(0, count);
     return filtered;
   }
 
@@ -101,14 +99,12 @@ export class IcebreakerService {
   }
 
   async searchByTags(tags: string[], count: number = 10): Promise<Icebreaker[]> {
-    const results = this.icebreakers.filter(ib =>
-      tags.some(tag => ib.tags.includes(tag))
-    );
+    const results = this.icebreakers.filter((ib) => tags.some((tag) => ib.tags.includes(tag)));
     return results.slice(0, count);
   }
 
   getCategories(): string[] {
-    const categories = new Set(this.icebreakers.map(ib => ib.category));
+    const categories = new Set(this.icebreakers.map((ib) => ib.category));
     return Array.from(categories);
   }
 
@@ -117,18 +113,19 @@ export class IcebreakerService {
     count: number = 5
   ): Promise<IcebreakerSuggestion> {
     try {
-      const matched = this.icebreakers.filter(ib =>
-        ib.tags.some(tag => userInterests.includes(tag))
+      const matched = this.icebreakers.filter((ib) =>
+        ib.tags.some((tag) => userInterests.includes(tag))
       );
 
-      const icebreakers = matched.length >= count
-        ? matched.slice(0, count)
-        : [
-            ...matched,
-            ...this.icebreakers
-              .filter(ib => !matched.includes(ib))
-              .slice(0, count - matched.length),
-          ];
+      const icebreakers =
+        matched.length >= count
+          ? matched.slice(0, count)
+          : [
+              ...matched,
+              ...this.icebreakers
+                .filter((ib) => !matched.includes(ib))
+                .slice(0, count - matched.length),
+            ];
 
       return {
         icebreakers,
@@ -144,7 +141,7 @@ export class IcebreakerService {
   async trackUsage(icebreakerId: string, userId: string): Promise<void> {
     try {
       logger.debug('Icebreaker used', { icebreakerId, userId });
-      const icebreaker = this.icebreakers.find(ib => ib.id === icebreakerId);
+      const icebreaker = this.icebreakers.find((ib) => ib.id === icebreakerId);
       if (icebreaker) {
         icebreaker.popularity = Math.min(100, icebreaker.popularity + 0.1);
       }

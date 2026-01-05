@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workflow } from '../models/workflow.entity';
-import { WorkflowExecution } from '../models/workflow-execution.entity';
+
 import { WorkflowStatus, ExecutionStatus } from '../interfaces/workflow.interface';
+import { WorkflowExecution } from '../models/workflow-execution.entity';
+import { Workflow } from '../models/workflow.entity';
 
 export interface ABTestVariant {
   workflowId: string;
@@ -34,7 +35,7 @@ export class ABTestingService {
     @InjectRepository(Workflow)
     private readonly workflowRepository: Repository<Workflow>,
     @InjectRepository(WorkflowExecution)
-    private readonly executionRepository: Repository<WorkflowExecution>,
+    private readonly executionRepository: Repository<WorkflowExecution>
   ) {}
 
   /**
@@ -68,7 +69,7 @@ export class ABTestingService {
       cumulativePercentage += workflow.abTestPercentage;
       if (normalizedHash < cumulativePercentage) {
         this.logger.log(
-          `Selected variant ${workflow.abTestVariant} for user ${userId} (hash: ${normalizedHash})`,
+          `Selected variant ${workflow.abTestVariant} for user ${userId} (hash: ${normalizedHash})`
         );
         return workflow;
       }
@@ -81,11 +82,7 @@ export class ABTestingService {
   /**
    * Get A/B test results for workflows with the same test group
    */
-  async getTestResults(
-    testGroup: string,
-    startDate: Date,
-    endDate: Date,
-  ): Promise<ABTestResults> {
+  async getTestResults(testGroup: string, startDate: Date, endDate: Date): Promise<ABTestResults> {
     const workflows = await this.workflowRepository.find({
       where: {
         abTestGroup: testGroup,
@@ -110,10 +107,9 @@ export class ABTestingService {
 
       const totalExecutions = executions.length;
       const successfulExecutions = executions.filter(
-        (e) => e.status === ExecutionStatus.COMPLETED,
+        (e) => e.status === ExecutionStatus.COMPLETED
       ).length;
-      const successRate =
-        totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
+      const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
 
       const completedExecutions = executions.filter((e) => e.duration !== null);
       const avgExecutionTime =
@@ -124,9 +120,7 @@ export class ABTestingService {
 
       // Calculate conversion rate (conditions passed AND actions completed)
       const conversions = executions.filter(
-        (e) =>
-          e.conditionsEvaluated &&
-          e.status === ExecutionStatus.COMPLETED,
+        (e) => e.conditionsEvaluated && e.status === ExecutionStatus.COMPLETED
       ).length;
       const uniqueUsers = new Set(executions.map((e) => e.userId).filter(Boolean)).size;
       const conversionRate = uniqueUsers > 0 ? (conversions / uniqueUsers) * 100 : 0;
@@ -162,7 +156,7 @@ export class ABTestingService {
   async createTestVariants(
     baseWorkflowId: string,
     testGroup: string,
-    variants: Array<{ variant: string; percentage: number; modifications: any }>,
+    variants: Array<{ variant: string; percentage: number; modifications: any }>
   ): Promise<Workflow[]> {
     const baseWorkflow = await this.workflowRepository.findOne({
       where: { id: baseWorkflowId },

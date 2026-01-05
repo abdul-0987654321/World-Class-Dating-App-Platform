@@ -12,8 +12,9 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { ProxyService } from '../services/proxy.service';
+
 import { Public } from '../decorators/public.decorator';
+import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('subscriptions', 'payments')
 @ApiBearerAuth('JWT-auth')
@@ -39,10 +40,7 @@ export class PaymentController {
    */
   @Get('subscriptions/plans/:planId')
   @ApiOperation({ summary: 'Get a specific subscription plan' })
-  async getPlan(
-    @Headers('authorization') authorization: string,
-    @Param('planId') planId: string,
-  ) {
+  async getPlan(@Headers('authorization') authorization: string, @Param('planId') planId: string) {
     return this.proxyService.get('paymentService', `/api/subscriptions/plans/${planId}`, {
       Authorization: authorization,
     });
@@ -67,10 +65,7 @@ export class PaymentController {
   @Post('subscriptions')
   @ApiOperation({ summary: 'Create a new subscription' })
   @HttpCode(HttpStatus.CREATED)
-  async createSubscription(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async createSubscription(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -82,10 +77,7 @@ export class PaymentController {
   @Post('subscriptions/subscribe')
   @ApiOperation({ summary: 'Subscribe to a plan' })
   @HttpCode(HttpStatus.CREATED)
-  async subscribe(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async subscribe(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -96,10 +88,7 @@ export class PaymentController {
    */
   @Put('subscriptions/me/upgrade')
   @ApiOperation({ summary: 'Upgrade current subscription' })
-  async upgradeSubscription(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async upgradeSubscription(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.put('paymentService', '/api/subscriptions/me/upgrade', body, {
       Authorization: authorization,
     });
@@ -111,9 +100,14 @@ export class PaymentController {
   @Delete('subscriptions/me')
   @ApiOperation({ summary: 'Cancel current subscription' })
   async cancelSubscription(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('paymentService', '/api/payment/subscription/cancel', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'paymentService',
+      '/api/payment/subscription/cancel',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -122,10 +116,7 @@ export class PaymentController {
   @Post('subscriptions/cancel')
   @ApiOperation({ summary: 'Cancel current subscription' })
   @HttpCode(HttpStatus.OK)
-  async cancelSubscriptionPost(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async cancelSubscriptionPost(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/cancel', body, {
       Authorization: authorization,
     });
@@ -138,9 +129,14 @@ export class PaymentController {
   @ApiOperation({ summary: 'Reactivate cancelled subscription' })
   @HttpCode(HttpStatus.OK)
   async reactivateSubscription(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('paymentService', '/api/subscriptions/me/reactivate', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'paymentService',
+      '/api/subscriptions/me/reactivate',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   // ==================== Payment Method Endpoints ====================
@@ -162,10 +158,7 @@ export class PaymentController {
   @Post('payment-methods')
   @ApiOperation({ summary: 'Add a new payment method' })
   @HttpCode(HttpStatus.CREATED)
-  async addPaymentMethod(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async addPaymentMethod(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/payment-methods', body, {
       Authorization: authorization,
     });
@@ -178,7 +171,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Remove a payment method' })
   async removePaymentMethod(
     @Headers('authorization') authorization: string,
-    @Param('paymentMethodId') paymentMethodId: string,
+    @Param('paymentMethodId') paymentMethodId: string
   ) {
     return this.proxyService.delete('paymentService', `/api/payment-methods/${paymentMethodId}`, {
       Authorization: authorization,
@@ -192,11 +185,16 @@ export class PaymentController {
   @ApiOperation({ summary: 'Set default payment method' })
   async setDefaultPaymentMethod(
     @Headers('authorization') authorization: string,
-    @Param('paymentMethodId') paymentMethodId: string,
+    @Param('paymentMethodId') paymentMethodId: string
   ) {
-    return this.proxyService.put('paymentService', `/api/payment-methods/${paymentMethodId}/default`, {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.put(
+      'paymentService',
+      `/api/payment-methods/${paymentMethodId}/default`,
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   // ==================== Transaction Endpoints ====================
@@ -209,7 +207,7 @@ export class PaymentController {
   async getTransactions(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -228,7 +226,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Get a specific transaction' })
   async getTransaction(
     @Headers('authorization') authorization: string,
-    @Param('transactionId') transactionId: string,
+    @Param('transactionId') transactionId: string
   ) {
     return this.proxyService.get('paymentService', `/api/transactions/${transactionId}`, {
       Authorization: authorization,
@@ -254,10 +252,7 @@ export class PaymentController {
   @Post('purchases')
   @ApiOperation({ summary: 'Purchase a product' })
   @HttpCode(HttpStatus.CREATED)
-  async purchaseProduct(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async purchaseProduct(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/purchases', body, {
       Authorization: authorization,
     });
@@ -271,7 +266,7 @@ export class PaymentController {
   async getPurchaseHistory(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -293,7 +288,7 @@ export class PaymentController {
   async getInvoices(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -312,7 +307,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Download invoice PDF' })
   async downloadInvoice(
     @Headers('authorization') authorization: string,
-    @Param('invoiceId') invoiceId: string,
+    @Param('invoiceId') invoiceId: string
   ) {
     return this.proxyService.get('paymentService', `/api/invoices/${invoiceId}/download`, {
       Authorization: authorization,
@@ -362,10 +357,7 @@ export class PaymentController {
   @Post('promo-codes/apply')
   @ApiOperation({ summary: 'Apply a promo code' })
   @HttpCode(HttpStatus.OK)
-  async applyPromoCode(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async applyPromoCode(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/promo-codes/apply', body, {
       Authorization: authorization,
     });
@@ -377,10 +369,7 @@ export class PaymentController {
   @Post('promo-codes/validate')
   @ApiOperation({ summary: 'Validate a promo code' })
   @HttpCode(HttpStatus.OK)
-  async validatePromoCode(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async validatePromoCode(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('paymentService', '/api/promo-codes/validate', body, {
       Authorization: authorization,
     });

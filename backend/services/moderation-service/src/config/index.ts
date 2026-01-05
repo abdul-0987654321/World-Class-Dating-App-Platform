@@ -1,5 +1,6 @@
-import dotenv from 'dotenv';
 import crypto from 'crypto';
+
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -141,11 +142,14 @@ export const config = {
       // Confidence score threshold for NCMEC reporting (0.0 - 1.0)
       ncmecReportingThreshold: parseFloat(process.env.CSAM_NCMEC_REPORTING_THRESHOLD || '0.85'),
       // Perceptual hash similarity threshold (Hamming distance)
-      perceptualHashSimilarityThreshold: parseInt(process.env.CSAM_PHASH_SIMILARITY_THRESHOLD || '10'),
+      perceptualHashSimilarityThreshold: parseInt(
+        process.env.CSAM_PHASH_SIMILARITY_THRESHOLD || '10'
+      ),
     },
 
     // Law Enforcement Portal URL
-    lawEnforcementPortalUrl: process.env.LAW_ENFORCEMENT_PORTAL_URL || 'https://le-portal.flamoral.com',
+    lawEnforcementPortalUrl:
+      process.env.LAW_ENFORCEMENT_PORTAL_URL || 'https://le-portal.flamoral.com',
   },
 
   // App URL for notifications

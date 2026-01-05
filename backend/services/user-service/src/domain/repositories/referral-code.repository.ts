@@ -1,9 +1,9 @@
+import db from '../../infrastructure/database/connection';
 import {
   ReferralCode,
   ReferralCodeCreateInput,
   ReferralCodeUpdateInput,
 } from '../entities/ReferralCode.entity';
-import db from '../../infrastructure/database/connection';
 
 export class ReferralCodeRepository {
   private tableName = 'referral_codes';
@@ -21,25 +21,19 @@ export class ReferralCodeRepository {
       updated_at: now,
     };
 
-    const [referralCode] = await db(this.tableName)
-      .insert(codeData)
-      .returning('*');
+    const [referralCode] = await db(this.tableName).insert(codeData).returning('*');
 
     return this.mapToEntity(referralCode);
   }
 
   async findById(id: string): Promise<ReferralCode | null> {
-    const referralCode = await db(this.tableName)
-      .where({ id })
-      .first();
+    const referralCode = await db(this.tableName).where({ id }).first();
 
     return referralCode ? this.mapToEntity(referralCode) : null;
   }
 
   async findByCode(code: string): Promise<ReferralCode | null> {
-    const referralCode = await db(this.tableName)
-      .where({ code: code.toUpperCase() })
-      .first();
+    const referralCode = await db(this.tableName).where({ code: code.toUpperCase() }).first();
 
     return referralCode ? this.mapToEntity(referralCode) : null;
   }
@@ -55,9 +49,8 @@ export class ReferralCodeRepository {
   async findActiveByUserId(userId: string): Promise<ReferralCode | null> {
     const referralCode = await db(this.tableName)
       .where({ user_id: userId, is_active: true })
-      .where(function() {
-        this.whereNull('expires_at')
-          .orWhere('expires_at', '>', new Date());
+      .where(function () {
+        this.whereNull('expires_at').orWhere('expires_at', '>', new Date());
       })
       .whereRaw('current_uses < max_uses')
       .orderBy('created_at', 'desc')
@@ -76,10 +69,7 @@ export class ReferralCodeRepository {
     if (input.expiresAt !== undefined) updateData.expires_at = input.expiresAt;
     if (input.isActive !== undefined) updateData.is_active = input.isActive;
 
-    const [referralCode] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [referralCode] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(referralCode);
   }
@@ -101,23 +91,16 @@ export class ReferralCodeRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async codeExists(code: string): Promise<boolean> {
-    const result = await db(this.tableName)
-      .where({ code: code.toUpperCase() })
-      .first();
+    const result = await db(this.tableName).where({ code: code.toUpperCase() }).first();
     return !!result;
   }
 
   async countByUserId(userId: string): Promise<number> {
-    const result = await db(this.tableName)
-      .where({ user_id: userId })
-      .count('id as count')
-      .first();
+    const result = await db(this.tableName).where({ user_id: userId }).count('id as count').first();
     return Number(result?.count || 0);
   }
 

@@ -3,18 +3,15 @@
  * Manages reminders for scheduled dates and sends notifications
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Container } from '@azure/cosmos';
 import axios from 'axios';
-import { createLogger } from '../../utils/logger';
-import cosmosClient from '../../infrastructure/database/cosmos-client';
+import { v4 as uuidv4 } from 'uuid';
+
 import config from '../../config';
 import { calendarConfig } from '../../config/calendar.config';
-import {
-  DateReminder,
-  ScheduledDate,
-  ReminderTiming,
-} from '../../types/calendar.types';
+import cosmosClient from '../../infrastructure/database/cosmos-client';
+import { DateReminder, ScheduledDate, ReminderTiming } from '../../types/calendar.types';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('date-reminder-service');
 
@@ -90,13 +87,13 @@ export class DateReminderService {
     logger.info(`Starting reminder processor with ${intervalMs}ms interval`);
 
     // Process reminders immediately on start
-    this.processReminders().catch(error => {
+    this.processReminders().catch((error) => {
       logger.error('Error in initial reminder processing:', error);
     });
 
     // Set up interval for continuous processing
     this.reminderCheckInterval = setInterval(() => {
-      this.processReminders().catch(error => {
+      this.processReminders().catch((error) => {
         logger.error('Error in reminder processing:', error);
       });
     }, intervalMs);
@@ -122,7 +119,8 @@ export class DateReminderService {
   ): Promise<DateReminder[]> {
     await this.ensureInitialized();
 
-    const reminderTimings = timings || calendarConfig.reminders.defaultTimings.map(t => t as ReminderTiming);
+    const reminderTimings =
+      timings || calendarConfig.reminders.defaultTimings.map((t) => t as ReminderTiming);
     const scheduledAt = new Date(scheduledDate.scheduledAt);
     const now = new Date();
     const createdReminders: DateReminder[] = [];
@@ -155,7 +153,7 @@ export class DateReminderService {
           createdAt: now,
         };
 
-        await this.remindersContainer!.items.create(reminder);
+        await this.remindersContainer.items.create(reminder);
         createdReminders.push(reminder);
 
         logger.info(`Created reminder ${reminder.id} for ${timing} minutes before date`);
@@ -164,9 +162,9 @@ export class DateReminderService {
 
     // Update scheduled date with reminder IDs
     if (createdReminders.length > 0) {
-      scheduledDate.reminderIds = createdReminders.map(r => r.id);
+      scheduledDate.reminderIds = createdReminders.map((r) => r.id);
       const participantIds = scheduledDate.participantIds.sort().join(',');
-      await this.scheduledDatesContainer!.items.upsert({
+      await this.scheduledDatesContainer.items.upsert({
         ...scheduledDate,
         participantIds,
       });
@@ -193,8 +191,11 @@ export class DateReminderService {
 
     query += ' ORDER BY c.reminderAt ASC';
 
-    const { resources } = await this.remindersContainer!.items
-      .query({ query, parameters })
+    const { resources } = await this.remindersContainer.items
+      .query({
+        query,
+        parameters,
+      })
       .fetchAll();
 
     return resources;
@@ -210,7 +211,7 @@ export class DateReminderService {
 
     for (const reminder of reminders) {
       try {
-        await this.remindersContainer!.item(reminder.id, scheduledDateId).delete();
+        await this.remindersContainer.item(reminder.id, scheduledDateId).delete();
       } catch (error) {
         logger.warn(`Failed to delete reminder ${reminder.id}:`, error);
       }
@@ -243,7 +244,7 @@ export class DateReminderService {
       ],
     };
 
-    const { resources: dueReminders } = await this.remindersContainer!.items.query(query).fetchAll();
+    const { resources: dueReminders } = await this.remindersContainer.items.query(query).fetchAll();
 
     if (dueReminders.length === 0) {
       return;
@@ -277,7 +278,9 @@ export class DateReminderService {
     // Get the scheduled date details
     const scheduledDate = await this.getScheduledDateById(reminder.scheduledDateId);
     if (!scheduledDate) {
-      logger.warn(`Scheduled date ${reminder.scheduledDateId} not found for reminder ${reminder.id}`);
+      logger.warn(
+        `Scheduled date ${reminder.scheduledDateId} not found for reminder ${reminder.id}`
+      );
       // Mark as sent to prevent retries
       await this.markReminderSent(reminder);
       return;
@@ -334,7 +337,7 @@ export class DateReminderService {
     reminder.sent = true;
     reminder.sentAt = new Date();
 
-    await this.remindersContainer!.items.upsert(reminder);
+    await this.remindersContainer.items.upsert(reminder);
   }
 
   /**
@@ -346,7 +349,7 @@ export class DateReminderService {
       parameters: [{ name: '@id', value: scheduledDateId }],
     };
 
-    const { resources } = await this.scheduledDatesContainer!.items.query(query).fetchAll();
+    const { resources } = await this.scheduledDatesContainer.items.query(query).fetchAll();
     return resources[0] || null;
   }
 
@@ -370,9 +373,12 @@ export class DateReminderService {
   /**
    * Send notification to notification service
    */
-  private async sendNotification(notification: DateReminderNotification): Promise<{ notificationId?: string } | null> {
+  private async sendNotification(
+    notification: DateReminderNotification
+  ): Promise<{ notificationId?: string } | null> {
     try {
-      const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005';
+      const notificationServiceUrl =
+        process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005';
       const serviceToken = config.serviceToken;
 
       const response = await axios.post(
@@ -435,7 +441,8 @@ export class DateReminderService {
     await this.ensureInitialized();
 
     // Validate timing
-    if (minutesBefore <= 0 || minutesBefore > 10080) { // Max 1 week
+    if (minutesBefore <= 0 || minutesBefore > 10080) {
+      // Max 1 week
       throw new Error('Invalid reminder timing');
     }
 
@@ -474,7 +481,7 @@ export class DateReminderService {
       createdAt: now,
     };
 
-    await this.remindersContainer!.items.create(reminder);
+    await this.remindersContainer.items.create(reminder);
     logger.info(`Created custom reminder ${reminder.id} for ${minutesBefore} minutes before date`);
 
     return reminder;
@@ -494,7 +501,7 @@ export class DateReminderService {
       ],
     };
 
-    const { resources } = await this.remindersContainer!.items.query(query).fetchAll();
+    const { resources } = await this.remindersContainer.items.query(query).fetchAll();
     const reminder = resources[0];
 
     if (!reminder) {
@@ -505,7 +512,7 @@ export class DateReminderService {
       throw new Error('You can only remove your own reminders');
     }
 
-    await this.remindersContainer!.item(reminderId, scheduledDateId).delete();
+    await this.remindersContainer.item(reminderId, scheduledDateId).delete();
     logger.info(`Deleted reminder ${reminderId}`);
   }
 
@@ -532,7 +539,7 @@ export class DateReminderService {
       ],
     };
 
-    const { resources } = await this.remindersContainer!.items.query(query).fetchAll();
+    const { resources } = await this.remindersContainer.items.query(query).fetchAll();
     return resources;
   }
 }

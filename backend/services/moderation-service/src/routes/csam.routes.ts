@@ -6,12 +6,13 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { createLogger } from '../utils/logger';
+
+import { authenticateService as serviceAuthMiddleware } from '../middleware/service-auth.middleware';
+import csamAuditService from '../services/csam-audit.service';
 import csamDetectionService from '../services/csam-detection.service';
 import csamQuarantineService from '../services/csam-quarantine.service';
 import ncmecReportingService from '../services/ncmec-reporting.service';
-import csamAuditService from '../services/csam-audit.service';
-import { authenticateService as serviceAuthMiddleware } from '../middleware/service-auth.middleware';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('csam-routes');
 const router = Router();
@@ -80,7 +81,6 @@ router.post('/detect', serviceAuthMiddleware, async (req: Request, res: Response
       quarantined: detectionResult.isCSAM,
       processingTimeMs: detectionResult.processingTimeMs,
     });
-
   } catch (error: any) {
     logger.error('CSAM detection endpoint failed', error);
 
@@ -96,45 +96,48 @@ router.post('/detect', serviceAuthMiddleware, async (req: Request, res: Response
  * Quarantine content for manual review (fallback for detection failures)
  * POST /api/csam/quarantine-for-review
  */
-router.post('/quarantine-for-review', serviceAuthMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { contentId, userId, imageData, reason, error } = req.body;
+router.post(
+  '/quarantine-for-review',
+  serviceAuthMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { contentId, userId, imageData, reason, error } = req.body;
 
-    if (!contentId || !userId) {
-      return res.status(400).json({
+      if (!contentId || !userId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: contentId, userId',
+        });
+      }
+
+      // Generate temporary URL
+      const imageUrl = `temp://${contentId}`;
+
+      // Quarantine for review
+      const quarantineRecord = await csamQuarantineService.quarantineContentForReview({
+        contentId,
+        userId,
+        imageUrl,
+        reason: reason || 'manual_review',
+        error,
+      });
+
+      res.json({
+        success: true,
+        quarantineId: quarantineRecord.id,
+        message: 'Content quarantined for manual review',
+      });
+    } catch (error: any) {
+      logger.error('Quarantine for review failed', error);
+
+      res.status(500).json({
         success: false,
-        error: 'Missing required fields: contentId, userId',
+        error: 'Failed to quarantine content',
+        message: error.message,
       });
     }
-
-    // Generate temporary URL
-    const imageUrl = `temp://${contentId}`;
-
-    // Quarantine for review
-    const quarantineRecord = await csamQuarantineService.quarantineContentForReview({
-      contentId,
-      userId,
-      imageUrl,
-      reason: reason || 'manual_review',
-      error,
-    });
-
-    res.json({
-      success: true,
-      quarantineId: quarantineRecord.id,
-      message: 'Content quarantined for manual review',
-    });
-
-  } catch (error: any) {
-    logger.error('Quarantine for review failed', error);
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to quarantine content',
-      message: error.message,
-    });
   }
-});
+);
 
 /**
  * Get detection statistics
@@ -159,7 +162,6 @@ router.get('/statistics', serviceAuthMiddleware, async (req: Request, res: Respo
       reports: reportStats,
       audit: auditStats,
     });
-
   } catch (error: any) {
     logger.error('Failed to get CSAM statistics', error);
 
@@ -175,34 +177,37 @@ router.get('/statistics', serviceAuthMiddleware, async (req: Request, res: Respo
  * Get quarantine record
  * GET /api/csam/quarantine/:quarantineId
  */
-router.get('/quarantine/:quarantineId', serviceAuthMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { quarantineId } = req.params;
+router.get(
+  '/quarantine/:quarantineId',
+  serviceAuthMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { quarantineId } = req.params;
 
-    const record = await csamQuarantineService.getQuarantineRecord(quarantineId);
+      const record = await csamQuarantineService.getQuarantineRecord(quarantineId);
 
-    if (!record) {
-      return res.status(404).json({
+      if (!record) {
+        return res.status(404).json({
+          success: false,
+          error: 'Quarantine record not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        record,
+      });
+    } catch (error: any) {
+      logger.error('Failed to get quarantine record', error);
+
+      res.status(500).json({
         success: false,
-        error: 'Quarantine record not found',
+        error: 'Failed to retrieve quarantine record',
+        message: error.message,
       });
     }
-
-    res.json({
-      success: true,
-      record,
-    });
-
-  } catch (error: any) {
-    logger.error('Failed to get quarantine record', error);
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve quarantine record',
-      message: error.message,
-    });
   }
-});
+);
 
 /**
  * List quarantined content (admin only)
@@ -233,7 +238,6 @@ router.get('/quarantine/list', serviceAuthMiddleware, async (req: Request, res: 
       count: records.length,
       records,
     });
-
   } catch (error: any) {
     logger.error('Failed to list quarantined content', error);
 
@@ -266,7 +270,6 @@ router.get('/reports/:reportId', serviceAuthMiddleware, async (req: Request, res
       success: true,
       report,
     });
-
   } catch (error: any) {
     logger.error('Failed to get NCMEC report', error);
 
@@ -321,7 +324,6 @@ router.get('/audit/logs', serviceAuthMiddleware, async (req: Request, res: Respo
       count: logs.length,
       logs,
     });
-
   } catch (error: any) {
     logger.error('Failed to get audit logs', error);
 
@@ -357,7 +359,6 @@ router.post('/audit/verify', serviceAuthMiddleware, async (req: Request, res: Re
       success: true,
       verification: result,
     });
-
   } catch (error: any) {
     logger.error('Audit chain verification failed', error);
 
@@ -373,51 +374,54 @@ router.post('/audit/verify', serviceAuthMiddleware, async (req: Request, res: Re
  * Grant law enforcement access
  * POST /api/csam/quarantine/:quarantineId/grant-access
  */
-router.post('/quarantine/:quarantineId/grant-access', serviceAuthMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { quarantineId } = req.params;
-    const { officerId, agency, caseNumber, warrant } = req.body;
+router.post(
+  '/quarantine/:quarantineId/grant-access',
+  serviceAuthMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { quarantineId } = req.params;
+      const { officerId, agency, caseNumber, warrant } = req.body;
 
-    if (!officerId || !agency || !caseNumber) {
-      return res.status(400).json({
+      if (!officerId || !agency || !caseNumber) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: officerId, agency, caseNumber',
+        });
+      }
+
+      const access = await csamQuarantineService.grantLawEnforcementAccess(
+        quarantineId,
+        officerId,
+        agency,
+        caseNumber,
+        warrant
+      );
+
+      // Log law enforcement access
+      await csamAuditService.logLawEnforcementAccess({
+        quarantineId,
+        officerId,
+        agency,
+        caseNumber,
+        accessType: 'granted',
+      });
+
+      res.json({
+        success: true,
+        accessToken: access.accessToken,
+        expiresAt: access.expiresAt,
+      });
+    } catch (error: any) {
+      logger.error('Failed to grant law enforcement access', error);
+
+      res.status(500).json({
         success: false,
-        error: 'Missing required fields: officerId, agency, caseNumber',
+        error: 'Failed to grant access',
+        message: error.message,
       });
     }
-
-    const access = await csamQuarantineService.grantLawEnforcementAccess(
-      quarantineId,
-      officerId,
-      agency,
-      caseNumber,
-      warrant
-    );
-
-    // Log law enforcement access
-    await csamAuditService.logLawEnforcementAccess({
-      quarantineId,
-      officerId,
-      agency,
-      caseNumber,
-      accessType: 'granted',
-    });
-
-    res.json({
-      success: true,
-      accessToken: access.accessToken,
-      expiresAt: access.expiresAt,
-    });
-
-  } catch (error: any) {
-    logger.error('Failed to grant law enforcement access', error);
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to grant access',
-      message: error.message,
-    });
   }
-});
+);
 
 /**
  * Configuration status
@@ -438,7 +442,6 @@ router.get('/config/status', serviceAuthMiddleware, async (req: Request, res: Re
         errors: configValidation.errors,
       },
     });
-
   } catch (error: any) {
     logger.error('Failed to get config status', error);
 

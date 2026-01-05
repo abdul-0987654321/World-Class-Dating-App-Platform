@@ -47,7 +47,15 @@ export interface CreativeModification {
 
 export interface SceneVariant {
   variant_id: string;
-  scene_type: 'coffee_date' | 'dinner' | 'outdoor_adventure' | 'concert' | 'travel' | 'home_cooking' | 'fitness' | 'cultural';
+  scene_type:
+    | 'coffee_date'
+    | 'dinner'
+    | 'outdoor_adventure'
+    | 'concert'
+    | 'travel'
+    | 'home_cooking'
+    | 'fitness'
+    | 'cultural';
   target_interests: string[];
   assets: CreativeAsset[];
   copy: CopyVariant;
@@ -150,7 +158,12 @@ export interface PhotoAsset {
 }
 
 export interface PhotoEnhancement {
-  enhancement_type: 'lighting' | 'color_correction' | 'background_blur' | 'crop_optimize' | 'filter_apply';
+  enhancement_type:
+    | 'lighting'
+    | 'color_correction'
+    | 'background_blur'
+    | 'crop_optimize'
+    | 'filter_apply';
   parameters: Record<string, any>;
   ai_model_version: string;
 }
@@ -165,11 +178,14 @@ export interface EnhancedPhoto {
 
 export interface PhotoTestResult {
   winning_version: string;
-  performance_by_version: Record<string, {
-    impressions: number;
-    engagement_rate: number;
-    confidence: number;
-  }>;
+  performance_by_version: Record<
+    string,
+    {
+      impressions: number;
+      engagement_rate: number;
+      confidence: number;
+    }
+  >;
 }
 
 // Feature 4: Personalized Success Story Generation

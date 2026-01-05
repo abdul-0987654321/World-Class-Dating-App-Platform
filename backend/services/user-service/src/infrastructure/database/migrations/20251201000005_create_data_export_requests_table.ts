@@ -4,13 +4,9 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('data_export_requests', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
-    table.enum('status', [
-      'pending',
-      'processing',
-      'completed',
-      'failed',
-      'expired',
-    ]).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'processing', 'completed', 'failed', 'expired'])
+      .defaultTo('pending');
     table.enum('format', ['json', 'zip']).defaultTo('json');
     table.text('export_url'); // Temporary URL to download the export
     table.timestamp('url_expires_at'); // When the download URL expires

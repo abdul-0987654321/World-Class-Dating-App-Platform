@@ -1,10 +1,10 @@
-import { UserRepository } from '../repositories/user.repository';
-import { VerificationTokenRepository } from '../repositories/verification-token.repository';
+import emailService from '../../infrastructure/email/email.service';
 import { hashPassword } from '../../utils/encryption';
 import jwtUtils from '../../utils/jwt';
-import emailService from '../../infrastructure/email/email.service';
 import logger from '../../utils/logger';
 import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validation';
+import { UserRepository } from '../repositories/user.repository';
+import { VerificationTokenRepository } from '../repositories/verification-token.repository';
 
 export class PasswordResetService {
   private userRepository: UserRepository;

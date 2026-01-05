@@ -39,7 +39,7 @@ export async function up(knex: Knex): Promise<void> {
     },
     {
       id: knex.raw('gen_random_uuid()'),
-      question: "The way to win me over is...",
+      question: 'The way to win me over is...',
       category: 'personality',
       is_active: true,
       display_order: 4,

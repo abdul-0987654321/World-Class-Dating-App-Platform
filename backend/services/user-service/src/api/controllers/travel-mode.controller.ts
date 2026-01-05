@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { createLogger } from '../../utils/logger';
-import { TravelModeService } from '../../domain/services/travel-mode.service';
 import { Knex } from 'knex';
+
+import { TravelModeService } from '../../domain/services/travel-mode.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('TravelModeController');
 
@@ -71,24 +72,21 @@ export class TravelModeController {
         return;
       }
 
-      const destination = await this.travelModeService.createTravelDestination(
-        userId,
-        {
-          city,
-          state,
-          country,
-          country_code,
-          airport_code,
-          latitude,
-          longitude,
-          timezone,
-          start_date: new Date(start_date),
-          end_date: new Date(end_date),
-          show_on_profile,
-          match_before_arrival,
-          travel_notes,
-        }
-      );
+      const destination = await this.travelModeService.createTravelDestination(userId, {
+        city,
+        state,
+        country,
+        country_code,
+        airport_code,
+        latitude,
+        longitude,
+        timezone,
+        start_date: new Date(start_date),
+        end_date: new Date(end_date),
+        show_on_profile,
+        match_before_arrival,
+        travel_notes,
+      });
 
       res.status(201).json(destination);
     } catch (error: any) {
@@ -144,27 +142,17 @@ export class TravelModeController {
         return;
       }
 
-      const {
-        start_date,
-        end_date,
+      const { start_date, end_date, show_on_profile, match_before_arrival, travel_notes, status } =
+        req.body;
+
+      const updated = await this.travelModeService.updateTravelDestination(destinationId, userId, {
+        start_date: start_date ? new Date(start_date) : undefined,
+        end_date: end_date ? new Date(end_date) : undefined,
         show_on_profile,
         match_before_arrival,
         travel_notes,
         status,
-      } = req.body;
-
-      const updated = await this.travelModeService.updateTravelDestination(
-        destinationId,
-        userId,
-        {
-          start_date: start_date ? new Date(start_date) : undefined,
-          end_date: end_date ? new Date(end_date) : undefined,
-          show_on_profile,
-          match_before_arrival,
-          travel_notes,
-          status,
-        }
-      );
+      });
 
       res.json(updated);
     } catch (error: any) {
@@ -363,17 +351,14 @@ export class TravelModeController {
         budget_currency,
       } = req.body;
 
-      const preferences = await this.travelModeService.updateTravelBuddyPreferences(
-        userId,
-        {
-          looking_for_travel_buddy,
-          travel_style,
-          preferred_activities,
-          budget_range_min,
-          budget_range_max,
-          budget_currency,
-        }
-      );
+      const preferences = await this.travelModeService.updateTravelBuddyPreferences(userId, {
+        looking_for_travel_buddy,
+        travel_style,
+        preferred_activities,
+        budget_range_min,
+        budget_range_max,
+        budget_currency,
+      });
 
       res.json(preferences);
     } catch (error) {

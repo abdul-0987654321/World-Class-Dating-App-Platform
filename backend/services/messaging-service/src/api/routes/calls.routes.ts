@@ -4,8 +4,7 @@
  */
 
 import { Router } from 'express';
-import { callsController } from '../controllers/calls.controller';
-import { authenticate } from '../middleware/auth.middleware';
+
 import {
   validateBody,
   validateQuery,
@@ -15,6 +14,8 @@ import {
   EndCallDto,
   CallHistoryQueryDto,
 } from '../../dto';
+import { callsController } from '../controllers/calls.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -27,7 +28,11 @@ router.use(authenticate);
  *
  * Body: { calleeId: string, callType: 'video' | 'audio' }
  */
-router.post('/request', validateBody(RequestCallDto), callsController.requestCall.bind(callsController));
+router.post(
+  '/request',
+  validateBody(RequestCallDto),
+  callsController.requestCall.bind(callsController)
+);
 
 /**
  * POST /api/v1/calls/accept
@@ -35,7 +40,11 @@ router.post('/request', validateBody(RequestCallDto), callsController.requestCal
  *
  * Body: { callId: string }
  */
-router.post('/accept', validateBody(AcceptCallDto), callsController.acceptCall.bind(callsController));
+router.post(
+  '/accept',
+  validateBody(AcceptCallDto),
+  callsController.acceptCall.bind(callsController)
+);
 
 /**
  * POST /api/v1/calls/reject
@@ -43,7 +52,11 @@ router.post('/accept', validateBody(AcceptCallDto), callsController.acceptCall.b
  *
  * Body: { callId: string, reason?: string }
  */
-router.post('/reject', validateBody(RejectCallDto), callsController.rejectCall.bind(callsController));
+router.post(
+  '/reject',
+  validateBody(RejectCallDto),
+  callsController.rejectCall.bind(callsController)
+);
 
 /**
  * POST /api/v1/calls/end
@@ -59,7 +72,11 @@ router.post('/end', validateBody(EndCallDto), callsController.endCall.bind(calls
  *
  * Query: limit?, offset?
  */
-router.get('/history', validateQuery(CallHistoryQueryDto), callsController.getCallHistory.bind(callsController));
+router.get(
+  '/history',
+  validateQuery(CallHistoryQueryDto),
+  callsController.getCallHistory.bind(callsController)
+);
 
 /**
  * GET /api/v1/calls/availability/:userId

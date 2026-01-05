@@ -7,15 +7,17 @@ export async function up(knex: Knex): Promise<void> {
     table.string('key').notNullable().unique().comment('Unique identifier for achievement');
     table.string('name').notNullable();
     table.text('description').notNullable();
-    table.enum('category', [
-      'profile',
-      'social',
-      'activity',
-      'premium',
-      'milestone',
-      'special',
-      'hidden'
-    ]).notNullable();
+    table
+      .enum('category', [
+        'profile',
+        'social',
+        'activity',
+        'premium',
+        'milestone',
+        'special',
+        'hidden',
+      ])
+      .notNullable();
     table.enum('tier', ['bronze', 'silver', 'gold', 'platinum', 'diamond']).defaultTo('bronze');
     table.integer('points').defaultTo(0).comment('Points awarded for achievement');
     table.integer('coin_reward').defaultTo(0).comment('Coins awarded for achievement');
@@ -41,7 +43,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_achievements', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('achievement_id').notNullable().references('id').inTable('achievement_definitions').onDelete('CASCADE');
+    table
+      .uuid('achievement_id')
+      .notNullable()
+      .references('id')
+      .inTable('achievement_definitions')
+      .onDelete('CASCADE');
     table.integer('progress').defaultTo(0).comment('Current progress toward achievement');
     table.integer('target').comment('Target value needed');
     table.float('progress_percentage').defaultTo(0);
@@ -66,7 +73,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('achievement_progress_logs', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('achievement_id').notNullable().references('id').inTable('achievement_definitions').onDelete('CASCADE');
+    table
+      .uuid('achievement_id')
+      .notNullable()
+      .references('id')
+      .inTable('achievement_definitions')
+      .onDelete('CASCADE');
     table.string('action_type').notNullable().comment('Type of action that triggered progress');
     table.integer('progress_increment').defaultTo(1);
     table.integer('progress_after').notNullable();
@@ -82,7 +94,13 @@ export async function up(knex: Knex): Promise<void> {
   // User achievement stats table
   await knex.schema.createTable('user_achievement_stats', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    table
+      .uuid('user_id')
+      .notNullable()
+      .unique()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
     table.integer('total_achievements').defaultTo(0);
     table.integer('total_points').defaultTo(0);
     table.integer('bronze_count').defaultTo(0);

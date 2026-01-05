@@ -4,6 +4,7 @@
  */
 
 import { google } from 'googleapis';
+
 import logger from '../../utils/logger';
 
 export interface GooglePlayReceipt {
@@ -242,10 +243,7 @@ export class GooglePlayService {
   /**
    * Acknowledge purchase (required by Google Play)
    */
-  async acknowledgePurchase(
-    productId: string,
-    purchaseToken: string
-  ): Promise<void> {
+  async acknowledgePurchase(productId: string, purchaseToken: string): Promise<void> {
     try {
       await this.initialize();
 
@@ -270,10 +268,7 @@ export class GooglePlayService {
   /**
    * Acknowledge subscription
    */
-  async acknowledgeSubscription(
-    subscriptionId: string,
-    purchaseToken: string
-  ): Promise<void> {
+  async acknowledgeSubscription(subscriptionId: string, purchaseToken: string): Promise<void> {
     try {
       await this.initialize();
 
@@ -298,10 +293,7 @@ export class GooglePlayService {
   /**
    * Cancel subscription
    */
-  async cancelSubscription(
-    subscriptionId: string,
-    purchaseToken: string
-  ): Promise<void> {
+  async cancelSubscription(subscriptionId: string, purchaseToken: string): Promise<void> {
     try {
       await this.initialize();
 
@@ -325,10 +317,7 @@ export class GooglePlayService {
   /**
    * Refund subscription
    */
-  async refundSubscription(
-    subscriptionId: string,
-    purchaseToken: string
-  ): Promise<void> {
+  async refundSubscription(subscriptionId: string, purchaseToken: string): Promise<void> {
     try {
       await this.initialize();
 
@@ -352,10 +341,7 @@ export class GooglePlayService {
   /**
    * Revoke subscription
    */
-  async revokeSubscription(
-    subscriptionId: string,
-    purchaseToken: string
-  ): Promise<void> {
+  async revokeSubscription(subscriptionId: string, purchaseToken: string): Promise<void> {
     try {
       await this.initialize();
 
@@ -381,12 +367,12 @@ export class GooglePlayService {
    */
   mapProductIdToTier(productId: string): string {
     const tierMap: Record<string, string> = {
-      'gold_monthly': 'gold',
-      'gold_yearly': 'gold',
-      'platinum_monthly': 'platinum',
-      'platinum_yearly': 'platinum',
-      'diamond_monthly': 'diamond',
-      'diamond_yearly': 'diamond',
+      gold_monthly: 'gold',
+      gold_yearly: 'gold',
+      platinum_monthly: 'platinum',
+      platinum_yearly: 'platinum',
+      diamond_monthly: 'diamond',
+      diamond_yearly: 'diamond',
     };
 
     return tierMap[productId] || 'free';

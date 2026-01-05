@@ -1,7 +1,11 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
+import {
+  DATE_FRIENDLY_CATEGORIES,
+  DATE_FRIENDLY_KEYWORDS,
+} from '../../domain/entities/Event.entity';
 import { EventSearchParams, EventCategory, Venue, Address } from '../../types';
-import { DATE_FRIENDLY_CATEGORIES, DATE_FRIENDLY_KEYWORDS } from '../../domain/entities/Event.entity';
 
 const logger = createLogger('ticketmaster-client');
 
@@ -95,13 +99,13 @@ interface TmVenue {
 
 // Category mapping from Ticketmaster to our categories
 const CATEGORY_MAP: Record<string, EventCategory> = {
-  'Music': 'concerts',
-  'Sports': 'sports',
+  Music: 'concerts',
+  Sports: 'sports',
   'Arts & Theatre': 'theater',
-  'Film': 'experiences',
-  'Miscellaneous': 'experiences',
-  'Comedy': 'comedy',
-  'Family': 'experiences',
+  Film: 'experiences',
+  Miscellaneous: 'experiences',
+  Comedy: 'comedy',
+  Family: 'experiences',
 };
 
 export class TicketmasterClient {
@@ -170,9 +174,9 @@ export class TicketmasterClient {
       }
 
       if (params.category && params.category.length > 0) {
-        queryParams.classificationName = params.category.map(c =>
-          this.getCategoryName(c)
-        ).join(',');
+        queryParams.classificationName = params.category
+          .map((c) => this.getCategoryName(c))
+          .join(',');
       }
 
       if (params.keyword) {
@@ -218,7 +222,7 @@ export class TicketmasterClient {
    */
   async getEventInventory(eventId: string): Promise<{
     available: boolean;
-    ticketTypes: any[]
+    ticketTypes: any[];
   }> {
     try {
       // Note: Ticketmaster's inventory API requires special access
@@ -227,14 +231,16 @@ export class TicketmasterClient {
 
       return {
         available: !event.isSoldOut,
-        ticketTypes: event.priceRange ? [
-          {
-            type: 'General Admission',
-            minPrice: event.priceRange.min,
-            maxPrice: event.priceRange.max,
-            currency: event.priceRange.currency,
-          }
-        ] : [],
+        ticketTypes: event.priceRange
+          ? [
+              {
+                type: 'General Admission',
+                minPrice: event.priceRange.min,
+                maxPrice: event.priceRange.max,
+                currency: event.priceRange.currency,
+              },
+            ]
+          : [],
       };
     } catch (error: any) {
       logger.error('Failed to get event inventory', { eventId, error: error.message });
@@ -260,7 +266,7 @@ export class TicketmasterClient {
    */
   private transformEvent(event: TmEvent): any {
     const venue = event._embedded?.venues?.[0];
-    const classification = event.classifications?.find(c => c.primary);
+    const classification = event.classifications?.find((c) => c.primary);
     const category = this.mapCategory(classification?.segment?.name || 'Miscellaneous');
 
     const priceRange = event.priceRanges?.[0] || { min: 0, max: 0, currency: 'USD' };
@@ -274,7 +280,7 @@ export class TicketmasterClient {
       venue: venue ? this.transformVenue(venue) : null,
       startDateTime: new Date(event.dates.start.dateTime),
       endDateTime: event.dates.end?.dateTime ? new Date(event.dates.end.dateTime) : null,
-      imageUrls: event.images?.map(img => img.url) || [],
+      imageUrls: event.images?.map((img) => img.url) || [],
       priceRange: {
         min: priceRange.min,
         max: priceRange.max,
@@ -347,9 +353,7 @@ export class TicketmasterClient {
 
     // Keyword-based check
     const searchText = `${event.name} ${event.info || ''}`.toLowerCase();
-    return DATE_FRIENDLY_KEYWORDS.some(keyword =>
-      searchText.includes(keyword.toLowerCase())
-    );
+    return DATE_FRIENDLY_KEYWORDS.some((keyword) => searchText.includes(keyword.toLowerCase()));
   }
 
   /**

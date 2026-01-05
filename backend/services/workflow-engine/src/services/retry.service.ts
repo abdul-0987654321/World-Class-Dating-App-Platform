@@ -10,11 +10,9 @@ export class RetryService {
 
   constructor(private readonly configService: ConfigService) {
     this.maxAttempts = this.configService.get<number>('retry.maxAttempts') || 3;
-    this.initialDelay =
-      this.configService.get<number>('retry.initialDelay') || 1000;
+    this.initialDelay = this.configService.get<number>('retry.initialDelay') || 1000;
     this.maxDelay = this.configService.get<number>('retry.maxDelay') || 30000;
-    this.backoffFactor =
-      this.configService.get<number>('retry.backoffFactor') || 2;
+    this.backoffFactor = this.configService.get<number>('retry.backoffFactor') || 2;
   }
 
   /**
@@ -30,7 +28,7 @@ export class RetryService {
   getRetryDelay(attempt: number): number {
     const delay = Math.min(
       this.initialDelay * Math.pow(this.backoffFactor, attempt),
-      this.maxDelay,
+      this.maxDelay
     );
 
     // Add jitter to prevent thundering herd
@@ -41,10 +39,7 @@ export class RetryService {
   /**
    * Execute function with retry logic
    */
-  async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    attempt: number = 0,
-  ): Promise<T> {
+  async executeWithRetry<T>(fn: () => Promise<T>, attempt: number = 0): Promise<T> {
     try {
       return await fn();
     } catch (error) {

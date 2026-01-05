@@ -1,8 +1,10 @@
-import ffmpeg from 'fluent-ffmpeg';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+
 import { createLogger } from '@flamoral/backend-shared';
+import ffmpeg from 'fluent-ffmpeg';
+import { v4 as uuidv4 } from 'uuid';
+
 import config from '../../config';
 
 const logger = createLogger('audio-processing-service');
@@ -40,7 +42,14 @@ export interface WaveformData {
 export class AudioProcessingService {
   private readonly MAX_AUDIO_DURATION = 60; // 60 seconds for voice notes
   private readonly MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
-  private readonly ALLOWED_AUDIO_FORMATS = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac'];
+  private readonly ALLOWED_AUDIO_FORMATS = [
+    'audio/mp3',
+    'audio/mpeg',
+    'audio/wav',
+    'audio/ogg',
+    'audio/m4a',
+    'audio/aac',
+  ];
   private readonly TEMP_DIR = path.join(__dirname, '../../../temp/audio');
 
   constructor() {
@@ -58,7 +67,11 @@ export class AudioProcessingService {
   /**
    * Validate audio file
    */
-  async validateAudio(buffer: Buffer, mimeType: string, originalName: string): Promise<AudioValidationResult> {
+  async validateAudio(
+    buffer: Buffer,
+    mimeType: string,
+    originalName: string
+  ): Promise<AudioValidationResult> {
     try {
       logger.info(`Validating audio: ${originalName}`);
 
@@ -165,8 +178,12 @@ export class AudioProcessingService {
 
         resolve({
           duration: metadata.format.duration || 0,
-          bitrate: metadata.format.bit_rate ? parseInt(metadata.format.bit_rate.toString()) : undefined,
-          sampleRate: audioStream.sample_rate ? parseInt(audioStream.sample_rate.toString()) : undefined,
+          bitrate: metadata.format.bit_rate
+            ? parseInt(metadata.format.bit_rate.toString())
+            : undefined,
+          sampleRate: audioStream.sample_rate
+            ? parseInt(audioStream.sample_rate.toString())
+            : undefined,
           channels: audioStream.channels,
           codec: audioStream.codec_name,
           size: 0, // Will be set by caller
@@ -213,8 +230,8 @@ export class AudioProcessingService {
 
       logger.info(
         `Audio compression complete. Original: ${(originalSize / 1024).toFixed(2)}KB, ` +
-        `Compressed: ${(compressedSize / 1024).toFixed(2)}KB, ` +
-        `Ratio: ${compressionRatio.toFixed(2)}%`
+          `Compressed: ${(compressedSize / 1024).toFixed(2)}KB, ` +
+          `Ratio: ${compressionRatio.toFixed(2)}%`
       );
 
       return compressedBuffer;
@@ -242,7 +259,11 @@ export class AudioProcessingService {
   /**
    * Compress audio file using ffmpeg
    */
-  private compressAudioFile(inputPath: string, outputPath: string, options: AudioCompressionOptions): Promise<void> {
+  private compressAudioFile(
+    inputPath: string,
+    outputPath: string,
+    options: AudioCompressionOptions
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       let command = ffmpeg(inputPath);
 
@@ -306,7 +327,11 @@ export class AudioProcessingService {
       const metadata = await this.probeAudioFile(tempInputPath);
 
       // Extract raw audio data and generate waveform
-      const waveformData = await this.extractWaveformData(tempInputPath, samples, metadata.duration);
+      const waveformData = await this.extractWaveformData(
+        tempInputPath,
+        samples,
+        metadata.duration
+      );
 
       logger.info('Waveform generated successfully');
       return waveformData;
@@ -334,7 +359,11 @@ export class AudioProcessingService {
   /**
    * Extract waveform data from audio file
    */
-  private async extractWaveformData(filePath: string, sampleCount: number, duration: number): Promise<WaveformData> {
+  private async extractWaveformData(
+    filePath: string,
+    sampleCount: number,
+    duration: number
+  ): Promise<WaveformData> {
     const pcmPath = path.join(this.TEMP_DIR, `pcm-${uuidv4()}.raw`);
 
     try {
@@ -436,11 +465,11 @@ export class AudioProcessingService {
       await fs.writeFile(tempInputPath, buffer);
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .audioFilters(`loudnorm=I=${targetLevel}:TP=-1.5:LRA=11`)
           .audioCodec('libmp3lame')
           .audioBitrate('128k')
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();
@@ -461,7 +490,11 @@ export class AudioProcessingService {
   /**
    * Remove silence from beginning and end of audio
    */
-  async trimSilence(buffer: Buffer, threshold: string = '-50dB', duration: number = 0.5): Promise<Buffer> {
+  async trimSilence(
+    buffer: Buffer,
+    threshold: string = '-50dB',
+    duration: number = 0.5
+  ): Promise<Buffer> {
     let tempInputPath: string | null = null;
     let tempOutputPath: string | null = null;
 
@@ -475,7 +508,7 @@ export class AudioProcessingService {
       await fs.writeFile(tempInputPath, buffer);
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .audioFilters([
             `silenceremove=start_periods=1:start_threshold=${threshold}:start_duration=${duration}`,
             `areverse`,
@@ -484,7 +517,7 @@ export class AudioProcessingService {
           ])
           .audioCodec('libmp3lame')
           .audioBitrate('128k')
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();
@@ -519,14 +552,14 @@ export class AudioProcessingService {
       await fs.writeFile(tempInputPath, buffer);
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .audioFilters([
             'highpass=f=200', // Remove low-frequency rumble
             'lowpass=f=3000', // Remove high-frequency hiss (suitable for voice)
           ])
           .audioCodec('libmp3lame')
           .audioBitrate('128k')
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();
@@ -594,7 +627,10 @@ export class AudioProcessingService {
   /**
    * Convert audio to different format
    */
-  async convertFormat(buffer: Buffer, targetFormat: 'mp3' | 'ogg' | 'wav' | 'm4a'): Promise<Buffer> {
+  async convertFormat(
+    buffer: Buffer,
+    targetFormat: 'mp3' | 'ogg' | 'wav' | 'm4a'
+  ): Promise<Buffer> {
     let tempInputPath: string | null = null;
     let tempOutputPath: string | null = null;
 
@@ -615,10 +651,10 @@ export class AudioProcessingService {
       };
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .audioCodec(codecMap[targetFormat])
           .format(targetFormat)
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();

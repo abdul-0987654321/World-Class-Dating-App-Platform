@@ -1,7 +1,8 @@
 import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
 import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
-import db from '../database';
 import { v4 as uuidv4 } from 'uuid';
+
+import db from '../database';
 import { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
 import logger from '../utils/logger';
 
@@ -13,13 +14,8 @@ export class PhotoVerificationService {
   private visionClient: ComputerVisionClient;
 
   constructor() {
-    const credentials = new CognitiveServicesCredentials(
-      process.env.AZURE_CV_KEY!
-    );
-    this.visionClient = new ComputerVisionClient(
-      credentials,
-      process.env.AZURE_CV_ENDPOINT!
-    );
+    const credentials = new CognitiveServicesCredentials(process.env.AZURE_CV_KEY);
+    this.visionClient = new ComputerVisionClient(credentials, process.env.AZURE_CV_ENDPOINT);
   }
 
   /**
@@ -94,10 +90,7 @@ export class PhotoVerificationService {
       let matchedPhotoUrl = '';
 
       for (const photo of profilePhotos) {
-        const comparison = await this.compareFaces(
-          selfieFaceAnalysis.faceId,
-          photo.url
-        );
+        const comparison = await this.compareFaces(selfieFaceAnalysis.faceId, photo.url);
 
         if (comparison.success && comparison.isIdentical) {
           matchFound = true;
@@ -130,12 +123,10 @@ export class PhotoVerificationService {
 
       // If auto-approved, update user verification status
       if (autoApproved) {
-        await db('users')
-          .where({ id: userId })
-          .update({
-            is_verified: true,
-            verified_at: new Date(),
-          });
+        await db('users').where({ id: userId }).update({
+          is_verified: true,
+          verified_at: new Date(),
+        });
 
         logger.info(`User ${userId} photo verification auto-approved`, {
           verificationId,
@@ -288,10 +279,7 @@ export class PhotoVerificationService {
     error?: string;
   }> {
     try {
-      const user = await db('users')
-        .where({ id: userId })
-        .select('is_verified')
-        .first();
+      const user = await db('users').where({ id: userId }).select('is_verified').first();
 
       if (!user) {
         return {
@@ -361,9 +349,7 @@ export class PhotoVerificationService {
     error?: string;
   }> {
     try {
-      const verification = await db('photo_verifications')
-        .where({ id: verificationId })
-        .first();
+      const verification = await db('photo_verifications').where({ id: verificationId }).first();
 
       if (!verification) {
         return {
@@ -380,25 +366,19 @@ export class PhotoVerificationService {
       }
 
       // Update verification status
-      await db('photo_verifications')
-        .where({ id: verificationId })
-        .update({
-          status: 'approved',
-          reviewed_by: reviewedBy,
-          reviewed_at: new Date(),
-        });
+      await db('photo_verifications').where({ id: verificationId }).update({
+        status: 'approved',
+        reviewed_by: reviewedBy,
+        reviewed_at: new Date(),
+      });
 
       // Update user verification status
-      await db('users')
-        .where({ id: verification.user_id })
-        .update({
-          is_verified: true,
-          verified_at: new Date(),
-        });
+      await db('users').where({ id: verification.user_id }).update({
+        is_verified: true,
+        verified_at: new Date(),
+      });
 
-      logger.info(
-        `Verification ${verificationId} approved by admin ${reviewedBy}`
-      );
+      logger.info(`Verification ${verificationId} approved by admin ${reviewedBy}`);
 
       return {
         success: true,
@@ -434,9 +414,7 @@ export class PhotoVerificationService {
     error?: string;
   }> {
     try {
-      const verification = await db('photo_verifications')
-        .where({ id: verificationId })
-        .first();
+      const verification = await db('photo_verifications').where({ id: verificationId }).first();
 
       if (!verification) {
         return {
@@ -453,19 +431,14 @@ export class PhotoVerificationService {
       }
 
       // Update verification status
-      await db('photo_verifications')
-        .where({ id: verificationId })
-        .update({
-          status: 'rejected',
-          reviewed_by: reviewedBy,
-          reviewed_at: new Date(),
-          rejection_reason: reason,
-        });
+      await db('photo_verifications').where({ id: verificationId }).update({
+        status: 'rejected',
+        reviewed_by: reviewedBy,
+        reviewed_at: new Date(),
+        rejection_reason: reason,
+      });
 
-      logger.info(
-        `Verification ${verificationId} rejected by admin ${reviewedBy}`,
-        { reason }
-      );
+      logger.info(`Verification ${verificationId} rejected by admin ${reviewedBy}`, { reason });
 
       return {
         success: true,
@@ -495,12 +468,7 @@ export class PhotoVerificationService {
       const verifications = await db('photo_verifications')
         .where({ status: 'pending' })
         .join('users', 'photo_verifications.user_id', 'users.id')
-        .select(
-          'photo_verifications.*',
-          'users.email',
-          'users.first_name',
-          'users.last_name'
-        )
+        .select('photo_verifications.*', 'users.email', 'users.first_name', 'users.last_name')
         .orderBy('photo_verifications.submitted_at', 'asc')
         .limit(limit)
         .offset(offset);

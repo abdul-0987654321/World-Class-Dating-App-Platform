@@ -1,7 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware';
-import { conversationController } from '../controllers/conversation.controller';
-import { conversationTypingController } from '../controllers/conversation-typing.controller';
+
 import {
   validateBody,
   validateQuery,
@@ -9,6 +7,9 @@ import {
   ConversationPaginationDto,
   TypingIndicatorDto,
 } from '../../dto';
+import { conversationTypingController } from '../controllers/conversation-typing.controller';
+import { conversationController } from '../controllers/conversation.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 

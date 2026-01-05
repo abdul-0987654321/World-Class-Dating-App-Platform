@@ -4,10 +4,11 @@
  * Premium feature for profile analytics
  */
 
-import { Knex } from 'knex';
-import db from '../../infrastructure/database/connection';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
+
 import userServiceClient from '../../infrastructure/clients/user-service.client';
+import db from '../../infrastructure/database/connection';
 
 const logger = createLogger('profile-insights-service');
 
@@ -155,13 +156,13 @@ export class ProfileInsightsService {
       const peakHours = await this.getPeakHours(userId, dateFilter);
 
       // Calculate conversion rates
-      const conversionRate = viewStats.totalViews > 0
-        ? (engagementStats.likesReceived / viewStats.totalViews) * 100
-        : 0;
+      const conversionRate =
+        viewStats.totalViews > 0 ? (engagementStats.likesReceived / viewStats.totalViews) * 100 : 0;
 
-      const matchRate = engagementStats.likesReceived > 0
-        ? (engagementStats.matches / engagementStats.likesReceived) * 100
-        : 0;
+      const matchRate =
+        engagementStats.likesReceived > 0
+          ? (engagementStats.matches / engagementStats.likesReceived) * 100
+          : 0;
 
       return {
         userId,
@@ -198,17 +199,13 @@ export class ProfileInsightsService {
       const { limit = 20, offset = 0, period = 'week' } = options || {};
       const dateFilter = this.getDateFilter(period as any);
 
-      let query = this.db('profile_views')
-        .where('viewed_user_id', userId);
+      let query = this.db('profile_views').where('viewed_user_id', userId);
 
       if (dateFilter) {
         query = query.where('viewed_at', '>=', dateFilter);
       }
 
-      const views = await query
-        .orderBy('viewed_at', 'desc')
-        .limit(limit)
-        .offset(offset);
+      const views = await query.orderBy('viewed_at', 'desc').limit(limit).offset(offset);
 
       return views.map(this.mapToProfileView);
     } catch (error) {
@@ -235,7 +232,7 @@ export class ProfileInsightsService {
       if (unmatchedOnly) {
         // Exclude users who are already matched
         const matchedUserIds = await this.db('matches')
-          .where(function() {
+          .where(function () {
             this.where('user1_id', userId).orWhere('user2_id', userId);
           })
           .where('status', 'matched')
@@ -250,10 +247,7 @@ export class ProfileInsightsService {
         }
       }
 
-      const likes = await query
-        .orderBy('created_at', 'desc')
-        .limit(limit)
-        .offset(offset);
+      const likes = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
       // Enrich with user profiles and additional data
       const enrichedLikes = await Promise.all(
@@ -311,7 +305,7 @@ export class ProfileInsightsService {
     try {
       // Count likes that haven't matched yet
       const matchedUserIds = await this.db('matches')
-        .where(function() {
+        .where(function () {
           this.where('user1_id', userId).orWhere('user2_id', userId);
         })
         .where('status', 'matched')
@@ -331,7 +325,7 @@ export class ProfileInsightsService {
 
       const result = await query.count('* as count').first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get who liked you count', error);
       throw error;
@@ -341,7 +335,10 @@ export class ProfileInsightsService {
   /**
    * Get view stats
    */
-  private async getViewStats(userId: string, dateFilter: Date | null): Promise<{
+  private async getViewStats(
+    userId: string,
+    dateFilter: Date | null
+  ): Promise<{
     totalViews: number;
     uniqueViewers: number;
     viewsFromDiscovery: number;
@@ -361,23 +358,26 @@ export class ProfileInsightsService {
     ]);
 
     return {
-      totalViews: parseInt(totalResult?.count as string || '0', 10),
-      uniqueViewers: parseInt(uniqueResult?.count as string || '0', 10),
-      viewsFromDiscovery: parseInt(discoveryResult?.count as string || '0', 10),
-      viewsFromSearch: parseInt(searchResult?.count as string || '0', 10),
+      totalViews: parseInt((totalResult?.count as string) || '0', 10),
+      uniqueViewers: parseInt((uniqueResult?.count as string) || '0', 10),
+      viewsFromDiscovery: parseInt((discoveryResult?.count as string) || '0', 10),
+      viewsFromSearch: parseInt((searchResult?.count as string) || '0', 10),
     };
   }
 
   /**
    * Get engagement stats
    */
-  private async getEngagementStats(userId: string, dateFilter: Date | null): Promise<{
+  private async getEngagementStats(
+    userId: string,
+    dateFilter: Date | null
+  ): Promise<{
     likesReceived: number;
     superLikesReceived: number;
     matches: number;
   }> {
     let swipeQuery = this.db('swipes').where('target_user_id', userId);
-    let matchQuery = this.db('matches').where(function() {
+    let matchQuery = this.db('matches').where(function () {
       this.where('user1_id', userId).orWhere('user2_id', userId);
     });
 
@@ -393,9 +393,9 @@ export class ProfileInsightsService {
     ]);
 
     return {
-      likesReceived: parseInt(likesResult?.count as string || '0', 10),
-      superLikesReceived: parseInt(superLikesResult?.count as string || '0', 10),
-      matches: parseInt(matchesResult?.count as string || '0', 10),
+      likesReceived: parseInt((likesResult?.count as string) || '0', 10),
+      superLikesReceived: parseInt((superLikesResult?.count as string) || '0', 10),
+      matches: parseInt((matchesResult?.count as string) || '0', 10),
     };
   }
 
@@ -431,7 +431,7 @@ export class ProfileInsightsService {
             .first()
             .then((result) => !!result),
           this.db('matches')
-            .where(function() {
+            .where(function () {
               this.where({
                 user1_id: userId,
                 user2_id: viewer.viewer_id,
@@ -468,10 +468,10 @@ export class ProfileInsightsService {
     const trends = await this.db('profile_views')
       .where('viewed_user_id', userId)
       .where('viewed_at', '>=', dateFilter)
-      .select(this.db.raw("DATE(viewed_at) as date"))
+      .select(this.db.raw('DATE(viewed_at) as date'))
       .count('* as views')
       .countDistinct('viewer_id as unique_viewers')
-      .groupBy(this.db.raw("DATE(viewed_at)"))
+      .groupBy(this.db.raw('DATE(viewed_at)'))
       .orderBy('date', 'asc');
 
     return trends.map((trend: any) => ({
@@ -487,9 +487,9 @@ export class ProfileInsightsService {
   private async getPeakHours(userId: string, dateFilter: Date | null): Promise<any[]> {
     let query = this.db('profile_views')
       .where('viewed_user_id', userId)
-      .select(this.db.raw("EXTRACT(HOUR FROM viewed_at) as hour"))
+      .select(this.db.raw('EXTRACT(HOUR FROM viewed_at) as hour'))
       .count('* as view_count')
-      .groupBy(this.db.raw("EXTRACT(HOUR FROM viewed_at)"))
+      .groupBy(this.db.raw('EXTRACT(HOUR FROM viewed_at)'))
       .orderBy('view_count', 'desc');
 
     if (dateFilter) {

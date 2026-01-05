@@ -12,6 +12,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('auth-middleware');
@@ -22,7 +23,9 @@ const logger = createLogger('auth-middleware');
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
   if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_ACCESS_SECRET or JWT_SECRET environment variable is required in production');
+    throw new Error(
+      'JWT_ACCESS_SECRET or JWT_SECRET environment variable is required in production'
+    );
   }
   return secret || 'dev-only-secret-do-not-use-in-production';
 };
@@ -77,7 +80,8 @@ function determineRole(payload: JwtPayload): 'user' | 'moderator' | 'admin' {
   // Check roles array (e.g., from Azure AD B2C groups)
   if (payload.roles) {
     if (payload.roles.includes('admin') || payload.roles.includes('Admin')) return 'admin';
-    if (payload.roles.includes('moderator') || payload.roles.includes('Moderator')) return 'moderator';
+    if (payload.roles.includes('moderator') || payload.roles.includes('Moderator'))
+      return 'moderator';
   }
 
   return 'user';
@@ -101,7 +105,9 @@ export const authenticateJWT = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      logger.warn(`Authentication failed: Missing or invalid Authorization header - ${req.method} ${req.path}`);
+      logger.warn(
+        `Authentication failed: Missing or invalid Authorization header - ${req.method} ${req.path}`
+      );
       res.status(401).json({
         success: false,
         error: 'Authentication required',
@@ -203,11 +209,7 @@ export const authenticateJWT = async (
  * Allows: moderator, admin
  * Denies: regular users
  */
-export const requireModerator = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const requireModerator = (req: Request, res: Response, next: NextFunction): void => {
   const user = (req as AuthenticatedRequest).user;
 
   if (!user) {
@@ -222,12 +224,15 @@ export const requireModerator = (
   }
 
   if (!user.isModerator && !user.isAdmin) {
-    logger.warn(`Authorization failed: User ${user.id} lacks moderator access - ${req.method} ${req.path}`);
+    logger.warn(
+      `Authorization failed: User ${user.id} lacks moderator access - ${req.method} ${req.path}`
+    );
     res.status(403).json({
       success: false,
       error: 'Moderator access required',
       code: 'INSUFFICIENT_PERMISSIONS',
-      message: 'You do not have permission to access this resource. Moderator or admin role required.',
+      message:
+        'You do not have permission to access this resource. Moderator or admin role required.',
     });
     return;
   }
@@ -245,11 +250,7 @@ export const requireModerator = (
  * Allows: admin only
  * Denies: moderators, regular users
  */
-export const requireAdmin = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
   const user = (req as AuthenticatedRequest).user;
 
   if (!user) {
@@ -264,7 +265,9 @@ export const requireAdmin = (
   }
 
   if (!user.isAdmin) {
-    logger.warn(`Authorization failed: User ${user.id} lacks admin access - ${req.method} ${req.path}`);
+    logger.warn(
+      `Authorization failed: User ${user.id} lacks admin access - ${req.method} ${req.path}`
+    );
     res.status(403).json({
       success: false,
       error: 'Admin access required',

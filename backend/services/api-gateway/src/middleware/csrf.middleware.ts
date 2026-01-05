@@ -1,7 +1,13 @@
-import { Injectable, NestMiddleware, UnauthorizedException, ForbiddenException } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * CSRF Protection Middleware
@@ -97,10 +103,7 @@ export class CsrfMiddleware implements NestMiddleware {
    * Create HMAC of token with secret for additional security
    */
   private createTokenHash(token: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(token)
-      .digest('base64url');
+    return crypto.createHmac('sha256', secret).update(token).digest('base64url');
   }
 
   /**
@@ -109,10 +112,7 @@ export class CsrfMiddleware implements NestMiddleware {
   private verifyTokenHash(token: string, secret: string, hash: string): boolean {
     const expectedHash = this.createTokenHash(token, secret);
     // Use timing-safe comparison to prevent timing attacks
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedHash),
-      Buffer.from(hash)
-    );
+    return crypto.timingSafeEqual(Buffer.from(expectedHash), Buffer.from(hash));
   }
 
   /**
@@ -253,7 +253,7 @@ export class CsrfMiddleware implements NestMiddleware {
    * Check if path is excluded from CSRF protection
    */
   private isExcludedPath(path: string): boolean {
-    return this.excludedPaths.some(excluded => path.startsWith(excluded));
+    return this.excludedPaths.some((excluded) => path.startsWith(excluded));
   }
 
   /**

@@ -3,10 +3,11 @@
  * Allows premium users to search and match with users in different locations
  */
 
-import { db } from '../../database';
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../../database';
 
 const logger = createLogger('passport-mode-service');
 
@@ -82,13 +83,18 @@ export class PassportModeService {
         .where({ user_id: userId })
         .orderBy('created_at', 'desc');
 
-      const activeLocation = locations.find((loc) => loc.is_active && new Date(loc.end_date) > new Date());
+      const activeLocation = locations.find(
+        (loc) => loc.is_active && new Date(loc.end_date) > new Date()
+      );
 
       // Calculate remaining days for active location
       let remainingDays = 0;
       if (activeLocation) {
         const endDate = new Date(activeLocation.end_date);
-        remainingDays = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+        remainingDays = Math.max(
+          0,
+          Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        );
       }
 
       return {
@@ -325,21 +331,24 @@ export class PassportModeService {
   /**
    * Search locations by query
    */
-  async searchLocations(query: string): Promise<Array<{
-    city: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-  }>> {
+  async searchLocations(query: string): Promise<
+    Array<{
+      city: string;
+      country: string;
+      latitude: number;
+      longitude: number;
+    }>
+  > {
     // In a real implementation, this would call a geocoding API
     // For now, we'll filter from a predefined list
     const allLocations = await this.getPopularDestinations();
     const normalizedQuery = query.toLowerCase();
 
     return allLocations
-      .filter((loc) =>
-        loc.city.toLowerCase().includes(normalizedQuery) ||
-        loc.country.toLowerCase().includes(normalizedQuery)
+      .filter(
+        (loc) =>
+          loc.city.toLowerCase().includes(normalizedQuery) ||
+          loc.country.toLowerCase().includes(normalizedQuery)
       )
       .map((loc) => ({
         city: loc.city,
@@ -480,9 +489,12 @@ export class PassportModeService {
 
   private async getUserTier(userId: string): Promise<string> {
     try {
-      const response = await axios.get(`${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`, {
-        timeout: 5000,
-      });
+      const response = await axios.get(
+        `${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`,
+        {
+          timeout: 5000,
+        }
+      );
       return response.data?.tier || 'free';
     } catch (error) {
       return 'free';
@@ -523,15 +535,19 @@ export class PassportModeService {
     country: string
   ): Promise<void> {
     try {
-      await axios.put(`${this.userServiceUrl}/api/users/${userId}/effective-location`, {
-        latitude,
-        longitude,
-        city,
-        country,
-        isPassportLocation: true,
-      }, {
-        timeout: 5000,
-      });
+      await axios.put(
+        `${this.userServiceUrl}/api/users/${userId}/effective-location`,
+        {
+          latitude,
+          longitude,
+          city,
+          country,
+          isPassportLocation: true,
+        },
+        {
+          timeout: 5000,
+        }
+      );
     } catch (error) {
       logger.warn(`Failed to update effective location for ${userId}`);
     }
@@ -586,19 +602,23 @@ export class PassportModeService {
     offset: number
   ): Promise<any[]> {
     try {
-      const response = await axios.post(`${this.userServiceUrl}/api/users/search/by-location`, {
-        latitude,
-        longitude,
-        radiusKm: preferences.maxDistance || 100,
-        ageMin: preferences.ageMin || 18,
-        ageMax: preferences.ageMax || 99,
-        genderPreference: preferences.genderPreference,
-        excludedUserIds: [...excludedUserIds, userId],
-        limit,
-        offset,
-      }, {
-        timeout: 10000,
-      });
+      const response = await axios.post(
+        `${this.userServiceUrl}/api/users/search/by-location`,
+        {
+          latitude,
+          longitude,
+          radiusKm: preferences.maxDistance || 100,
+          ageMin: preferences.ageMin || 18,
+          ageMax: preferences.ageMax || 99,
+          genderPreference: preferences.genderPreference,
+          excludedUserIds: [...excludedUserIds, userId],
+          limit,
+          offset,
+        },
+        {
+          timeout: 10000,
+        }
+      );
       return response.data || [];
     } catch (error) {
       logger.error('Failed to fetch candidates near location', error);

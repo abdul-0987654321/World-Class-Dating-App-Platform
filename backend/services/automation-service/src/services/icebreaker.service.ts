@@ -1,16 +1,18 @@
-import { v4 as uuidv4 } from 'uuid';
-import OpenAI from 'openai';
 import { createLogger } from '@flamoral/backend-shared';
-import db from '../infrastructure/database/knex';
-import { cache } from '../infrastructure/cache/redis';
-import { TABLES, IcebreakerSuggestion } from '../models';
+import OpenAI from 'openai';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
 import {
   GenerateIcebreakerDto,
   IcebreakerResponseDto,
   IcebreakerSuggestionDto,
   IcebreakerCategory,
 } from '../dtos';
-import config from '../config';
+import { cache } from '../infrastructure/cache/redis';
+import db from '../infrastructure/database/knex';
+import { TABLES, IcebreakerSuggestion } from '../models';
+
 import { ServiceClient } from './service-client';
 
 const logger = createLogger('automation-service:icebreaker');
@@ -225,12 +227,10 @@ Format your response as a JSON array of objects with: message, category (questio
    * Mark icebreaker as used
    */
   async markAsUsed(suggestionId: string): Promise<void> {
-    await db(TABLES.ICEBREAKER_SUGGESTIONS)
-      .where({ id: suggestionId })
-      .update({
-        is_used: true,
-        used_at: new Date(),
-      });
+    await db(TABLES.ICEBREAKER_SUGGESTIONS).where({ id: suggestionId }).update({
+      is_used: true,
+      used_at: new Date(),
+    });
   }
 
   /**

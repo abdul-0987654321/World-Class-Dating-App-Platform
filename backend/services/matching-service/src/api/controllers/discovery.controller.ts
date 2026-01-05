@@ -1,7 +1,8 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
+
 import discoveryService from '../../domain/services/discovery.service';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('discovery-controller');
 
@@ -227,8 +228,12 @@ export class DiscoveryController {
 
       if (!result.success) {
         // 402 Payment Required if tier not sufficient
-        const statusCode = result.code === 'TIER_NOT_SUFFICIENT' ? 402 :
-                          result.code === 'DAILY_LIMIT_EXCEEDED' ? 429 : 400;
+        const statusCode =
+          result.code === 'TIER_NOT_SUFFICIENT'
+            ? 402
+            : result.code === 'DAILY_LIMIT_EXCEEDED'
+              ? 429
+              : 400;
         res.status(statusCode).json({
           success: false,
           error: result.error,

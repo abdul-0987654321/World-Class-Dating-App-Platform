@@ -4,9 +4,10 @@
  */
 
 import { Request, Response } from 'express';
-import { AchievementsService } from '../../services/achievements.service';
 import { Pool } from 'pg';
+
 import { AchievementCategory, AchievementTier } from '../../domain/entities/Achievement.entity';
+import { AchievementsService } from '../../services/achievements.service';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('AchievementsController');
@@ -239,9 +240,7 @@ export class AchievementsController {
 
       res.status(200).json({
         success: true,
-        message: show
-          ? 'Achievement added to showcase'
-          : 'Achievement removed from showcase',
+        message: show ? 'Achievement added to showcase' : 'Achievement removed from showcase',
       });
     } catch (error: any) {
       logger.error('Error toggling showcase:', { error });

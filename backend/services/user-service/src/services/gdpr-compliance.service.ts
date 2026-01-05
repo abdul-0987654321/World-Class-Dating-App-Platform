@@ -1,8 +1,10 @@
-import { Knex } from 'knex';
-import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+
+import archiver from 'archiver';
+import { Knex } from 'knex';
+
 import logger from '../utils/logger';
 
 const writeFile = promisify(fs.writeFile);
@@ -86,7 +88,7 @@ export class GDPRComplianceService {
       logger.info(`Data export requested for user ${userId}`);
 
       // Start export process asynchronously
-      this.processDataExport(request.id).catch(error => {
+      this.processDataExport(request.id).catch((error) => {
         logger.error(`Failed to process data export: ${error}`);
       });
 
@@ -109,9 +111,7 @@ export class GDPRComplianceService {
         .where({ id: requestId })
         .update({ status: 'processing' });
 
-      const request = await this.db('data_export_requests')
-        .where({ id: requestId })
-        .first();
+      const request = await this.db('data_export_requests').where({ id: requestId }).first();
 
       if (!request) {
         throw new Error('Export request not found');
@@ -168,27 +168,17 @@ export class GDPRComplianceService {
     const data: Record<string, any> = {};
 
     // User profile
-    data.user = await this.db('users')
-      .where({ id: userId })
-      .first();
+    data.user = await this.db('users').where({ id: userId }).first();
 
-    data.profile = await this.db('profiles')
-      .where({ user_id: userId })
-      .first();
+    data.profile = await this.db('profiles').where({ user_id: userId }).first();
 
-    data.preferences = await this.db('preferences')
-      .where({ user_id: userId })
-      .first();
+    data.preferences = await this.db('preferences').where({ user_id: userId }).first();
 
     // Photos
-    data.photos = await this.db('photos')
-      .where({ user_id: userId })
-      .select('*');
+    data.photos = await this.db('photos').where({ user_id: userId }).select('*');
 
     // Prompts and answers
-    data.userPrompts = await this.db('user_prompts')
-      .where({ user_id: userId })
-      .select('*');
+    data.userPrompts = await this.db('user_prompts').where({ user_id: userId }).select('*');
 
     // Swipes and matches
     data.swipes = await this.db('swipes')
@@ -210,20 +200,24 @@ export class GDPRComplianceService {
     data.messages = await this.db('messages')
       .where('sender_id', userId)
       .orWhere('receiver_id', userId)
-      .select('id', 'conversation_id', 'sender_id', 'receiver_id', 'content', 'created_at', 'read_at');
+      .select(
+        'id',
+        'conversation_id',
+        'sender_id',
+        'receiver_id',
+        'content',
+        'created_at',
+        'read_at'
+      );
 
     // Subscription and payments
-    data.subscriptions = await this.db('subscriptions')
-      .where({ user_id: userId })
-      .select('*');
+    data.subscriptions = await this.db('subscriptions').where({ user_id: userId }).select('*');
 
     data.coinTransactions = await this.db('coin_transactions')
       .where({ user_id: userId })
       .select('*');
 
-    data.boosts = await this.db('boosts')
-      .where({ user_id: userId })
-      .select('*');
+    data.boosts = await this.db('boosts').where({ user_id: userId }).select('*');
 
     // Privacy and safety
     data.blockedUsers = await this.db('blocked_users')
@@ -231,18 +225,12 @@ export class GDPRComplianceService {
       .orWhere('blocked_id', userId)
       .select('*');
 
-    data.reports = await this.db('reports')
-      .where({ reporter_id: userId })
-      .select('*');
+    data.reports = await this.db('reports').where({ reporter_id: userId }).select('*');
 
-    data.privacySettings = await this.db('privacy_settings')
-      .where({ user_id: userId })
-      .first();
+    data.privacySettings = await this.db('privacy_settings').where({ user_id: userId }).first();
 
     // GDPR consent
-    data.gdprConsent = await this.db('gdpr_consent')
-      .where({ user_id: userId })
-      .select('*');
+    data.gdprConsent = await this.db('gdpr_consent').where({ user_id: userId }).select('*');
 
     // Login history (last 90 days for security)
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
@@ -335,10 +323,11 @@ If you have any questions about this data, please contact our support team.
   /**
    * Get data export request status
    */
-  async getExportRequestStatus(requestId: string, userId: string): Promise<DataExportRequest | null> {
-    return this.db('data_export_requests')
-      .where({ id: requestId, user_id: userId })
-      .first();
+  async getExportRequestStatus(
+    requestId: string,
+    userId: string
+  ): Promise<DataExportRequest | null> {
+    return this.db('data_export_requests').where({ id: requestId, user_id: userId }).first();
   }
 
   /**
@@ -382,14 +371,14 @@ If you have any questions about this data, please contact our support team.
         .returning('*');
 
       // Deactivate user account immediately
-      await this.db('users')
-        .where({ id: userId })
-        .update({
-          is_active: false,
-          deactivated_at: new Date(),
-        });
+      await this.db('users').where({ id: userId }).update({
+        is_active: false,
+        deactivated_at: new Date(),
+      });
 
-      logger.info(`Account deletion requested for user ${userId}, scheduled for ${scheduledDeletionAt}`);
+      logger.info(
+        `Account deletion requested for user ${userId}, scheduled for ${scheduledDeletionAt}`
+      );
 
       return request;
     } catch (error) {
@@ -426,12 +415,10 @@ If you have any questions about this data, please contact our support team.
         .update({ status: 'cancelled', completed_at: new Date() });
 
       // Reactivate user account
-      await this.db('users')
-        .where({ id: userId })
-        .update({
-          is_active: true,
-          deactivated_at: null,
-        });
+      await this.db('users').where({ id: userId }).update({
+        is_active: true,
+        deactivated_at: null,
+      });
 
       logger.info(`Account deletion cancelled for user ${userId}`);
 
@@ -463,12 +450,10 @@ If you have any questions about this data, please contact our support team.
 
           await this.deleteUserData(request.user_id);
 
-          await this.db('deletion_requests')
-            .where({ id: request.id })
-            .update({
-              status: 'completed',
-              completed_at: new Date(),
-            });
+          await this.db('deletion_requests').where({ id: request.id }).update({
+            status: 'completed',
+            completed_at: new Date(),
+          });
 
           logger.info(`Completed account deletion for user ${request.user_id}`);
         } catch (error) {
@@ -542,9 +527,7 @@ If you have any questions about this data, please contact our support team.
           }
         }
 
-        await this.db('data_export_requests')
-          .where({ id: exportRequest.id })
-          .delete();
+        await this.db('data_export_requests').where({ id: exportRequest.id }).delete();
       }
 
       logger.info(`Cleaned up ${expiredExports.length} expired exports`);

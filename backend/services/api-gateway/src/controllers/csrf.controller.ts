@@ -1,8 +1,9 @@
 import { Controller, Get, Req, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { Public } from '../decorators/public.decorator';
+
 import { CsrfToken } from '../decorators/csrf.decorator';
+import { Public } from '../decorators/public.decorator';
 
 /**
  * CSRF Token Controller
@@ -23,7 +24,8 @@ export class CsrfController {
   @Get('token')
   @ApiOperation({
     summary: 'Get CSRF token',
-    description: 'Returns a CSRF token for use in subsequent requests. The token is also set as a cookie.',
+    description:
+      'Returns a CSRF token for use in subsequent requests. The token is also set as a cookie.',
   })
   @ApiResponse({
     status: 200,
@@ -97,7 +99,8 @@ export class CsrfController {
     if (!headerToken) {
       return {
         valid: true,
-        message: 'CSRF token exists in cookie. Include it in the X-CSRF-Token header for state-changing requests.',
+        message:
+          'CSRF token exists in cookie. Include it in the X-CSRF-Token header for state-changing requests.',
       };
     }
 
@@ -105,9 +108,7 @@ export class CsrfController {
 
     return {
       valid,
-      message: valid
-        ? 'CSRF token is valid'
-        : 'CSRF token mismatch between cookie and header',
+      message: valid ? 'CSRF token is valid' : 'CSRF token mismatch between cookie and header',
     };
   }
 }

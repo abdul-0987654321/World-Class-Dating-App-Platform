@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { CoinController } from '../controllers/coin.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -25,11 +26,7 @@ const coinController = new CoinController();
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/balance',
-  authenticate,
-  coinController.getBalance.bind(coinController)
-);
+router.get('/balance', authenticate, coinController.getBalance.bind(coinController));
 
 /**
  * @swagger
@@ -97,11 +94,7 @@ router.get(
  *       200:
  *         description: Products retrieved successfully
  */
-router.get(
-  '/products',
-  authenticate,
-  coinController.getProducts.bind(coinController)
-);
+router.get('/products', authenticate, coinController.getProducts.bind(coinController));
 
 /**
  * @swagger
@@ -191,10 +184,6 @@ router.post(
  *       400:
  *         description: Already claimed today
  */
-router.post(
-  '/daily-reward',
-  authenticate,
-  coinController.claimDailyReward.bind(coinController)
-);
+router.post('/daily-reward', authenticate, coinController.claimDailyReward.bind(coinController));
 
 export default router;

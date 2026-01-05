@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
+import { Request, Response, NextFunction } from 'express';
+
 import logger from '../utils/logger';
 
 // // Extend Express Request type to include session
@@ -40,16 +42,40 @@ export class SecurityMiddleware {
 
     // Remove SQL injection patterns
     const dangerous = [
-      '--', ';--', '/*', '*/', '@@', '@',
-      'char', 'nchar', 'varchar', 'nvarchar',
-      'alter', 'begin', 'cast', 'create', 'cursor',
-      'declare', 'delete', 'drop', 'end', 'exec',
-      'execute', 'fetch', 'insert', 'kill', 'select',
-      'sys', 'sysobjects', 'syscolumns', 'table', 'update',
+      '--',
+      ';--',
+      '/*',
+      '*/',
+      '@@',
+      '@',
+      'char',
+      'nchar',
+      'varchar',
+      'nvarchar',
+      'alter',
+      'begin',
+      'cast',
+      'create',
+      'cursor',
+      'declare',
+      'delete',
+      'drop',
+      'end',
+      'exec',
+      'execute',
+      'fetch',
+      'insert',
+      'kill',
+      'select',
+      'sys',
+      'sysobjects',
+      'syscolumns',
+      'table',
+      'update',
     ];
 
     let sanitized = input;
-    dangerous.forEach(pattern => {
+    dangerous.forEach((pattern) => {
       const regex = new RegExp(pattern, 'gi');
       sanitized = sanitized.replace(regex, '');
     });
@@ -76,7 +102,7 @@ export class SecurityMiddleware {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => SecurityMiddleware.sanitizeObject(item));
+      return obj.map((item) => SecurityMiddleware.sanitizeObject(item));
     }
 
     const sanitized: any = {};
@@ -172,8 +198,8 @@ export class SecurityMiddleware {
         ? req.files
         : Object.values(req.files).flat()
       : req.file
-      ? [req.file]
-      : [];
+        ? [req.file]
+        : [];
 
     for (const file of files) {
       // Check mime type
@@ -215,12 +241,12 @@ export class SecurityMiddleware {
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https:; " +
-      "font-src 'self' data:; " +
-      "connect-src 'self' wss: https:; " +
-      "frame-ancestors 'none';"
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https:; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self' wss: https:; " +
+        "frame-ancestors 'none';"
     );
 
     // XSS Protection
@@ -236,16 +262,10 @@ export class SecurityMiddleware {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
     // Permissions Policy
-    res.setHeader(
-      'Permissions-Policy',
-      'geolocation=(self), microphone=(), camera=()'
-    );
+    res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
 
     // HSTS (HTTP Strict Transport Security)
-    res.setHeader(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains; preload'
-    );
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
     next();
   }
@@ -262,7 +282,7 @@ export class SecurityMiddleware {
         return next();
       }
 
-      const isAllowed = allowedOrigins.some(allowed => {
+      const isAllowed = allowedOrigins.some((allowed) => {
         if (allowed === '*') return true;
         return origin.startsWith(allowed);
       });
@@ -322,7 +342,11 @@ export class SecurityMiddleware {
   /**
    * Prevent parameter pollution
    */
-  static preventParameterPollution(req: Request, res: Response, next: NextFunction): void | Response {
+  static preventParameterPollution(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void | Response {
     // Check for duplicate parameters
     const params = { ...req.query, ...req.body };
 
@@ -370,15 +394,9 @@ export class SecurityMiddleware {
     }
 
     // Block known bad bots
-    const blockedBots = [
-      'masscan',
-      'nmap',
-      'nikto',
-      'sqlmap',
-      'zgrab',
-    ];
+    const blockedBots = ['masscan', 'nmap', 'nikto', 'sqlmap', 'zgrab'];
 
-    if (userAgent && blockedBots.some(bot => userAgent.toLowerCase().includes(bot))) {
+    if (userAgent && blockedBots.some((bot) => userAgent.toLowerCase().includes(bot))) {
       logger.warn(`Blocked request from suspicious user agent: ${userAgent}`);
       return res.status(403).json({
         success: false,

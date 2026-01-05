@@ -36,9 +36,12 @@ export const registerSchema = Joi.object({
       'any.only': 'Invalid gender value',
       'any.required': 'Gender is required',
     }),
-  phone_number: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).optional().messages({
-    'string.pattern.base': 'Invalid phone number format',
-  }),
+  phone_number: Joi.string()
+    .pattern(/^\+?[1-9]\d{1,14}$/)
+    .optional()
+    .messages({
+      'string.pattern.base': 'Invalid phone number format',
+    }),
 });
 
 export const loginSchema = Joi.object({
@@ -49,5 +52,8 @@ export const loginSchema = Joi.object({
 export const updateUserSchema = Joi.object({
   first_name: Joi.string().min(2).max(100).optional(),
   last_name: Joi.string().min(2).max(100).optional(),
-  phone_number: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).optional().allow(null),
+  phone_number: Joi.string()
+    .pattern(/^\+?[1-9]\d{1,14}$/)
+    .optional()
+    .allow(null),
 });

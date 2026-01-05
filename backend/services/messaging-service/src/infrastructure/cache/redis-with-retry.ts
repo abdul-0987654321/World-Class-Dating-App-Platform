@@ -1,6 +1,7 @@
 import { createClient, RedisClientType } from 'redis';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('redis-with-retry');
 
@@ -22,11 +23,19 @@ async function withRetry<T>(
       lastError = error;
 
       // Check if error is retryable
-      const retryableErrors = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', 'NR_CLOSED', 'CONNECTION_CLOSED'];
-      const isRetryable = retryableErrors.includes(error.code) ||
-                          error.message?.toLowerCase().includes('connection') ||
-                          error.message?.toLowerCase().includes('timeout') ||
-                          error.message?.toLowerCase().includes('closed');
+      const retryableErrors = [
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EHOSTUNREACH',
+        'NR_CLOSED',
+        'CONNECTION_CLOSED',
+      ];
+      const isRetryable =
+        retryableErrors.includes(error.code) ||
+        error.message?.toLowerCase().includes('connection') ||
+        error.message?.toLowerCase().includes('timeout') ||
+        error.message?.toLowerCase().includes('closed');
 
       if (!isRetryable || attempt === maxRetries) {
         logger.error(`Redis ${operationName} failed`, {
@@ -48,11 +57,11 @@ async function withRetry<T>(
         error: error.message,
       });
 
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+      await new Promise((resolve) => setTimeout(resolve, finalDelay));
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -89,44 +98,49 @@ class RedisClient {
    * Initialize Redis connection with retry logic
    */
   async connect(): Promise<void> {
-    await withRetry(async () => {
-      this.client = createClient({
-        socket: {
-          host: config.redis.host,
-          port: config.redis.port,
-          connectTimeout: 10000,
-          reconnectStrategy: createReconnectStrategy,
-        },
-        password: config.redis.password || undefined,
-      });
+    await withRetry(
+      async () => {
+        this.client = createClient({
+          socket: {
+            host: config.redis.host,
+            port: config.redis.port,
+            connectTimeout: 10000,
+            reconnectStrategy: createReconnectStrategy,
+          },
+          password: config.redis.password || undefined,
+        });
 
-      this.client.on('error', (err) => {
-        logger.error('Redis Client Error', err);
-        this.isConnected = false;
-      });
+        this.client.on('error', (err) => {
+          logger.error('Redis Client Error', err);
+          this.isConnected = false;
+        });
 
-      this.client.on('connect', () => {
-        logger.info('Redis client connected');
-        this.isConnected = true;
-      });
+        this.client.on('connect', () => {
+          logger.info('Redis client connected');
+          this.isConnected = true;
+        });
 
-      this.client.on('ready', () => {
-        logger.info('Redis client ready');
-        this.isConnected = true;
-      });
+        this.client.on('ready', () => {
+          logger.info('Redis client ready');
+          this.isConnected = true;
+        });
 
-      this.client.on('disconnect', () => {
-        logger.warn('Redis client disconnected');
-        this.isConnected = false;
-      });
+        this.client.on('disconnect', () => {
+          logger.warn('Redis client disconnected');
+          this.isConnected = false;
+        });
 
-      this.client.on('reconnecting', () => {
-        logger.warn('Redis client reconnecting');
-        this.isConnected = false;
-      });
+        this.client.on('reconnecting', () => {
+          logger.warn('Redis client reconnecting');
+          this.isConnected = false;
+        });
 
-      await this.client.connect();
-    }, 'connect', 5, 1000);
+        await this.client.connect();
+      },
+      'connect',
+      5,
+      1000
+    );
   }
 
   /**
@@ -149,11 +163,16 @@ class RedisClient {
     }
 
     try {
-      await withRetry(async () => {
-        const key = `user:online:${userId}`;
-        await this.client!.setEx(key, config.redis.ttl.onlineStatus, socketId);
-        await this.client!.set(`socket:${socketId}`, userId);
-      }, 'setOnlineStatus', 3, 500);
+      await withRetry(
+        async () => {
+          const key = `user:online:${userId}`;
+          await this.client.setEx(key, config.redis.ttl.onlineStatus, socketId);
+          await this.client.set(`socket:${socketId}`, userId);
+        },
+        'setOnlineStatus',
+        3,
+        500
+      );
     } catch (error) {
       logger.error('Failed to set online status', error);
     }
@@ -166,10 +185,15 @@ class RedisClient {
     if (!this.client || !this.isConnected) return;
 
     try {
-      await withRetry(async () => {
-        await this.client!.del(`user:online:${userId}`);
-        await this.client!.del(`socket:${socketId}`);
-      }, 'removeOnlineStatus', 3, 500);
+      await withRetry(
+        async () => {
+          await this.client.del(`user:online:${userId}`);
+          await this.client.del(`socket:${socketId}`);
+        },
+        'removeOnlineStatus',
+        3,
+        500
+      );
     } catch (error) {
       logger.error('Failed to remove online status', error);
     }
@@ -183,7 +207,7 @@ class RedisClient {
 
     try {
       const result = await withRetry(
-        () => this.client!.exists(`user:online:${userId}`),
+        () => this.client.exists(`user:online:${userId}`),
         'isUserOnline',
         3,
         500
@@ -203,7 +227,7 @@ class RedisClient {
 
     try {
       const result = await withRetry(
-        () => this.client!.get(`socket:${socketId}`),
+        () => this.client.get(`socket:${socketId}`),
         'getUserIdFromSocket',
         3,
         500
@@ -223,7 +247,12 @@ class RedisClient {
 
     try {
       await withRetry(
-        () => this.client!.setEx(`typing:${conversationId}:${userId}`, config.redis.ttl.typingIndicator, '1'),
+        () =>
+          this.client.setEx(
+            `typing:${conversationId}:${userId}`,
+            config.redis.ttl.typingIndicator,
+            '1'
+          ),
         'setTypingIndicator',
         3,
         500
@@ -241,7 +270,7 @@ class RedisClient {
 
     try {
       await withRetry(
-        () => this.client!.del(`typing:${conversationId}:${userId}`),
+        () => this.client.del(`typing:${conversationId}:${userId}`),
         'removeTypingIndicator',
         3,
         500
@@ -259,7 +288,12 @@ class RedisClient {
 
     try {
       await withRetry(
-        () => this.client!.setEx(`message:${messageId}`, config.redis.ttl.messageCache, JSON.stringify(message)),
+        () =>
+          this.client.setEx(
+            `message:${messageId}`,
+            config.redis.ttl.messageCache,
+            JSON.stringify(message)
+          ),
         'cacheMessage',
         3,
         500
@@ -277,12 +311,12 @@ class RedisClient {
 
     try {
       const data = await withRetry(
-        () => this.client!.get(`message:${messageId}`),
+        () => this.client.get(`message:${messageId}`),
         'getCachedMessage',
         3,
         500
       );
-      return data ? (JSON.parse(data as string) as any) : null;
+      return data ? JSON.parse(data as string) : null;
     } catch (error) {
       logger.error('Failed to get cached message', error);
       return null;
@@ -297,7 +331,7 @@ class RedisClient {
 
     try {
       const exists = await withRetry(
-        () => this.client!.exists(`block:${blockerId}:${blockedId}`),
+        () => this.client.exists(`block:${blockerId}:${blockedId}`),
         'isUserBlocked',
         3,
         500
@@ -317,7 +351,7 @@ class RedisClient {
 
     try {
       const members = await withRetry(
-        () => this.client!.sMembers(`blocker:${userId}:list`),
+        () => this.client.sMembers(`blocker:${userId}:list`),
         'getBlockedUsers',
         3,
         500
@@ -337,7 +371,7 @@ class RedisClient {
 
     try {
       const members = await withRetry(
-        () => this.client!.sMembers(`blocked:${userId}:list`),
+        () => this.client.sMembers(`blocked:${userId}:list`),
         'getBlockedByUsers',
         3,
         500
@@ -383,13 +417,18 @@ class RedisClient {
     if (!this.client || !this.isConnected) return;
 
     try {
-      await withRetry(async () => {
-        if (ttlSeconds) {
-          await this.client!.setEx(key, ttlSeconds, value);
-        } else {
-          await this.client!.set(key, value);
-        }
-      }, 'set', 3, 500);
+      await withRetry(
+        async () => {
+          if (ttlSeconds) {
+            await this.client.setEx(key, ttlSeconds, value);
+          } else {
+            await this.client.set(key, value);
+          }
+        },
+        'set',
+        3,
+        500
+      );
     } catch (error) {
       logger.error('Failed to set value:', error);
     }
@@ -402,12 +441,7 @@ class RedisClient {
     if (!this.client || !this.isConnected) return null;
 
     try {
-      const result = await withRetry(
-        () => this.client!.get(key),
-        'get',
-        3,
-        500
-      );
+      const result = await withRetry(() => this.client.get(key), 'get', 3, 500);
       return typeof result === 'string' ? result : null;
     } catch (error) {
       logger.error('Failed to get value:', error);
@@ -422,12 +456,7 @@ class RedisClient {
     if (!this.client || !this.isConnected) return [];
 
     try {
-      return await withRetry(
-        () => this.client!.keys(pattern),
-        'keys',
-        3,
-        500
-      ) || [];
+      return (await withRetry(() => this.client.keys(pattern), 'keys', 3, 500)) || [];
     } catch (error) {
       logger.error('Failed to get keys:', error);
       return [];
@@ -441,12 +470,7 @@ class RedisClient {
     if (!this.client || !this.isConnected) return;
 
     try {
-      await withRetry(
-        () => this.client!.del(key),
-        'del',
-        3,
-        500
-      );
+      await withRetry(() => this.client.del(key), 'del', 3, 500);
     } catch (error) {
       logger.error('Failed to delete key:', error);
     }
@@ -462,7 +486,7 @@ class RedisClient {
 
     try {
       const start = Date.now();
-      await withRetry(() => this.client!.ping(), 'healthCheck', 2, 1000);
+      await withRetry(() => this.client.ping(), 'healthCheck', 2, 1000);
       const latency = Date.now() - start;
 
       return { healthy: true, latency };

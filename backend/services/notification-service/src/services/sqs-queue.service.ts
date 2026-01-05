@@ -10,6 +10,7 @@ import {
   ChangeMessageVisibilityCommand,
   Message,
 } from '@aws-sdk/client-sqs';
+
 import logger from '../utils/logger';
 
 interface QueueMessage<T = any> {
@@ -220,15 +221,13 @@ export class SQSQueueService {
 
       const response = await this.sqsClient.send(command);
 
-      const messages: QueueMessage<T>[] = (response.Messages || []).map(
-        (msg: Message) => ({
-          id: msg.MessageId || '',
-          body: JSON.parse(msg.Body || '{}') as T,
-          receiptHandle: msg.ReceiptHandle || '',
-          attributes: msg.Attributes as Record<string, string>,
-          messageAttributes: msg.MessageAttributes,
-        })
-      );
+      const messages: QueueMessage<T>[] = (response.Messages || []).map((msg: Message) => ({
+        id: msg.MessageId || '',
+        body: JSON.parse(msg.Body || '{}') as T,
+        receiptHandle: msg.ReceiptHandle || '',
+        attributes: msg.Attributes as Record<string, string>,
+        messageAttributes: msg.MessageAttributes,
+      }));
 
       logger.debug(`Received ${messages.length} messages from queue ${queueName}`);
 
@@ -244,10 +243,7 @@ export class SQSQueueService {
   /**
    * Delete a message from a queue (acknowledge processing)
    */
-  async deleteMessage(
-    queueName: string,
-    receiptHandle: string
-  ): Promise<boolean> {
+  async deleteMessage(queueName: string, receiptHandle: string): Promise<boolean> {
     try {
       const queueUrl = this.getQueueUrl(queueName);
 
@@ -336,9 +332,7 @@ export class SQSQueueService {
   /**
    * Get queue statistics
    */
-  async getQueueStats(
-    queueName: string
-  ): Promise<{
+  async getQueueStats(queueName: string): Promise<{
     approximateMessages: number;
     approximateMessagesNotVisible: number;
     approximateMessagesDelayed: number;
@@ -358,10 +352,7 @@ export class SQSQueueService {
       const response = await this.sqsClient.send(command);
 
       return {
-        approximateMessages: parseInt(
-          response.Attributes?.ApproximateNumberOfMessages || '0',
-          10
-        ),
+        approximateMessages: parseInt(response.Attributes?.ApproximateNumberOfMessages || '0', 10),
         approximateMessagesNotVisible: parseInt(
           response.Attributes?.ApproximateNumberOfMessagesNotVisible || '0',
           10

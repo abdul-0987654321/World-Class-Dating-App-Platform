@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { WellnessController } from '../controllers/wellness.controller';
 import { authenticate } from '../middleware/auth.middleware';
 

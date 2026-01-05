@@ -43,31 +43,25 @@ export class UserRepository {
   }
 
   async updateLastLogin(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .update({
-        last_login_at: db.fn.now(),
-        updated_at: db.fn.now(),
-      });
+    await db(this.tableName).where({ id }).update({
+      last_login_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    });
   }
 
   async verifyEmail(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .update({
-        is_email_verified: true,
-        is_verified: true,
-        updated_at: db.fn.now(),
-      });
+    await db(this.tableName).where({ id }).update({
+      is_email_verified: true,
+      is_verified: true,
+      updated_at: db.fn.now(),
+    });
   }
 
   async updatePassword(id: string, password_hash: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .update({
-        password_hash,
-        updated_at: db.fn.now(),
-      });
+    await db(this.tableName).where({ id }).update({
+      password_hash,
+      updated_at: db.fn.now(),
+    });
   }
 
   async delete(id: string): Promise<void> {
@@ -75,12 +69,10 @@ export class UserRepository {
   }
 
   async deactivate(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .update({
-        is_active: false,
-        updated_at: db.fn.now(),
-      });
+    await db(this.tableName).where({ id }).update({
+      is_active: false,
+      updated_at: db.fn.now(),
+    });
   }
 
   /**

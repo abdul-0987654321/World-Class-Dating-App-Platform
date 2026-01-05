@@ -5,8 +5,9 @@
  * for profile photo analysis, moderation, and feedback.
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
 import config from '../../config';
 
 const logger = createLogger('photo-analysis-client');
@@ -182,7 +183,10 @@ export class PhotoAnalysisClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = config.services?.photoAnalysisUrl || process.env.PHOTO_ANALYSIS_SERVICE_URL || 'http://photo-analysis-service:8003';
+    this.baseUrl =
+      config.services?.photoAnalysisUrl ||
+      process.env.PHOTO_ANALYSIS_SERVICE_URL ||
+      'http://photo-analysis-service:8003';
 
     this.client = axios.create({
       baseURL: this.baseUrl,
@@ -241,7 +245,10 @@ export class PhotoAnalysisClient {
   /**
    * Check photo quality only
    */
-  async checkQuality(request: { photo_url?: string; photo_base64?: string }): Promise<QualityCheckResult> {
+  async checkQuality(request: {
+    photo_url?: string;
+    photo_base64?: string;
+  }): Promise<QualityCheckResult> {
     try {
       const response = await this.client.post<QualityCheckResult>(
         '/api/v1/photo-analysis/quality',
@@ -263,7 +270,11 @@ export class PhotoAnalysisClient {
   /**
    * Check content moderation only
    */
-  async checkModeration(request: { photo_url?: string; photo_base64?: string; strict_mode?: boolean }): Promise<ModerationResult> {
+  async checkModeration(request: {
+    photo_url?: string;
+    photo_base64?: string;
+    strict_mode?: boolean;
+  }): Promise<ModerationResult> {
     try {
       const response = await this.client.post<ModerationResult>(
         '/api/v1/photo-analysis/moderation',
@@ -285,7 +296,11 @@ export class PhotoAnalysisClient {
   /**
    * Get style feedback
    */
-  async getStyleFeedback(request: { photo_url?: string; photo_base64?: string; is_primary?: boolean }): Promise<StyleFeedbackResult> {
+  async getStyleFeedback(request: {
+    photo_url?: string;
+    photo_base64?: string;
+    is_primary?: boolean;
+  }): Promise<StyleFeedbackResult> {
     try {
       const response = await this.client.post<StyleFeedbackResult>(
         '/api/v1/photo-analysis/style',
@@ -309,10 +324,10 @@ export class PhotoAnalysisClient {
    */
   async batchAnalyze(photoUrls: string[], userId?: string): Promise<BatchAnalysisResult> {
     try {
-      const response = await this.client.post<BatchAnalysisResult>(
-        '/api/v1/photo-analysis/batch',
-        { photo_urls: photoUrls, user_id: userId }
-      );
+      const response = await this.client.post<BatchAnalysisResult>('/api/v1/photo-analysis/batch', {
+        photo_urls: photoUrls,
+        user_id: userId,
+      });
 
       logger.info('Batch analysis completed', {
         total: response.data.total_photos,
@@ -332,10 +347,10 @@ export class PhotoAnalysisClient {
    */
   async rankPhotos(photoUrls: string[], userId?: string): Promise<PhotoRankingResult> {
     try {
-      const response = await this.client.post<PhotoRankingResult>(
-        '/api/v1/photo-analysis/rank',
-        { photo_urls: photoUrls, user_id: userId }
-      );
+      const response = await this.client.post<PhotoRankingResult>('/api/v1/photo-analysis/rank', {
+        photo_urls: photoUrls,
+        user_id: userId,
+      });
 
       logger.info('Photos ranked', {
         photoCount: response.data.ranked_photos.length,
@@ -352,7 +367,11 @@ export class PhotoAnalysisClient {
   /**
    * Analyze photo from base64 data (for direct uploads)
    */
-  async analyzeBase64Photo(base64Data: string, isPrimary: boolean = false, userId?: string): Promise<PhotoAnalysisResult> {
+  async analyzeBase64Photo(
+    base64Data: string,
+    isPrimary: boolean = false,
+    userId?: string
+  ): Promise<PhotoAnalysisResult> {
     return this.analyzePhoto({
       photo_base64: base64Data,
       is_primary: isPrimary,
@@ -374,9 +393,10 @@ export class PhotoAnalysisClient {
 
       return {
         acceptable: result.approved,
-        reason: result.rejection_reasons.length > 0
-          ? this.getRejectionMessage(result.rejection_reasons[0])
-          : undefined,
+        reason:
+          result.rejection_reasons.length > 0
+            ? this.getRejectionMessage(result.rejection_reasons[0])
+            : undefined,
         suggestions: result.recommendations,
       };
     } catch (error: any) {
@@ -411,9 +431,10 @@ export class PhotoAnalysisClient {
       const axiosError = error as AxiosError<{ detail?: string; error?: string }>;
 
       if (axiosError.response) {
-        const message = axiosError.response.data?.detail
-          || axiosError.response.data?.error
-          || 'Photo analysis service error';
+        const message =
+          axiosError.response.data?.detail ||
+          axiosError.response.data?.error ||
+          'Photo analysis service error';
         return new Error(message);
       }
 

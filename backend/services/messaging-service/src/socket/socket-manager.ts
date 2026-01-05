@@ -1,7 +1,10 @@
+import axios from 'axios';
 import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import axios from 'axios';
+
+import conversationRepository from '../domain/repositories/conversation.repository';
+import messageRepository from '../domain/repositories/message.repository';
+import redisClient from '../infrastructure/cache/redis';
 import {
   SendMessageRequest,
   SendMessageResponse,
@@ -13,9 +16,7 @@ import {
   MarkAsReadRequest,
   DeleteMessageRequest,
 } from '../types';
-import redisClient from '../infrastructure/cache/redis';
-import messageRepository from '../domain/repositories/message.repository';
-import conversationRepository from '../domain/repositories/conversation.repository';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('socket-manager');
 
@@ -151,7 +152,9 @@ export class SocketManager {
     // Mark message as read
     socket.on('message:read', async (data: MarkAsReadRequest) => {
       try {
-        logger.info(`Mark as read request for conversation ${data.conversationId} by user ${userId}`);
+        logger.info(
+          `Mark as read request for conversation ${data.conversationId} by user ${userId}`
+        );
 
         const readAt = new Date();
 
@@ -247,7 +250,10 @@ export class SocketManager {
         logger.info(`Message deleted: ${data.messageId}`);
       } catch (error: any) {
         logger.error('Delete message failed:', error);
-        socket.emit('error', { message: error.message || 'Failed to delete message', code: 'DELETE_FAILED' });
+        socket.emit('error', {
+          message: error.message || 'Failed to delete message',
+          code: 'DELETE_FAILED',
+        });
       }
     });
   }
@@ -269,7 +275,12 @@ export class SocketManager {
         };
 
         // Broadcast to other participant
-        this.broadcastToConversation(data.conversationId, userId, 'typing:indicator', typingIndicator);
+        this.broadcastToConversation(
+          data.conversationId,
+          userId,
+          'typing:indicator',
+          typingIndicator
+        );
       } catch (error: any) {
         logger.error('Typing start failed:', error);
       }
@@ -288,7 +299,12 @@ export class SocketManager {
         };
 
         // Broadcast to other participant
-        this.broadcastToConversation(data.conversationId, userId, 'typing:indicator', typingIndicator);
+        this.broadcastToConversation(
+          data.conversationId,
+          userId,
+          'typing:indicator',
+          typingIndicator
+        );
       } catch (error: any) {
         logger.error('Typing stop failed:', error);
       }
@@ -333,7 +349,11 @@ export class SocketManager {
   /**
    * Update user's online status in Redis
    */
-  private async updateOnlineStatus(userId: string, online: boolean, socketId?: string): Promise<void> {
+  private async updateOnlineStatus(
+    userId: string,
+    online: boolean,
+    socketId?: string
+  ): Promise<void> {
     try {
       const status: OnlineStatus = {
         userId,
@@ -343,11 +363,9 @@ export class SocketManager {
       };
 
       // Store in Redis with 30-day expiration
-      await redisClient.getClient().setEx(
-        `user:online:${userId}`,
-        30 * 24 * 60 * 60,
-        JSON.stringify(status)
-      );
+      await redisClient
+        .getClient()
+        .setEx(`user:online:${userId}`, 30 * 24 * 60 * 60, JSON.stringify(status));
 
       logger.info(`Online status updated for user ${userId}: ${online ? 'online' : 'offline'}`);
     } catch (error: any) {
@@ -377,7 +395,9 @@ export class SocketManager {
             this.io.to(contactSocketId).emit(online ? 'user:online' : 'user:offline', status);
           }
         }
-        logger.info(`Broadcasted ${online ? 'online' : 'offline'} status for user ${userId} to ${contactUserIds.length} contacts`);
+        logger.info(
+          `Broadcasted ${online ? 'online' : 'offline'} status for user ${userId} to ${contactUserIds.length} contacts`
+        );
       } else {
         logger.debug(`No contacts found for user ${userId}, skipping broadcast`);
       }
@@ -404,7 +424,7 @@ export class SocketManager {
           timeout: 5000,
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
         }
       );
 
@@ -451,7 +471,10 @@ export class SocketManager {
   /**
    * Get other participant in a conversation
    */
-  private async getOtherParticipant(conversationId: string, userId: string): Promise<string | null> {
+  private async getOtherParticipant(
+    conversationId: string,
+    userId: string
+  ): Promise<string | null> {
     try {
       const conversation = await conversationRepository.findById(conversationId);
       if (!conversation) {

@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { RestaurantService } from '../../domain/services/restaurant.service';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { RestaurantService } from '../../domain/services/restaurant.service';
 
 const router = express.Router();
 const logger = createLogger('restaurant-routes');
@@ -54,7 +55,7 @@ router.get('/search', async (req: AuthRequest, res: Response) => {
       partySize: parseInt(partySize as string),
       cuisine: cuisine ? (cuisine as string).split(',') : undefined,
       priceRange: priceRange
-        ? (priceRange as string).split(',').map(p => parseInt(p))
+        ? (priceRange as string).split(',').map((p) => parseInt(p))
         : undefined,
       dateNightOnly: dateNightOnly === 'true',
       minRating: minRating ? parseFloat(minRating as string) : undefined,
@@ -213,10 +214,7 @@ router.delete('/reservations/:reservationId', async (req: AuthRequest, res: Resp
 
     const { reservationId } = req.params;
 
-    const reservation = await restaurantService.cancelReservation(
-      reservationId,
-      req.user.id
-    );
+    const reservation = await restaurantService.cancelReservation(reservationId, req.user.id);
 
     res.json({
       success: true,

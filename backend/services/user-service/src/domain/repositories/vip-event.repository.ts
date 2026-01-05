@@ -71,18 +71,13 @@ export class VipEventRepository {
       updateData.tags = JSON.stringify(data.tags);
     }
 
-    const [event] = await db(this.eventsTable)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [event] = await db(this.eventsTable).where({ id }).update(updateData).returning('*');
 
     return event ? this.parseEvent(event) : null;
   }
 
   async incrementAttendeeCount(eventId: string): Promise<void> {
-    await db(this.eventsTable)
-      .where({ id: eventId })
-      .increment('current_attendees', 1);
+    await db(this.eventsTable).where({ id: eventId }).increment('current_attendees', 1);
   }
 
   async decrementAttendeeCount(eventId: string): Promise<void> {
@@ -120,7 +115,10 @@ export class VipEventRepository {
     return attendee || null;
   }
 
-  async updateAttendee(id: string, data: VipEventAttendeeUpdateInput): Promise<VipEventAttendee | null> {
+  async updateAttendee(
+    id: string,
+    data: VipEventAttendeeUpdateInput
+  ): Promise<VipEventAttendee | null> {
     const [attendee] = await db(this.attendeesTable)
       .where({ id })
       .update({
@@ -132,7 +130,10 @@ export class VipEventRepository {
     return attendee || null;
   }
 
-  async getUserEvents(userId: string, includeHistorical = false): Promise<VipEventAttendeeWithEvent[]> {
+  async getUserEvents(
+    userId: string,
+    includeHistorical = false
+  ): Promise<VipEventAttendeeWithEvent[]> {
     let query = db(this.attendeesTable)
       .select(
         `${this.attendeesTable}.*`,
@@ -155,9 +156,7 @@ export class VipEventRepository {
   }
 
   async getEventAttendees(eventId: string): Promise<VipEventAttendee[]> {
-    return db(this.attendeesTable)
-      .where({ event_id: eventId })
-      .orderBy('registered_at', 'asc');
+    return db(this.attendeesTable).where({ event_id: eventId }).orderBy('registered_at', 'asc');
   }
 
   async countEventAttendees(eventId: string): Promise<number> {
@@ -173,7 +172,11 @@ export class VipEventRepository {
   private parseEvent(event: any): VipEvent {
     return {
       ...event,
-      tags: event.tags ? (typeof event.tags === 'string' ? JSON.parse(event.tags) : event.tags) : [],
+      tags: event.tags
+        ? typeof event.tags === 'string'
+          ? JSON.parse(event.tags)
+          : event.tags
+        : [],
     };
   }
 }

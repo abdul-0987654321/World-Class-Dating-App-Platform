@@ -12,9 +12,9 @@
 
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import db from '../infrastructure/database/connection';
+
 import config from '../config';
+import db from '../infrastructure/database/connection';
 import {
   CSAMDetectionResult,
   CSAMSeverityLevel,
@@ -22,6 +22,7 @@ import {
   NotificationChannel,
   NotificationPriority,
 } from '../types/csam.types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('staff-notification-service');
 
@@ -117,7 +118,6 @@ export class StaffNotificationService {
         notificationId,
         channelResults,
       });
-
     } catch (error: any) {
       logger.error('CRITICAL: Staff notification failed', {
         notificationId,
@@ -142,7 +142,8 @@ export class StaffNotificationService {
     try {
       const message = {
         title: 'CRITICAL: CSAM HANDLING FAILURE',
-        body: `CSAM detection handling failed. Manual intervention required immediately.\n\n` +
+        body:
+          `CSAM detection handling failed. Manual intervention required immediately.\n\n` +
           `Detection ID: ${params.detectionId}\n` +
           `Content ID: ${params.contentId}\n` +
           `User ID: ${params.userId}\n` +
@@ -156,7 +157,6 @@ export class StaffNotificationService {
         this.sendSlackNotification(message, NotificationPriority.CRITICAL),
         this.sendPagerDutyAlert(message, params),
       ]);
-
     } catch (error: any) {
       logger.error('Failed to notify CSAM handling failure', error);
     }
@@ -174,7 +174,8 @@ export class StaffNotificationService {
     try {
       const message = {
         title: 'WARNING: CSAM Detection Failure',
-        body: `CSAM detection failed. Content quarantined for manual review.\n\n` +
+        body:
+          `CSAM detection failed. Content quarantined for manual review.\n\n` +
           `Content ID: ${params.contentId}\n` +
           `User ID: ${params.userId}\n` +
           `Error: ${params.error}\n\n` +
@@ -186,7 +187,6 @@ export class StaffNotificationService {
         this.sendEmailNotification(message, NotificationPriority.HIGH),
         this.sendSlackNotification(message, NotificationPriority.HIGH),
       ]);
-
     } catch (error: any) {
       logger.error('Failed to notify detection failure', error);
     }
@@ -204,7 +204,8 @@ export class StaffNotificationService {
   }): any {
     return {
       title: `🚨 CSAM DETECTED - ${params.severity.toUpperCase()}`,
-      body: `Child Sexual Abuse Material has been detected and quarantined.\n\n` +
+      body:
+        `Child Sexual Abuse Material has been detected and quarantined.\n\n` +
         `Detection ID: ${params.detectionResult.detectionId}\n` +
         `Quarantine ID: ${params.quarantineId}\n` +
         `Content ID: ${params.contentId}\n` +
@@ -217,7 +218,7 @@ export class StaffNotificationService {
         `✓ Content quarantined with legal hold\n` +
         `✓ User content blocked\n` +
         `✓ User flagged for investigation\n` +
-        `✓ NCMEC report ${params.detectionResult.confidenceScore >= 0.90 ? 'submitted' : 'pending'}\n\n` +
+        `✓ NCMEC report ${params.detectionResult.confidenceScore >= 0.9 ? 'submitted' : 'pending'}\n\n` +
         `Review required: ${config.appUrl}/admin/csam/quarantine/${params.quarantineId}`,
       severity: params.severity,
       detectionId: params.detectionResult.detectionId,
@@ -229,10 +230,7 @@ export class StaffNotificationService {
   /**
    * Send email notification
    */
-  private async sendEmailNotification(
-    message: any,
-    priority: NotificationPriority
-  ): Promise<void> {
+  private async sendEmailNotification(message: any, priority: NotificationPriority): Promise<void> {
     if (!this.emailEnabled) {
       logger.debug('Email notifications disabled');
       return;
@@ -255,7 +253,6 @@ export class StaffNotificationService {
       // });
 
       logger.info('Email notification sent successfully');
-
     } catch (error: any) {
       logger.error('Email notification failed', error);
       throw error;
@@ -265,10 +262,7 @@ export class StaffNotificationService {
   /**
    * Send Slack notification
    */
-  private async sendSlackNotification(
-    message: any,
-    priority: NotificationPriority
-  ): Promise<void> {
+  private async sendSlackNotification(message: any, priority: NotificationPriority): Promise<void> {
     if (!this.slackEnabled || !this.slackWebhookUrl) {
       logger.debug('Slack notifications disabled or not configured');
       return;
@@ -307,7 +301,6 @@ export class StaffNotificationService {
       });
 
       logger.info('Slack notification sent successfully');
-
     } catch (error: any) {
       logger.error('Slack notification failed', error);
       throw error;
@@ -338,7 +331,6 @@ export class StaffNotificationService {
       // });
 
       logger.info('SMS notification sent successfully');
-
     } catch (error: any) {
       logger.error('SMS notification failed', error);
       throw error;
@@ -381,7 +373,6 @@ export class StaffNotificationService {
       });
 
       logger.info('PagerDuty alert sent successfully');
-
     } catch (error: any) {
       logger.error('PagerDuty alert failed', error);
       throw error;
@@ -449,16 +440,13 @@ export class StaffNotificationService {
         severity: params.severity,
         priority: params.priority,
         message: params.message,
-        channels_sent: Object.keys(params.channelResults).filter(
-          (ch) => params.channelResults[ch]
-        ),
+        channels_sent: Object.keys(params.channelResults).filter((ch) => params.channelResults[ch]),
         channel_results: params.channelResults,
         sent_at: new Date(),
         created_at: new Date(),
       };
 
       await db('staff_notifications').insert(record);
-
     } catch (error: any) {
       logger.error('Failed to save notification record', error);
       // Don't throw - record saving failure shouldn't block notification
@@ -484,7 +472,6 @@ export class StaffNotificationService {
         failed_at: new Date(),
         created_at: new Date(),
       });
-
     } catch (logError: any) {
       logger.error('Failed to log notification failure', logError);
     }
@@ -515,7 +502,8 @@ export class StaffNotificationService {
 
       const message = {
         title: 'Daily CSAM Detection Summary',
-        body: `CSAM Detection Report for ${yesterday.toLocaleDateString()}\n\n` +
+        body:
+          `CSAM Detection Report for ${yesterday.toLocaleDateString()}\n\n` +
           `Total Scans: ${statsData?.total_scans || 0}\n` +
           `CSAM Detections: ${statsData?.detections || 0}\n` +
           `Average Confidence: ${(statsData?.avg_confidence || 0 * 100).toFixed(1)}%\n\n` +
@@ -526,7 +514,6 @@ export class StaffNotificationService {
       await this.sendEmailNotification(message, NotificationPriority.LOW);
 
       logger.info('Daily summary report sent');
-
     } catch (error: any) {
       logger.error('Failed to send daily summary report', error);
     }

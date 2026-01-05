@@ -26,20 +26,13 @@ export const createReportSchema = Joi.object({
   description: Joi.string().max(1000).optional().messages({
     'string.max': 'Description must not exceed 1000 characters',
   }),
-  evidenceUrls: Joi.array()
-    .items(Joi.string().uri())
-    .max(5)
-    .optional()
-    .messages({
-      'array.max': 'Maximum 5 evidence URLs allowed',
-      'string.uri': 'Invalid URL format',
-    }),
-  severity: Joi.string()
-    .valid('low', 'medium', 'high', 'critical')
-    .optional()
-    .messages({
-      'any.only': 'Invalid severity level',
-    }),
+  evidenceUrls: Joi.array().items(Joi.string().uri()).max(5).optional().messages({
+    'array.max': 'Maximum 5 evidence URLs allowed',
+    'string.uri': 'Invalid URL format',
+  }),
+  severity: Joi.string().valid('low', 'medium', 'high', 'critical').optional().messages({
+    'any.only': 'Invalid severity level',
+  }),
 });
 
 export const resolveReportSchema = Joi.object({

@@ -9,7 +9,10 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('sender_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.uuid('recipient_id').nullable().references('id').inTable('users').onDelete('SET NULL');
     table.text('content').notNullable();
-    table.enum('content_type', ['message', 'profile_bio', 'photo_caption', 'prompt_response']).notNullable().defaultTo('message');
+    table
+      .enum('content_type', ['message', 'profile_bio', 'photo_caption', 'prompt_response'])
+      .notNullable()
+      .defaultTo('message');
 
     // AI Detection Results
     table.float('harassment_score').notNullable().defaultTo(0);
@@ -30,13 +33,26 @@ export async function up(knex: Knex): Promise<void> {
     table.jsonb('ai_explanation').nullable(); // Explanation from AI for reviewers
 
     // Review status
-    table.enum('review_status', ['pending', 'reviewed', 'confirmed', 'dismissed', 'escalated']).notNullable().defaultTo('pending');
+    table
+      .enum('review_status', ['pending', 'reviewed', 'confirmed', 'dismissed', 'escalated'])
+      .notNullable()
+      .defaultTo('pending');
     table.uuid('reviewed_by').nullable().references('id').inTable('users').onDelete('SET NULL');
     table.timestamp('reviewed_at').nullable();
     table.text('reviewer_notes').nullable();
 
     // Actions taken
-    table.enum('action_taken', ['none', 'warning_sent', 'message_hidden', 'user_warned', 'user_suspended', 'user_banned', 'escalated_to_law_enforcement']).nullable();
+    table
+      .enum('action_taken', [
+        'none',
+        'warning_sent',
+        'message_hidden',
+        'user_warned',
+        'user_suspended',
+        'user_banned',
+        'escalated_to_law_enforcement',
+      ])
+      .nullable();
 
     table.timestamps(true, true);
 
@@ -72,7 +88,9 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('report_evidence', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('report_id').notNullable().references('id').inTable('reports').onDelete('CASCADE');
-    table.enum('evidence_type', ['screenshot', 'message', 'conversation', 'profile', 'media', 'other']).notNullable();
+    table
+      .enum('evidence_type', ['screenshot', 'message', 'conversation', 'profile', 'media', 'other'])
+      .notNullable();
     table.text('content_url').nullable(); // For screenshots/media
     table.text('content_text').nullable(); // For message/text evidence
     table.uuid('message_id').nullable(); // Reference to specific message
@@ -123,10 +141,23 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('panic_events', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('sos_alert_id').nullable().references('id').inTable('sos_alerts').onDelete('SET NULL');
+    table
+      .uuid('sos_alert_id')
+      .nullable()
+      .references('id')
+      .inTable('sos_alerts')
+      .onDelete('SET NULL');
 
     // Trigger context
-    table.enum('trigger_type', ['button_press', 'gesture', 'voice_command', 'auto_detection', 'shake_device']).notNullable();
+    table
+      .enum('trigger_type', [
+        'button_press',
+        'gesture',
+        'voice_command',
+        'auto_detection',
+        'shake_device',
+      ])
+      .notNullable();
     table.uuid('related_match_id').nullable(); // If triggered during a date/conversation with specific user
     table.uuid('related_user_id').nullable().references('id').inTable('users').onDelete('SET NULL');
 
@@ -151,7 +182,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string('audio_recording_url').nullable();
 
     // Resolution
-    table.enum('status', ['active', 'resolved', 'escalated', 'false_alarm']).notNullable().defaultTo('active');
+    table
+      .enum('status', ['active', 'resolved', 'escalated', 'false_alarm'])
+      .notNullable()
+      .defaultTo('active');
     table.text('resolution_notes').nullable();
     table.uuid('resolved_by').nullable();
     table.timestamp('resolved_at').nullable();
@@ -167,7 +201,13 @@ export async function up(knex: Knex): Promise<void> {
   // User Safety Scores (aggregate safety metrics)
   await knex.schema.createTable('user_safety_scores', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE').unique();
+    table
+      .uuid('user_id')
+      .notNullable()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE')
+      .unique();
 
     // Safety metrics
     table.float('overall_safety_score').notNullable().defaultTo(100);
@@ -208,7 +248,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.uuid('content_id').notNullable(); // Message ID, photo ID, etc.
-    table.enum('content_type', ['message', 'photo', 'bio', 'prompt_response', 'profile_update']).notNullable();
+    table
+      .enum('content_type', ['message', 'photo', 'bio', 'prompt_response', 'profile_update'])
+      .notNullable();
     table.text('content_preview').nullable();
     table.string('content_url').nullable();
 
@@ -219,7 +261,10 @@ export async function up(knex: Knex): Promise<void> {
     table.jsonb('flagged_categories').nullable();
 
     // Processing status
-    table.enum('status', ['pending', 'in_review', 'approved', 'rejected', 'escalated']).notNullable().defaultTo('pending');
+    table
+      .enum('status', ['pending', 'in_review', 'approved', 'rejected', 'escalated'])
+      .notNullable()
+      .defaultTo('pending');
     table.uuid('assigned_to').nullable().references('id').inTable('users').onDelete('SET NULL');
     table.timestamp('assigned_at').nullable();
     table.uuid('processed_by').nullable().references('id').inTable('users').onDelete('SET NULL');
@@ -227,7 +272,16 @@ export async function up(knex: Knex): Promise<void> {
     table.text('processing_notes').nullable();
 
     // Action taken
-    table.enum('action_taken', ['approved', 'hidden', 'removed', 'user_warned', 'user_suspended', 'user_banned']).nullable();
+    table
+      .enum('action_taken', [
+        'approved',
+        'hidden',
+        'removed',
+        'user_warned',
+        'user_suspended',
+        'user_banned',
+      ])
+      .nullable();
 
     table.timestamps(true, true);
 
@@ -247,23 +301,25 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('report_id').nullable().references('id').inTable('reports').onDelete('SET NULL');
     table.uuid('content_id').nullable();
 
-    table.enum('action_type', [
-      'report_reviewed',
-      'report_resolved',
-      'report_dismissed',
-      'report_escalated',
-      'user_warned',
-      'user_suspended',
-      'user_banned',
-      'user_unbanned',
-      'content_removed',
-      'content_approved',
-      'block_applied',
-      'safety_note_added',
-      'priority_changed',
-      'case_assigned',
-      'case_transferred'
-    ]).notNullable();
+    table
+      .enum('action_type', [
+        'report_reviewed',
+        'report_resolved',
+        'report_dismissed',
+        'report_escalated',
+        'user_warned',
+        'user_suspended',
+        'user_banned',
+        'user_unbanned',
+        'content_removed',
+        'content_approved',
+        'block_applied',
+        'safety_note_added',
+        'priority_changed',
+        'case_assigned',
+        'case_transferred',
+      ])
+      .notNullable();
 
     table.text('action_details').nullable();
     table.jsonb('before_state').nullable();

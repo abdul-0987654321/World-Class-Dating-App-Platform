@@ -5,6 +5,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
 import {
@@ -121,9 +122,7 @@ class AdRevenueService {
    */
   private async initializeFromDb(): Promise<void> {
     try {
-      const configs = await db('reward_configurations')
-        .where('enabled', true)
-        .select('*');
+      const configs = await db('reward_configurations').where('enabled', true).select('*');
 
       if (configs.length > 0) {
         this.rewardConfigs = configs.map((c) => ({
@@ -158,9 +157,7 @@ class AdRevenueService {
 
     // Check for temporary ad-free period
     try {
-      const userState = await db('user_ad_states')
-        .where('user_id', userId)
-        .first();
+      const userState = await db('user_ad_states').where('user_id', userId).first();
 
       if (userState?.ad_free_until && new Date(userState.ad_free_until) > new Date()) {
         return false;
@@ -179,9 +176,7 @@ class AdRevenueService {
     const today = this.getTodayDateString();
 
     try {
-      let state = await db('user_ad_states')
-        .where('user_id', userId)
-        .first();
+      let state = await db('user_ad_states').where('user_id', userId).first();
 
       if (!state) {
         // Create new state
@@ -199,14 +194,12 @@ class AdRevenueService {
         await db('user_ad_states').insert(state);
       } else if (state.last_reset_date !== today) {
         // Reset daily counters
-        await db('user_ad_states')
-          .where('user_id', userId)
-          .update({
-            interstitials_shown_today: 0,
-            rewarded_views_today: 0,
-            last_reset_date: today,
-            updated_at: new Date(),
-          });
+        await db('user_ad_states').where('user_id', userId).update({
+          interstitials_shown_today: 0,
+          rewarded_views_today: 0,
+          last_reset_date: today,
+          updated_at: new Date(),
+        });
 
         state.interstitials_shown_today = 0;
         state.rewarded_views_today = 0;
@@ -215,7 +208,9 @@ class AdRevenueService {
 
       return {
         userId: state.user_id,
-        lastInterstitialTime: state.last_interstitial_time ? new Date(state.last_interstitial_time) : undefined,
+        lastInterstitialTime: state.last_interstitial_time
+          ? new Date(state.last_interstitial_time)
+          : undefined,
         interstitialsShownToday: state.interstitials_shown_today,
         interstitialsShownSession: state.interstitials_shown_session,
         lastRewardedTime: state.last_rewarded_time ? new Date(state.last_rewarded_time) : undefined,
@@ -274,8 +269,7 @@ class AdRevenueService {
 
     // Check if can show rewarded
     const canShowRewarded =
-      state.rewardedViewsToday < rewarded.maxViewsPerDay &&
-      timeUntilNextRewarded === 0;
+      state.rewardedViewsToday < rewarded.maxViewsPerDay && timeUntilNextRewarded === 0;
 
     return {
       canShowInterstitial,
@@ -283,7 +277,10 @@ class AdRevenueService {
       timeUntilNextInterstitial: Math.ceil(timeUntilNextInterstitial),
       timeUntilNextRewarded: Math.ceil(timeUntilNextRewarded),
       remainingRewardedToday: Math.max(0, rewarded.maxViewsPerDay - state.rewardedViewsToday),
-      remainingInterstitialsToday: Math.max(0, interstitial.maxAdsPerDay - state.interstitialsShownToday),
+      remainingInterstitialsToday: Math.max(
+        0,
+        interstitial.maxAdsPerDay - state.interstitialsShownToday
+      ),
       state,
     };
   }
@@ -319,12 +316,10 @@ class AdRevenueService {
   async recordPurchase(userId: string): Promise<void> {
     try {
       await this.getUserState(userId); // Ensure state exists
-      await db('user_ad_states')
-        .where('user_id', userId)
-        .update({
-          last_purchase_time: new Date(),
-          updated_at: new Date(),
-        });
+      await db('user_ad_states').where('user_id', userId).update({
+        last_purchase_time: new Date(),
+        updated_at: new Date(),
+      });
     } catch (error) {
       logger.warn('Error recording purchase', error);
     }
@@ -406,12 +401,12 @@ class AdRevenueService {
    */
   async recordClick(request: RecordClickRequest): Promise<AdClick | null> {
     try {
-      const impression = await db('ad_impressions')
-        .where('id', request.impressionId)
-        .first();
+      const impression = await db('ad_impressions').where('id', request.impressionId).first();
 
       if (!impression) {
-        logger.warn('Click recorded for unknown impression', { impressionId: request.impressionId });
+        logger.warn('Click recorded for unknown impression', {
+          impressionId: request.impressionId,
+        });
         return null;
       }
 
@@ -429,12 +424,10 @@ class AdRevenueService {
       await db('ad_clicks').insert(click);
 
       // Update impression
-      await db('ad_impressions')
-        .where('id', request.impressionId)
-        .update({
-          clicked: true,
-          click_time: clickTime,
-        });
+      await db('ad_impressions').where('id', request.impressionId).update({
+        clicked: true,
+        click_time: clickTime,
+      });
 
       logger.info('Ad click recorded', {
         clickId,
@@ -460,14 +453,17 @@ class AdRevenueService {
    */
   async getAvailableRewards(userId: string): Promise<{
     rewards: RewardConfig[];
-    availability: Map<string, { available: boolean; remainingToday: number; nextAvailableAt?: Date }>;
+    availability: Map<
+      string,
+      { available: boolean; remainingToday: number; nextAvailableAt?: Date }
+    >;
   }> {
     const state = await this.getUserState(userId);
     const today = this.getTodayDateString();
     const availability = new Map();
 
     // Get user's reward counts for today from DB
-    let countMap = new Map<string, number>();
+    const countMap = new Map<string, number>();
     try {
       const dailyCounts = await db('user_daily_reward_counts')
         .where('user_id', userId)
@@ -486,11 +482,14 @@ class AdRevenueService {
       const remainingToday = Math.max(0, reward.maxPerDay - claimedToday);
 
       // Check cooldown
-      let available = remainingToday > 0 && state.rewardedViewsToday < this.frequencyCap.rewarded.maxViewsPerDay;
+      let available =
+        remainingToday > 0 && state.rewardedViewsToday < this.frequencyCap.rewarded.maxViewsPerDay;
       let nextAvailableAt: Date | undefined;
 
       if (state.lastRewardedTime && reward.cooldownHours > 0) {
-        const cooldownEnd = new Date(state.lastRewardedTime.getTime() + reward.cooldownHours * 60 * 60 * 1000);
+        const cooldownEnd = new Date(
+          state.lastRewardedTime.getTime() + reward.cooldownHours * 60 * 60 * 1000
+        );
         if (cooldownEnd > new Date()) {
           available = false;
           nextAvailableAt = cooldownEnd;
@@ -505,7 +504,7 @@ class AdRevenueService {
     }
 
     return {
-      rewards: this.rewardConfigs.filter(r => r.enabled),
+      rewards: this.rewardConfigs.filter((r) => r.enabled),
       availability,
     };
   }
@@ -514,7 +513,7 @@ class AdRevenueService {
    * Claim a reward after watching a video ad
    */
   async claimReward(request: ClaimRewardRequest): Promise<ClaimRewardResponse> {
-    const rewardConfig = this.rewardConfigs.find(r => r.id === request.rewardId);
+    const rewardConfig = this.rewardConfigs.find((r) => r.id === request.rewardId);
     if (!rewardConfig) {
       return { success: false, error: 'Invalid reward ID' };
     }
@@ -533,7 +532,7 @@ class AdRevenueService {
 
     try {
       // Check daily limit
-      let dailyCount = await db('user_daily_reward_counts')
+      const dailyCount = await db('user_daily_reward_counts')
         .where('user_id', request.userId)
         .where('reward_id', request.rewardId)
         .where('date', today)
@@ -665,18 +664,18 @@ class AdRevenueService {
         if (!byAdType[adType]) {
           byAdType[adType] = { impressions: 0, clicks: 0, ctr: 0, revenue: 0, ecpm: 0 };
         }
-        byAdType[adType]!.impressions += impressions;
-        byAdType[adType]!.clicks += clicks;
-        byAdType[adType]!.revenue += revenue;
+        byAdType[adType].impressions += impressions;
+        byAdType[adType].clicks += clicks;
+        byAdType[adType].revenue += revenue;
 
         // By network
         const network = row.network as AdNetwork;
         if (!byNetwork[network]) {
           byNetwork[network] = { impressions: 0, clicks: 0, ctr: 0, revenue: 0, ecpm: 0 };
         }
-        byNetwork[network]!.impressions += impressions;
-        byNetwork[network]!.clicks += clicks;
-        byNetwork[network]!.revenue += revenue;
+        byNetwork[network].impressions += impressions;
+        byNetwork[network].clicks += clicks;
+        byNetwork[network].revenue += revenue;
 
         // By placement
         const placement = row.placement;
@@ -690,13 +689,13 @@ class AdRevenueService {
 
       // Calculate CTR and eCPM for aggregates
       for (const adType of Object.keys(byAdType) as AdType[]) {
-        const data = byAdType[adType]!;
+        const data = byAdType[adType];
         data.ctr = data.impressions > 0 ? (data.clicks / data.impressions) * 100 : 0;
         data.ecpm = data.impressions > 0 ? (data.revenue / data.impressions) * 1000 : 0;
       }
 
       for (const network of Object.keys(byNetwork) as AdNetwork[]) {
-        const data = byNetwork[network]!;
+        const data = byNetwork[network];
         data.ctr = data.impressions > 0 ? (data.clicks / data.impressions) * 100 : 0;
         data.ecpm = data.impressions > 0 ? (data.revenue / data.impressions) * 1000 : 0;
       }
@@ -875,12 +874,10 @@ class AdRevenueService {
       await this.getUserState(userId); // Ensure state exists
       const adFreeUntil = new Date(Date.now() + hours * 60 * 60 * 1000);
 
-      await db('user_ad_states')
-        .where('user_id', userId)
-        .update({
-          ad_free_until: adFreeUntil,
-          updated_at: new Date(),
-        });
+      await db('user_ad_states').where('user_id', userId).update({
+        ad_free_until: adFreeUntil,
+        updated_at: new Date(),
+      });
 
       logger.info(`Granted ${hours} hours ad-free to user ${userId}`);
     } catch (error) {
@@ -893,13 +890,11 @@ class AdRevenueService {
    */
   async resetSessionCounters(userId: string): Promise<void> {
     try {
-      await db('user_ad_states')
-        .where('user_id', userId)
-        .update({
-          interstitials_shown_session: 0,
-          actions_this_session: 0,
-          updated_at: new Date(),
-        });
+      await db('user_ad_states').where('user_id', userId).update({
+        interstitials_shown_session: 0,
+        actions_this_session: 0,
+        updated_at: new Date(),
+      });
     } catch (error) {
       logger.warn('Error resetting session counters', error);
     }

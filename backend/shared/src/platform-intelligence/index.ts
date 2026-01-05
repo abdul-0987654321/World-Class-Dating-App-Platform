@@ -31,25 +31,13 @@ export {
 
 // Feature Flags
 export * from './feature-flags';
-export {
-  FeatureFlagService,
-  featureFlags,
-  DEFAULT_FEATURE_FLAGS,
-} from './feature-flags';
+export { FeatureFlagService, featureFlags, DEFAULT_FEATURE_FLAGS } from './feature-flags';
 export type { FeatureFlag, FeatureFlagConfig } from './feature-flags';
 
 // Self-Healing Service
 export * from './self-healing.service';
-export {
-  SelfHealingService,
-  selfHealing,
-  SELF_HEALING_CONFIG,
-} from './self-healing.service';
-export type {
-  SelfHealingAction,
-  SelfHealingEvent,
-  HealthCheck,
-} from './self-healing.service';
+export { SelfHealingService, selfHealing, SELF_HEALING_CONFIG } from './self-healing.service';
+export type { SelfHealingAction, SelfHealingEvent, HealthCheck } from './self-healing.service';
 
 // Type exports from platform-ai-config
 export type {

@@ -21,7 +21,8 @@ function optionalSecret(name: string): string | undefined {
 /**
  * Base URL for OAuth redirects
  */
-const baseRedirectUrl = process.env.CALENDAR_OAUTH_REDIRECT_BASE_URL || 'http://localhost:3004/api/v1/calendar/oauth';
+const baseRedirectUrl =
+  process.env.CALENDAR_OAUTH_REDIRECT_BASE_URL || 'http://localhost:3004/api/v1/calendar/oauth';
 
 /**
  * Google Calendar OAuth Configuration
@@ -73,13 +74,7 @@ export const outlookCalendarConfig: CalendarOAuthConfig = {
   clientSecret: requireSecret('OUTLOOK_CALENDAR_CLIENT_SECRET', 'dev-outlook-client-secret'),
   authorizationUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
   tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-  scopes: [
-    'offline_access',
-    'openid',
-    'profile',
-    'email',
-    'Calendars.ReadWrite',
-  ],
+  scopes: ['offline_access', 'openid', 'profile', 'email', 'Calendars.ReadWrite'],
   redirectUri: `${baseRedirectUrl}/outlook/callback`,
 };
 

@@ -1,12 +1,13 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '@flamoral/backend-shared';
-import { authenticateService } from '../middleware/service-auth.middleware';
-import { messageRepository } from '../../domain/repositories/message.repository';
+
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { redisClient } from '../../infrastructure/cache/redis';
 import { Message, MessageType, MessageStatus } from '../../types';
+import { authenticateService } from '../middleware/service-auth.middleware';
 
 const logger = createLogger('internal-routes');
 const router = Router();
@@ -52,10 +53,7 @@ router.post('/send-system', async (req: Request, res: Response) => {
     }
 
     // Verify user is a participant
-    if (
-      conversation.participant1Id !== userId &&
-      conversation.participant2Id !== userId
-    ) {
+    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
       return res.status(403).json({
         success: false,
         error: 'User not authorized',
@@ -91,11 +89,7 @@ router.post('/send-system', async (req: Request, res: Response) => {
 
     // Update conversation last message
     const preview = content.length > 50 ? content.substring(0, 47) + '...' : content;
-    await conversationRepository.updateLastMessage(
-      conversationId,
-      new Date(),
-      preview
-    );
+    await conversationRepository.updateLastMessage(conversationId, new Date(), preview);
 
     // Don't increment unread count for system messages to avoid spam
 
@@ -155,11 +149,7 @@ router.get('/conversation', async (req: Request, res: Response) => {
     }
 
     // Get recent messages from the conversation (last 50)
-    const messages = await messageRepository.getMessagesByConversation(
-      conversation.id,
-      50,
-      0
-    );
+    const messages = await messageRepository.getMessagesByConversation(conversation.id, 50, 0);
 
     // Get unread counts for both users
     const unreadCountUser1 = await messageRepository.getUnreadCount(
@@ -341,9 +331,7 @@ router.get('/users/:userId/conversations', async (req: Request, res: Response) =
       paginatedConversations.map(async (conv) => {
         // Get other participant ID
         const otherParticipantId =
-          conv.participant1Id === userId
-            ? conv.participant2Id
-            : conv.participant1Id;
+          conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
 
         // Get unread count for this user
         const unreadCount = await messageRepository.getUnreadCount(conv.id, userId);
@@ -351,11 +339,7 @@ router.get('/users/:userId/conversations', async (req: Request, res: Response) =
         // Get last message if exists
         let lastMessage = null;
         if (conv.lastMessageAt) {
-          const messages = await messageRepository.getMessagesByConversation(
-            conv.id,
-            1,
-            0
-          );
+          const messages = await messageRepository.getMessagesByConversation(conv.id, 1, 0);
           lastMessage = messages.length > 0 ? messages[0] : null;
         }
 
@@ -449,10 +433,7 @@ router.post('/block', async (req: Request, res: Response) => {
         await client.sAdd(`blocked:${blockedId}:list`, blockerId);
 
         // Find conversation between these users and update status (optional)
-        const conversation = await conversationRepository.findByParticipants(
-          blockerId,
-          blockedId
-        );
+        const conversation = await conversationRepository.findByParticipants(blockerId, blockedId);
 
         if (conversation) {
           // Optionally mark conversation as blocked

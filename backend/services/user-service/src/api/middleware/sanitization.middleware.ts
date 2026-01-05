@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import logger from '../../utils/logger';
 
 /**
@@ -27,17 +28,19 @@ function sanitizeString(input: string): string {
 function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return input;
 
-  return input
-    // Remove script tags
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove event handlers
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
-    // Remove javascript: protocol
-    .replace(/javascript:/gi, '')
-    // Remove data: protocol (can be used for XSS)
-    .replace(/data:text\/html/gi, '')
-    .trim();
+  return (
+    input
+      // Remove script tags
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      // Remove event handlers
+      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+      // Remove javascript: protocol
+      .replace(/javascript:/gi, '')
+      // Remove data: protocol (can be used for XSS)
+      .replace(/data:text\/html/gi, '')
+      .trim()
+  );
 }
 
 /**
@@ -56,7 +59,7 @@ function hasSqlInjection(input: string): boolean {
     /(\\x[0-9a-f]{2})/gi, // Hex encoding
   ];
 
-  return sqlPatterns.some(pattern => pattern.test(input));
+  return sqlPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -77,7 +80,7 @@ function hasXss(input: string): boolean {
     /<img[^>]+src\s*=\s*["']?javascript:/gi,
   ];
 
-  return xssPatterns.some(pattern => pattern.test(input));
+  return xssPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -92,7 +95,7 @@ function hasCommandInjection(input: string): boolean {
     /`.*`/g, // Backtick command execution
   ];
 
-  return commandPatterns.some(pattern => pattern.test(input));
+  return commandPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -108,7 +111,7 @@ function sanitizeObject(obj: any, allowHtml: boolean = false): any {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeObject(item, allowHtml));
+    return obj.map((item) => sanitizeObject(item, allowHtml));
   }
 
   if (typeof obj === 'object') {
@@ -242,7 +245,7 @@ export const validateContentType = (allowedTypes: string[] = ['application/json'
       });
     }
 
-    const isAllowed = allowedTypes.some(type => contentType.includes(type));
+    const isAllowed = allowedTypes.some((type) => contentType.includes(type));
 
     if (!isAllowed) {
       return res.status(415).json({
@@ -300,13 +303,9 @@ export const validateEmail = (field: string = 'email') => {
     }
 
     // Check for suspicious patterns in email
-    const suspiciousPatterns = [
-      /<script/gi,
-      /javascript:/gi,
-      /[;&|`$()]/g,
-    ];
+    const suspiciousPatterns = [/<script/gi, /javascript:/gi, /[;&|`$()]/g];
 
-    if (suspiciousPatterns.some(pattern => pattern.test(email))) {
+    if (suspiciousPatterns.some((pattern) => pattern.test(email))) {
       return res.status(400).json({
         success: false,
         message: 'Invalid email format',
@@ -320,7 +319,10 @@ export const validateEmail = (field: string = 'email') => {
 /**
  * Middleware to validate UUID format
  */
-export const validateUuid = (field: string = 'id', location: 'params' | 'body' | 'query' = 'params') => {
+export const validateUuid = (
+  field: string = 'id',
+  location: 'params' | 'body' | 'query' = 'params'
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const value = req[location][field];
 

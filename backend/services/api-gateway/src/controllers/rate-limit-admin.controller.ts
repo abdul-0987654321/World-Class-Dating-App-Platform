@@ -10,11 +10,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { DDoSProtectionService } from '../services/ddos-protection.service';
-import { AdvancedRateLimiterMiddleware } from '../middleware/advanced-rate-limiter.middleware';
+
 import { SkipRateLimit } from '../decorators/rate-limit.decorator';
 import { Roles } from '../decorators/roles.decorator';
 import { RolesGuard, Role } from '../guards/roles.guard';
+import { AdvancedRateLimiterMiddleware } from '../middleware/advanced-rate-limiter.middleware';
+import { DDoSProtectionService } from '../services/ddos-protection.service';
 
 /**
  * Rate Limit Admin Controller
@@ -30,7 +31,7 @@ import { RolesGuard, Role } from '../guards/roles.guard';
 export class RateLimitAdminController {
   constructor(
     private readonly ddosProtection: DDoSProtectionService,
-    private readonly rateLimiter: AdvancedRateLimiterMiddleware,
+    private readonly rateLimiter: AdvancedRateLimiterMiddleware
   ) {}
 
   // ==================== DDoS Protection Endpoints ====================
@@ -97,7 +98,7 @@ export class RateLimitAdminController {
   async banIP(
     @Param('ip') ip: string,
     @Query('duration') duration?: string,
-    @Query('reason') reason?: string,
+    @Query('reason') reason?: string
   ) {
     const banReason = reason || 'Manual ban by admin';
 
@@ -200,7 +201,7 @@ export class RateLimitAdminController {
   async resetUserRateLimit(
     @Param('userId') userId: string,
     @Query('method') method?: string,
-    @Query('path') path?: string,
+    @Query('path') path?: string
   ) {
     await this.rateLimiter.resetRateLimit(userId, 'user', method, path);
 
@@ -219,7 +220,7 @@ export class RateLimitAdminController {
   async resetIPRateLimit(
     @Param('ip') ip: string,
     @Query('method') method?: string,
-    @Query('path') path?: string,
+    @Query('path') path?: string
   ) {
     await this.rateLimiter.resetRateLimit(ip, 'ip', method, path);
 
@@ -238,7 +239,7 @@ export class RateLimitAdminController {
   async getUserRateLimit(
     @Param('userId') userId: string,
     @Query('method') method: string,
-    @Query('path') path: string,
+    @Query('path') path: string
   ) {
     if (!method || !path) {
       return {
@@ -247,12 +248,7 @@ export class RateLimitAdminController {
       };
     }
 
-    const info = await this.rateLimiter.getRateLimitInfo(
-      userId,
-      'user',
-      method,
-      path,
-    );
+    const info = await this.rateLimiter.getRateLimitInfo(userId, 'user', method, path);
 
     return {
       success: true,
@@ -273,7 +269,7 @@ export class RateLimitAdminController {
   async getIPRateLimit(
     @Param('ip') ip: string,
     @Query('method') method: string,
-    @Query('path') path: string,
+    @Query('path') path: string
   ) {
     if (!method || !path) {
       return {
@@ -282,12 +278,7 @@ export class RateLimitAdminController {
       };
     }
 
-    const info = await this.rateLimiter.getRateLimitInfo(
-      ip,
-      'ip',
-      method,
-      path,
-    );
+    const info = await this.rateLimiter.getRateLimitInfo(ip, 'ip', method, path);
 
     return {
       success: true,

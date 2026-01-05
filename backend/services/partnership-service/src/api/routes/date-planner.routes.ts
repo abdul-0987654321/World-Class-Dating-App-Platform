@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { DatePlannerService } from '../../domain/services/date-planner.service';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { DatePlannerService } from '../../domain/services/date-planner.service';
 
 const router = express.Router();
 const logger = createLogger('date-planner-routes');

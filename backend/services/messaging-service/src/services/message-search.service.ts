@@ -1,9 +1,10 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../utils/logger';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
+
 import { conversationRepository } from '../domain/repositories/conversation.repository';
-import { MessageSearchQuery, MessageSearchResult } from '../types/enhanced-types';
+import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { Message, MessageType } from '../types';
+import { MessageSearchQuery, MessageSearchResult } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('message-search-service');
 
@@ -44,7 +45,7 @@ export class MessageSearchService {
       } else {
         // Get all conversations for the user
         const conversations = await conversationRepository.findByUserId(userId);
-        const conversationIds = conversations.map(c => c.id);
+        const conversationIds = conversations.map((c) => c.id);
 
         if (conversationIds.length === 0) {
           return [];
@@ -101,7 +102,7 @@ export class MessageSearchService {
         .fetchAll();
 
       // Convert to search results with highlighted content
-      const results: MessageSearchResult[] = messages.map(message => {
+      const results: MessageSearchResult[] = messages.map((message) => {
         const highlightedContent = query
           ? this.highlightSearchTerm(message.content, query)
           : message.content;
@@ -219,7 +220,7 @@ export class MessageSearchService {
       }
 
       const results = await this.searchByType(userId, type, conversationId, limit, offset);
-      return results.map(r => r.message);
+      return results.map((r) => r.message);
     } catch (error: any) {
       logger.error('Failed to get shared media:', error);
       throw error;
@@ -264,7 +265,8 @@ export class MessageSearchService {
     }
 
     // Recency bonus (more recent messages get a small boost)
-    const daysSinceMessage = (Date.now() - new Date(message.sentAt).getTime()) / (1000 * 60 * 60 * 24);
+    const daysSinceMessage =
+      (Date.now() - new Date(message.sentAt).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSinceMessage < 7) {
       score += 0.5;
     } else if (daysSinceMessage < 30) {

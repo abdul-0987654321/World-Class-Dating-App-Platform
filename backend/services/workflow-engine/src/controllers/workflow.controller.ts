@@ -15,11 +15,12 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workflow } from '../models/workflow.entity';
+
 import { CreateWorkflowDto } from '../dto/create-workflow.dto';
 import { UpdateWorkflowDto } from '../dto/update-workflow.dto';
-import { WorkflowStatus } from '../interfaces/workflow.interface';
 import { InternalServiceGuard } from '../guards/internal-service.guard';
+import { WorkflowStatus } from '../interfaces/workflow.interface';
+import { Workflow } from '../models/workflow.entity';
 
 @ApiTags('workflows')
 @Controller('workflows')
@@ -28,7 +29,7 @@ import { InternalServiceGuard } from '../guards/internal-service.guard';
 export class WorkflowController {
   constructor(
     @InjectRepository(Workflow)
-    private readonly workflowRepository: Repository<Workflow>,
+    private readonly workflowRepository: Repository<Workflow>
   ) {}
 
   @Post()
@@ -43,10 +44,7 @@ export class WorkflowController {
   @ApiOperation({ summary: 'Get all workflows' })
   @ApiQuery({ name: 'status', required: false, enum: WorkflowStatus })
   @ApiQuery({ name: 'tag', required: false, type: String })
-  async findAll(
-    @Query('status') status?: WorkflowStatus,
-    @Query('tag') tag?: string,
-  ) {
+  async findAll(@Query('status') status?: WorkflowStatus, @Query('tag') tag?: string) {
     const queryBuilder = this.workflowRepository.createQueryBuilder('workflow');
 
     if (status) {
@@ -71,20 +69,14 @@ export class WorkflowController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a workflow' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateWorkflowDto: UpdateWorkflowDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateWorkflowDto: UpdateWorkflowDto) {
     await this.workflowRepository.update(id, updateWorkflowDto);
     return this.workflowRepository.findOne({ where: { id } });
   }
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update workflow status' })
-  async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: WorkflowStatus,
-  ) {
+  async updateStatus(@Param('id') id: string, @Body('status') status: WorkflowStatus) {
     await this.workflowRepository.update(id, { status });
     return this.workflowRepository.findOne({ where: { id } });
   }
@@ -122,9 +114,7 @@ export class WorkflowController {
     }
 
     const successRate =
-      workflow.executionCount > 0
-        ? (workflow.successCount / workflow.executionCount) * 100
-        : 0;
+      workflow.executionCount > 0 ? (workflow.successCount / workflow.executionCount) * 100 : 0;
 
     return {
       workflowId: workflow.id,

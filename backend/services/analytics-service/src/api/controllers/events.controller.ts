@@ -3,11 +3,12 @@
  * Handles event tracking for swipes, matches, messages, and sessions
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
+
 import eventsRepository from '../../domain/repositories/events.repository';
 import matchSuccessRepository from '../../domain/repositories/match-success.repository';
 import revenueRepository from '../../domain/repositories/revenue.repository';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('events-controller');
 

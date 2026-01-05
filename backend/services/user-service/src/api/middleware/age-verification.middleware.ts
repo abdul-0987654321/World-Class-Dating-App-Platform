@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import db from '../../infrastructure/database/connection';
 import { calculateAge, MINIMUM_AGE } from '../../utils/age-verification';
 import { createLogger } from '../../utils/logger';
@@ -71,12 +72,10 @@ export async function requireAgeVerification(
 
     // Mark user as age verified if not already
     if (!user.is_age_verified) {
-      await db('users')
-        .where({ id: userId })
-        .update({
-          is_age_verified: true,
-          updated_at: new Date(),
-        });
+      await db('users').where({ id: userId }).update({
+        is_age_verified: true,
+        updated_at: new Date(),
+      });
       logger.info(`User ${userId} age verified (age ${age})`);
     }
 

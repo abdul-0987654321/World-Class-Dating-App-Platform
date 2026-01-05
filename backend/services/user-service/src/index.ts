@@ -1,50 +1,52 @@
-import express, { Application, Request, Response } from 'express';
 import { createServer } from 'http';
+
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
-import logger from './utils/logger';
+
+import { generalLimiter } from './api/middleware/rate-limit.middleware';
+import achievementsRoutes from './api/routes/achievements.routes';
 import authRoutes from './api/routes/auth.routes';
-import profileRoutes from './api/routes/profile.routes';
-import verificationRoutes from './api/routes/verification.routes';
-import idVerificationRoutes from './api/routes/id-verification.routes';
-import documentVerificationRoutes from './api/routes/document-verification.routes';
 import backgroundCheckRoutes from './api/routes/background-check.routes';
-import phoneVerificationRoutes from './api/routes/phone-verification.routes';
-import passwordResetRoutes from './api/routes/password-reset.routes';
-import photoRoutes from './api/routes/photo.routes';
-import promptRoutes from './api/routes/prompt.routes';
-import swipeRoutes from './api/routes/swipe.routes';
-import matchRoutes from './api/routes/match.routes';
-import discoveryRoutes from './api/routes/discovery.routes';
-import messagingRoutes from './api/routes/messaging.routes';
-import subscriptionRoutes from './api/routes/subscription.routes';
-import coinRoutes from './api/routes/coin.routes';
-import boostRoutes from './api/routes/boost.routes';
-import privacyRoutes from './api/routes/privacy.routes';
 import blockRoutes from './api/routes/block.routes';
+import boostRoutes from './api/routes/boost.routes';
+import challengeRoutes from './api/routes/challenge.routes';
+import coinRoutes from './api/routes/coin.routes';
+import communityRoutes from './api/routes/community.routes';
+import dailyRewardRoutes from './api/routes/dailyReward.routes';
+import datePlanningRoutes from './api/routes/date-planning.routes';
+import discoveryRoutes from './api/routes/discovery.routes';
+import documentVerificationRoutes from './api/routes/document-verification.routes';
+import eliteRoutes from './api/routes/elite.routes';
+import gamificationRoutes from './api/routes/gamification.routes';
+import gemRoutes from './api/routes/gem.routes';
+import idVerificationRoutes from './api/routes/id-verification.routes';
+import badgeRoutes from './api/routes/interestIntentionBadge.routes';
+import internalRoutes from './api/routes/internal.routes';
+import matchRoutes from './api/routes/match.routes';
+import messagingRoutes from './api/routes/messaging.routes';
+import passwordResetRoutes from './api/routes/password-reset.routes';
+import phoneVerificationRoutes from './api/routes/phone-verification.routes';
+import photoRoutes from './api/routes/photo.routes';
+import privacyRoutes from './api/routes/privacy.routes';
+import profileRoutes from './api/routes/profile.routes';
+import promptRoutes from './api/routes/prompt.routes';
+import referralRoutes from './api/routes/referral.routes';
 import reportRoutes from './api/routes/report.routes';
 import safetyRoutes from './api/routes/safety.routes';
+import subscriptionRoutes from './api/routes/subscription.routes';
+import swipeRoutes from './api/routes/swipe.routes';
 import usageLimitRoutes from './api/routes/usage-limit.routes';
-import internalRoutes from './api/routes/internal.routes';
-import achievementsRoutes from './api/routes/achievements.routes';
-import badgeRoutes from './api/routes/interestIntentionBadge.routes';
-import gemRoutes from './api/routes/gem.routes';
-import communityRoutes from './api/routes/community.routes';
-import referralRoutes from './api/routes/referral.routes';
-import challengeRoutes from './api/routes/challenge.routes';
-import datePlanningRoutes from './api/routes/date-planning.routes';
-import eliteRoutes from './api/routes/elite.routes';
-import dailyRewardRoutes from './api/routes/dailyReward.routes';
-import gamificationRoutes from './api/routes/gamification.routes';
-import { generalLimiter } from './api/middleware/rate-limit.middleware';
+import verificationRoutes from './api/routes/verification.routes';
 import swaggerSpec from './config/swagger.config';
+import db from './infrastructure/database/connection';
 import { uploadService } from './infrastructure/storage/upload.service';
 import { initializeSocket } from './infrastructure/websocket/socket.config';
 import { initializeEncryptionKey } from './utils/encryption';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
-import db from './infrastructure/database/connection';
+import logger from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -84,7 +86,9 @@ try {
   logger.info('TOTP encryption key initialized');
 } catch (error) {
   logger.error('Failed to initialize TOTP encryption key:', error);
-  logger.error('TOTP/2FA functionality will not work. Please set TOTP_ENCRYPTION_MASTER_KEY and TOTP_ENCRYPTION_KEY_SALT in environment variables.');
+  logger.error(
+    'TOTP/2FA functionality will not work. Please set TOTP_ENCRYPTION_MASTER_KEY and TOTP_ENCRYPTION_KEY_SALT in environment variables.'
+  );
 }
 
 // Create Express app
@@ -93,10 +97,12 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || '*',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGINS?.split(',') || '*',
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -117,7 +123,7 @@ app.get('/health', async (_req: Request, res: Response) => {
     logger.error('Database health check failed:', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'user-service',
@@ -128,10 +134,14 @@ app.get('/health', async (_req: Request, res: Response) => {
 });
 
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Flamoral User Service API Documentation',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Flamoral User Service API Documentation',
+  })
+);
 
 // Swagger JSON endpoint
 app.get('/api-docs.json', (_req: Request, res: Response) => {

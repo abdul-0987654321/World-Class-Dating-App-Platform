@@ -54,7 +54,12 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable();
 
     // Reference to the swipe_history entry that was rewound
-    table.uuid('swipe_history_id').notNullable().references('id').inTable('swipe_history').onDelete('CASCADE');
+    table
+      .uuid('swipe_history_id')
+      .notNullable()
+      .references('id')
+      .inTable('swipe_history')
+      .onDelete('CASCADE');
 
     // Date of the rewind (for daily limit tracking)
     table.date('usage_date').notNullable();

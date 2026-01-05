@@ -9,19 +9,15 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { WorkflowExecution } from '../models/workflow-execution.entity';
-import { WorkflowExecutorService } from '../engine/workflow-executor.service';
+
 import { TriggerWorkflowDto } from '../dto/trigger-workflow.dto';
-import { ExecutionStatus } from '../interfaces/workflow.interface';
+import { WorkflowExecutorService } from '../engine/workflow-executor.service';
 import { InternalServiceGuard } from '../guards/internal-service.guard';
+import { ExecutionStatus } from '../interfaces/workflow.interface';
+import { WorkflowExecution } from '../models/workflow-execution.entity';
 
 @ApiTags('execution')
 @Controller('executions')
@@ -31,7 +27,7 @@ export class ExecutionController {
   constructor(
     @InjectRepository(WorkflowExecution)
     private readonly executionRepository: Repository<WorkflowExecution>,
-    private readonly workflowExecutor: WorkflowExecutorService,
+    private readonly workflowExecutor: WorkflowExecutorService
   ) {}
 
   @Post('trigger')
@@ -42,7 +38,7 @@ export class ExecutionController {
       triggerDto.triggerType,
       triggerDto.triggerData,
       triggerDto.userId,
-      triggerDto.metadata,
+      triggerDto.metadata
     );
 
     return {
@@ -64,10 +60,9 @@ export class ExecutionController {
     @Query('workflowId') workflowId?: string,
     @Query('userId') userId?: string,
     @Query('limit') limit: number = 50,
-    @Query('offset') offset: number = 0,
+    @Query('offset') offset: number = 0
   ) {
-    const queryBuilder =
-      this.executionRepository.createQueryBuilder('execution');
+    const queryBuilder = this.executionRepository.createQueryBuilder('execution');
 
     if (status) {
       queryBuilder.andWhere('execution.status = :status', { status });
@@ -110,7 +105,7 @@ export class ExecutionController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getWorkflowExecutions(
     @Param('workflowId') workflowId: string,
-    @Query('limit') limit: number = 50,
+    @Query('limit') limit: number = 50
   ) {
     return this.workflowExecutor.getWorkflowExecutions(workflowId, limit);
   }
@@ -127,12 +122,8 @@ export class ExecutionController {
   @ApiOperation({ summary: 'Get execution statistics summary' })
   @ApiQuery({ name: 'startDate', required: false, type: String })
   @ApiQuery({ name: 'endDate', required: false, type: String })
-  async getStatistics(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    const queryBuilder =
-      this.executionRepository.createQueryBuilder('execution');
+  async getStatistics(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+    const queryBuilder = this.executionRepository.createQueryBuilder('execution');
 
     if (startDate && endDate) {
       queryBuilder.where({
@@ -148,7 +139,7 @@ export class ExecutionController {
           where: { status },
         });
         return { status, count };
-      }),
+      })
     );
 
     const avgDuration = await queryBuilder

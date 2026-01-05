@@ -21,9 +21,7 @@ export class InterestIntentionBadgeRepository {
   // ============================================
 
   async getAllInterestBadges(): Promise<InterestBadge[]> {
-    return db(this.interestBadgesTable)
-      .where({ is_active: true })
-      .orderBy('display_order', 'asc');
+    return db(this.interestBadgesTable).where({ is_active: true }).orderBy('display_order', 'asc');
   }
 
   async getInterestBadgesByCategory(category: string): Promise<InterestBadge[]> {
@@ -33,9 +31,7 @@ export class InterestIntentionBadgeRepository {
   }
 
   async getInterestBadgeById(badgeId: string): Promise<InterestBadge | null> {
-    const badge = await db(this.interestBadgesTable)
-      .where({ id: badgeId })
-      .first();
+    const badge = await db(this.interestBadgesTable).where({ id: badgeId }).first();
     return badge || null;
   }
 
@@ -44,15 +40,11 @@ export class InterestIntentionBadgeRepository {
   // ============================================
 
   async getAllIntentionBadges(): Promise<IntentionBadge[]> {
-    return db(this.intentionBadgesTable)
-      .where({ is_active: true })
-      .orderBy('display_order', 'asc');
+    return db(this.intentionBadgesTable).where({ is_active: true }).orderBy('display_order', 'asc');
   }
 
   async getIntentionBadgeById(badgeId: string): Promise<IntentionBadge | null> {
-    const badge = await db(this.intentionBadgesTable)
-      .where({ id: badgeId })
-      .first();
+    const badge = await db(this.intentionBadgesTable).where({ id: badgeId }).first();
     return badge || null;
   }
 
@@ -84,9 +76,7 @@ export class InterestIntentionBadgeRepository {
   async setUserInterestBadges(userId: string, badgeIds: string[]): Promise<void> {
     await db.transaction(async (trx) => {
       // Remove all existing badges for this user
-      await trx(this.userInterestBadgesTable)
-        .where({ user_id: userId })
-        .delete();
+      await trx(this.userInterestBadgesTable).where({ user_id: userId }).delete();
 
       // Insert new badges
       if (badgeIds.length > 0) {
@@ -112,9 +102,7 @@ export class InterestIntentionBadgeRepository {
   }
 
   async removeUserInterestBadge(userId: string, badgeId: string): Promise<void> {
-    await db(this.userInterestBadgesTable)
-      .where({ user_id: userId, badge_id: badgeId })
-      .delete();
+    await db(this.userInterestBadgesTable).where({ user_id: userId, badge_id: badgeId }).delete();
   }
 
   // ============================================
@@ -159,9 +147,7 @@ export class InterestIntentionBadgeRepository {
 
     await db.transaction(async (trx) => {
       // Remove all existing badges for this user
-      await trx(this.userIntentionBadgesTable)
-        .where({ user_id: userId })
-        .delete();
+      await trx(this.userIntentionBadgesTable).where({ user_id: userId }).delete();
 
       // Insert new badges
       if (badges.length > 0) {
@@ -203,9 +189,7 @@ export class InterestIntentionBadgeRepository {
   }
 
   async removeUserIntentionBadge(userId: string, badgeId: string): Promise<void> {
-    await db(this.userIntentionBadgesTable)
-      .where({ user_id: userId, badge_id: badgeId })
-      .delete();
+    await db(this.userIntentionBadgesTable).where({ user_id: userId, badge_id: badgeId }).delete();
   }
 
   async updateUserIntentionBadgePriority(
@@ -223,17 +207,25 @@ export class InterestIntentionBadgeRepository {
   // ============================================
 
   async getInterestBadgePopularity(): Promise<InterestBadgePopularity[]> {
-    return db.raw(`
+    return db
+      .raw(
+        `
       SELECT * FROM v_interest_badge_popularity
       ORDER BY user_count DESC
-    `).then((result) => result.rows);
+    `
+      )
+      .then((result) => result.rows);
   }
 
   async getIntentionBadgeDistribution(): Promise<IntentionBadgeDistribution[]> {
-    return db.raw(`
+    return db
+      .raw(
+        `
       SELECT * FROM v_intention_badge_distribution
       ORDER BY user_count DESC
-    `).then((result) => result.rows);
+    `
+      )
+      .then((result) => result.rows);
   }
 
   // ============================================
@@ -241,18 +233,18 @@ export class InterestIntentionBadgeRepository {
   // ============================================
 
   async countSharedInterestBadges(userId1: string, userId2: string): Promise<number> {
-    const result = await db.raw(
-      'SELECT count_shared_interest_badges(?, ?) as count',
-      [userId1, userId2]
-    );
+    const result = await db.raw('SELECT count_shared_interest_badges(?, ?) as count', [
+      userId1,
+      userId2,
+    ]);
     return parseInt(result.rows[0].count);
   }
 
   async checkIntentionCompatibility(userId1: string, userId2: string): Promise<boolean> {
-    const result = await db.raw(
-      'SELECT check_intention_compatibility(?, ?) as compatible',
-      [userId1, userId2]
-    );
+    const result = await db.raw('SELECT check_intention_compatibility(?, ?) as compatible', [
+      userId1,
+      userId2,
+    ]);
     return result.rows[0].compatible;
   }
 

@@ -4,10 +4,11 @@
  * Supports: New matches, messages, likes, super likes
  */
 
-import admin from 'firebase-admin';
-import { db } from '../config/database';
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
+import admin from 'firebase-admin';
+import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../config/database';
 
 const logger = createLogger('push-notification-service');
 
@@ -94,15 +95,11 @@ export class PushNotificationService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Check if token already exists
-      const existing = await db('fcm_tokens')
-        .where({ user_id: userId, token })
-        .first();
+      const existing = await db('fcm_tokens').where({ user_id: userId, token }).first();
 
       if (existing) {
         // Update last used time
-        await db('fcm_tokens')
-          .where({ id: existing.id })
-          .update({ last_used_at: new Date() });
+        await db('fcm_tokens').where({ id: existing.id }).update({ last_used_at: new Date() });
 
         return { success: true };
       }
@@ -133,9 +130,7 @@ export class PushNotificationService {
     token: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      await db('fcm_tokens')
-        .where({ user_id: userId, token })
-        .delete();
+      await db('fcm_tokens').where({ user_id: userId, token }).delete();
 
       return { success: true };
     } catch (error) {
@@ -207,7 +202,7 @@ export class PushNotificationService {
           deepLink: payload.deepLink || '',
           ...payload.data,
         },
-        tokens: tokens.map(t => t.token),
+        tokens: tokens.map((t) => t.token),
         android: {
           priority: 'high',
           notification: {
@@ -324,7 +319,12 @@ export class PushNotificationService {
     userId: string,
     limit: number = 50,
     offset: number = 0
-  ): Promise<{ success: boolean; notifications?: NotificationHistory[]; total?: number; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    notifications?: NotificationHistory[];
+    total?: number;
+    error?: string;
+  }> {
     try {
       const notifications = await db('notifications')
         .where({ user_id: userId })
@@ -332,12 +332,10 @@ export class PushNotificationService {
         .limit(limit)
         .offset(offset);
 
-      const [{ count }] = await db('notifications')
-        .where({ user_id: userId })
-        .count('* as count');
+      const [{ count }] = await db('notifications').where({ user_id: userId }).count('* as count');
 
       // Parse JSON data
-      const parsedNotifications = notifications.map(n => ({
+      const parsedNotifications = notifications.map((n) => ({
         ...n,
         data: typeof n.data === 'string' ? JSON.parse(n.data) : n.data,
       }));
@@ -381,9 +379,7 @@ export class PushNotificationService {
    */
   async markAllAsRead(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      await db('notifications')
-        .where({ user_id: userId, read: false })
-        .update({ read: true });
+      await db('notifications').where({ user_id: userId, read: false }).update({ read: true });
 
       return { success: true };
     } catch (error) {
@@ -395,7 +391,9 @@ export class PushNotificationService {
   /**
    * Get unread notification count
    */
-  async getUnreadCount(userId: string): Promise<{ success: boolean; count?: number; error?: string }> {
+  async getUnreadCount(
+    userId: string
+  ): Promise<{ success: boolean; count?: number; error?: string }> {
     try {
       const [{ count }] = await db('notifications')
         .where({ user_id: userId, read: false })
@@ -411,14 +409,14 @@ export class PushNotificationService {
   /**
    * Delete old notifications (cleanup job)
    */
-  async deleteOldNotifications(daysOld: number = 90): Promise<{ success: boolean; deleted?: number; error?: string }> {
+  async deleteOldNotifications(
+    daysOld: number = 90
+  ): Promise<{ success: boolean; deleted?: number; error?: string }> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-      const deleted = await db('notifications')
-        .where('created_at', '<', cutoffDate)
-        .delete();
+      const deleted = await db('notifications').where('created_at', '<', cutoffDate).delete();
 
       return { success: true, deleted };
     } catch (error) {

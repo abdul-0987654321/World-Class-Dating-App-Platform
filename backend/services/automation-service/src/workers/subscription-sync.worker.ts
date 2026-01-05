@@ -5,17 +5,12 @@
  * Updates entitlements snapshots
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
+import { Job } from 'bull';
 import Stripe from 'stripe';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('subscription-sync-worker');
 
@@ -97,7 +92,10 @@ export interface SubscriptionSyncResult {
 /**
  * Subscription Sync Worker
  */
-export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, SubscriptionSyncResult> {
+export class SubscriptionSyncWorker extends BaseWorker<
+  SubscriptionSyncJobData,
+  SubscriptionSyncResult
+> {
   private readonly gracePeriodDays = 3;
   private readonly expirationWarningDays = [7, 3, 1];
 
@@ -108,7 +106,9 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
   /**
    * Process subscription sync job
    */
-  protected async processJob(job: Job<SubscriptionSyncJobData>): Promise<JobResult<SubscriptionSyncResult>> {
+  protected async processJob(
+    job: Job<SubscriptionSyncJobData>
+  ): Promise<JobResult<SubscriptionSyncResult>> {
     const { type, userId, subscriptionId } = job.data;
     const startTime = Date.now();
 
@@ -178,7 +178,9 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
   /**
    * Sync a single subscription with Stripe
    */
-  private async syncSubscription(jobData: SubscriptionSyncJobData): Promise<SubscriptionSyncResult> {
+  private async syncSubscription(
+    jobData: SubscriptionSyncJobData
+  ): Promise<SubscriptionSyncResult> {
     const { userId, stripeSubscriptionId, stripeCustomerId } = jobData;
 
     try {
@@ -198,7 +200,7 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
 
       if (!stripeSubscription) {
         // No subscription found - ensure user is on free tier
-        await this.updateUserTier(userId!, SubscriptionTier.FREE, null);
+        await this.updateUserTier(userId, SubscriptionTier.FREE, null);
 
         return {
           userId,
@@ -215,10 +217,10 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
       const tier = await this.getTierFromPriceId(stripeSubscription.items.data[0]?.price.id);
 
       // Update local database
-      await this.updateLocalSubscription(userId!, stripeSubscription, status, tier);
+      await this.updateLocalSubscription(userId, stripeSubscription, status, tier);
 
       // Update user tier and entitlements
-      await this.updateUserTier(userId!, tier, stripeSubscription);
+      await this.updateUserTier(userId, tier, stripeSubscription);
 
       // Update entitlements snapshot
       await this.updateEntitlements({
@@ -244,7 +246,9 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
   /**
    * Reconcile webhooks - check for missed or out-of-order webhook events
    */
-  private async reconcileWebhooks(jobData: SubscriptionSyncJobData): Promise<SubscriptionSyncResult> {
+  private async reconcileWebhooks(
+    jobData: SubscriptionSyncJobData
+  ): Promise<SubscriptionSyncResult> {
     const { eventType, eventData } = jobData;
 
     try {
@@ -298,12 +302,14 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
   /**
    * Update user entitlements based on subscription tier
    */
-  private async updateEntitlements(jobData: SubscriptionSyncJobData): Promise<SubscriptionSyncResult> {
+  private async updateEntitlements(
+    jobData: SubscriptionSyncJobData
+  ): Promise<SubscriptionSyncResult> {
     const { userId } = jobData;
 
     try {
       // Get user's current subscription
-      const subscription = await this.getUserSubscription(userId!);
+      const subscription = await this.getUserSubscription(userId);
       const tier = subscription?.tier || SubscriptionTier.FREE;
 
       // Calculate entitlements based on tier
@@ -326,7 +332,7 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
       );
 
       // Cache entitlements for quick access
-      await this.cacheEntitlements(userId!, entitlements);
+      await this.cacheEntitlements(userId, entitlements);
 
       return {
         userId,
@@ -379,12 +385,14 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
   /**
    * Handle failed payment - implement grace period
    */
-  private async handleFailedPayment(jobData: SubscriptionSyncJobData): Promise<SubscriptionSyncResult> {
+  private async handleFailedPayment(
+    jobData: SubscriptionSyncJobData
+  ): Promise<SubscriptionSyncResult> {
     const { userId, subscriptionId, stripeSubscriptionId } = jobData;
 
     try {
       // Get subscription details
-      const subscription = await this.getUserSubscription(userId!);
+      const subscription = await this.getUserSubscription(userId);
 
       if (!subscription) {
         throw new Error(`Subscription not found for user ${userId}`);
@@ -402,10 +410,10 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
           (gracePeriodEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
         );
 
-        await this.sendGracePeriodReminder(userId!, daysRemaining);
+        await this.sendGracePeriodReminder(userId, daysRemaining);
 
         // Update status to past_due but keep entitlements
-        await this.updateSubscriptionStatus(subscriptionId!, SubscriptionStatus.PAST_DUE);
+        await this.updateSubscriptionStatus(subscriptionId, SubscriptionStatus.PAST_DUE);
 
         return {
           userId,
@@ -418,7 +426,7 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
         };
       } else {
         // Grace period expired - downgrade to free
-        await this.downgradeToFree(userId!, subscription);
+        await this.downgradeToFree(userId, subscription);
 
         return {
           userId,
@@ -932,10 +940,7 @@ export class SubscriptionSyncWorker extends BaseWorker<SubscriptionSyncJobData, 
     );
   }
 
-  async scheduleFailedPaymentHandling(
-    userId: string,
-    subscriptionId: string
-  ): Promise<void> {
+  async scheduleFailedPaymentHandling(userId: string, subscriptionId: string): Promise<void> {
     await this.addJob(
       {
         type: 'handle_failed_payment',

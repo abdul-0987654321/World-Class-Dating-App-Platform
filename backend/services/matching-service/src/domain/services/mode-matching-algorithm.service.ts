@@ -30,10 +30,7 @@ export class ModeMatchingAlgorithmService {
    * Date Mode Scoring
    * Focus: Romantic compatibility, attraction, relationship goals
    */
-  private calculateDateModeScore(
-    currentUser: UserProfile,
-    targetUser: UserProfile
-  ): MatchScore {
+  private calculateDateModeScore(currentUser: UserProfile, targetUser: UserProfile): MatchScore {
     const factors = {
       distance: this.calculateDistanceScore(currentUser.location, targetUser.location),
       interests: this.calculateInterestsScore(currentUser.interests, targetUser.interests),
@@ -43,9 +40,9 @@ export class ModeMatchingAlgorithmService {
 
     // Date mode weights: Distance and preferences are most important
     const weights = {
-      distance: 0.30,
+      distance: 0.3,
       interests: 0.25,
-      activity: 0.20,
+      activity: 0.2,
       preferences: 0.25,
     };
 
@@ -63,10 +60,7 @@ export class ModeMatchingAlgorithmService {
    * Focus: Shared activities, hobbies, platonic compatibility
    * Gender-neutral, activity-based matching
    */
-  private calculateFriendsModeScore(
-    currentUser: UserProfile,
-    targetUser: UserProfile
-  ): MatchScore {
+  private calculateFriendsModeScore(currentUser: UserProfile, targetUser: UserProfile): MatchScore {
     const factors = {
       distance: this.calculateDistanceScore(currentUser.location, targetUser.location),
       interests: this.calculateInterestsScore(currentUser.interests, targetUser.interests, true), // Higher weight on exact matches
@@ -77,9 +71,9 @@ export class ModeMatchingAlgorithmService {
     // Friends mode weights: Interests and proximity are most important
     const weights = {
       distance: 0.35, // Higher weight - want friends nearby
-      interests: 0.40, // Highest weight - shared activities matter most
+      interests: 0.4, // Highest weight - shared activities matter most
       activity: 0.15,
-      preferences: 0.10, // Lower weight - less strict filtering
+      preferences: 0.1, // Lower weight - less strict filtering
     };
 
     const score = this.calculateWeightedScore(factors, weights);
@@ -96,13 +90,13 @@ export class ModeMatchingAlgorithmService {
    * Focus: Professional compatibility, industry match, career goals
    * Skills, experience, and professional interests
    */
-  private calculateNetworkModeScore(
-    currentUser: UserProfile,
-    targetUser: UserProfile
-  ): MatchScore {
+  private calculateNetworkModeScore(currentUser: UserProfile, targetUser: UserProfile): MatchScore {
     const factors = {
       distance: this.calculateDistanceScore(currentUser.location, targetUser.location, 100), // Wider radius for networking
-      interests: this.calculateProfessionalInterestsScore(currentUser.interests, targetUser.interests),
+      interests: this.calculateProfessionalInterestsScore(
+        currentUser.interests,
+        targetUser.interests
+      ),
       activity: this.calculateActivityScore(targetUser),
       preferences: this.calculateNetworkPreferencesScore(currentUser, targetUser),
     };
@@ -198,17 +192,14 @@ export class ModeMatchingAlgorithmService {
   /**
    * Calculate professional interests score (for network mode)
    */
-  private calculateProfessionalInterestsScore(
-    interests1: string[],
-    interests2: string[]
-  ): number {
+  private calculateProfessionalInterestsScore(interests1: string[], interests2: string[]): number {
     // In network mode, we want some overlap but also complementary skills
     const overlapScore = this.calculateInterestsScore(interests1, interests2);
 
     // Bonus for diversity (complementary skills)
     const uniqueCount = new Set([...interests1, ...interests2]).size;
     const totalCount = interests1.length + interests2.length;
-    const diversityBonus = uniqueCount / totalCount * 0.3;
+    const diversityBonus = (uniqueCount / totalCount) * 0.3;
 
     return Math.min(overlapScore + diversityBonus, 1.0);
   }
@@ -225,10 +216,7 @@ export class ModeMatchingAlgorithmService {
   /**
    * Calculate preferences score
    */
-  private calculatePreferencesScore(
-    currentUser: UserProfile,
-    targetUser: UserProfile
-  ): number {
+  private calculatePreferencesScore(currentUser: UserProfile, targetUser: UserProfile): number {
     // This would check if the target user meets current user's preferences
     // (age, gender, etc.)
     return 0.8; // Placeholder

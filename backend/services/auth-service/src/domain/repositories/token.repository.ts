@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+
 import pool from '../../infrastructure/database/pool';
 import logger from '../../utils/logger';
 
@@ -85,10 +86,7 @@ export class TokenRepository {
   /**
    * Delete all tokens for a user by type
    */
-  async deleteByUserId(
-    userId: string,
-    tokenType: VerificationToken['type']
-  ): Promise<void> {
+  async deleteByUserId(userId: string, tokenType: VerificationToken['type']): Promise<void> {
     const query = `
       DELETE FROM verification_tokens
       WHERE user_id = $1 AND type = $2

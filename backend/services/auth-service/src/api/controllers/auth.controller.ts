@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
+
 import authService from '../../domain/services/auth.service';
 import twoFactorService from '../../domain/services/two-factor.service';
-import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 class AuthController {
   /**
@@ -64,9 +65,8 @@ class AuthController {
       }
 
       // Use generic message for security
-      const message = error.message === 'Account is deactivated'
-        ? error.message
-        : 'Invalid credentials';
+      const message =
+        error.message === 'Account is deactivated' ? error.message : 'Invalid credentials';
 
       return res.status(401).json({
         success: false,
@@ -81,7 +81,7 @@ class AuthController {
    */
   async logout(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const token = req.headers.authorization?.substring(7) || '';
 
       await authService.logout(userId, token);
@@ -257,7 +257,7 @@ class AuthController {
    */
   async me(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const user = await authService.getUserById(userId);
 
       if (!user) {
@@ -344,7 +344,7 @@ class AuthController {
    */
   async get2FAStatus(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const status = await twoFactorService.get2FAStatus(userId);
 
       return res.status(200).json({
@@ -367,7 +367,7 @@ class AuthController {
    */
   async setup2FA(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { password } = req.body;
 
       if (!password) {
@@ -408,7 +408,7 @@ class AuthController {
    */
   async verify2FA(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { token, tempSecret } = req.body;
 
       if (!token) {
@@ -451,7 +451,7 @@ class AuthController {
    */
   async disable2FA(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { password, token } = req.body;
 
       if (!password) {
@@ -547,7 +547,7 @@ class AuthController {
    */
   async regenerateBackupCodes(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { password } = req.body;
 
       if (!password) {

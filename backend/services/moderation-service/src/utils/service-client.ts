@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+
 import { createLogger } from './logger';
 
 const logger = createLogger('service-client');
@@ -39,7 +40,9 @@ export class ServiceClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        logger.info(`[${this.serviceName}] Response ${response.status} from ${response.config.url}`);
+        logger.info(
+          `[${this.serviceName}] Response ${response.status} from ${response.config.url}`
+        );
         return response;
       },
       (error) => {

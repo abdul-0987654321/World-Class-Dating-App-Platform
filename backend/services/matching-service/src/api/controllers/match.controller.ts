@@ -1,8 +1,9 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response } from 'express';
+
 import matchRepository from '../../domain/repositories/match.repository';
 import matchService from '../../domain/services/match.service';
 import { MatchStatus } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('match-controller');
 
@@ -16,10 +17,7 @@ export class MatchController {
       const { userId } = (req as any).user;
       const { status } = req.query;
 
-      const matches = await matchRepository.findByUserId(
-        userId,
-        status as MatchStatus | undefined
-      );
+      const matches = await matchRepository.findByUserId(userId, status as MatchStatus | undefined);
 
       res.status(200).json({
         success: true,

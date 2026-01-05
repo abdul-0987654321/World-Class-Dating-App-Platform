@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
 
 const logger = createLogger('payment-validation-middleware');

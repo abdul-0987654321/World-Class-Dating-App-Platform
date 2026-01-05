@@ -1,7 +1,8 @@
-import Stripe from 'stripe';
 import { createLogger } from '@flamoral/backend-shared';
-import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+import Stripe from 'stripe';
+
 import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
+import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
 
 const logger = createLogger('payment-service');
 
@@ -39,7 +40,10 @@ export class PaymentService {
   private userServiceClient: UserServiceClient;
   private notificationServiceClient: NotificationServiceClient;
 
-  constructor(userServiceClient?: UserServiceClient, notificationServiceClient?: NotificationServiceClient) {
+  constructor(
+    userServiceClient?: UserServiceClient,
+    notificationServiceClient?: NotificationServiceClient
+  ) {
     this.stripe = stripe;
     this.userServiceClient = userServiceClient || new UserServiceClient();
     this.notificationServiceClient = notificationServiceClient || new NotificationServiceClient();
@@ -48,11 +52,7 @@ export class PaymentService {
   /**
    * Create a Stripe customer for a user
    */
-  async createCustomer(
-    userId: string,
-    email: string,
-    name?: string
-  ): Promise<Stripe.Customer> {
+  async createCustomer(userId: string, email: string, name?: string): Promise<Stripe.Customer> {
     try {
       const customer = await this.stripe.customers.create({
         email,
@@ -236,16 +236,11 @@ export class PaymentService {
     try {
       const customer = await this.getOrCreateCustomer(purchase.userId, email);
 
-      const paymentIntent = await this.createPaymentIntent(
-        amount,
-        'usd',
-        customer.id,
-        {
-          userId: purchase.userId,
-          productSku: purchase.productSku,
-          type: 'coin_purchase',
-        }
-      );
+      const paymentIntent = await this.createPaymentIntent(amount, 'usd', customer.id, {
+        userId: purchase.userId,
+        productSku: purchase.productSku,
+        type: 'coin_purchase',
+      });
 
       return { paymentIntent, customer };
     } catch (error: any) {
@@ -264,16 +259,11 @@ export class PaymentService {
     try {
       const customer = await this.getOrCreateCustomer(purchase.userId, email);
 
-      const paymentIntent = await this.createPaymentIntent(
-        amount,
-        'usd',
-        customer.id,
-        {
-          userId: purchase.userId,
-          productSku: purchase.productSku,
-          type: 'boost_purchase',
-        }
-      );
+      const paymentIntent = await this.createPaymentIntent(amount, 'usd', customer.id, {
+        userId: purchase.userId,
+        productSku: purchase.productSku,
+        type: 'boost_purchase',
+      });
 
       return { paymentIntent, customer };
     } catch (error: any) {
@@ -385,7 +375,7 @@ export class PaymentService {
    */
   async getCustomer(customerId: string): Promise<Stripe.Customer> {
     try {
-      return await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+      return (await this.stripe.customers.retrieve(customerId)) as Stripe.Customer;
     } catch (error: any) {
       throw new Error(`Failed to get customer: ${error.message}`);
     }
@@ -394,18 +384,11 @@ export class PaymentService {
   /**
    * Handle Stripe webhook events
    */
-  async handleWebhook(
-    rawBody: string | Buffer,
-    signature: string
-  ): Promise<Stripe.Event> {
+  async handleWebhook(rawBody: string | Buffer, signature: string): Promise<Stripe.Event> {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
     try {
-      const event = this.stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        webhookSecret
-      );
+      const event = this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
 
       return event;
     } catch (error: any) {
@@ -420,28 +403,28 @@ export class PaymentService {
     try {
       switch (event.type) {
         case 'payment_intent.succeeded':
-          await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+          await this.handlePaymentIntentSucceeded(event.data.object);
           break;
 
         case 'payment_intent.payment_failed':
-          await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+          await this.handlePaymentIntentFailed(event.data.object);
           break;
 
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
-          await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+          await this.handleSubscriptionUpdated(event.data.object);
           break;
 
         case 'customer.subscription.deleted':
-          await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          await this.handleSubscriptionDeleted(event.data.object);
           break;
 
         case 'invoice.payment_succeeded':
-          await this.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
+          await this.handleInvoicePaymentSucceeded(event.data.object);
           break;
 
         case 'invoice.payment_failed':
-          await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+          await this.handleInvoicePaymentFailed(event.data.object);
           break;
 
         default:
@@ -486,7 +469,7 @@ export class PaymentService {
             userId,
             type: 'payment_success',
             title: 'Payment Successful',
-            body: `Successfully purchased ${coinAmount} coins!`
+            body: `Successfully purchased ${coinAmount} coins!`,
           });
           break;
 
@@ -505,7 +488,7 @@ export class PaymentService {
             userId,
             type: 'payment_success',
             title: 'Payment Successful',
-            body: `Boost activated for ${durationMinutes} minutes!`
+            body: `Boost activated for ${durationMinutes} minutes!`,
           });
           break;
 
@@ -522,10 +505,10 @@ export class PaymentService {
    */
   private getCoinAmountFromSku(sku: string): number {
     const coinPackages: Record<string, number> = {
-      'COIN_PACK_SMALL': 100,
-      'COIN_PACK_MEDIUM': 500,
-      'COIN_PACK_LARGE': 1200,
-      'COIN_PACK_XL': 2500,
+      COIN_PACK_SMALL: 100,
+      COIN_PACK_MEDIUM: 500,
+      COIN_PACK_LARGE: 1200,
+      COIN_PACK_XL: 2500,
     };
     return coinPackages[sku] || 0;
   }
@@ -535,9 +518,9 @@ export class PaymentService {
    */
   private getBoostDurationFromSku(sku: string): number {
     const boostDurations: Record<string, number> = {
-      'BOOST_30MIN': 30,
-      'BOOST_1HR': 60,
-      'BOOST_3HR': 180,
+      BOOST_30MIN: 30,
+      BOOST_1HR: 60,
+      BOOST_3HR: 180,
     };
     return boostDurations[sku] || 30;
   }
@@ -555,7 +538,7 @@ export class PaymentService {
           userId,
           type: 'payment_failed',
           title: 'Payment Failed',
-          body: 'Your payment failed. Please check your payment method and try again.'
+          body: 'Your payment failed. Please check your payment method and try again.',
         });
       }
     } catch (error: any) {
@@ -572,7 +555,7 @@ export class PaymentService {
     try {
       const userId = subscription.metadata.userId;
       const tier = subscription.metadata.tier as SubscriptionTier;
-      const billingCycle = subscription.metadata.billingCycle as BillingCycle || 'monthly';
+      const billingCycle = (subscription.metadata.billingCycle as BillingCycle) || 'monthly';
 
       if (!userId) {
         logger.error('No userId in subscription metadata');
@@ -611,7 +594,7 @@ export class PaymentService {
         userId,
         type: 'subscription_updated',
         title: 'Subscription Updated',
-        body: `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`
+        body: `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`,
       });
     } catch (error: any) {
       logger.error('Error handling subscription updated:', error.message);
@@ -644,7 +627,7 @@ export class PaymentService {
         userId,
         type: 'subscription_canceled',
         title: 'Subscription Canceled',
-        body: 'Your subscription has been canceled. You have been downgraded to the free tier.'
+        body: 'Your subscription has been canceled. You have been downgraded to the free tier.',
       });
     } catch (error: any) {
       logger.error('Error handling subscription deleted:', error.message);
@@ -662,9 +645,7 @@ export class PaymentService {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve(
-        invoice.subscription as string
-      );
+      const subscription = await this.stripe.subscriptions.retrieve(invoice.subscription as string);
 
       const userId = subscription.metadata.userId;
 
@@ -674,7 +655,7 @@ export class PaymentService {
           userId,
           type: 'subscription_renewed',
           title: 'Subscription Renewed',
-          body: 'Your subscription has been successfully renewed.'
+          body: 'Your subscription has been successfully renewed.',
         });
       }
     } catch (error: any) {
@@ -693,9 +674,7 @@ export class PaymentService {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve(
-        invoice.subscription as string
-      );
+      const subscription = await this.stripe.subscriptions.retrieve(invoice.subscription as string);
 
       const userId = subscription.metadata.userId;
 
@@ -710,7 +689,7 @@ export class PaymentService {
 
       await this.userServiceClient.updateSubscription({
         userId,
-        tier: this.userServiceClient.mapTierName(subscription.metadata.tier as string || 'free'),
+        tier: this.userServiceClient.mapTierName(subscription.metadata.tier || 'free'),
         stripeSubscriptionId: subscription.id,
         status: 'grace_period',
         gracePeriodEnd,
@@ -720,7 +699,7 @@ export class PaymentService {
         userId,
         type: 'payment_failed',
         title: 'Payment Failed',
-        body: 'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.'
+        body: 'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.',
       });
     } catch (error: any) {
       logger.error('Error handling invoice payment failed:', error.message);
@@ -730,7 +709,10 @@ export class PaymentService {
   /**
    * Get payment analytics
    */
-  async getPaymentAnalytics(startDate: Date, endDate: Date): Promise<{
+  async getPaymentAnalytics(
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     totalRevenue: number;
     subscriptionRevenue: number;
     coinRevenue: number;

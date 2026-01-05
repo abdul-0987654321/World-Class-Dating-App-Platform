@@ -52,9 +52,7 @@ export class SwipeRepository {
   }
 
   async getSwipedUserIds(userId: string): Promise<string[]> {
-    const swipes = await db(this.tableName)
-      .where({ swiper_id: userId })
-      .select('swiped_id');
+    const swipes = await db(this.tableName).where({ swiper_id: userId }).select('swiped_id');
     return swipes.map((s: any) => s.swiped_id);
   }
 

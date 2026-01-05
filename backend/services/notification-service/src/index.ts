@@ -2,22 +2,26 @@
  * Notification Service Main Entry Point
  */
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import helmet from 'helmet';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
-import logger from './utils/logger';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+import { createClient } from 'redis';
+
+import batchRoutes from './api/routes/batch.routes';
+import deviceRoutes from './api/routes/device.routes';
+import internalRoutes from './api/routes/internal.routes';
+import notificationRoutes from './api/routes/notifications.routes';
 import { config } from './config';
 import { testConnection } from './config/database';
-import { initializeFirebase } from './services/push-notification.service';
-import { initializeFirebase as initializePushDelivery, initializeAPNs } from './services/push-notification-delivery.service';
-import notificationRoutes from './api/routes/notifications.routes';
-import internalRoutes from './api/routes/internal.routes';
-import deviceRoutes from './api/routes/device.routes';
-import batchRoutes from './api/routes/batch.routes';
 import { notificationQueue, getQueueStats, cleanQueue } from './queues/notification.queue';
-import { createClient } from 'redis';
+import {
+  initializeFirebase as initializePushDelivery,
+  initializeAPNs,
+} from './services/push-notification-delivery.service';
+import { initializeFirebase } from './services/push-notification.service';
+import logger from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -70,14 +74,20 @@ validator.validateOrThrow();
 const app: Application = express();
 
 // Middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -115,7 +125,7 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('Redis health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   const queueStats = await getQueueStats();
 
   res.status(healthy ? 200 : 503).json({
@@ -234,14 +244,17 @@ async function initializeServices() {
     }
 
     // Set up queue cleanup job (runs every hour)
-    setInterval(async () => {
-      try {
-        await cleanQueue();
-        logger.info('Queue cleanup completed');
-      } catch (error: any) {
-        logger.error('Queue cleanup failed', { error: error.message });
-      }
-    }, 60 * 60 * 1000); // 1 hour
+    setInterval(
+      async () => {
+        try {
+          await cleanQueue();
+          logger.info('Queue cleanup completed');
+        } catch (error: any) {
+          logger.error('Queue cleanup failed', { error: error.message });
+        }
+      },
+      60 * 60 * 1000
+    ); // 1 hour
 
     logger.info('All services initialized successfully');
   } catch (error: any) {

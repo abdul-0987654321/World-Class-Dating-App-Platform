@@ -1,17 +1,19 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import { Server } from 'socket.io';
 import { createServer } from 'http';
+
+import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
 import jwt from 'jsonwebtoken';
-import { createLogger } from './utils/logger';
-import { SocketManager } from './socket/socket-manager';
-import cosmosClient from './infrastructure/database/cosmos-client';
+import { Server } from 'socket.io';
+
 import apiRoutes from './api/routes';
 import internalRoutes from './api/routes/internal.routes';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import cosmosClient from './infrastructure/database/cosmos-client';
+import { SocketManager } from './socket/socket-manager';
+import { createLogger } from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -49,7 +51,11 @@ const PORT = process.env.PORT || 3004;
 const httpServer = createServer(app);
 
 // Initialize Socket.IO
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -62,8 +68,9 @@ const io = new Server(httpServer, {
 io.use((socket, next) => {
   try {
     // Extract token from auth object or authorization header
-    const token = socket.handshake.auth?.token ||
-                  socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    const token =
+      socket.handshake.auth?.token ||
+      socket.handshake.headers?.authorization?.replace('Bearer ', '');
 
     if (!token) {
       logger.warn('WebSocket connection rejected: No token provided');
@@ -108,12 +115,14 @@ logger.info('Socket Manager initialized with JWT authentication');
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -252,7 +261,9 @@ async function startServer() {
     if (allowDegradedMode) {
       isDegradedMode = true;
       isReady = true;
-      logger.info('Service ready in DEGRADED MODE - Cosmos DB connection will be attempted in background');
+      logger.info(
+        'Service ready in DEGRADED MODE - Cosmos DB connection will be attempted in background'
+      );
     }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -277,8 +288,10 @@ async function startServer() {
             throw error;
           }
         } else {
-          logger.warn(`Cosmos DB initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`);
-          await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+          logger.warn(
+            `Cosmos DB initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         }
       }
     }

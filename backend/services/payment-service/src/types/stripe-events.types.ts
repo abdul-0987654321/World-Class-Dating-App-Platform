@@ -146,7 +146,14 @@ export interface UserSubscription {
   plan_id: string;
   stripe_subscription_id?: string;
   stripe_customer_id?: string;
-  status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing' | 'incomplete' | 'incomplete_expired';
+  status:
+    | 'active'
+    | 'canceled'
+    | 'past_due'
+    | 'unpaid'
+    | 'trialing'
+    | 'incomplete'
+    | 'incomplete_expired';
   billing_cycle: 'monthly' | 'yearly';
   current_period_start?: Date;
   current_period_end?: Date;

@@ -3,12 +3,11 @@
  * Core service for calendar connections, date proposals, and scheduling
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
-import cosmosClient from '../../infrastructure/database/cosmos-client';
+import { v4 as uuidv4 } from 'uuid';
+
 import { calendarConfig } from '../../config/calendar.config';
-import { GoogleCalendarOAuth, OutlookCalendarOAuth, AppleCalendarOAuth } from './oauth';
+import cosmosClient from '../../infrastructure/database/cosmos-client';
 import {
   CalendarProvider,
   CalendarConnection,
@@ -26,6 +25,9 @@ import {
   CounterProposalRequest,
   ReminderTiming,
 } from '../../types/calendar.types';
+import { createLogger } from '../../utils/logger';
+
+import { GoogleCalendarOAuth, OutlookCalendarOAuth, AppleCalendarOAuth } from './oauth';
 
 const logger = createLogger('calendar-integration-service');
 
@@ -86,7 +88,9 @@ export class CalendarIntegrationService {
    * Generate OAuth authorization URL for a provider
    */
   generateAuthUrl(provider: CalendarProvider, userId: string): string {
-    const state = Buffer.from(JSON.stringify({ userId, provider, timestamp: Date.now() })).toString('base64');
+    const state = Buffer.from(JSON.stringify({ userId, provider, timestamp: Date.now() })).toString(
+      'base64'
+    );
 
     switch (provider) {
       case CalendarProvider.GOOGLE:
@@ -164,7 +168,7 @@ export class CalendarIntegrationService {
       };
 
       // Save connection
-      await this.connectionsContainer!.items.upsert(connection);
+      await this.connectionsContainer.items.upsert(connection);
 
       logger.info(`Successfully connected ${provider} calendar for user ${userId}`);
 
@@ -208,7 +212,7 @@ export class CalendarIntegrationService {
       }
 
       // Delete connection
-      await this.connectionsContainer!.item(connection.id, userId).delete();
+      await this.connectionsContainer.item(connection.id, userId).delete();
 
       logger.info(`Successfully disconnected ${provider} calendar for user ${userId}`);
     } catch (error) {
@@ -220,7 +224,10 @@ export class CalendarIntegrationService {
   /**
    * Get calendar connection for a user and provider
    */
-  async getConnection(userId: string, provider: CalendarProvider): Promise<CalendarConnection | null> {
+  async getConnection(
+    userId: string,
+    provider: CalendarProvider
+  ): Promise<CalendarConnection | null> {
     await this.ensureInitialized();
 
     try {
@@ -232,7 +239,7 @@ export class CalendarIntegrationService {
         ],
       };
 
-      const { resources } = await this.connectionsContainer!.items.query(query).fetchAll();
+      const { resources } = await this.connectionsContainer.items.query(query).fetchAll();
       return resources[0] || null;
     } catch (error) {
       logger.error('Failed to get calendar connection:', error);
@@ -252,7 +259,7 @@ export class CalendarIntegrationService {
         parameters: [{ name: '@userId', value: userId }],
       };
 
-      const { resources } = await this.connectionsContainer!.items.query(query).fetchAll();
+      const { resources } = await this.connectionsContainer.items.query(query).fetchAll();
       return resources;
     } catch (error) {
       logger.error('Failed to get calendar connections:', error);
@@ -295,12 +302,14 @@ export class CalendarIntegrationService {
       // Update connection with new tokens
       connection.tokens = newTokens;
       connection.updatedAt = now;
-      await this.connectionsContainer!.items.upsert(connection);
+      await this.connectionsContainer.items.upsert(connection);
 
       return newTokens.accessToken;
     } catch (error) {
       logger.error('Failed to refresh tokens:', error);
-      throw new Error(`Calendar authentication expired. Please reconnect your ${connection.provider} calendar.`);
+      throw new Error(
+        `Calendar authentication expired. Please reconnect your ${connection.provider} calendar.`
+      );
     }
   }
 
@@ -328,7 +337,7 @@ export class CalendarIntegrationService {
     }
 
     const connections = await this.getConnections(userId);
-    const activeConnections = connections.filter(c => c.isActive && c.shareAvailability);
+    const activeConnections = connections.filter((c) => c.isActive && c.shareAvailability);
 
     if (activeConnections.length === 0) {
       // Return empty availability if no calendars connected
@@ -461,11 +470,15 @@ export class CalendarIntegrationService {
     // Validate: Check if there are too many pending proposals
     const pendingProposals = await this.getPendingProposals(conversationId);
     if (pendingProposals.length >= calendarConfig.proposals.maxActiveProposals) {
-      throw new Error(`Maximum of ${calendarConfig.proposals.maxActiveProposals} pending proposals allowed`);
+      throw new Error(
+        `Maximum of ${calendarConfig.proposals.maxActiveProposals} pending proposals allowed`
+      );
     }
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000
+    );
 
     const proposal: DateProposal = {
       id: uuidv4(),
@@ -483,7 +496,7 @@ export class CalendarIntegrationService {
       updatedAt: now,
     };
 
-    await this.proposalsContainer!.items.create(proposal);
+    await this.proposalsContainer.items.create(proposal);
 
     logger.info(`Created date proposal ${proposal.id}`);
 
@@ -521,7 +534,7 @@ export class CalendarIntegrationService {
     proposal.status = DateProposalStatus.ACCEPTED;
     proposal.respondedAt = now;
     proposal.updatedAt = now;
-    await this.proposalsContainer!.items.upsert(proposal);
+    await this.proposalsContainer.items.upsert(proposal);
 
     // Create scheduled date
     const participantIds = [proposal.proposerId, proposal.recipientId].sort().join(',');
@@ -540,7 +553,7 @@ export class CalendarIntegrationService {
       updatedAt: now,
     };
 
-    await this.scheduledDatesContainer!.items.create({
+    await this.scheduledDatesContainer.items.create({
       ...scheduledDate,
       participantIds: participantIds, // Store as string for partition key
     });
@@ -576,7 +589,7 @@ export class CalendarIntegrationService {
     proposal.respondedAt = now;
     proposal.updatedAt = now;
 
-    await this.proposalsContainer!.items.upsert(proposal);
+    await this.proposalsContainer.items.upsert(proposal);
 
     logger.info(`Declined date proposal ${proposalId}`);
 
@@ -616,7 +629,9 @@ export class CalendarIntegrationService {
     originalProposal.updatedAt = now;
 
     // Create counter proposal
-    const expiresAt = new Date(now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000
+    );
     const counterProposal: DateProposal = {
       id: uuidv4(),
       conversationId: originalProposal.conversationId,
@@ -638,8 +653,8 @@ export class CalendarIntegrationService {
     originalProposal.counterProposalId = counterProposal.id;
 
     // Save both
-    await this.proposalsContainer!.items.upsert(originalProposal);
-    await this.proposalsContainer!.items.create(counterProposal);
+    await this.proposalsContainer.items.upsert(originalProposal);
+    await this.proposalsContainer.items.create(counterProposal);
 
     logger.info(`Created counter proposal ${counterProposal.id}`);
 
@@ -669,7 +684,7 @@ export class CalendarIntegrationService {
     proposal.status = DateProposalStatus.CANCELLED;
     proposal.updatedAt = now;
 
-    await this.proposalsContainer!.items.upsert(proposal);
+    await this.proposalsContainer.items.upsert(proposal);
 
     return proposal;
   }
@@ -684,7 +699,7 @@ export class CalendarIntegrationService {
         parameters: [{ name: '@id', value: proposalId }],
       };
 
-      const { resources } = await this.proposalsContainer!.items.query(query).fetchAll();
+      const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
       return resources[0] || null;
     } catch (error) {
       logger.error('Failed to get proposal:', error);
@@ -704,7 +719,7 @@ export class CalendarIntegrationService {
       ],
     };
 
-    const { resources } = await this.proposalsContainer!.items.query(query).fetchAll();
+    const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
     return resources;
   }
 
@@ -719,7 +734,7 @@ export class CalendarIntegrationService {
       parameters: [{ name: '@conversationId', value: conversationId }],
     };
 
-    const { resources } = await this.proposalsContainer!.items.query(query).fetchAll();
+    const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
     return resources;
   }
 
@@ -739,7 +754,7 @@ export class CalendarIntegrationService {
         parameters: [{ name: '@id', value: scheduledDateId }],
       };
 
-      const { resources } = await this.scheduledDatesContainer!.items.query(query).fetchAll();
+      const { resources } = await this.scheduledDatesContainer.items.query(query).fetchAll();
       return resources[0] || null;
     } catch (error) {
       logger.error('Failed to get scheduled date:', error);
@@ -771,7 +786,7 @@ export class CalendarIntegrationService {
       ],
     };
 
-    const { resources } = await this.scheduledDatesContainer!.items.query(query).fetchAll();
+    const { resources } = await this.scheduledDatesContainer.items.query(query).fetchAll();
     return resources;
   }
 
@@ -805,7 +820,7 @@ export class CalendarIntegrationService {
     scheduledDate.updatedAt = now;
 
     const participantIds = scheduledDate.participantIds.sort().join(',');
-    await this.scheduledDatesContainer!.items.upsert({
+    await this.scheduledDatesContainer.items.upsert({
       ...scheduledDate,
       participantIds: participantIds,
     });
@@ -833,7 +848,7 @@ export class CalendarIntegrationService {
     scheduledDate.updatedAt = new Date();
 
     const participantIds = scheduledDate.participantIds.sort().join(',');
-    await this.scheduledDatesContainer!.items.upsert({
+    await this.scheduledDatesContainer.items.upsert({
       ...scheduledDate,
       participantIds: participantIds,
     });
@@ -858,7 +873,7 @@ export class CalendarIntegrationService {
     logger.info(`Syncing scheduled date ${scheduledDate.id} to calendar for user ${userId}`);
 
     // Get the other participant for the event
-    const otherUserId = scheduledDate.participantIds.find(id => id !== userId);
+    const otherUserId = scheduledDate.participantIds.find((id) => id !== userId);
 
     // Create calendar event
     const event: CalendarEvent = {
@@ -866,7 +881,9 @@ export class CalendarIntegrationService {
       description: scheduledDate.notes || 'Date scheduled via Flamoral',
       location: scheduledDate.venue?.address,
       startTime: new Date(scheduledDate.scheduledAt),
-      endTime: new Date(new Date(scheduledDate.scheduledAt).getTime() + scheduledDate.duration * 60 * 1000),
+      endTime: new Date(
+        new Date(scheduledDate.scheduledAt).getTime() + scheduledDate.duration * 60 * 1000
+      ),
       timezone: scheduledDate.timezone,
       reminders: [
         { method: 'popup', minutes: ReminderTiming.ONE_HOUR },
@@ -879,8 +896,8 @@ export class CalendarIntegrationService {
     // Get user's calendar connections
     const connections = await this.getConnections(userId);
     const targetConnections = provider
-      ? connections.filter(c => c.provider === provider && c.isActive)
-      : connections.filter(c => c.isActive && c.syncEnabled);
+      ? connections.filter((c) => c.provider === provider && c.isActive)
+      : connections.filter((c) => c.isActive && c.syncEnabled);
 
     if (targetConnections.length === 0) {
       return {
@@ -899,10 +916,18 @@ export class CalendarIntegrationService {
 
         switch (connection.provider) {
           case CalendarProvider.GOOGLE:
-            result = await GoogleCalendarOAuth.createEvent(accessToken, connection.calendarId, event);
+            result = await GoogleCalendarOAuth.createEvent(
+              accessToken,
+              connection.calendarId,
+              event
+            );
             break;
           case CalendarProvider.OUTLOOK:
-            result = await OutlookCalendarOAuth.createEvent(accessToken, connection.calendarId, event);
+            result = await OutlookCalendarOAuth.createEvent(
+              accessToken,
+              connection.calendarId,
+              event
+            );
             break;
           case CalendarProvider.APPLE:
             result = await AppleCalendarOAuth.createEvent(
@@ -940,15 +965,18 @@ export class CalendarIntegrationService {
     // Update scheduled date with event IDs
     if (scheduledDate.calendarEventIds) {
       const participantIds = scheduledDate.participantIds.sort().join(',');
-      await this.scheduledDatesContainer!.items.upsert({
+      await this.scheduledDatesContainer.items.upsert({
         ...scheduledDate,
         participantIds: participantIds,
       });
     }
 
     // Return first successful result or last error
-    const successResult = results.find(r => r.success);
-    return successResult || results[results.length - 1] || { success: false, error: 'No calendars synced' };
+    const successResult = results.find((r) => r.success);
+    return (
+      successResult ||
+      results[results.length - 1] || { success: false, error: 'No calendars synced' }
+    );
   }
 
   /**
@@ -966,10 +994,18 @@ export class CalendarIntegrationService {
 
         switch (eventInfo.provider) {
           case CalendarProvider.GOOGLE:
-            await GoogleCalendarOAuth.deleteEvent(accessToken, connection.calendarId, eventInfo.eventId);
+            await GoogleCalendarOAuth.deleteEvent(
+              accessToken,
+              connection.calendarId,
+              eventInfo.eventId
+            );
             break;
           case CalendarProvider.OUTLOOK:
-            await OutlookCalendarOAuth.deleteEvent(accessToken, connection.calendarId, eventInfo.eventId);
+            await OutlookCalendarOAuth.deleteEvent(
+              accessToken,
+              connection.calendarId,
+              eventInfo.eventId
+            );
             break;
           case CalendarProvider.APPLE:
             await AppleCalendarOAuth.deleteEvent(
@@ -1004,7 +1040,7 @@ export class CalendarIntegrationService {
     connection.shareAvailability = shareAvailability;
     connection.updatedAt = new Date();
 
-    await this.connectionsContainer!.items.upsert(connection);
+    await this.connectionsContainer.items.upsert(connection);
 
     return connection;
   }

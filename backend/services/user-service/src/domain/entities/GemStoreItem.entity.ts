@@ -3,7 +3,13 @@
  * Defines items available for purchase with gems in the store
  */
 
-export type GemStoreItemType = 'boost' | 'superlike' | 'spotlight' | 'gift' | 'utility' | 'cosmetic';
+export type GemStoreItemType =
+  | 'boost'
+  | 'superlike'
+  | 'spotlight'
+  | 'gift'
+  | 'utility'
+  | 'cosmetic';
 
 export interface GemStoreItem {
   id: string;
@@ -51,7 +57,8 @@ export interface GemStoreItemUpdateInput {
 export const DEFAULT_STORE_ITEMS: Omit<GemStoreItem, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
     name: 'Profile Boost',
-    description: 'Get 10x more visibility for 30 minutes. Your profile appears at the top of discovery.',
+    description:
+      'Get 10x more visibility for 30 minutes. Your profile appears at the top of discovery.',
     type: 'boost',
     gemCost: 50,
     durationMinutes: 30,
@@ -75,7 +82,8 @@ export const DEFAULT_STORE_ITEMS: Omit<GemStoreItem, 'id' | 'createdAt' | 'updat
   },
   {
     name: 'Spotlight',
-    description: 'Be featured prominently in discovery for 1 hour. Get seen by up to 10x more people.',
+    description:
+      'Be featured prominently in discovery for 1 hour. Get seen by up to 10x more people.',
     type: 'spotlight',
     gemCost: 100,
     durationMinutes: 60,

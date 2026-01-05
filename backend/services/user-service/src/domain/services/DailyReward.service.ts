@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { DailyRewardRepository } from '../repositories/DailyReward.repository';
+
 import {
   DailyReward,
   DailyRewardStatus,
@@ -11,6 +11,7 @@ import {
   calculateRewardAmount,
   RewardType,
 } from '../entities/DailyReward.entity';
+import { DailyRewardRepository } from '../repositories/DailyReward.repository';
 
 export class DailyRewardService {
   private repository: DailyRewardRepository;
@@ -34,8 +35,8 @@ export class DailyRewardService {
       dayInCycle = 1;
     }
 
-    const todayReward = calendar.find(c => c.dayNumber === dayInCycle) || null;
-    const nextRewards = calendar.filter(c => c.dayNumber > dayInCycle);
+    const todayReward = calendar.find((c) => c.dayNumber === dayInCycle) || null;
+    const nextRewards = calendar.filter((c) => c.dayNumber > dayInCycle);
 
     return {
       canClaim: streakStatus.canClaimToday,
@@ -90,9 +91,7 @@ export class DailyRewardService {
       }
 
       // Determine day in cycle
-      const dayInCycle = streakStatus.isMissedDay
-        ? 1
-        : reward.dayInCycle;
+      const dayInCycle = streakStatus.isMissedDay ? 1 : reward.dayInCycle;
 
       // Get reward configuration for today
       const rewardConfig = await repository.getRewardForDay(dayInCycle);
@@ -223,7 +222,11 @@ export class DailyRewardService {
     });
   }
 
-  private async addSuperLikes(trx: Knex.Transaction, userId: string, amount: number): Promise<void> {
+  private async addSuperLikes(
+    trx: Knex.Transaction,
+    userId: string,
+    amount: number
+  ): Promise<void> {
     // Update usage limits to add super likes
     const existingLimits = await trx('usage_limits').where({ user_id: userId }).first();
 
@@ -260,7 +263,11 @@ export class DailyRewardService {
     }
   }
 
-  private async addPremiumTrial(trx: Knex.Transaction, userId: string, days: number): Promise<void> {
+  private async addPremiumTrial(
+    trx: Knex.Transaction,
+    userId: string,
+    days: number
+  ): Promise<void> {
     // Check if user already has premium
     const existingSub = await trx('subscriptions')
       .where({ user_id: userId })
@@ -272,12 +279,10 @@ export class DailyRewardService {
       const currentEnd = new Date(existingSub.ends_at);
       const newEnd = new Date(currentEnd.getTime() + days * 24 * 60 * 60 * 1000);
 
-      await trx('subscriptions')
-        .where({ id: existingSub.id })
-        .update({
-          ends_at: newEnd,
-          updated_at: trx.fn.now(),
-        });
+      await trx('subscriptions').where({ id: existingSub.id }).update({
+        ends_at: newEnd,
+        updated_at: trx.fn.now(),
+      });
     } else {
       // Create new trial subscription
       const now = new Date();

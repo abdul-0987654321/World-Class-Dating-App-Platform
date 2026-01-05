@@ -27,10 +27,7 @@ class AccountDeletionService {
   /**
    * Request account deletion
    */
-  async requestDeletion(
-    userId: string,
-    options: DeletionOptions
-  ): Promise<AccountDeletionRequest> {
+  async requestDeletion(userId: string, options: DeletionOptions): Promise<AccountDeletionRequest> {
     // Check if there's already a pending deletion request
     const existingRequest = await this.getPendingDeletionRequest(userId);
     if (existingRequest) {
@@ -116,10 +113,7 @@ class AccountDeletionService {
   /**
    * Process account deletion
    */
-  async processAccountDeletion(
-    requestId: string,
-    options: DeletionOptions
-  ): Promise<void> {
+  async processAccountDeletion(requestId: string, options: DeletionOptions): Promise<void> {
     try {
       const request = await this.getDeletionRequest(requestId);
       if (!request) {
@@ -333,16 +327,12 @@ class AccountDeletionService {
     });
   }
 
-  private async getDeletionRequest(
-    requestId: string
-  ): Promise<AccountDeletionRequest | null> {
+  private async getDeletionRequest(requestId: string): Promise<AccountDeletionRequest | null> {
     // In production, fetch from database
     return null;
   }
 
-  private async getPendingDeletionRequest(
-    userId: string
-  ): Promise<AccountDeletionRequest | null> {
+  private async getPendingDeletionRequest(userId: string): Promise<AccountDeletionRequest | null> {
     // In production, query from database
     return null;
   }

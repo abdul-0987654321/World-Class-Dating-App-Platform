@@ -13,12 +13,12 @@
  * - Comprehensive audit logging
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
-import db from '../infrastructure/database/connection';
-import logger from '../utils/logger';
+
+import { v4 as uuidv4 } from 'uuid';
+
 import config from '../config';
-import { textractOCRService } from './textract-ocr.service';
+import db from '../infrastructure/database/connection';
 import {
   DocumentType,
   DocumentVerificationStatus,
@@ -44,6 +44,9 @@ import {
   getConfidenceLevel,
   MRZValidation,
 } from '../types/document-verification.types';
+import logger from '../utils/logger';
+
+import { textractOCRService } from './textract-ocr.service';
 
 /**
  * Document Verification Service
@@ -55,7 +58,8 @@ export class DocumentVerificationService {
 
   constructor() {
     this.thresholds = this.loadThresholds();
-    this.encryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY ||
+    this.encryptionKey =
+      process.env.DOCUMENT_ENCRYPTION_KEY ||
       process.env.JWT_ACCESS_SECRET ||
       'default-encryption-key-change-in-production';
 
@@ -78,15 +82,21 @@ export class DocumentVerificationService {
   /**
    * Main entry point: Verify a document
    */
-  async verifyDocument(request: DocumentVerificationRequest): Promise<DocumentVerificationResponse> {
+  async verifyDocument(
+    request: DocumentVerificationRequest
+  ): Promise<DocumentVerificationResponse> {
     const verificationId = uuidv4();
     const startTime = Date.now();
     const auditLog: AuditLogEntry[] = [];
 
     try {
       // Log verification start
-      this.addAuditEntry(auditLog, 'VERIFICATION_STARTED', 'system',
-        `Document verification initiated for user ${request.userId}`);
+      this.addAuditEntry(
+        auditLog,
+        'VERIFICATION_STARTED',
+        'system',
+        `Document verification initiated for user ${request.userId}`
+      );
 
       // Validate consent
       if (!request.consentGiven) {
@@ -101,8 +111,12 @@ export class DocumentVerificationService {
       await this.createVerificationRecord(verificationId, request, auditLog);
 
       // Step 1: Extract document data using OCR
-      this.addAuditEntry(auditLog, 'OCR_EXTRACTION_STARTED', 'system',
-        `Starting OCR extraction for ${request.documentType}`);
+      this.addAuditEntry(
+        auditLog,
+        'OCR_EXTRACTION_STARTED',
+        'system',
+        `Starting OCR extraction for ${request.documentType}`
+      );
 
       const extractionResult = await this.extractDocumentData(
         request.documentFront,
@@ -111,8 +125,12 @@ export class DocumentVerificationService {
       );
 
       if (!extractionResult.success) {
-        await this.updateVerificationFailed(verificationId, 'extraction_failed',
-          extractionResult.errors?.join(', ') || 'OCR extraction failed', auditLog);
+        await this.updateVerificationFailed(
+          verificationId,
+          'extraction_failed',
+          extractionResult.errors?.join(', ') || 'OCR extraction failed',
+          auditLog
+        );
 
         return {
           success: false,
@@ -123,32 +141,52 @@ export class DocumentVerificationService {
         };
       }
 
-      this.addAuditEntry(auditLog, 'OCR_EXTRACTION_COMPLETED', 'system',
+      this.addAuditEntry(
+        auditLog,
+        'OCR_EXTRACTION_COMPLETED',
+        'system',
         `Extracted ${extractionResult.fields.length} fields with ${(extractionResult.overallConfidence * 100).toFixed(1)}% confidence`,
-        extractionResult.fields.map(f => f.fieldName));
+        extractionResult.fields.map((f) => f.fieldName)
+      );
 
       // Step 2: Validate document authenticity
-      this.addAuditEntry(auditLog, 'VALIDATION_STARTED', 'system',
-        'Starting document authenticity validation');
+      this.addAuditEntry(
+        auditLog,
+        'VALIDATION_STARTED',
+        'system',
+        'Starting document authenticity validation'
+      );
 
       const validationResult = await this.validateDocument(
-        extractionResult.data!,
+        extractionResult.data,
         request.documentType,
         request.countryCode
       );
 
-      this.addAuditEntry(auditLog, 'VALIDATION_COMPLETED', 'system',
-        `Validation completed: ${validationResult.authenticityResult} with ${validationResult.checks.length} checks`);
+      this.addAuditEntry(
+        auditLog,
+        'VALIDATION_COMPLETED',
+        'system',
+        `Validation completed: ${validationResult.authenticityResult} with ${validationResult.checks.length} checks`
+      );
 
       // Step 3: Match with user profile
-      this.addAuditEntry(auditLog, 'PROFILE_MATCHING_STARTED', 'system',
-        'Starting profile matching');
+      this.addAuditEntry(
+        auditLog,
+        'PROFILE_MATCHING_STARTED',
+        'system',
+        'Starting profile matching'
+      );
 
       const userProfile = await this.getUserProfile(request.userId);
-      const matchResult = await this.matchWithProfile(extractionResult.data!, userProfile);
+      const matchResult = await this.matchWithProfile(extractionResult.data, userProfile);
 
-      this.addAuditEntry(auditLog, 'PROFILE_MATCHING_COMPLETED', 'system',
-        `Profile matching completed: ${matchResult.overallResult} with score ${(matchResult.verificationScore * 100).toFixed(1)}%`);
+      this.addAuditEntry(
+        auditLog,
+        'PROFILE_MATCHING_COMPLETED',
+        'system',
+        `Profile matching completed: ${matchResult.overallResult} with score ${(matchResult.verificationScore * 100).toFixed(1)}%`
+      );
 
       // Step 4: Calculate final verification score and make decision
       const finalScore = this.calculateVerificationScore(
@@ -159,8 +197,12 @@ export class DocumentVerificationService {
 
       const decision = this.makeVerificationDecision(finalScore, validationResult, matchResult);
 
-      this.addAuditEntry(auditLog, 'DECISION_MADE', 'system',
-        `Verification decision: ${decision.decision} (score: ${(finalScore * 100).toFixed(1)}%)`);
+      this.addAuditEntry(
+        auditLog,
+        'DECISION_MADE',
+        'system',
+        `Verification decision: ${decision.decision} (score: ${(finalScore * 100).toFixed(1)}%)`
+      );
 
       // Step 5: Update database with results
       await this.updateVerificationCompleted(
@@ -176,9 +218,17 @@ export class DocumentVerificationService {
 
       // Step 6: If approved, update user verification status
       if (decision.decision === 'approved') {
-        await this.updateUserVerificationStatus(request.userId, verificationId, request.documentType);
-        this.addAuditEntry(auditLog, 'USER_STATUS_UPDATED', 'system',
-          'User verification status updated to verified');
+        await this.updateUserVerificationStatus(
+          request.userId,
+          verificationId,
+          request.documentType
+        );
+        this.addAuditEntry(
+          auditLog,
+          'USER_STATUS_UPDATED',
+          'system',
+          'User verification status updated to verified'
+        );
       }
 
       logger.info('Document verification completed', {
@@ -195,7 +245,6 @@ export class DocumentVerificationService {
         status: 'completed',
         message: `Verification ${decision.decision}`,
       };
-
     } catch (error: any) {
       logger.error('Document verification failed', {
         verificationId,
@@ -203,8 +252,12 @@ export class DocumentVerificationService {
         error: error.message,
       });
 
-      this.addAuditEntry(auditLog, 'VERIFICATION_ERROR', 'system',
-        `Verification failed with error: ${error.message}`);
+      this.addAuditEntry(
+        auditLog,
+        'VERIFICATION_ERROR',
+        'system',
+        `Verification failed with error: ${error.message}`
+      );
 
       await this.updateVerificationFailed(verificationId, 'system_error', error.message, auditLog);
 
@@ -258,7 +311,11 @@ export class DocumentVerificationService {
     }
 
     // 3. Validate document number format
-    const documentNumberCheck = this.validateDocumentNumberFormat(documentData, documentType, countryCode);
+    const documentNumberCheck = this.validateDocumentNumberFormat(
+      documentData,
+      documentType,
+      countryCode
+    );
     checks.push(documentNumberCheck);
     if (!documentNumberCheck.passed) {
       warnings.push('Document number format validation failed');
@@ -295,7 +352,7 @@ export class DocumentVerificationService {
     }
 
     // Calculate overall confidence
-    const passedChecks = checks.filter(c => c.passed).length;
+    const passedChecks = checks.filter((c) => c.passed).length;
     const totalConfidence = checks.reduce((sum, c) => sum + c.confidence, 0);
     const overallConfidence = totalConfidence / checks.length;
 
@@ -349,14 +406,11 @@ export class DocumentVerificationService {
     matchDetails.push(lastNameMatch);
 
     // Match date of birth
-    const dobMatch = this.matchDateOfBirth(
-      userProfile.dateOfBirth,
-      documentData.dateOfBirth
-    );
+    const dobMatch = this.matchDateOfBirth(userProfile.dateOfBirth, documentData.dateOfBirth);
     matchDetails.push(dobMatch);
 
     // Calculate overall match score
-    const matchScores = matchDetails.map(m => m.matchScore);
+    const matchScores = matchDetails.map((m) => m.matchScore);
     const overallScore = matchScores.reduce((a, b) => a + b, 0) / matchScores.length;
 
     // Determine overall result
@@ -377,7 +431,9 @@ export class DocumentVerificationService {
     // Add specific issues
     for (const detail of matchDetails) {
       if (detail.matchResult === 'mismatch') {
-        issues.push(`${detail.field} mismatch: profile "${detail.profileValue}" vs document "${detail.documentValue}"`);
+        issues.push(
+          `${detail.field} mismatch: profile "${detail.profileValue}" vs document "${detail.documentValue}"`
+        );
       }
     }
 
@@ -395,9 +451,7 @@ export class DocumentVerificationService {
    * Get current verification score (for external queries)
    */
   async getVerificationScore(verificationId: string): Promise<number> {
-    const record = await db('document_verifications')
-      .where({ id: verificationId })
-      .first();
+    const record = await db('document_verifications').where({ id: verificationId }).first();
 
     return record?.overall_score || 0;
   }
@@ -405,7 +459,10 @@ export class DocumentVerificationService {
   /**
    * Get verification status
    */
-  async getVerificationStatus(verificationId: string, userId: string): Promise<DocumentVerificationResult | null> {
+  async getVerificationStatus(
+    verificationId: string,
+    userId: string
+  ): Promise<DocumentVerificationResult | null> {
     const record = await db('document_verifications')
       .where({ id: verificationId, user_id: userId })
       .first();
@@ -437,23 +494,21 @@ export class DocumentVerificationService {
    * GDPR: Export user verification data
    */
   async exportUserData(userId: string): Promise<any> {
-    const verifications = await db('document_verifications')
-      .where({ user_id: userId })
-      .select([
-        'id',
-        'document_type',
-        'status',
-        'is_verified',
-        'verification_decision',
-        'created_at',
-        'completed_at',
-        // Exclude sensitive data
-      ]);
+    const verifications = await db('document_verifications').where({ user_id: userId }).select([
+      'id',
+      'document_type',
+      'status',
+      'is_verified',
+      'verification_decision',
+      'created_at',
+      'completed_at',
+      // Exclude sensitive data
+    ]);
 
     return {
       exportedAt: new Date(),
       userId,
-      verifications: verifications.map(v => ({
+      verifications: verifications.map((v) => ({
         verificationId: v.id,
         documentType: v.document_type,
         status: v.status,
@@ -468,9 +523,7 @@ export class DocumentVerificationService {
    * GDPR: Delete user verification data
    */
   async deleteUserData(userId: string): Promise<{ deleted: number }> {
-    const deleted = await db('document_verifications')
-      .where({ user_id: userId })
-      .del();
+    const deleted = await db('document_verifications').where({ user_id: userId }).del();
 
     logger.info('GDPR: User document verification data deleted', {
       userId,
@@ -663,7 +716,7 @@ export class DocumentVerificationService {
     // Weighted scoring
     const extractionWeight = 0.25;
     const validationWeight = 0.35;
-    const matchWeight = 0.40;
+    const matchWeight = 0.4;
 
     const extractionScore = extractionConfidence;
     const validationScore = validationResult.overallConfidence;
@@ -755,13 +808,17 @@ export class DocumentVerificationService {
   /**
    * Check required fields presence
    */
-  private checkRequiredFields(data: ExtractedDocumentData, documentType: DocumentType): AuthenticityCheck {
+  private checkRequiredFields(
+    data: ExtractedDocumentData,
+    documentType: DocumentType
+  ): AuthenticityCheck {
     const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'documentNumber'];
     const presentFields: string[] = [];
     const missingFields: string[] = [];
 
     for (const field of requiredFields) {
-      const value = (data as any)[field] ||
+      const value =
+        (data as any)[field] ||
         (field === 'firstName' ? this.extractFirstNameFromFullName(data.fullName) : null) ||
         (field === 'lastName' ? this.extractLastNameFromFullName(data.fullName) : null);
 
@@ -778,9 +835,10 @@ export class DocumentVerificationService {
       checkType: 'required_fields',
       passed: missingFields.length === 0,
       confidence,
-      details: missingFields.length > 0
-        ? `Missing fields: ${missingFields.join(', ')}`
-        : 'All required fields present',
+      details:
+        missingFields.length > 0
+          ? `Missing fields: ${missingFields.join(', ')}`
+          : 'All required fields present',
     };
   }
 
@@ -804,17 +862,17 @@ export class DocumentVerificationService {
     // Format patterns by document type
     const patterns: Record<string, RegExp> = {
       // US passport: 9 alphanumeric
-      'passport_USA': /^[A-Z0-9]{9}$/i,
+      passport_USA: /^[A-Z0-9]{9}$/i,
       // UK passport: 9 digits
-      'passport_GBR': /^\d{9}$/,
+      passport_GBR: /^\d{9}$/,
       // Generic passport: 6-9 alphanumeric
-      'passport': /^[A-Z0-9]{6,9}$/i,
+      passport: /^[A-Z0-9]{6,9}$/i,
       // US driver's license: varies by state, typically 7-15 alphanumeric
-      'drivers_license_USA': /^[A-Z0-9]{7,15}$/i,
+      drivers_license_USA: /^[A-Z0-9]{7,15}$/i,
       // Generic driver's license
-      'drivers_license': /^[A-Z0-9]{5,20}$/i,
+      drivers_license: /^[A-Z0-9]{5,20}$/i,
       // National ID: varies widely
-      'national_id': /^[A-Z0-9]{5,20}$/i,
+      national_id: /^[A-Z0-9]{5,20}$/i,
     };
 
     const specificPattern = patterns[`${documentType}_${countryCode}`];
@@ -836,7 +894,9 @@ export class DocumentVerificationService {
       checkType: 'document_number_format',
       passed: isValid,
       confidence: isValid ? 0.9 : 0.3,
-      details: isValid ? 'Document number format valid' : 'Document number format does not match expected pattern',
+      details: isValid
+        ? 'Document number format valid'
+        : 'Document number format does not match expected pattern',
     };
   }
 
@@ -898,7 +958,8 @@ export class DocumentVerificationService {
     }
 
     const checks = mrz.checkDigits;
-    const allValid = checks.documentNumber && checks.dateOfBirth && checks.expiryDate && checks.overall;
+    const allValid =
+      checks.documentNumber && checks.dateOfBirth && checks.expiryDate && checks.overall;
     const someValid = checks.documentNumber || checks.dateOfBirth || checks.expiryDate;
 
     return {
@@ -947,9 +1008,10 @@ export class DocumentVerificationService {
       checkType: 'suspicious_patterns',
       passed: suspiciousPatterns.length === 0,
       confidence: suspiciousPatterns.length === 0 ? 1.0 : 0.2,
-      details: suspiciousPatterns.length > 0
-        ? suspiciousPatterns.join('; ')
-        : 'No suspicious patterns detected',
+      details:
+        suspiciousPatterns.length > 0
+          ? suspiciousPatterns.join('; ')
+          : 'No suspicious patterns detected',
     };
   }
 
@@ -973,9 +1035,8 @@ export class DocumentVerificationService {
       checkType: 'age_validation',
       passed: age >= minimumAge,
       confidence: age >= minimumAge ? 1.0 : 0.0,
-      details: age >= minimumAge
-        ? `Age verified: ${age} years`
-        : `User is under ${minimumAge} years old`,
+      details:
+        age >= minimumAge ? `Age verified: ${age} years` : `User is under ${minimumAge} years old`,
     };
   }
 
@@ -1188,8 +1249,8 @@ export class DocumentVerificationService {
         } else {
           matrix[i][j] = Math.min(
             matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1,     // insertion
-            matrix[i - 1][j] + 1      // deletion
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j] + 1 // deletion
           );
         }
       }
@@ -1287,18 +1348,14 @@ export class DocumentVerificationService {
         ? JSON.parse(this.decryptData(record.extracted_data_encrypted))
         : undefined,
       extractionConfidence: record.extraction_confidence || 0,
-      validationResult: record.validation_result
-        ? JSON.parse(record.validation_result)
-        : undefined,
+      validationResult: record.validation_result ? JSON.parse(record.validation_result) : undefined,
       profileMatchResult: record.profile_match_result
         ? JSON.parse(record.profile_match_result)
         : undefined,
       overallVerificationScore: record.overall_score || 0,
       isVerified: record.is_verified,
       verificationDecision: record.verification_decision,
-      decisionReasons: record.decision_reasons
-        ? JSON.parse(record.decision_reasons)
-        : [],
+      decisionReasons: record.decision_reasons ? JSON.parse(record.decision_reasons) : [],
       processedAt: record.completed_at || record.created_at,
       processingDuration: record.processing_duration_ms || 0,
       auditLog: record.audit_log ? JSON.parse(record.audit_log) : [],

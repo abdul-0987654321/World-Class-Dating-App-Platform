@@ -10,17 +10,19 @@
  * - Encrypted storage with access controls
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { createLogger } from '../utils/logger';
-import db from '../infrastructure/database/connection';
+
+import { v4 as uuidv4 } from 'uuid';
+
 import config from '../config';
+import db from '../infrastructure/database/connection';
 import {
   ContentQuarantineRecord,
   QuarantineStatus,
   CSAMDetectionResult,
   LegalHoldStatus,
 } from '../types/csam.types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('csam-quarantine-service');
 
@@ -68,10 +70,7 @@ export class CSAMQuarantineService {
       const evidenceHash = this.generateEvidenceHash(params.imageBuffer);
 
       // Step 3: Store encrypted content
-      const storageLocation = await this.storeEncryptedContent(
-        quarantineId,
-        encryptedContent
-      );
+      const storageLocation = await this.storeEncryptedContent(quarantineId, encryptedContent);
 
       // Step 4: Create quarantine record
       const quarantineRecord: ContentQuarantineRecord = {
@@ -126,7 +125,6 @@ export class CSAMQuarantineService {
       });
 
       return quarantineRecord;
-
     } catch (error: any) {
       logger.error('CONTENT QUARANTINE FAILED - CRITICAL ERROR', {
         quarantineId,
@@ -206,7 +204,6 @@ export class CSAMQuarantineService {
       });
 
       return record;
-
     } catch (error: any) {
       logger.error('Failed to quarantine content for review', error);
       throw error;
@@ -224,16 +221,12 @@ export class CSAMQuarantineService {
 
       const cipher = crypto.createCipheriv(algorithm, key, iv);
 
-      const encrypted = Buffer.concat([
-        cipher.update(buffer),
-        cipher.final(),
-      ]);
+      const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
 
       const authTag = cipher.getAuthTag();
 
       // Prepend IV and auth tag to encrypted data
       return Buffer.concat([iv, authTag, encrypted]);
-
     } catch (error: any) {
       logger.error('Content encryption failed', error);
       throw new Error(`Encryption failed: ${error.message}`);
@@ -256,13 +249,9 @@ export class CSAMQuarantineService {
       const decipher = crypto.createDecipheriv(algorithm, key, iv);
       decipher.setAuthTag(authTag);
 
-      const decrypted = Buffer.concat([
-        decipher.update(encrypted),
-        decipher.final(),
-      ]);
+      const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
 
       return decrypted;
-
     } catch (error: any) {
       logger.error('Content decryption failed', error);
       throw new Error(`Decryption failed: ${error.message}`);
@@ -295,7 +284,6 @@ export class CSAMQuarantineService {
       });
 
       return storageLocation;
-
     } catch (error: any) {
       logger.error('Failed to store encrypted content', error);
       throw error;
@@ -305,10 +293,7 @@ export class CSAMQuarantineService {
   /**
    * Block content access
    */
-  private async blockContentAccess(
-    contentId: string,
-    quarantineId: string
-  ): Promise<void> {
+  private async blockContentAccess(contentId: string, quarantineId: string): Promise<void> {
     try {
       // Create content block record
       await db('content_access_blocks').insert({
@@ -324,7 +309,6 @@ export class CSAMQuarantineService {
         contentId,
         quarantineId,
       });
-
     } catch (error: any) {
       logger.error('Failed to block content access', error);
       throw error;
@@ -350,7 +334,6 @@ export class CSAMQuarantineService {
         timestamp: new Date(),
         created_at: new Date(),
       });
-
     } catch (error: any) {
       logger.error('Failed to log quarantine action', error);
       // Don't throw - logging failure shouldn't block quarantine
@@ -422,7 +405,6 @@ export class CSAMQuarantineService {
       });
 
       return { accessToken, expiresAt };
-
     } catch (error: any) {
       logger.error('Failed to grant law enforcement access', error);
       throw error;
@@ -449,9 +431,7 @@ export class CSAMQuarantineService {
       await db('csam_quarantine')
         .where('id', quarantineId)
         .update({
-          chain_of_custody: db.raw(`chain_of_custody || ?::jsonb`, [
-            JSON.stringify(custodyEntry),
-          ]),
+          chain_of_custody: db.raw(`chain_of_custody || ?::jsonb`, [JSON.stringify(custodyEntry)]),
           updated_at: new Date(),
         });
 
@@ -460,7 +440,6 @@ export class CSAMQuarantineService {
         action,
         actor,
       });
-
     } catch (error: any) {
       logger.error('Failed to update chain of custody', error);
       throw error;
@@ -472,12 +451,9 @@ export class CSAMQuarantineService {
    */
   async getQuarantineRecord(quarantineId: string): Promise<ContentQuarantineRecord | null> {
     try {
-      const record = await db('csam_quarantine')
-        .where('id', quarantineId)
-        .first();
+      const record = await db('csam_quarantine').where('id', quarantineId).first();
 
       return record || null;
-
     } catch (error: any) {
       logger.error('Failed to get quarantine record', error);
       return null;
@@ -500,17 +476,15 @@ export class CSAMQuarantineService {
         justification,
       });
 
-      await db('csam_quarantine')
-        .where('id', quarantineId)
-        .update({
-          status: QuarantineStatus.RELEASED,
-          legal_hold_status: LegalHoldStatus.RELEASED,
-          released_at: new Date(),
-          released_by: adminId,
-          release_justification: justification,
-          approval_documentation: approvalDocumentation,
-          updated_at: new Date(),
-        });
+      await db('csam_quarantine').where('id', quarantineId).update({
+        status: QuarantineStatus.RELEASED,
+        legal_hold_status: LegalHoldStatus.RELEASED,
+        released_at: new Date(),
+        released_by: adminId,
+        release_justification: justification,
+        approval_documentation: approvalDocumentation,
+        updated_at: new Date(),
+      });
 
       await this.updateChainOfCustody(quarantineId, 'released', adminId, {
         justification,
@@ -521,7 +495,6 @@ export class CSAMQuarantineService {
         quarantineId,
         adminId,
       });
-
     } catch (error: any) {
       logger.error('Failed to release from quarantine', error);
       throw error;
@@ -536,14 +509,17 @@ export class CSAMQuarantineService {
       const stats = await db('csam_quarantine')
         .select(
           db.raw('COUNT(*) as total_quarantined'),
-          db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as active', [QuarantineStatus.QUARANTINED]),
-          db.raw('COUNT(CASE WHEN legal_hold_status = ? THEN 1 END) as legal_holds', [LegalHoldStatus.ACTIVE]),
+          db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as active', [
+            QuarantineStatus.QUARANTINED,
+          ]),
+          db.raw('COUNT(CASE WHEN legal_hold_status = ? THEN 1 END) as legal_holds', [
+            LegalHoldStatus.ACTIVE,
+          ]),
           db.raw('COUNT(CASE WHEN review_required = true THEN 1 END) as pending_review')
         )
         .first();
 
       return stats;
-
     } catch (error: any) {
       logger.error('Failed to get quarantine statistics', error);
       throw error;
@@ -576,12 +552,9 @@ export class CSAMQuarantineService {
         query = query.where('review_required', filters.reviewRequired);
       }
 
-      const records = await query
-        .orderBy('quarantined_at', 'desc')
-        .limit(limit);
+      const records = await query.orderBy('quarantined_at', 'desc').limit(limit);
 
       return records;
-
     } catch (error: any) {
       logger.error('Failed to list quarantined content', error);
       return [];

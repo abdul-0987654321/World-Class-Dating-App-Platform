@@ -4,16 +4,18 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('data_access_logs', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
-    table.enum('access_type', [
-      'view_profile',
-      'view_messages',
-      'view_photos',
-      'export_data',
-      'download_data',
-      'third_party_share',
-      'analytics_processing',
-      'support_access',
-    ]).notNullable();
+    table
+      .enum('access_type', [
+        'view_profile',
+        'view_messages',
+        'view_photos',
+        'export_data',
+        'download_data',
+        'third_party_share',
+        'analytics_processing',
+        'support_access',
+      ])
+      .notNullable();
     table.text('accessed_by'); // Who accessed the data (user, admin, system, third-party)
     table.text('purpose'); // Purpose of access
     table.jsonb('data_accessed'); // What specific data was accessed

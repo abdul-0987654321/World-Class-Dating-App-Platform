@@ -5,16 +5,17 @@
  * Allows users to undo their last swipe based on subscription tier limits.
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
+import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import db from '../../infrastructure/database/connection';
+import { SwipeAction } from '../../types';
+import { SwipeHistory } from '../entities/SwipeHistory.entity';
+import matchRepository from '../repositories/match.repository';
 import swipeHistoryRepository from '../repositories/swipe-history.repository';
 import swipeRepository from '../repositories/swipe.repository';
-import matchRepository from '../repositories/match.repository';
-import { SwipeHistory } from '../entities/SwipeHistory.entity';
-import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
-import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
 
 const logger = createLogger('rewind-service');
 
@@ -153,7 +154,7 @@ export class RewindService {
   async canRewind(userId: string, subscriptionTier?: SubscriptionTier): Promise<CanRewindResult> {
     try {
       // Get subscription tier if not provided
-      const tier = subscriptionTier || await this.getUserSubscriptionTier(userId);
+      const tier = subscriptionTier || (await this.getUserSubscriptionTier(userId));
       const limit = REWIND_LIMITS[tier] ?? 0;
 
       // Check if tier allows rewinds
@@ -226,23 +227,19 @@ export class RewindService {
         };
       }
 
-      const lastSwipe = canRewindResult.lastSwipe!;
+      const lastSwipe = canRewindResult.lastSwipe;
 
       // Start a transaction for atomicity
       const result = await this.db.transaction(async (trx) => {
         // 1. Mark the swipe history as rewound
-        await trx('swipe_history')
-          .where({ id: lastSwipe.id })
-          .update({
-            rewound: true,
-            rewound_at: new Date(),
-          });
+        await trx('swipe_history').where({ id: lastSwipe.id }).update({
+          rewound: true,
+          rewound_at: new Date(),
+        });
 
         // 2. Delete the original swipe from swipes table
         if (lastSwipe.originalSwipeId) {
-          await trx('swipes')
-            .where({ id: lastSwipe.originalSwipeId })
-            .delete();
+          await trx('swipes').where({ id: lastSwipe.originalSwipeId }).delete();
         } else {
           // Fallback: delete by user and target
           await trx('swipes')
@@ -255,9 +252,7 @@ export class RewindService {
 
         // 3. If there was a match, delete it
         if (lastSwipe.resultedInMatch && lastSwipe.matchId) {
-          await trx('matches')
-            .where({ id: lastSwipe.matchId })
-            .delete();
+          await trx('matches').where({ id: lastSwipe.matchId }).delete();
 
           logger.info(`Deleted match ${lastSwipe.matchId} as part of rewind`);
         }
@@ -270,7 +265,7 @@ export class RewindService {
         }
 
         // 5. Record the rewind usage
-        const tier = subscriptionTier || await this.getUserSubscriptionTier(userId);
+        const tier = subscriptionTier || (await this.getUserSubscriptionTier(userId));
         await trx('rewind_usage').insert({
           user_id: userId,
           swipe_history_id: lastSwipe.id,
@@ -291,7 +286,9 @@ export class RewindService {
         hadMatch: lastSwipe.resultedInMatch,
       });
 
-      logger.info(`Rewind successful for user ${userId}, rewound swipe on ${lastSwipe.targetUserId}`);
+      logger.info(
+        `Rewind successful for user ${userId}, rewound swipe on ${lastSwipe.targetUserId}`
+      );
 
       // Get target user profile for response
       let targetProfile = null;
@@ -341,11 +338,7 @@ export class RewindService {
           startDate.setHours(0, 0, 0, 0);
       }
 
-      const count = await swipeHistoryRepository.getRewindCountForPeriod(
-        userId,
-        startDate,
-        now
-      );
+      const count = await swipeHistoryRepository.getRewindCountForPeriod(userId, startDate, now);
 
       return {
         count,
@@ -362,10 +355,7 @@ export class RewindService {
   /**
    * Get rewind history for a user
    */
-  async getRewindHistory(
-    userId: string,
-    options?: { limit?: number; offset?: number }
-  ) {
+  async getRewindHistory(userId: string, options?: { limit?: number; offset?: number }) {
     try {
       return await swipeHistoryRepository.getRewindHistory(userId, options);
     } catch (error) {
@@ -383,7 +373,7 @@ export class RewindService {
       const swipes = await swipeHistoryRepository.getRewindableSwipes(userId, limit);
 
       // Filter to only include swipes within the rewind window
-      return swipes.filter(swipe => swipe.isWithinRewindWindow(REWIND_WINDOW_MS));
+      return swipes.filter((swipe) => swipe.isWithinRewindWindow(REWIND_WINDOW_MS));
     } catch (error) {
       logger.error('Failed to get rewindable swipes', error);
       throw error;

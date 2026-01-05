@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import {
   DailyReward,
   DailyRewardClaim,
@@ -13,9 +14,7 @@ export class DailyRewardRepository {
 
   // Daily Rewards
   async findByUserId(userId: string): Promise<DailyReward | null> {
-    const result = await this.db('daily_rewards')
-      .where({ user_id: userId })
-      .first();
+    const result = await this.db('daily_rewards').where({ user_id: userId }).first();
 
     return result ? this.mapToDailyReward(result) : null;
   }
@@ -45,10 +44,12 @@ export class DailyRewardRepository {
     if (input.totalLogins !== undefined) updateData.total_logins = input.totalLogins;
     if (input.longestStreak !== undefined) updateData.longest_streak = input.longestStreak;
     if (input.lastClaimDate !== undefined) updateData.last_claim_date = input.lastClaimDate;
-    if (input.currentStreakStart !== undefined) updateData.current_streak_start = input.currentStreakStart;
+    if (input.currentStreakStart !== undefined)
+      updateData.current_streak_start = input.currentStreakStart;
     if (input.dayInCycle !== undefined) updateData.day_in_cycle = input.dayInCycle;
     if (input.canClaimToday !== undefined) updateData.can_claim_today = input.canClaimToday;
-    if (input.rewardsHistory !== undefined) updateData.rewards_history = JSON.stringify(input.rewardsHistory);
+    if (input.rewardsHistory !== undefined)
+      updateData.rewards_history = JSON.stringify(input.rewardsHistory);
 
     const [result] = await this.db('daily_rewards')
       .where({ user_id: userId })
@@ -82,10 +83,7 @@ export class DailyRewardRepository {
     return this.mapToDailyRewardClaim(result);
   }
 
-  async findClaimsByUserId(
-    userId: string,
-    limit: number = 30
-  ): Promise<DailyRewardClaim[]> {
+  async findClaimsByUserId(userId: string, limit: number = 30): Promise<DailyRewardClaim[]> {
     const results = await this.db('daily_reward_claims')
       .where({ user_id: userId })
       .orderBy('claimed_at', 'desc')
@@ -94,11 +92,7 @@ export class DailyRewardRepository {
     return results.map(this.mapToDailyRewardClaim);
   }
 
-  async getClaimsCountByDateRange(
-    userId: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<number> {
+  async getClaimsCountByDateRange(userId: string, startDate: Date, endDate: Date): Promise<number> {
     const result = await this.db('daily_reward_claims')
       .where({ user_id: userId })
       .whereBetween('claimed_at', [startDate, endDate])
@@ -135,8 +129,10 @@ export class DailyRewardRepository {
 
     if (update.rewardType !== undefined) updateData.reward_type = update.rewardType;
     if (update.baseAmount !== undefined) updateData.base_amount = update.baseAmount;
-    if (update.streakMultiplier !== undefined) updateData.streak_multiplier = update.streakMultiplier;
-    if (update.bonusConditions !== undefined) updateData.bonus_conditions = JSON.stringify(update.bonusConditions);
+    if (update.streakMultiplier !== undefined)
+      updateData.streak_multiplier = update.streakMultiplier;
+    if (update.bonusConditions !== undefined)
+      updateData.bonus_conditions = JSON.stringify(update.bonusConditions);
     if (update.isSpecialDay !== undefined) updateData.is_special_day = update.isSpecialDay;
     if (update.description !== undefined) updateData.description = update.description;
     if (update.iconName !== undefined) updateData.icon_name = update.iconName;
@@ -161,15 +157,21 @@ export class DailyRewardRepository {
   }> {
     const reward = await this.findByUserId(userId);
 
-    const stats = await this.db('daily_reward_claims')
+    const stats = (await this.db('daily_reward_claims')
       .where({ user_id: userId })
       .select(
-        this.db.raw("COUNT(*) as total_claims"),
-        this.db.raw("SUM(CASE WHEN reward_type = 'coins' THEN reward_amount ELSE 0 END) as total_coins"),
-        this.db.raw("SUM(CASE WHEN reward_type = 'super_likes' THEN reward_amount ELSE 0 END) as total_super_likes"),
-        this.db.raw("SUM(CASE WHEN reward_type = 'boosts' THEN reward_amount ELSE 0 END) as total_boosts")
+        this.db.raw('COUNT(*) as total_claims'),
+        this.db.raw(
+          "SUM(CASE WHEN reward_type = 'coins' THEN reward_amount ELSE 0 END) as total_coins"
+        ),
+        this.db.raw(
+          "SUM(CASE WHEN reward_type = 'super_likes' THEN reward_amount ELSE 0 END) as total_super_likes"
+        ),
+        this.db.raw(
+          "SUM(CASE WHEN reward_type = 'boosts' THEN reward_amount ELSE 0 END) as total_boosts"
+        )
       )
-      .first() as any;
+      .first()) as any;
 
     return {
       totalClaims: parseInt(stats?.total_claims as string) || 0,
@@ -181,17 +183,19 @@ export class DailyRewardRepository {
     };
   }
 
-  async getTopStreakUsers(limit: number = 10): Promise<Array<{
-    userId: string;
-    streakCount: number;
-    totalLogins: number;
-  }>> {
+  async getTopStreakUsers(limit: number = 10): Promise<
+    Array<{
+      userId: string;
+      streakCount: number;
+      totalLogins: number;
+    }>
+  > {
     const results = await this.db('daily_rewards')
       .select('user_id', 'streak_count', 'total_logins')
       .orderBy('streak_count', 'desc')
       .limit(limit);
 
-    return results.map(r => ({
+    return results.map((r) => ({
       userId: r.user_id,
       streakCount: r.streak_count,
       totalLogins: r.total_logins,
@@ -210,9 +214,10 @@ export class DailyRewardRepository {
       currentStreakStart: row.current_streak_start,
       dayInCycle: row.day_in_cycle,
       canClaimToday: row.can_claim_today,
-      rewardsHistory: typeof row.rewards_history === 'string'
-        ? JSON.parse(row.rewards_history)
-        : row.rewards_history || [],
+      rewardsHistory:
+        typeof row.rewards_history === 'string'
+          ? JSON.parse(row.rewards_history)
+          : row.rewards_history || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -226,9 +231,10 @@ export class DailyRewardRepository {
       streakAtClaim: row.streak_at_claim,
       rewardType: row.reward_type as RewardType,
       rewardAmount: row.reward_amount,
-      rewardDetails: typeof row.reward_details === 'string'
-        ? JSON.parse(row.reward_details)
-        : row.reward_details,
+      rewardDetails:
+        typeof row.reward_details === 'string'
+          ? JSON.parse(row.reward_details)
+          : row.reward_details,
       claimedAt: row.claimed_at,
     };
   }
@@ -240,9 +246,10 @@ export class DailyRewardRepository {
       rewardType: row.reward_type as RewardType,
       baseAmount: row.base_amount,
       streakMultiplier: row.streak_multiplier,
-      bonusConditions: typeof row.bonus_conditions === 'string'
-        ? JSON.parse(row.bonus_conditions)
-        : row.bonus_conditions,
+      bonusConditions:
+        typeof row.bonus_conditions === 'string'
+          ? JSON.parse(row.bonus_conditions)
+          : row.bonus_conditions,
       isSpecialDay: row.is_special_day,
       description: row.description,
       iconName: row.icon_name,

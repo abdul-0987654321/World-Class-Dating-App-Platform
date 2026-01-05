@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
+import { UserRepository } from '../../domain/repositories/user.repository';
 import jwtUtils from '../../utils/jwt';
 import logger from '../../utils/logger';
-import { UserRepository } from '../../domain/repositories/user.repository';
 
 // Import types to ensure they're loaded
 import '../../types';
@@ -46,7 +47,7 @@ const generateCorrelationId = (): string => {
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     // Generate correlation ID for request tracing
-    req.correlationId = req.headers['x-correlation-id'] as string || generateCorrelationId();
+    req.correlationId = (req.headers['x-correlation-id'] as string) || generateCorrelationId();
     res.setHeader('X-Correlation-ID', req.correlationId);
 
     const authHeader = req.headers.authorization;
@@ -69,7 +70,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         const user = await userRepository.findById(payload.userId);
 
         if (!user) {
-          logger.warn(`User not found for token: ${payload.userId}`, { correlationId: req.correlationId });
+          logger.warn(`User not found for token: ${payload.userId}`, {
+            correlationId: req.correlationId,
+          });
           return res.status(401).json({
             success: false,
             message: 'User not found',
@@ -79,7 +82,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
         // SECURITY: Check if user is banned
         if (!user.is_active) {
-          logger.warn(`Banned user attempted access: ${payload.userId}`, { correlationId: req.correlationId });
+          logger.warn(`Banned user attempted access: ${payload.userId}`, {
+            correlationId: req.correlationId,
+          });
           return res.status(403).json({
             success: false,
             message: 'Account has been suspended or banned. Contact support for assistance.',
@@ -99,7 +104,10 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       } catch (dbError) {
         // If database check fails, log but still allow request (fail open for availability)
         // In production, consider fail-closed approach
-        logger.error('Database check failed during auth', { error: dbError, correlationId: req.correlationId });
+        logger.error('Database check failed during auth', {
+          error: dbError,
+          correlationId: req.correlationId,
+        });
         req.user = payload;
       }
 
@@ -148,9 +156,12 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
 
     // Check if user has one of the allowed roles
     if (!allowedRoles.includes(userRole as UserRole)) {
-      logger.warn(`Role access denied: user ${req.user.userId} with role ${userRole} tried to access resource requiring ${allowedRoles.join(', ')}`, {
-        correlationId: req.correlationId,
-      });
+      logger.warn(
+        `Role access denied: user ${req.user.userId} with role ${userRole} tried to access resource requiring ${allowedRoles.join(', ')}`,
+        {
+          correlationId: req.correlationId,
+        }
+      );
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions',
@@ -263,9 +274,12 @@ export const requireSupport = async (req: AuthRequest, res: Response, next: Next
     // Check if user has support, moderator, or admin role
     const allowedRoles: UserRole[] = ['support', 'moderator', 'admin'];
     if (!allowedRoles.includes(req.user.role as UserRole)) {
-      logger.warn(`User ${req.user.userId} with role ${req.user.role} attempted to access support resource`, {
-        correlationId: req.correlationId,
-      });
+      logger.warn(
+        `User ${req.user.userId} with role ${req.user.role} attempted to access support resource`,
+        {
+          correlationId: req.correlationId,
+        }
+      );
       return res.status(403).json({
         success: false,
         message: 'Support, moderator, or admin access required',

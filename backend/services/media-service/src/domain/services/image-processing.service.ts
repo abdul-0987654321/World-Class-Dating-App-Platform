@@ -1,6 +1,7 @@
-import sharp from 'sharp';
-import config from '../../config';
 import { createLogger } from '@flamoral/backend-shared';
+import sharp from 'sharp';
+
+import config from '../../config';
 
 const logger = createLogger('image-processing-service');
 
@@ -8,7 +9,11 @@ export class ImageProcessingService {
   /**
    * Validate image file
    */
-  validateImage(_buffer: Buffer, mimeType: string, size: number): { valid: boolean; error?: string } {
+  validateImage(
+    _buffer: Buffer,
+    mimeType: string,
+    size: number
+  ): { valid: boolean; error?: string } {
     // Check mime type
     if (!config.upload.allowedMimeTypes.includes(mimeType)) {
       return {
@@ -153,9 +158,7 @@ export class ImageProcessingService {
    */
   async convertToJpeg(buffer: Buffer): Promise<Buffer> {
     try {
-      return await sharp(buffer)
-        .jpeg({ quality: config.imageProcessing.quality })
-        .toBuffer();
+      return await sharp(buffer).jpeg({ quality: config.imageProcessing.quality }).toBuffer();
     } catch (error) {
       logger.error('Failed to convert image to JPEG', error);
       throw new Error('Image conversion failed');

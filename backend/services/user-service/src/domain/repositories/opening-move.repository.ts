@@ -27,15 +27,11 @@ export class OpeningMoveRepository {
   }
 
   async findByUserId(userId: string): Promise<OpeningMoveEntity[]> {
-    return db(this.tableName)
-      .where({ user_id: userId })
-      .orderBy('order', 'asc');
+    return db(this.tableName).where({ user_id: userId }).orderBy('order', 'asc');
   }
 
   async findActiveByUserId(userId: string): Promise<OpeningMoveEntity[]> {
-    return db(this.tableName)
-      .where({ user_id: userId, active: true })
-      .orderBy('order', 'asc');
+    return db(this.tableName).where({ user_id: userId, active: true }).orderBy('order', 'asc');
   }
 
   async findById(id: string): Promise<OpeningMoveEntity | null> {
@@ -43,7 +39,11 @@ export class OpeningMoveRepository {
     return move || null;
   }
 
-  async update(id: string, userId: string, moveData: UpdateOpeningMoveDto): Promise<OpeningMoveEntity | null> {
+  async update(
+    id: string,
+    userId: string,
+    moveData: UpdateOpeningMoveDto
+  ): Promise<OpeningMoveEntity | null> {
     const [move] = await db(this.tableName)
       .where({ id, user_id: userId })
       .update({
@@ -56,9 +56,7 @@ export class OpeningMoveRepository {
   }
 
   async delete(id: string, userId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id, user_id: userId })
-      .delete();
+    await db(this.tableName).where({ id, user_id: userId }).delete();
   }
 
   async countActiveByUserId(userId: string): Promise<number> {
@@ -78,9 +76,7 @@ export class OpeningMoveRepository {
 
   // Templates CRUD
   async findAllTemplates(): Promise<OpeningMoveTemplateEntity[]> {
-    return db(this.templatesTableName)
-      .where({ active: true })
-      .orderBy('popularity_score', 'desc');
+    return db(this.templatesTableName).where({ active: true }).orderBy('popularity_score', 'desc');
   }
 
   async findTemplatesByCategory(category: TemplateCategory): Promise<OpeningMoveTemplateEntity[]> {
@@ -95,24 +91,20 @@ export class OpeningMoveRepository {
   }
 
   async incrementTemplatePopularity(templateId: string): Promise<void> {
-    await db(this.templatesTableName)
-      .where({ id: templateId })
-      .increment('popularity_score', 1);
+    await db(this.templatesTableName).where({ id: templateId }).increment('popularity_score', 1);
   }
 
   // Match Opening Responses
-  async createResponse(responseData: CreateOpeningResponseDto & { responder_id: string }): Promise<MatchOpeningResponseEntity> {
-    const [response] = await db(this.responsesTableName)
-      .insert(responseData)
-      .returning('*');
+  async createResponse(
+    responseData: CreateOpeningResponseDto & { responder_id: string }
+  ): Promise<MatchOpeningResponseEntity> {
+    const [response] = await db(this.responsesTableName).insert(responseData).returning('*');
 
     return response;
   }
 
   async findResponseByMatchId(matchId: string): Promise<MatchOpeningResponseEntity | null> {
-    const response = await db(this.responsesTableName)
-      .where({ match_id: matchId })
-      .first();
+    const response = await db(this.responsesTableName).where({ match_id: matchId }).first();
 
     return response || null;
   }

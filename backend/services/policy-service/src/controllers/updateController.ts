@@ -202,7 +202,9 @@ export class UpdateController {
     }
 
     if (update.status !== 'approved') {
-      throw new Error(`Cannot publish update with status: ${update.status}. Must be approved first.`);
+      throw new Error(
+        `Cannot publish update with status: ${update.status}. Must be approved first.`
+      );
     }
 
     const now = new Date().toISOString();
@@ -246,7 +248,7 @@ export class UpdateController {
       }
     }
 
-    return pending.map(update => ({
+    return pending.map((update) => ({
       id: update.id,
       policyType: update.policyType,
       version: update.version,
@@ -254,7 +256,7 @@ export class UpdateController {
       createdAt: update.createdAt,
       createdBy: update.createdBy,
       reviewCount: update.reviews.length,
-      approvalCount: update.reviews.filter(r => r.status === 'approved').length,
+      approvalCount: update.reviews.filter((r) => r.status === 'approved').length,
       scheduledPublishAt: update.scheduledPublishAt,
     }));
   }
@@ -289,8 +291,9 @@ export class UpdateController {
       update.status = 'rejected';
     } else if (status === 'approved') {
       // Check if all required reviewers have approved
-      const approvals = update.reviews.filter(r => r.status === 'approved').length;
-      if (approvals >= 2) { // Require 2 approvals
+      const approvals = update.reviews.filter((r) => r.status === 'approved').length;
+      if (approvals >= 2) {
+        // Require 2 approvals
         update.status = 'approved';
       }
     } else {
@@ -315,9 +318,13 @@ export class UpdateController {
       status,
       updateStatus: update.status,
       reviewedAt: now,
-      message: status === 'approved'
-        ? 'Review submitted. ' + (update.status === 'approved' ? 'Update is now approved for publishing.' : 'Waiting for more approvals.')
-        : `Review submitted with status: ${status}`,
+      message:
+        status === 'approved'
+          ? 'Review submitted. ' +
+            (update.status === 'approved'
+              ? 'Update is now approved for publishing.'
+              : 'Waiting for more approvals.')
+          : `Review submitted with status: ${status}`,
     };
   }
 
@@ -337,7 +344,7 @@ export class UpdateController {
       targetLanguages,
       status: 'pending',
       createdAt: now,
-      translations: targetLanguages.map(lang => ({
+      translations: targetLanguages.map((lang) => ({
         language: lang,
         status: 'pending' as TranslationStatus,
       })),
@@ -381,14 +388,14 @@ export class UpdateController {
     }
 
     // Return all translation requests
-    const translations = Array.from(translationRequests.values()).map(req => ({
+    const translations = Array.from(translationRequests.values()).map((req) => ({
       id: req.id,
       policyType: req.policyType,
       sourceLanguage: req.sourceLanguage,
       targetLanguages: req.targetLanguages,
       status: req.status,
       createdAt: req.createdAt,
-      completedCount: req.translations.filter(t => t.status === 'completed').length,
+      completedCount: req.translations.filter((t) => t.status === 'completed').length,
       totalCount: req.translations.length,
     }));
 
@@ -396,9 +403,9 @@ export class UpdateController {
       translations,
       summary: {
         total: translations.length,
-        pending: translations.filter(t => t.status === 'pending').length,
-        inProgress: translations.filter(t => t.status === 'in_progress').length,
-        completed: translations.filter(t => t.status === 'completed').length,
+        pending: translations.filter((t) => t.status === 'pending').length,
+        inProgress: translations.filter((t) => t.status === 'in_progress').length,
+        completed: translations.filter((t) => t.status === 'completed').length,
       },
     };
   }

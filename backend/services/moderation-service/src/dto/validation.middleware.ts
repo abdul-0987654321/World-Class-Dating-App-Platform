@@ -15,9 +15,9 @@
  * ```
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { validate, ValidationError } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
+import { validate, ValidationError } from 'class-validator';
+import { Request, Response, NextFunction } from 'express';
 import 'reflect-metadata';
 
 /**

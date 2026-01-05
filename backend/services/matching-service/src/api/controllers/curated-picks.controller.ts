@@ -3,9 +3,10 @@
  * Handles daily curated picks API endpoints
  */
 
-import { Request, Response } from 'express';
-import curatedPicksService from '../../domain/services/curated-picks.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import curatedPicksService from '../../domain/services/curated-picks.service';
 
 const logger = createLogger('curated-picks-controller');
 

@@ -1,5 +1,6 @@
-import { Knex } from 'knex';
 import { Request, Response, NextFunction } from 'express';
+import { Knex } from 'knex';
+
 import logger from '../utils/logger';
 
 interface LoginAttempt {
@@ -63,7 +64,9 @@ export class AccountSecurityService {
         failure_reason: failureReason,
       });
 
-      logger.info(`Login attempt recorded: ${email} from ${ipAddress} - ${success ? 'Success' : 'Failed'}`);
+      logger.info(
+        `Login attempt recorded: ${email} from ${ipAddress} - ${success ? 'Success' : 'Failed'}`
+      );
 
       // Check if account should be locked
       if (!success && userId) {
@@ -93,7 +96,7 @@ export class AccountSecurityService {
         .count('* as count')
         .first();
 
-      const count = parseInt(failedAttempts?.count as string || '0');
+      const count = parseInt((failedAttempts?.count as string) || '0');
 
       if (count >= this.MAX_LOGIN_ATTEMPTS) {
         await this.lockAccount(
@@ -120,13 +123,13 @@ export class AccountSecurityService {
     durationMinutes?: number
   ): Promise<AccountLockout> {
     try {
-      const lockedUntil = lockType === 'temporary' && durationMinutes
-        ? new Date(Date.now() + durationMinutes * 60 * 1000)
-        : new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 years for permanent
+      const lockedUntil =
+        lockType === 'temporary' && durationMinutes
+          ? new Date(Date.now() + durationMinutes * 60 * 1000)
+          : new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 years for permanent
 
-      const unlockToken = lockType === 'temporary'
-        ? require('crypto').randomBytes(32).toString('hex')
-        : undefined;
+      const unlockToken =
+        lockType === 'temporary' ? require('crypto').randomBytes(32).toString('hex') : undefined;
 
       const [lockout] = await this.db('account_lockouts')
         .insert({
@@ -140,9 +143,7 @@ export class AccountSecurityService {
         .returning('*');
 
       // Update user status
-      await this.db('users')
-        .where({ id: userId })
-        .update({ is_locked: true });
+      await this.db('users').where({ id: userId }).update({ is_locked: true });
 
       logger.info(`Account locked: ${userId} - ${lockType} - ${reason}`);
 
@@ -156,11 +157,7 @@ export class AccountSecurityService {
   /**
    * Unlock user account
    */
-  async unlockAccount(
-    userId: string,
-    unlockToken?: string,
-    unlockedBy?: string
-  ): Promise<boolean> {
+  async unlockAccount(userId: string, unlockToken?: string, unlockedBy?: string): Promise<boolean> {
     try {
       // Get active lockout
       const lockout = await this.db('account_lockouts')
@@ -187,22 +184,16 @@ export class AccountSecurityService {
       }
 
       // Unlock account
-      await this.db('account_lockouts')
-        .where({ id: lockout.id })
-        .update({
-          unlocked_at: new Date(),
-          unlocked_by: unlockedBy,
-        });
+      await this.db('account_lockouts').where({ id: lockout.id }).update({
+        unlocked_at: new Date(),
+        unlocked_by: unlockedBy,
+      });
 
       // Update user status
-      await this.db('users')
-        .where({ id: userId })
-        .update({ is_locked: false });
+      await this.db('users').where({ id: userId }).update({ is_locked: false });
 
       // Clear failed login attempts
-      await this.db('login_attempts')
-        .where({ user_id: userId, success: false })
-        .delete();
+      await this.db('login_attempts').where({ user_id: userId, success: false }).delete();
 
       logger.info(`Account unlocked: ${userId}`);
 
@@ -250,7 +241,7 @@ export class AccountSecurityService {
       let attempts = this.rateLimitCache.get(ipAddress) || [];
 
       // Filter attempts within window
-      attempts = attempts.filter(timestamp => timestamp > windowStart);
+      attempts = attempts.filter((timestamp) => timestamp > windowStart);
 
       // Check if limit exceeded
       if (attempts.length >= this.IP_RATE_LIMIT) {
@@ -280,7 +271,7 @@ export class AccountSecurityService {
     const windowStart = now - this.ATTEMPT_WINDOW_MINUTES * 60 * 1000;
 
     for (const [ip, attempts] of this.rateLimitCache.entries()) {
-      const validAttempts = attempts.filter(timestamp => timestamp > windowStart);
+      const validAttempts = attempts.filter((timestamp) => timestamp > windowStart);
 
       if (validAttempts.length === 0) {
         this.rateLimitCache.delete(ip);
@@ -293,10 +284,7 @@ export class AccountSecurityService {
   /**
    * Get login attempt history
    */
-  async getLoginAttempts(
-    userId: string,
-    limit: number = 50
-  ): Promise<LoginAttempt[]> {
+  async getLoginAttempts(userId: string, limit: number = 50): Promise<LoginAttempt[]> {
     try {
       return this.db('login_attempts')
         .where({ user_id: userId })
@@ -402,9 +390,9 @@ export class AccountSecurityService {
 
       return {
         timeWindow: `${timeWindow} hours`,
-        failedLogins: parseInt(failedLogins?.count as string || '0'),
-        successfulLogins: parseInt(successfulLogins?.count as string || '0'),
-        activeLockouts: parseInt(activeLockouts?.count as string || '0'),
+        failedLogins: parseInt((failedLogins?.count as string) || '0'),
+        successfulLogins: parseInt((successfulLogins?.count as string) || '0'),
+        activeLockouts: parseInt((activeLockouts?.count as string) || '0'),
         topFailedIPs,
         generatedAt: new Date().toISOString(),
       };

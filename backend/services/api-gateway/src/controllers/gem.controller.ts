@@ -10,6 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('Gems')
@@ -43,13 +44,11 @@ export class GemController {
   @ApiResponse({ status: 200, description: 'Affordability check result' })
   async canAfford(
     @Headers('authorization') authorization: string,
-    @Param('itemType') itemType: string,
+    @Param('itemType') itemType: string
   ) {
-    return this.proxyService.get(
-      'userService',
-      `/api/v1/gems/can-afford/${itemType}`,
-      { Authorization: authorization },
-    );
+    return this.proxyService.get('userService', `/api/v1/gems/can-afford/${itemType}`, {
+      Authorization: authorization,
+    });
   }
 
   // ==================== SPENDING ====================
@@ -60,7 +59,7 @@ export class GemController {
   @ApiResponse({ status: 200, description: 'Purchase result' })
   async spendGems(
     @Headers('authorization') authorization: string,
-    @Body() body: { itemType: string; metadata?: Record<string, any> },
+    @Body() body: { itemType: string; metadata?: Record<string, any> }
   ) {
     return this.proxyService.post('userService', '/api/v1/gems/spend', body, {
       Authorization: authorization,
@@ -73,7 +72,7 @@ export class GemController {
   @ApiResponse({ status: 200, description: 'Feature activation result' })
   async activateFeature(
     @Headers('authorization') authorization: string,
-    @Body() body: { featureType: string },
+    @Body() body: { featureType: string }
   ) {
     return this.proxyService.post('userService', '/api/v1/gems/activate', body, {
       Authorization: authorization,
@@ -86,11 +85,12 @@ export class GemController {
   @ApiResponse({ status: 200, description: 'Gift sent successfully' })
   async sendGift(
     @Headers('authorization') authorization: string,
-    @Body() body: {
+    @Body()
+    body: {
       recipientId: string;
       giftType: 'GIFT_ROSE' | 'GIFT_HEART' | 'GIFT_DIAMOND' | 'GIFT_CROWN';
       message?: string;
-    },
+    }
   ) {
     return this.proxyService.post('userService', '/api/v1/gems/gift', body, {
       Authorization: authorization,
@@ -105,7 +105,7 @@ export class GemController {
   async getTransactions(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('offset') offset?: number
   ) {
     const queryParams = new URLSearchParams();
     if (limit) queryParams.append('limit', limit.toString());

@@ -1,5 +1,6 @@
-import logger from '../../utils/logger';
 import { ServiceClient } from '@flamoral/backend-shared';
+
+import logger from '../../utils/logger';
 
 interface UpdateSubscriptionDto {
   userId: string;
@@ -73,7 +74,10 @@ export class UserServiceClient {
   /**
    * Update user subscription (legacy compatibility method)
    */
-  async updateUserSubscription(userId: string, data: { subscription_tier: string; subscription_status: string }): Promise<void> {
+  async updateUserSubscription(
+    userId: string,
+    data: { subscription_tier: string; subscription_status: string }
+  ): Promise<void> {
     await this.updateSubscription({
       userId,
       tier: this.mapTierName(data.subscription_tier),
@@ -161,7 +165,9 @@ export class UserServiceClient {
   async activateBoost(data: ActivateBoostDto): Promise<void> {
     try {
       await this.client.post('/api/internal/boosts/activate', data);
-      logger.info(`Activated boost for user ${data.userId}: ${data.productSku} (${data.durationMinutes} minutes)`);
+      logger.info(
+        `Activated boost for user ${data.userId}: ${data.productSku} (${data.durationMinutes} minutes)`
+      );
     } catch (error: any) {
       logger.error('Failed to activate boost in user-service:', error.message);
       throw new Error(`User service boost activation failed: ${error.message}`);
@@ -212,14 +218,14 @@ export class UserServiceClient {
    */
   mapTierName(tier: string): 'free' | 'premium' | 'premium_plus' {
     const tierMap: Record<string, 'free' | 'premium' | 'premium_plus'> = {
-      'free': 'free',
-      'basic': 'premium',
-      'plus': 'premium',
-      'premium': 'premium',
-      'mid': 'premium',
-      'ultra': 'premium_plus',
-      'elite': 'premium_plus',
-      'premium_plus': 'premium_plus',
+      free: 'free',
+      basic: 'premium',
+      plus: 'premium',
+      premium: 'premium',
+      mid: 'premium',
+      ultra: 'premium_plus',
+      elite: 'premium_plus',
+      premium_plus: 'premium_plus',
     };
     return tierMap[tier.toLowerCase()] || 'free';
   }

@@ -1,4 +1,4 @@
-import { CoachingRepository } from '../repositories/coaching.repository';
+import logger from '../../utils/logger';
 import {
   CoachingSession,
   CoachingSessionCreateInput,
@@ -6,7 +6,7 @@ import {
   CoachWithDetails,
   CoachingSessionWithCoach,
 } from '../entities/CoachingSession.entity';
-import logger from '../../utils/logger';
+import { CoachingRepository } from '../repositories/coaching.repository';
 
 export interface ScheduleSessionInput {
   date: Date;
@@ -99,8 +99,10 @@ export class EliteCoachService {
       // Get session with coach details
       const sessionWithCoach = await this.repository.findSessionWithCoach(session.id);
 
-      logger.info(`Coaching session scheduled: ${session.id} for user ${userId} with coach ${coach.id}`);
-      return { success: true, session: sessionWithCoach! };
+      logger.info(
+        `Coaching session scheduled: ${session.id} for user ${userId} with coach ${coach.id}`
+      );
+      return { success: true, session: sessionWithCoach };
     } catch (error) {
       logger.error('Error scheduling coaching session:', error);
       throw error;
@@ -219,7 +221,7 @@ export class EliteCoachService {
       });
 
       logger.info(`Coaching session ${sessionId} rescheduled by user ${userId}`);
-      return { success: true, session: updated! };
+      return { success: true, session: updated };
     } catch (error) {
       logger.error('Error rescheduling coaching session:', error);
       throw error;

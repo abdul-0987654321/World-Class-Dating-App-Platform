@@ -1,6 +1,6 @@
+import { createLogger } from '@flamoral/backend-shared';
 import Queue from 'bull';
 import Redis from 'ioredis';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('queue-config');
 

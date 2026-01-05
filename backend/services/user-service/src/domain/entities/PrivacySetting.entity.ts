@@ -72,11 +72,7 @@ export function isIncognitoActive(settings: PrivacySetting): boolean {
 }
 
 // Check if user should be visible to another user
-export function isVisibleTo(
-  settings: PrivacySetting,
-  viewerId: string,
-  isMatch: boolean
-): boolean {
+export function isVisibleTo(settings: PrivacySetting, viewerId: string, isMatch: boolean): boolean {
   // If in incognito mode, not visible
   if (isIncognitoActive(settings)) {
     return false;
@@ -162,10 +158,7 @@ export function validatePrivacyUpdate(update: PrivacySettingUpdateInput): void {
 }
 
 // Check if phone number should be hidden
-export function shouldHideFromContact(
-  settings: PrivacySetting,
-  phoneNumber: string
-): boolean {
+export function shouldHideFromContact(settings: PrivacySetting, phoneNumber: string): boolean {
   if (!settings.hideFromContacts || !settings.hiddenContactNumbers) {
     return false;
   }

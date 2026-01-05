@@ -1,13 +1,10 @@
 import Joi from 'joi';
 
 export const createOpeningMoveSchema = Joi.object({
-  type: Joi.string()
-    .valid('text', 'image', 'system')
-    .required()
-    .messages({
-      'any.only': 'Type must be one of: text, image, system',
-      'any.required': 'Type is required',
-    }),
+  type: Joi.string().valid('text', 'image', 'system').required().messages({
+    'any.only': 'Type must be one of: text, image, system',
+    'any.required': 'Type is required',
+  }),
   content: Joi.string()
     .max(200)
     .when('type', {
@@ -43,15 +40,10 @@ export const createOpeningMoveSchema = Joi.object({
       'string.uuid': 'Template ID must be a valid UUID',
       'any.required': 'Template ID is required for system opening moves',
     }),
-  order: Joi.number()
-    .integer()
-    .min(0)
-    .max(2)
-    .optional()
-    .messages({
-      'number.min': 'Order must be at least 0',
-      'number.max': 'Order cannot exceed 2',
-    }),
+  order: Joi.number().integer().min(0).max(2).optional().messages({
+    'number.min': 'Order must be at least 0',
+    'number.max': 'Order cannot exceed 2',
+  }),
 });
 
 export const updateOpeningMoveSchema = Joi.object({
@@ -70,35 +62,23 @@ export const updateOpeningMoveSchema = Joi.object({
 });
 
 export const reorderOpeningMovesSchema = Joi.object({
-  orderedIds: Joi.array()
-    .items(Joi.string().uuid())
-    .min(1)
-    .max(3)
-    .required()
-    .messages({
-      'array.min': 'At least one opening move ID is required',
-      'array.max': 'Cannot exceed 3 opening moves',
-      'any.required': 'orderedIds is required',
-    }),
+  orderedIds: Joi.array().items(Joi.string().uuid()).min(1).max(3).required().messages({
+    'array.min': 'At least one opening move ID is required',
+    'array.max': 'Cannot exceed 3 opening moves',
+    'any.required': 'orderedIds is required',
+  }),
 });
 
 export const createOpeningResponseSchema = Joi.object({
-  opening_move_id: Joi.string()
-    .uuid()
-    .required()
-    .messages({
-      'string.uuid': 'Opening move ID must be a valid UUID',
-      'any.required': 'Opening move ID is required',
-    }),
-  response_text: Joi.string()
-    .min(1)
-    .max(500)
-    .required()
-    .messages({
-      'string.min': 'Response text cannot be empty',
-      'string.max': 'Response text cannot exceed 500 characters',
-      'any.required': 'Response text is required',
-    }),
+  opening_move_id: Joi.string().uuid().required().messages({
+    'string.uuid': 'Opening move ID must be a valid UUID',
+    'any.required': 'Opening move ID is required',
+  }),
+  response_text: Joi.string().min(1).max(500).required().messages({
+    'string.min': 'Response text cannot be empty',
+    'string.max': 'Response text cannot exceed 500 characters',
+    'any.required': 'Response text is required',
+  }),
 });
 
 export const categoryParamSchema = Joi.object({
@@ -106,7 +86,8 @@ export const categoryParamSchema = Joi.object({
     .valid('interests', 'date_ideas', 'travel', 'fun', 'conversation', 'food', 'entertainment')
     .required()
     .messages({
-      'any.only': 'Category must be one of: interests, date_ideas, travel, fun, conversation, food, entertainment',
+      'any.only':
+        'Category must be one of: interests, date_ideas, travel, fun, conversation, food, entertainment',
       'any.required': 'Category is required',
     }),
 });

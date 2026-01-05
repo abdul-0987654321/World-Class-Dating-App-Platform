@@ -1,9 +1,9 @@
+import db from '../../infrastructure/database/connection';
 import {
   CoinProduct,
   CoinProductCreateInput,
-  CoinProductUpdateInput
+  CoinProductUpdateInput,
 } from '../entities/CoinProduct.entity';
-import db from '../../infrastructure/database/connection';
 
 export class CoinProductRepository {
   private tableName = 'coin_products';
@@ -25,33 +25,25 @@ export class CoinProductRepository {
       updated_at: now,
     };
 
-    const [product] = await db(this.tableName)
-      .insert(productData)
-      .returning('*');
+    const [product] = await db(this.tableName).insert(productData).returning('*');
 
     return this.mapToEntity(product);
   }
 
   async findById(id: string): Promise<CoinProduct | null> {
-    const product = await db(this.tableName)
-      .where({ id })
-      .first();
+    const product = await db(this.tableName).where({ id }).first();
 
     return product ? this.mapToEntity(product) : null;
   }
 
   async findBySku(sku: string): Promise<CoinProduct | null> {
-    const product = await db(this.tableName)
-      .where({ sku })
-      .first();
+    const product = await db(this.tableName).where({ sku }).first();
 
     return product ? this.mapToEntity(product) : null;
   }
 
   async findByStripePriceId(stripePriceId: string): Promise<CoinProduct | null> {
-    const product = await db(this.tableName)
-      .where({ stripe_price_id: stripePriceId })
-      .first();
+    const product = await db(this.tableName).where({ stripe_price_id: stripePriceId }).first();
 
     return product ? this.mapToEntity(product) : null;
   }
@@ -90,10 +82,7 @@ export class CoinProductRepository {
     if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
     if (input.badgeText !== undefined) updateData.badge_text = input.badgeText;
 
-    const [product] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [product] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(product);
   }
@@ -111,9 +100,7 @@ export class CoinProductRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   // Soft delete - just deactivate

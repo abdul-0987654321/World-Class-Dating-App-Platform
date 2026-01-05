@@ -4,10 +4,11 @@
  */
 
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+
 import { ApiError, isApiError } from './api-error';
 import { InternalErrorCode } from './error-codes';
 import { getErrorMessage } from './error-messages';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Logger interface for error logging
@@ -37,31 +38,20 @@ export interface ErrorMiddlewareOptions {
 /**
  * Create the global error handling middleware
  */
-export function createErrorMiddleware(
-  options: ErrorMiddlewareOptions = {}
-): ErrorRequestHandler {
+export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}): ErrorRequestHandler {
   const {
     logger = defaultLogger,
     includeStackTrace = process.env.NODE_ENV !== 'production',
     onError,
   } = options;
 
-  return async (
-    err: Error,
-    req: Request,
-    res: Response,
-    _next: NextFunction
-  ): Promise<void> => {
+  return async (err: Error, req: Request, res: Response, _next: NextFunction): Promise<void> => {
     // Get or create correlation ID
     const correlationId =
-      (req.headers['x-correlation-id'] as string) ??
-      (req as any).correlationId ??
-      uuidv4();
+      (req.headers['x-correlation-id'] as string) ?? (req as any).correlationId ?? uuidv4();
 
     // Convert to ApiError if not already
-    const apiError = isApiError(err)
-      ? err
-      : ApiError.fromError(err, correlationId);
+    const apiError = isApiError(err) ? err : ApiError.fromError(err, correlationId);
 
     // Log the error
     if (apiError.shouldLog()) {
@@ -118,13 +108,8 @@ export function createErrorMiddleware(
 /**
  * Middleware to add correlation ID to requests
  */
-export function correlationIdMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const correlationId =
-    (req.headers['x-correlation-id'] as string) ?? uuidv4();
+export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const correlationId = (req.headers['x-correlation-id'] as string) ?? uuidv4();
 
   (req as any).correlationId = correlationId;
   res.setHeader('X-Correlation-ID', correlationId);
@@ -146,11 +131,7 @@ export function asyncHandler<T extends Request = Request>(
 /**
  * Not found handler middleware
  */
-export function notFoundHandler(
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void {
+export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
   const error = new ApiError({
     code: 'RESOURCE_NOT_FOUND' as any,
     message: `Cannot ${req.method} ${req.path}`,

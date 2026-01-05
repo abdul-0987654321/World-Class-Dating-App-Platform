@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
 import { GiftCategory, GiftOption, DeliveryOption, Address } from '../../types';
 
 const logger = createLogger('flowers-client');
@@ -76,7 +77,7 @@ export class FlowersClient {
     this.client = axios.create({
       baseURL: process.env.FLOWERS_API_URL || 'https://api.1800flowers.com/v2',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         'X-Affiliate-ID': this.affiliateId,
       },
@@ -149,9 +150,7 @@ export class FlowersClient {
         params: queryParams,
       });
 
-      return response.data.products.map((p: FlowersProduct) =>
-        this.transformProduct(p)
-      );
+      return response.data.products.map((p: FlowersProduct) => this.transformProduct(p));
     } catch (error: any) {
       logger.error('Failed to search flower products', { error: error.message });
       throw new Error(`Product search failed: ${error.message}`);
@@ -305,9 +304,7 @@ export class FlowersClient {
         },
       });
 
-      return response.data.products.map((p: FlowersProduct) =>
-        this.transformProduct(p)
-      );
+      return response.data.products.map((p: FlowersProduct) => this.transformProduct(p));
     } catch (error: any) {
       logger.error('Failed to get romantic suggestions', { error: error.message });
       // Fall back to basic search if suggestions endpoint fails
@@ -374,14 +371,14 @@ export class FlowersClient {
    */
   private mapApiCategory(apiCategory: string): GiftCategory {
     const mapping: Record<string, GiftCategory> = {
-      'flowers': 'flowers',
-      'roses': 'flowers',
-      'arrangements': 'flowers',
+      flowers: 'flowers',
+      roses: 'flowers',
+      arrangements: 'flowers',
       'food-gifts': 'chocolates',
-      'chocolates': 'chocolates',
+      chocolates: 'chocolates',
       'wine-gifts': 'wine',
-      'wine': 'wine',
-      'jewelry': 'jewelry',
+      wine: 'wine',
+      jewelry: 'jewelry',
       'gift-baskets': 'experiences',
     };
     return mapping[apiCategory.toLowerCase()] || 'flowers';
@@ -391,9 +388,18 @@ export class FlowersClient {
    * Check if product is romantic
    */
   private isRomanticProduct(product: FlowersProduct): boolean {
-    const romanticKeywords = ['love', 'romantic', 'heart', 'rose', 'passion', 'romance', 'anniversary'];
-    const searchText = `${product.name} ${product.description} ${product.occasion_tags.join(' ')}`.toLowerCase();
-    return romanticKeywords.some(keyword => searchText.includes(keyword));
+    const romanticKeywords = [
+      'love',
+      'romantic',
+      'heart',
+      'rose',
+      'passion',
+      'romance',
+      'anniversary',
+    ];
+    const searchText =
+      `${product.name} ${product.description} ${product.occasion_tags.join(' ')}`.toLowerCase();
+    return romanticKeywords.some((keyword) => searchText.includes(keyword));
   }
 
   /**

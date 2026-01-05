@@ -1,7 +1,8 @@
-import db from '../infrastructure/database/connection';
-import logger from '../utils/logger';
-import { identityVerificationService } from '../services/identity-verification.service';
 import { v4 as uuidv4 } from 'uuid';
+
+import db from '../infrastructure/database/connection';
+import { identityVerificationService } from '../services/identity-verification.service';
+import logger from '../utils/logger';
 
 /**
  * Verification Worker
@@ -16,11 +17,11 @@ export class VerificationWorker {
   private readonly BATCH_SIZE = 10; // Process 10 requests at a time
   private readonly MAX_RETRIES = 5;
   private readonly RETRY_DELAYS = [
-    60000,      // 1 minute
-    300000,     // 5 minutes
-    900000,     // 15 minutes
-    3600000,    // 1 hour
-    14400000,   // 4 hours
+    60000, // 1 minute
+    300000, // 5 minutes
+    900000, // 15 minutes
+    3600000, // 1 hour
+    14400000, // 4 hours
   ];
 
   /**
@@ -158,31 +159,29 @@ export class VerificationWorker {
 
         if (newRetryCount >= this.MAX_RETRIES) {
           // Mark as abandoned
-          await db('verification_dlq')
-            .where({ dlq_id: existingEntry.dlq_id })
-            .update({
-              status: 'abandoned',
-              retry_count: newRetryCount,
-              last_retry_at: new Date(),
-              error_message: errorMessage,
-              updated_at: new Date(),
-            });
+          await db('verification_dlq').where({ dlq_id: existingEntry.dlq_id }).update({
+            status: 'abandoned',
+            retry_count: newRetryCount,
+            last_retry_at: new Date(),
+            error_message: errorMessage,
+            updated_at: new Date(),
+          });
 
           logger.warn(`Verification request ${requestId} abandoned after ${newRetryCount} retries`);
         } else {
           // Schedule next retry
-          await db('verification_dlq')
-            .where({ dlq_id: existingEntry.dlq_id })
-            .update({
-              status: 'pending',
-              retry_count: newRetryCount,
-              next_retry_at: nextRetryAt,
-              last_retry_at: new Date(),
-              error_message: errorMessage,
-              updated_at: new Date(),
-            });
+          await db('verification_dlq').where({ dlq_id: existingEntry.dlq_id }).update({
+            status: 'pending',
+            retry_count: newRetryCount,
+            next_retry_at: nextRetryAt,
+            last_retry_at: new Date(),
+            error_message: errorMessage,
+            updated_at: new Date(),
+          });
 
-          logger.info(`Scheduled retry ${newRetryCount} for verification ${requestId} at ${nextRetryAt}`);
+          logger.info(
+            `Scheduled retry ${newRetryCount} for verification ${requestId} at ${nextRetryAt}`
+          );
         }
       } else {
         // Create new DLQ entry
@@ -260,28 +259,22 @@ export class VerificationWorker {
       logger.info(`Retrying verification ${request_id} from DLQ (attempt ${retry_count + 1})`);
 
       // Mark as retrying
-      await db('verification_dlq')
-        .where({ dlq_id })
-        .update({
-          status: 'retrying',
-          updated_at: new Date(),
-        });
+      await db('verification_dlq').where({ dlq_id }).update({
+        status: 'retrying',
+        updated_at: new Date(),
+      });
 
       // Get the original request
-      const request = await db('verification_requests')
-        .where({ request_id })
-        .first();
+      const request = await db('verification_requests').where({ request_id }).first();
 
       if (!request) {
         // Request no longer exists, mark as resolved
-        await db('verification_dlq')
-          .where({ dlq_id })
-          .update({
-            status: 'resolved',
-            resolution_notes: 'Original request no longer exists',
-            resolved_at: new Date(),
-            updated_at: new Date(),
-          });
+        await db('verification_dlq').where({ dlq_id }).update({
+          status: 'resolved',
+          resolution_notes: 'Original request no longer exists',
+          resolved_at: new Date(),
+          updated_at: new Date(),
+        });
 
         return;
       }
@@ -341,30 +334,26 @@ export class VerificationWorker {
       const newRetryCount = retry_count + 1;
 
       if (newRetryCount >= this.MAX_RETRIES) {
-        await db('verification_dlq')
-          .where({ dlq_id })
-          .update({
-            status: 'abandoned',
-            retry_count: newRetryCount,
-            last_retry_at: new Date(),
-            error_message: error.message,
-            error_stack: error.stack,
-            updated_at: new Date(),
-          });
+        await db('verification_dlq').where({ dlq_id }).update({
+          status: 'abandoned',
+          retry_count: newRetryCount,
+          last_retry_at: new Date(),
+          error_message: error.message,
+          error_stack: error.stack,
+          updated_at: new Date(),
+        });
       } else {
         const nextRetryAt = this.calculateNextRetry(newRetryCount + 1);
 
-        await db('verification_dlq')
-          .where({ dlq_id })
-          .update({
-            status: 'pending',
-            retry_count: newRetryCount,
-            next_retry_at: nextRetryAt,
-            last_retry_at: new Date(),
-            error_message: error.message,
-            error_stack: error.stack,
-            updated_at: new Date(),
-          });
+        await db('verification_dlq').where({ dlq_id }).update({
+          status: 'pending',
+          retry_count: newRetryCount,
+          next_retry_at: nextRetryAt,
+          last_retry_at: new Date(),
+          error_message: error.message,
+          error_stack: error.stack,
+          updated_at: new Date(),
+        });
       }
     }
   }
@@ -374,15 +363,13 @@ export class VerificationWorker {
    */
   async resolveManually(dlqId: string, adminUserId: string, notes: string): Promise<boolean> {
     try {
-      await db('verification_dlq')
-        .where({ dlq_id: dlqId })
-        .update({
-          status: 'resolved',
-          resolved_by: adminUserId,
-          resolution_notes: notes,
-          resolved_at: new Date(),
-          updated_at: new Date(),
-        });
+      await db('verification_dlq').where({ dlq_id: dlqId }).update({
+        status: 'resolved',
+        resolved_by: adminUserId,
+        resolution_notes: notes,
+        resolved_at: new Date(),
+        updated_at: new Date(),
+      });
 
       logger.info(`DLQ entry ${dlqId} manually resolved by admin ${adminUserId}`);
 
@@ -402,9 +389,7 @@ export class VerificationWorker {
    */
   async forceRetry(dlqId: string, adminUserId: string): Promise<boolean> {
     try {
-      const entry = await db('verification_dlq')
-        .where({ dlq_id: dlqId })
-        .first();
+      const entry = await db('verification_dlq').where({ dlq_id: dlqId }).first();
 
       if (!entry) {
         return false;
@@ -479,7 +464,10 @@ export class VerificationWorker {
   /**
    * Get abandoned DLQ entries for admin review
    */
-  async getAbandonedEntries(limit: number = 20, offset: number = 0): Promise<{
+  async getAbandonedEntries(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{
     entries: any[];
     total: number;
     hasMore: boolean;
@@ -487,7 +475,11 @@ export class VerificationWorker {
     try {
       const entries = await db('verification_dlq')
         .where({ status: 'abandoned' })
-        .leftJoin('verification_requests', 'verification_dlq.request_id', 'verification_requests.request_id')
+        .leftJoin(
+          'verification_requests',
+          'verification_dlq.request_id',
+          'verification_requests.request_id'
+        )
         .leftJoin('users', 'verification_requests.user_id', 'users.id')
         .select(
           'verification_dlq.*',

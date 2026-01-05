@@ -1,8 +1,9 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import videoUploadService from '../../domain/services/video-upload.service';
 import { UploadedFile } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('video-controller');
 

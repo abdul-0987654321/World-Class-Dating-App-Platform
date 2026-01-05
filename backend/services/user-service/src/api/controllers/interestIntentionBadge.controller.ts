@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { InterestIntentionBadgeService } from '../../domain/services/interestIntentionBadge.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class InterestIntentionBadgeController {
   private badgeService: InterestIntentionBadgeService;
@@ -75,7 +76,7 @@ export class InterestIntentionBadgeController {
 
   async getUserBadgesProfile(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
 
       const profile = await this.badgeService.getUserBadgesProfile(targetUserId);
@@ -96,7 +97,7 @@ export class InterestIntentionBadgeController {
 
   async getUserInterestBadges(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
 
       const badges = await this.badgeService.getUserInterestBadges(targetUserId);
@@ -117,7 +118,7 @@ export class InterestIntentionBadgeController {
 
   async getUserIntentionBadges(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
 
       const badges = await this.badgeService.getUserIntentionBadges(targetUserId);
@@ -142,7 +143,7 @@ export class InterestIntentionBadgeController {
 
   async updateUserInterestBadges(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const badges = await this.badgeService.updateUserInterestBadges(userId, req.body);
 
       return res.status(200).json({
@@ -162,7 +163,7 @@ export class InterestIntentionBadgeController {
 
   async updateUserIntentionBadges(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const badges = await this.badgeService.updateUserIntentionBadges(userId, req.body);
 
       return res.status(200).json({
@@ -186,7 +187,7 @@ export class InterestIntentionBadgeController {
 
   async addInterestBadge(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { badge_id } = req.body;
 
       await this.badgeService.addInterestBadge(userId, badge_id);
@@ -207,7 +208,7 @@ export class InterestIntentionBadgeController {
 
   async removeInterestBadge(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { badgeId } = req.params;
 
       await this.badgeService.removeInterestBadge(userId, badgeId);
@@ -228,7 +229,7 @@ export class InterestIntentionBadgeController {
 
   async addIntentionBadge(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { badge_id, priority } = req.body;
 
       if (!priority || (priority !== 1 && priority !== 2)) {
@@ -256,7 +257,7 @@ export class InterestIntentionBadgeController {
 
   async removeIntentionBadge(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { badgeId } = req.params;
 
       await this.badgeService.removeIntentionBadge(userId, badgeId);

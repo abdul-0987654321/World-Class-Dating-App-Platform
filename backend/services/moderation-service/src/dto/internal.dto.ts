@@ -6,6 +6,7 @@
  * as they are generated server-side.
  */
 
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsUUID,
@@ -19,7 +20,6 @@ import {
   MaxLength,
   IsObject,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * Content type enum for internal moderation

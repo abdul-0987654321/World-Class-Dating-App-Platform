@@ -1,6 +1,7 @@
+import axios from 'axios';
+
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
-import axios from 'axios';
 
 export interface PhotoVerificationRequest {
   userId: string;
@@ -25,26 +26,31 @@ export interface PhotoVerificationResult {
  */
 export class PhotoVerificationService {
   private readonly VERIFICATION_THRESHOLD = 0.85; // 85% confidence threshold
-  private readonly FACE_MATCH_THRESHOLD = 0.90; // 90% face match threshold
+  private readonly FACE_MATCH_THRESHOLD = 0.9; // 90% face match threshold
   private readonly AZURE_API_TIMEOUT = 10000; // 10 second timeout for Azure API calls
 
   /**
    * Request photo verification
    */
-  async requestVerification(userId: string, pose?: string): Promise<{ verificationId: string; pose: string; expiresAt: Date }> {
+  async requestVerification(
+    userId: string,
+    pose?: string
+  ): Promise<{ verificationId: string; pose: string; expiresAt: Date }> {
     try {
       // Generate random pose if not provided
       const selectedPose = pose || this.generateRandomPose();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
       // Create verification request
-      const [verificationId] = await db('photo_verification_requests').insert({
-        user_id: userId,
-        requested_pose: selectedPose,
-        status: 'pending',
-        expires_at: expiresAt,
-        created_at: new Date(),
-      }).returning('id');
+      const [verificationId] = await db('photo_verification_requests')
+        .insert({
+          user_id: userId,
+          requested_pose: selectedPose,
+          status: 'pending',
+          expires_at: expiresAt,
+          created_at: new Date(),
+        })
+        .returning('id');
 
       logger.info(`Photo verification requested for user ${userId} with pose ${selectedPose}`);
 
@@ -63,14 +69,7 @@ export class PhotoVerificationService {
    * Generate random pose instruction
    */
   private generateRandomPose(): string {
-    const poses = [
-      'smile',
-      'neutral',
-      'look_left',
-      'look_right',
-      'look_up',
-      'thumbs_up',
-    ];
+    const poses = ['smile', 'neutral', 'look_left', 'look_right', 'look_up', 'thumbs_up'];
 
     return poses[Math.floor(Math.random() * poses.length)];
   }
@@ -81,9 +80,7 @@ export class PhotoVerificationService {
   async submitPhoto(verificationId: string, photoUrl: string): Promise<PhotoVerificationResult> {
     try {
       // Get verification request
-      const request = await db('photo_verification_requests')
-        .where({ id: verificationId })
-        .first();
+      const request = await db('photo_verification_requests').where({ id: verificationId }).first();
 
       if (!request) {
         throw new Error('Verification request not found');
@@ -99,7 +96,12 @@ export class PhotoVerificationService {
       }
 
       // Verify the photo
-      const result = await this.verifyPhoto(request.user_id, photoUrl, request.requested_pose, verificationId);
+      const result = await this.verifyPhoto(
+        request.user_id,
+        photoUrl,
+        request.requested_pose,
+        verificationId
+      );
 
       // Handle pending review status
       if (result.status === 'pending_review') {
@@ -117,12 +119,10 @@ export class PhotoVerificationService {
 
       // If verified, update user profile
       if (result.verified) {
-        await db('users')
-          .where({ id: request.user_id })
-          .update({
-            photo_verified: true,
-            photo_verified_at: new Date(),
-          });
+        await db('users').where({ id: request.user_id }).update({
+          photo_verified: true,
+          photo_verified_at: new Date(),
+        });
 
         // Add verification badge
         await this.addVerificationBadge(request.user_id);
@@ -213,7 +213,8 @@ export class PhotoVerificationService {
         return {
           verified: false,
           confidence: faceMatchResult.confidence,
-          reason: 'Face does not match profile photos. Please ensure the selfie clearly shows your face.',
+          reason:
+            'Face does not match profile photos. Please ensure the selfie clearly shows your face.',
           livenessDetected: true,
           faceMatch: false,
         };
@@ -291,7 +292,7 @@ export class PhotoVerificationService {
 
             return {
               live: isLive,
-              confidence: isLive ? 0.95 : 0.50,
+              confidence: isLive ? 0.95 : 0.5,
             };
           }
 
@@ -301,13 +302,21 @@ export class PhotoVerificationService {
           };
         } catch (azureError: any) {
           // Azure Face API failed - log and queue for manual review
-          logger.error('Azure Face API unavailable for liveness detection, queueing for manual review', {
-            userId,
-            error: azureError.message,
-            verificationId,
-          });
+          logger.error(
+            'Azure Face API unavailable for liveness detection, queueing for manual review',
+            {
+              userId,
+              error: azureError.message,
+              verificationId,
+            }
+          );
 
-          await this.queueForManualReview(userId, photoUrl, 'azure_api_unavailable_liveness', verificationId);
+          await this.queueForManualReview(
+            userId,
+            photoUrl,
+            'azure_api_unavailable_liveness',
+            verificationId
+          );
 
           return {
             live: false,
@@ -410,7 +419,7 @@ export class PhotoVerificationService {
 
             return {
               matched,
-              confidence: matched ? 0.90 : 0.40,
+              confidence: matched ? 0.9 : 0.4,
             };
           }
 
@@ -420,13 +429,21 @@ export class PhotoVerificationService {
           };
         } catch (azureError: any) {
           // Azure Face API failed - log and queue for manual review
-          logger.error('Azure Face API unavailable for pose verification, queueing for manual review', {
-            userId,
-            error: azureError.message,
-            verificationId,
-          });
+          logger.error(
+            'Azure Face API unavailable for pose verification, queueing for manual review',
+            {
+              userId,
+              error: azureError.message,
+              verificationId,
+            }
+          );
 
-          await this.queueForManualReview(userId, photoUrl, 'azure_api_unavailable_pose', verificationId);
+          await this.queueForManualReview(
+            userId,
+            photoUrl,
+            'azure_api_unavailable_pose',
+            verificationId
+          );
 
           return {
             matched: false,
@@ -437,12 +454,20 @@ export class PhotoVerificationService {
       }
 
       // Azure Face API not configured - queue for manual review
-      logger.warn('Azure Face API credentials not configured for pose verification, queueing for manual review', {
-        userId,
-        verificationId,
-      });
+      logger.warn(
+        'Azure Face API credentials not configured for pose verification, queueing for manual review',
+        {
+          userId,
+          verificationId,
+        }
+      );
 
-      await this.queueForManualReview(userId, photoUrl, 'azure_api_not_configured_pose', verificationId);
+      await this.queueForManualReview(
+        userId,
+        photoUrl,
+        'azure_api_not_configured_pose',
+        verificationId
+      );
 
       return {
         matched: false,
@@ -488,7 +513,7 @@ export class PhotoVerificationService {
         // No profile photos to match against
         return {
           matched: true,
-          confidence: 0.80,
+          confidence: 0.8,
         };
       }
 
@@ -516,7 +541,12 @@ export class PhotoVerificationService {
             verificationId,
           });
 
-          await this.queueForManualReview(userId, verificationPhotoUrl, 'azure_api_unavailable_face_match', verificationId);
+          await this.queueForManualReview(
+            userId,
+            verificationPhotoUrl,
+            'azure_api_unavailable_face_match',
+            verificationId
+          );
 
           return {
             matched: false,
@@ -527,12 +557,20 @@ export class PhotoVerificationService {
       }
 
       // Azure Face API not configured - queue for manual review
-      logger.warn('Azure Face API credentials not configured for face matching, queueing for manual review', {
-        userId,
-        verificationId,
-      });
+      logger.warn(
+        'Azure Face API credentials not configured for face matching, queueing for manual review',
+        {
+          userId,
+          verificationId,
+        }
+      );
 
-      await this.queueForManualReview(userId, verificationPhotoUrl, 'azure_api_not_configured_face_match', verificationId);
+      await this.queueForManualReview(
+        userId,
+        verificationPhotoUrl,
+        'azure_api_not_configured_face_match',
+        verificationId
+      );
 
       return {
         matched: false,
@@ -545,7 +583,12 @@ export class PhotoVerificationService {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
-      await this.queueForManualReview(userId, verificationPhotoUrl, 'face_matching_error', verificationId);
+      await this.queueForManualReview(
+        userId,
+        verificationPhotoUrl,
+        'face_matching_error',
+        verificationId
+      );
 
       return {
         matched: false,
@@ -623,9 +666,7 @@ export class PhotoVerificationService {
   ): Promise<void> {
     try {
       // Get user information for the queue
-      const user = await db('users')
-        .where({ id: userId })
-        .first('first_name', 'last_name');
+      const user = await db('users').where({ id: userId }).first('first_name', 'last_name');
 
       const userName = user ? `${user.first_name} ${user.last_name}` : 'Unknown User';
 
@@ -668,16 +709,14 @@ export class PhotoVerificationService {
     result: PhotoVerificationResult | null
   ): Promise<void> {
     try {
-      await db('photo_verification_requests')
-        .where({ id: verificationId })
-        .update({
-          status,
-          verified_at: new Date(),
-          confidence_score: result?.confidence,
-          rejection_reason: result?.reason,
-          liveness_detected: result?.livenessDetected,
-          face_matched: result?.faceMatch,
-        });
+      await db('photo_verification_requests').where({ id: verificationId }).update({
+        status,
+        verified_at: new Date(),
+        confidence_score: result?.confidence,
+        rejection_reason: result?.reason,
+        liveness_detected: result?.livenessDetected,
+        face_matched: result?.faceMatch,
+      });
     } catch (error) {
       logger.error('Error updating verification status:', error);
     }
@@ -688,12 +727,15 @@ export class PhotoVerificationService {
    */
   private async addVerificationBadge(userId: string): Promise<void> {
     try {
-      await db('user_badges').insert({
-        user_id: userId,
-        badge_type: 'photo_verified',
-        earned_at: new Date(),
-        is_active: true,
-      }).onConflict(['user_id', 'badge_type']).ignore();
+      await db('user_badges')
+        .insert({
+          user_id: userId,
+          badge_type: 'photo_verified',
+          earned_at: new Date(),
+          is_active: true,
+        })
+        .onConflict(['user_id', 'badge_type'])
+        .ignore();
 
       logger.info(`Verification badge added for user ${userId}`);
     } catch (error) {
@@ -718,13 +760,15 @@ export class PhotoVerificationService {
       return {
         verified: user?.photo_verified || false,
         verifiedAt: user?.photo_verified_at,
-        latestRequest: latestRequest ? {
-          id: latestRequest.id,
-          status: latestRequest.status,
-          requestedPose: latestRequest.requested_pose,
-          createdAt: latestRequest.created_at,
-          expiresAt: latestRequest.expires_at,
-        } : null,
+        latestRequest: latestRequest
+          ? {
+              id: latestRequest.id,
+              status: latestRequest.status,
+              requestedPose: latestRequest.requested_pose,
+              createdAt: latestRequest.created_at,
+              expiresAt: latestRequest.expires_at,
+            }
+          : null,
       };
     } catch (error) {
       logger.error('Error getting verification status:', error);
@@ -742,7 +786,7 @@ export class PhotoVerificationService {
         .orderBy('created_at', 'desc')
         .select('*');
 
-      return history.map(h => ({
+      return history.map((h) => ({
         id: h.id,
         status: h.status,
         requestedPose: h.requested_pose,

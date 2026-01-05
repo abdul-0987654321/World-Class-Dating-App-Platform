@@ -1,6 +1,7 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { createLogger } from '@flamoral/backend-shared';
+
 import config from '../../config';
 
 const logger = createLogger('automation-service:auth');
@@ -17,11 +18,7 @@ export interface AuthenticatedRequest extends Request {
  * JWT Authentication Middleware
  * Validates JWT tokens and adds user info to request
  */
-export const authenticateUser = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authenticateUser = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -67,11 +64,7 @@ export const authenticateUser = (
 /**
  * Optional authentication - doesn't fail if no token provided
  */
-export const optionalAuth = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const optionalAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
 

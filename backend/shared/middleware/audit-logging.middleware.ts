@@ -123,11 +123,13 @@ export interface AuditLogger {
 export class ConsoleAuditLogger implements AuditLogger {
   log(entry: AuditLogEntry): void {
     // Format as structured JSON for log aggregation
-    console.log(JSON.stringify({
-      ...entry,
-      _type: 'audit_log',
-      _service: process.env.SERVICE_NAME || 'unknown',
-    }));
+    console.log(
+      JSON.stringify({
+        ...entry,
+        _type: 'audit_log',
+        _service: process.env.SERVICE_NAME || 'unknown',
+      })
+    );
   }
 
   async logAsync(entry: AuditLogEntry): Promise<void> {
@@ -204,11 +206,7 @@ export interface AuditRequest extends Omit<Request, 'user'> {
  * Audit logging middleware
  * Automatically logs all requests with correlation ID and user context
  */
-export function auditLoggingMiddleware(
-  req: AuditRequest,
-  res: Response,
-  next: NextFunction
-): void {
+export function auditLoggingMiddleware(req: AuditRequest, res: Response, next: NextFunction): void {
   const startTime = Date.now();
 
   // Generate or extract correlation ID

@@ -8,21 +8,22 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+
 import createLogger from '../utils/logger';
 
 const logger = createLogger('tier-rate-limiting');
 
 // Rate limit configuration by tier (requests per window)
 export interface RateLimitConfig {
-  windowMs: number;     // Time window in milliseconds
-  maxRequests: number;  // Max requests per window
-  burstLimit?: number;  // Optional burst limit for short spikes
+  windowMs: number; // Time window in milliseconds
+  maxRequests: number; // Max requests per window
+  burstLimit?: number; // Optional burst limit for short spikes
 }
 
 // Default rate limits by tier
 export const TIER_RATE_LIMITS: Record<string, RateLimitConfig> = {
   free: {
-    windowMs: 60 * 1000,  // 1 minute
+    windowMs: 60 * 1000, // 1 minute
     maxRequests: 30,
     burstLimit: 10,
   },
@@ -65,7 +66,7 @@ export const ENDPOINT_RATE_LIMITS: Record<string, Record<string, RateLimitConfig
     elite: { windowMs: 60 * 1000, maxRequests: 20 },
   },
   '/api/auth/register': {
-    free: { windowMs: 3600 * 1000, maxRequests: 3 },  // 3 per hour
+    free: { windowMs: 3600 * 1000, maxRequests: 3 }, // 3 per hour
     basic: { windowMs: 3600 * 1000, maxRequests: 5 },
     plus: { windowMs: 3600 * 1000, maxRequests: 5 },
     premium: { windowMs: 3600 * 1000, maxRequests: 10 },
@@ -183,10 +184,7 @@ export class RedisRateLimitStore implements RateLimitStore {
 
   async get(key: string): Promise<{ count: number; resetAt: number } | null> {
     try {
-      const [count, ttl] = await Promise.all([
-        this.redis.get(key),
-        this.redis.pttl(key),
-      ]);
+      const [count, ttl] = await Promise.all([this.redis.get(key), this.redis.pttl(key)]);
 
       if (!count || ttl < 0) {
         return null;
@@ -271,11 +269,7 @@ export function createTierRateLimiter(options: TierRateLimitOptions = {}) {
 
   const keyGenerator = options.keyGenerator || defaultKeyGenerator;
 
-  return async (
-    req: RateLimitedRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  return async (req: RateLimitedRequest, res: Response, next: NextFunction): Promise<void> => {
     // Check if we should skip this request
     if (options.skip && options.skip(req)) {
       return next();
@@ -365,18 +359,11 @@ export function createTierRateLimiter(options: TierRateLimitOptions = {}) {
  * );
  * ```
  */
-export function endpointRateLimiter(
-  endpoint: string,
-  options: TierRateLimitOptions = {}
-) {
+export function endpointRateLimiter(endpoint: string, options: TierRateLimitOptions = {}) {
   const store = options.store || new InMemoryRateLimitStore();
   const keyPrefix = options.keyPrefix || 'rl:endpoint:';
 
-  return async (
-    req: RateLimitedRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  return async (req: RateLimitedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tier = req.subscription?.tier || 'free';
       const endpointLimits = ENDPOINT_RATE_LIMITS[endpoint];

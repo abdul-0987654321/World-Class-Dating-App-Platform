@@ -86,7 +86,7 @@ export class AppError extends Error {
   public toResponseObject(correlationId?: string): ErrorResponseObject {
     return {
       status: this.statusCode,
-      errorCode: this.errorCode as string,
+      errorCode: this.errorCode,
       message: this.userMessage,
       correlationId: correlationId ?? null,
       details: this.details,
@@ -98,7 +98,7 @@ export class AppError extends Error {
    */
   public toLogObject(correlationId?: string): ErrorLogObject {
     return {
-      errorCode: this.errorCode as string,
+      errorCode: this.errorCode,
       statusCode: this.statusCode,
       message: this.message,
       userMessage: this.userMessage,
@@ -152,10 +152,7 @@ export interface ErrorLogObject {
 /**
  * Create a validation error
  */
-export function validationError(
-  message: string,
-  details?: Record<string, unknown>
-): AppError {
+export function validationError(message: string, details?: Record<string, unknown>): AppError {
   return new AppError('VALIDATION_FAILED', {
     message,
     statusCode: 400,
@@ -189,10 +186,7 @@ export function forbiddenError(message?: string): AppError {
 /**
  * Create a not found error
  */
-export function notFoundError(
-  resource: string = 'Resource',
-  message?: string
-): AppError {
+export function notFoundError(resource: string = 'Resource', message?: string): AppError {
   return new AppError('RESOURCE_NOT_FOUND', {
     message: message ?? `${resource} not found`,
     statusCode: 404,
@@ -203,10 +197,7 @@ export function notFoundError(
 /**
  * Create a conflict error
  */
-export function conflictError(
-  message: string,
-  details?: Record<string, unknown>
-): AppError {
+export function conflictError(message: string, details?: Record<string, unknown>): AppError {
   return new AppError('RESOURCE_CONFLICT', {
     message,
     statusCode: 409,
@@ -217,10 +208,7 @@ export function conflictError(
 /**
  * Create a rate limit error
  */
-export function rateLimitError(
-  retryAfterSeconds?: number,
-  message?: string
-): AppError {
+export function rateLimitError(retryAfterSeconds?: number, message?: string): AppError {
   return new AppError('RATE_LIMIT_EXCEEDED', {
     message,
     statusCode: 429,
@@ -231,10 +219,7 @@ export function rateLimitError(
 /**
  * Create an internal server error
  */
-export function internalError(
-  message?: string,
-  cause?: Error
-): AppError {
+export function internalError(message?: string, cause?: Error): AppError {
   return new AppError('INTERNAL_ERROR', {
     message: message ?? 'An unexpected error occurred',
     statusCode: 500,

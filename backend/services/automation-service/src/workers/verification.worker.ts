@@ -5,16 +5,11 @@
  * Updates verification status
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('verification-worker');
 
@@ -80,7 +75,7 @@ export interface VerificationResult {
  */
 export class VerificationWorker extends BaseWorker<VerificationJobData, VerificationResult> {
   private readonly photoVerificationThreshold = 0.85; // 85% confidence required
-  private readonly idVerificationThreshold = 0.90; // 90% confidence required
+  private readonly idVerificationThreshold = 0.9; // 90% confidence required
   private readonly verificationExpiryDays = 365; // Verification valid for 1 year
 
   constructor() {
@@ -90,7 +85,9 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   /**
    * Process verification job
    */
-  protected async processJob(job: Job<VerificationJobData>): Promise<JobResult<VerificationResult>> {
+  protected async processJob(
+    job: Job<VerificationJobData>
+  ): Promise<JobResult<VerificationResult>> {
     const { type, userId, verificationType } = job.data;
     const startTime = Date.now();
 
@@ -164,16 +161,26 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   /**
    * Process photo verification (face matching)
    */
-  private async processPhotoVerification(jobData: VerificationJobData): Promise<VerificationResult> {
+  private async processPhotoVerification(
+    jobData: VerificationJobData
+  ): Promise<VerificationResult> {
     const { userId, photoUrl, referencePhotoUrl, verificationId } = jobData;
     const verId = verificationId || this.generateVerificationId();
 
     try {
       // Update status to processing
-      await this.updateVerificationStatus(verId, userId, VerificationType.PHOTO, VerificationStatus.PROCESSING);
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.PHOTO,
+        VerificationStatus.PROCESSING
+      );
 
       // Step 1: Verify the photo using media service
-      const verificationResult = await this.callMediaServiceVerification(photoUrl!, referencePhotoUrl);
+      const verificationResult = await this.callMediaServiceVerification(
+        photoUrl,
+        referencePhotoUrl
+      );
 
       // Step 2: Evaluate result
       const isApproved = verificationResult.confidence >= this.photoVerificationThreshold;
@@ -209,9 +216,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     } catch (error: any) {
       logger.error(`Photo verification failed for user ${userId}:`, error);
 
-      await this.updateVerificationStatus(verId, userId, VerificationType.PHOTO, VerificationStatus.FAILED, {
-        rejectionReason: error.message,
-      });
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.PHOTO,
+        VerificationStatus.FAILED,
+        {
+          rejectionReason: error.message,
+        }
+      );
 
       throw error;
     }
@@ -225,10 +238,18 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     const verId = verificationId || this.generateVerificationId();
 
     try {
-      await this.updateVerificationStatus(verId, userId, VerificationType.ID, VerificationStatus.PROCESSING);
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.ID,
+        VerificationStatus.PROCESSING
+      );
 
       // Call external ID verification provider (e.g., Jumio, Onfido)
-      const idVerificationResult = await this.callIdVerificationProvider(idDocumentUrl!, referencePhotoUrl);
+      const idVerificationResult = await this.callIdVerificationProvider(
+        idDocumentUrl,
+        referencePhotoUrl
+      );
 
       const isApproved =
         idVerificationResult.documentValid &&
@@ -278,9 +299,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     } catch (error: any) {
       logger.error(`ID verification failed for user ${userId}:`, error);
 
-      await this.updateVerificationStatus(verId, userId, VerificationType.ID, VerificationStatus.FAILED, {
-        rejectionReason: error.message,
-      });
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.ID,
+        VerificationStatus.FAILED,
+        {
+          rejectionReason: error.message,
+        }
+      );
 
       throw error;
     }
@@ -289,16 +316,23 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   /**
    * Process phone verification
    */
-  private async processPhoneVerification(jobData: VerificationJobData): Promise<VerificationResult> {
+  private async processPhoneVerification(
+    jobData: VerificationJobData
+  ): Promise<VerificationResult> {
     const { userId, phoneNumber, verificationId, metadata } = jobData;
     const verId = verificationId || this.generateVerificationId();
     const verificationCode = metadata?.verificationCode;
 
     try {
-      await this.updateVerificationStatus(verId, userId, VerificationType.PHONE, VerificationStatus.PROCESSING);
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.PHONE,
+        VerificationStatus.PROCESSING
+      );
 
       // Verify the code matches what was sent
-      const isCodeValid = await this.verifyPhoneCode(userId, phoneNumber!, verificationCode);
+      const isCodeValid = await this.verifyPhoneCode(userId, phoneNumber, verificationCode);
 
       const status = isCodeValid ? VerificationStatus.APPROVED : VerificationStatus.REJECTED;
       const rejectionReason = isCodeValid ? undefined : 'Invalid verification code';
@@ -309,10 +343,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
 
       if (isCodeValid) {
         await this.updateUserVerificationBadge(userId, VerificationType.PHONE);
-        await this.updateUserPhoneNumber(userId, phoneNumber!);
+        await this.updateUserPhoneNumber(userId, phoneNumber);
       }
 
-      await this.sendVerificationNotification(userId, VerificationType.PHONE, status, rejectionReason);
+      await this.sendVerificationNotification(
+        userId,
+        VerificationType.PHONE,
+        status,
+        rejectionReason
+      );
 
       return {
         verificationId: verId,
@@ -324,9 +363,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     } catch (error: any) {
       logger.error(`Phone verification failed for user ${userId}:`, error);
 
-      await this.updateVerificationStatus(verId, userId, VerificationType.PHONE, VerificationStatus.FAILED, {
-        rejectionReason: error.message,
-      });
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.PHONE,
+        VerificationStatus.FAILED,
+        {
+          rejectionReason: error.message,
+        }
+      );
 
       throw error;
     }
@@ -335,16 +380,23 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   /**
    * Process email verification
    */
-  private async processEmailVerification(jobData: VerificationJobData): Promise<VerificationResult> {
+  private async processEmailVerification(
+    jobData: VerificationJobData
+  ): Promise<VerificationResult> {
     const { userId, emailAddress, verificationId, metadata } = jobData;
     const verId = verificationId || this.generateVerificationId();
     const verificationToken = metadata?.verificationToken;
 
     try {
-      await this.updateVerificationStatus(verId, userId, VerificationType.EMAIL, VerificationStatus.PROCESSING);
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.EMAIL,
+        VerificationStatus.PROCESSING
+      );
 
       // Verify the token matches what was sent
-      const isTokenValid = await this.verifyEmailToken(userId, emailAddress!, verificationToken);
+      const isTokenValid = await this.verifyEmailToken(userId, emailAddress, verificationToken);
 
       const status = isTokenValid ? VerificationStatus.APPROVED : VerificationStatus.REJECTED;
       const rejectionReason = isTokenValid ? undefined : 'Invalid or expired verification token';
@@ -355,10 +407,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
 
       if (isTokenValid) {
         await this.updateUserVerificationBadge(userId, VerificationType.EMAIL);
-        await this.updateUserEmail(userId, emailAddress!);
+        await this.updateUserEmail(userId, emailAddress);
       }
 
-      await this.sendVerificationNotification(userId, VerificationType.EMAIL, status, rejectionReason);
+      await this.sendVerificationNotification(
+        userId,
+        VerificationType.EMAIL,
+        status,
+        rejectionReason
+      );
 
       return {
         verificationId: verId,
@@ -370,9 +427,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     } catch (error: any) {
       logger.error(`Email verification failed for user ${userId}:`, error);
 
-      await this.updateVerificationStatus(verId, userId, VerificationType.EMAIL, VerificationStatus.FAILED, {
-        rejectionReason: error.message,
-      });
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.EMAIL,
+        VerificationStatus.FAILED,
+        {
+          rejectionReason: error.message,
+        }
+      );
 
       throw error;
     }
@@ -381,15 +444,22 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
   /**
    * Process social verification (link social account)
    */
-  private async processSocialVerification(jobData: VerificationJobData): Promise<VerificationResult> {
+  private async processSocialVerification(
+    jobData: VerificationJobData
+  ): Promise<VerificationResult> {
     const { userId, socialProvider, socialAccessToken, verificationId } = jobData;
     const verId = verificationId || this.generateVerificationId();
 
     try {
-      await this.updateVerificationStatus(verId, userId, VerificationType.SOCIAL, VerificationStatus.PROCESSING);
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.SOCIAL,
+        VerificationStatus.PROCESSING
+      );
 
       // Verify social account access token
-      const socialProfile = await this.verifySocialAccount(socialProvider!, socialAccessToken!);
+      const socialProfile = await this.verifySocialAccount(socialProvider, socialAccessToken);
 
       const isValid = socialProfile && socialProfile.id;
       const status = isValid ? VerificationStatus.APPROVED : VerificationStatus.REJECTED;
@@ -402,11 +472,16 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
       });
 
       if (isValid) {
-        await this.linkSocialAccount(userId, socialProvider!, socialProfile);
+        await this.linkSocialAccount(userId, socialProvider, socialProfile);
         await this.updateUserVerificationBadge(userId, VerificationType.SOCIAL);
       }
 
-      await this.sendVerificationNotification(userId, VerificationType.SOCIAL, status, rejectionReason);
+      await this.sendVerificationNotification(
+        userId,
+        VerificationType.SOCIAL,
+        status,
+        rejectionReason
+      );
 
       return {
         verificationId: verId,
@@ -418,9 +493,15 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     } catch (error: any) {
       logger.error(`Social verification failed for user ${userId}:`, error);
 
-      await this.updateVerificationStatus(verId, userId, VerificationType.SOCIAL, VerificationStatus.FAILED, {
-        rejectionReason: error.message,
-      });
+      await this.updateVerificationStatus(
+        verId,
+        userId,
+        VerificationType.SOCIAL,
+        VerificationStatus.FAILED,
+        {
+          rejectionReason: error.message,
+        }
+      );
 
       throw error;
     }
@@ -434,20 +515,23 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
 
     try {
       // Get current verification record
-      const verification = await this.getVerificationRecord(verificationId!);
+      const verification = await this.getVerificationRecord(verificationId);
 
       if (!verification) {
         throw new Error('Verification record not found');
       }
 
       // If pending, check with external provider
-      if (verification.status === VerificationStatus.PENDING || verification.status === VerificationStatus.PROCESSING) {
+      if (
+        verification.status === VerificationStatus.PENDING ||
+        verification.status === VerificationStatus.PROCESSING
+      ) {
         // Poll external provider if applicable
         // For now, return current status
       }
 
       return {
-        verificationId: verificationId!,
+        verificationId: verificationId,
         userId,
         verificationType,
         status: verification.status,
@@ -468,7 +552,12 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     const { userId, verificationId, verificationType } = jobData;
 
     try {
-      await this.updateVerificationStatus(verificationId!, userId, verificationType, VerificationStatus.EXPIRED);
+      await this.updateVerificationStatus(
+        verificationId,
+        userId,
+        verificationType,
+        VerificationStatus.EXPIRED
+      );
 
       // Remove verification badge from user
       await this.removeUserVerificationBadge(userId, verificationType);
@@ -477,7 +566,7 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
       await this.sendVerificationNotification(userId, verificationType, VerificationStatus.EXPIRED);
 
       return {
-        verificationId: verificationId!,
+        verificationId: verificationId,
         userId,
         verificationType,
         status: VerificationStatus.EXPIRED,
@@ -551,7 +640,11 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     };
   }
 
-  private async verifyPhoneCode(userId: string, phoneNumber: string, code: string): Promise<boolean> {
+  private async verifyPhoneCode(
+    userId: string,
+    phoneNumber: string,
+    code: string
+  ): Promise<boolean> {
     try {
       const response = await axios.post(
         `${USER_SERVICE_URL}/api/v1/internal/verification/phone/verify`,
@@ -656,7 +749,10 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     }
   }
 
-  private async updateUserVerificationBadge(userId: string, verificationType: VerificationType): Promise<void> {
+  private async updateUserVerificationBadge(
+    userId: string,
+    verificationType: VerificationType
+  ): Promise<void> {
     try {
       await axios.post(
         `${USER_SERVICE_URL}/api/v1/internal/users/${userId}/verification-badge`,
@@ -676,7 +772,10 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     }
   }
 
-  private async removeUserVerificationBadge(userId: string, verificationType: VerificationType): Promise<void> {
+  private async removeUserVerificationBadge(
+    userId: string,
+    verificationType: VerificationType
+  ): Promise<void> {
     try {
       await axios.delete(
         `${USER_SERVICE_URL}/api/v1/internal/users/${userId}/verification-badge/${verificationType}`,
@@ -752,7 +851,11 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     }
   }
 
-  private async linkSocialAccount(userId: string, provider: string, socialProfile: any): Promise<void> {
+  private async linkSocialAccount(
+    userId: string,
+    provider: string,
+    socialProfile: any
+  ): Promise<void> {
     try {
       await axios.post(
         `${USER_SERVICE_URL}/api/v1/internal/users/${userId}/social-links`,
@@ -781,21 +884,23 @@ export class VerificationWorker extends BaseWorker<VerificationJobData, Verifica
     rejectionReason?: string
   ): Promise<void> {
     try {
-      const title = status === VerificationStatus.APPROVED
-        ? 'Verification Approved!'
-        : status === VerificationStatus.REJECTED
-        ? 'Verification Failed'
-        : status === VerificationStatus.EXPIRED
-        ? 'Verification Expired'
-        : 'Verification Update';
+      const title =
+        status === VerificationStatus.APPROVED
+          ? 'Verification Approved!'
+          : status === VerificationStatus.REJECTED
+            ? 'Verification Failed'
+            : status === VerificationStatus.EXPIRED
+              ? 'Verification Expired'
+              : 'Verification Update';
 
-      const body = status === VerificationStatus.APPROVED
-        ? `Your ${verificationType} verification has been approved. You now have a verified badge!`
-        : status === VerificationStatus.REJECTED
-        ? `Your ${verificationType} verification was not approved. ${rejectionReason || 'Please try again.'}`
-        : status === VerificationStatus.EXPIRED
-        ? `Your ${verificationType} verification has expired. Please verify again to keep your badge.`
-        : `Your ${verificationType} verification status has been updated.`;
+      const body =
+        status === VerificationStatus.APPROVED
+          ? `Your ${verificationType} verification has been approved. You now have a verified badge!`
+          : status === VerificationStatus.REJECTED
+            ? `Your ${verificationType} verification was not approved. ${rejectionReason || 'Please try again.'}`
+            : status === VerificationStatus.EXPIRED
+              ? `Your ${verificationType} verification has expired. Please verify again to keep your badge.`
+              : `Your ${verificationType} verification status has been updated.`;
 
       await axios.post(
         `${NOTIFICATION_SERVICE_URL}/api/v1/notifications`,

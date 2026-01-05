@@ -1,8 +1,4 @@
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
 import {
   createLogger,
   createValidator,
@@ -12,19 +8,24 @@ import {
   notFoundHandler,
   initializeGlobalErrorHandlers,
 } from '@flamoral/backend-shared';
-import swipeRoutes from './api/routes/swipe.routes';
-import rewindRoutes from './api/routes/rewind.routes';
-import matchRoutes from './api/routes/match.routes';
-import recommendationRoutes from './api/routes/recommendation.routes';
-import searchRoutes from './api/routes/search.routes';
-import internalRoutes from './api/routes/internal.routes';
-import speedDatingRoutes from './api/routes/speed-dating.routes';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
 import curatedPicksRoutes from './api/routes/curated-picks.routes';
+import internalRoutes from './api/routes/internal.routes';
+import matchRoutes from './api/routes/match.routes';
 import passportRoutes from './api/routes/passport.routes';
+import recommendationRoutes from './api/routes/recommendation.routes';
+import rewindRoutes from './api/routes/rewind.routes';
+import searchRoutes from './api/routes/search.routes';
+import speedDatingRoutes from './api/routes/speed-dating.routes';
+import swipeRoutes from './api/routes/swipe.routes';
 import config from './config';
+import db from './infrastructure/database/connection';
 import matchExpirationJob from './jobs/match-expiration.job';
 import speedDatingJob from './jobs/speed-dating.job';
-import db from './infrastructure/database/connection';
 
 // Load environment variables
 dotenv.config();
@@ -63,14 +64,20 @@ const app: Application = express();
 const PORT = config.port;
 
 // Core middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+];
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID', 'X-Request-ID']
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID', 'X-Request-ID'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -91,7 +98,7 @@ app.get('/health', async (_req: Request, res: Response) => {
     logger.error('Database health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'matching-service',

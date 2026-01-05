@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { createLogger } from '../utils/logger';
+
 import { GifMetadata } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('gif-integration-service');
 
@@ -273,11 +274,7 @@ export class GifIntegrationService {
    * Validate GIF metadata
    */
   validateGifMetadata(metadata: Partial<GifMetadata>): boolean {
-    return !!(
-      metadata.gifUrl &&
-      metadata.gifPreviewUrl &&
-      (metadata.tenorId || metadata.giphyId)
-    );
+    return !!(metadata.gifUrl && metadata.gifPreviewUrl && (metadata.tenorId || metadata.giphyId));
   }
 }
 

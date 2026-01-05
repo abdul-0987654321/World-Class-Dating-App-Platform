@@ -3,9 +3,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+
 import { segmentationService } from '../../services/segmentation.service';
-import { authMiddleware } from '../middleware/auth.middleware';
 import { UserSegmentType } from '../../types';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -173,7 +174,7 @@ router.get('/transitions', async (req: Request, res: Response) => {
  * List all available segment types
  */
 router.get('/segments', (req: Request, res: Response) => {
-  const segments = Object.values(UserSegmentType).map(segment => ({
+  const segments = Object.values(UserSegmentType).map((segment) => ({
     type: segment,
     category: getSegmentCategory(segment),
     description: getSegmentDescription(segment),

@@ -18,11 +18,7 @@ export function isValidPassword(password: string): boolean {
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
   return (
-    password.length >= minLength &&
-    hasUppercase &&
-    hasLowercase &&
-    hasNumber &&
-    hasSpecialChar
+    password.length >= minLength && hasUppercase && hasLowercase && hasNumber && hasSpecialChar
   );
 }
 

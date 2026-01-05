@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Extended Request interface with service authentication metadata
@@ -107,7 +108,10 @@ export const authenticateService = (config: ServiceAuthConfig = {}) => {
     // Validate service key is provided
     if (!serviceKey) {
       if (enableLogging) {
-        logger(`Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`, 'warn');
+        logger(
+          `Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`,
+          'warn'
+        );
       }
       return res.status(401).json({
         success: false,
@@ -120,7 +124,10 @@ export const authenticateService = (config: ServiceAuthConfig = {}) => {
     // Validate request ID if required
     if (requireRequestId && !requestId) {
       if (enableLogging) {
-        logger(`Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`, 'warn');
+        logger(
+          `Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`,
+          'warn'
+        );
       }
       return res.status(401).json({
         success: false,
@@ -181,10 +188,7 @@ function timingSafeEqual(a: string, b: string): boolean {
     // If lengths differ, create equal-length buffers to maintain constant time
     if (bufferA.length !== bufferB.length) {
       // Still perform comparison to maintain constant time
-      crypto.timingSafeEqual(
-        Buffer.alloc(32, bufferA),
-        Buffer.alloc(32, bufferB)
-      );
+      crypto.timingSafeEqual(Buffer.alloc(32, bufferA), Buffer.alloc(32, bufferB));
       return false;
     }
 

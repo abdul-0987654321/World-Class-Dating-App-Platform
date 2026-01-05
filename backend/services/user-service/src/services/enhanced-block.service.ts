@@ -53,12 +53,7 @@ class EnhancedBlockService {
       autoUnmatch?: boolean;
     } = {}
   ): Promise<EnhancedBlockResult> {
-    const {
-      reason,
-      source = 'manual',
-      context,
-      autoUnmatch = true,
-    } = options;
+    const { reason, source = 'manual', context, autoUnmatch = true } = options;
 
     // Validate
     if (blockerId === blockedId) {
@@ -321,8 +316,7 @@ class EnhancedBlockService {
     weekAgo.setHours(0, 0, 0, 0);
 
     // Total blocks
-    const [{ count: totalBlocks }] = await db('blocked_users')
-      .count('* as count');
+    const [{ count: totalBlocks }] = await db('blocked_users').count('* as count');
 
     // Blocks today
     const [{ count: blocksToday }] = await db('blocked_users')
@@ -340,7 +334,7 @@ class EnhancedBlockService {
       const [result] = await db('block_audit_logs')
         .where('source', 'auto_harassment')
         .count('* as count');
-      autoBlocks = parseInt(result?.count as string || '0', 10);
+      autoBlocks = parseInt((result?.count as string) || '0', 10);
     } catch (e) {
       // Table may not exist yet
     }
@@ -390,7 +384,7 @@ class EnhancedBlockService {
       blocksToday: parseInt(blocksToday as string, 10),
       blocksThisWeek: parseInt(blocksThisWeek as string, 10),
       autoBlocks,
-      topBlockedUsers: topBlockedUsers.map(u => ({
+      topBlockedUsers: topBlockedUsers.map((u) => ({
         userId: u.userId,
         blockCount: parseInt(u.blockCount as string, 10),
         email: u.email,
@@ -410,9 +404,7 @@ class EnhancedBlockService {
     const { limit = 100, as: role = 'both' } = options;
 
     try {
-      let query = db('block_audit_logs')
-        .orderBy('created_at', 'desc')
-        .limit(limit);
+      let query = db('block_audit_logs').orderBy('created_at', 'desc').limit(limit);
 
       if (role === 'blocker') {
         query = query.where('blocker_id', userId);
@@ -476,18 +468,22 @@ class EnhancedBlockService {
     try {
       // Delete the match if it exists
       const deleted = await db('matches')
-        .where(function() {
-          this.where({ user1_id: userAId, user2_id: userBId })
-            .orWhere({ user1_id: userBId, user2_id: userAId });
+        .where(function () {
+          this.where({ user1_id: userAId, user2_id: userBId }).orWhere({
+            user1_id: userBId,
+            user2_id: userAId,
+          });
         })
         .del();
 
       if (deleted > 0) {
         // Also hide conversations
         await db('conversations')
-          .where(function() {
-            this.where({ user1_id: userAId, user2_id: userBId })
-              .orWhere({ user1_id: userBId, user2_id: userAId });
+          .where(function () {
+            this.where({ user1_id: userAId, user2_id: userBId }).orWhere({
+              user1_id: userBId,
+              user2_id: userAId,
+            });
           })
           .update({ is_hidden: true, updated_at: new Date() });
 

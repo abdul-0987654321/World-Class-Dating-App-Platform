@@ -5,9 +5,10 @@
 
 import { Router } from 'express';
 import { Pool } from 'pg';
+
+import { getDbConnection } from '../../infrastructure/database/connection';
 import { AchievementsController } from '../controllers/achievements.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { getDbConnection } from '../../infrastructure/database/connection';
 
 const router = Router();
 const dbPool = getDbConnection() as unknown as Pool;

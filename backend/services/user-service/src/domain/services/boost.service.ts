@@ -1,6 +1,7 @@
-import { BoostRepository } from '../repositories/boost.repository';
-import { BoostProductRepository } from '../repositories/boost-product.repository';
 import { Boost, BOOST_STATUS, BOOST_TYPES, isBoostActive } from '../entities/Boost.entity';
+import { BoostProductRepository } from '../repositories/boost-product.repository';
+import { BoostRepository } from '../repositories/boost.repository';
+
 import { CoinService } from './coin.service';
 
 export class BoostService {
@@ -60,11 +61,7 @@ export class BoostService {
     });
 
     // Spend coins
-    const coinResult = await this.coinService.spendCoinsOnBoost(
-      userId,
-      product.type,
-      boost.id
-    );
+    const coinResult = await this.coinService.spendCoinsOnBoost(userId, product.type, boost.id);
 
     // Activate boost immediately
     await this.boostRepository.activateBoost(boost.id);
@@ -72,7 +69,7 @@ export class BoostService {
     const activatedBoost = await this.boostRepository.findById(boost.id);
 
     return {
-      boost: activatedBoost!,
+      boost: activatedBoost,
       coinResult,
     };
   }
@@ -109,7 +106,7 @@ export class BoostService {
     await this.boostRepository.activateBoost(boost.id);
 
     const activatedBoost = await this.boostRepository.findById(boost.id);
-    return activatedBoost!;
+    return activatedBoost;
   }
 
   /**
@@ -202,7 +199,7 @@ export class BoostService {
       limit: 50,
     });
 
-    const boostTransaction = transactions.find(t => t.referenceId === activeBoost.id);
+    const boostTransaction = transactions.find((t) => t.referenceId === activeBoost.id);
 
     let refund;
     if (boostTransaction) {
@@ -271,11 +268,7 @@ export class BoostService {
   private calculateBestBoostTimes(stats: any): string[] {
     // This is a simplified version - would use actual data analysis
     // Peak dating app usage times are typically:
-    return [
-      'Sunday evening (7-9 PM)',
-      'Monday evening (8-10 PM)',
-      'Thursday evening (7-9 PM)',
-    ];
+    return ['Sunday evening (7-9 PM)', 'Monday evening (8-10 PM)', 'Thursday evening (7-9 PM)'];
   }
 
   /**

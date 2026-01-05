@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { ProfileService } from '../../domain/services/profile.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class ProfileController {
   private profileService: ProfileService;
@@ -12,7 +13,7 @@ export class ProfileController {
 
   async getProfile(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const profile = await this.profileService.getProfileByUserId(userId);
 
       return res.status(200).json({
@@ -31,7 +32,7 @@ export class ProfileController {
 
   async updateProfile(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const profile = await this.profileService.updateProfile(userId, req.body);
 
       return res.status(200).json({

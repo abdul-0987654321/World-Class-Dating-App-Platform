@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+
 import passportController from '../controllers/passport.controller';
 import { authenticate } from '../middleware/auth.middleware';
 

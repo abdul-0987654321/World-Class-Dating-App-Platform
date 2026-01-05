@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { ProfileController } from '../controllers/profile.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';

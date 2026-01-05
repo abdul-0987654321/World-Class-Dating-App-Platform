@@ -2,13 +2,19 @@
  * Analytics Service - Main Entry Point
  */
 import 'reflect-metadata';
-import express, { Application, Request, Response } from 'express';
+import { createValidator, commonValidations, createLogger } from '@flamoral/backend-shared';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
+
+import analyticsRoutes from './api/routes/analytics.routes';
+import churnPredictionRoutes from './api/routes/churn-prediction.routes';
+import dashboardRoutes from './api/routes/dashboard.routes';
+import eventsRoutes from './api/routes/events.routes';
+import trackingRoutes from './api/routes/tracking.routes';
 import config from './config';
 import { dbClient } from './infrastructure/database/db-client';
-import { createValidator, commonValidations, createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('analytics-service');
 
@@ -50,10 +56,12 @@ const PORT = config.port;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: config.corsOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.corsOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -132,12 +140,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Import routes
-import trackingRoutes from './api/routes/tracking.routes';
-import analyticsRoutes from './api/routes/analytics.routes';
-import dashboardRoutes from './api/routes/dashboard.routes';
-import eventsRoutes from './api/routes/events.routes';
 import segmentationRoutes from './api/routes/segmentation.routes';
-import churnPredictionRoutes from './api/routes/churn-prediction.routes';
 
 // Import scheduled jobs
 import { churnPredictionJobRunner } from './jobs/churn-prediction.job';
@@ -192,7 +195,9 @@ async function startServer() {
     // Start HTTP server
     app.listen(PORT, () => {
       logger.info(`Analytics Service running on port ${PORT}`);
-      logger.info(`Database: ${config.database.host}:${config.database.port}/${config.database.name}`);
+      logger.info(
+        `Database: ${config.database.host}:${config.database.port}/${config.database.name}`
+      );
       logger.info(`Health check: http://localhost:${PORT}/health`);
     });
   } catch (error: any) {

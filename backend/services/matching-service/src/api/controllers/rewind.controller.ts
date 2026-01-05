@@ -4,9 +4,10 @@
  * Handles HTTP requests for the Swipe Rewind feature.
  */
 
-import { Request, Response, NextFunction } from 'express';
-import rewindService from '../../domain/services/rewind.service';
 import { createLogger, ApiError, MatchingErrorCode } from '@flamoral/backend-shared';
+import { Request, Response, NextFunction } from 'express';
+
+import rewindService from '../../domain/services/rewind.service';
 
 const logger = createLogger('rewind-controller');
 

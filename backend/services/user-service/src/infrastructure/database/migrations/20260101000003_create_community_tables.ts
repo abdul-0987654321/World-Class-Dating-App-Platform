@@ -10,11 +10,24 @@ export async function up(knex: Knex): Promise<void> {
     table.string('cover_image', 500).nullable();
     table.integer('member_count').notNullable().defaultTo(0);
     table.integer('post_count').notNullable().defaultTo(0);
-    table.enum('category', [
-      'Lifestyle', 'Food', 'Health', 'Culture', 'Pets',
-      'Entertainment', 'Music', 'Adventure', 'Technology',
-      'Art', 'Sports', 'Gaming', 'Travel', 'Other'
-    ]).notNullable();
+    table
+      .enum('category', [
+        'Lifestyle',
+        'Food',
+        'Health',
+        'Culture',
+        'Pets',
+        'Entertainment',
+        'Music',
+        'Adventure',
+        'Technology',
+        'Art',
+        'Sports',
+        'Gaming',
+        'Travel',
+        'Other',
+      ])
+      .notNullable();
     table.string('color', 100).notNullable().defaultTo('from-pink-400 to-purple-400');
     table.jsonb('rules').nullable();
     table.boolean('is_active').notNullable().defaultTo(true);
@@ -31,7 +44,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community members table
   await knex.schema.createTable('community_members', (table) => {
     table.uuid('id').primary();
-    table.uuid('community_id').notNullable().references('id').inTable('communities').onDelete('CASCADE');
+    table
+      .uuid('community_id')
+      .notNullable()
+      .references('id')
+      .inTable('communities')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.enum('role', ['member', 'moderator', 'admin']).notNullable().defaultTo('member');
     table.timestamp('joined_at').notNullable().defaultTo(knex.fn.now());
@@ -45,7 +63,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community posts table
   await knex.schema.createTable('community_posts', (table) => {
     table.uuid('id').primary();
-    table.uuid('community_id').notNullable().references('id').inTable('communities').onDelete('CASCADE');
+    table
+      .uuid('community_id')
+      .notNullable()
+      .references('id')
+      .inTable('communities')
+      .onDelete('CASCADE');
     table.uuid('author_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.text('content').notNullable();
     table.jsonb('images').nullable();
@@ -65,7 +88,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community post likes table
   await knex.schema.createTable('community_post_likes', (table) => {
     table.uuid('id').primary();
-    table.uuid('post_id').notNullable().references('id').inTable('community_posts').onDelete('CASCADE');
+    table
+      .uuid('post_id')
+      .notNullable()
+      .references('id')
+      .inTable('community_posts')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
 
@@ -77,9 +105,19 @@ export async function up(knex: Knex): Promise<void> {
   // Community comments table
   await knex.schema.createTable('community_comments', (table) => {
     table.uuid('id').primary();
-    table.uuid('post_id').notNullable().references('id').inTable('community_posts').onDelete('CASCADE');
+    table
+      .uuid('post_id')
+      .notNullable()
+      .references('id')
+      .inTable('community_posts')
+      .onDelete('CASCADE');
     table.uuid('author_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.uuid('parent_id').nullable().references('id').inTable('community_comments').onDelete('CASCADE');
+    table
+      .uuid('parent_id')
+      .nullable()
+      .references('id')
+      .inTable('community_comments')
+      .onDelete('CASCADE');
     table.text('content').notNullable();
     table.integer('like_count').notNullable().defaultTo(0);
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
@@ -93,7 +131,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community comment likes table
   await knex.schema.createTable('community_comment_likes', (table) => {
     table.uuid('id').primary();
-    table.uuid('comment_id').notNullable().references('id').inTable('community_comments').onDelete('CASCADE');
+    table
+      .uuid('comment_id')
+      .notNullable()
+      .references('id')
+      .inTable('community_comments')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
 
@@ -105,7 +148,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community events table
   await knex.schema.createTable('community_events', (table) => {
     table.uuid('id').primary();
-    table.uuid('community_id').notNullable().references('id').inTable('communities').onDelete('CASCADE');
+    table
+      .uuid('community_id')
+      .notNullable()
+      .references('id')
+      .inTable('communities')
+      .onDelete('CASCADE');
     table.string('title', 200).notNullable();
     table.text('description').notNullable();
     table.timestamp('start_date').notNullable();
@@ -129,7 +177,12 @@ export async function up(knex: Knex): Promise<void> {
   // Community event attendees table
   await knex.schema.createTable('community_event_attendees', (table) => {
     table.uuid('id').primary();
-    table.uuid('event_id').notNullable().references('id').inTable('community_events').onDelete('CASCADE');
+    table
+      .uuid('event_id')
+      .notNullable()
+      .references('id')
+      .inTable('community_events')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.timestamp('registered_at').notNullable().defaultTo(knex.fn.now());
 

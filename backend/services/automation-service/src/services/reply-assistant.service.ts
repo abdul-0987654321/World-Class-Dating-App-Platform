@@ -1,8 +1,10 @@
-import { v4 as uuidv4 } from 'uuid';
-import OpenAI from 'openai';
 import { createLogger } from '@flamoral/backend-shared';
-import { GenerateReplyDto, ReplyAssistantResponseDto, ReplySuggestionDto } from '../dtos';
+import OpenAI from 'openai';
+import { v4 as uuidv4 } from 'uuid';
+
 import config from '../config';
+import { GenerateReplyDto, ReplyAssistantResponseDto, ReplySuggestionDto } from '../dtos';
+
 import { ServiceClient } from './service-client';
 
 const logger = createLogger('automation-service:reply-assistant');
@@ -129,12 +131,16 @@ Format as JSON array with: message, tone, score (0-1), sentiment (positive/neutr
 
     // Simple sentiment analysis based on message patterns
     const recentMessages = messages.slice(-10);
-    const averageLength = recentMessages.reduce((sum, msg) => sum + msg.content.length, 0) / recentMessages.length;
+    const averageLength =
+      recentMessages.reduce((sum, msg) => sum + msg.content.length, 0) / recentMessages.length;
 
     // Extract potential topics (simple keyword extraction)
-    const allText = messages.map(m => m.content).join(' ').toLowerCase();
+    const allText = messages
+      .map((m) => m.content)
+      .join(' ')
+      .toLowerCase();
     const commonWords = ['love', 'like', 'enjoy', 'travel', 'music', 'food', 'work', 'hobby'];
-    const topics = commonWords.filter(word => allText.includes(word));
+    const topics = commonWords.filter((word) => allText.includes(word));
 
     return {
       sentiment: averageLength > 50 ? 'positive' : 'neutral',
@@ -158,7 +164,7 @@ Format as JSON array with: message, tone, score (0-1), sentiment (positive/neutr
       },
       {
         id: uuidv4(),
-        message: "I can relate to that! What do you enjoy most about it?",
+        message: 'I can relate to that! What do you enjoy most about it?',
         tone: 'casual',
         score: 0.65,
         sentiment: 'positive',
@@ -166,7 +172,7 @@ Format as JSON array with: message, tone, score (0-1), sentiment (positive/neutr
       },
       {
         id: uuidv4(),
-        message: "Sounds like fun! Have you been doing it for long?",
+        message: 'Sounds like fun! Have you been doing it for long?',
         tone: 'playful',
         score: 0.7,
         sentiment: 'positive',

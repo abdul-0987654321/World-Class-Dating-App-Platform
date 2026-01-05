@@ -1,4 +1,5 @@
 import { createLogger } from '@flamoral/backend-shared';
+
 const logger = createLogger('video-thumbnails-service');
 import * as path from 'path';
 
@@ -47,10 +48,7 @@ class VideoThumbnailsService {
   /**
    * Process video with multiple quality variants
    */
-  async processVideo(
-    videoPath: string,
-    userId: string
-  ): Promise<ProcessedVideo> {
+  async processVideo(videoPath: string, userId: string): Promise<ProcessedVideo> {
     try {
       logger.info('Starting video processing', { videoPath, userId });
 
@@ -82,7 +80,7 @@ class VideoThumbnailsService {
         videoPath,
         userId,
         variantCount: variants.length,
-        thumbnailCount: thumbnails.length
+        thumbnailCount: thumbnails.length,
       });
 
       return processed;
@@ -175,10 +173,7 @@ class VideoThumbnailsService {
     // In production, use ffmpeg to extract frame
     // Example command: ffmpeg -ss {timestamp} -i {videoPath} -vframes 1 -s {width}x{height} -q:v {quality} output.jpg
 
-    const outputPath = path.join(
-      path.dirname(videoPath),
-      `thumb_${timestamp}.jpg`
-    );
+    const outputPath = path.join(path.dirname(videoPath), `thumb_${timestamp}.jpg`);
 
     logger.debug('Frame extracted', { videoPath, timestamp, outputPath });
 
@@ -324,10 +319,7 @@ class VideoThumbnailsService {
   /**
    * Compress video
    */
-  async compressVideo(
-    videoPath: string,
-    targetSizeKB: number
-  ): Promise<string> {
+  async compressVideo(videoPath: string, targetSizeKB: number): Promise<string> {
     // In production, use ffmpeg to compress
     // Calculate target bitrate based on duration and target size
     const metadata = await this.extractMetadata(videoPath);

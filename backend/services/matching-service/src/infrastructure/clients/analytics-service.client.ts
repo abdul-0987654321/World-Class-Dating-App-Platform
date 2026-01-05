@@ -3,8 +3,8 @@
  * Handles communication with the analytics service for event tracking
  */
 
-import { ServiceClient } from '@flamoral/backend-shared';
-import { createLogger } from '@flamoral/backend-shared';
+import { ServiceClient, createLogger } from '@flamoral/backend-shared';
+
 import config from '../../config';
 
 const logger = createLogger('analytics-service-client');

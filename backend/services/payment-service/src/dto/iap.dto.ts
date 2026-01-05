@@ -1,8 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsIn,
-} from 'class-validator';
+import { IsString, IsOptional, IsIn } from 'class-validator';
 
 /**
  * Valid IAP provider types

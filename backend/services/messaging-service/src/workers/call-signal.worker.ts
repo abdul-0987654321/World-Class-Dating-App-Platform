@@ -119,7 +119,10 @@ export class CallSignalWorker {
       }
 
       if (timedOutCount > 0) {
-        logger.info('Processed call timeouts', { processed: processedCount, timedOut: timedOutCount });
+        logger.info('Processed call timeouts', {
+          processed: processedCount,
+          timedOut: timedOutCount,
+        });
       }
     } catch (error) {
       logger.error('Error processing call timeouts', { error });

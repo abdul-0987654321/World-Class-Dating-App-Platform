@@ -5,16 +5,11 @@
  * Archives old records
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('cleanup-retention-worker');
 
@@ -110,7 +105,10 @@ export interface CleanupRetentionResult {
 /**
  * Cleanup Retention Worker
  */
-export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, CleanupRetentionResult> {
+export class CleanupRetentionWorker extends BaseWorker<
+  CleanupRetentionJobData,
+  CleanupRetentionResult
+> {
   private readonly defaultBatchSize = 1000;
 
   constructor() {
@@ -120,7 +118,9 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
   /**
    * Process cleanup retention job
    */
-  protected async processJob(job: Job<CleanupRetentionJobData>): Promise<JobResult<CleanupRetentionResult>> {
+  protected async processJob(
+    job: Job<CleanupRetentionJobData>
+  ): Promise<JobResult<CleanupRetentionResult>> {
     const { type, cleanupType, userId, dryRun = false } = job.data;
     const startTime = Date.now();
 
@@ -192,7 +192,11 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
    * Run cleanup based on type
    */
   private async runCleanup(jobData: CleanupRetentionJobData): Promise<CleanupRetentionResult> {
-    const { cleanupType = CleanupType.ALL, dryRun = false, batchSize = this.defaultBatchSize } = jobData;
+    const {
+      cleanupType = CleanupType.ALL,
+      dryRun = false,
+      batchSize = this.defaultBatchSize,
+    } = jobData;
 
     let totalProcessed = 0;
     let totalDeleted = 0;
@@ -259,7 +263,11 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
    * Run archive operation
    */
   private async runArchive(jobData: CleanupRetentionJobData): Promise<CleanupRetentionResult> {
-    const { cleanupType = CleanupType.ALL, dryRun = false, batchSize = this.defaultBatchSize } = jobData;
+    const {
+      cleanupType = CleanupType.ALL,
+      dryRun = false,
+      batchSize = this.defaultBatchSize,
+    } = jobData;
 
     let totalProcessed = 0;
     let totalArchived = 0;
@@ -380,20 +388,27 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
 
       for (const user of inactiveUsers) {
         const lastActivity = new Date(user.lastActivityAt);
-        const inactiveDays = Math.floor((Date.now() - lastActivity.getTime()) / (24 * 60 * 60 * 1000));
+        const inactiveDays = Math.floor(
+          (Date.now() - lastActivity.getTime()) / (24 * 60 * 60 * 1000)
+        );
 
         if (inactiveDays >= RetentionPolicies.INACTIVE_USER_DELETION) {
           // Mark for deletion
           await this.markUserForDeletion(user.id);
           usersMarkedForDeletion++;
-        } else if (inactiveDays >= RetentionPolicies.INACTIVE_USER_WARNING && !user.inactivityWarningsSent) {
+        } else if (
+          inactiveDays >= RetentionPolicies.INACTIVE_USER_WARNING &&
+          !user.inactivityWarningsSent
+        ) {
           // Send warning notification
           await this.sendInactivityWarning(user.id, inactiveDays);
           usersWarned++;
         }
       }
 
-      logger.info(`Inactive user check: ${usersWarned} warned, ${usersMarkedForDeletion} marked for deletion`);
+      logger.info(
+        `Inactive user check: ${usersWarned} warned, ${usersMarkedForDeletion} marked for deletion`
+      );
     } catch (error: any) {
       logger.error('Failed to check inactive users:', error);
     }
@@ -448,7 +463,9 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
     dryRun: boolean,
     batchSize: number
   ): Promise<Partial<CleanupRetentionResult>> {
-    const cutoffDate = new Date(Date.now() - RetentionPolicies.MESSAGE_RETENTION * 24 * 60 * 60 * 1000);
+    const cutoffDate = new Date(
+      Date.now() - RetentionPolicies.MESSAGE_RETENTION * 24 * 60 * 60 * 1000
+    );
 
     try {
       const response = await axios.post(
@@ -519,7 +536,9 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
     dryRun: boolean,
     batchSize: number
   ): Promise<Partial<CleanupRetentionResult>> {
-    const orphanedCutoff = new Date(Date.now() - RetentionPolicies.ORPHANED_MEDIA * 24 * 60 * 60 * 1000);
+    const orphanedCutoff = new Date(
+      Date.now() - RetentionPolicies.ORPHANED_MEDIA * 24 * 60 * 60 * 1000
+    );
     const tempCutoff = new Date(Date.now() - RetentionPolicies.TEMP_UPLOADS * 24 * 60 * 60 * 1000);
 
     try {
@@ -554,8 +573,12 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
     dryRun: boolean,
     batchSize: number
   ): Promise<Partial<CleanupRetentionResult>> {
-    const sessionCutoff = new Date(Date.now() - RetentionPolicies.EXPIRED_SESSIONS * 24 * 60 * 60 * 1000);
-    const tokenCutoff = new Date(Date.now() - RetentionPolicies.REVOKED_TOKENS * 24 * 60 * 60 * 1000);
+    const sessionCutoff = new Date(
+      Date.now() - RetentionPolicies.EXPIRED_SESSIONS * 24 * 60 * 60 * 1000
+    );
+    const tokenCutoff = new Date(
+      Date.now() - RetentionPolicies.REVOKED_TOKENS * 24 * 60 * 60 * 1000
+    );
 
     try {
       const response = await axios.post(
@@ -588,7 +611,9 @@ export class CleanupRetentionWorker extends BaseWorker<CleanupRetentionJobData, 
     dryRun: boolean,
     batchSize: number
   ): Promise<Partial<CleanupRetentionResult>> {
-    const swipeCutoff = new Date(Date.now() - RetentionPolicies.SWIPE_HISTORY * 24 * 60 * 60 * 1000);
+    const swipeCutoff = new Date(
+      Date.now() - RetentionPolicies.SWIPE_HISTORY * 24 * 60 * 60 * 1000
+    );
     const expiredMatchCutoff = new Date(
       Date.now() - RetentionPolicies.EXPIRED_MATCHES * 24 * 60 * 60 * 1000
     );

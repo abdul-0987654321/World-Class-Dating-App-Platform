@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import jwtUtils from '../../utils/jwt';
-import redisCache from '../../infrastructure/cache/redis';
-import logger from '../../utils/logger';
+
 import { config } from '../../config';
 import { userRepository } from '../../domain/repositories/user.repository';
+import redisCache from '../../infrastructure/cache/redis';
+import jwtUtils from '../../utils/jwt';
+import logger from '../../utils/logger';
 
 /**
  * User roles for RBAC
@@ -47,7 +48,7 @@ export const authenticate = async (
 ): Promise<void | Response> => {
   try {
     // Generate correlation ID for request tracing
-    req.correlationId = req.headers['x-correlation-id'] as string || generateCorrelationId();
+    req.correlationId = (req.headers['x-correlation-id'] as string) || generateCorrelationId();
     res.setHeader('X-Correlation-ID', req.correlationId);
 
     const authHeader = req.headers.authorization;
@@ -73,13 +74,19 @@ export const authenticate = async (
     }
 
     try {
-      const payload = jwtUtils.verifyAccessToken(token) as { userId: string; email: string; role?: UserRole };
+      const payload = jwtUtils.verifyAccessToken(token) as {
+        userId: string;
+        email: string;
+        role?: UserRole;
+      };
 
       // SECURITY: Check user status in database (banned check)
       const user = await userRepository.findById(payload.userId);
 
       if (!user) {
-        logger.warn(`User not found for token: ${payload.userId}`, { correlationId: req.correlationId });
+        logger.warn(`User not found for token: ${payload.userId}`, {
+          correlationId: req.correlationId,
+        });
         return res.status(401).json({
           success: false,
           error: 'User not found',
@@ -89,7 +96,9 @@ export const authenticate = async (
 
       // SECURITY: Check if user is banned
       if (!user.is_active) {
-        logger.warn(`Banned user attempted access: ${payload.userId}`, { correlationId: req.correlationId });
+        logger.warn(`Banned user attempted access: ${payload.userId}`, {
+          correlationId: req.correlationId,
+        });
         return res.status(403).json({
           success: false,
           error: 'Account has been suspended or banned. Contact support for assistance.',
@@ -145,9 +154,12 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
 
     // Check if user has one of the allowed roles
     if (!allowedRoles.includes(userRole)) {
-      logger.warn(`Role access denied: user ${req.user.userId} with role ${userRole} tried to access resource requiring ${allowedRoles.join(', ')}`, {
-        correlationId: req.correlationId,
-      });
+      logger.warn(
+        `Role access denied: user ${req.user.userId} with role ${userRole} tried to access resource requiring ${allowedRoles.join(', ')}`,
+        {
+          correlationId: req.correlationId,
+        }
+      );
       return res.status(403).json({
         success: false,
         error: 'Insufficient permissions',

@@ -19,13 +19,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string('country_code', 3).notNullable();
 
     // Status tracking
-    table.enum('status', [
-      'pending',
-      'processing',
-      'completed',
-      'failed',
-      'expired',
-    ]).notNullable().defaultTo('pending');
+    table
+      .enum('status', ['pending', 'processing', 'completed', 'failed', 'expired'])
+      .notNullable()
+      .defaultTo('pending');
 
     // Extracted data (encrypted at rest for GDPR compliance)
     table.text('extracted_data_encrypted').nullable();
@@ -33,12 +30,9 @@ export async function up(knex: Knex): Promise<void> {
 
     // Validation results
     table.jsonb('validation_result').nullable();
-    table.enum('authenticity_result', [
-      'authentic',
-      'suspicious',
-      'fraudulent',
-      'inconclusive',
-    ]).nullable();
+    table
+      .enum('authenticity_result', ['authentic', 'suspicious', 'fraudulent', 'inconclusive'])
+      .nullable();
 
     // Profile match results
     table.jsonb('profile_match_result').nullable();
@@ -47,12 +41,10 @@ export async function up(knex: Knex): Promise<void> {
     // Verification outcome
     table.decimal('overall_score', 5, 4).nullable();
     table.boolean('is_verified').notNullable().defaultTo(false);
-    table.enum('verification_decision', [
-      'pending',
-      'approved',
-      'rejected',
-      'manual_review',
-    ]).notNullable().defaultTo('pending');
+    table
+      .enum('verification_decision', ['pending', 'approved', 'rejected', 'manual_review'])
+      .notNullable()
+      .defaultTo('pending');
     table.jsonb('decision_reasons').nullable();
 
     // Processing metadata
@@ -110,7 +102,12 @@ export async function up(knex: Knex): Promise<void> {
   // Create document_verification_audit_log table for detailed audit trail
   await knex.schema.createTable('document_verification_audit_log', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('verification_id').notNullable().references('id').inTable('document_verifications').onDelete('CASCADE');
+    table
+      .uuid('verification_id')
+      .notNullable()
+      .references('id')
+      .inTable('document_verifications')
+      .onDelete('CASCADE');
     table.uuid('user_id').notNullable();
 
     table.string('action', 100).notNullable();
@@ -133,8 +130,13 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('verification_id').notNullable();
     table.uuid('user_id').notNullable();
 
-    table.enum('cleanup_type', ['retention_expired', 'gdpr_deletion', 'user_request']).notNullable();
-    table.enum('status', ['pending', 'processing', 'completed', 'failed']).notNullable().defaultTo('pending');
+    table
+      .enum('cleanup_type', ['retention_expired', 'gdpr_deletion', 'user_request'])
+      .notNullable();
+    table
+      .enum('status', ['pending', 'processing', 'completed', 'failed'])
+      .notNullable()
+      .defaultTo('pending');
     table.timestamp('scheduled_for').notNullable();
     table.timestamp('processed_at').nullable();
     table.text('error_message').nullable();

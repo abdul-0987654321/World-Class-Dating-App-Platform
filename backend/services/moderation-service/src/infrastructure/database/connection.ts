@@ -1,4 +1,5 @@
 import knex, { Knex } from 'knex';
+
 import config from '../../config';
 import { createLogger } from '../../utils/logger';
 

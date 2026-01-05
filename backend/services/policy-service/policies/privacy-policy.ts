@@ -265,7 +265,7 @@ export const privacyPolicy: PrivacyPolicy = {
     },
     {
       id: 'children',
-      title: '9. Children\'s Privacy',
+      title: "9. Children's Privacy",
       content: `
         FLAMORAL is intended for users 18 years of age and older. We do not knowingly collect personal information from children under 18.
 

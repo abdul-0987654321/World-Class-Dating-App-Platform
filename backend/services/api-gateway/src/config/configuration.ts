@@ -1,10 +1,15 @@
 // Security: Validate required secrets in production
 const validateSecrets = () => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const requiredSecrets = ['JWT_SECRET', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'INTERNAL_SERVICE_KEY'];
+  const requiredSecrets = [
+    'JWT_SECRET',
+    'JWT_ACCESS_SECRET',
+    'JWT_REFRESH_SECRET',
+    'INTERNAL_SERVICE_KEY',
+  ];
 
   if (isProduction) {
-    const missing = requiredSecrets.filter(key => !process.env[key]);
+    const missing = requiredSecrets.filter((key) => !process.env[key]);
     if (missing.length > 0) {
       throw new Error(`CRITICAL: Missing required secrets in production: ${missing.join(', ')}`);
     }
@@ -19,9 +24,27 @@ export default () => ({
 
   // JWT Configuration - SECURITY: No fallbacks in production
   jwt: {
-    secret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET required'); })() : 'dev-jwt-secret-min-32-chars-long!!'),
-    accessSecret: process.env.JWT_ACCESS_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_ACCESS_SECRET required'); })() : 'dev-access-secret-min-32-chars!!'),
-    refreshSecret: process.env.JWT_REFRESH_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_REFRESH_SECRET required'); })() : 'dev-refresh-secret-min-32-chars!'),
+    secret:
+      process.env.JWT_SECRET ||
+      (process.env.NODE_ENV === 'production'
+        ? (() => {
+            throw new Error('JWT_SECRET required');
+          })()
+        : 'dev-jwt-secret-min-32-chars-long!!'),
+    accessSecret:
+      process.env.JWT_ACCESS_SECRET ||
+      (process.env.NODE_ENV === 'production'
+        ? (() => {
+            throw new Error('JWT_ACCESS_SECRET required');
+          })()
+        : 'dev-access-secret-min-32-chars!!'),
+    refreshSecret:
+      process.env.JWT_REFRESH_SECRET ||
+      (process.env.NODE_ENV === 'production'
+        ? (() => {
+            throw new Error('JWT_REFRESH_SECRET required');
+          })()
+        : 'dev-refresh-secret-min-32-chars!'),
     accessTokenExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY || '15m',
     refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '7d',
   },
@@ -43,7 +66,13 @@ export default () => ({
   },
 
   // Internal service communication key - SECURITY: No fallback in production
-  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('INTERNAL_SERVICE_KEY required'); })() : 'dev-internal-service-key-32chars!'),
+  internalServiceKey:
+    process.env.INTERNAL_SERVICE_KEY ||
+    (process.env.NODE_ENV === 'production'
+      ? (() => {
+          throw new Error('INTERNAL_SERVICE_KEY required');
+        })()
+      : 'dev-internal-service-key-32chars!'),
 
   // Redis Configuration
   redis: {

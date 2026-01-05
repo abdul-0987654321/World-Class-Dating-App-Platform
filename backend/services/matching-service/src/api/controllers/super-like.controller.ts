@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import superLikeService from '../../domain/services/super-like.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import superLikeService from '../../domain/services/super-like.service';
 
 const logger = createLogger('super-like-controller');
 

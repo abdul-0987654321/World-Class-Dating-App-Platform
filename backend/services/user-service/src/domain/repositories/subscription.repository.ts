@@ -1,10 +1,10 @@
+import db from '../../infrastructure/database/connection';
 import {
   Subscription,
   SubscriptionCreateInput,
   SubscriptionUpdateInput,
-  SUBSCRIPTION_STATUS
+  SUBSCRIPTION_STATUS,
 } from '../entities/Subscription.entity';
-import db from '../../infrastructure/database/connection';
 
 export class SubscriptionRepository {
   private tableName = 'subscriptions';
@@ -30,25 +30,19 @@ export class SubscriptionRepository {
       subscriptionData.trial_end = trialEnd;
     }
 
-    const [subscription] = await db(this.tableName)
-      .insert(subscriptionData)
-      .returning('*');
+    const [subscription] = await db(this.tableName).insert(subscriptionData).returning('*');
 
     return this.mapToEntity(subscription);
   }
 
   async findById(id: string): Promise<Subscription | null> {
-    const subscription = await db(this.tableName)
-      .where({ id })
-      .first();
+    const subscription = await db(this.tableName).where({ id }).first();
 
     return subscription ? this.mapToEntity(subscription) : null;
   }
 
   async findByUserId(userId: string): Promise<Subscription | null> {
-    const subscription = await db(this.tableName)
-      .where({ user_id: userId })
-      .first();
+    const subscription = await db(this.tableName).where({ user_id: userId }).first();
 
     return subscription ? this.mapToEntity(subscription) : null;
   }
@@ -69,15 +63,15 @@ export class SubscriptionRepository {
     if (input.tier !== undefined) updateData.tier = input.tier;
     if (input.status !== undefined) updateData.status = input.status;
     if (input.billingCycle !== undefined) updateData.billing_cycle = input.billingCycle;
-    if (input.cancelAtPeriodEnd !== undefined) updateData.cancel_at_period_end = input.cancelAtPeriodEnd;
-    if (input.currentPeriodStart !== undefined) updateData.current_period_start = input.currentPeriodStart;
-    if (input.currentPeriodEnd !== undefined) updateData.current_period_end = input.currentPeriodEnd;
+    if (input.cancelAtPeriodEnd !== undefined)
+      updateData.cancel_at_period_end = input.cancelAtPeriodEnd;
+    if (input.currentPeriodStart !== undefined)
+      updateData.current_period_start = input.currentPeriodStart;
+    if (input.currentPeriodEnd !== undefined)
+      updateData.current_period_end = input.currentPeriodEnd;
     if (input.gracePeriodEnd !== undefined) updateData.grace_period_end = input.gracePeriodEnd;
 
-    const [subscription] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [subscription] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(subscription);
   }
@@ -114,10 +108,7 @@ export class SubscriptionRepository {
       updateData.cancel_at_period_end = true;
     }
 
-    const [subscription] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [subscription] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(subscription);
   }
@@ -163,9 +154,7 @@ export class SubscriptionRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   // Map database row to entity (snake_case to camelCase)

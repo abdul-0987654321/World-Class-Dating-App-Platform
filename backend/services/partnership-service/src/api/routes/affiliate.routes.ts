@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import { AffiliateService } from '../../domain/services/affiliate.service';
 import { createLogger } from '@flamoral/backend-shared';
+import express, { Request, Response } from 'express';
+
+import { AffiliateService } from '../../domain/services/affiliate.service';
 
 const router = express.Router();
 const logger = createLogger('affiliate-routes');
@@ -146,10 +147,7 @@ router.post('/commissions/pay', async (req: AdminRequest, res: Response) => {
       });
     }
 
-    const count = await affiliateService.markCommissionsAsPaid(
-      commissionIds,
-      paymentReference
-    );
+    const count = await affiliateService.markCommissionsAsPaid(commissionIds, paymentReference);
 
     res.json({
       success: true,

@@ -1,5 +1,7 @@
-import { Request } from 'express';
 import crypto from 'crypto';
+
+import { Request } from 'express';
+
 import redisCache from '../../infrastructure/cache/redis';
 import logger from '../../utils/logger';
 
@@ -51,10 +53,7 @@ class DeviceFingerprintService {
       data.platform || '',
     ].join('|');
 
-    return crypto
-      .createHash('sha256')
-      .update(fingerprintString)
-      .digest('hex');
+    return crypto.createHash('sha256').update(fingerprintString).digest('hex');
   }
 
   /**
@@ -132,11 +131,9 @@ class DeviceFingerprintService {
       return [];
     }
 
-    const devices = await Promise.all(
-      deviceIds.map(id => this.getDevice(userId, id))
-    );
+    const devices = await Promise.all(deviceIds.map((id) => this.getDevice(userId, id)));
 
-    return devices.filter(d => d !== null) as DeviceFingerprint[];
+    return devices.filter((d) => d !== null);
   }
 
   /**
@@ -222,9 +219,7 @@ class DeviceFingerprintService {
   async clearUserDevices(userId: string): Promise<void> {
     const devices = await this.getUserDevices(userId);
 
-    await Promise.all(
-      devices.map(device => this.removeDevice(userId, device.id))
-    );
+    await Promise.all(devices.map((device) => this.removeDevice(userId, device.id)));
 
     logger.info(`All devices cleared for user: ${userId}`);
   }

@@ -8,7 +8,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('first_name', 100).notNullable();
     table.string('last_name', 100).notNullable();
     table.date('date_of_birth').notNullable();
-    table.enum('gender', ['male', 'female', 'non-binary', 'other', 'prefer_not_to_say']).notNullable();
+    table
+      .enum('gender', ['male', 'female', 'non-binary', 'other', 'prefer_not_to_say'])
+      .notNullable();
     table.string('phone_number', 20);
     table.boolean('is_verified').defaultTo(false);
     table.boolean('is_email_verified').defaultTo(false);

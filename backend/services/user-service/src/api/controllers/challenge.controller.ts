@@ -4,10 +4,11 @@
  */
 
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { ChallengeService } from '../../domain/services/Challenge.service';
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class ChallengeController {
   private challengeService: ChallengeService;
@@ -83,10 +84,7 @@ export class ChallengeController {
 
       const { type } = req.query;
 
-      const challenges = await this.challengeService.getAvailableChallenges(
-        userId,
-        type as any
-      );
+      const challenges = await this.challengeService.getAvailableChallenges(userId, type as any);
 
       return res.status(200).json({
         success: true,
@@ -134,11 +132,12 @@ export class ChallengeController {
     } catch (error: any) {
       logger.error('Start challenge error:', error);
 
-      const statusCode = error.message.includes('not found') || error.message.includes('inactive')
-        ? 404
-        : error.message.includes('already')
-        ? 400
-        : 500;
+      const statusCode =
+        error.message.includes('not found') || error.message.includes('inactive')
+          ? 404
+          : error.message.includes('already')
+            ? 400
+            : 500;
 
       return res.status(statusCode).json({
         success: false,
@@ -303,13 +302,11 @@ export class ChallengeController {
       }
 
       // Mark reward as claimed
-      await db('user_challenges')
-        .where({ id: userChallenge.id })
-        .update({
-          reward_claimed: true,
-          reward_claimed_at: db.fn.now(),
-          updated_at: db.fn.now(),
-        });
+      await db('user_challenges').where({ id: userChallenge.id }).update({
+        reward_claimed: true,
+        reward_claimed_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
 
       // Return success with rewards info
       return res.status(200).json({

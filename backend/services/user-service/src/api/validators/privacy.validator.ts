@@ -9,12 +9,9 @@ export const updatePrivacySettingsSchema = Joi.object({
   showLastActive: Joi.boolean().optional(),
   showOnlineStatus: Joi.boolean().optional(),
   showAge: Joi.boolean().optional(),
-  profileVisibility: Joi.string()
-    .valid('everyone', 'matches_only', 'private')
-    .optional()
-    .messages({
-      'any.only': 'Invalid profile visibility option',
-    }),
+  profileVisibility: Joi.string().valid('everyone', 'matches_only', 'private').optional().messages({
+    'any.only': 'Invalid profile visibility option',
+  }),
   hideFromContacts: Joi.boolean().optional(),
   hiddenContactNumbers: Joi.array()
     .items(Joi.string().pattern(/^\+?[1-9]\d{1,14}$/))
@@ -29,9 +26,11 @@ export const updatePrivacySettingsSchema = Joi.object({
     'number.min': 'Location radius must be at least 0 km',
     'number.max': 'Location radius must not exceed 100 km',
   }),
-}).min(1).messages({
-  'object.min': 'At least one field must be provided for update',
-});
+})
+  .min(1)
+  .messages({
+    'object.min': 'At least one field must be provided for update',
+  });
 
 export const toggleIncognitoSchema = Joi.object({
   enabled: Joi.boolean().required().messages({
@@ -44,11 +43,8 @@ export const toggleIncognitoSchema = Joi.object({
 });
 
 export const applyPresetSchema = Joi.object({
-  preset: Joi.string()
-    .valid('public', 'balanced', 'private')
-    .required()
-    .messages({
-      'any.only': 'Preset must be one of: public, balanced, private',
-      'any.required': 'Preset is required',
-    }),
+  preset: Joi.string().valid('public', 'balanced', 'private').required().messages({
+    'any.only': 'Preset must be one of: public, balanced, private',
+    'any.required': 'Preset is required',
+  }),
 });

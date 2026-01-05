@@ -6,10 +6,11 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { Request, Response } from 'express';
 import Redis from 'ioredis';
+
 import {
   getRateLimitRule,
   parseTimeWindow,
@@ -19,10 +20,7 @@ import {
   DDOS_PROTECTION,
   RateLimitRule,
 } from '../config/rate-limit.config';
-import {
-  RATE_LIMIT_KEY,
-  SKIP_RATE_LIMIT_KEY,
-} from '../decorators/rate-limit.decorator';
+import { RATE_LIMIT_KEY, SKIP_RATE_LIMIT_KEY } from '../decorators/rate-limit.decorator';
 import { DDoSProtectionService } from '../services/ddos-protection.service';
 
 /**
@@ -37,7 +35,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly configService: ConfigService,
-    private readonly ddosProtection: DDoSProtectionService,
+    private readonly ddosProtection: DDoSProtectionService
   ) {
     // Initialize Redis connection
     this.redis = new Redis({
@@ -63,10 +61,10 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       // Check if endpoint should skip rate limiting
-      const skipRateLimit = this.reflector.getAllAndOverride<boolean>(
-        SKIP_RATE_LIMIT_KEY,
-        [context.getHandler(), context.getClass()],
-      );
+      const skipRateLimit = this.reflector.getAllAndOverride<boolean>(SKIP_RATE_LIMIT_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
       if (skipRateLimit) {
         return true;
@@ -90,15 +88,10 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
       }
 
       // First, check DDoS protection
-      const ddosCheck = await this.ddosProtection.checkRequest(
-        request,
-        clientIp,
-      );
+      const ddosCheck = await this.ddosProtection.checkRequest(request, clientIp);
 
       if (!ddosCheck.allowed) {
-        this.logger.warn(
-          `DDoS protection blocked request from ${clientIp}: ${ddosCheck.reason}`,
-        );
+        this.logger.warn(`DDoS protection blocked request from ${clientIp}: ${ddosCheck.reason}`);
 
         if (ddosCheck.blockDuration) {
           response.setHeader('Retry-After', ddosCheck.blockDuration.toString());
@@ -112,7 +105,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
             reason: ddosCheck.reason,
             retryAfter: ddosCheck.blockDuration,
           },
-          HttpStatus.TOO_MANY_REQUESTS,
+          HttpStatus.TOO_MANY_REQUESTS
         );
       }
 
@@ -121,10 +114,10 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
       const subscriptionTier = this.getSubscriptionTier(request);
 
       // Get custom rate limit from decorator or use endpoint-based config
-      const customRateLimit = this.reflector.getAllAndOverride<RateLimitRule>(
-        RATE_LIMIT_KEY,
-        [context.getHandler(), context.getClass()],
-      );
+      const customRateLimit = this.reflector.getAllAndOverride<RateLimitRule>(RATE_LIMIT_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
       let rule: RateLimitRule;
 
@@ -152,18 +145,12 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
 
       // Check rate limit using sliding window
       const windowSeconds = parseTimeWindow(rule.window);
-      const result = await this.checkSlidingWindow(
-        primaryKey,
-        rule.max,
-        windowSeconds,
-      );
+      const result = await this.checkSlidingWindow(primaryKey, rule.max, windowSeconds);
 
       if (!result.allowed) {
         const resetTime = Math.ceil(result.resetAfter / 1000);
 
-        this.logger.warn(
-          `Rate limit exceeded for ${primaryKey} - ${subscriptionTier} tier`,
-        );
+        this.logger.warn(`Rate limit exceeded for ${primaryKey} - ${subscriptionTier} tier`);
 
         // Set rate limit headers
         this.setRateLimitHeaders(response, rule.max, 0, resetTime);
@@ -178,7 +165,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
             window: rule.window,
             tier: subscriptionTier,
           },
-          HttpStatus.TOO_MANY_REQUESTS,
+          HttpStatus.TOO_MANY_REQUESTS
         );
       }
 
@@ -187,7 +174,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
         response,
         rule.max,
         result.remaining,
-        Math.ceil(result.resetAfter / 1000),
+        Math.ceil(result.resetAfter / 1000)
       );
 
       return true;
@@ -208,7 +195,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
   private async checkSlidingWindow(
     key: string,
     limit: number,
-    windowSeconds: number,
+    windowSeconds: number
   ): Promise<{
     allowed: boolean;
     remaining: number;
@@ -268,14 +255,11 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
     res: Response,
     limit: number,
     remaining: number,
-    resetAfter: number,
+    resetAfter: number
   ): void {
     res.setHeader('X-RateLimit-Limit', limit.toString());
     res.setHeader('X-RateLimit-Remaining', remaining.toString());
-    res.setHeader(
-      'X-RateLimit-Reset',
-      (Date.now() + resetAfter * 1000).toString(),
-    );
+    res.setHeader('X-RateLimit-Reset', (Date.now() + resetAfter * 1000).toString());
 
     if (remaining === 0) {
       res.setHeader('Retry-After', resetAfter.toString());
@@ -332,11 +316,7 @@ export class ComprehensiveRateLimitGuard implements CanActivate {
     const overrideHeader = req.headers['x-admin-override'];
     const overrideSecret = DDOS_PROTECTION.adminOverride.secret;
 
-    return (
-      overrideSecret &&
-      overrideHeader &&
-      overrideHeader === overrideSecret
-    );
+    return overrideSecret && overrideHeader && overrideHeader === overrideSecret;
   }
 
   /**

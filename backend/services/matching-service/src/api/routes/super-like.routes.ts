@@ -1,8 +1,13 @@
 import { Router } from 'express';
+
+import {
+  SendSuperLikeDto,
+  GetReceivedSuperLikesQueryDto,
+  GetSentSuperLikesQueryDto,
+} from '../../dto';
 import superLikeController from '../controllers/super-like.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { validateBody, validateQuery } from '../middleware/validation.middleware';
-import { SendSuperLikeDto, GetReceivedSuperLikesQueryDto, GetSentSuperLikesQueryDto } from '../../dto';
 
 const router = Router();
 
@@ -10,16 +15,28 @@ const router = Router();
 router.use(authMiddleware);
 
 // Send Super Like
-router.post('/', validateBody(SendSuperLikeDto), superLikeController.sendSuperLike.bind(superLikeController));
+router.post(
+  '/',
+  validateBody(SendSuperLikeDto),
+  superLikeController.sendSuperLike.bind(superLikeController)
+);
 
 // Get quota
 router.get('/quota', superLikeController.getQuota.bind(superLikeController));
 
 // Get received Super Likes
-router.get('/received', validateQuery(GetReceivedSuperLikesQueryDto), superLikeController.getReceived.bind(superLikeController));
+router.get(
+  '/received',
+  validateQuery(GetReceivedSuperLikesQueryDto),
+  superLikeController.getReceived.bind(superLikeController)
+);
 
 // Get sent Super Likes
-router.get('/sent', validateQuery(GetSentSuperLikesQueryDto), superLikeController.getSent.bind(superLikeController));
+router.get(
+  '/sent',
+  validateQuery(GetSentSuperLikesQueryDto),
+  superLikeController.getSent.bind(superLikeController)
+);
 
 // Get unread count
 router.get('/unread-count', superLikeController.getUnreadCount.bind(superLikeController));

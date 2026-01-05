@@ -3,6 +3,7 @@
  * Data Transfer Objects for speed dating request validation
  */
 
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsUUID,
@@ -16,7 +17,7 @@ import {
   MinLength,
   MaxLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+
 import { SpeedDatingEventStatus } from '../domain/entities/SpeedDatingEvent.entity';
 
 /**

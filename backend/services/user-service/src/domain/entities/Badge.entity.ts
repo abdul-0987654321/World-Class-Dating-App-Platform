@@ -36,12 +36,7 @@ export type BadgeCategory =
   | 'seasonal'
   | 'premium';
 
-export type BadgeRarity =
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'epic'
-  | 'legendary';
+export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export interface AwardBadgeDto {
   user_id: string;

@@ -1,12 +1,13 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   GemStoreItem,
   GemStoreItemCreateInput,
   GemStoreItemUpdateInput,
   GemStoreItemType,
 } from '../entities/GemStoreItem.entity';
-import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
 
 export class GemStoreRepository {
   /**
@@ -24,8 +25,7 @@ export class GemStoreRepository {
    * Get all store items (including inactive)
    */
   async getAllItems(): Promise<GemStoreItem[]> {
-    const items = await db('gem_store_items')
-      .orderBy('sort_order', 'asc');
+    const items = await db('gem_store_items').orderBy('sort_order', 'asc');
 
     return items.map(this.mapToEntity);
   }
@@ -76,7 +76,7 @@ export class GemStoreRepository {
     await db('gem_store_items').insert(item);
     logger.info(`Created gem store item: ${input.name}`, { id });
 
-    return this.getById(id) as Promise<GemStoreItem>;
+    return this.getById(id);
   }
 
   /**
@@ -118,11 +118,11 @@ export class GemStoreRepository {
   /**
    * Seed default store items
    */
-  async seedDefaultItems(items: Omit<GemStoreItem, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
+  async seedDefaultItems(
+    items: Omit<GemStoreItem, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<void> {
     for (const item of items) {
-      const existing = await db('gem_store_items')
-        .where({ name: item.name })
-        .first();
+      const existing = await db('gem_store_items').where({ name: item.name }).first();
 
       if (!existing) {
         await this.create({
@@ -157,7 +157,11 @@ export class GemStoreRepository {
       imageUrl: row.image_url,
       isActive: row.is_active,
       sortOrder: row.sort_order,
-      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      metadata: row.metadata
+        ? typeof row.metadata === 'string'
+          ? JSON.parse(row.metadata)
+          : row.metadata
+        : null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

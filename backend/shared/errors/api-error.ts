@@ -3,10 +3,11 @@
  * Standard error class for all API errors
  */
 
-import { ErrorCode, InternalErrorCode } from './error-codes';
-import { getHttpStatus } from './http-status-mapping';
-import { getErrorMessage } from './error-messages';
 import { v4 as uuidv4 } from 'uuid';
+
+import { ErrorCode, InternalErrorCode } from './error-codes';
+import { getErrorMessage } from './error-messages';
+import { getHttpStatus } from './http-status-mapping';
 
 /**
  * Field-level error for validation failures
@@ -104,9 +105,10 @@ export class ApiError extends Error {
     if (error instanceof Error) {
       return new ApiError({
         code: InternalErrorCode.UNHANDLED_EXCEPTION,
-        message: process.env.NODE_ENV === 'production'
-          ? getErrorMessage(InternalErrorCode.UNHANDLED_EXCEPTION)
-          : error.message,
+        message:
+          process.env.NODE_ENV === 'production'
+            ? getErrorMessage(InternalErrorCode.UNHANDLED_EXCEPTION)
+            : error.message,
         cause: error,
         correlationId,
       });
@@ -158,44 +160,52 @@ export function isApiError(error: unknown): error is ApiError {
  * Helper function to create common errors
  */
 export const Errors = {
-  notFound: (message?: string) => new ApiError({
-    code: 'RESOURCE_NOT_FOUND' as ErrorCode,
-    message,
-  }),
+  notFound: (message?: string) =>
+    new ApiError({
+      code: 'RESOURCE_NOT_FOUND' as ErrorCode,
+      message,
+    }),
 
-  unauthorized: (message?: string) => new ApiError({
-    code: 'AUTH_TOKEN_MISSING' as ErrorCode,
-    message,
-  }),
+  unauthorized: (message?: string) =>
+    new ApiError({
+      code: 'AUTH_TOKEN_MISSING' as ErrorCode,
+      message,
+    }),
 
-  forbidden: (message?: string) => new ApiError({
-    code: 'PERM_DENIED' as ErrorCode,
-    message,
-  }),
+  forbidden: (message?: string) =>
+    new ApiError({
+      code: 'PERM_DENIED' as ErrorCode,
+      message,
+    }),
 
-  badRequest: (message?: string, details?: FieldError[]) => new ApiError({
-    code: 'VALIDATION_FAILED' as ErrorCode,
-    message,
-    details,
-  }),
+  badRequest: (message?: string, details?: FieldError[]) =>
+    new ApiError({
+      code: 'VALIDATION_FAILED' as ErrorCode,
+      message,
+      details,
+    }),
 
-  conflict: (message?: string) => new ApiError({
-    code: 'RESOURCE_CONFLICT' as ErrorCode,
-    message,
-  }),
+  conflict: (message?: string) =>
+    new ApiError({
+      code: 'RESOURCE_CONFLICT' as ErrorCode,
+      message,
+    }),
 
-  tooManyRequests: (retryAfter?: number) => new ApiError({
-    code: 'RATE_LIMIT_EXCEEDED' as ErrorCode,
-    retryAfter,
-  }),
+  tooManyRequests: (retryAfter?: number) =>
+    new ApiError({
+      code: 'RATE_LIMIT_EXCEEDED' as ErrorCode,
+      retryAfter,
+    }),
 
-  internal: (cause?: Error) => new ApiError({
-    code: 'INTERNAL_ERROR' as ErrorCode,
-    cause,
-  }),
+  internal: (cause?: Error) =>
+    new ApiError({
+      code: 'INTERNAL_ERROR' as ErrorCode,
+      cause,
+    }),
 
-  paymentRequired: (message?: string) => new ApiError({
-    code: 'SUBSCRIPTION_REQUIRED' as ErrorCode,
-    message,
-  }),
+  paymentRequired: (message?: string) =>
+    new ApiError({
+      code: 'SUBSCRIPTION_REQUIRED' as ErrorCode,
+      message,
+    }),
 };

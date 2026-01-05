@@ -188,12 +188,7 @@ class SecurityLogger {
   /**
    * Log suspicious login
    */
-  logSuspiciousLogin(
-    userId: string,
-    ip: string,
-    userAgent: string,
-    indicators: any
-  ): void {
+  logSuspiciousLogin(userId: string, ip: string, userAgent: string, indicators: any): void {
     this.logSecurityEvent({
       type: SecurityEventType.SUSPICIOUS_LOGIN_DETECTED,
       severity: SecurityEventSeverity.HIGH,
@@ -221,11 +216,7 @@ class SecurityLogger {
   /**
    * Log attack attempt
    */
-  logAttackAttempt(
-    type: SecurityEventType,
-    ip: string,
-    details: any
-  ): void {
+  logAttackAttempt(type: SecurityEventType, ip: string, details: any): void {
     this.logSecurityEvent({
       type,
       severity: SecurityEventSeverity.CRITICAL,
@@ -251,12 +242,7 @@ class SecurityLogger {
   /**
    * Log malicious file upload
    */
-  logMaliciousFileUpload(
-    userId: string,
-    filename: string,
-    reason: string,
-    ip: string
-  ): void {
+  logMaliciousFileUpload(userId: string, filename: string, reason: string, ip: string): void {
     this.logSecurityEvent({
       type: SecurityEventType.MALICIOUS_FILE_UPLOAD,
       severity: SecurityEventSeverity.CRITICAL,
@@ -286,10 +272,13 @@ class SecurityLogger {
       this.alertsSent.add(key);
 
       // Reset after 1 hour
-      setTimeout(() => {
-        this.eventCounts.delete(key);
-        this.alertsSent.delete(key);
-      }, 60 * 60 * 1000);
+      setTimeout(
+        () => {
+          this.eventCounts.delete(key);
+          this.alertsSent.delete(key);
+        },
+        60 * 60 * 1000
+      );
     }
   }
 

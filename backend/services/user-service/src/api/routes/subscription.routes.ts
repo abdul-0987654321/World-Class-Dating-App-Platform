@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { SubscriptionController } from '../controllers/subscription.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';

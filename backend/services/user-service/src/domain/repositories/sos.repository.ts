@@ -1,4 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../../infrastructure/database';
+import logger from '../../utils/logger';
 import {
   SOSAlert,
   EmergencyContact,
@@ -9,8 +12,6 @@ import {
   SOSAlertStatus,
   CheckinStatus,
 } from '../entities/SOS.entity';
-import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
 
 export class SOSRepository {
   // ==================== SOS ALERTS ====================
@@ -34,7 +35,7 @@ export class SOSRepository {
 
     try {
       await db('sos_alerts').insert(alertRow);
-      return this.getAlertById(id) as Promise<SOSAlert>;
+      return this.getAlertById(id);
     } catch (error) {
       logger.error('Failed to create SOS alert:', error);
       throw error;
@@ -132,7 +133,7 @@ export class SOSRepository {
     };
 
     await db('emergency_contacts').insert(contact);
-    return this.getEmergencyContactById(id) as Promise<EmergencyContact>;
+    return this.getEmergencyContactById(id);
   }
 
   async getEmergencyContactById(contactId: string): Promise<EmergencyContact | null> {
@@ -140,9 +141,7 @@ export class SOSRepository {
   }
 
   async getUserEmergencyContacts(userId: string): Promise<EmergencyContact[]> {
-    return db('emergency_contacts')
-      .where({ user_id: userId })
-      .orderBy('created_at', 'asc');
+    return db('emergency_contacts').where({ user_id: userId }).orderBy('created_at', 'asc');
   }
 
   async getSOSNotifiableContacts(userId: string): Promise<EmergencyContact[]> {
@@ -191,7 +190,7 @@ export class SOSRepository {
     };
 
     await db('safety_checkins').insert(checkinRow);
-    return this.getCheckinById(id) as Promise<SafetyCheckin>;
+    return this.getCheckinById(id);
   }
 
   async getCheckinById(checkinId: string): Promise<SafetyCheckin | null> {
@@ -248,13 +247,11 @@ export class SOSRepository {
   }
 
   async markCheckinEscalated(checkinId: string): Promise<void> {
-    await db('safety_checkins')
-      .where({ id: checkinId })
-      .update({
-        escalated: true,
-        status: 'missed',
-        updated_at: new Date(),
-      });
+    await db('safety_checkins').where({ id: checkinId }).update({
+      escalated: true,
+      status: 'missed',
+      updated_at: new Date(),
+    });
   }
 }
 

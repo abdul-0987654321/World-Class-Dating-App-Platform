@@ -4,8 +4,9 @@
  */
 
 import { Router } from 'express';
-import { deviceController } from '../controllers/device.controller';
+
 import { requireAuth } from '../../middleware/auth';
+import { deviceController } from '../controllers/device.controller';
 
 const router = Router();
 

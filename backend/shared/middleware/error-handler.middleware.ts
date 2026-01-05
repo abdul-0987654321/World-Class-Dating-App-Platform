@@ -12,6 +12,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+
 import {
   ApiError,
   isApiError,
@@ -158,10 +159,12 @@ function getStatusCode(error: Error): number {
  * Extract correlation ID from request
  */
 function getCorrelationId(req: RequestWithCorrelationId): string {
-  return req.correlationId ||
-         (req.headers['x-correlation-id'] as string) ||
-         (req.headers['x-request-id'] as string) ||
-         'unknown';
+  return (
+    req.correlationId ||
+    (req.headers['x-correlation-id'] as string) ||
+    (req.headers['x-request-id'] as string) ||
+    'unknown'
+  );
 }
 
 /**
@@ -205,10 +208,7 @@ function logError(error: Error, payload: ErrorLogPayload): void {
 /**
  * Build the standard error response
  */
-function buildErrorResponse(
-  error: Error,
-  correlationId: string
-): StandardErrorResponse {
+function buildErrorResponse(error: Error, correlationId: string): StandardErrorResponse {
   const statusCode = getStatusCode(error);
   const errorCode = getErrorCode(error);
   const message = getSafeErrorMessage(error, statusCode);

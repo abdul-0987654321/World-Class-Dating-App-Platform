@@ -3,15 +3,27 @@
  * Handles communication with the notification service
  */
 
-import { ServiceClient } from '@flamoral/backend-shared';
-import { createLogger } from '@flamoral/backend-shared';
+import { ServiceClient, createLogger } from '@flamoral/backend-shared';
+
 import config from '../../config';
 
 const logger = createLogger('notification-service-client');
 
 interface SendNotificationDto {
   userId: string;
-  type: 'new_match' | 'new_message' | 'new_like' | 'subscription_update' | 'payment_success' | 'payment_failed' | 'profile_boost_active' | 'verification_complete' | 'match_expiring' | 'match_expired' | 'speed_dating' | 'reminder';
+  type:
+    | 'new_match'
+    | 'new_message'
+    | 'new_like'
+    | 'subscription_update'
+    | 'payment_success'
+    | 'payment_failed'
+    | 'profile_boost_active'
+    | 'verification_complete'
+    | 'match_expiring'
+    | 'match_expired'
+    | 'speed_dating'
+    | 'reminder';
   title: string;
   body: string;
   data?: Record<string, any>;
@@ -51,7 +63,7 @@ export class NotificationServiceClient {
     await this.sendNotification({
       userId,
       type: 'new_match',
-      title: 'It\'s a Match!',
+      title: "It's a Match!",
       body: 'You have a new match! Start chatting now.',
       data: {
         matchedUserId,

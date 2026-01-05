@@ -87,10 +87,7 @@ export class EngagementRepository {
   /**
    * Get engagement metrics for a date range
    */
-  async getEngagementMetrics(
-    startDate: Date,
-    endDate: Date
-  ): Promise<EngagementMetrics[]> {
+  async getEngagementMetrics(startDate: Date, endDate: Date): Promise<EngagementMetrics[]> {
     const query = `
       WITH daily_users AS (
         SELECT
@@ -121,7 +118,7 @@ export class EngagementRepository {
 
     const result = await dbClient.query(query, [startDate, endDate]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       date: row.date,
       dau: parseInt(row.dau, 10),
       wau: 0, // Will be calculated separately
@@ -135,10 +132,7 @@ export class EngagementRepository {
   /**
    * Get retention cohorts
    */
-  async getRetentionCohorts(
-    startDate: Date,
-    endDate: Date
-  ): Promise<RetentionCohort[]> {
+  async getRetentionCohorts(startDate: Date, endDate: Date): Promise<RetentionCohort[]> {
     const query = `
       WITH user_cohorts AS (
         SELECT
@@ -172,7 +166,7 @@ export class EngagementRepository {
 
     const result = await dbClient.query(query, [startDate, endDate]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       cohortDate: row.cohort_date,
       cohortSize: parseInt(row.cohort_size, 10),
       day1Retention: parseFloat(row.day_1_retention || '0'),
@@ -349,7 +343,7 @@ export class EngagementRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       userId: row.user_id,
       lastActiveAt: row.last_active_at,
       totalSessions: parseInt(row.total_sessions, 10),
@@ -368,12 +362,14 @@ export class EngagementRepository {
   async getFeatureUsage(
     startDate: Date,
     endDate: Date
-  ): Promise<{
-    feature: string;
-    totalUsers: number;
-    totalEvents: number;
-    averagePerUser: number;
-  }[]> {
+  ): Promise<
+    {
+      feature: string;
+      totalUsers: number;
+      totalEvents: number;
+      averagePerUser: number;
+    }[]
+  > {
     const query = `
       SELECT
         event_name as feature,
@@ -389,7 +385,7 @@ export class EngagementRepository {
 
     const result = await dbClient.query(query, [startDate, endDate]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       feature: row.feature,
       totalUsers: parseInt(row.total_users, 10),
       totalEvents: parseInt(row.total_events, 10),

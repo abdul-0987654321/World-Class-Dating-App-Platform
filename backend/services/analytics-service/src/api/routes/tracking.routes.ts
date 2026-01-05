@@ -6,6 +6,7 @@
  */
 
 import { Router } from 'express';
+
 import {
   trackEvent,
   trackEventBatch,

@@ -1,14 +1,5 @@
-import {
-  IsUUID,
-  IsOptional,
-  IsString,
-  IsInt,
-  IsEnum,
-  Min,
-  Max,
-  IsNotEmpty,
-} from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsUUID, IsOptional, IsString, IsInt, IsEnum, Min, Max, IsNotEmpty } from 'class-validator';
 
 /**
  * Enum for insight time periods.

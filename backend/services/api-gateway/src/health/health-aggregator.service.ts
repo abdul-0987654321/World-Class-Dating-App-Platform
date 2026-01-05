@@ -118,13 +118,13 @@ export class HealthAggregatorService {
     const now = Date.now();
 
     // Return cached result if still valid
-    if (useCache && this.healthCache && (now - this.lastCheck) < this.cacheTTL) {
+    if (useCache && this.healthCache && now - this.lastCheck < this.cacheTTL) {
       return this.healthCache;
     }
 
     // Check all services in parallel
     const healthChecks = await Promise.allSettled(
-      this.services.map(service => this.checkServiceHealth(service))
+      this.services.map((service) => this.checkServiceHealth(service))
     );
 
     const services: ServiceHealth[] = healthChecks.map((result, index) => {
@@ -143,9 +143,9 @@ export class HealthAggregatorService {
     // Calculate summary
     const summary = {
       total: services.length,
-      healthy: services.filter(s => s.status === 'healthy').length,
-      degraded: services.filter(s => s.status === 'degraded').length,
-      unhealthy: services.filter(s => s.status === 'unhealthy').length,
+      healthy: services.filter((s) => s.status === 'healthy').length,
+      degraded: services.filter((s) => s.status === 'degraded').length,
+      unhealthy: services.filter((s) => s.status === 'unhealthy').length,
     };
 
     // Determine overall status
@@ -184,10 +184,9 @@ export class HealthAggregatorService {
     const startTime = Date.now();
 
     try {
-      const response = await this.httpClient.get(
-        `${service.url}${service.healthPath}`,
-        { timeout: service.timeout }
-      );
+      const response = await this.httpClient.get(`${service.url}${service.healthPath}`, {
+        timeout: service.timeout,
+      });
 
       const responseTime = Date.now() - startTime;
 
@@ -223,7 +222,7 @@ export class HealthAggregatorService {
    * Get health status of a specific service
    */
   async getServiceHealth(serviceName: string): Promise<ServiceHealth | null> {
-    const service = this.services.find(s => s.name === serviceName);
+    const service = this.services.find((s) => s.name === serviceName);
 
     if (!service) {
       return null;
@@ -239,8 +238,8 @@ export class HealthAggregatorService {
     const criticalServices = ['auth-service', 'user-service', 'api-gateway'];
     const health = await this.getAggregatedHealth();
 
-    return criticalServices.every(serviceName => {
-      const service = health.services.find(s => s.name === serviceName);
+    return criticalServices.every((serviceName) => {
+      const service = health.services.find((s) => s.name === serviceName);
       return service && service.status !== 'unhealthy';
     });
   }

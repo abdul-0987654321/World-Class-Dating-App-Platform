@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
+import { Request, Response, NextFunction } from 'express';
+
 import logger from '../../utils/logger';
 
 /**
@@ -83,12 +85,12 @@ export function csrfProtection(options: CsrfOptions = {}) {
         }
 
         // Skip validation for excluded paths
-        if (excludePaths.some(path => req.path.startsWith(path))) {
+        if (excludePaths.some((path) => req.path.startsWith(path))) {
           return next();
         }
 
         // Get token from header or body
-        const token = req.headers[headerName] as string || req.body?._csrf;
+        const token = (req.headers[headerName] as string) || req.body?._csrf;
 
         if (!token) {
           logger.warn('CSRF token missing from request');

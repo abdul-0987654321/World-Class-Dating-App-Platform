@@ -22,25 +22,13 @@ export type VerificationStatus =
   | 'expired';
 
 // Artifact processing status
-export type ArtifactProcessingStatus =
-  | 'pending'
-  | 'processing'
-  | 'completed'
-  | 'failed';
+export type ArtifactProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 // Verification result decision
-export type VerificationDecision =
-  | 'approved'
-  | 'denied'
-  | 'needs_review'
-  | 'inconclusive';
+export type VerificationDecision = 'approved' | 'denied' | 'needs_review' | 'inconclusive';
 
 // DLQ status
-export type DlqStatus =
-  | 'pending'
-  | 'retrying'
-  | 'resolved'
-  | 'abandoned';
+export type DlqStatus = 'pending' | 'retrying' | 'resolved' | 'abandoned';
 
 // Region policy keys for biometric consent states
 export type BiometricConsentRegion = 'US-IL' | 'US-TX' | 'US-WA';
@@ -198,12 +186,12 @@ export interface UploadArtifactResponse {
  * State machine transitions
  */
 export const VALID_STATUS_TRANSITIONS: Record<VerificationStatus, VerificationStatus[]> = {
-  'not_started': ['pending'],
-  'pending': ['in_review', 'expired'],
-  'in_review': ['approved', 'denied', 'pending'], // Can go back to pending for retry
-  'approved': [], // Terminal state
-  'denied': ['not_started'], // Can restart verification
-  'expired': ['not_started'], // Can restart verification
+  not_started: ['pending'],
+  pending: ['in_review', 'expired'],
+  in_review: ['approved', 'denied', 'pending'], // Can go back to pending for retry
+  approved: [], // Terminal state
+  denied: ['not_started'], // Can restart verification
+  expired: ['not_started'], // Can restart verification
 };
 
 /**
@@ -301,7 +289,7 @@ export const VERIFICATION_TYPE_CONFIGS: Record<VerificationType, VerificationTyp
     expires_after_hours: 72,
     max_retries: 3,
     requires_biometric_consent: true,
-    auto_approve_threshold: 0.90,
+    auto_approve_threshold: 0.9,
   },
   liveness: {
     type: 'liveness',

@@ -1,5 +1,6 @@
-import knex, { Knex } from 'knex';
 import { createLogger } from '@flamoral/backend-shared';
+import knex, { Knex } from 'knex';
+
 import config from '../../config';
 
 const logger = createLogger('automation-service:database');
@@ -39,14 +40,10 @@ export async function initializeDatabase(): Promise<void> {
     logger.info('PostgreSQL connection established');
 
     // Import table creation scripts
-    const {
-      createAutomationFlowsTable,
-      createFlowExecutionsTable,
-    } = await import('../../models/automation-flow.model');
+    const { createAutomationFlowsTable, createFlowExecutionsTable } =
+      await import('../../models/automation-flow.model');
 
-    const {
-      createIcebreakerSuggestionsTable,
-    } = await import('../../models/icebreaker.model');
+    const { createIcebreakerSuggestionsTable } = await import('../../models/icebreaker.model');
 
     const {
       createScheduledMessagesTable,

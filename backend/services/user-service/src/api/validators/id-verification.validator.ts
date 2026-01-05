@@ -12,16 +12,15 @@ import { z } from 'zod';
  */
 export const initiateVerificationSchema = z.object({
   document_type: z.enum(['passport', 'drivers_license', 'national_id'], {
-    errorMap: () => ({ message: 'document_type must be one of: passport, drivers_license, national_id' }),
+    errorMap: () => ({
+      message: 'document_type must be one of: passport, drivers_license, national_id',
+    }),
   }),
   country_code: z
     .string()
     .length(3, 'country_code must be exactly 3 characters (ISO 3166-1 alpha-3)')
     .regex(/^[A-Z]{3}$/, 'country_code must be 3 uppercase letters (ISO 3166-1 alpha-3)'),
-  redirect_url: z
-    .string()
-    .url('redirect_url must be a valid URL')
-    .optional(),
+  redirect_url: z.string().url('redirect_url must be a valid URL').optional(),
   locale: z
     .string()
     .min(2)
@@ -71,7 +70,7 @@ export function validateInitiateVerification(data: unknown): {
   }
   return {
     success: false,
-    error: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+    error: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
   };
 }
 
@@ -89,7 +88,7 @@ export function validateWebhookProvider(data: unknown): {
   }
   return {
     success: false,
-    error: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+    error: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
   };
 }
 
@@ -107,7 +106,7 @@ export function validateVerificationStatusQuery(data: unknown): {
   }
   return {
     success: false,
-    error: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+    error: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
   };
 }
 

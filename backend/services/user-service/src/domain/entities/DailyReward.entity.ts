@@ -136,7 +136,10 @@ export function calculateHoursUntilNextClaim(lastClaimDate: Date | null): number
   nextClaimDate.setDate(nextClaimDate.getDate() + 1);
   nextClaimDate.setHours(0, 0, 0, 0);
 
-  const hoursUntil = Math.max(0, Math.ceil((nextClaimDate.getTime() - now.getTime()) / (1000 * 60 * 60)));
+  const hoursUntil = Math.max(
+    0,
+    Math.ceil((nextClaimDate.getTime() - now.getTime()) / (1000 * 60 * 60))
+  );
   return hoursUntil;
 }
 

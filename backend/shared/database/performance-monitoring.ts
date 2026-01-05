@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import createLogger from '../utils/logger';
 
 const logger = createLogger('db-performance-monitor');
@@ -179,7 +180,7 @@ export class DatabasePerformanceMonitor {
  * Get connection pool statistics
  */
 export async function getPoolStats(knex: Knex): Promise<PoolMetrics> {
-  const pool = (knex.client as any).pool;
+  const pool = knex.client.pool;
 
   return {
     numUsed: pool.numUsed(),
@@ -267,7 +268,10 @@ export async function getIndexUsageStats(knex: Knex): Promise<IndexUsageStats[]>
 /**
  * Get unused indexes (candidates for removal)
  */
-export async function getUnusedIndexes(knex: Knex, minSizeMB: number = 1): Promise<IndexUsageStats[]> {
+export async function getUnusedIndexes(
+  knex: Knex,
+  minSizeMB: number = 1
+): Promise<IndexUsageStats[]> {
   try {
     // Validate that minSizeMB is a valid positive number
     if (typeof minSizeMB !== 'number' || minSizeMB < 0 || !isFinite(minSizeMB)) {
@@ -276,7 +280,8 @@ export async function getUnusedIndexes(knex: Knex, minSizeMB: number = 1): Promi
     }
 
     const minSizeBytes = minSizeMB * 1024 * 1024;
-    const stats = await knex.raw(`
+    const stats = await knex.raw(
+      `
       SELECT
         schemaname AS schema_name,
         tablename AS table_name,
@@ -289,7 +294,9 @@ export async function getUnusedIndexes(knex: Knex, minSizeMB: number = 1): Promi
         AND indexrelname NOT LIKE '%_pkey'
         AND pg_relation_size(indexrelid) > ?
       ORDER BY pg_relation_size(indexrelid) DESC;
-    `, [minSizeBytes]);
+    `,
+      [minSizeBytes]
+    );
 
     return stats.rows.map((row: any) => ({
       schemaName: row.schema_name,
@@ -385,15 +392,23 @@ export async function getActiveQueries(knex: Knex): Promise<any[]> {
 /**
  * Get long-running queries
  */
-export async function getLongRunningQueries(knex: Knex, minDurationSeconds: number = 5): Promise<any[]> {
+export async function getLongRunningQueries(
+  knex: Knex,
+  minDurationSeconds: number = 5
+): Promise<any[]> {
   try {
     // Validate that minDurationSeconds is a valid positive number
-    if (typeof minDurationSeconds !== 'number' || minDurationSeconds < 0 || !isFinite(minDurationSeconds)) {
+    if (
+      typeof minDurationSeconds !== 'number' ||
+      minDurationSeconds < 0 ||
+      !isFinite(minDurationSeconds)
+    ) {
       logger.error(`Invalid minDurationSeconds provided: ${minDurationSeconds}`);
       return [];
     }
 
-    const queries = await knex.raw(`
+    const queries = await knex.raw(
+      `
       SELECT
         pid,
         usename AS username,
@@ -407,7 +422,9 @@ export async function getLongRunningQueries(knex: Knex, minDurationSeconds: numb
         AND pid != pg_backend_pid()
         AND EXTRACT(EPOCH FROM (now() - query_start)) > ?
       ORDER BY query_start ASC;
-    `, [minDurationSeconds]);
+    `,
+      [minDurationSeconds]
+    );
 
     return queries.rows;
   } catch (error) {

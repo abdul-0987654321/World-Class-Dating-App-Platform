@@ -9,7 +9,19 @@
  */
 
 import * as crypto from 'crypto';
-import logger from '../../utils/logger';
+
+import {
+  IBackgroundCheckProvider,
+  BackgroundCheckTier,
+  BackgroundCheckResult,
+  BackgroundCheckStatus,
+  WatchlistResult,
+  WatchlistDetails,
+  WatchlistMatch,
+  BackgroundFlag,
+  CheckType,
+  BACKGROUND_CHECK_TIER_CONFIG,
+} from '../../types/background-check.types';
 import {
   IIDVerificationProvider,
   VerificationProvider,
@@ -24,18 +36,7 @@ import {
   DocumentDetails,
   ExtractedIDData,
 } from '../../types/id-verification-provider.types';
-import {
-  IBackgroundCheckProvider,
-  BackgroundCheckTier,
-  BackgroundCheckResult,
-  BackgroundCheckStatus,
-  WatchlistResult,
-  WatchlistDetails,
-  WatchlistMatch,
-  BackgroundFlag,
-  CheckType,
-  BACKGROUND_CHECK_TIER_CONFIG,
-} from '../../types/background-check.types';
+import logger from '../../utils/logger';
 
 // Jumio API response types
 interface JumioWorkflowResponse {
@@ -220,7 +221,9 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
   /**
    * Initiate an ID verification session with Jumio
    */
-  async initiateVerification(request: InitiateIDVerificationRequest): Promise<InitiateIDVerificationResponse> {
+  async initiateVerification(
+    request: InitiateIDVerificationRequest
+  ): Promise<InitiateIDVerificationResponse> {
     try {
       const workflowId = this.config.workflow_id || '10011'; // Default: ID verification with selfie
       const customerInternalReference = `flamoral_${request.user_id}_${Date.now()}`;
@@ -291,10 +294,14 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
   /**
    * Process webhook callback from Jumio
    */
-  async processWebhook(payload: Record<string, any>, headers: Record<string, string>): Promise<IDVerificationResult> {
+  async processWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<IDVerificationResult> {
     const callback = payload as JumioCallbackPayload;
     const verificationId = callback.workflowExecution.id;
-    const userId = callback.userReference || callback.customerInternalReference?.split('_')[1] || '';
+    const userId =
+      callback.userReference || callback.customerInternalReference?.split('_')[1] || '';
 
     logger.info('Processing Jumio webhook', {
       verificationId,
@@ -309,32 +316,38 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
 
     // Extract document details
     const extractionData = callback.capabilities?.extraction?.data;
-    const documentDetails: DocumentDetails | undefined = extractionData ? {
-      document_number: extractionData.documentNumber,
-      issuing_country: extractionData.issuingCountry,
-      issue_date: extractionData.issuingDate,
-      expiry_date: extractionData.expiryDate,
-      mrz_line1: extractionData.mrzLine1,
-      mrz_line2: extractionData.mrzLine2,
-      mrz_line3: extractionData.mrzLine3,
-    } : undefined;
+    const documentDetails: DocumentDetails | undefined = extractionData
+      ? {
+          document_number: extractionData.documentNumber,
+          issuing_country: extractionData.issuingCountry,
+          issue_date: extractionData.issuingDate,
+          expiry_date: extractionData.expiryDate,
+          mrz_line1: extractionData.mrzLine1,
+          mrz_line2: extractionData.mrzLine2,
+          mrz_line3: extractionData.mrzLine3,
+        }
+      : undefined;
 
     // Extract personal data
-    const extractedData: ExtractedIDData | undefined = extractionData ? {
-      first_name: extractionData.firstName,
-      last_name: extractionData.lastName,
-      date_of_birth: extractionData.dateOfBirth,
-      gender: extractionData.gender,
-      nationality: extractionData.nationality,
-      address: extractionData.address ? {
-        line1: extractionData.address.line1,
-        line2: extractionData.address.line2,
-        city: extractionData.address.city,
-        state: extractionData.address.subdivision,
-        postal_code: extractionData.address.postalCode,
-        country: extractionData.address.country,
-      } : undefined,
-    } : undefined;
+    const extractedData: ExtractedIDData | undefined = extractionData
+      ? {
+          first_name: extractionData.firstName,
+          last_name: extractionData.lastName,
+          date_of_birth: extractionData.dateOfBirth,
+          gender: extractionData.gender,
+          nationality: extractionData.nationality,
+          address: extractionData.address
+            ? {
+                line1: extractionData.address.line1,
+                line2: extractionData.address.line2,
+                city: extractionData.address.city,
+                state: extractionData.address.subdivision,
+                postal_code: extractionData.address.postalCode,
+                country: extractionData.address.country,
+              }
+            : undefined,
+        }
+      : undefined;
 
     // Gather decline reasons and warnings
     const declineReasons: string[] = [];
@@ -412,10 +425,7 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
         .update(payload)
         .digest('hex');
 
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature)
-      );
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
     } catch (error) {
       logger.error('Jumio webhook signature validation failed', { error });
       return false;
@@ -433,12 +443,14 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
     const url = `${this.config.base_url}${path}`;
 
     // Create Basic Auth header
-    const authString = Buffer.from(`${this.config.api_key}:${this.config.api_secret}`).toString('base64');
+    const authString = Buffer.from(`${this.config.api_key}:${this.config.api_secret}`).toString(
+      'base64'
+    );
 
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${authString}`,
+      Authorization: `Basic ${authString}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'User-Agent': 'Flamoral/1.0',
     };
 
@@ -468,7 +480,7 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
         throw error;
       }
 
-      return await response.json() as T;
+      return (await response.json()) as T;
     } catch (error: any) {
       if (error.code) {
         throw error;
@@ -496,9 +508,9 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
     if (!jumioType) return 'passport';
 
     const mapping: Record<string, IDDocumentType> = {
-      'PASSPORT': 'passport',
-      'DRIVING_LICENSE': 'drivers_license',
-      'ID_CARD': 'national_id',
+      PASSPORT: 'passport',
+      DRIVING_LICENSE: 'drivers_license',
+      ID_CARD: 'national_id',
     };
     return mapping[jumioType.toUpperCase()] || 'passport';
   }
@@ -508,10 +520,10 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
    */
   private mapDecisionToStatus(decision: string): IDVerificationStatus {
     const mapping: Record<string, IDVerificationStatus> = {
-      'PASSED': 'approved',
-      'REJECTED': 'declined',
-      'NOT_EXECUTED': 'pending',
-      'WARNING': 'approved', // Approved with warnings
+      PASSED: 'approved',
+      REJECTED: 'declined',
+      NOT_EXECUTED: 'pending',
+      WARNING: 'approved', // Approved with warnings
     };
     return mapping[decision] || 'processing';
   }
@@ -577,8 +589,8 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
 
     if (checks.length === 0) return 0;
 
-    const passedChecks = checks.filter(c => c === 'PASSED').length;
-    const warningChecks = checks.filter(c => c === 'WARNING').length;
+    const passedChecks = checks.filter((c) => c === 'PASSED').length;
+    const warningChecks = checks.filter((c) => c === 'WARNING').length;
 
     // PASSED = 1.0, WARNING = 0.7, REJECTED = 0
     return (passedChecks * 1.0 + warningChecks * 0.7) / checks.length;
@@ -698,7 +710,8 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
     const status = this.mapDecisionToBackgroundStatus(callback.decision.type);
 
     // Extract screening results
-    const screeningData = callback.capabilities?.screening || callback.capabilities?.watchlistScreening;
+    const screeningData =
+      callback.capabilities?.screening || callback.capabilities?.watchlistScreening;
     const watchlistResult = this.mapScreeningToWatchlistResult(screeningData);
     const watchlistDetails = this.extractJumioWatchlistDetails(screeningData);
 
@@ -742,7 +755,14 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
       case 'standard':
         return ['extraction', 'liveness', 'screening', 'dataChecks', 'similarity'];
       case 'comprehensive':
-        return ['extraction', 'liveness', 'screening', 'dataChecks', 'similarity', 'watchlistScreening'];
+        return [
+          'extraction',
+          'liveness',
+          'screening',
+          'dataChecks',
+          'similarity',
+          'watchlistScreening',
+        ];
       default:
         return ['extraction', 'liveness', 'screening'];
     }
@@ -824,10 +844,10 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
    */
   private mapDecisionToBackgroundStatus(decision: string): BackgroundCheckStatus {
     const mapping: Record<string, BackgroundCheckStatus> = {
-      'PASSED': 'clear',
-      'REJECTED': 'flagged',
-      'NOT_EXECUTED': 'pending',
-      'WARNING': 'consider',
+      PASSED: 'clear',
+      REJECTED: 'flagged',
+      NOT_EXECUTED: 'pending',
+      WARNING: 'consider',
     };
     return mapping[decision] || 'processing';
   }
@@ -871,7 +891,7 @@ export class JumioProvider implements IIDVerificationProvider, IBackgroundCheckP
       screened_lists: listsSearched,
       potential_matches: matches,
       match_count: matches.length,
-      high_risk_matches: matches.filter(m => m.match_score >= 0.8).length,
+      high_risk_matches: matches.filter((m) => m.match_score >= 0.8).length,
     };
   }
 

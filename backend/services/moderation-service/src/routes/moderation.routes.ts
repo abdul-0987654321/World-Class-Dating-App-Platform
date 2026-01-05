@@ -1,15 +1,16 @@
 import { Router, Request, Response } from 'express';
-import moderationService from '../services/moderation.service';
-import { ModerateImageRequest, ModerateTextRequest } from '../types';
-import { createLogger } from '../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
+
+import db from '../infrastructure/database/connection';
 import {
   authenticateJWT,
   requireModerator,
   requireAdmin,
   AuthenticatedRequest,
 } from '../middleware/auth.middleware';
-import db from '../infrastructure/database/connection';
-import { v4 as uuidv4 } from 'uuid';
+import moderationService from '../services/moderation.service';
+import { ModerateImageRequest, ModerateTextRequest } from '../types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('moderation-routes');
 const router = Router();

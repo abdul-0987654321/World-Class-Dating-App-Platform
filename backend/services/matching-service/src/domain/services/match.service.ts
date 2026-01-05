@@ -3,10 +3,11 @@
  * Handles match lifecycle including expiration logic
  */
 
-import matchRepository from '../repositories/match.repository';
-import { Match } from '../entities/Match.entity';
 import { createLogger } from '@flamoral/backend-shared';
+
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import { Match } from '../entities/Match.entity';
+import matchRepository from '../repositories/match.repository';
 
 const logger = createLogger('match-service');
 
@@ -195,9 +196,8 @@ export class MatchService {
       logger.info(`Found ${matchesExpiringSoon.length} matches expiring in ${hours} hours`);
 
       for (const match of matchesExpiringSoon) {
-        const warningMessage = hours === 6
-          ? 'Your match expires in 6 hours!'
-          : 'Last chance! Match expires in 1 hour';
+        const warningMessage =
+          hours === 6 ? 'Your match expires in 6 hours!' : 'Last chance! Match expires in 1 hour';
 
         // Send warnings to both users
         await Promise.allSettled([

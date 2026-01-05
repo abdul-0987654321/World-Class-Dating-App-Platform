@@ -1,7 +1,8 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
 import db from '../../infrastructure/database/connection';
 import { VideoMetadata, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('video-repository');
 
@@ -67,7 +68,7 @@ export class VideoRepository {
 
   async update(id: string, updates: Partial<VideoMetadata>): Promise<VideoMetadata | null> {
     try {
-      const updateData: any = {updated_at: new Date()};
+      const updateData: any = { updated_at: new Date() };
 
       if (updates.moderationStatus !== undefined) {
         updateData.moderation_status = updates.moderationStatus;
@@ -76,10 +77,7 @@ export class VideoRepository {
         updateData.moderation_result = JSON.stringify(updates.moderationResult);
       }
 
-      const [updated] = await this.db('videos')
-        .where({ id })
-        .update(updateData)
-        .returning('*');
+      const [updated] = await this.db('videos').where({ id }).update(updateData).returning('*');
 
       return updated ? this.mapToVideoMetadata(updated) : null;
     } catch (error) {
@@ -108,15 +106,16 @@ export class VideoRepository {
       size: record.size,
       duration: record.duration,
       urls: typeof record.urls === 'string' ? JSON.parse(record.urls) : record.urls,
-      dimensions: typeof record.dimensions === 'string' ? JSON.parse(record.dimensions) : record.dimensions,
+      dimensions:
+        typeof record.dimensions === 'string' ? JSON.parse(record.dimensions) : record.dimensions,
       codec: record.codec,
       bitrate: record.bitrate,
       frameRate: record.frame_rate,
       moderationStatus: record.moderation_status,
       moderationResult: record.moderation_result
-        ? (typeof record.moderation_result === 'string'
+        ? typeof record.moderation_result === 'string'
           ? JSON.parse(record.moderation_result)
-          : record.moderation_result)
+          : record.moderation_result
         : undefined,
       uploadedAt: new Date(record.uploaded_at),
       updatedAt: new Date(record.updated_at),

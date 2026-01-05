@@ -4,19 +4,16 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('deletion_requests', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
-    table.enum('status', [
-      'pending',
-      'scheduled',
-      'processing',
-      'completed',
-      'failed',
-      'cancelled',
-    ]).defaultTo('pending');
-    table.enum('deletion_type', [
-      'soft_delete', // Mark as deleted but retain data for legal period
-      'hard_delete', // Permanent deletion
-      'anonymize', // Anonymize but keep statistical data
-    ]).defaultTo('soft_delete');
+    table
+      .enum('status', ['pending', 'scheduled', 'processing', 'completed', 'failed', 'cancelled'])
+      .defaultTo('pending');
+    table
+      .enum('deletion_type', [
+        'soft_delete', // Mark as deleted but retain data for legal period
+        'hard_delete', // Permanent deletion
+        'anonymize', // Anonymize but keep statistical data
+      ])
+      .defaultTo('soft_delete');
     table.timestamp('requested_at').defaultTo(knex.fn.now());
     table.timestamp('scheduled_for'); // When the deletion will occur (grace period)
     table.timestamp('completed_at');

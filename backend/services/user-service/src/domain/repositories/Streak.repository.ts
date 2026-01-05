@@ -1,5 +1,11 @@
 import { Knex } from 'knex';
-import { UserStreak, StreakMilestone, UserStreakMilestone, StreakType } from '../entities/Streak.entity';
+
+import {
+  UserStreak,
+  StreakMilestone,
+  UserStreakMilestone,
+  StreakType,
+} from '../entities/Streak.entity';
 
 export class StreakRepository {
   constructor(private db: Knex) {}

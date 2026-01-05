@@ -9,7 +9,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('sos_notification_logs', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('alert_id').notNullable().references('id').inTable('sos_alerts').onDelete('CASCADE');
-    table.uuid('contact_id').notNullable().references('id').inTable('emergency_contacts').onDelete('CASCADE');
+    table
+      .uuid('contact_id')
+      .notNullable()
+      .references('id')
+      .inTable('emergency_contacts')
+      .onDelete('CASCADE');
     table.string('contact_name', 100).notNullable();
     table.string('contact_phone', 20).nullable();
     table.string('contact_email', 255).nullable();
@@ -54,7 +59,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('support_email_sent_to', 255).nullable();
     table.uuid('assigned_to').nullable(); // Staff member assigned
     table.text('notes').nullable();
-    table.enum('resolution_status', ['pending', 'reviewing', 'resolved', 'false_alarm']).defaultTo('pending');
+    table
+      .enum('resolution_status', ['pending', 'reviewing', 'resolved', 'false_alarm'])
+      .defaultTo('pending');
     table.timestamp('resolved_at').nullable();
     table.text('resolution_notes').nullable();
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());

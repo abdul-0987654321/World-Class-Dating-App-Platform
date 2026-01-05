@@ -1,10 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import awsRekognitionService from './aws-rekognition.service';
-import azureContentModeratorService from './azure-content-moderator.service';
-import db from '../infrastructure/database/connection';
+
 import config from '../config';
-import { createLogger } from '../utils/logger';
 import notificationClient from '../infrastructure/clients/notification-service.client';
+import db from '../infrastructure/database/connection';
 import {
   ModerationResult,
   ModerationStatus,
@@ -19,6 +17,10 @@ import {
   ModerationQueueItem,
   UserModerationStatus,
 } from '../types';
+import { createLogger } from '../utils/logger';
+
+import awsRekognitionService from './aws-rekognition.service';
+import azureContentModeratorService from './azure-content-moderator.service';
 
 const logger = createLogger('moderation-service');
 
@@ -343,7 +345,9 @@ export class ModerationService {
       const suspensionDays = this.calculateSuspensionDays(record.suspension_count || 0);
       updates.status = UserModerationStatus.SUSPENDED;
       updates.suspension_count = (record.suspension_count || 0) + 1;
-      updates.current_suspension_ends_at = new Date(Date.now() + suspensionDays * 24 * 60 * 60 * 1000);
+      updates.current_suspension_ends_at = new Date(
+        Date.now() + suspensionDays * 24 * 60 * 60 * 1000
+      );
       // Send suspension notification
       await this.notifyUserSuspended(
         userId,
@@ -412,7 +416,7 @@ export class ModerationService {
   ): 'low' | 'medium' | 'high' | 'urgent' {
     if (this.hasCriticalViolations(violations)) return 'urgent';
     if (riskScore >= 0.85) return 'high';
-    if (riskScore >= 0.70) return 'medium';
+    if (riskScore >= 0.7) return 'medium';
     return 'low';
   }
 
@@ -462,13 +466,11 @@ export class ModerationService {
       record.currentSuspensionEndsAt &&
       new Date(record.currentSuspensionEndsAt) <= new Date()
     ) {
-      await db('user_moderation_records')
-        .where('user_id', userId)
-        .update({
-          status: UserModerationStatus.ACTIVE,
-          current_suspension_ends_at: null,
-          updated_at: new Date(),
-        });
+      await db('user_moderation_records').where('user_id', userId).update({
+        status: UserModerationStatus.ACTIVE,
+        current_suspension_ends_at: null,
+        updated_at: new Date(),
+      });
       return { restricted: false };
     }
 
@@ -533,17 +535,15 @@ export class ModerationService {
   async adminUnsuspendUser(userId: string, adminId: string, reason: string): Promise<void> {
     logger.info(`Admin ${adminId} unsuspending user ${userId}`);
 
-    await db('user_moderation_records')
-      .where('user_id', userId)
-      .update({
-        status: UserModerationStatus.ACTIVE,
-        current_suspension_ends_at: null,
-        last_admin_action: 'manual_unsuspension',
-        last_admin_action_by: adminId,
-        last_admin_action_at: new Date(),
-        last_admin_action_reason: reason,
-        updated_at: new Date(),
-      });
+    await db('user_moderation_records').where('user_id', userId).update({
+      status: UserModerationStatus.ACTIVE,
+      current_suspension_ends_at: null,
+      last_admin_action: 'manual_unsuspension',
+      last_admin_action_by: adminId,
+      last_admin_action_at: new Date(),
+      last_admin_action_reason: reason,
+      updated_at: new Date(),
+    });
 
     logger.info(`User ${userId} unsuspended by admin`);
 
@@ -575,19 +575,17 @@ export class ModerationService {
       await db('user_moderation_records').insert(record);
     }
 
-    await db('user_moderation_records')
-      .where('user_id', userId)
-      .update({
-        status: UserModerationStatus.BANNED,
-        permanently_banned: true,
-        banned_at: new Date(),
-        banned_reason: reason,
-        last_admin_action: 'manual_ban',
-        last_admin_action_by: adminId,
-        last_admin_action_at: new Date(),
-        last_admin_action_reason: reason,
-        updated_at: new Date(),
-      });
+    await db('user_moderation_records').where('user_id', userId).update({
+      status: UserModerationStatus.BANNED,
+      permanently_banned: true,
+      banned_at: new Date(),
+      banned_reason: reason,
+      last_admin_action: 'manual_ban',
+      last_admin_action_by: adminId,
+      last_admin_action_at: new Date(),
+      last_admin_action_reason: reason,
+      updated_at: new Date(),
+    });
 
     logger.info(`User ${userId} permanently banned`);
 
@@ -601,19 +599,17 @@ export class ModerationService {
   async adminUnbanUser(userId: string, adminId: string, reason: string): Promise<void> {
     logger.info(`Admin ${adminId} unbanning user ${userId}`);
 
-    await db('user_moderation_records')
-      .where('user_id', userId)
-      .update({
-        status: UserModerationStatus.ACTIVE,
-        permanently_banned: false,
-        banned_at: null,
-        banned_reason: null,
-        last_admin_action: 'manual_unban',
-        last_admin_action_by: adminId,
-        last_admin_action_at: new Date(),
-        last_admin_action_reason: reason,
-        updated_at: new Date(),
-      });
+    await db('user_moderation_records').where('user_id', userId).update({
+      status: UserModerationStatus.ACTIVE,
+      permanently_banned: false,
+      banned_at: null,
+      banned_reason: null,
+      last_admin_action: 'manual_unban',
+      last_admin_action_by: adminId,
+      last_admin_action_at: new Date(),
+      last_admin_action_reason: reason,
+      updated_at: new Date(),
+    });
 
     logger.info(`User ${userId} unbanned by admin`);
 

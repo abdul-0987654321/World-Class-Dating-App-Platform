@@ -1,6 +1,6 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('auth-middleware');
 

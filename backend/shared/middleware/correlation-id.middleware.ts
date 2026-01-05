@@ -21,11 +21,7 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Header names for correlation ID (in order of preference)
  */
-export const CORRELATION_ID_HEADERS = [
-  'x-correlation-id',
-  'x-request-id',
-  'x-trace-id',
-] as const;
+export const CORRELATION_ID_HEADERS = ['x-correlation-id', 'x-request-id', 'x-trace-id'] as const;
 
 /**
  * Response header name for correlation ID
@@ -92,11 +88,7 @@ function isValidCorrelationId(id: string): boolean {
  * });
  * ```
  */
-export function correlationIdMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Try to extract existing correlation ID from headers
   let correlationId = extractCorrelationId(req);
 
@@ -160,11 +152,7 @@ export function createCorrelationHeaders(req: Request): Record<string, string> {
  * Use for internal service-to-service communication
  * Rejects requests without a valid correlation ID
  */
-export function requireCorrelationId(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function requireCorrelationId(req: Request, res: Response, next: NextFunction): void {
   const existingId = extractCorrelationId(req);
 
   if (!existingId || !isValidCorrelationId(existingId)) {

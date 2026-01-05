@@ -4,9 +4,10 @@
  */
 
 import { Router, Response } from 'express';
-import { AuthRequest, authMiddleware } from '../middleware/auth.middleware';
+
 import { enhancedBlockService } from '../../services/enhanced-block.service';
 import logger from '../../utils/logger';
+import { AuthRequest, authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 

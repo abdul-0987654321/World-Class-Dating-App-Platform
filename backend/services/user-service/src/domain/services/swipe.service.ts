@@ -1,6 +1,6 @@
-import { SwipeRepository } from '../repositories/swipe.repository';
-import { MatchRepository } from '../repositories/match.repository';
 import { SwipeAction, SwipeResponse } from '../entities/Swipe.entity';
+import { MatchRepository } from '../repositories/match.repository';
+import { SwipeRepository } from '../repositories/swipe.repository';
 
 /**
  * SECURITY: Server-side tier enforcement for swipe limits
@@ -60,10 +60,7 @@ export class SwipeService {
   private swipeRepository: SwipeRepository;
   private matchRepository: MatchRepository;
 
-  constructor(
-    swipeRepository?: SwipeRepository,
-    matchRepository?: MatchRepository
-  ) {
+  constructor(swipeRepository?: SwipeRepository, matchRepository?: MatchRepository) {
     this.swipeRepository = swipeRepository || new SwipeRepository();
     this.matchRepository = matchRepository || new MatchRepository();
   }
@@ -100,7 +97,9 @@ export class SwipeService {
     if (action === 'like' && limits.dailyLikes !== -1) {
       const likesToday = await this.swipeRepository.countLikesToday(swiperId);
       if (likesToday >= limits.dailyLikes) {
-        throw new Error(`Daily like limit of ${limits.dailyLikes} reached. Upgrade your subscription for more likes.`);
+        throw new Error(
+          `Daily like limit of ${limits.dailyLikes} reached. Upgrade your subscription for more likes.`
+        );
       }
     }
 
@@ -108,7 +107,9 @@ export class SwipeService {
     if (action === 'super_like' && limits.dailySuperLikes !== -1) {
       const superLikesToday = await this.swipeRepository.countSuperLikesToday(swiperId);
       if (superLikesToday >= limits.dailySuperLikes) {
-        throw new Error(`Daily super-like limit of ${limits.dailySuperLikes} reached. Upgrade your subscription for more super-likes.`);
+        throw new Error(
+          `Daily super-like limit of ${limits.dailySuperLikes} reached. Upgrade your subscription for more super-likes.`
+        );
       }
     }
 
@@ -124,7 +125,10 @@ export class SwipeService {
     if (action === 'like' || action === 'super_like') {
       const reverseSwipe = await this.swipeRepository.findReverseSwipe(swiperId, swipedId);
 
-      if (reverseSwipe && (reverseSwipe.action === 'like' || reverseSwipe.action === 'super_like')) {
+      if (
+        reverseSwipe &&
+        (reverseSwipe.action === 'like' || reverseSwipe.action === 'super_like')
+      ) {
         // It's a match!
         isMatch = true;
         await this.matchRepository.create({
@@ -146,7 +150,11 @@ export class SwipeService {
   /**
    * SECURITY: Like action with tier-based limit enforcement
    */
-  async like(swiperId: string, swipedId: string, subscriptionTier: string = 'free'): Promise<SwipeResponse> {
+  async like(
+    swiperId: string,
+    swipedId: string,
+    subscriptionTier: string = 'free'
+  ): Promise<SwipeResponse> {
     return this.swipe(swiperId, swipedId, 'like', subscriptionTier);
   }
 
@@ -160,7 +168,11 @@ export class SwipeService {
   /**
    * SECURITY: Super-like action with tier-based limit enforcement
    */
-  async superLike(swiperId: string, swipedId: string, subscriptionTier: string = 'free'): Promise<SwipeResponse> {
+  async superLike(
+    swiperId: string,
+    swipedId: string,
+    subscriptionTier: string = 'free'
+  ): Promise<SwipeResponse> {
     return this.swipe(swiperId, swipedId, 'super_like', subscriptionTier);
   }
 

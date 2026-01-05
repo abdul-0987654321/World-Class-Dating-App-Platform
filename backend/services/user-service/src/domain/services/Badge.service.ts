@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { BadgeRepository } from '../repositories/Badge.repository';
+
 import {
   ProfileBadge,
   UserProfileBadge,
@@ -7,6 +7,7 @@ import {
   BadgeCollection,
   UserBadgeCollection,
 } from '../entities/Badge.entity';
+import { BadgeRepository } from '../repositories/Badge.repository';
 
 export class BadgeService {
   private repository: BadgeRepository;
@@ -66,7 +67,11 @@ export class BadgeService {
     return userBadge;
   }
 
-  async equipBadge(user_id: string, badge_id: string, equipped: boolean): Promise<UserProfileBadge> {
+  async equipBadge(
+    user_id: string,
+    badge_id: string,
+    equipped: boolean
+  ): Promise<UserProfileBadge> {
     const userBadge = await this.repository.findUserBadge(user_id, badge_id);
     if (!userBadge) {
       throw new Error('User does not have this badge');
@@ -85,7 +90,10 @@ export class BadgeService {
     });
   }
 
-  async reorderBadges(user_id: string, badge_order: { badge_id: string; order: number }[]): Promise<void> {
+  async reorderBadges(
+    user_id: string,
+    badge_order: { badge_id: string; order: number }[]
+  ): Promise<void> {
     for (const { badge_id, order } of badge_order) {
       const userBadge = await this.repository.findUserBadge(user_id, badge_id);
       if (userBadge) {
@@ -135,7 +143,7 @@ export class BadgeService {
   private async checkBadgeRequirements(user_id: string, badge: ProfileBadge): Promise<boolean> {
     if (!badge.requirements) return false;
 
-    const requirements = badge.requirements as any;
+    const requirements = badge.requirements;
 
     // Check verification requirements
     if (requirements.verification) {
@@ -152,7 +160,11 @@ export class BadgeService {
         .count('* as count')
         .first();
 
-      if (requirements.total_matches.min && matchCount && Number(matchCount.count) < requirements.total_matches.min) {
+      if (
+        requirements.total_matches.min &&
+        matchCount &&
+        Number(matchCount.count) < requirements.total_matches.min
+      ) {
         return false;
       }
     }
@@ -163,7 +175,11 @@ export class BadgeService {
         .count('* as count')
         .first();
 
-      if (requirements.total_messages.min && messageCount && Number(messageCount.count) < requirements.total_messages.min) {
+      if (
+        requirements.total_messages.min &&
+        messageCount &&
+        Number(messageCount.count) < requirements.total_messages.min
+      ) {
         return false;
       }
     }
@@ -173,7 +189,10 @@ export class BadgeService {
         .where({ user_id: user_id, streak_type: 'login' })
         .first();
 
-      if (requirements.login_streak.min && (!streak || streak.current_streak < requirements.login_streak.min)) {
+      if (
+        requirements.login_streak.min &&
+        (!streak || streak.current_streak < requirements.login_streak.min)
+      ) {
         return false;
       }
     }
@@ -192,11 +211,11 @@ export class BadgeService {
   private async checkBadgeCollections(user_id: string): Promise<void> {
     const collections = await this.repository.findAllCollections();
     const userBadges = await this.repository.findUserBadges(user_id);
-    const userBadgeIds = new Set(userBadges.map(ub => ub.badgeId));
+    const userBadgeIds = new Set(userBadges.map((ub) => ub.badgeId));
 
     for (const collection of collections) {
-      const requiredBadgeIds = collection.requiredBadgeIds as string[];
-      const hasAllBadges = requiredBadgeIds.every(id => userBadgeIds.has(id));
+      const requiredBadgeIds = collection.requiredBadgeIds;
+      const hasAllBadges = requiredBadgeIds.every((id) => userBadgeIds.has(id));
 
       if (hasAllBadges) {
         // Check if user already has this collection
@@ -213,7 +232,12 @@ export class BadgeService {
 
           // Award collection rewards
           if (collection.coinReward > 0) {
-            await this.awardCoins(this.db, user_id, collection.coinReward, `Badge Collection: ${collection.name}`);
+            await this.awardCoins(
+              this.db,
+              user_id,
+              collection.coinReward,
+              `Badge Collection: ${collection.name}`
+            );
           }
           if (collection.xpReward > 0) {
             await this.awardXP(this.db, user_id, collection.xpReward);
@@ -228,7 +252,12 @@ export class BadgeService {
           // Award rewards
           if (!existing.rewardClaimed) {
             if (collection.coinReward > 0) {
-              await this.awardCoins(this.db, user_id, collection.coinReward, `Badge Collection: ${collection.name}`);
+              await this.awardCoins(
+                this.db,
+                user_id,
+                collection.coinReward,
+                `Badge Collection: ${collection.name}`
+              );
             }
             if (collection.xpReward > 0) {
               await this.awardXP(this.db, user_id, collection.xpReward);
@@ -242,7 +271,12 @@ export class BadgeService {
     }
   }
 
-  private async awardCoins(db: Knex, user_id: string, amount: number, reason: string): Promise<void> {
+  private async awardCoins(
+    db: Knex,
+    user_id: string,
+    amount: number,
+    reason: string
+  ): Promise<void> {
     const existingCoins = await db('coins').where({ user_id: user_id }).first();
     if (existingCoins) {
       await db('coins')

@@ -257,15 +257,18 @@ spec:
             - sh
             - -c
             - |
+              # AWS ECR Registry - Azure is forbidden
+              ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/flamoral"
+
               trivy image --severity HIGH,CRITICAL \
                 --format json \
                 --output /reports/trivy-report-$(date +%Y%m%d).json \
-                productiondatingappacr.azurecr.io/dating-api:latest
+                ${ECR_REGISTRY}/api-gateway:latest
 
               trivy image --severity HIGH,CRITICAL \
                 --format json \
                 --output /reports/trivy-report-web-$(date +%Y%m%d).json \
-                productiondatingappacr.azurecr.io/dating-app:latest
+                ${ECR_REGISTRY}/web-app:latest
 
               # Upload to storage or send alert if critical vulnerabilities found
               if grep -q '"Severity":"CRITICAL"' /reports/*.json; then

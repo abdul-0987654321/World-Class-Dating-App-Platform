@@ -1,6 +1,6 @@
-import { ProfileRepository } from '../repositories/profile.repository';
-import { UpdateProfileDto, ProfileResponse } from '../entities/Profile.entity';
 import logger from '../../utils/logger';
+import { UpdateProfileDto, ProfileResponse } from '../entities/Profile.entity';
+import { ProfileRepository } from '../repositories/profile.repository';
 
 export class ProfileService {
   private profileRepository: ProfileRepository;

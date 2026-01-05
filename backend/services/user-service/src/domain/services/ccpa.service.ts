@@ -57,7 +57,9 @@ export class CCPAService {
         });
       }
 
-      logger.info(`CCPA opt-out recorded for user ${request.userId}: ${request.optOutType} = ${request.optedOut}`);
+      logger.info(
+        `CCPA opt-out recorded for user ${request.userId}: ${request.optOutType} = ${request.optedOut}`
+      );
     } catch (error) {
       logger.error('Error recording opt-out:', error);
       throw new Error('Failed to record opt-out preference');
@@ -69,14 +71,12 @@ export class CCPAService {
    */
   async getOptOutPreferences(userId: string): Promise<any[]> {
     try {
-      const preferences = await db('ccpa_opt_outs')
-        .where({ user_id: userId })
-        .select('*');
+      const preferences = await db('ccpa_opt_outs').where({ user_id: userId }).select('*');
 
       // Ensure all opt-out types are represented
       const optOutTypes = ['do_not_sell', 'do_not_share', 'limit_use_sensitive_data'];
-      const result = optOutTypes.map(type => {
-        const pref = preferences.find(p => p.opt_out_type === type);
+      const result = optOutTypes.map((type) => {
+        const pref = preferences.find((p) => p.opt_out_type === type);
         return {
           optOutType: type,
           optedOut: pref?.opted_out || false,
@@ -205,7 +205,8 @@ export class CCPAService {
             sharedWith: ['Service providers'],
           },
         ],
-        disclaimer: 'We do not sell your personal information to third parties. We may share data with service providers who help us operate the platform.',
+        disclaimer:
+          'We do not sell your personal information to third parties. We may share data with service providers who help us operate the platform.',
         lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
@@ -260,7 +261,8 @@ export class CCPAService {
         ],
         salesDisclosure: {
           sellsPersonalInfo: false,
-          disclosure: 'We do not sell your personal information to third parties for monetary consideration.',
+          disclosure:
+            'We do not sell your personal information to third parties for monetary consideration.',
           sharesForTargetedAds: false,
           ageRange: 'We do not knowingly collect or share data from users under 16.',
         },
@@ -311,7 +313,7 @@ export class CCPAService {
           case 'commercial_information':
             const subscriptions = await db('subscriptions').where({ user_id: userId }).select('*');
             data.data.commercialInformation = {
-              subscriptions: subscriptions.map(s => ({
+              subscriptions: subscriptions.map((s) => ({
                 tier: s.tier,
                 status: s.status,
                 startDate: s.start_date,
@@ -373,7 +375,8 @@ export class CCPAService {
       rights: [
         {
           right: 'Right to Know',
-          description: 'You have the right to know what personal information we collect, use, and share.',
+          description:
+            'You have the right to know what personal information we collect, use, and share.',
           howToExercise: 'Request a copy of your data through the Privacy Dashboard',
         },
         {
@@ -383,7 +386,8 @@ export class CCPAService {
         },
         {
           right: 'Right to Opt-Out',
-          description: 'You have the right to opt-out of the sale or sharing of your personal information.',
+          description:
+            'You have the right to opt-out of the sale or sharing of your personal information.',
           howToExercise: 'Use the "Do Not Sell My Personal Information" toggle in Privacy Settings',
         },
         {
@@ -398,7 +402,8 @@ export class CCPAService {
         },
         {
           right: 'Right to Limit Use of Sensitive Data',
-          description: 'You have the right to limit the use of your sensitive personal information.',
+          description:
+            'You have the right to limit the use of your sensitive personal information.',
           howToExercise: 'Use the privacy controls in Settings',
         },
       ],
@@ -465,7 +470,7 @@ export class CCPAService {
         metrics: {
           totalUsers: totalUsers?.count || 0,
           activeOptOuts: activeOptOuts?.count || 0,
-          optOutsByType: optOutsByType.map(row => ({
+          optOutsByType: optOutsByType.map((row) => ({
             type: row.opt_out_type,
             count: row.count,
           })),

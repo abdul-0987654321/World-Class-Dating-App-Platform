@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import { MessageAutomationService } from '../services/message-automation.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import { MessageAutomationService } from '../services/message-automation.service';
 
 const logger = createLogger('automation-service:message-automation-controller');
 
@@ -27,15 +28,12 @@ export class MessageAutomationController {
         return;
       }
 
-      const template = await this.messageAutomationService.createAutoResponseTemplate(
-        userId,
-        {
-          trigger,
-          response,
-          enabled,
-          conditions,
-        }
-      );
+      const template = await this.messageAutomationService.createAutoResponseTemplate(userId, {
+        trigger,
+        response,
+        enabled,
+        conditions,
+      });
 
       res.status(201).json({
         success: true,
@@ -58,13 +56,7 @@ export class MessageAutomationController {
   scheduleMessage = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.user?.id || req.user?.userId;
-      const {
-        recipientId,
-        message,
-        scheduledAt,
-        useOptimalTiming,
-        timezone,
-      } = req.body;
+      const { recipientId, message, scheduledAt, useOptimalTiming, timezone } = req.body;
 
       if (!recipientId || !message) {
         res.status(400).json({
@@ -106,9 +98,7 @@ export class MessageAutomationController {
     try {
       const userId = req.user?.id || req.user?.userId;
 
-      const messages = await this.messageAutomationService.getUserScheduledMessages(
-        userId
-      );
+      const messages = await this.messageAutomationService.getUserScheduledMessages(userId);
 
       res.json({
         success: true,
@@ -133,10 +123,7 @@ export class MessageAutomationController {
       const userId = req.user?.id || req.user?.userId;
       const { scheduleId } = req.params;
 
-      await this.messageAutomationService.cancelScheduledMessage(
-        scheduleId,
-        userId
-      );
+      await this.messageAutomationService.cancelScheduledMessage(scheduleId, userId);
 
       res.json({
         success: true,

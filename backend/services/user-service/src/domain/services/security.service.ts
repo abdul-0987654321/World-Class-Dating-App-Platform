@@ -1,7 +1,8 @@
-import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
-import emailService from '../../infrastructure/email/email.service';
 import crypto from 'crypto';
+
+import db from '../../infrastructure/database/connection';
+import emailService from '../../infrastructure/email/email.service';
+import logger from '../../utils/logger';
 
 export interface LoginAttempt {
   email: string;
@@ -60,7 +61,9 @@ export class SecurityService {
         await this.checkAndLockAccount(attempt.userId, attempt.email, attempt.ipAddress);
       }
 
-      logger.info(`Login attempt recorded for ${attempt.email}: ${attempt.successful ? 'success' : 'failed'}`);
+      logger.info(
+        `Login attempt recorded for ${attempt.email}: ${attempt.successful ? 'success' : 'failed'}`
+      );
     } catch (error) {
       logger.error('Error recording login attempt:', error);
       // Don't throw - logging failures shouldn't break login flow
@@ -70,7 +73,11 @@ export class SecurityService {
   /**
    * Check failed login attempts and lock account if threshold exceeded
    */
-  private async checkAndLockAccount(userId: string, email: string, ipAddress: string): Promise<void> {
+  private async checkAndLockAccount(
+    userId: string,
+    email: string,
+    ipAddress: string
+  ): Promise<void> {
     try {
       // Count recent failed attempts (last 15 minutes)
       const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
@@ -84,7 +91,7 @@ export class SecurityService {
         .count('* as count')
         .first();
 
-      const failedCount = parseInt(failedAttempts?.count as string || '0');
+      const failedCount = parseInt((failedAttempts?.count as string) || '0');
 
       if (failedCount >= this.MAX_LOGIN_ATTEMPTS) {
         // Check if already locked
@@ -121,7 +128,9 @@ export class SecurityService {
             // Don't fail the lockout if email fails
           }
 
-          logger.warn(`Account locked for user ${userId} due to ${failedCount} failed login attempts`);
+          logger.warn(
+            `Account locked for user ${userId} due to ${failedCount} failed login attempts`
+          );
         }
       }
     } catch (error) {
@@ -132,13 +141,14 @@ export class SecurityService {
   /**
    * Check if account is locked
    */
-  async isAccountLocked(userId: string): Promise<{ locked: boolean; reason?: string; unlockAt?: Date }> {
+  async isAccountLocked(
+    userId: string
+  ): Promise<{ locked: boolean; reason?: string; unlockAt?: Date }> {
     try {
       const lockout = await db('account_lockouts')
         .where({ user_id: userId })
-        .andWhere(function() {
-          this.where('is_permanent', true)
-            .orWhere('unlock_at', '>', new Date());
+        .andWhere(function () {
+          this.where('is_permanent', true).orWhere('unlock_at', '>', new Date());
         })
         .whereNull('unlocked_at')
         .orderBy('locked_at', 'desc')
@@ -173,11 +183,9 @@ export class SecurityService {
         throw new Error('Invalid unlock token');
       }
 
-      await db('account_lockouts')
-        .where({ id: lockout.id })
-        .update({
-          unlocked_at: new Date(),
-        });
+      await db('account_lockouts').where({ id: lockout.id }).update({
+        unlocked_at: new Date(),
+      });
 
       logger.info(`Account unlocked for user ${lockout.user_id}`);
     } catch (error) {
@@ -249,13 +257,11 @@ export class SecurityService {
    */
   async revokeSession(sessionToken: string, reason: string): Promise<void> {
     try {
-      await db('security_sessions')
-        .where({ session_token: sessionToken })
-        .update({
-          is_active: false,
-          revoked_at: new Date(),
-          revoked_reason: reason,
-        });
+      await db('security_sessions').where({ session_token: sessionToken }).update({
+        is_active: false,
+        revoked_at: new Date(),
+        revoked_reason: reason,
+      });
 
       logger.info(`Session revoked: ${reason}`);
     } catch (error) {
@@ -269,8 +275,7 @@ export class SecurityService {
    */
   async revokeAllUserSessions(userId: string, exceptToken?: string): Promise<void> {
     try {
-      const query = db('security_sessions')
-        .where({ user_id: userId, is_active: true });
+      const query = db('security_sessions').where({ user_id: userId, is_active: true });
 
       if (exceptToken) {
         query.andWhere('session_token', '!=', exceptToken);
@@ -303,7 +308,7 @@ export class SecurityService {
         .orderBy('last_activity_at', 'desc')
         .select('*');
 
-      return sessions.map(s => ({
+      return sessions.map((s) => ({
         id: s.id,
         deviceName: s.device_name,
         location: s.location,
@@ -357,7 +362,7 @@ export class SecurityService {
         .count('* as count')
         .first();
 
-      if (parseInt(failedLogins?.count as string || '0') > 3) {
+      if (parseInt((failedLogins?.count as string) || '0') > 3) {
         suspiciousActivities.push({
           type: 'multiple_failed_logins',
           severity: 'medium',
@@ -381,7 +386,7 @@ export class SecurityService {
           type: 'multiple_locations',
           severity: 'high',
           description: 'Logins from multiple geographic locations',
-          locations: locations.map(l => l.location),
+          locations: locations.map((l) => l.location),
         });
       }
 
@@ -389,11 +394,11 @@ export class SecurityService {
       const nightLogins = await db('login_attempts')
         .where({ user_id: userId, successful: true })
         .andWhere('attempted_at', '>', last24Hours)
-        .whereRaw("EXTRACT(HOUR FROM attempted_at) BETWEEN 2 AND 5")
+        .whereRaw('EXTRACT(HOUR FROM attempted_at) BETWEEN 2 AND 5')
         .count('* as count')
         .first();
 
-      if (parseInt(nightLogins?.count as string || '0') > 2) {
+      if (parseInt((nightLogins?.count as string) || '0') > 2) {
         suspiciousActivities.push({
           type: 'unusual_login_times',
           severity: 'low',
@@ -420,7 +425,7 @@ export class SecurityService {
         .limit(limit)
         .select('*');
 
-      return history.map(h => ({
+      return history.map((h) => ({
         attemptedAt: h.attempted_at,
         successful: h.successful,
         ipAddress: h.ip_address,
@@ -444,16 +449,18 @@ export class SecurityService {
       ...additionalData,
     };
 
-    return crypto
-      .createHash('sha256')
-      .update(JSON.stringify(data))
-      .digest('hex');
+    return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
   }
 
   /**
    * Check if IP is rate limited
    */
-  async isIpRateLimited(ipAddress: string, endpoint: string, maxAttempts: number, windowMinutes: number): Promise<boolean> {
+  async isIpRateLimited(
+    ipAddress: string,
+    endpoint: string,
+    maxAttempts: number,
+    windowMinutes: number
+  ): Promise<boolean> {
     try {
       const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000);
 
@@ -464,7 +471,7 @@ export class SecurityService {
         .count('* as count')
         .first();
 
-      const attemptCount = parseInt(attempts?.count as string || '0');
+      const attemptCount = parseInt((attempts?.count as string) || '0');
       return attemptCount >= maxAttempts;
     } catch (error) {
       logger.error('Error checking IP rate limit:', error);
@@ -475,7 +482,12 @@ export class SecurityService {
   /**
    * Lock account administratively
    */
-  async lockAccountAdmin(userId: string, reason: string, isPermanent: boolean, notes?: string): Promise<void> {
+  async lockAccountAdmin(
+    userId: string,
+    reason: string,
+    isPermanent: boolean,
+    notes?: string
+  ): Promise<void> {
     try {
       const user = await db('users').where({ id: userId }).first();
       if (!user) {
@@ -524,11 +536,15 @@ export class SecurityService {
   /**
    * Send account locked email notification with unlock link
    */
-  private async sendAccountLockedEmail(user: any, unlockToken: string, unlockAt: Date): Promise<void> {
+  private async sendAccountLockedEmail(
+    user: any,
+    unlockToken: string,
+    unlockAt: Date
+  ): Promise<void> {
     const firstName = user.first_name || 'User';
     const unlockAtFormatted = unlockAt.toLocaleString('en-US', {
       dateStyle: 'medium',
-      timeStyle: 'short'
+      timeStyle: 'short',
     });
     const unlockUrl = `${process.env.WEB_APP_URL || 'http://localhost:3000'}/unlock-account?token=${unlockToken}`;
 

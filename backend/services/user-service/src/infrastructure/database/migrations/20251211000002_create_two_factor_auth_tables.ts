@@ -38,10 +38,7 @@ export async function up(knex: Knex): Promise<void> {
     table.unique(['user_id', 'method']);
 
     // Foreign key
-    table.foreign('user_id')
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE');
+    table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE');
   });
 
   // Create user_backup_codes table
@@ -65,10 +62,7 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['user_id', 'is_used']);
 
     // Foreign key
-    table.foreign('user_id')
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE');
+    table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE');
   });
 
   // Create user_verification_codes table (for SMS and Email 2FA)
@@ -80,7 +74,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('code', 10).notNullable();
 
     // Type of verification
-    table.enum('type', ['2fa_sms', '2fa_email', 'phone_verification', 'email_verification']).notNullable();
+    table
+      .enum('type', ['2fa_sms', '2fa_email', 'phone_verification', 'email_verification'])
+      .notNullable();
 
     // Contact info
     table.string('phone_number', 20).nullable();
@@ -100,10 +96,7 @@ export async function up(knex: Knex): Promise<void> {
     table.index('expires_at');
 
     // Foreign key
-    table.foreign('user_id')
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE');
+    table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE');
   });
 
   // Add 2FA requirement flag to users table if not exists

@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import conversationRoutes from './conversation.routes';
-import messageRoutes from './message.routes';
-import encryptionKeysRoutes from './encryption-keys.routes';
-import giftsRoutes from './gifts.routes';
-import moderationRoutes from './moderation.routes';
-import mediaMessagingRoutes from './media-messaging.routes';
-import enhancedMessagingRoutes from './enhanced-messaging.routes';
+
+import { validateQuery, GetMessagesQueryDto } from '../../dto';
 import { messageController } from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { validateQuery, GetMessagesQueryDto } from '../../dto';
+
+import conversationRoutes from './conversation.routes';
+import encryptionKeysRoutes from './encryption-keys.routes';
+import enhancedMessagingRoutes from './enhanced-messaging.routes';
+import giftsRoutes from './gifts.routes';
+import mediaMessagingRoutes from './media-messaging.routes';
+import messageRoutes from './message.routes';
+import moderationRoutes from './moderation.routes';
 
 const router = Router();
 

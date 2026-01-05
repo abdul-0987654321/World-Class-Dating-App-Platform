@@ -7,7 +7,12 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('verification_dlq', (table) => {
     table.uuid('dlq_id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('request_id').notNullable().references('request_id').inTable('verification_requests').onDelete('CASCADE');
+    table
+      .uuid('request_id')
+      .notNullable()
+      .references('request_id')
+      .inTable('verification_requests')
+      .onDelete('CASCADE');
 
     // Error information
     table.text('error_message').notNullable();
@@ -21,12 +26,14 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('last_retry_at').nullable();
 
     // Status
-    table.enum('status', [
-      'pending',      // Waiting for retry
-      'retrying',     // Currently being processed
-      'resolved',     // Successfully processed after retry
-      'abandoned'     // Max retries exceeded, needs manual intervention
-    ]).defaultTo('pending');
+    table
+      .enum('status', [
+        'pending', // Waiting for retry
+        'retrying', // Currently being processed
+        'resolved', // Successfully processed after retry
+        'abandoned', // Max retries exceeded, needs manual intervention
+      ])
+      .defaultTo('pending');
 
     // Original payload for debugging
     table.jsonb('original_payload').nullable();

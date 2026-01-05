@@ -6,7 +6,7 @@ export enum AdminRole {
   ADMIN = 'admin',
   MODERATOR = 'moderator',
   SUPPORT = 'support',
-  ANALYST = 'analyst'
+  ANALYST = 'analyst',
 }
 
 // Granular Permissions
@@ -58,7 +58,7 @@ export enum Permission {
 
   // System Health
   HEALTH_VIEW = 'health:view',
-  HEALTH_MANAGE = 'health:manage'
+  HEALTH_MANAGE = 'health:manage',
 }
 
 // Role-Permission Mapping
@@ -113,7 +113,7 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     Permission.REVENUE_VIEW,
     Permission.USER_VIEW,
     Permission.AB_TEST_VIEW,
-  ]
+  ],
 };
 
 export interface AdminUser {

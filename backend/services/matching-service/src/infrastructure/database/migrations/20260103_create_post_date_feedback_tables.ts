@@ -28,14 +28,18 @@ export async function up(knex: Knex): Promise<void> {
     table.text('notes').nullable();
 
     // Status tracking
-    table.enum('status', [
-      'scheduled',
-      'confirmed',
-      'completed',
-      'cancelled',
-      'no_show',
-      'rescheduled'
-    ]).notNullable().defaultTo('scheduled').index();
+    table
+      .enum('status', [
+        'scheduled',
+        'confirmed',
+        'completed',
+        'cancelled',
+        'no_show',
+        'rescheduled',
+      ])
+      .notNullable()
+      .defaultTo('scheduled')
+      .index();
 
     // Who created/confirmed
     table.uuid('created_by').notNullable();
@@ -64,8 +68,11 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Link to scheduled date
-    table.uuid('scheduled_date_id').notNullable()
-      .references('id').inTable('scheduled_dates')
+    table
+      .uuid('scheduled_date_id')
+      .notNullable()
+      .references('id')
+      .inTable('scheduled_dates')
       .onDelete('CASCADE');
 
     // User who should provide feedback
@@ -75,14 +82,18 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('partner_id').notNullable();
 
     // Request status
-    table.enum('status', [
-      'pending',      // Waiting to be sent (scheduled)
-      'sent',         // Notification sent
-      'opened',       // User opened the feedback form
-      'completed',    // Feedback submitted
-      'skipped',      // User declined to provide feedback
-      'expired'       // 7 days passed without response
-    ]).notNullable().defaultTo('pending').index();
+    table
+      .enum('status', [
+        'pending', // Waiting to be sent (scheduled)
+        'sent', // Notification sent
+        'opened', // User opened the feedback form
+        'completed', // Feedback submitted
+        'skipped', // User declined to provide feedback
+        'expired', // 7 days passed without response
+      ])
+      .notNullable()
+      .defaultTo('pending')
+      .index();
 
     // Timing
     table.timestamp('send_at').notNullable().index(); // When to send the request (24h after date)
@@ -112,14 +123,20 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Link to feedback request
-    table.uuid('feedback_request_id').notNullable()
-      .references('id').inTable('feedback_requests')
+    table
+      .uuid('feedback_request_id')
+      .notNullable()
+      .references('id')
+      .inTable('feedback_requests')
       .onDelete('CASCADE')
       .unique(); // One feedback per request
 
     // Link to scheduled date
-    table.uuid('scheduled_date_id').notNullable()
-      .references('id').inTable('scheduled_dates')
+    table
+      .uuid('scheduled_date_id')
+      .notNullable()
+      .references('id')
+      .inTable('scheduled_dates')
       .onDelete('CASCADE');
 
     // User providing feedback (stored but not exposed to partner)
@@ -134,19 +151,35 @@ export async function up(knex: Knex): Promise<void> {
 
     // Category ratings (1-5 each)
     table.integer('conversation_rating').notNullable();
-    table.check('conversation_rating >= 1 AND conversation_rating <= 5', [], 'check_conversation_rating');
+    table.check(
+      'conversation_rating >= 1 AND conversation_rating <= 5',
+      [],
+      'check_conversation_rating'
+    );
 
     table.integer('chemistry_rating').notNullable();
     table.check('chemistry_rating >= 1 AND chemistry_rating <= 5', [], 'check_chemistry_rating');
 
     table.integer('punctuality_rating').notNullable();
-    table.check('punctuality_rating >= 1 AND punctuality_rating <= 5', [], 'check_punctuality_rating');
+    table.check(
+      'punctuality_rating >= 1 AND punctuality_rating <= 5',
+      [],
+      'check_punctuality_rating'
+    );
 
     table.integer('appearance_accuracy_rating').notNullable(); // Did they look like their photos?
-    table.check('appearance_accuracy_rating >= 1 AND appearance_accuracy_rating <= 5', [], 'check_appearance_accuracy');
+    table.check(
+      'appearance_accuracy_rating >= 1 AND appearance_accuracy_rating <= 5',
+      [],
+      'check_appearance_accuracy'
+    );
 
     table.integer('respectfulness_rating').notNullable();
-    table.check('respectfulness_rating >= 1 AND respectfulness_rating <= 5', [], 'check_respectfulness_rating');
+    table.check(
+      'respectfulness_rating >= 1 AND respectfulness_rating <= 5',
+      [],
+      'check_respectfulness_rating'
+    );
 
     // Would go on another date?
     table.enum('would_date_again', ['yes', 'maybe', 'no']).notNullable();
@@ -183,8 +216,11 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 
     // Link to feedback
-    table.uuid('feedback_id').notNullable()
-      .references('id').inTable('post_date_feedback')
+    table
+      .uuid('feedback_id')
+      .notNullable()
+      .references('id')
+      .inTable('post_date_feedback')
       .onDelete('CASCADE');
 
     // Reporter and reported user
@@ -192,19 +228,22 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('reported_user_id').notNullable().index();
 
     // Issue category
-    table.enum('category', [
-      'harassment',
-      'inappropriate_behavior',
-      'felt_unsafe',
-      'misrepresentation',
-      'substance_abuse',
-      'verbal_abuse',
-      'physical_threat',
-      'unwanted_contact',
-      'boundary_violation',
-      'catfishing',
-      'other'
-    ]).notNullable().index();
+    table
+      .enum('category', [
+        'harassment',
+        'inappropriate_behavior',
+        'felt_unsafe',
+        'misrepresentation',
+        'substance_abuse',
+        'verbal_abuse',
+        'physical_threat',
+        'unwanted_contact',
+        'boundary_violation',
+        'catfishing',
+        'other',
+      ])
+      .notNullable()
+      .index();
 
     // Severity level
     table.enum('severity', ['low', 'medium', 'high', 'critical']).notNullable().index();
@@ -214,13 +253,11 @@ export async function up(knex: Knex): Promise<void> {
     table.jsonb('additional_details').nullable();
 
     // Status tracking
-    table.enum('status', [
-      'new',
-      'under_review',
-      'action_taken',
-      'dismissed',
-      'escalated'
-    ]).notNullable().defaultTo('new').index();
+    table
+      .enum('status', ['new', 'under_review', 'action_taken', 'dismissed', 'escalated'])
+      .notNullable()
+      .defaultTo('new')
+      .index();
 
     // Action taken
     table.text('action_notes').nullable();
@@ -245,17 +282,17 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').notNullable().unique();
 
     // Base matching weights (adjusted based on feedback patterns)
-    table.decimal('distance_weight', 5, 4).notNullable().defaultTo(0.3000);
-    table.decimal('interests_weight', 5, 4).notNullable().defaultTo(0.2500);
-    table.decimal('activity_weight', 5, 4).notNullable().defaultTo(0.1500);
-    table.decimal('preferences_weight', 5, 4).notNullable().defaultTo(0.3000);
+    table.decimal('distance_weight', 5, 4).notNullable().defaultTo(0.3);
+    table.decimal('interests_weight', 5, 4).notNullable().defaultTo(0.25);
+    table.decimal('activity_weight', 5, 4).notNullable().defaultTo(0.15);
+    table.decimal('preferences_weight', 5, 4).notNullable().defaultTo(0.3);
 
     // Learned preferences from feedback
-    table.decimal('conversation_importance', 5, 4).notNullable().defaultTo(0.2000);
-    table.decimal('chemistry_importance', 5, 4).notNullable().defaultTo(0.2000);
-    table.decimal('punctuality_importance', 5, 4).notNullable().defaultTo(0.1500);
-    table.decimal('appearance_accuracy_importance', 5, 4).notNullable().defaultTo(0.2000);
-    table.decimal('respectfulness_importance', 5, 4).notNullable().defaultTo(0.2500);
+    table.decimal('conversation_importance', 5, 4).notNullable().defaultTo(0.2);
+    table.decimal('chemistry_importance', 5, 4).notNullable().defaultTo(0.2);
+    table.decimal('punctuality_importance', 5, 4).notNullable().defaultTo(0.15);
+    table.decimal('appearance_accuracy_importance', 5, 4).notNullable().defaultTo(0.2);
+    table.decimal('respectfulness_importance', 5, 4).notNullable().defaultTo(0.25);
 
     // Aggregate stats from received feedback
     table.integer('total_dates').notNullable().defaultTo(0);
@@ -331,7 +368,7 @@ export async function up(knex: Knex): Promise<void> {
     'post_date_feedback',
     'feedback_safety_issues',
     'user_matching_weights',
-    'date_feedback_summary'
+    'date_feedback_summary',
   ];
 
   for (const tableName of tables) {
@@ -352,7 +389,7 @@ export async function down(knex: Knex): Promise<void> {
     'feedback_safety_issues',
     'post_date_feedback',
     'feedback_requests',
-    'scheduled_dates'
+    'scheduled_dates',
   ];
 
   for (const tableName of tables) {

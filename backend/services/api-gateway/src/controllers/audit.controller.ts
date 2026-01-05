@@ -8,8 +8,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { ProxyService } from '../services/proxy.service';
+
 import { CurrentUser, JwtPayload } from '../decorators/current-user.decorator';
+import { ProxyService } from '../services/proxy.service';
 
 // DTOs for audit log endpoint
 interface AuditLogEvent {
@@ -65,7 +66,7 @@ export class AuditController {
    * Users can only view their own audit logs for privacy compliance
    */
   @Get('logs')
-  @ApiOperation({ summary: 'List user\'s own audit log events' })
+  @ApiOperation({ summary: "List user's own audit log events" })
   @ApiQuery({
     name: 'cursor',
     required: false,
@@ -132,7 +133,7 @@ export class AuditController {
     @Query('limit') limit?: string,
     @Query('event_type') eventType?: string,
     @Query('start_date') startDate?: string,
-    @Query('end_date') endDate?: string,
+    @Query('end_date') endDate?: string
   ): Promise<AuditLogsResponse> {
     // Validate limit
     const parsedLimit = limit ? parseInt(limit, 10) : 50;
@@ -183,7 +184,7 @@ export class AuditController {
       const result = await this.proxyService.get(
         'userService',
         `/api/audit/logs?${queryParams.toString()}`,
-        { Authorization: authorization },
+        { Authorization: authorization }
       );
 
       return {

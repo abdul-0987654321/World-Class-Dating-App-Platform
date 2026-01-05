@@ -1,5 +1,5 @@
-import sharp from 'sharp';
 import { createLogger } from '@flamoral/backend-shared';
+import sharp from 'sharp';
 
 const logger = createLogger('image-processor');
 

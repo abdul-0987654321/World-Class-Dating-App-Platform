@@ -5,8 +5,8 @@
  * for analyzing photos and videos for AI-generated content.
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
 const logger = createLogger('deepfake-detection-client');
 
@@ -224,12 +224,9 @@ export class DeepfakeDetectionClient {
    */
   async internalAnalyze(imageUrl: string): Promise<DeepfakeDetectionResult> {
     try {
-      const response = await this.client.post<ImageAnalysisResponse>(
-        '/internal/analyze',
-        {
-          image_url: imageUrl,
-        }
-      );
+      const response = await this.client.post<ImageAnalysisResponse>('/internal/analyze', {
+        image_url: imageUrl,
+      });
 
       const result = response.data;
 
@@ -253,9 +250,7 @@ export class DeepfakeDetectionClient {
   /**
    * Determine if content requires manual review
    */
-  private shouldRequireReview(
-    result: ImageAnalysisResponse | VideoAnalysisResponse
-  ): boolean {
+  private shouldRequireReview(result: ImageAnalysisResponse | VideoAnalysisResponse): boolean {
     // Require review for borderline cases
     if (result.confidence < 0.7 && result.deepfake_score > 0.3) {
       return true;

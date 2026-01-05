@@ -33,7 +33,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_violations', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().index();
-    table.uuid('moderation_log_id').notNullable().references('id').inTable('moderation_logs').onDelete('CASCADE');
+    table
+      .uuid('moderation_log_id')
+      .notNullable()
+      .references('id')
+      .inTable('moderation_logs')
+      .onDelete('CASCADE');
     table.string('violation_type', 100).notNullable();
     table.string('severity', 20).notNullable();
     table.uuid('content_id').notNullable();

@@ -5,22 +5,23 @@
  * Integrates with the ML-based deepfake detection service.
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import Queue from 'bull';
-import queueManager from '../infrastructure/queue/queue-manager';
-import { QueueName } from '../infrastructure/queue/queue-config';
+
+import mediaRepository from '../domain/repositories/media.repository';
+import {
+  deepfakeDetectionClient,
+  DeepfakeAnalysisError,
+} from '../infrastructure/clients/deepfake-detection.client';
 import {
   DeepfakeDetectionJobData,
   DeepfakeDetectionResult,
   JobResult,
 } from '../infrastructure/queue/job-types';
-import {
-  deepfakeDetectionClient,
-  DeepfakeAnalysisError,
-} from '../infrastructure/clients/deepfake-detection.client';
-import mediaRepository from '../domain/repositories/media.repository';
+import { QueueName } from '../infrastructure/queue/queue-config';
+import queueManager from '../infrastructure/queue/queue-manager';
 import azureStorageService from '../infrastructure/storage/azure-storage.service';
 import { ModerationStatus } from '../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('deepfake-detection-worker');
 
@@ -78,7 +79,7 @@ export const processDeepfakeDetectionJob = async (
 
     logger.info(
       `Deepfake analysis complete for ${mediaId}: ` +
-      `score=${result.score}, isDeepfake=${result.isDeepfake}, confidence=${result.confidence}`
+        `score=${result.score}, isDeepfake=${result.isDeepfake}, confidence=${result.confidence}`
     );
 
     // Step 3: Determine action based on results
@@ -188,7 +189,9 @@ async function notifyProfilePhotoIssue(
 ): Promise<void> {
   // This would typically call the user service to notify about the issue
   // For now, just log the notification
-  logger.info(`Profile photo issue notification: user=${userId}, media=${mediaId}, action=${action}`);
+  logger.info(
+    `Profile photo issue notification: user=${userId}, media=${mediaId}, action=${action}`
+  );
 
   // TODO: Implement actual notification to user service
   // await userServiceClient.notifyProfilePhotoIssue({

@@ -1,10 +1,10 @@
-import { UsageLimitRepository } from '../repositories/usage-limit.repository';
 import {
   UsageLimit,
   isLimitReached,
   needsReset,
-  RESOURCE_TYPES
+  RESOURCE_TYPES,
 } from '../entities/UsageLimit.entity';
+import { UsageLimitRepository } from '../repositories/usage-limit.repository';
 
 export class UsageLimitService {
   private usageLimitRepository: UsageLimitRepository;
@@ -224,7 +224,7 @@ export class UsageLimitService {
       return false; // After reset, won't exceed
     }
 
-    return (limit.currentUsage + amount) > limit.dailyLimit;
+    return limit.currentUsage + amount > limit.dailyLimit;
   }
 
   /**

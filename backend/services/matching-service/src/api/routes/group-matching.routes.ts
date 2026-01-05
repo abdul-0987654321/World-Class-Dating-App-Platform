@@ -4,9 +4,7 @@
  */
 
 import { Router } from 'express';
-import groupMatchingController from '../controllers/group-matching.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validateBody, validateQuery } from '../middleware/validation.middleware';
+
 import {
   CreateGroupDto,
   UpdateGroupDto,
@@ -16,6 +14,9 @@ import {
   TransferAdminDto,
   ActivitySuggestionsQueryDto,
 } from '../../dto/group-matching.dto';
+import groupMatchingController from '../controllers/group-matching.controller';
+import { authenticate } from '../middleware/auth.middleware';
+import { validateBody, validateQuery } from '../middleware/validation.middleware';
 
 const router = Router();
 
@@ -38,10 +39,7 @@ router.post(
  * GET /api/v1/groups/my-groups
  * Get all groups for current user
  */
-router.get(
-  '/my-groups',
-  groupMatchingController.getMyGroups.bind(groupMatchingController)
-);
+router.get('/my-groups', groupMatchingController.getMyGroups.bind(groupMatchingController));
 
 /**
  * GET /api/v1/groups/invitations
@@ -84,10 +82,7 @@ router.get(
  * GET /api/v1/groups/:groupId
  * Get a group by ID
  */
-router.get(
-  '/:groupId',
-  groupMatchingController.getGroup.bind(groupMatchingController)
-);
+router.get('/:groupId', groupMatchingController.getGroup.bind(groupMatchingController));
 
 /**
  * PATCH /api/v1/groups/:groupId
@@ -103,10 +98,7 @@ router.patch(
  * DELETE /api/v1/groups/:groupId
  * Disband a group
  */
-router.delete(
-  '/:groupId',
-  groupMatchingController.disbandGroup.bind(groupMatchingController)
-);
+router.delete('/:groupId', groupMatchingController.disbandGroup.bind(groupMatchingController));
 
 // ==================== MEMBER MANAGEMENT ====================
 
@@ -142,10 +134,7 @@ router.delete(
  * POST /api/v1/groups/:groupId/leave
  * Leave a group
  */
-router.post(
-  '/:groupId/leave',
-  groupMatchingController.leaveGroup.bind(groupMatchingController)
-);
+router.post('/:groupId/leave', groupMatchingController.leaveGroup.bind(groupMatchingController));
 
 /**
  * POST /api/v1/groups/:groupId/transfer-admin

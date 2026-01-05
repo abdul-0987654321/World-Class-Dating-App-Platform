@@ -34,14 +34,14 @@ const defaultLogger: Logger = {
  * Common Redis error codes and messages that should trigger retries
  */
 const RETRYABLE_ERROR_CODES = [
-  'ECONNREFUSED',   // Connection refused
-  'ECONNRESET',     // Connection reset
-  'ETIMEDOUT',      // Connection timeout
-  'EHOSTUNREACH',   // Host unreachable
-  'ENETUNREACH',    // Network unreachable
-  'EAI_AGAIN',      // DNS lookup timeout
-  'EPIPE',          // Broken pipe
-  'NR_CLOSED',      // Redis: connection closed
+  'ECONNREFUSED', // Connection refused
+  'ECONNRESET', // Connection reset
+  'ETIMEDOUT', // Connection timeout
+  'EHOSTUNREACH', // Host unreachable
+  'ENETUNREACH', // Network unreachable
+  'EAI_AGAIN', // DNS lookup timeout
+  'EPIPE', // Broken pipe
+  'NR_CLOSED', // Redis: connection closed
   'CONNECTION_CLOSED', // Redis: connection closed
   'UNCERTAIN_STATE', // Redis: connection in uncertain state
 ];
@@ -76,7 +76,7 @@ export function isRetryableRedisError(error: any, customRetryableCodes?: string[
     'unavailable',
   ];
 
-  return retryablePatterns.some(pattern => errorMessage.includes(pattern));
+  return retryablePatterns.some((pattern) => errorMessage.includes(pattern));
 }
 
 /**
@@ -109,7 +109,7 @@ export function calculateDelay(
  * Sleep for a specified duration
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -163,9 +163,7 @@ export async function withRedisRetry<T>(
           maxRetries,
           totalAttempts: attempt,
         });
-        throw new Error(
-          `Max Redis retries (${maxRetries}) exceeded. Last error: ${error.message}`
-        );
+        throw new Error(`Max Redis retries (${maxRetries}) exceeded. Last error: ${error.message}`);
       }
 
       // Calculate delay for next retry
@@ -196,7 +194,7 @@ export async function withRedisRetry<T>(
   }
 
   // This should never be reached, but TypeScript needs it
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -339,7 +337,8 @@ export function enhanceRedisConfig(config: RedisClientConfig): RedisClientConfig
     socket: {
       ...config.socket,
       connectTimeout: config.socket?.connectTimeout || 10000,
-      reconnectStrategy: config.socket?.reconnectStrategy || createReconnectStrategy(10, 1000, 30000),
+      reconnectStrategy:
+        config.socket?.reconnectStrategy || createReconnectStrategy(10, 1000, 30000),
     } as any,
   };
 }

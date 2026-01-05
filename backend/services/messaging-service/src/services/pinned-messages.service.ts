@@ -1,12 +1,13 @@
 import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
-import { messageRepository } from '../domain/repositories/message.repository';
+
 import { conversationRepository } from '../domain/repositories/conversation.repository';
+import { messageRepository } from '../domain/repositories/message.repository';
 import { realtimeHttpClient } from '../infrastructure/clients/realtime-http.client';
-import { PinnedMessage } from '../types/enhanced-types';
+import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { Message } from '../types';
+import { PinnedMessage } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('pinned-messages-service');
 
@@ -33,10 +34,7 @@ export class PinnedMessagesService {
         throw new Error('Conversation not found');
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         throw new Error('Not authorized to pin messages in this conversation');
       }
 
@@ -87,11 +85,7 @@ export class PinnedMessagesService {
   /**
    * Unpin a message
    */
-  async unpinMessage(
-    messageId: string,
-    conversationId: string,
-    userId: string
-  ): Promise<void> {
+  async unpinMessage(messageId: string, conversationId: string, userId: string): Promise<void> {
     try {
       // Verify message exists and user is participant
       const message = await messageRepository.findById(messageId, conversationId);
@@ -104,10 +98,7 @@ export class PinnedMessagesService {
         throw new Error('Conversation not found');
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         throw new Error('Not authorized to unpin messages in this conversation');
       }
 
@@ -148,20 +139,16 @@ export class PinnedMessagesService {
                 WHERE c.conversationId = @conversationId
                 AND c.isPinned = true
                 ORDER BY c.pinnedAt DESC`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-        ],
+        parameters: [{ name: '@conversationId', value: conversationId }],
       };
 
-      const { resources: messages } = await container.items
-        .query<Message>(querySpec)
-        .fetchAll();
+      const { resources: messages } = await container.items.query<Message>(querySpec).fetchAll();
 
-      return messages.map(msg => ({
+      return messages.map((msg) => ({
         messageId: msg.id,
         conversationId: msg.conversationId,
-        pinnedBy: msg.pinnedBy!,
-        pinnedAt: msg.pinnedAt!,
+        pinnedBy: msg.pinnedBy,
+        pinnedAt: msg.pinnedAt,
         message: msg,
       }));
     } catch (error: any) {
@@ -176,7 +163,7 @@ export class PinnedMessagesService {
   async getPinnedMessageIds(conversationId: string): Promise<string[]> {
     try {
       const pinnedMessages = await this.getPinnedMessages(conversationId);
-      return pinnedMessages.map(pm => pm.messageId);
+      return pinnedMessages.map((pm) => pm.messageId);
     } catch (error: any) {
       logger.error('Failed to get pinned message IDs:', error);
       throw error;
@@ -190,7 +177,7 @@ export class PinnedMessagesService {
     try {
       const pinnedMessages = await this.getPinnedMessages(conversationId);
 
-      const unpinPromises = pinnedMessages.map(pm =>
+      const unpinPromises = pinnedMessages.map((pm) =>
         messageRepository.update(pm.messageId, conversationId, {
           isPinned: false,
           pinnedAt: undefined,

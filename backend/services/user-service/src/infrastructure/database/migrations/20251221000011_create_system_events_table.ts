@@ -6,7 +6,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string('event_type', 100).notNullable(); // e.g., 'service.started', 'deployment.completed', 'config.changed'
     table.string('service', 100).notNullable(); // Service that generated the event
     table.jsonb('details_json').nullable(); // Event-specific details
-    table.enum('severity', ['debug', 'info', 'warning', 'error', 'critical']).notNullable().defaultTo('info');
+    table
+      .enum('severity', ['debug', 'info', 'warning', 'error', 'critical'])
+      .notNullable()
+      .defaultTo('info');
     table.string('environment', 50).nullable(); // development, staging, production
     table.string('version', 50).nullable(); // Service version
     table.string('host', 255).nullable(); // Server/container hostname

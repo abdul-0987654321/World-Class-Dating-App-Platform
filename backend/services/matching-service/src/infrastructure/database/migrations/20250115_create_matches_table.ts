@@ -10,7 +10,8 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user2_id').notNullable().index();
 
     // Match metadata
-    table.enum('status', ['pending', 'matched', 'unmatched', 'blocked'])
+    table
+      .enum('status', ['pending', 'matched', 'unmatched', 'blocked'])
       .defaultTo('matched')
       .notNullable()
       .index();

@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { MatchService } from '../../domain/services/match.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class MatchController {
   private matchService: MatchService;
@@ -12,7 +13,7 @@ export class MatchController {
 
   async getUserMatches(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const matches = await this.matchService.getUserMatches(userId);
 
@@ -31,7 +32,7 @@ export class MatchController {
 
   async getMatchDetail(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { matchId } = req.params;
 
       const match = await this.matchService.getMatchDetail(userId, matchId);
@@ -51,7 +52,7 @@ export class MatchController {
 
   async unmatch(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { matchId } = req.params;
 
       await this.matchService.unmatch(userId, matchId);
@@ -71,7 +72,7 @@ export class MatchController {
 
   async getMatchStats(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
 
       const stats = await this.matchService.getMatchStats(userId);
 

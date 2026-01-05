@@ -9,10 +9,11 @@
  */
 
 import { db } from '../infrastructure/database';
-import { harassmentDetectionService } from './harassment-detection.service';
-import { enhancedBlockService } from './enhanced-block.service';
-import { panicButtonService } from './panic-button.service';
 import logger from '../utils/logger';
+
+import { enhancedBlockService } from './enhanced-block.service';
+import { harassmentDetectionService } from './harassment-detection.service';
+import { panicButtonService } from './panic-button.service';
 
 export interface ReportQueueItem {
   id: string;
@@ -119,15 +120,23 @@ class AdminSafetyDashboardService {
    */
   async getDashboardStats(): Promise<SafetyDashboardStats> {
     // Report stats
-    const [reportStats] = await db('reports')
-      .select(
-        db.raw('COUNT(*) as total'),
-        db.raw("COUNT(*) FILTER (WHERE status = 'pending') as pending"),
-        db.raw("COUNT(*) FILTER (WHERE status = 'investigating') as in_review"),
-        db.raw("COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as resolved"),
-        db.raw("COUNT(*) FILTER (WHERE status = 'dismissed') as dismissed"),
-        db.raw("COUNT(*) FILTER (WHERE status = 'pending' AND severity = 'critical') as critical_pending")
-      ) as { total: string; pending: string; in_review: string; resolved: string; dismissed: string; critical_pending: string }[];
+    const [reportStats] = (await db('reports').select(
+      db.raw('COUNT(*) as total'),
+      db.raw("COUNT(*) FILTER (WHERE status = 'pending') as pending"),
+      db.raw("COUNT(*) FILTER (WHERE status = 'investigating') as in_review"),
+      db.raw("COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as resolved"),
+      db.raw("COUNT(*) FILTER (WHERE status = 'dismissed') as dismissed"),
+      db.raw(
+        "COUNT(*) FILTER (WHERE status = 'pending' AND severity = 'critical') as critical_pending"
+      )
+    )) as {
+      total: string;
+      pending: string;
+      in_review: string;
+      resolved: string;
+      dismissed: string;
+      critical_pending: string;
+    }[];
 
     // Calculate average resolution time
     const resolvedReports = await db('reports')
@@ -157,14 +166,19 @@ class AdminSafetyDashboardService {
     };
 
     try {
-      const [hdStats] = await db('harassment_detection_results')
-        .select(
-          db.raw('COUNT(*) as total_detections'),
-          db.raw("COUNT(*) FILTER (WHERE review_status = 'pending') as pending_review"),
-          db.raw("COUNT(*) FILTER (WHERE review_status = 'confirmed') as confirmed_cases"),
-          db.raw('COUNT(*) FILTER (WHERE auto_blocked = true) as auto_blocked'),
-          db.raw('AVG(overall_risk_score) as average_risk_score')
-        ) as { total_detections: string; pending_review: string; confirmed_cases: string; auto_blocked: string; average_risk_score: string }[];
+      const [hdStats] = (await db('harassment_detection_results').select(
+        db.raw('COUNT(*) as total_detections'),
+        db.raw("COUNT(*) FILTER (WHERE review_status = 'pending') as pending_review"),
+        db.raw("COUNT(*) FILTER (WHERE review_status = 'confirmed') as confirmed_cases"),
+        db.raw('COUNT(*) FILTER (WHERE auto_blocked = true) as auto_blocked'),
+        db.raw('AVG(overall_risk_score) as average_risk_score')
+      )) as {
+        total_detections: string;
+        pending_review: string;
+        confirmed_cases: string;
+        auto_blocked: string;
+        average_risk_score: string;
+      }[];
 
       harassmentStats = {
         totalDetections: parseInt(hdStats?.total_detections || '0', 10),
@@ -190,18 +204,16 @@ class AdminSafetyDashboardService {
     };
 
     try {
-      const [usStats] = await db('user_safety_scores')
-        .select(
-          db.raw('COUNT(*) FILTER (WHERE is_flagged = true) as total_flagged'),
-          db.raw('COUNT(*) FILTER (WHERE is_under_review = true) as under_review'),
-          db.raw('COUNT(*) FILTER (WHERE is_restricted = true) as restricted')
-        ) as { total_flagged: string; under_review: string; restricted: string }[];
+      const [usStats] = (await db('user_safety_scores').select(
+        db.raw('COUNT(*) FILTER (WHERE is_flagged = true) as total_flagged'),
+        db.raw('COUNT(*) FILTER (WHERE is_under_review = true) as under_review'),
+        db.raw('COUNT(*) FILTER (WHERE is_restricted = true) as restricted')
+      )) as { total_flagged: string; under_review: string; restricted: string }[];
 
-      const [modStats] = await db('user_moderation_records')
-        .select(
-          db.raw("COUNT(*) FILTER (WHERE status = 'suspended') as suspended"),
-          db.raw("COUNT(*) FILTER (WHERE status = 'banned') as banned")
-        ) as { suspended: string; banned: string }[];
+      const [modStats] = (await db('user_moderation_records').select(
+        db.raw("COUNT(*) FILTER (WHERE status = 'suspended') as suspended"),
+        db.raw("COUNT(*) FILTER (WHERE status = 'banned') as banned")
+      )) as { suspended: string; banned: string }[];
 
       userStats = {
         totalFlagged: parseInt(usStats?.total_flagged || '0', 10),
@@ -245,14 +257,16 @@ class AdminSafetyDashboardService {
   /**
    * Get report moderation queue with AI analysis
    */
-  async getReportQueue(options: {
-    status?: string;
-    severity?: string;
-    reportType?: string;
-    limit?: number;
-    offset?: number;
-    sortBy?: 'priority' | 'date' | 'severity';
-  } = {}): Promise<{
+  async getReportQueue(
+    options: {
+      status?: string;
+      severity?: string;
+      reportType?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?: 'priority' | 'date' | 'severity';
+    } = {}
+  ): Promise<{
     reports: ReportQueueItem[];
     total: number;
     hasMore: boolean;
@@ -342,18 +356,20 @@ class AdminSafetyDashboardService {
       severity: r.severity,
       status: r.status,
       evidenceUrls: r.evidence_urls
-        ? (typeof r.evidence_urls === 'string' ? JSON.parse(r.evidence_urls) : r.evidence_urls)
+        ? typeof r.evidence_urls === 'string'
+          ? JSON.parse(r.evidence_urls)
+          : r.evidence_urls
         : [],
       createdAt: r.created_at,
       priorityScore: this.calculatePriorityScore(r),
       aiAnalysis: r.suggested_category
         ? {
-          suggestedCategory: r.suggested_category,
-          categoryConfidence: r.category_confidence,
-          suggestedSeverity: r.suggested_severity,
-          urgencyScore: r.urgency_score,
-          requiresImmediateAction: r.requires_immediate_action,
-        }
+            suggestedCategory: r.suggested_category,
+            categoryConfidence: r.category_confidence,
+            suggestedSeverity: r.suggested_severity,
+            urgencyScore: r.urgency_score,
+            requiresImmediateAction: r.requires_immediate_action,
+          }
         : undefined,
     }));
 
@@ -461,22 +477,19 @@ class AdminSafetyDashboardService {
   /**
    * Get harassment detection review queue
    */
-  async getHarassmentReviewQueue(options: {
-    status?: string;
-    minRiskScore?: number;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async getHarassmentReviewQueue(
+    options: {
+      status?: string;
+      minRiskScore?: number;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     items: any[];
     total: number;
     hasMore: boolean;
   }> {
-    const {
-      status = 'pending',
-      minRiskScore = 0.5,
-      limit = 50,
-      offset = 0,
-    } = options;
+    const { status = 'pending', minRiskScore = 0.5, limit = 50, offset = 0 } = options;
 
     try {
       let query = db('harassment_detection_results')
@@ -497,7 +510,9 @@ class AdminSafetyDashboardService {
       }
 
       // Count total
-      const [{ count: total }] = await query.clone().count('harassment_detection_results.id as count');
+      const [{ count: total }] = await query
+        .clone()
+        .count('harassment_detection_results.id as count');
 
       // Get results
       const items = await query
@@ -509,12 +524,14 @@ class AdminSafetyDashboardService {
       return {
         items: items.map((item: any) => ({
           ...item,
-          detected_patterns: typeof item.detected_patterns === 'string'
-            ? JSON.parse(item.detected_patterns)
-            : item.detected_patterns,
-          confidence_scores: typeof item.confidence_scores === 'string'
-            ? JSON.parse(item.confidence_scores)
-            : item.confidence_scores,
+          detected_patterns:
+            typeof item.detected_patterns === 'string'
+              ? JSON.parse(item.detected_patterns)
+              : item.detected_patterns,
+          confidence_scores:
+            typeof item.confidence_scores === 'string'
+              ? JSON.parse(item.confidence_scores)
+              : item.confidence_scores,
         })),
         total: parseInt(total as string, 10),
         hasMore: offset + limit < parseInt(total as string, 10),
@@ -619,13 +636,15 @@ class AdminSafetyDashboardService {
   /**
    * Get moderator action history
    */
-  async getModeratorActionHistory(options: {
-    moderatorId?: string;
-    targetUserId?: string;
-    actionType?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async getModeratorActionHistory(
+    options: {
+      moderatorId?: string;
+      targetUserId?: string;
+      actionType?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     actions: any[];
     total: number;
   }> {
@@ -664,9 +683,8 @@ class AdminSafetyDashboardService {
     return {
       actions: actions.map((a: any) => ({
         ...a,
-        action_details: typeof a.action_details === 'string'
-          ? JSON.parse(a.action_details)
-          : a.action_details,
+        action_details:
+          typeof a.action_details === 'string' ? JSON.parse(a.action_details) : a.action_details,
       })),
       total: parseInt(total as string, 10),
     };
@@ -675,10 +693,12 @@ class AdminSafetyDashboardService {
   /**
    * Get flagged users for review
    */
-  async getFlaggedUsers(options: {
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async getFlaggedUsers(
+    options: {
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     users: UserSafetyProfile[];
     total: number;
   }> {
@@ -761,16 +781,18 @@ class AdminSafetyDashboardService {
   private async updateUserSafetyScore(userId: string): Promise<void> {
     try {
       // Recalculate safety score based on all factors
-      const [reportStats] = await db('reports')
+      const [reportStats] = (await db('reports')
         .where('reported_id', userId)
         .select(
           db.raw('COUNT(*) as total_reports'),
-          db.raw("COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as confirmed_reports")
-        ) as { total_reports: string; confirmed_reports: string }[];
+          db.raw(
+            "COUNT(*) FILTER (WHERE status = 'resolved' OR status = 'action_taken') as confirmed_reports"
+          )
+        )) as { total_reports: string; confirmed_reports: string }[];
 
-      const [blockStats] = await db('blocked_users')
+      const [blockStats] = (await db('blocked_users')
         .where('blocked_id', userId)
-        .count('* as total_blocks') as { total_blocks: string | number }[];
+        .count('* as total_blocks')) as { total_blocks: string | number }[];
 
       const existing = await db('user_safety_scores').where('user_id', userId).first();
 
@@ -886,56 +908,46 @@ class AdminSafetyDashboardService {
       });
 
     // Update safety scores
-    await db('user_safety_scores')
-      .where('user_id', userId)
-      .update({
-        is_restricted: true,
-        restriction_reason: reason,
-        overall_safety_score: 0,
-        updated_at: new Date(),
-      });
+    await db('user_safety_scores').where('user_id', userId).update({
+      is_restricted: true,
+      restriction_reason: reason,
+      overall_safety_score: 0,
+      updated_at: new Date(),
+    });
 
     // TODO: Send ban notification to user
   }
 
   private async unbanUser(userId: string): Promise<void> {
-    await db('user_moderation_records')
-      .where('user_id', userId)
-      .update({
-        status: 'active',
-        permanently_banned: false,
-        banned_at: null,
-        banned_reason: null,
-        updated_at: new Date(),
-      });
+    await db('user_moderation_records').where('user_id', userId).update({
+      status: 'active',
+      permanently_banned: false,
+      banned_at: null,
+      banned_reason: null,
+      updated_at: new Date(),
+    });
 
-    await db('user_safety_scores')
-      .where('user_id', userId)
-      .update({
-        is_restricted: false,
-        restriction_reason: null,
-        updated_at: new Date(),
-      });
+    await db('user_safety_scores').where('user_id', userId).update({
+      is_restricted: false,
+      restriction_reason: null,
+      updated_at: new Date(),
+    });
   }
 
   private async restrictUser(userId: string, reason: string): Promise<void> {
-    await db('user_safety_scores')
-      .where('user_id', userId)
-      .update({
-        is_restricted: true,
-        restriction_reason: reason,
-        updated_at: new Date(),
-      });
+    await db('user_safety_scores').where('user_id', userId).update({
+      is_restricted: true,
+      restriction_reason: reason,
+      updated_at: new Date(),
+    });
   }
 
   private async unrestrictUser(userId: string): Promise<void> {
-    await db('user_safety_scores')
-      .where('user_id', userId)
-      .update({
-        is_restricted: false,
-        restriction_reason: null,
-        updated_at: new Date(),
-      });
+    await db('user_safety_scores').where('user_id', userId).update({
+      is_restricted: false,
+      restriction_reason: null,
+      updated_at: new Date(),
+    });
   }
 }
 

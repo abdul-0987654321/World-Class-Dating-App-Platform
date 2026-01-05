@@ -53,8 +53,4 @@ export {
 } from './query.dto';
 
 // Validation middleware for Express
-export {
-  validateBody,
-  validateQuery,
-  validateParams,
-} from './validation.middleware';
+export { validateBody, validateQuery, validateParams } from './validation.middleware';

@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { UsageLimitService } from '../../domain/services/usage-limit.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class UsageLimitController {
   private usageLimitService: UsageLimitService;
@@ -49,10 +50,7 @@ export class UsageLimitController {
         });
       }
 
-      const result = await this.usageLimitService.canPerformAction(
-        userId,
-        resourceType as any
-      );
+      const result = await this.usageLimitService.canPerformAction(userId, resourceType as any);
 
       return res.status(200).json({
         success: true,
@@ -80,10 +78,7 @@ export class UsageLimitController {
         });
       }
 
-      const usage = await this.usageLimitService.getResourceUsage(
-        userId,
-        resourceType as any
-      );
+      const usage = await this.usageLimitService.getResourceUsage(userId, resourceType as any);
 
       return res.status(200).json({
         success: true,

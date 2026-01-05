@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { getDbConnection } from '../../infrastructure/database/connection';
+
+import { AchievementService } from '../../domain/services/Achievement.service';
+import { BadgeService } from '../../domain/services/Badge.service';
+import { ChallengeService } from '../../domain/services/Challenge.service';
 import { ExperienceService } from '../../domain/services/Experience.service';
 import { StreakService } from '../../domain/services/Streak.service';
-import { ChallengeService } from '../../domain/services/Challenge.service';
-import { BadgeService } from '../../domain/services/Badge.service';
-import { AchievementService } from '../../domain/services/Achievement.service';
+import { getDbConnection } from '../../infrastructure/database/connection';
 
 /**
  * Unified Gamification Controller
@@ -51,7 +52,7 @@ export class GamificationController {
           streaks,
           challenges,
           badges,
-          achievements: achievements.filter(a => a.isUnlocked),
+          achievements: achievements.filter((a) => a.isUnlocked),
         },
       });
     } catch (error) {
@@ -210,7 +211,11 @@ export class GamificationController {
     }
   };
 
-  getAvailableChallenges = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getAvailableChallenges = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -338,7 +343,12 @@ export class GamificationController {
 
       // Track XP
       try {
-        results.experience = await this.experienceService.awardXP(userId, actionType, 1.0, metadata);
+        results.experience = await this.experienceService.awardXP(
+          userId,
+          actionType,
+          1.0,
+          metadata
+        );
       } catch (error) {
         // Continue if XP tracking fails
       }
@@ -347,9 +357,17 @@ export class GamificationController {
       if (actionType === 'SWIPE') {
         await this.achievementService.trackSwipe(userId, metadata.totalSwipes);
       } else if (actionType === 'MATCH') {
-        await this.achievementService.trackMatch(userId, metadata.totalMatches, metadata.isSuperLike);
+        await this.achievementService.trackMatch(
+          userId,
+          metadata.totalMatches,
+          metadata.isSuperLike
+        );
       } else if (actionType === 'SEND_MESSAGE') {
-        await this.achievementService.trackMessage(userId, metadata.totalMessages, metadata.responseTime);
+        await this.achievementService.trackMessage(
+          userId,
+          metadata.totalMessages,
+          metadata.responseTime
+        );
       }
 
       // Track challenges - Removed for now as tracking methods were simplified

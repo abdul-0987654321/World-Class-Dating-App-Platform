@@ -6,8 +6,9 @@
  */
 
 import knex, { Knex } from 'knex';
-import { withRetry, createConnectionRetryWrapper, Logger } from './retry-logic';
+
 import { getOptimizedKnexConfig } from './connection-pool-config';
+import { withRetry, createConnectionRetryWrapper, Logger } from './retry-logic';
 
 /**
  * Create a database connection with retry logic
@@ -85,9 +86,7 @@ export function createRetryableQueryBuilder(db: Knex, logger?: Logger) {
     /**
      * Execute a transaction with retry logic
      */
-    async transaction<T>(
-      callback: (trx: Knex.Transaction) => Promise<T>
-    ): Promise<T> {
+    async transaction<T>(callback: (trx: Knex.Transaction) => Promise<T>): Promise<T> {
       return withRetry(
         () => db.transaction(callback),
         {

@@ -30,11 +30,7 @@ export {
 } from './discovery.dto';
 
 // Boost DTOs
-export {
-  ActivateBoostDto,
-  CancelBoostDto,
-  BoostHistoryQueryDto,
-} from './boost.dto';
+export { ActivateBoostDto, CancelBoostDto, BoostHistoryQueryDto } from './boost.dto';
 
 // Insights DTOs
 export {

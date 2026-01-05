@@ -4,8 +4,9 @@
  */
 
 import axios from 'axios';
-import { createLogger } from '../utils/logger';
+
 import { callRecordingRepository } from '../domain/repositories/call-recording.repository';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('call-recording-service');
 import { VideoCallService } from './video-call.service';
@@ -156,15 +157,10 @@ export class CallRecordingService {
       }
 
       // Construct storage URL from file list
-      const storageUrl = recording.fileList && recording.fileList.length > 0
-        ? recording.fileList[0]
-        : undefined;
+      const storageUrl =
+        recording.fileList && recording.fileList.length > 0 ? recording.fileList[0] : undefined;
 
-      await callRecordingRepository.save(
-        recording,
-        recordingUserId,
-        storageUrl
-      );
+      await callRecordingRepository.save(recording, recordingUserId, storageUrl);
 
       logger.info('Recording metadata saved to database', {
         recordingId: recording.recordingId,
@@ -378,11 +374,7 @@ export class CallRecordingService {
   /**
    * Get recordings from database for a user
    */
-  async getRecordingsForUser(
-    userId: string,
-    limit: number = 50,
-    offset: number = 0
-  ) {
+  async getRecordingsForUser(userId: string, limit: number = 50, offset: number = 0) {
     return callRecordingRepository.getRecordingsByUserId(userId, limit, offset);
   }
 

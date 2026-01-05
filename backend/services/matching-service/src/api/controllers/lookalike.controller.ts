@@ -9,8 +9,9 @@
  * - Viewing search history
  */
 
-import { Request, Response } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
 import lookalikeMatchingService from '../../domain/services/lookalike-matching.service';
 import { LOOKALIKE_CONFIG } from '../../types/lookalike.types';
 
@@ -218,7 +219,7 @@ export class LookalikeController {
         photoUrl,
         embeddingResult.embedding,
         {
-          faceConfidence: embeddingResult.faceConfidence!,
+          faceConfidence: embeddingResult.faceConfidence,
           boundingBox: embeddingResult.boundingBox,
           faceAttributes: embeddingResult.faceAttributes,
           qualityBrightness: embeddingResult.qualityBrightness,

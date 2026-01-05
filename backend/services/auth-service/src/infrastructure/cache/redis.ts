@@ -1,4 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
+
 import { config } from '../../config';
 import logger from '../../utils/logger';
 
@@ -39,7 +40,12 @@ class RedisCache {
    * Store a refresh token for a user with token family tracking
    * Used for refresh token rotation with reuse detection
    */
-  async setRefreshToken(userId: string, token: string, expiresInSeconds: number, tokenId?: string): Promise<void> {
+  async setRefreshToken(
+    userId: string,
+    token: string,
+    expiresInSeconds: number,
+    tokenId?: string
+  ): Promise<void> {
     if (!this.client || !this.isConnected) return;
 
     try {
@@ -170,11 +176,7 @@ class RedisCache {
     if (!this.client || !this.isConnected) return;
 
     try {
-      await this.client.setEx(
-        `verification:${token}`,
-        expiresInSeconds,
-        JSON.stringify(data)
-      );
+      await this.client.setEx(`verification:${token}`, expiresInSeconds, JSON.stringify(data));
     } catch (error) {
       logger.error('Failed to store verification token', error);
     }

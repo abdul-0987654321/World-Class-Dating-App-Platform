@@ -90,7 +90,7 @@ class MessageReactionsService {
       if (!grouped.has(reaction.emoji)) {
         grouped.set(reaction.emoji, []);
       }
-      grouped.get(reaction.emoji)!.push(reaction.userId);
+      grouped.get(reaction.emoji).push(reaction.userId);
     }
 
     // Build summary
@@ -106,7 +106,7 @@ class MessageReactionsService {
 
     // Add current user's reaction if provided
     if (currentUserId) {
-      const userReaction = reactions.find(r => r.userId === currentUserId);
+      const userReaction = reactions.find((r) => r.userId === currentUserId);
       if (userReaction) {
         summary.userReaction = userReaction.emoji;
       }
@@ -118,7 +118,10 @@ class MessageReactionsService {
   /**
    * Get user's reaction to a message
    */
-  private async getUserReaction(messageId: string, userId: string): Promise<MessageReaction | null> {
+  private async getUserReaction(
+    messageId: string,
+    userId: string
+  ): Promise<MessageReaction | null> {
     // In production, query from database
     return null;
   }
@@ -168,7 +171,10 @@ class MessageReactionsService {
   /**
    * Emit real-time reaction event
    */
-  private async emitReactionEvent(event: 'added' | 'removed' | 'updated', reaction: MessageReaction): Promise<void> {
+  private async emitReactionEvent(
+    event: 'added' | 'removed' | 'updated',
+    reaction: MessageReaction
+  ): Promise<void> {
     // In production, emit via WebSocket or message queue
     logger.debug('Reaction event emitted', { event, reactionId: reaction.id });
   }

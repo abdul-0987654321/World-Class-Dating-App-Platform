@@ -4,9 +4,10 @@
  */
 
 import { Request, Response } from 'express';
-import { createLogger } from '../../utils/logger';
-import { RewardsService } from '../../services/rewards.service';
 import { Pool } from 'pg';
+
+import { RewardsService } from '../../services/rewards.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('RewardsController');
 

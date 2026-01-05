@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import {
   TravelDestinationEntity,
   TravelHistoryEntity,
@@ -96,9 +97,7 @@ export class TravelModeService {
       .orderBy('start_date', 'asc');
   }
 
-  async getActiveTravelDestination(
-    userId: string
-  ): Promise<TravelDestinationEntity | null> {
+  async getActiveTravelDestination(userId: string): Promise<TravelDestinationEntity | null> {
     const destination = await this.db('travel_destinations')
       .where({ user_id: userId, is_active: true, status: 'active' })
       .first();
@@ -141,17 +140,12 @@ export class TravelModeService {
     return updated;
   }
 
-  async cancelTravelDestination(
-    destinationId: string,
-    userId: string
-  ): Promise<void> {
-    await this.db('travel_destinations')
-      .where({ id: destinationId, user_id: userId })
-      .update({
-        status: 'cancelled',
-        is_active: false,
-        updated_at: this.db.fn.now(),
-      });
+  async cancelTravelDestination(destinationId: string, userId: string): Promise<void> {
+    await this.db('travel_destinations').where({ id: destinationId, user_id: userId }).update({
+      status: 'cancelled',
+      is_active: false,
+      updated_at: this.db.fn.now(),
+    });
   }
 
   // Automatic location switching based on travel dates
@@ -172,13 +166,11 @@ export class TravelModeService {
         .update({ is_active: false });
 
       // Activate this destination
-      await this.db('travel_destinations')
-        .where({ id: destination.id })
-        .update({
-          status: 'active',
-          is_active: true,
-          updated_at: this.db.fn.now(),
-        });
+      await this.db('travel_destinations').where({ id: destination.id }).update({
+        status: 'active',
+        is_active: true,
+        updated_at: this.db.fn.now(),
+      });
     }
 
     // Complete destinations whose end date has passed
@@ -194,9 +186,7 @@ export class TravelModeService {
 
   // Travel Mode Settings
   async getTravelModeSettings(userId: string): Promise<TravelModeSettingsEntity> {
-    let settings = await this.db('travel_mode_settings')
-      .where({ user_id: userId })
-      .first();
+    let settings = await this.db('travel_mode_settings').where({ user_id: userId }).first();
 
     if (!settings) {
       // Create default settings
@@ -237,10 +227,7 @@ export class TravelModeService {
   }
 
   // Passport Feature (Change location anytime)
-  async changeLocationWithPassport(
-    userId: string,
-    data: CreateLocationChangeDto
-  ): Promise<void> {
+  async changeLocationWithPassport(userId: string, data: CreateLocationChangeDto): Promise<void> {
     const settings = await this.getTravelModeSettings(userId);
 
     if (!settings.unlimited_passport_enabled) {
@@ -261,15 +248,13 @@ export class TravelModeService {
     await this.logLocationChange(userId, data);
 
     // Update user's current location in profile
-    await this.db('profiles')
-      .where({ user_id: userId })
-      .update({
-        city: data.city,
-        country: data.country,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        updated_at: this.db.fn.now(),
-      });
+    await this.db('profiles').where({ user_id: userId }).update({
+      city: data.city,
+      country: data.country,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      updated_at: this.db.fn.now(),
+    });
   }
 
   // Location Change Logging
@@ -293,10 +278,7 @@ export class TravelModeService {
     return change;
   }
 
-  async getLocationHistory(
-    userId: string,
-    limit: number = 20
-  ): Promise<LocationChangeEntity[]> {
+  async getLocationHistory(userId: string, limit: number = 20): Promise<LocationChangeEntity[]> {
     return this.db('location_changes')
       .where({ user_id: userId })
       .orderBy('changed_at', 'desc')
@@ -305,17 +287,11 @@ export class TravelModeService {
 
   // Travel History
   async getTravelHistory(userId: string): Promise<TravelHistoryEntity[]> {
-    return this.db('travel_history')
-      .where({ user_id: userId })
-      .orderBy('visited_at', 'desc');
+    return this.db('travel_history').where({ user_id: userId }).orderBy('visited_at', 'desc');
   }
 
-  async addTravelHistory(
-    destinationId: string
-  ): Promise<TravelHistoryEntity> {
-    const destination = await this.db('travel_destinations')
-      .where({ id: destinationId })
-      .first();
+  async addTravelHistory(destinationId: string): Promise<TravelHistoryEntity> {
+    const destination = await this.db('travel_destinations').where({ id: destinationId }).first();
 
     if (!destination) {
       throw new Error('Destination not found');
@@ -353,9 +329,7 @@ export class TravelModeService {
   }
 
   async updatePopularDestination(city: string, country: string): Promise<void> {
-    const existing = await this.db('popular_destinations')
-      .where({ city, country })
-      .first();
+    const existing = await this.db('popular_destinations').where({ city, country }).first();
 
     if (existing) {
       await this.db('popular_destinations')
@@ -366,12 +340,8 @@ export class TravelModeService {
   }
 
   // Travel Buddy Preferences
-  async getTravelBuddyPreferences(
-    userId: string
-  ): Promise<TravelBuddyPreferencesEntity> {
-    let preferences = await this.db('travel_buddy_preferences')
-      .where({ user_id: userId })
-      .first();
+  async getTravelBuddyPreferences(userId: string): Promise<TravelBuddyPreferencesEntity> {
+    let preferences = await this.db('travel_buddy_preferences').where({ user_id: userId }).first();
 
     if (!preferences) {
       [preferences] = await this.db('travel_buddy_preferences')
@@ -429,12 +399,7 @@ export class TravelModeService {
   }
 
   // Helper: Calculate distance between two coordinates (Haversine formula)
-  calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth's radius in km
     const dLat = this.toRad(lat2 - lat1);
     const dLon = this.toRad(lon2 - lon1);

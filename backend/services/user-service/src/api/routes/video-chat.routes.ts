@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
+
 import { videoChatService } from '../../services/video-chat.service';
 import logger from '../../utils/logger';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -91,7 +92,7 @@ const router = express.Router();
  */
 router.post('/initiate', requireAuth, async (req: Request, res: Response) => {
   try {
-    const callerId = req.user!.id;
+    const callerId = req.user.id;
     const { receiverId, callType } = req.body;
 
     if (!receiverId || !callType) {
@@ -108,11 +109,7 @@ router.post('/initiate', requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    const result = await videoChatService.initiateCall(
-      callerId,
-      receiverId,
-      callType
-    );
+    const result = await videoChatService.initiateCall(callerId, receiverId, callType);
 
     if (!result.success) {
       return res.status(400).json(result);
@@ -178,7 +175,7 @@ router.post('/initiate', requireAuth, async (req: Request, res: Response) => {
 router.post('/accept/:callId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { callId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const result = await videoChatService.acceptCall(callId, userId);
 
@@ -257,7 +254,7 @@ router.post('/accept/:callId', requireAuth, async (req: Request, res: Response) 
 router.post('/end/:callId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { callId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { reason = 'completed' } = req.body;
 
     const result = await videoChatService.endCall(callId, userId, reason);
@@ -352,7 +349,7 @@ router.post('/end/:callId', requireAuth, async (req: Request, res: Response) => 
  */
 router.get('/history', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
@@ -401,7 +398,7 @@ router.get('/history', requireAuth, async (req: Request, res: Response) => {
  */
 router.get('/active', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const result = await videoChatService.getActiveCall(userId);
 

@@ -175,21 +175,21 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
  * Get tier by key
  */
 export function getTierByKey(key: string): SubscriptionTier | undefined {
-  return SUBSCRIPTION_TIERS.find(tier => tier.key === key);
+  return SUBSCRIPTION_TIERS.find((tier) => tier.key === key);
 }
 
 /**
  * Get tier by Stripe price ID
  */
 export function getTierByPriceId(priceId: string): SubscriptionTier | undefined {
-  return SUBSCRIPTION_TIERS.find(tier => tier.stripePriceId === priceId);
+  return SUBSCRIPTION_TIERS.find((tier) => tier.stripePriceId === priceId);
 }
 
 /**
  * Get tier by Stripe product ID
  */
 export function getTierByProductId(productId: string): SubscriptionTier | undefined {
-  return SUBSCRIPTION_TIERS.find(tier => tier.stripeProductId === productId);
+  return SUBSCRIPTION_TIERS.find((tier) => tier.stripeProductId === productId);
 }
 
 /**
@@ -203,10 +203,7 @@ export function getEntitlements(tierKey: string): TierEntitlements {
 /**
  * Check if a tier has a specific entitlement
  */
-export function hasEntitlement(
-  tierKey: string,
-  entitlement: keyof TierEntitlements
-): boolean {
+export function hasEntitlement(tierKey: string, entitlement: keyof TierEntitlements): boolean {
   const entitlements = getEntitlements(tierKey);
   const value = entitlements[entitlement];
 
@@ -225,7 +222,7 @@ export function validateStripeConfig(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Skip free tier, validate paid tiers
-  const paidTiers = SUBSCRIPTION_TIERS.filter(t => t.key !== 'free');
+  const paidTiers = SUBSCRIPTION_TIERS.filter((t) => t.key !== 'free');
 
   for (const tier of paidTiers) {
     if (!tier.stripePriceId || tier.stripePriceId.startsWith('price_')) {

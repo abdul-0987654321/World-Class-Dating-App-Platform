@@ -8,9 +8,7 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
  */
 export function initializeSentry(serviceName: string): void {
   if (!process.env.SENTRY_DSN) {
-    console.warn(
-      `Sentry DSN not configured for ${serviceName}. Error tracking disabled.`
-    );
+    console.warn(`Sentry DSN not configured for ${serviceName}. Error tracking disabled.`);
     return;
   }
 
@@ -34,7 +32,10 @@ export function initializeSentry(serviceName: string): void {
     beforeSend(event, hint) {
       // Don't send errors in development (console log them instead)
       if (process.env.NODE_ENV !== 'production') {
-        console.error('Sentry Error (not sent):', hint.originalException || hint.syntheticException);
+        console.error(
+          'Sentry Error (not sent):',
+          hint.originalException || hint.syntheticException
+        );
         return null;
       }
 

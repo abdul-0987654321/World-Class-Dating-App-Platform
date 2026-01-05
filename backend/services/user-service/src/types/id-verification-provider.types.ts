@@ -20,19 +20,10 @@ export type IDVerificationStatus =
   | 'error';
 
 // Document check results
-export type DocumentCheckResult =
-  | 'clear'
-  | 'consider'
-  | 'rejected'
-  | 'caution'
-  | 'not_performed';
+export type DocumentCheckResult = 'clear' | 'consider' | 'rejected' | 'caution' | 'not_performed';
 
 // Face match results
-export type FaceMatchResult =
-  | 'match'
-  | 'no_match'
-  | 'not_performed'
-  | 'error';
+export type FaceMatchResult = 'match' | 'no_match' | 'not_performed' | 'error';
 
 /**
  * Request to initiate ID verification
@@ -176,12 +167,17 @@ export interface IIDVerificationProvider {
   /**
    * Initiate an ID verification session
    */
-  initiateVerification(request: InitiateIDVerificationRequest): Promise<InitiateIDVerificationResponse>;
+  initiateVerification(
+    request: InitiateIDVerificationRequest
+  ): Promise<InitiateIDVerificationResponse>;
 
   /**
    * Process webhook callback from the provider
    */
-  processWebhook(payload: Record<string, any>, headers: Record<string, string>): Promise<IDVerificationResult>;
+  processWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<IDVerificationResult>;
 
   /**
    * Get current status of a verification

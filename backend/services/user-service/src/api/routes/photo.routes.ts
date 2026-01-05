@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { PhotoController } from '../controllers/photo.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { uploadSingle, validateUploadedFile } from '../middleware/upload.middleware';
@@ -51,7 +52,13 @@ router.get('/', authenticate, photoController.getUserPhotos.bind(photoController
  *       401:
  *         description: Unauthorized
  */
-router.post('/upload', authenticate, uploadSingle, validateUploadedFile('image'), photoController.uploadPhoto.bind(photoController));
+router.post(
+  '/upload',
+  authenticate,
+  uploadSingle,
+  validateUploadedFile('image'),
+  photoController.uploadPhoto.bind(photoController)
+);
 
 /**
  * @swagger
@@ -132,7 +139,11 @@ router.delete('/:photoId', authenticate, photoController.deletePhoto.bind(photoC
  *       401:
  *         description: Unauthorized
  */
-router.put('/:photoId/primary', authenticate, photoController.setPrimaryPhoto.bind(photoController));
+router.put(
+  '/:photoId/primary',
+  authenticate,
+  photoController.setPrimaryPhoto.bind(photoController)
+);
 
 /**
  * @swagger

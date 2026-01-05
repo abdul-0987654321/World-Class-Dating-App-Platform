@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { OpeningMoveService } from '../../domain/services/opening-move.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class OpeningMoveController {
   private service: OpeningMoveService;
@@ -13,7 +14,7 @@ export class OpeningMoveController {
   // GET /api/users/me/opening-moves
   async getOpeningMoves(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const moves = await this.service.getUserOpeningMoves(userId);
 
       return res.status(200).json({
@@ -32,7 +33,7 @@ export class OpeningMoveController {
   // POST /api/users/me/opening-moves
   async createOpeningMove(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const move = await this.service.createOpeningMove(userId, req.body);
 
       return res.status(201).json({
@@ -54,7 +55,7 @@ export class OpeningMoveController {
   // PUT /api/users/me/opening-moves/:id
   async updateOpeningMove(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       const move = await this.service.updateOpeningMove(id, userId, req.body);
@@ -67,8 +68,11 @@ export class OpeningMoveController {
     } catch (error: any) {
       logger.error('Update opening move error:', error);
 
-      const statusCode = error.message.includes('not found') ? 404 :
-                         error.message.includes('can only') ? 403 : 500;
+      const statusCode = error.message.includes('not found')
+        ? 404
+        : error.message.includes('can only')
+          ? 403
+          : 500;
       return res.status(statusCode).json({
         success: false,
         message: error.message || 'Failed to update opening move',
@@ -79,7 +83,7 @@ export class OpeningMoveController {
   // DELETE /api/users/me/opening-moves/:id
   async deleteOpeningMove(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { id } = req.params;
 
       await this.service.deleteOpeningMove(id, userId);
@@ -91,8 +95,11 @@ export class OpeningMoveController {
     } catch (error: any) {
       logger.error('Delete opening move error:', error);
 
-      const statusCode = error.message.includes('not found') ? 404 :
-                         error.message.includes('can only') ? 403 : 500;
+      const statusCode = error.message.includes('not found')
+        ? 404
+        : error.message.includes('can only')
+          ? 403
+          : 500;
       return res.status(statusCode).json({
         success: false,
         message: error.message || 'Failed to delete opening move',
@@ -103,7 +110,7 @@ export class OpeningMoveController {
   // PUT /api/users/me/opening-moves/reorder
   async reorderOpeningMoves(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { orderedIds } = req.body;
 
       if (!Array.isArray(orderedIds)) {
@@ -169,7 +176,7 @@ export class OpeningMoveController {
   // POST /api/matches/:matchId/respond
   async respondToOpeningMove(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { matchId } = req.params;
       const { opening_move_id, response_text } = req.body;
 
@@ -187,8 +194,11 @@ export class OpeningMoveController {
     } catch (error: any) {
       logger.error('Respond to opening move error:', error);
 
-      const statusCode = error.message.includes('already responded') ? 409 :
-                         error.message.includes('not found') ? 404 : 500;
+      const statusCode = error.message.includes('already responded')
+        ? 409
+        : error.message.includes('not found')
+          ? 404
+          : 500;
       return res.status(statusCode).json({
         success: false,
         message: error.message || 'Failed to submit response',

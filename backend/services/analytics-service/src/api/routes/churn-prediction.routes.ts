@@ -10,13 +10,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { churnPredictionService } from '../../services/churn-prediction.service';
+
 import { churnPredictionJobRunner } from '../../jobs/churn-prediction.job';
+import { churnPredictionService } from '../../services/churn-prediction.service';
+import { ChurnRiskTier, RetentionCampaignType } from '../../types';
 import { authMiddleware, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
-import {
-  ChurnRiskTier,
-  RetentionCampaignType,
-} from '../../types';
 
 const router = Router();
 
@@ -98,11 +96,7 @@ router.get('/at-risk', requireAdmin, async (req: AuthRequest, res: Response) => 
       });
     }
 
-    const atRiskUsers = await churnPredictionService.getAtRiskUsers(
-      riskLevel,
-      limit,
-      offset
-    );
+    const atRiskUsers = await churnPredictionService.getAtRiskUsers(riskLevel, limit, offset);
 
     res.json({
       success: true,
@@ -170,9 +164,7 @@ router.get('/analytics', requireAdmin, async (req: AuthRequest, res: Response) =
     const startDate = req.query.startDate
       ? new Date(req.query.startDate as string)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date();
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : new Date();
 
     const analytics = await churnPredictionService.getChurnAnalytics(startDate, endDate);
 
@@ -225,9 +217,7 @@ router.get('/analytics/campaigns', requireAdmin, async (req: AuthRequest, res: R
     const startDate = req.query.startDate
       ? new Date(req.query.startDate as string)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date();
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : new Date();
 
     const analytics = await churnPredictionService.getChurnAnalytics(startDate, endDate);
 
@@ -327,8 +317,8 @@ router.post('/campaign/trigger-batch', requireAdmin, async (req: AuthRequest, re
       )
     );
 
-    const successful = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
+    const successful = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
 
     res.json({
       success: true,
@@ -661,7 +651,7 @@ router.get('/indicators', (req: Request, res: Response) => {
       type: 'MESSAGE_RESPONSE_RATE',
       name: 'Message Response Rate',
       description: 'Rate of responding to received messages',
-      weight: 0.10,
+      weight: 0.1,
     },
     {
       type: 'SWIPE_ACTIVITY',

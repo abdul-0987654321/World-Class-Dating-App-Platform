@@ -1,6 +1,7 @@
 import { createClient, RedisClientType } from 'redis';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('realtime-client');
 
@@ -123,7 +124,9 @@ export class RealtimeClient {
 
     if (this.reconnectAttempts <= this.maxReconnectAttempts) {
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-      logger.info(`Retrying connection in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      logger.info(
+        `Retrying connection in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+      );
 
       setTimeout(() => {
         this.initialize();

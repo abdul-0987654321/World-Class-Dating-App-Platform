@@ -1,18 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Headers,
-  HttpCode,
-  HttpStatus,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Headers, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ProxyService } from '../services/proxy.service';
-import { Public } from '../decorators/public.decorator';
+
 import { CurrentUser, JwtPayload } from '../decorators/current-user.decorator';
+import { Public } from '../decorators/public.decorator';
+import { ProxyService } from '../services/proxy.service';
 
 // Response DTOs for session endpoint
 interface UserSummary {
@@ -84,9 +76,14 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Headers('authorization') authorization: string) {
-    return this.proxyService.post('authService', '/api/v1/auth/logout', {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'authService',
+      '/api/v1/auth/logout',
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   /**
@@ -219,19 +216,23 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getSession(
     @Headers('authorization') authorization: string,
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() user: JwtPayload
   ): Promise<SessionResponse> {
     // Fetch user data and subscription info in parallel
     const [userData, subscriptionData, usageData] = await Promise.all([
       this.proxyService.get('authService', '/api/v1/auth/me', {
         Authorization: authorization,
       }),
-      this.proxyService.get('userService', '/api/subscriptions/current', {
-        Authorization: authorization,
-      }).catch(() => null),
-      this.proxyService.get('matchingService', '/api/swipes/stats', {
-        Authorization: authorization,
-      }).catch(() => null),
+      this.proxyService
+        .get('userService', '/api/subscriptions/current', {
+          Authorization: authorization,
+        })
+        .catch(() => null),
+      this.proxyService
+        .get('matchingService', '/api/swipes/stats', {
+          Authorization: authorization,
+        })
+        .catch(() => null),
     ]);
 
     // Determine tier-based limits
@@ -257,7 +258,9 @@ export class AuthController {
     // Build session info from JWT
     const session = {
       createdAt: user?.iat ? new Date(user.iat * 1000).toISOString() : new Date().toISOString(),
-      expiresAt: user?.exp ? new Date(user.exp * 1000).toISOString() : new Date(Date.now() + 3600000).toISOString(),
+      expiresAt: user?.exp
+        ? new Date(user.exp * 1000).toISOString()
+        : new Date(Date.now() + 3600000).toISOString(),
       deviceId: user?.deviceId,
     };
 
@@ -329,9 +332,48 @@ export class AuthController {
       free: baseFeatures,
       basic: [...baseFeatures, 'super_like', 'rewind', 'see_likes_preview'],
       plus: [...baseFeatures, 'super_like', 'rewind', 'see_likes', 'boost', 'passport', 'hide_ads'],
-      premium: [...baseFeatures, 'super_like', 'rewind', 'see_likes', 'boost', 'passport', 'hide_ads', 'priority_likes', 'read_receipts', 'top_picks'],
-      premium_plus: [...baseFeatures, 'super_like', 'rewind', 'see_likes', 'boost', 'passport', 'hide_ads', 'priority_likes', 'read_receipts', 'top_picks', 'incognito', 'message_before_match'],
-      elite: [...baseFeatures, 'super_like', 'rewind', 'see_likes', 'boost', 'passport', 'hide_ads', 'priority_likes', 'read_receipts', 'top_picks', 'incognito', 'message_before_match', 'verified_badge', 'concierge'],
+      premium: [
+        ...baseFeatures,
+        'super_like',
+        'rewind',
+        'see_likes',
+        'boost',
+        'passport',
+        'hide_ads',
+        'priority_likes',
+        'read_receipts',
+        'top_picks',
+      ],
+      premium_plus: [
+        ...baseFeatures,
+        'super_like',
+        'rewind',
+        'see_likes',
+        'boost',
+        'passport',
+        'hide_ads',
+        'priority_likes',
+        'read_receipts',
+        'top_picks',
+        'incognito',
+        'message_before_match',
+      ],
+      elite: [
+        ...baseFeatures,
+        'super_like',
+        'rewind',
+        'see_likes',
+        'boost',
+        'passport',
+        'hide_ads',
+        'priority_likes',
+        'read_receipts',
+        'top_picks',
+        'incognito',
+        'message_before_match',
+        'verified_badge',
+        'concierge',
+      ],
     };
 
     return tierFeatures[tier] || tierFeatures.free;

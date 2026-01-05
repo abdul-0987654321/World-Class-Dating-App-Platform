@@ -1,7 +1,8 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
 import { CallSession } from '../../services/video-call.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('call-history-repository');
 
@@ -114,7 +115,9 @@ export class CallHistoryRepository {
       }
 
       const querySpec = { query, parameters };
-      const { resources } = await this.container.items.query<CallHistoryDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<CallHistoryDocument>(querySpec)
+        .fetchAll();
 
       return resources;
     } catch (error: any) {
@@ -145,7 +148,9 @@ export class CallHistoryRepository {
         ],
       };
 
-      const { resources } = await this.container.items.query<CallHistoryDocument>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<CallHistoryDocument>(querySpec)
+        .fetchAll();
       return resources;
     } catch (error: any) {
       logger.error('Failed to get calls between users:', error);
@@ -172,13 +177,15 @@ export class CallHistoryRepository {
         parameters: [{ name: '@userId', value: userId }],
       };
 
-      const { resources } = await this.container.items.query<{
-        totalCalls: number;
-        totalDuration: number;
-        completedCalls: number;
-        missedCalls: number;
-        rejectedCalls: number;
-      }>(totalQuery).fetchAll();
+      const { resources } = await this.container.items
+        .query<{
+          totalCalls: number;
+          totalDuration: number;
+          completedCalls: number;
+          missedCalls: number;
+          rejectedCalls: number;
+        }>(totalQuery)
+        .fetchAll();
 
       const stats = resources[0] || {
         totalCalls: 0,
@@ -191,7 +198,8 @@ export class CallHistoryRepository {
       return {
         totalCalls: stats.totalCalls || 0,
         totalDuration: stats.totalDuration || 0,
-        avgDuration: stats.totalCalls > 0 ? Math.round((stats.totalDuration || 0) / stats.totalCalls) : 0,
+        avgDuration:
+          stats.totalCalls > 0 ? Math.round((stats.totalDuration || 0) / stats.totalCalls) : 0,
         completedCalls: stats.completedCalls || 0,
         missedCalls: stats.missedCalls || 0,
         rejectedCalls: stats.rejectedCalls || 0,
@@ -236,7 +244,9 @@ export class CallHistoryRepository {
         parameters: [{ name: '@olderThan', value: olderThan.getTime() }],
       };
 
-      const { resources } = await this.container.items.query<{ id: string; callerId: string }>(querySpec).fetchAll();
+      const { resources } = await this.container.items
+        .query<{ id: string; callerId: string }>(querySpec)
+        .fetchAll();
 
       let deleted = 0;
       for (const call of resources) {

@@ -126,10 +126,7 @@ export class RevenueRepository {
   /**
    * Get subscription metrics by plan
    */
-  async getSubscriptionMetrics(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<SubscriptionMetrics[]> {
+  async getSubscriptionMetrics(startDate?: Date, endDate?: Date): Promise<SubscriptionMetrics[]> {
     let query = `
       SELECT
         subscription_plan as plan,
@@ -162,7 +159,7 @@ export class RevenueRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       plan: row.plan,
       newSubscriptions: parseInt(row.new_subscriptions, 10),
       renewals: parseInt(row.renewals, 10),
@@ -176,10 +173,7 @@ export class RevenueRepository {
   /**
    * Get coin purchase metrics
    */
-  async getCoinPurchaseMetrics(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<CoinPurchaseMetrics[]> {
+  async getCoinPurchaseMetrics(startDate?: Date, endDate?: Date): Promise<CoinPurchaseMetrics[]> {
     let query = `
       SELECT
         coin_package_size as package_size,
@@ -211,7 +205,7 @@ export class RevenueRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       packageSize: parseInt(row.package_size, 10),
       purchaseCount: parseInt(row.purchase_count, 10),
       revenue: parseFloat(row.revenue || '0'),
@@ -319,8 +313,7 @@ export class RevenueRepository {
       startedCheckout,
       completedPurchase,
       viewToPurchaseRate: viewedPricing > 0 ? (completedPurchase / viewedPricing) * 100 : 0,
-      checkoutConversionRate:
-        startedCheckout > 0 ? (completedPurchase / startedCheckout) * 100 : 0,
+      checkoutConversionRate: startedCheckout > 0 ? (completedPurchase / startedCheckout) * 100 : 0,
     };
   }
 
@@ -409,7 +402,7 @@ export class RevenueRepository {
 
     const result = await dbClient.query(query, [startDate, endDate]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       period: row.period.toISOString(),
       revenue: parseFloat(row.revenue || '0'),
       transactionCount: parseInt(row.transaction_count, 10),
@@ -514,7 +507,7 @@ export class RevenueRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       userId: row.user_id,
       totalRevenue: parseFloat(row.total_revenue || '0'),
       transactionCount: parseInt(row.transaction_count, 10),

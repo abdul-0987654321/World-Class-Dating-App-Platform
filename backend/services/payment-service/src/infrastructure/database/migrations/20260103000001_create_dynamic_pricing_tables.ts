@@ -49,7 +49,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('code', 50).unique().notNullable(); // Promo code (e.g., 'SUMMER2025')
     table.string('name', 100).notNullable();
     table.text('description').nullable();
-    table.enum('discount_type', ['percentage', 'fixed_amount', 'free_trial_days', 'tier_upgrade']).notNullable();
+    table
+      .enum('discount_type', ['percentage', 'fixed_amount', 'free_trial_days', 'tier_upgrade'])
+      .notNullable();
     table.decimal('discount_value', 10, 2).notNullable(); // Amount or percentage
     table.decimal('min_purchase_amount', 10, 2).nullable(); // Minimum cart/purchase value
     table.decimal('max_discount_amount', 10, 2).nullable(); // Cap for percentage discounts
@@ -84,9 +86,24 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_promotion_usage', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
-    table.uuid('promotion_id').notNullable().references('id').inTable('promotions').onDelete('CASCADE');
-    table.uuid('subscription_id').nullable().references('id').inTable('user_subscriptions').onDelete('SET NULL');
-    table.uuid('transaction_id').nullable().references('id').inTable('transactions').onDelete('SET NULL');
+    table
+      .uuid('promotion_id')
+      .notNullable()
+      .references('id')
+      .inTable('promotions')
+      .onDelete('CASCADE');
+    table
+      .uuid('subscription_id')
+      .nullable()
+      .references('id')
+      .inTable('user_subscriptions')
+      .onDelete('SET NULL');
+    table
+      .uuid('transaction_id')
+      .nullable()
+      .references('id')
+      .inTable('transactions')
+      .onDelete('SET NULL');
     table.decimal('discount_amount', 10, 2).notNullable();
     table.decimal('original_amount', 10, 2).notNullable();
     table.decimal('final_amount', 10, 2).notNullable();
@@ -142,7 +159,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('name', 100).notNullable();
     table.text('description').nullable();
     table.string('hypothesis', 500).nullable();
-    table.enum('status', ['draft', 'running', 'paused', 'completed', 'cancelled']).defaultTo('draft');
+    table
+      .enum('status', ['draft', 'running', 'paused', 'completed', 'cancelled'])
+      .defaultTo('draft');
     table.decimal('traffic_percentage', 5, 2).notNullable().defaultTo(10); // % of users in experiment
     table.jsonb('targeting_rules').defaultTo('{}'); // Who can be in experiment
     table.jsonb('exclusion_rules').defaultTo('{}'); // Who is excluded
@@ -165,7 +184,12 @@ export async function up(knex: Knex): Promise<void> {
   // =============================================================================
   await knex.schema.createTable('price_experiment_variants', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('experiment_id').notNullable().references('id').inTable('price_experiments').onDelete('CASCADE');
+    table
+      .uuid('experiment_id')
+      .notNullable()
+      .references('id')
+      .inTable('price_experiments')
+      .onDelete('CASCADE');
     table.string('name', 50).notNullable(); // e.g., 'control', 'variant_a', 'variant_b'
     table.boolean('is_control').defaultTo(false);
     table.decimal('traffic_weight', 5, 2).notNullable().defaultTo(50); // % of experiment traffic
@@ -193,8 +217,18 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('user_experiment_assignments', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
-    table.uuid('experiment_id').notNullable().references('id').inTable('price_experiments').onDelete('CASCADE');
-    table.uuid('variant_id').notNullable().references('id').inTable('price_experiment_variants').onDelete('CASCADE');
+    table
+      .uuid('experiment_id')
+      .notNullable()
+      .references('id')
+      .inTable('price_experiments')
+      .onDelete('CASCADE');
+    table
+      .uuid('variant_id')
+      .notNullable()
+      .references('id')
+      .inTable('price_experiment_variants')
+      .onDelete('CASCADE');
     table.timestamp('assigned_at').notNullable().defaultTo(knex.fn.now());
     table.boolean('has_converted').defaultTo(false);
     table.timestamp('converted_at').nullable();
@@ -251,16 +285,18 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.string('name', 100).notNullable();
     table.text('description').nullable();
-    table.enum('rule_type', [
-      'time_based', // Happy hour, weekend specials
-      'quantity_based', // Buy more save more
-      'user_attribute', // Based on user properties
-      'referral', // Referral discounts
-      'loyalty', // Long-term subscriber rewards
-      'win_back', // Lapsed subscriber offers
-      'flash_sale', // Limited time offers
-      'early_bird', // Early adopter pricing
-    ]).notNullable();
+    table
+      .enum('rule_type', [
+        'time_based', // Happy hour, weekend specials
+        'quantity_based', // Buy more save more
+        'user_attribute', // Based on user properties
+        'referral', // Referral discounts
+        'loyalty', // Long-term subscriber rewards
+        'win_back', // Lapsed subscriber offers
+        'flash_sale', // Limited time offers
+        'early_bird', // Early adopter pricing
+      ])
+      .notNullable();
     table.jsonb('conditions').notNullable(); // Rule conditions
     table.jsonb('actions').notNullable(); // What happens when rule matches
     table.integer('priority').defaultTo(0); // Higher = evaluated first
@@ -322,44 +358,236 @@ export async function up(knex: Knex): Promise<void> {
   // Insert common regional pricing configurations
   await knex('regional_pricing').insert([
     // Tier 1: Full price countries (High income)
-    { country_code: 'US', currency_code: 'USD', purchasing_power_index: 1.0, price_multiplier: 1.0, currency_conversion_rate: 1.0 },
-    { country_code: 'GB', currency_code: 'GBP', purchasing_power_index: 0.95, price_multiplier: 0.95, currency_conversion_rate: 0.79 },
-    { country_code: 'DE', currency_code: 'EUR', purchasing_power_index: 0.92, price_multiplier: 0.95, currency_conversion_rate: 0.92 },
-    { country_code: 'FR', currency_code: 'EUR', purchasing_power_index: 0.90, price_multiplier: 0.95, currency_conversion_rate: 0.92 },
-    { country_code: 'AU', currency_code: 'AUD', purchasing_power_index: 0.93, price_multiplier: 0.95, currency_conversion_rate: 1.53 },
-    { country_code: 'CA', currency_code: 'CAD', purchasing_power_index: 0.94, price_multiplier: 0.95, currency_conversion_rate: 1.36 },
-    { country_code: 'JP', currency_code: 'JPY', purchasing_power_index: 0.85, price_multiplier: 0.90, currency_conversion_rate: 149.5 },
-    { country_code: 'SG', currency_code: 'SGD', purchasing_power_index: 0.88, price_multiplier: 0.90, currency_conversion_rate: 1.34 },
-    { country_code: 'CH', currency_code: 'CHF', purchasing_power_index: 1.05, price_multiplier: 1.0, currency_conversion_rate: 0.88 },
+    {
+      country_code: 'US',
+      currency_code: 'USD',
+      purchasing_power_index: 1.0,
+      price_multiplier: 1.0,
+      currency_conversion_rate: 1.0,
+    },
+    {
+      country_code: 'GB',
+      currency_code: 'GBP',
+      purchasing_power_index: 0.95,
+      price_multiplier: 0.95,
+      currency_conversion_rate: 0.79,
+    },
+    {
+      country_code: 'DE',
+      currency_code: 'EUR',
+      purchasing_power_index: 0.92,
+      price_multiplier: 0.95,
+      currency_conversion_rate: 0.92,
+    },
+    {
+      country_code: 'FR',
+      currency_code: 'EUR',
+      purchasing_power_index: 0.9,
+      price_multiplier: 0.95,
+      currency_conversion_rate: 0.92,
+    },
+    {
+      country_code: 'AU',
+      currency_code: 'AUD',
+      purchasing_power_index: 0.93,
+      price_multiplier: 0.95,
+      currency_conversion_rate: 1.53,
+    },
+    {
+      country_code: 'CA',
+      currency_code: 'CAD',
+      purchasing_power_index: 0.94,
+      price_multiplier: 0.95,
+      currency_conversion_rate: 1.36,
+    },
+    {
+      country_code: 'JP',
+      currency_code: 'JPY',
+      purchasing_power_index: 0.85,
+      price_multiplier: 0.9,
+      currency_conversion_rate: 149.5,
+    },
+    {
+      country_code: 'SG',
+      currency_code: 'SGD',
+      purchasing_power_index: 0.88,
+      price_multiplier: 0.9,
+      currency_conversion_rate: 1.34,
+    },
+    {
+      country_code: 'CH',
+      currency_code: 'CHF',
+      purchasing_power_index: 1.05,
+      price_multiplier: 1.0,
+      currency_conversion_rate: 0.88,
+    },
 
     // Tier 2: Moderate discount countries (Upper-middle income)
-    { country_code: 'ES', currency_code: 'EUR', purchasing_power_index: 0.75, price_multiplier: 0.80, currency_conversion_rate: 0.92 },
-    { country_code: 'IT', currency_code: 'EUR', purchasing_power_index: 0.78, price_multiplier: 0.80, currency_conversion_rate: 0.92 },
-    { country_code: 'KR', currency_code: 'KRW', purchasing_power_index: 0.72, price_multiplier: 0.75, currency_conversion_rate: 1320.0 },
-    { country_code: 'TW', currency_code: 'TWD', purchasing_power_index: 0.70, price_multiplier: 0.75, currency_conversion_rate: 31.5 },
-    { country_code: 'PL', currency_code: 'PLN', purchasing_power_index: 0.55, price_multiplier: 0.65, currency_conversion_rate: 4.05 },
-    { country_code: 'CZ', currency_code: 'CZK', purchasing_power_index: 0.58, price_multiplier: 0.65, currency_conversion_rate: 23.2 },
+    {
+      country_code: 'ES',
+      currency_code: 'EUR',
+      purchasing_power_index: 0.75,
+      price_multiplier: 0.8,
+      currency_conversion_rate: 0.92,
+    },
+    {
+      country_code: 'IT',
+      currency_code: 'EUR',
+      purchasing_power_index: 0.78,
+      price_multiplier: 0.8,
+      currency_conversion_rate: 0.92,
+    },
+    {
+      country_code: 'KR',
+      currency_code: 'KRW',
+      purchasing_power_index: 0.72,
+      price_multiplier: 0.75,
+      currency_conversion_rate: 1320.0,
+    },
+    {
+      country_code: 'TW',
+      currency_code: 'TWD',
+      purchasing_power_index: 0.7,
+      price_multiplier: 0.75,
+      currency_conversion_rate: 31.5,
+    },
+    {
+      country_code: 'PL',
+      currency_code: 'PLN',
+      purchasing_power_index: 0.55,
+      price_multiplier: 0.65,
+      currency_conversion_rate: 4.05,
+    },
+    {
+      country_code: 'CZ',
+      currency_code: 'CZK',
+      purchasing_power_index: 0.58,
+      price_multiplier: 0.65,
+      currency_conversion_rate: 23.2,
+    },
 
     // Tier 3: Significant discount countries (Middle income)
-    { country_code: 'MX', currency_code: 'MXN', purchasing_power_index: 0.45, price_multiplier: 0.55, currency_conversion_rate: 17.2 },
-    { country_code: 'BR', currency_code: 'BRL', purchasing_power_index: 0.42, price_multiplier: 0.50, currency_conversion_rate: 4.95 },
-    { country_code: 'AR', currency_code: 'ARS', purchasing_power_index: 0.35, price_multiplier: 0.45, currency_conversion_rate: 850.0 },
-    { country_code: 'CO', currency_code: 'COP', purchasing_power_index: 0.38, price_multiplier: 0.50, currency_conversion_rate: 3950.0 },
-    { country_code: 'CL', currency_code: 'CLP', purchasing_power_index: 0.48, price_multiplier: 0.55, currency_conversion_rate: 890.0 },
-    { country_code: 'TH', currency_code: 'THB', purchasing_power_index: 0.40, price_multiplier: 0.50, currency_conversion_rate: 35.5 },
-    { country_code: 'MY', currency_code: 'MYR', purchasing_power_index: 0.45, price_multiplier: 0.55, currency_conversion_rate: 4.70 },
-    { country_code: 'TR', currency_code: 'TRY', purchasing_power_index: 0.38, price_multiplier: 0.45, currency_conversion_rate: 32.0 },
-    { country_code: 'ZA', currency_code: 'ZAR', purchasing_power_index: 0.40, price_multiplier: 0.50, currency_conversion_rate: 18.8 },
+    {
+      country_code: 'MX',
+      currency_code: 'MXN',
+      purchasing_power_index: 0.45,
+      price_multiplier: 0.55,
+      currency_conversion_rate: 17.2,
+    },
+    {
+      country_code: 'BR',
+      currency_code: 'BRL',
+      purchasing_power_index: 0.42,
+      price_multiplier: 0.5,
+      currency_conversion_rate: 4.95,
+    },
+    {
+      country_code: 'AR',
+      currency_code: 'ARS',
+      purchasing_power_index: 0.35,
+      price_multiplier: 0.45,
+      currency_conversion_rate: 850.0,
+    },
+    {
+      country_code: 'CO',
+      currency_code: 'COP',
+      purchasing_power_index: 0.38,
+      price_multiplier: 0.5,
+      currency_conversion_rate: 3950.0,
+    },
+    {
+      country_code: 'CL',
+      currency_code: 'CLP',
+      purchasing_power_index: 0.48,
+      price_multiplier: 0.55,
+      currency_conversion_rate: 890.0,
+    },
+    {
+      country_code: 'TH',
+      currency_code: 'THB',
+      purchasing_power_index: 0.4,
+      price_multiplier: 0.5,
+      currency_conversion_rate: 35.5,
+    },
+    {
+      country_code: 'MY',
+      currency_code: 'MYR',
+      purchasing_power_index: 0.45,
+      price_multiplier: 0.55,
+      currency_conversion_rate: 4.7,
+    },
+    {
+      country_code: 'TR',
+      currency_code: 'TRY',
+      purchasing_power_index: 0.38,
+      price_multiplier: 0.45,
+      currency_conversion_rate: 32.0,
+    },
+    {
+      country_code: 'ZA',
+      currency_code: 'ZAR',
+      purchasing_power_index: 0.4,
+      price_multiplier: 0.5,
+      currency_conversion_rate: 18.8,
+    },
 
     // Tier 4: Maximum discount countries (Lower income)
-    { country_code: 'IN', currency_code: 'INR', purchasing_power_index: 0.28, price_multiplier: 0.35, currency_conversion_rate: 83.2 },
-    { country_code: 'PH', currency_code: 'PHP', purchasing_power_index: 0.32, price_multiplier: 0.40, currency_conversion_rate: 56.0 },
-    { country_code: 'ID', currency_code: 'IDR', purchasing_power_index: 0.30, price_multiplier: 0.40, currency_conversion_rate: 15750.0 },
-    { country_code: 'VN', currency_code: 'VND', purchasing_power_index: 0.28, price_multiplier: 0.35, currency_conversion_rate: 24500.0 },
-    { country_code: 'EG', currency_code: 'EGP', purchasing_power_index: 0.25, price_multiplier: 0.35, currency_conversion_rate: 30.9 },
-    { country_code: 'NG', currency_code: 'NGN', purchasing_power_index: 0.22, price_multiplier: 0.30, currency_conversion_rate: 1550.0 },
-    { country_code: 'PK', currency_code: 'PKR', purchasing_power_index: 0.20, price_multiplier: 0.30, currency_conversion_rate: 280.0 },
-    { country_code: 'BD', currency_code: 'BDT', purchasing_power_index: 0.22, price_multiplier: 0.30, currency_conversion_rate: 110.0 },
+    {
+      country_code: 'IN',
+      currency_code: 'INR',
+      purchasing_power_index: 0.28,
+      price_multiplier: 0.35,
+      currency_conversion_rate: 83.2,
+    },
+    {
+      country_code: 'PH',
+      currency_code: 'PHP',
+      purchasing_power_index: 0.32,
+      price_multiplier: 0.4,
+      currency_conversion_rate: 56.0,
+    },
+    {
+      country_code: 'ID',
+      currency_code: 'IDR',
+      purchasing_power_index: 0.3,
+      price_multiplier: 0.4,
+      currency_conversion_rate: 15750.0,
+    },
+    {
+      country_code: 'VN',
+      currency_code: 'VND',
+      purchasing_power_index: 0.28,
+      price_multiplier: 0.35,
+      currency_conversion_rate: 24500.0,
+    },
+    {
+      country_code: 'EG',
+      currency_code: 'EGP',
+      purchasing_power_index: 0.25,
+      price_multiplier: 0.35,
+      currency_conversion_rate: 30.9,
+    },
+    {
+      country_code: 'NG',
+      currency_code: 'NGN',
+      purchasing_power_index: 0.22,
+      price_multiplier: 0.3,
+      currency_conversion_rate: 1550.0,
+    },
+    {
+      country_code: 'PK',
+      currency_code: 'PKR',
+      purchasing_power_index: 0.2,
+      price_multiplier: 0.3,
+      currency_conversion_rate: 280.0,
+    },
+    {
+      country_code: 'BD',
+      currency_code: 'BDT',
+      purchasing_power_index: 0.22,
+      price_multiplier: 0.3,
+      currency_conversion_rate: 110.0,
+    },
   ]);
 
   // Insert sample promotions
@@ -475,7 +703,14 @@ export async function up(knex: Knex): Promise<void> {
       bundle_price: 29.99,
       savings_amount: 12.93,
       savings_percentage: 30.13,
-      compatible_plans: JSON.stringify(['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite']),
+      compatible_plans: JSON.stringify([
+        'free',
+        'basic',
+        'plus',
+        'premium',
+        'premium_plus',
+        'elite',
+      ]),
       is_featured: true,
       is_active: true,
       sort_order: 1,
@@ -487,12 +722,17 @@ export async function up(knex: Knex): Promise<void> {
       included_items: JSON.stringify([
         { type: 'super_likes', quantity: 10, individual_price: 4.99 },
         { type: 'boosts', quantity: 5, individual_price: 5.99 },
-        { type: 'subscription_upgrade', tier: 'premium', duration_months: 1, individual_price: 19.99 },
+        {
+          type: 'subscription_upgrade',
+          tier: 'premium',
+          duration_months: 1,
+          individual_price: 19.99,
+        },
       ]),
       base_price: 99.84,
       bundle_price: 69.99,
       savings_amount: 29.85,
-      savings_percentage: 29.90,
+      savings_percentage: 29.9,
       compatible_plans: JSON.stringify(['free', 'basic', 'plus']),
       requires_subscription: false,
       is_featured: true,

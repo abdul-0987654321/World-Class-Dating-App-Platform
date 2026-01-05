@@ -5,16 +5,17 @@
 
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../../utils/logger';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { messageRepository } from '../../domain/repositories/message.repository';
+
+import config from '../../config';
 import { conversationRepository } from '../../domain/repositories/conversation.repository';
+import { messageRepository } from '../../domain/repositories/message.repository';
 import { messageEventsService } from '../../domain/services/message-events.service';
 import { realtimeHttpClient } from '../../infrastructure/clients/realtime-http.client';
 import { photoSharingService } from '../../services/photo-sharing.service';
 import { voiceMessageService } from '../../services/voice-message.service';
 import { Message, MessageType, MessageStatus } from '../../types';
-import config from '../../config';
+import { createLogger } from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const logger = createLogger('media-messaging-controller');
 
@@ -28,7 +29,7 @@ export class MediaMessagingController {
    */
   async sendPhotoMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const file = req.file;
 
@@ -48,10 +49,7 @@ export class MediaMessagingController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to send messages in this conversation',
@@ -94,11 +92,7 @@ export class MediaMessagingController {
       const thumbnailName = `photos/${conversationId}/${fileId}_thumb.webp`;
 
       // Upload to storage (integrate with media-service)
-      const uploadResult = await this.uploadToStorage(
-        optimizedBuffer,
-        fileName,
-        optimizedMimeType
-      );
+      const uploadResult = await this.uploadToStorage(optimizedBuffer, fileName, optimizedMimeType);
 
       const thumbnailResult = await this.uploadToStorage(
         thumbnail.buffer,
@@ -130,11 +124,7 @@ export class MediaMessagingController {
       const createdMessage = await messageRepository.create(message);
 
       // Update conversation
-      await conversationRepository.updateLastMessage(
-        conversationId,
-        new Date(),
-        '[Photo]'
-      );
+      await conversationRepository.updateLastMessage(conversationId, new Date(), '[Photo]');
 
       // Increment unread count for receiver
       await conversationRepository.incrementUnreadCount(conversationId, receiverId);
@@ -175,7 +165,7 @@ export class MediaMessagingController {
    */
   async sendVoiceMessage(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId } = req.params;
       const file = req.file;
 
@@ -195,10 +185,7 @@ export class MediaMessagingController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to send messages in this conversation',
@@ -292,11 +279,7 @@ export class MediaMessagingController {
       const preview = transcription
         ? transcription.substring(0, 50) + (transcription.length > 50 ? '...' : '')
         : `[Voice Message ${voiceMessageService.formatDuration(duration)}]`;
-      await conversationRepository.updateLastMessage(
-        conversationId,
-        new Date(),
-        preview
-      );
+      await conversationRepository.updateLastMessage(conversationId, new Date(), preview);
 
       // Increment unread count for receiver
       await conversationRepository.incrementUnreadCount(conversationId, receiverId);
@@ -337,7 +320,7 @@ export class MediaMessagingController {
    */
   async getUploadUrl(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { conversationId, type, mimeType, fileName } = req.query;
 
       if (!conversationId || !type || !mimeType) {
@@ -356,10 +339,7 @@ export class MediaMessagingController {
         });
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         return res.status(403).json({
           success: false,
           error: 'Not authorized',
@@ -381,10 +361,7 @@ export class MediaMessagingController {
       const filePath = `${type}/${conversationId}/${fileId}.${extension}`;
 
       // Generate pre-signed upload URL (integrate with media service)
-      const presignedUrl = await this.generatePresignedUploadUrl(
-        filePath,
-        mimeType as string
-      );
+      const presignedUrl = await this.generatePresignedUploadUrl(filePath, mimeType as string);
 
       // Generate the final URL for the uploaded file
       const mediaUrl = await this.getMediaUrl(filePath);
@@ -464,10 +441,7 @@ export class MediaMessagingController {
   /**
    * Generate presigned upload URL
    */
-  private async generatePresignedUploadUrl(
-    filePath: string,
-    mimeType: string
-  ): Promise<string> {
+  private async generatePresignedUploadUrl(filePath: string, mimeType: string): Promise<string> {
     // In production, this would call the media service API to get a presigned S3 URL
     const baseUrl = process.env.UPLOAD_URL || 'https://upload.flamoral.com';
     return `${baseUrl}/${filePath}?mimeType=${encodeURIComponent(mimeType)}`;

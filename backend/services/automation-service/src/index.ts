@@ -1,20 +1,21 @@
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import { Server } from 'socket.io';
 import { createServer } from 'http';
+
+import { createLogger, createValidator, commonValidations } from '@flamoral/backend-shared';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
 import cron from 'node-cron';
-import { createLogger } from '@flamoral/backend-shared';
+import { Server } from 'socket.io';
+
+import apiRoutes from './api/routes';
 import config from './config';
-import { initializeDatabase, closeDatabase } from './infrastructure/database/knex';
 import { initializeRedis, closeRedis } from './infrastructure/cache/redis';
+import { initializeDatabase, closeDatabase } from './infrastructure/database/knex';
 import { rabbitMQ } from './infrastructure/messaging/rabbitmq';
 import { SocketManager } from './infrastructure/websocket/socket-manager';
-import { MessageAutomationService } from './services/message-automation.service';
 import automationRoutes from './routes';
-import apiRoutes from './api/routes';
-import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import { MessageAutomationService } from './services/message-automation.service';
 
 // Load environment variables
 dotenv.config();
@@ -79,10 +80,12 @@ let socketManager: SocketManager;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: config.cors.origins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.cors.origins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -128,7 +131,7 @@ app.get('/health', async (req: Request, res: Response) => {
     logger.error('RabbitMQ health check failed', e);
   }
 
-  const healthy = Object.values(checks).every(v => v);
+  const healthy = Object.values(checks).every((v) => v);
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     service: 'automation-service',

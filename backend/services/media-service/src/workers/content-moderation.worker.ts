@@ -1,12 +1,13 @@
+import { createLogger } from '@flamoral/backend-shared';
 import Queue from 'bull';
-import queueManager from '../infrastructure/queue/queue-manager';
-import { QueueName } from '../infrastructure/queue/queue-config';
-import { ContentModerationJobData, JobResult } from '../infrastructure/queue/job-types';
-import contentModerationService from '../domain/services/content-moderation.service';
+
 import mediaRepository from '../domain/repositories/media.repository';
+import contentModerationService from '../domain/services/content-moderation.service';
+import { ContentModerationJobData, JobResult } from '../infrastructure/queue/job-types';
+import { QueueName } from '../infrastructure/queue/queue-config';
+import queueManager from '../infrastructure/queue/queue-manager';
 import azureStorageService from '../infrastructure/storage/azure-storage.service';
 import { ModerationStatus } from '../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('content-moderation-worker');
 
@@ -27,7 +28,11 @@ export const processContentModerationJob = async (
     await job.progress(20);
 
     // Step 1: Moderate the image
-    const { status, result } = await contentModerationService.moderateImage(imageUrl, mediaId, userId);
+    const { status, result } = await contentModerationService.moderateImage(
+      imageUrl,
+      mediaId,
+      userId
+    );
 
     await job.progress(60);
 

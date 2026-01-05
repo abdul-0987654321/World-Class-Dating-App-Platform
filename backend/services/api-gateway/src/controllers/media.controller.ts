@@ -11,6 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+
 import { ProxyService } from '../services/proxy.service';
 
 @ApiTags('media')
@@ -28,10 +29,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload a photo' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadPhoto(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async uploadPhoto(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('mediaService', '/api/media/upload', body, {
       Authorization: authorization,
     });
@@ -44,10 +42,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload an image' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadImage(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async uploadImage(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('mediaService', '/api/media/upload', body, {
       Authorization: authorization,
     });
@@ -60,10 +55,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload a video' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadVideo(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async uploadVideo(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('mediaService', '/api/media/upload/video', body, {
       Authorization: authorization,
     });
@@ -76,10 +68,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload multiple files' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadBatch(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
+  async uploadBatch(@Headers('authorization') authorization: string, @Body() body: any) {
     return this.proxyService.post('mediaService', '/api/media/upload/batch', body, {
       Authorization: authorization,
     });
@@ -97,7 +86,7 @@ export class MediaController {
     @Param('userId') userId: string,
     @Query('type') type?: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (type) queryString.append('type', type);
@@ -117,7 +106,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Get media by ID' })
   async getMedia(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
     return this.proxyService.get('mediaService', `/api/media/${mediaId}`, {
       Authorization: authorization,
@@ -131,7 +120,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Delete media' })
   async deleteMedia(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
     return this.proxyService.delete('mediaService', `/api/media/${mediaId}`, {
       Authorization: authorization,
@@ -147,7 +136,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Get media processing status' })
   async getProcessingStatus(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
     return this.proxyService.get('mediaService', `/api/media/${mediaId}/status`, {
       Authorization: authorization,
@@ -163,7 +152,7 @@ export class MediaController {
   async resizeImage(
     @Headers('authorization') authorization: string,
     @Param('mediaId') mediaId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.post('mediaService', `/api/media/${mediaId}/resize`, body, {
       Authorization: authorization,
@@ -179,7 +168,7 @@ export class MediaController {
   async generateThumbnail(
     @Headers('authorization') authorization: string,
     @Param('mediaId') mediaId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.post('mediaService', `/api/media/${mediaId}/thumbnail`, body, {
       Authorization: authorization,
@@ -196,7 +185,7 @@ export class MediaController {
   async getSignedUrl(
     @Headers('authorization') authorization: string,
     @Param('mediaId') mediaId: string,
-    @Query('expires') expires?: string,
+    @Query('expires') expires?: string
   ) {
     const queryString = new URLSearchParams();
     if (expires) queryString.append('expires', expires);
@@ -216,7 +205,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Get media moderation status' })
   async getModerationStatus(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
     return this.proxyService.get('mediaService', `/api/media/${mediaId}/moderation`, {
       Authorization: authorization,
@@ -231,11 +220,16 @@ export class MediaController {
   @HttpCode(HttpStatus.OK)
   async requestModerationReview(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
-    return this.proxyService.post('mediaService', `/api/media/${mediaId}/moderation/review`, {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'mediaService',
+      `/api/media/${mediaId}/moderation/review`,
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 
   // ==================== Analytics Endpoints ====================
@@ -247,7 +241,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Get media analytics' })
   async getMediaAnalytics(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
     return this.proxyService.get('mediaService', `/api/media/${mediaId}/analytics`, {
       Authorization: authorization,
@@ -262,10 +256,15 @@ export class MediaController {
   @HttpCode(HttpStatus.OK)
   async trackView(
     @Headers('authorization') authorization: string,
-    @Param('mediaId') mediaId: string,
+    @Param('mediaId') mediaId: string
   ) {
-    return this.proxyService.post('mediaService', `/api/media/${mediaId}/views`, {}, {
-      Authorization: authorization,
-    });
+    return this.proxyService.post(
+      'mediaService',
+      `/api/media/${mediaId}/views`,
+      {},
+      {
+        Authorization: authorization,
+      }
+    );
   }
 }

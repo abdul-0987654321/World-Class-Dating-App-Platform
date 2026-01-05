@@ -5,13 +5,15 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable();
     table.string('email', 255).notNullable();
-    table.enum('lockout_reason', [
-      'failed_login_attempts',
-      'suspicious_activity',
-      'security_breach',
-      'admin_action',
-      'terms_violation',
-    ]).notNullable();
+    table
+      .enum('lockout_reason', [
+        'failed_login_attempts',
+        'suspicious_activity',
+        'security_breach',
+        'admin_action',
+        'terms_violation',
+      ])
+      .notNullable();
     table.timestamp('locked_at').defaultTo(knex.fn.now());
     table.timestamp('unlock_at'); // When the account will be automatically unlocked
     table.timestamp('unlocked_at'); // When it was actually unlocked

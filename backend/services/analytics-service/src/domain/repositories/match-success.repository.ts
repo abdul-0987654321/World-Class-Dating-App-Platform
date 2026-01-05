@@ -46,10 +46,7 @@ export class MatchSuccessRepository {
   /**
    * Get overall match success metrics
    */
-  async getMatchSuccessMetrics(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<MatchSuccessMetrics> {
+  async getMatchSuccessMetrics(startDate?: Date, endDate?: Date): Promise<MatchSuccessMetrics> {
     let matchQuery = 'SELECT COUNT(*) as count FROM match_events WHERE 1=1';
     const params: any[] = [];
 
@@ -179,9 +176,7 @@ export class MatchSuccessRepository {
   /**
    * Get conversation quality metrics
    */
-  async getConversationQualityMetrics(
-    conversationId: string
-  ): Promise<ConversationQualityMetrics> {
+  async getConversationQualityMetrics(conversationId: string): Promise<ConversationQualityMetrics> {
     const query = `
       SELECT
         conversation_id,
@@ -217,9 +212,7 @@ export class MatchSuccessRepository {
       messageCount: parseInt(row.message_count, 10),
       averageMessageLength: parseFloat(row.avg_message_length || '0'),
       mediaMessageCount: parseInt(row.media_message_count, 10),
-      conversationDuration: row.conversation_duration
-        ? parseInt(row.conversation_duration, 10)
-        : 0,
+      conversationDuration: row.conversation_duration ? parseInt(row.conversation_duration, 10) : 0,
       lastMessageAt: row.last_message_at,
       hasDateArrangement,
     };
@@ -265,14 +258,12 @@ export class MatchSuccessRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       conversationId: row.conversation_id,
       messageCount: parseInt(row.message_count, 10),
       averageMessageLength: parseFloat(row.avg_message_length || '0'),
       mediaMessageCount: parseInt(row.media_message_count, 10),
-      conversationDuration: row.conversation_duration
-        ? parseInt(row.conversation_duration, 10)
-        : 0,
+      conversationDuration: row.conversation_duration ? parseInt(row.conversation_duration, 10) : 0,
       lastMessageAt: row.last_message_at,
       hasDateArrangement: false, // Would need join query
     }));
@@ -294,12 +285,7 @@ export class MatchSuccessRepository {
       RETURNING *
     `;
 
-    const values = [
-      data.conversationId,
-      data.userId1,
-      data.userId2,
-      data.status || 'proposed',
-    ];
+    const values = [data.conversationId, data.userId1, data.userId2, data.status || 'proposed'];
 
     const result = await dbClient.query(query, values);
     return this.mapRowToDateArrangement(result.rows[0]);
@@ -316,12 +302,12 @@ export class MatchSuccessRepository {
       status === 'accepted'
         ? 'accepted_at'
         : status === 'confirmed'
-        ? 'confirmed_at'
-        : status === 'completed'
-        ? 'completed_at'
-        : status === 'cancelled'
-        ? 'cancelled_at'
-        : null;
+          ? 'confirmed_at'
+          : status === 'completed'
+            ? 'completed_at'
+            : status === 'cancelled'
+              ? 'cancelled_at'
+              : null;
 
     let query = `
       UPDATE date_arrangements
@@ -481,10 +467,12 @@ export class MatchSuccessRepository {
   async getResponseTimeDistribution(
     startDate?: Date,
     endDate?: Date
-  ): Promise<{
-    bucket: string;
-    count: number;
-  }[]> {
+  ): Promise<
+    {
+      bucket: string;
+      count: number;
+    }[]
+  > {
     let query = `
       SELECT
         CASE
@@ -518,7 +506,7 @@ export class MatchSuccessRepository {
 
     const result = await dbClient.query(query, params);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       bucket: row.bucket,
       count: parseInt(row.count, 10),
     }));

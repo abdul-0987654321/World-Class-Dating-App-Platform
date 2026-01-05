@@ -1,10 +1,12 @@
-import { v4 as uuidv4 } from 'uuid';
-import videoProcessingService from './video-processing.service';
-import azureStorageService from '../../infrastructure/storage/azure-storage.service';
-import contentModerationService from './content-moderation.service';
-import { VideoMetadata, ModerationStatus, UploadedFile } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+import { v4 as uuidv4 } from 'uuid';
+
+import azureStorageService from '../../infrastructure/storage/azure-storage.service';
+import { VideoMetadata, ModerationStatus, UploadedFile } from '../../types';
 import videoRepository from '../repositories/video.repository';
+
+import contentModerationService from './content-moderation.service';
+import videoProcessingService from './video-processing.service';
 
 const logger = createLogger('video-upload-service');
 
@@ -202,7 +204,7 @@ export class VideoUploadService {
     try {
       logger.info(`Retrieving profile video for user: ${userId}`);
       const videos = await videoRepository.findByUserId(userId);
-      return videos.find(v => v.moderationStatus === ModerationStatus.APPROVED) || null;
+      return videos.find((v) => v.moderationStatus === ModerationStatus.APPROVED) || null;
     } catch (error) {
       logger.error('Failed to retrieve profile video', error);
       throw error;
@@ -212,10 +214,7 @@ export class VideoUploadService {
   /**
    * Update video metadata
    */
-  async updateVideo(
-    videoId: string,
-    updates: Partial<VideoMetadata>
-  ): Promise<boolean> {
+  async updateVideo(videoId: string, updates: Partial<VideoMetadata>): Promise<boolean> {
     try {
       logger.info(`Updating video ${videoId}`);
       await videoRepository.update(videoId, updates);

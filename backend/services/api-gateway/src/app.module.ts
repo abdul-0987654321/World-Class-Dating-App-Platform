@@ -1,24 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TerminusModule } from '@nestjs/terminus';
+import { ThrottlerModule } from '@nestjs/throttler';
+
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
-import { HealthModule } from './health/health.module';
-import { ProxyModule } from './services/proxy.module';
 import { ControllersModule } from './controllers/controllers.module';
-import { WebsocketModule } from './websocket/websocket.module';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
-import { ComprehensiveRateLimitGuard } from './guards/comprehensive-rate-limit.guard';
-import { TracingMiddleware } from './middleware/tracing.middleware';
-import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
-import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
-import { CsrfMiddleware } from './middleware/csrf.middleware';
-import { DDoSProtectionService } from './services/ddos-protection.service';
 import { RateLimitAdminController } from './controllers/rate-limit-admin.controller';
 import { SecurityController } from './controllers/security.controller';
+import { ComprehensiveRateLimitGuard } from './guards/comprehensive-rate-limit.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
+import { HealthModule } from './health/health.module';
+import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
+import { CsrfMiddleware } from './middleware/csrf.middleware';
+import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
+import { TracingMiddleware } from './middleware/tracing.middleware';
+import { DDoSProtectionService } from './services/ddos-protection.service';
+import { ProxyModule } from './services/proxy.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [

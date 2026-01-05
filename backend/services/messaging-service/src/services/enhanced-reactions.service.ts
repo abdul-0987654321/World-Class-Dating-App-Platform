@@ -1,18 +1,37 @@
 import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
+
 import { messageRepository } from '../domain/repositories/message.repository';
 import { realtimeHttpClient } from '../infrastructure/clients/realtime-http.client';
+import { cosmosClient } from '../infrastructure/database/cosmos-client';
 import { MessageReaction, ReactionSummary } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('enhanced-reactions-service');
 
 export class EnhancedReactionsService {
   private _container: Container | null = null;
   private readonly ALLOWED_EMOJIS = [
-    '❤️', '😂', '😮', '😢', '😡', '👍', '👎', '🔥', '💯', '🎉',
-    '😍', '😘', '🤗', '🤔', '😎', '🥳', '😇', '🤩', '💪', '👏'
+    '❤️',
+    '😂',
+    '😮',
+    '😢',
+    '😡',
+    '👍',
+    '👎',
+    '🔥',
+    '💯',
+    '🎉',
+    '😍',
+    '😘',
+    '🤗',
+    '🤔',
+    '😎',
+    '🥳',
+    '😇',
+    '🤩',
+    '💪',
+    '👏',
   ];
 
   private get container(): Container {
@@ -93,11 +112,7 @@ export class EnhancedReactionsService {
   /**
    * Remove reaction from message
    */
-  async removeReaction(
-    messageId: string,
-    conversationId: string,
-    userId: string
-  ): Promise<void> {
+  async removeReaction(messageId: string, conversationId: string, userId: string): Promise<void> {
     try {
       const reaction = await this.getUserReaction(messageId, conversationId, userId);
 
@@ -140,7 +155,7 @@ export class EnhancedReactionsService {
         if (!grouped.has(reaction.emoji)) {
           grouped.set(reaction.emoji, []);
         }
-        grouped.get(reaction.emoji)!.push(reaction.userId);
+        grouped.get(reaction.emoji).push(reaction.userId);
       }
 
       // Build summary
@@ -156,7 +171,7 @@ export class EnhancedReactionsService {
 
       // Add current user's reaction if provided
       if (currentUserId) {
-        const userReaction = reactions.find(r => r.userId === currentUserId);
+        const userReaction = reactions.find((r) => r.userId === currentUserId);
         if (userReaction) {
           summary.userReaction = userReaction.emoji;
         }
@@ -201,7 +216,7 @@ export class EnhancedReactionsService {
         if (!messageReactionsMap.has(reaction.messageId)) {
           messageReactionsMap.set(reaction.messageId, []);
         }
-        messageReactionsMap.get(reaction.messageId)!.push(reaction);
+        messageReactionsMap.get(reaction.messageId).push(reaction);
       }
 
       // Build summary for each message
@@ -213,7 +228,7 @@ export class EnhancedReactionsService {
           if (!grouped.has(reaction.emoji)) {
             grouped.set(reaction.emoji, []);
           }
-          grouped.get(reaction.emoji)!.push(reaction.userId);
+          grouped.get(reaction.emoji).push(reaction.userId);
         }
 
         const summary: ReactionSummary = {
@@ -227,7 +242,7 @@ export class EnhancedReactionsService {
         };
 
         if (currentUserId) {
-          const userReaction = messageReactions.find(r => r.userId === currentUserId);
+          const userReaction = messageReactions.find((r) => r.userId === currentUserId);
           if (userReaction) {
             summary.userReaction = userReaction.emoji;
           }
@@ -264,9 +279,7 @@ export class EnhancedReactionsService {
         ],
       };
 
-      const { resources } = await this.container.items
-        .query<MessageReaction>(querySpec)
-        .fetchAll();
+      const { resources } = await this.container.items.query<MessageReaction>(querySpec).fetchAll();
 
       return resources[0] || null;
     } catch (error: any) {
@@ -294,9 +307,7 @@ export class EnhancedReactionsService {
         ],
       };
 
-      const { resources } = await this.container.items
-        .query<MessageReaction>(querySpec)
-        .fetchAll();
+      const { resources } = await this.container.items.query<MessageReaction>(querySpec).fetchAll();
 
       return resources;
     } catch (error: any) {
@@ -323,9 +334,7 @@ export class EnhancedReactionsService {
       }
 
       const updated = { ...existing, emoji };
-      const { resource } = await this.container
-        .item(reactionId, conversationId)
-        .replace(updated);
+      const { resource } = await this.container.item(reactionId, conversationId).replace(updated);
 
       return resource as MessageReaction;
     } catch (error: any) {
@@ -341,7 +350,7 @@ export class EnhancedReactionsService {
     try {
       const reactions = await this.getMessageReactions(messageId, conversationId);
 
-      const deletePromises = reactions.map(reaction =>
+      const deletePromises = reactions.map((reaction) =>
         this.container.item(reaction.id, conversationId).delete()
       );
 

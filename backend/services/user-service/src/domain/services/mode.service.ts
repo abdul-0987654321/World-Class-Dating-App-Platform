@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+
+import logger from '../../utils/logger';
 import { UserMode } from '../entities/Profile.entity';
 import {
   UserModeEntity,
@@ -6,7 +8,6 @@ import {
   UserModeResponse,
   UserModesListResponse,
 } from '../entities/UserMode.entity';
-import logger from '../../utils/logger';
 
 export class ModeService {
   private db: Pool;
@@ -23,10 +24,9 @@ export class ModeService {
   async getUserModes(userId: string): Promise<UserModesListResponse> {
     try {
       // Get user's current mode
-      const userResult = await this.db.query(
-        'SELECT current_mode FROM users WHERE id = $1',
-        [userId]
-      );
+      const userResult = await this.db.query('SELECT current_mode FROM users WHERE id = $1', [
+        userId,
+      ]);
 
       if (userResult.rows.length === 0) {
         throw new Error('User not found');
@@ -43,9 +43,9 @@ export class ModeService {
       const modes = modesResult.rows as UserModeEntity[];
 
       // Organize modes by type
-      const dateMode = modes.find((m) => m.mode === 'date')!;
-      const friendsMode = modes.find((m) => m.mode === 'friends')!;
-      const networkMode = modes.find((m) => m.mode === 'network')!;
+      const dateMode = modes.find((m) => m.mode === 'date');
+      const friendsMode = modes.find((m) => m.mode === 'friends');
+      const networkMode = modes.find((m) => m.mode === 'network');
 
       return {
         date: this.mapToResponse(dateMode),
@@ -132,7 +132,10 @@ export class ModeService {
   /**
    * Switch user's current mode
    */
-  async switchMode(userId: string, mode: UserMode): Promise<{ success: boolean; current_mode: UserMode }> {
+  async switchMode(
+    userId: string,
+    mode: UserMode
+  ): Promise<{ success: boolean; current_mode: UserMode }> {
     try {
       // Check if the mode is enabled for the user
       const modeResult = await this.db.query(
@@ -149,10 +152,7 @@ export class ModeService {
       }
 
       // Update user's current mode
-      await this.db.query(
-        'UPDATE users SET current_mode = $1 WHERE id = $2',
-        [mode, userId]
-      );
+      await this.db.query('UPDATE users SET current_mode = $1 WHERE id = $2', [mode, userId]);
 
       logger.info('User switched mode', { userId, mode });
 
@@ -189,10 +189,9 @@ export class ModeService {
       }
 
       // If this is the current mode, switch to date mode first
-      const userResult = await this.db.query(
-        'SELECT current_mode FROM users WHERE id = $1',
-        [userId]
-      );
+      const userResult = await this.db.query('SELECT current_mode FROM users WHERE id = $1', [
+        userId,
+      ]);
 
       if (userResult.rows[0].current_mode === mode) {
         await this.switchMode(userId, 'date');

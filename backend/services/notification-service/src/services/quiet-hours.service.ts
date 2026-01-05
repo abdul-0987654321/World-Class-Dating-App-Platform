@@ -4,8 +4,8 @@
  */
 
 import { db } from '../config/database';
-import logger from '../utils/logger';
 import { NotificationPreferences } from '../types';
+import logger from '../utils/logger';
 
 export interface QuietHoursCheck {
   isQuietHours: boolean;
@@ -20,9 +20,7 @@ export class QuietHoursService {
   async isQuietHours(userId: string): Promise<QuietHoursCheck> {
     try {
       // Get user's notification preferences
-      const prefs = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      const prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
       if (!prefs) {
         return {
@@ -48,18 +46,10 @@ export class QuietHoursService {
       const quietStart = prefs.quiet_hours_start || '22:00';
       const quietEnd = prefs.quiet_hours_end || '08:00';
 
-      const isInQuietHours = this.isTimeInRange(
-        userTime,
-        quietStart,
-        quietEnd
-      );
+      const isInQuietHours = this.isTimeInRange(userTime, quietStart, quietEnd);
 
       if (isInQuietHours) {
-        const nextAvailable = this.calculateNextAvailableTime(
-          userTime,
-          quietEnd,
-          timezone
-        );
+        const nextAvailable = this.calculateNextAvailableTime(userTime, quietEnd, timezone);
 
         return {
           isQuietHours: true,
@@ -131,7 +121,7 @@ export class QuietHoursService {
       .whereIn('user_id', userIds)
       .where({ quiet_hours_enabled: true });
 
-    const prefsMap = new Map(allPrefs.map(p => [p.user_id, p]));
+    const prefsMap = new Map(allPrefs.map((p) => [p.user_id, p]));
 
     for (const userId of userIds) {
       const prefs = prefsMap.get(userId);
@@ -151,11 +141,7 @@ export class QuietHoursService {
       const isInQuietHours = this.isTimeInRange(userTime, quietStart, quietEnd);
 
       if (isInQuietHours) {
-        const nextAvailable = this.calculateNextAvailableTime(
-          userTime,
-          quietEnd,
-          timezone
-        );
+        const nextAvailable = this.calculateNextAvailableTime(userTime, quietEnd, timezone);
 
         results.set(userId, {
           isQuietHours: true,
@@ -198,11 +184,7 @@ export class QuietHoursService {
   /**
    * Check if time is within quiet hours range
    */
-  private isTimeInRange(
-    currentTime: Date,
-    startTime: string,
-    endTime: string
-  ): boolean {
+  private isTimeInRange(currentTime: Date, startTime: string, endTime: string): boolean {
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const [endHour, endMinute] = endTime.split(':').map(Number);
 
@@ -221,11 +203,7 @@ export class QuietHoursService {
   /**
    * Calculate next available time after quiet hours
    */
-  private calculateNextAvailableTime(
-    currentTime: Date,
-    endTime: string,
-    timezone: string
-  ): Date {
+  private calculateNextAvailableTime(currentTime: Date, endTime: string, timezone: string): Date {
     const [endHour, endMinute] = endTime.split(':').map(Number);
 
     const nextAvailable = new Date(currentTime);
@@ -251,15 +229,10 @@ export class QuietHoursService {
   /**
    * Get optimal send time for a user (considering quiet hours)
    */
-  async getOptimalSendTime(
-    userId: string,
-    preferredTime?: Date
-  ): Promise<Date> {
+  async getOptimalSendTime(userId: string, preferredTime?: Date): Promise<Date> {
     const checkTime = preferredTime || new Date();
 
-    const prefs = await db('notification_preferences')
-      .where({ user_id: userId })
-      .first();
+    const prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
     if (!prefs || !prefs.quiet_hours_enabled) {
       return checkTime;
@@ -345,14 +318,10 @@ export class QuietHoursService {
       }
 
       // Check if preferences exist
-      const existing = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      const existing = await db('notification_preferences').where({ user_id: userId }).first();
 
       if (existing) {
-        await db('notification_preferences')
-          .where({ user_id: userId })
-          .update(updateData);
+        await db('notification_preferences').where({ user_id: userId }).update(updateData);
       } else {
         await db('notification_preferences').insert({
           user_id: userId,
@@ -396,9 +365,7 @@ export class QuietHoursService {
     localTime: Date;
     timezone: string;
   }> {
-    const prefs = await db('notification_preferences')
-      .where({ user_id: userId })
-      .first();
+    const prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
     const timezone = prefs?.timezone || 'UTC';
     const localTime = this.convertToUserTimezone(new Date(), timezone);

@@ -242,7 +242,7 @@ export async function checkPoolHealth(knex: Knex): Promise<{
     await knex.raw('SELECT 1');
 
     // Get pool stats
-    const pool = (knex.client as any).pool;
+    const pool = knex.client.pool;
     const stats = {
       numUsed: pool.numUsed(),
       numFree: pool.numFree(),
@@ -288,19 +288,11 @@ export async function gracefulShutdown(knex: Knex, timeoutMs: number = 5000): Pr
 export const ConnectionPoolPresets = {
   // User Service - High traffic
   userService: (env: string) =>
-    getOptimizedKnexConfig(
-      env as any,
-      'high-traffic',
-      process.env.DB_NAME || 'flamoral_users'
-    ),
+    getOptimizedKnexConfig(env as any, 'high-traffic', process.env.DB_NAME || 'flamoral_users'),
 
   // Matching Service - High traffic
   matchingService: (env: string) =>
-    getOptimizedKnexConfig(
-      env as any,
-      'high-traffic',
-      process.env.DB_NAME || 'flamoral_matching'
-    ),
+    getOptimizedKnexConfig(env as any, 'high-traffic', process.env.DB_NAME || 'flamoral_matching'),
 
   // Payment Service - Medium traffic
   paymentService: (env: string) =>
@@ -312,19 +304,11 @@ export const ConnectionPoolPresets = {
 
   // Media Service - Medium traffic
   mediaService: (env: string) =>
-    getOptimizedKnexConfig(
-      env as any,
-      'medium-traffic',
-      process.env.DB_NAME || 'flamoral_media'
-    ),
+    getOptimizedKnexConfig(env as any, 'medium-traffic', process.env.DB_NAME || 'flamoral_media'),
 
   // Analytics Service - Low traffic
   analyticsService: (env: string) =>
-    getOptimizedKnexConfig(
-      env as any,
-      'low-traffic',
-      process.env.DB_NAME || 'flamoral_analytics'
-    ),
+    getOptimizedKnexConfig(env as any, 'low-traffic', process.env.DB_NAME || 'flamoral_analytics'),
 
   // Notification Service - Medium traffic
   notificationService: (env: string) =>

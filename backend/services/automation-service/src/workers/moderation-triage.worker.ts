@@ -5,16 +5,11 @@
  * Creates moderation cases
  */
 
-import { Job } from 'bull';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
-import {
-  BaseWorker,
-  WorkerQueueName,
-  BaseJobData,
-  JobResult,
-  JobPriority,
-} from './base-worker';
+import { Job } from 'bull';
+
+import { BaseWorker, WorkerQueueName, BaseJobData, JobResult, JobPriority } from './base-worker';
 
 const logger = createLogger('moderation-triage-worker');
 
@@ -68,7 +63,12 @@ export enum AutoAction {
 
 // Job data interfaces
 export interface ModerationTriageJobData extends BaseJobData {
-  type: 'triage_report' | 'batch_triage' | 'auto_moderate_content' | 'escalate_case' | 'review_queue_health';
+  type:
+    | 'triage_report'
+    | 'batch_triage'
+    | 'auto_moderate_content'
+    | 'escalate_case'
+    | 'review_queue_health';
   reportId?: string;
   reportedUserId?: string;
   reporterUserId?: string;
@@ -96,7 +96,10 @@ export interface ModerationTriageResult {
 /**
  * Moderation Triage Worker
  */
-export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, ModerationTriageResult> {
+export class ModerationTriageWorker extends BaseWorker<
+  ModerationTriageJobData,
+  ModerationTriageResult
+> {
   // Risk score thresholds for auto-actions
   private readonly criticalThreshold = 0.9;
   private readonly highThreshold = 0.7;
@@ -116,7 +119,9 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
   /**
    * Process moderation triage job
    */
-  protected async processJob(job: Job<ModerationTriageJobData>): Promise<JobResult<ModerationTriageResult>> {
+  protected async processJob(
+    job: Job<ModerationTriageJobData>
+  ): Promise<JobResult<ModerationTriageResult>> {
     const { type, reportId } = job.data;
     const startTime = Date.now();
 
@@ -199,21 +204,22 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
       const riskScore = await this.calculateRiskScore(jobData);
 
       // Step 2: Determine priority
-      const priority = this.determinePriority(riskScore, category!);
+      const priority = this.determinePriority(riskScore, category);
 
       // Step 3: Determine auto-action
-      const autoAction = await this.determineAutoAction(riskScore, category!, reportedUserId!);
+      const autoAction = await this.determineAutoAction(riskScore, category, reportedUserId);
 
       // Step 4: Check if immediate escalation is needed
-      const needsEscalation = this.criticalCategories.includes(category!) || riskScore >= this.criticalThreshold;
+      const needsEscalation =
+        this.criticalCategories.includes(category) || riskScore >= this.criticalThreshold;
 
       // Step 5: Create or update moderation case
       const caseId = await this.createModerationCase({
-        reportId: reportId!,
-        reportedUserId: reportedUserId!,
-        reporterUserId: reporterUserId!,
-        category: category!,
-        contentType: contentType!,
+        reportId: reportId,
+        reportedUserId: reportedUserId,
+        reporterUserId: reporterUserId,
+        category: category,
+        contentType: contentType,
         contentId,
         contentUrl,
         contentText,
@@ -225,7 +231,7 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
 
       // Step 6: Execute auto-action if applicable
       if (autoAction !== AutoAction.NONE) {
-        await this.executeAutoAction(autoAction, reportedUserId!, contentId, caseId);
+        await this.executeAutoAction(autoAction, reportedUserId, contentId, caseId);
       }
 
       // Step 7: Escalate if needed
@@ -244,7 +250,7 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
       }
 
       // Step 9: Send acknowledgment to reporter
-      await this.sendReportAcknowledgment(reporterUserId!, reportId!);
+      await this.sendReportAcknowledgment(reporterUserId, reportId);
 
       return {
         reportId,
@@ -316,23 +322,28 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
   /**
    * Auto-moderate content based on AI analysis
    */
-  private async autoModerateContent(jobData: ModerationTriageJobData): Promise<ModerationTriageResult> {
+  private async autoModerateContent(
+    jobData: ModerationTriageJobData
+  ): Promise<ModerationTriageResult> {
     const { contentType, contentId, contentUrl, contentText, reportedUserId } = jobData;
 
     try {
       // Call moderation service for content analysis
-      const analysisResult = await this.analyzeContent(contentType!, contentUrl, contentText);
+      const analysisResult = await this.analyzeContent(contentType, contentUrl, contentText);
 
       // Determine action based on analysis
       const autoAction = this.determineContentAction(analysisResult);
 
       // Execute action
       if (autoAction !== AutoAction.NONE && contentId) {
-        await this.executeContentAction(autoAction, contentId, contentType!, reportedUserId!);
+        await this.executeContentAction(autoAction, contentId, contentType, reportedUserId);
       }
 
       return {
-        priority: this.determinePriority(analysisResult.riskScore, ReportCategory.INAPPROPRIATE_CONTENT),
+        priority: this.determinePriority(
+          analysisResult.riskScore,
+          ReportCategory.INAPPROPRIATE_CONTENT
+        ),
         autoAction,
         riskScore: analysisResult.riskScore,
         escalated: analysisResult.riskScore >= this.criticalThreshold,
@@ -367,11 +378,11 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
       );
 
       // Notify senior moderators
-      await this.notifySeniorModerators(caseId!, category!);
+      await this.notifySeniorModerators(caseId, category);
 
       // For critical cases (underage, illegal), notify trust & safety team
       if (category && this.criticalCategories.includes(category)) {
-        await this.notifyTrustAndSafety(caseId!, category);
+        await this.notifyTrustAndSafety(caseId, category);
       }
 
       return {
@@ -450,22 +461,22 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
       [ReportCategory.OTHER]: 0.4,
     };
 
-    score += categoryScores[category!] || 0.4;
+    score += categoryScores[category] || 0.4;
 
     // Check user history
-    const userHistory = await this.getUserModerationHistory(reportedUserId!);
+    const userHistory = await this.getUserModerationHistory(reportedUserId);
     if (userHistory.previousViolations > 0) {
       score += Math.min(0.3, userHistory.previousViolations * 0.1);
     }
 
     // Check reporter credibility
-    const reporterCredibility = await this.getReporterCredibility(reporterUserId!);
+    const reporterCredibility = await this.getReporterCredibility(reporterUserId);
     score = score * reporterCredibility;
 
     // Content analysis (if available)
     if (contentUrl || contentText) {
       const contentAnalysis = await this.analyzeContent(
-        jobData.contentType!,
+        jobData.contentType,
         contentUrl,
         contentText
       );
@@ -724,7 +735,10 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
     }
   }
 
-  private determineContentAction(analysisResult: { riskScore: number; violations: string[] }): AutoAction {
+  private determineContentAction(analysisResult: {
+    riskScore: number;
+    violations: string[];
+  }): AutoAction {
     if (analysisResult.riskScore >= this.criticalThreshold) {
       return AutoAction.HIDE_CONTENT;
     }
@@ -748,7 +762,10 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
     }
   }
 
-  private async assignToModerator(caseId: string, priority: CasePriority): Promise<string | undefined> {
+  private async assignToModerator(
+    caseId: string,
+    priority: CasePriority
+  ): Promise<string | undefined> {
     try {
       const response = await axios.post(
         `${ADMIN_SERVICE_URL}/api/v1/internal/moderation/assign`,
@@ -862,15 +879,12 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
     averageResolutionTimeHours: number;
   }> {
     try {
-      const response = await axios.get(
-        `${MODERATION_SERVICE_URL}/api/v1/internal/queue/stats`,
-        {
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 5000,
-        }
-      );
+      const response = await axios.get(`${MODERATION_SERVICE_URL}/api/v1/internal/queue/stats`, {
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 5000,
+      });
 
       return response.data;
     } catch (error) {
@@ -880,16 +894,13 @@ export class ModerationTriageWorker extends BaseWorker<ModerationTriageJobData, 
 
   private async getStaleCases(): Promise<string[]> {
     try {
-      const response = await axios.get(
-        `${MODERATION_SERVICE_URL}/api/v1/internal/cases/stale`,
-        {
-          params: { hoursThreshold: 24 },
-          headers: {
-            'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
-          },
-          timeout: 5000,
-        }
-      );
+      const response = await axios.get(`${MODERATION_SERVICE_URL}/api/v1/internal/cases/stale`, {
+        params: { hoursThreshold: 24 },
+        headers: {
+          'X-Service-Auth': process.env.SERVICE_AUTH_TOKEN,
+        },
+        timeout: 5000,
+      });
 
       return response.data.caseIds || [];
     } catch (error) {

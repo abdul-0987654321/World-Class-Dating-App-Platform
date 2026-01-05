@@ -1,9 +1,10 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { TwoFactorAuthService } from '../../domain/services/two-factor-auth.service';
 import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
 import { comparePassword } from '../../utils/encryption';
+import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class TwoFactorAuthController {
   private twoFactorAuthService: TwoFactorAuthService;
@@ -445,7 +446,8 @@ export class TwoFactorAuthController {
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid password. Please enter your current password to regenerate backup codes.',
+          message:
+            'Invalid password. Please enter your current password to regenerate backup codes.',
         });
       }
 

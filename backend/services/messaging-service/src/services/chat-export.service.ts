@@ -1,16 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import { messageRepository } from '../domain/repositories/message.repository';
-import { conversationRepository } from '../domain/repositories/conversation.repository';
+
 import {
   chatExportRepository,
   ChatExportDocument,
   ExportStatistics,
   ExportFormat,
 } from '../domain/repositories/chat-export.repository';
-import { ChatExportRequest, ChatExportResult } from '../types/enhanced-types';
-import { Message } from '../types';
+import { conversationRepository } from '../domain/repositories/conversation.repository';
+import { messageRepository } from '../domain/repositories/message.repository';
 import { redisClient } from '../infrastructure/cache/redis';
+import { Message } from '../types';
+import { ChatExportRequest, ChatExportResult } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('chat-export-service');
 
@@ -27,19 +28,14 @@ export class ChatExportService {
    */
   async exportChat(request: ChatExportRequest): Promise<ChatExportResult> {
     try {
-      const {
-        conversationId,
-        userId,
-        format,
-        startDate,
-        endDate,
-        includeMedia = false,
-      } = request;
+      const { conversationId, userId, format, startDate, endDate, includeMedia = false } = request;
 
       // Check rate limit - max concurrent exports per user
       const activeExports = await chatExportRepository.countActiveExports(userId);
       if (activeExports >= this.MAX_CONCURRENT_EXPORTS) {
-        throw new Error(`Maximum concurrent exports (${this.MAX_CONCURRENT_EXPORTS}) reached. Please wait for existing exports to complete.`);
+        throw new Error(
+          `Maximum concurrent exports (${this.MAX_CONCURRENT_EXPORTS}) reached. Please wait for existing exports to complete.`
+        );
       }
 
       // Verify user is participant in conversation
@@ -48,10 +44,7 @@ export class ChatExportService {
         throw new Error('Conversation not found');
       }
 
-      if (
-        conversation.participant1Id !== userId &&
-        conversation.participant2Id !== userId
-      ) {
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
         throw new Error('Not authorized to export this conversation');
       }
 
@@ -205,7 +198,7 @@ export class ChatExportService {
   ): Promise<Message[]> {
     try {
       // Get all messages (with pagination if needed)
-      let allMessages: Message[] = [];
+      const allMessages: Message[] = [];
       let offset = 0;
       const limit = 500;
 
@@ -219,7 +212,7 @@ export class ChatExportService {
         if (messages.length === 0) break;
 
         // Filter by date range if provided
-        const filteredMessages = messages.filter(msg => {
+        const filteredMessages = messages.filter((msg) => {
           if (msg.deletedFor?.includes(userId)) return false;
 
           const sentAt = new Date(msg.sentAt);
@@ -238,9 +231,7 @@ export class ChatExportService {
       }
 
       // Sort by date (oldest first for export)
-      allMessages.sort((a, b) =>
-        new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
-      );
+      allMessages.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
 
       return allMessages;
     } catch (error: any) {
@@ -264,7 +255,7 @@ export class ChatExportService {
         createdAt: conversation.createdAt,
         exportedAt: new Date(),
       },
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         id: msg.id,
         senderId: msg.senderId,
         receiverId: msg.receiverId,
@@ -383,14 +374,18 @@ export class ChatExportService {
     // Object 2: Pages
     objectCount++;
     const pageRefs = Array.from({ length: numPages }, (_, i) => `${i + 4} 0 R`).join(' ');
-    objects.push(`${objectCount} 0 obj\n<< /Type /Pages /Kids [${pageRefs}] /Count ${numPages} >>\nendobj\n`);
+    objects.push(
+      `${objectCount} 0 obj\n<< /Type /Pages /Kids [${pageRefs}] /Count ${numPages} >>\nendobj\n`
+    );
 
     // Object 3: Font
     objectCount++;
-    objects.push(`${objectCount} 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n`);
+    objects.push(
+      `${objectCount} 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n`
+    );
 
     // Create page objects and content streams
-    let contentObjStart = 4 + numPages;
+    const contentObjStart = 4 + numPages;
     for (let pageNum = 0; pageNum < numPages; pageNum++) {
       const startLine = pageNum * maxLinesPerPage;
       const endLine = Math.min(startLine + maxLinesPerPage, wrappedLines.length);
@@ -414,9 +409,9 @@ export class ChatExportService {
       const contentRef = contentObjStart + pageNum;
       objects.push(
         `${objectCount} 0 obj\n` +
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
-        `/Contents ${contentRef} 0 R /Resources << /Font << /F1 3 0 R >> >> >>\n` +
-        `endobj\n`
+          `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
+          `/Contents ${contentRef} 0 R /Resources << /Font << /F1 3 0 R >> >> >>\n` +
+          `endobj\n`
       );
     }
 
@@ -440,9 +435,9 @@ export class ChatExportService {
       objectCount++;
       objects.push(
         `${objectCount} 0 obj\n` +
-        `<< /Length ${streamContent.length} >>\n` +
-        `stream\n${streamContent}endstream\n` +
-        `endobj\n`
+          `<< /Length ${streamContent.length} >>\n` +
+          `stream\n${streamContent}endstream\n` +
+          `endobj\n`
       );
     }
 
@@ -492,9 +487,17 @@ export class ChatExportService {
 
     if (azureConnectionString) {
       try {
-        return await this.uploadToAzureBlob(buffer, filename, azureContainerName, azureConnectionString);
+        return await this.uploadToAzureBlob(
+          buffer,
+          filename,
+          azureContainerName,
+          azureConnectionString
+        );
       } catch (error: any) {
-        logger.warn('Azure Blob Storage upload failed, falling back to local storage:', error.message);
+        logger.warn(
+          'Azure Blob Storage upload failed, falling back to local storage:',
+          error.message
+        );
       }
     }
 
@@ -562,12 +565,14 @@ export class ChatExportService {
       const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
       const client = new S3Client({ region });
 
-      await client.send(new PutObjectCommand({
-        Bucket: bucket,
-        Key: filename,
-        Body: buffer,
-        ContentType: this.getMimeType(filename),
-      }));
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: filename,
+          Body: buffer,
+          ContentType: this.getMimeType(filename),
+        })
+      );
 
       logger.info('Uploaded to S3', { filename, bucket });
       return `https://${bucket}.s3.${region}.amazonaws.com/${filename}`;
@@ -583,7 +588,7 @@ export class ChatExportService {
    * Upload to local storage (development fallback)
    */
   private async uploadToLocalStorage(buffer: Buffer, filename: string): Promise<string> {
-    const fs = await import('fs').then(m => m.promises);
+    const fs = await import('fs').then((m) => m.promises);
     const path = await import('path');
 
     const exportDir = process.env.LOCAL_EXPORT_DIR || '/tmp/chat-exports';
@@ -670,10 +675,12 @@ export class ChatExportService {
       const urlObj = new URL(url);
       const key = urlObj.pathname.substring(1); // Remove leading /
 
-      await client.send(new DeleteObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      }));
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        })
+      );
 
       logger.info('Deleted from S3', { url });
     } catch (error: any) {
@@ -683,7 +690,7 @@ export class ChatExportService {
 
   private async deleteFromLocalStorage(url: string): Promise<void> {
     try {
-      const fs = await import('fs').then(m => m.promises);
+      const fs = await import('fs').then((m) => m.promises);
       const filePath = url.replace('file://', '');
       await fs.unlink(filePath);
       logger.info('Deleted from local storage', { path: filePath });
@@ -737,7 +744,7 @@ export class ChatExportService {
       const result: ChatExportResult = {
         exportId: exportDoc.id,
         url: exportDoc.url || '',
-        expiresAt: new Date(exportDoc.expiresAt!),
+        expiresAt: new Date(exportDoc.expiresAt),
         format: exportDoc.format,
         fileSize: exportDoc.fileSize || 0,
       };
@@ -755,7 +762,10 @@ export class ChatExportService {
   /**
    * Get export status
    */
-  async getExportStatus(exportId: string, userId: string): Promise<{
+  async getExportStatus(
+    exportId: string,
+    userId: string
+  ): Promise<{
     status: string;
     errorMessage?: string;
     progress?: number;
@@ -769,9 +779,14 @@ export class ChatExportService {
       return {
         status: exportDoc.status,
         errorMessage: exportDoc.errorMessage,
-        progress: exportDoc.status === 'completed' ? 100 :
-                  exportDoc.status === 'processing' ? 50 :
-                  exportDoc.status === 'pending' ? 0 : undefined,
+        progress:
+          exportDoc.status === 'completed'
+            ? 100
+            : exportDoc.status === 'processing'
+              ? 50
+              : exportDoc.status === 'pending'
+                ? 0
+                : undefined,
       };
     } catch (error: any) {
       logger.error('Failed to get export status:', error);

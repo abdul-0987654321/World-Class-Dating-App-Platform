@@ -49,7 +49,7 @@ function generateETag(data: any): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
   return `"${Math.abs(hash).toString(36)}"`;
@@ -109,7 +109,7 @@ export const cacheMiddleware = (options: CacheOptions) => {
     // Cache miss - intercept response
     const originalJson = res.json.bind(res);
 
-    res.json = function(data: any) {
+    res.json = function (data: any) {
       // Only cache successful responses
       if (res.statusCode >= 200 && res.statusCode < 300 && shouldCache(req, res)) {
         const etagValue = generateETag(data);
@@ -152,9 +152,7 @@ export const invalidateCache = (pattern?: string | RegExp): number => {
   }
 
   for (const key of cacheStore.keys()) {
-    const matches = typeof pattern === 'string'
-      ? key.includes(pattern)
-      : pattern.test(key);
+    const matches = typeof pattern === 'string' ? key.includes(pattern) : pattern.test(key);
 
     if (matches) {
       cacheStore.delete(key);

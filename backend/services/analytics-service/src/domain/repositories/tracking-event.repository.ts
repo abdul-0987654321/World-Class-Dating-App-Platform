@@ -213,11 +213,7 @@ export class TrackingEventRepository {
   /**
    * Get event count by type
    */
-  async getEventCount(
-    eventType?: string,
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<number> {
+  async getEventCount(eventType?: string, startDate?: Date, endDate?: Date): Promise<number> {
     let query = 'SELECT COUNT(*) as count FROM tracking_events WHERE 1=1';
     const params: any[] = [];
 
@@ -243,10 +239,15 @@ export class TrackingEventRepository {
   /**
    * Get events grouped by source
    */
-  async getEventsBySource(startDate?: Date, endDate?: Date): Promise<{
-    source: string;
-    count: number;
-  }[]> {
+  async getEventsBySource(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<
+    {
+      source: string;
+      count: number;
+    }[]
+  > {
     let query = `
       SELECT utm_source as source, COUNT(*) as count
       FROM tracking_events
@@ -268,7 +269,7 @@ export class TrackingEventRepository {
     query += ' GROUP BY utm_source ORDER BY count DESC';
 
     const result = await dbClient.query<{ source: string; count: string }>(query, params);
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       source: row.source,
       count: parseInt(row.count, 10),
     }));

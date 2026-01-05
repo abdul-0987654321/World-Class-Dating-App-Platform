@@ -1,4 +1,5 @@
 import multer from 'multer';
+
 import config from '../../config';
 
 // Configure multer for memory storage
@@ -40,7 +41,11 @@ const videoFileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFi
   if (config.upload.allowedVideoMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid video file type. Allowed: ${config.upload.allowedVideoMimeTypes.join(', ')}`));
+    cb(
+      new Error(
+        `Invalid video file type. Allowed: ${config.upload.allowedVideoMimeTypes.join(', ')}`
+      )
+    );
   }
 };
 

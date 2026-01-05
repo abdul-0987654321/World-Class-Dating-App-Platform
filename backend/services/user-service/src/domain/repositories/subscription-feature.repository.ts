@@ -1,5 +1,5 @@
-import { SubscriptionFeature } from '../entities/SubscriptionFeature.entity';
 import db from '../../infrastructure/database/connection';
+import { SubscriptionFeature } from '../entities/SubscriptionFeature.entity';
 
 export class SubscriptionFeatureRepository {
   private tableName = 'subscription_features';
@@ -22,7 +22,10 @@ export class SubscriptionFeatureRepository {
     return features.map(this.mapToEntity);
   }
 
-  async findByTierAndFeature(tier: string, featureKey: string): Promise<SubscriptionFeature | null> {
+  async findByTierAndFeature(
+    tier: string,
+    featureKey: string
+  ): Promise<SubscriptionFeature | null> {
     const feature = await db(this.tableName)
       .where({ tier, feature_key: featureKey, active: true })
       .first();
@@ -41,14 +44,15 @@ export class SubscriptionFeatureRepository {
   }
 
   async findById(id: string): Promise<SubscriptionFeature | null> {
-    const feature = await db(this.tableName)
-      .where({ id })
-      .first();
+    const feature = await db(this.tableName).where({ id }).first();
 
     return feature ? this.mapToEntity(feature) : null;
   }
 
-  async updateFeatureValue(id: string, featureValue: Record<string, any>): Promise<SubscriptionFeature> {
+  async updateFeatureValue(
+    id: string,
+    featureValue: Record<string, any>
+  ): Promise<SubscriptionFeature> {
     const [feature] = await db(this.tableName)
       .where({ id })
       .update({
@@ -76,13 +80,16 @@ export class SubscriptionFeatureRepository {
   async findAllGroupedByTier(): Promise<Record<string, SubscriptionFeature[]>> {
     const features = await this.findAllActive();
 
-    return features.reduce((acc, feature) => {
-      if (!acc[feature.tier]) {
-        acc[feature.tier] = [];
-      }
-      acc[feature.tier].push(feature);
-      return acc;
-    }, {} as Record<string, SubscriptionFeature[]>);
+    return features.reduce(
+      (acc, feature) => {
+        if (!acc[feature.tier]) {
+          acc[feature.tier] = [];
+        }
+        acc[feature.tier].push(feature);
+        return acc;
+      },
+      {} as Record<string, SubscriptionFeature[]>
+    );
   }
 
   // Map database row to entity
@@ -91,9 +98,8 @@ export class SubscriptionFeatureRepository {
       id: row.id,
       tier: row.tier,
       featureKey: row.feature_key,
-      featureValue: typeof row.feature_value === 'string'
-        ? JSON.parse(row.feature_value)
-        : row.feature_value,
+      featureValue:
+        typeof row.feature_value === 'string' ? JSON.parse(row.feature_value) : row.feature_value,
       description: row.description,
       active: row.active,
       createdAt: row.created_at,

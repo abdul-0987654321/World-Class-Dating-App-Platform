@@ -1,6 +1,4 @@
-import { gemRepository, GemRepository } from '../repositories/gem.repository';
-import { gemStoreRepository, GemStoreRepository } from '../repositories/gem-store.repository';
-import { gemPurchaseRepository, GemPurchaseRepository } from '../repositories/gem-purchase.repository';
+import logger from '../../utils/logger';
 import {
   Gem,
   GemTransaction,
@@ -9,9 +7,14 @@ import {
   getGemItemPrice,
   getGemSpendingCategory,
 } from '../entities/Gem.entity';
-import { GemStoreItem, DEFAULT_STORE_ITEMS } from '../entities/GemStoreItem.entity';
 import { GemPurchase, calculateExpiration } from '../entities/GemPurchase.entity';
-import logger from '../../utils/logger';
+import { GemStoreItem, DEFAULT_STORE_ITEMS } from '../entities/GemStoreItem.entity';
+import {
+  gemPurchaseRepository,
+  GemPurchaseRepository,
+} from '../repositories/gem-purchase.repository';
+import { gemStoreRepository, GemStoreRepository } from '../repositories/gem-store.repository';
+import { gemRepository, GemRepository } from '../repositories/gem.repository';
 
 export class GemService {
   constructor(
@@ -84,13 +87,10 @@ export class GemService {
     transactionId: string,
     provider: string
   ): Promise<Gem> {
-    return this.repository.addGems(
-      userId,
-      amount,
-      'purchased',
-      `Purchased ${amount} gems`,
-      { transactionId, provider }
-    );
+    return this.repository.addGems(userId, amount, 'purchased', `Purchased ${amount} gems`, {
+      transactionId,
+      provider,
+    });
   }
 
   /**
@@ -102,13 +102,7 @@ export class GemService {
     reason: string,
     originalTransactionId?: string
   ): Promise<Gem> {
-    return this.repository.addGems(
-      userId,
-      amount,
-      'refund',
-      reason,
-      { originalTransactionId }
-    );
+    return this.repository.addGems(userId, amount, 'refund', reason, { originalTransactionId });
   }
 
   /**
@@ -182,11 +176,7 @@ export class GemService {
   /**
    * Get transaction history
    */
-  async getTransactionHistory(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemTransaction[]> {
+  async getTransactionHistory(userId: string, limit = 50, offset = 0): Promise<GemTransaction[]> {
     return this.repository.getTransactionHistory(userId, limit, offset);
   }
 
@@ -403,11 +393,7 @@ export class GemService {
   /**
    * Get purchase history for a user
    */
-  async getPurchaseHistory(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemPurchase[]> {
+  async getPurchaseHistory(userId: string, limit = 50, offset = 0): Promise<GemPurchase[]> {
     return this.purchaseRepository.getByUserId(userId, limit, offset);
   }
 
@@ -424,7 +410,10 @@ export class GemService {
    * Check if user has an active item of a specific type
    */
   async hasActiveItemOfType(userId: string, itemType: string): Promise<boolean> {
-    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, itemType);
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(
+      userId,
+      itemType
+    );
     return activePurchases.length > 0;
   }
 
@@ -527,11 +516,16 @@ export class GemService {
   /**
    * Use an undo pass
    */
-  async useUndoPass(userId: string): Promise<{ success: boolean; message: string; purchase?: GemPurchase }> {
+  async useUndoPass(
+    userId: string
+  ): Promise<{ success: boolean; message: string; purchase?: GemPurchase }> {
     // Find an active undo pass purchase
-    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, 'utility');
-    const undoPass = activePurchases.find(p =>
-      p.metadata?.feature === 'undo_pass' && p.quantityRemaining > 0
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(
+      userId,
+      'utility'
+    );
+    const undoPass = activePurchases.find(
+      (p) => p.metadata?.feature === 'undo_pass' && p.quantityRemaining > 0
     );
 
     if (!undoPass) {
@@ -556,9 +550,14 @@ export class GemService {
   /**
    * Use a super like from pack
    */
-  async useSuperLike(userId: string): Promise<{ success: boolean; message: string; remaining?: number }> {
-    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(userId, 'superlike');
-    const superLikePack = activePurchases.find(p => p.quantityRemaining > 0);
+  async useSuperLike(
+    userId: string
+  ): Promise<{ success: boolean; message: string; remaining?: number }> {
+    const activePurchases = await this.purchaseRepository.getActivePurchasesByType(
+      userId,
+      'superlike'
+    );
+    const superLikePack = activePurchases.find((p) => p.quantityRemaining > 0);
 
     if (!superLikePack) {
       return { success: false, message: 'No super likes available' };
@@ -585,11 +584,7 @@ export class GemService {
   /**
    * Get gifts received by user
    */
-  async getReceivedGifts(
-    userId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<GemPurchase[]> {
+  async getReceivedGifts(userId: string, limit = 50, offset = 0): Promise<GemPurchase[]> {
     return this.purchaseRepository.getReceivedGifts(userId, limit, offset);
   }
 

@@ -1,9 +1,9 @@
+import db from '../../infrastructure/database/connection';
 import {
   PrivacySetting,
   PrivacySettingCreateInput,
-  PrivacySettingUpdateInput
+  PrivacySettingUpdateInput,
 } from '../entities/PrivacySetting.entity';
-import db from '../../infrastructure/database/connection';
 
 export class PrivacySettingRepository {
   private tableName = 'privacy_settings';
@@ -17,25 +17,19 @@ export class PrivacySettingRepository {
       updated_at: now,
     };
 
-    const [settings] = await db(this.tableName)
-      .insert(settingsData)
-      .returning('*');
+    const [settings] = await db(this.tableName).insert(settingsData).returning('*');
 
     return this.mapToEntity(settings);
   }
 
   async findById(id: string): Promise<PrivacySetting | null> {
-    const settings = await db(this.tableName)
-      .where({ id })
-      .first();
+    const settings = await db(this.tableName).where({ id }).first();
 
     return settings ? this.mapToEntity(settings) : null;
   }
 
   async findByUserId(userId: string): Promise<PrivacySetting | null> {
-    const settings = await db(this.tableName)
-      .where({ user_id: userId })
-      .first();
+    const settings = await db(this.tableName).where({ user_id: userId }).first();
 
     return settings ? this.mapToEntity(settings) : null;
   }
@@ -49,22 +43,25 @@ export class PrivacySettingRepository {
     if (input.incognitoUntil !== undefined) updateData.incognito_until = input.incognitoUntil;
     if (input.showDistance !== undefined) updateData.show_distance = input.showDistance;
     if (input.showLastActive !== undefined) updateData.show_last_active = input.showLastActive;
-    if (input.showOnlineStatus !== undefined) updateData.show_online_status = input.showOnlineStatus;
+    if (input.showOnlineStatus !== undefined)
+      updateData.show_online_status = input.showOnlineStatus;
     if (input.showAge !== undefined) updateData.show_age = input.showAge;
-    if (input.profileVisibility !== undefined) updateData.profile_visibility = input.profileVisibility;
-    if (input.hideFromContacts !== undefined) updateData.hide_from_contacts = input.hideFromContacts;
+    if (input.profileVisibility !== undefined)
+      updateData.profile_visibility = input.profileVisibility;
+    if (input.hideFromContacts !== undefined)
+      updateData.hide_from_contacts = input.hideFromContacts;
     if (input.hiddenContactNumbers !== undefined) {
       updateData.hidden_contact_numbers = JSON.stringify(input.hiddenContactNumbers);
     }
-    if (input.readReceiptsEnabled !== undefined) updateData.read_receipts_enabled = input.readReceiptsEnabled;
-    if (input.typingIndicatorsEnabled !== undefined) updateData.typing_indicators_enabled = input.typingIndicatorsEnabled;
+    if (input.readReceiptsEnabled !== undefined)
+      updateData.read_receipts_enabled = input.readReceiptsEnabled;
+    if (input.typingIndicatorsEnabled !== undefined)
+      updateData.typing_indicators_enabled = input.typingIndicatorsEnabled;
     if (input.preciseLocation !== undefined) updateData.precise_location = input.preciseLocation;
-    if (input.locationRadiusKm !== undefined) updateData.location_radius_km = input.locationRadiusKm;
+    if (input.locationRadiusKm !== undefined)
+      updateData.location_radius_km = input.locationRadiusKm;
 
-    const [settings] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [settings] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(settings);
   }
@@ -79,7 +76,11 @@ export class PrivacySettingRepository {
     return this.update(settings.id, input);
   }
 
-  async toggleIncognitoMode(userId: string, enabled: boolean, until?: Date): Promise<PrivacySetting> {
+  async toggleIncognitoMode(
+    userId: string,
+    enabled: boolean,
+    until?: Date
+  ): Promise<PrivacySetting> {
     const settings = await this.findByUserId(userId);
 
     if (!settings) {
@@ -176,7 +177,9 @@ export class PrivacySettingRepository {
       throw new Error('Privacy settings not found for user');
     }
 
-    const hiddenNumbers = (settings.hiddenContactNumbers || []).filter(num => num !== phoneNumber);
+    const hiddenNumbers = (settings.hiddenContactNumbers || []).filter(
+      (num) => num !== phoneNumber
+    );
 
     const [updatedSettings] = await db(this.tableName)
       .where({ user_id: userId })
@@ -193,9 +196,8 @@ export class PrivacySettingRepository {
   async findActiveIncognitoUsers(): Promise<PrivacySetting[]> {
     const settings = await db(this.tableName)
       .where({ incognito_mode: true })
-      .where(function() {
-        this.whereNull('incognito_until')
-          .orWhere('incognito_until', '>', new Date());
+      .where(function () {
+        this.whereNull('incognito_until').orWhere('incognito_until', '>', new Date());
       })
       .select('*');
 
@@ -203,15 +205,11 @@ export class PrivacySettingRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ user_id: userId })
-      .del();
+    await db(this.tableName).where({ user_id: userId }).del();
   }
 
   // Map database row to entity

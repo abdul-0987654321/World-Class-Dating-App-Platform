@@ -31,8 +31,9 @@
  */
 
 import dotenv from 'dotenv';
-import logger from '../utils/logger';
+
 import encryptionKeyRotationService from '../domain/services/encryption-key-rotation.service';
+import logger from '../utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -97,10 +98,10 @@ async function startRotation() {
     'TOTP_ENCRYPTION_KEY_VERSION_OLD',
   ];
 
-  const missing = requiredVars.filter(v => !process.env[v]);
+  const missing = requiredVars.filter((v) => !process.env[v]);
   if (missing.length > 0) {
     console.error('Missing required environment variables:');
-    missing.forEach(v => console.error(`  - ${v}`));
+    missing.forEach((v) => console.error(`  - ${v}`));
     console.error('\nPlease set these variables before running key rotation.');
     process.exit(1);
   }
@@ -161,7 +162,9 @@ async function viewHistory() {
 
   history.forEach((rotation, index) => {
     console.log(`${index + 1}. Rotation ${rotation.id}`);
-    console.log(`   Old Version: ${rotation.oldKeyVersion} -> New Version: ${rotation.newKeyVersion}`);
+    console.log(
+      `   Old Version: ${rotation.oldKeyVersion} -> New Version: ${rotation.newKeyVersion}`
+    );
     console.log(`   Status: ${rotation.status}`);
     console.log(`   Records: ${rotation.recordsMigrated}`);
     console.log(`   Date: ${rotation.startedAt}`);
@@ -179,12 +182,14 @@ async function verifyEncryption() {
   const result = await encryptionKeyRotationService.verifyEncryption();
 
   console.log(`Total Records:   ${result.total}`);
-  console.log(`Valid:           ${result.valid} (${((result.valid / result.total) * 100).toFixed(2)}%)`);
+  console.log(
+    `Valid:           ${result.valid} (${((result.valid / result.total) * 100).toFixed(2)}%)`
+  );
   console.log(`Invalid:         ${result.invalid}`);
 
   if (result.invalid > 0) {
     console.log('\nErrors:');
-    result.errors.slice(0, 10).forEach(error => {
+    result.errors.slice(0, 10).forEach((error) => {
       console.log(`  - Record ${error.recordId} (User ${error.userId}): ${error.error}`);
     });
 

@@ -4,10 +4,11 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
+
 import { getGooglePlacesClient } from '../../infrastructure/clients/google-places.client';
 import { getYelpClient } from '../../infrastructure/clients/yelp.client';
+import db from '../../infrastructure/database/connection';
+import logger from '../../utils/logger';
 import {
   DatePlan,
   DatePlanStatus,
@@ -102,7 +103,7 @@ export class DatePlanningService {
   async searchVenues(params: SearchVenuesDto): Promise<Venue[]> {
     try {
       // Try Google Places first
-      let venues = await this.googlePlacesClient.searchVenues({
+      const venues = await this.googlePlacesClient.searchVenues({
         location: params.location,
         type: params.type,
         priceRange: params.budget,
@@ -212,7 +213,7 @@ export class DatePlanningService {
         updated_at: now,
       });
 
-      return this.getDatePlanById(id) as Promise<DatePlan>;
+      return this.getDatePlanById(id);
     } catch (error: any) {
       logger.error('Error creating date plan:', error);
       throw new Error(error.message || 'Failed to create date plan');
@@ -254,7 +255,7 @@ export class DatePlanningService {
 
       await db('date_plans').where('id', planId).update(updates);
 
-      return this.getDatePlanById(planId) as Promise<DatePlan>;
+      return this.getDatePlanById(planId);
     } catch (error: any) {
       logger.error('Error updating date plan:', error);
       throw new Error(error.message || 'Failed to update date plan');
@@ -367,11 +368,7 @@ export class DatePlanningService {
   /**
    * Mark date plan as completed with feedback
    */
-  async completeDatePlan(
-    userId: string,
-    planId: string,
-    feedback: DateFeedbackDto
-  ): Promise<void> {
+  async completeDatePlan(userId: string, planId: string, feedback: DateFeedbackDto): Promise<void> {
     try {
       const datePlan = await this.getDatePlanById(planId);
       if (!datePlan) {
@@ -395,12 +392,14 @@ export class DatePlanningService {
         submittedAt: new Date(),
       };
 
-      await db('date_plans').where('id', planId).update({
-        status: DATE_PLAN_STATUS.COMPLETED,
-        completed_at: new Date(),
-        feedback: JSON.stringify(feedbackData),
-        updated_at: new Date(),
-      });
+      await db('date_plans')
+        .where('id', planId)
+        .update({
+          status: DATE_PLAN_STATUS.COMPLETED,
+          completed_at: new Date(),
+          feedback: JSON.stringify(feedbackData),
+          updated_at: new Date(),
+        });
 
       logger.info(`Date plan ${planId} completed with rating ${feedback.rating}`);
     } catch (error: any) {
@@ -491,7 +490,7 @@ export class DatePlanningService {
       ideas.push({
         id: uuidv4(),
         title: 'Fun Night Out',
-        description: 'Laugh, play, and enjoy each other\'s company',
+        description: "Laugh, play, and enjoy each other's company",
         suggestedVenues: [],
         estimatedBudget: 75,
         duration: '3-4 hours',

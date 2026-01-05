@@ -1,5 +1,5 @@
-import { Coin, CoinCreateInput, CoinUpdateInput } from '../entities/Coin.entity';
 import db from '../../infrastructure/database/connection';
+import { Coin, CoinCreateInput, CoinUpdateInput } from '../entities/Coin.entity';
 
 export class CoinRepository {
   private tableName = 'coins';
@@ -16,25 +16,19 @@ export class CoinRepository {
       updated_at: now,
     };
 
-    const [coin] = await db(this.tableName)
-      .insert(coinData)
-      .returning('*');
+    const [coin] = await db(this.tableName).insert(coinData).returning('*');
 
     return this.mapToEntity(coin);
   }
 
   async findById(id: string): Promise<Coin | null> {
-    const coin = await db(this.tableName)
-      .where({ id })
-      .first();
+    const coin = await db(this.tableName).where({ id }).first();
 
     return coin ? this.mapToEntity(coin) : null;
   }
 
   async findByUserId(userId: string): Promise<Coin | null> {
-    const coin = await db(this.tableName)
-      .where({ user_id: userId })
-      .first();
+    const coin = await db(this.tableName).where({ user_id: userId }).first();
 
     return coin ? this.mapToEntity(coin) : null;
   }
@@ -49,20 +43,13 @@ export class CoinRepository {
     if (input.totalSpent !== undefined) updateData.total_spent = input.totalSpent;
     if (input.totalPurchased !== undefined) updateData.total_purchased = input.totalPurchased;
 
-    const [coin] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [coin] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(coin);
   }
 
   // Add coins (purchase or reward)
-  async addCoins(
-    userId: string,
-    amount: number,
-    isPurchase: boolean = false
-  ): Promise<Coin> {
+  async addCoins(userId: string, amount: number, isPurchase: boolean = false): Promise<Coin> {
     const updateData: any = {
       balance: db.raw('balance + ?', [amount]),
       updated_at: new Date(),
@@ -101,25 +88,16 @@ export class CoinRepository {
   }
 
   // Transaction-safe balance update
-  async updateBalanceTransaction(
-    userId: string,
-    amount: number,
-    isDebit: boolean
-  ): Promise<Coin> {
+  async updateBalanceTransaction(userId: string, amount: number, isDebit: boolean): Promise<Coin> {
     return await db.transaction(async (trx) => {
       // Lock the row for update
-      const currentCoin = await trx(this.tableName)
-        .where({ user_id: userId })
-        .forUpdate()
-        .first();
+      const currentCoin = await trx(this.tableName).where({ user_id: userId }).forUpdate().first();
 
       if (!currentCoin) {
         throw new Error('Coin record not found');
       }
 
-      const newBalance = isDebit
-        ? currentCoin.balance - amount
-        : currentCoin.balance + amount;
+      const newBalance = isDebit ? currentCoin.balance - amount : currentCoin.balance + amount;
 
       if (newBalance < 0) {
         throw new Error('Insufficient coin balance');
@@ -146,23 +124,16 @@ export class CoinRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ user_id: userId })
-      .del();
+    await db(this.tableName).where({ user_id: userId }).del();
   }
 
   // Get top users by coin balance
   async getTopUsersByBalance(limit: number = 10): Promise<Coin[]> {
-    const coins = await db(this.tableName)
-      .orderBy('balance', 'desc')
-      .limit(limit)
-      .select('*');
+    const coins = await db(this.tableName).orderBy('balance', 'desc').limit(limit).select('*');
 
     return coins.map(this.mapToEntity);
   }

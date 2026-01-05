@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsUUID,
@@ -9,7 +10,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+
 import { MessageType, MessageStatus } from '../types';
 
 /**

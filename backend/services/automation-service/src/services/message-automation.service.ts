@@ -1,10 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
-import db from '../infrastructure/database/knex';
-import { cache } from '../infrastructure/cache/redis';
-import { rabbitMQ } from '../infrastructure/messaging/rabbitmq';
-import config from '../config';
 import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
+import { cache } from '../infrastructure/cache/redis';
+import db from '../infrastructure/database/knex';
+import { rabbitMQ } from '../infrastructure/messaging/rabbitmq';
 
 const logger = createLogger('automation-service:message-automation');
 
@@ -196,10 +197,7 @@ export class MessageAutomationService {
   /**
    * Calculate optimal send time based on recipient's activity
    */
-  private async calculateOptimalSendTime(
-    recipientId: string,
-    timezone?: string
-  ): Promise<Date> {
+  private async calculateOptimalSendTime(recipientId: string, timezone?: string): Promise<Date> {
     try {
       // Get recipient's activity patterns from analytics
       const response = await axios.get(
@@ -248,10 +246,7 @@ export class MessageAutomationService {
   /**
    * Analyze message context using NLP service
    */
-  private async analyzeMessageContext(
-    message: string,
-    conversationId: string
-  ): Promise<any> {
+  private async analyzeMessageContext(message: string, conversationId: string): Promise<any> {
     try {
       const response = await axios.post(
         `${this.nlpServiceUrl}/api/v1/analyze/context`,
@@ -282,11 +277,7 @@ export class MessageAutomationService {
   /**
    * Check if message matches template
    */
-  private matchesTemplate(
-    template: AutoResponseTemplate,
-    message: string,
-    context: any
-  ): boolean {
+  private matchesTemplate(template: AutoResponseTemplate, message: string, context: any): boolean {
     // Simple keyword matching (can be enhanced with NLP)
     const messageLower = message.toLowerCase();
     const triggerLower = template.trigger.toLowerCase();
@@ -346,7 +337,7 @@ export class MessageAutomationService {
       const senderProfile = userResponse.data;
 
       // Replace placeholders
-      let personalized = response
+      const personalized = response
         .replace(/\{name\}/g, senderProfile.firstName || 'there')
         .replace(/\{time\}/g, this.getGreeting())
         .replace(/\{topic\}/g, context.topics?.[0] || 'that');
@@ -375,12 +366,10 @@ export class MessageAutomationService {
    */
   async cancelScheduledMessage(scheduleId: string, userId: string): Promise<void> {
     try {
-      await db('scheduled_messages')
-        .where({ id: scheduleId, user_id: userId })
-        .update({
-          status: 'cancelled',
-          updated_at: new Date(),
-        });
+      await db('scheduled_messages').where({ id: scheduleId, user_id: userId }).update({
+        status: 'cancelled',
+        updated_at: new Date(),
+      });
 
       logger.info('Scheduled message cancelled', { scheduleId, userId });
     } catch (error: any) {
@@ -452,13 +441,11 @@ export class MessageAutomationService {
           );
 
           // Update status
-          await db('scheduled_messages')
-            .where({ id: msg.id })
-            .update({
-              status: 'sent',
-              sent_at: new Date(),
-              updated_at: new Date(),
-            });
+          await db('scheduled_messages').where({ id: msg.id }).update({
+            status: 'sent',
+            sent_at: new Date(),
+            updated_at: new Date(),
+          });
 
           logger.info('Scheduled message sent', {
             scheduleId: msg.id,
@@ -471,13 +458,11 @@ export class MessageAutomationService {
           });
 
           // Mark as failed
-          await db('scheduled_messages')
-            .where({ id: msg.id })
-            .update({
-              status: 'failed',
-              error: error.message,
-              updated_at: new Date(),
-            });
+          await db('scheduled_messages').where({ id: msg.id }).update({
+            status: 'failed',
+            error: error.message,
+            updated_at: new Date(),
+          });
         }
       }
     } catch (error: any) {

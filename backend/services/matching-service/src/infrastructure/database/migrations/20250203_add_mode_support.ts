@@ -30,7 +30,9 @@ export async function up(knex: Knex): Promise<void> {
   // Update unique constraint on swipes to include mode
   // Users can swipe the same person in different modes
   await knex.raw('ALTER TABLE swipes DROP CONSTRAINT IF EXISTS swipes_swiper_id_swiped_id_unique');
-  await knex.raw('ALTER TABLE swipes ADD CONSTRAINT swipes_swiper_swiped_mode_unique UNIQUE (swiper_id, swiped_id, mode)');
+  await knex.raw(
+    'ALTER TABLE swipes ADD CONSTRAINT swipes_swiper_swiped_mode_unique UNIQUE (swiper_id, swiped_id, mode)'
+  );
 
   // Add mode-specific user preferences table
   await knex.schema.createTable('user_mode_preferences', (table) => {
@@ -58,7 +60,9 @@ export async function down(knex: Knex): Promise<void> {
 
   // Revert swipes unique constraint
   await knex.raw('ALTER TABLE swipes DROP CONSTRAINT IF EXISTS swipes_swiper_swiped_mode_unique');
-  await knex.raw('ALTER TABLE swipes ADD CONSTRAINT swipes_swiper_id_swiped_id_unique UNIQUE (swiper_id, swiped_id)');
+  await knex.raw(
+    'ALTER TABLE swipes ADD CONSTRAINT swipes_swiper_id_swiped_id_unique UNIQUE (swiper_id, swiped_id)'
+  );
 
   // Remove mode columns
   await knex.schema.alterTable('swipes', (table) => {

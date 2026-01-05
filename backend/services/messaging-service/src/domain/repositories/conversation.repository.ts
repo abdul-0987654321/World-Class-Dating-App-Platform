@@ -1,6 +1,7 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('conversation-repository');
 
@@ -36,9 +37,9 @@ export class ConversationRepository {
   async create(conversation: Conversation): Promise<Conversation> {
     try {
       logger.info(`Creating conversation: ${conversation.id}`);
-      
+
       const { resource } = await this.container.items.create(conversation);
-      
+
       logger.info(`Conversation created: ${conversation.id}`);
       return resource as Conversation;
     } catch (error: any) {
@@ -52,7 +53,9 @@ export class ConversationRepository {
    */
   async findById(conversationId: string): Promise<Conversation | null> {
     try {
-      const { resource } = await this.container.item(conversationId, conversationId).read<Conversation>();
+      const { resource } = await this.container
+        .item(conversationId, conversationId)
+        .read<Conversation>();
       return resource || null;
     } catch (error: any) {
       if (error.code === 404) {
@@ -119,7 +122,9 @@ export class ConversationRepository {
       }
 
       const updated = { ...existing, ...updates };
-      const { resource } = await this.container.item(conversationId, conversationId).replace(updated);
+      const { resource } = await this.container
+        .item(conversationId, conversationId)
+        .replace(updated);
 
       logger.info(`Conversation updated: ${conversationId}`);
       return resource as Conversation;

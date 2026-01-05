@@ -4,14 +4,15 @@
  */
 
 import { Request, Response } from 'express';
+
 import { notificationService } from '../../services/notification.service';
-import logger from '../../utils/logger';
 import {
   SendNotificationRequest,
   NotificationChannel,
   NotificationType,
   NotificationPriority,
 } from '../../types';
+import logger from '../../utils/logger';
 
 export class NotificationController {
   /**
@@ -43,9 +44,7 @@ export class NotificationController {
       // Validate channels if provided
       if (payload.channels) {
         const validChannels = Object.values(NotificationChannel);
-        const invalidChannels = payload.channels.filter(
-          (c) => !validChannels.includes(c)
-        );
+        const invalidChannels = payload.channels.filter((c) => !validChannels.includes(c));
 
         if (invalidChannels.length > 0) {
           res.status(400).json({
@@ -59,10 +58,7 @@ export class NotificationController {
       const result = await notificationService.sendNotification({
         userId: payload.userId,
         type: payload.type,
-        channels: payload.channels || [
-          NotificationChannel.PUSH,
-          NotificationChannel.IN_APP,
-        ],
+        channels: payload.channels || [NotificationChannel.PUSH, NotificationChannel.IN_APP],
         title: payload.title,
         body: payload.body,
         data: payload.data,
@@ -102,7 +98,7 @@ export class NotificationController {
    */
   async getNotifications(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const unreadOnly = req.query.unreadOnly === 'true';
@@ -147,7 +143,7 @@ export class NotificationController {
    */
   async markAsRead(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const notificationId = req.params.id;
 
       const result = await notificationService.markAsRead(userId, notificationId);
@@ -181,7 +177,7 @@ export class NotificationController {
    */
   async markAllAsRead(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
 
       const result = await notificationService.markAllAsRead(userId);
 
@@ -215,13 +211,10 @@ export class NotificationController {
    */
   async deleteNotification(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const notificationId = req.params.id;
 
-      const result = await notificationService.deleteNotification(
-        userId,
-        notificationId
-      );
+      const result = await notificationService.deleteNotification(userId, notificationId);
 
       if (result.success) {
         res.status(200).json({
@@ -252,7 +245,7 @@ export class NotificationController {
    */
   async getPreferences(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
 
       const result = await notificationService.getPreferences(userId);
 
@@ -285,7 +278,7 @@ export class NotificationController {
    */
   async updatePreferences(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
       const updates = req.body;
 
       const result = await notificationService.updatePreferences(userId, updates);
@@ -320,7 +313,7 @@ export class NotificationController {
    */
   async getUnreadCount(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.id;
 
       const result = await notificationService.getUnreadCount(userId);
 

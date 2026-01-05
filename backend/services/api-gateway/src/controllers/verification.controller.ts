@@ -22,10 +22,11 @@ import {
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
-import { ProxyService } from '../services/proxy.service';
+import * as multer from 'multer';
+
 import { Roles } from '../decorators/roles.decorator';
 import { RolesGuard, Role } from '../guards/roles.guard';
-import * as multer from 'multer';
+import { ProxyService } from '../services/proxy.service';
 
 /**
  * Verification Controller
@@ -71,16 +72,10 @@ export class VerificationController {
       },
     },
   })
-  async startVerification(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
-    return this.proxyService.post(
-      'userService',
-      '/api/v1/identity-verification/start',
-      body,
-      { Authorization: authorization },
-    );
+  async startVerification(@Headers('authorization') authorization: string, @Body() body: any) {
+    return this.proxyService.post('userService', '/api/v1/identity-verification/start', body, {
+      Authorization: authorization,
+    });
   }
 
   /**
@@ -117,7 +112,7 @@ export class VerificationController {
   async uploadArtifact(
     @Headers('authorization') authorization: string,
     @Body() body: any,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File
   ) {
     // Forward multipart form data to user service
     // In a production implementation, you would:
@@ -126,8 +121,13 @@ export class VerificationController {
     return this.proxyService.post(
       'userService',
       '/api/v1/identity-verification/upload',
-      { ...body, file: file ? { originalname: file.originalname, size: file.size, mimetype: file.mimetype } : null },
-      { Authorization: authorization },
+      {
+        ...body,
+        file: file
+          ? { originalname: file.originalname, size: file.size, mimetype: file.mimetype }
+          : null,
+      },
+      { Authorization: authorization }
     );
   }
 
@@ -151,16 +151,10 @@ export class VerificationController {
       },
     },
   })
-  async submitForReview(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
-    return this.proxyService.post(
-      'userService',
-      '/api/v1/identity-verification/submit',
-      body,
-      { Authorization: authorization },
-    );
+  async submitForReview(@Headers('authorization') authorization: string, @Body() body: any) {
+    return this.proxyService.post('userService', '/api/v1/identity-verification/submit', body, {
+      Authorization: authorization,
+    });
   }
 
   /**
@@ -175,15 +169,12 @@ export class VerificationController {
     enum: ['email', 'phone', 'id', 'selfie', 'liveness', 'video', 'biometric'],
     description: 'Filter by verification type',
   })
-  async getStatus(
-    @Headers('authorization') authorization: string,
-    @Query('type') type?: string,
-  ) {
+  async getStatus(@Headers('authorization') authorization: string, @Query('type') type?: string) {
     const queryString = type ? `?type=${type}` : '';
     return this.proxyService.get(
       'userService',
       `/api/v1/identity-verification/status${queryString}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -207,16 +198,10 @@ export class VerificationController {
       },
     },
   })
-  async retryVerification(
-    @Headers('authorization') authorization: string,
-    @Body() body: any,
-  ) {
-    return this.proxyService.post(
-      'userService',
-      '/api/v1/identity-verification/retry',
-      body,
-      { Authorization: authorization },
-    );
+  async retryVerification(@Headers('authorization') authorization: string, @Body() body: any) {
+    return this.proxyService.post('userService', '/api/v1/identity-verification/retry', body, {
+      Authorization: authorization,
+    });
   }
 
   // ==================== Admin Verification Endpoints ====================
@@ -242,7 +227,7 @@ export class VerificationController {
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
-    @Query('type') type?: string,
+    @Query('type') type?: string
   ) {
     const params = new URLSearchParams();
     if (limit) params.append('limit', limit.toString());
@@ -253,7 +238,7 @@ export class VerificationController {
     return this.proxyService.get(
       'userService',
       `/api/v1/identity-verification/admin/pending${queryString}`,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -281,13 +266,13 @@ export class VerificationController {
   async approveVerification(
     @Headers('authorization') authorization: string,
     @Param('requestId') requestId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/identity-verification/admin/${requestId}/approve`,
       body,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 
@@ -320,13 +305,13 @@ export class VerificationController {
   async denyVerification(
     @Headers('authorization') authorization: string,
     @Param('requestId') requestId: string,
-    @Body() body: any,
+    @Body() body: any
   ) {
     return this.proxyService.post(
       'userService',
       `/api/v1/identity-verification/admin/${requestId}/deny`,
       body,
-      { Authorization: authorization },
+      { Authorization: authorization }
     );
   }
 }

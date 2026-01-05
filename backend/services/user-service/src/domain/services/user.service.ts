@@ -1,6 +1,6 @@
-import { UserRepository } from '../repositories/user.repository';
-import { UpdateUserDto, UserResponse } from '../entities/User.entity';
 import logger from '../../utils/logger';
+import { UpdateUserDto, UserResponse } from '../entities/User.entity';
+import { UserRepository } from '../repositories/user.repository';
 
 export class UserService {
   private userRepository: UserRepository;

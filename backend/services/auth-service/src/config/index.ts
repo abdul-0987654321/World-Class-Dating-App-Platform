@@ -4,17 +4,14 @@ dotenv.config();
 
 // Validate required environment variables
 const validateRequiredEnvVars = () => {
-  const required = [
-    'JWT_ACCESS_SECRET',
-    'JWT_REFRESH_SECRET',
-  ];
+  const required = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 
-  const missing = required.filter(key => !process.env[key]);
+  const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
-      'JWT secrets must be explicitly set for security. Never use default values in production.'
+        'JWT secrets must be explicitly set for security. Never use default values in production.'
     );
   }
 
@@ -40,12 +37,16 @@ export const config = {
 
   // JWT - Secure configuration with mandatory secrets
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || (() => {
-      throw new Error('JWT_ACCESS_SECRET is required. Set it in environment variables.');
-    })(),
-    refreshSecret: process.env.JWT_REFRESH_SECRET || (() => {
-      throw new Error('JWT_REFRESH_SECRET is required. Set it in environment variables.');
-    })(),
+    accessSecret:
+      process.env.JWT_ACCESS_SECRET ||
+      (() => {
+        throw new Error('JWT_ACCESS_SECRET is required. Set it in environment variables.');
+      })(),
+    refreshSecret:
+      process.env.JWT_REFRESH_SECRET ||
+      (() => {
+        throw new Error('JWT_REFRESH_SECRET is required. Set it in environment variables.');
+      })(),
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m', // Reduced from 24h to 15m
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d', // Reduced from 30d to 7d
     algorithm: 'HS256' as const, // Explicit algorithm specification
@@ -90,7 +91,10 @@ export const config = {
 
   // CORS
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5173'],
+    origins: process.env.CORS_ORIGINS?.split(',') || [
+      'http://localhost:3000',
+      'http://localhost:5173',
+    ],
   },
 
   // Rate limiting

@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+
 import curatedPicksController from '../controllers/curated-picks.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -28,7 +29,10 @@ router.post('/:pickId/view', curatedPicksController.markPickViewed.bind(curatedP
  * POST /api/v1/discovery/curated-picks/:pickId/action
  * Mark a pick as acted upon (liked/passed)
  */
-router.post('/:pickId/action', curatedPicksController.markPickActedUpon.bind(curatedPicksController));
+router.post(
+  '/:pickId/action',
+  curatedPicksController.markPickActedUpon.bind(curatedPicksController)
+);
 
 /**
  * POST /api/v1/discovery/curated-picks/regenerate

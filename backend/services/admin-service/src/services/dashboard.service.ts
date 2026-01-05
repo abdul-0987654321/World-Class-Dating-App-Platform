@@ -1,9 +1,12 @@
-import { db } from '../infrastructure/database';
-import { DashboardStats } from '../types';
 import axios from 'axios';
 
+import { db } from '../infrastructure/database';
+import { DashboardStats } from '../types';
+
 export class DashboardService {
-  async getDashboardStats(timeRange: 'today' | 'week' | 'month' = 'today'): Promise<DashboardStats> {
+  async getDashboardStats(
+    timeRange: 'today' | 'week' | 'month' = 'today'
+  ): Promise<DashboardStats> {
     const startDate = this.getStartDate(timeRange);
 
     const [
@@ -17,7 +20,7 @@ export class DashboardService {
       messagesToday,
       pendingVerifications,
       pendingReports,
-      revenue
+      revenue,
     ] = await Promise.all([
       this.getTotalUsers(),
       this.getActiveUsers(startDate),
@@ -53,7 +56,7 @@ export class DashboardService {
       .orderBy('created_at', 'desc')
       .limit(limit);
 
-    return activities.map(activity => ({
+    return activities.map((activity) => ({
       id: activity.id,
       type: activity.type,
       description: activity.description,
@@ -68,10 +71,7 @@ export class DashboardService {
   }
 
   private async getActiveUsers(since: Date): Promise<number> {
-    const result = await db('users')
-      .where('last_active', '>=', since)
-      .count('* as count')
-      .first();
+    const result = await db('users').where('last_active', '>=', since).count('* as count').first();
     return parseInt(result?.count as string) || 0;
   }
 
@@ -79,10 +79,7 @@ export class DashboardService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const result = await db('users')
-      .where('created_at', '>=', today)
-      .count('* as count')
-      .first();
+    const result = await db('users').where('created_at', '>=', today).count('* as count').first();
     return parseInt(result?.count as string) || 0;
   }
 
@@ -103,10 +100,7 @@ export class DashboardService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const result = await db('matches')
-      .where('created_at', '>=', today)
-      .count('* as count')
-      .first();
+    const result = await db('matches').where('created_at', '>=', today).count('* as count').first();
     return parseInt(result?.count as string) || 0;
   }
 
@@ -135,10 +129,7 @@ export class DashboardService {
   }
 
   private async getPendingReports(): Promise<number> {
-    const result = await db('reports')
-      .where('status', 'pending')
-      .count('* as count')
-      .first();
+    const result = await db('reports').where('status', 'pending').count('* as count').first();
     return parseInt(result?.count as string) || 0;
   }
 
@@ -159,10 +150,7 @@ export class DashboardService {
         .where('status', 'completed')
         .sum('amount as total')
         .first(),
-      db('transactions')
-        .where('status', 'completed')
-        .sum('amount as total')
-        .first(),
+      db('transactions').where('status', 'completed').sum('amount as total').first(),
     ]);
 
     return {

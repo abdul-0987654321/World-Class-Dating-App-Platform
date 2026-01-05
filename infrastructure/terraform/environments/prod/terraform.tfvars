@@ -56,7 +56,9 @@ allowed_origins = [
 
 # Monitoring
 alarm_email_endpoints = [
-  # Add production alert emails
+  "oncall@flamoral.com",
+  "ops-alerts@flamoral.com",
+  "security-alerts@flamoral.com"
 ]
 
 # WAF - Optional country blocking

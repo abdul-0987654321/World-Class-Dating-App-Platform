@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   DynamicDatingScene,
   EmotionBasedCreative,
@@ -48,9 +49,7 @@ export class CreativeService {
           copy: {
             headline: 'Find Your Perfect Adventure Partner',
             cta: 'Start Matching',
-            dynamic_tokens: [
-              { token: '{{city}}', source: 'location', fallback: 'your area' },
-            ],
+            dynamic_tokens: [{ token: '{{city}}', source: 'location', fallback: 'your area' }],
           },
         },
       ],
@@ -58,7 +57,17 @@ export class CreativeService {
     };
   }
 
-  private determineSceneType(interests: string[]): 'coffee_date' | 'dinner' | 'outdoor_adventure' | 'concert' | 'travel' | 'home_cooking' | 'fitness' | 'cultural' {
+  private determineSceneType(
+    interests: string[]
+  ):
+    | 'coffee_date'
+    | 'dinner'
+    | 'outdoor_adventure'
+    | 'concert'
+    | 'travel'
+    | 'home_cooking'
+    | 'fitness'
+    | 'cultural' {
     if (interests?.includes('hiking') || interests?.includes('outdoor')) return 'outdoor_adventure';
     if (interests?.includes('foodie') || interests?.includes('cooking')) return 'home_cooking';
     if (interests?.includes('music') || interests?.includes('concerts')) return 'concert';
@@ -81,13 +90,20 @@ export class CreativeService {
           creative_id: uuidv4(),
           target_emotion: detectedEmotion,
           emotional_triggers: [
-            { trigger_type: 'visual', description: 'Warm color palette', effectiveness_score: 0.85 },
+            {
+              trigger_type: 'visual',
+              description: 'Warm color palette',
+              effectiveness_score: 0.85,
+            },
             { trigger_type: 'copy', description: 'Hopeful messaging', effectiveness_score: 0.78 },
           ],
           creative_elements: [
             {
               element_type: 'color',
-              emotional_impact: { hope: 0.9, excitement: 0.7, romance: 0.8 } as Record<EmotionType, number>,
+              emotional_impact: { hope: 0.9, excitement: 0.7, romance: 0.8 } as Record<
+                EmotionType,
+                number
+              >,
               implementation: { primary: '#FF6B6B', secondary: '#4ECDC4' },
             },
           ],
@@ -105,9 +121,18 @@ export class CreativeService {
         confidence_threshold: 0.6,
       },
       performance_tracking: {
-        emotion_engagement_rates: { hope: 0.12, excitement: 0.15, romance: 0.18 } as Record<EmotionType, number>,
-        emotion_conversion_rates: { hope: 0.03, excitement: 0.04, romance: 0.05 } as Record<EmotionType, number>,
-        optimal_emotion_by_segment: { young_professionals: 'excitement', marriage_minded: 'hope' } as Record<string, EmotionType>,
+        emotion_engagement_rates: { hope: 0.12, excitement: 0.15, romance: 0.18 } as Record<
+          EmotionType,
+          number
+        >,
+        emotion_conversion_rates: { hope: 0.03, excitement: 0.04, romance: 0.05 } as Record<
+          EmotionType,
+          number
+        >,
+        optimal_emotion_by_segment: {
+          young_professionals: 'excitement',
+          marriage_minded: 'hope',
+        } as Record<string, EmotionType>,
       },
     };
   }
@@ -132,9 +157,21 @@ export class CreativeService {
         dominant_colors: ['#2E4057', '#048A81', '#F7F7F7'],
       },
       enhancements: [
-        { enhancement_type: 'lighting', parameters: { brightness: 1.1, contrast: 1.05 }, ai_model_version: 'v2.1' },
-        { enhancement_type: 'color_correction', parameters: { warmth: 1.05 }, ai_model_version: 'v2.1' },
-        { enhancement_type: 'background_blur', parameters: { intensity: 0.3 }, ai_model_version: 'v2.1' },
+        {
+          enhancement_type: 'lighting',
+          parameters: { brightness: 1.1, contrast: 1.05 },
+          ai_model_version: 'v2.1',
+        },
+        {
+          enhancement_type: 'color_correction',
+          parameters: { warmth: 1.05 },
+          ai_model_version: 'v2.1',
+        },
+        {
+          enhancement_type: 'background_blur',
+          parameters: { intensity: 0.3 },
+          ai_model_version: 'v2.1',
+        },
       ],
       enhanced_versions: [
         {
@@ -171,11 +208,19 @@ export class CreativeService {
             duration_seconds: 30,
           },
           variable_slots: [
-            { slot_id: 'name', slot_type: 'name', constraints: [{ constraint_type: 'length', value: { max: 15 } }] },
+            {
+              slot_id: 'name',
+              slot_type: 'name',
+              constraints: [{ constraint_type: 'length', value: { max: 15 } }],
+            },
             { slot_id: 'timeline', slot_type: 'timeline', constraints: [] },
           ],
           visual_requirements: [
-            { element: 'couple_photo', specification: { style: 'candid' }, alternatives: ['illustration'] },
+            {
+              element: 'couple_photo',
+              specification: { style: 'candid' },
+              alternatives: ['illustration'],
+            },
           ],
           target_segments: [targetSegment],
         },
@@ -215,9 +260,12 @@ export class CreativeService {
   }
 
   // Feature 5: Real-Time Copy Optimization
-  async optimizeCopy(baseCopy: string[], goal: 'ctr' | 'conversion'): Promise<RealTimeCopyOptimizer> {
+  async optimizeCopy(
+    baseCopy: string[],
+    goal: 'ctr' | 'conversion'
+  ): Promise<RealTimeCopyOptimizer> {
     return {
-      base_copy: baseCopy.map(copy => ({
+      base_copy: baseCopy.map((copy) => ({
         headline: copy,
         cta: 'Start Dating',
         dynamic_tokens: [],
@@ -241,7 +289,7 @@ export class CreativeService {
             clicks: 450,
             conversions: 45,
             ctr: 0.09,
-            cvr: 0.10,
+            cvr: 0.1,
             avg_time_to_click_seconds: 3.2,
           },
           statistical_significance: 0.92,
@@ -325,7 +373,7 @@ export class CreativeService {
         illustrations: [],
         animations: [],
       },
-      color_palette: theme.color_palette!,
+      color_palette: theme.color_palette,
       typography: {
         heading_font: 'Montserrat',
         body_font: 'Open Sans',
@@ -333,7 +381,7 @@ export class CreativeService {
         weights: { bold: 700, medium: 500, regular: 400 },
         line_heights: { heading: 1.2, body: 1.5 },
       },
-      imagery_style: theme.imagery_style!,
+      imagery_style: theme.imagery_style,
       application_rules: [],
     };
   }
@@ -356,9 +404,7 @@ export class CreativeService {
             headline: dateIdea.title,
             subheadline: dateIdea.description,
             cta: 'Book Now',
-            dynamic_tokens: [
-              { token: '{{city}}', source: 'location', fallback: 'your city' },
-            ],
+            dynamic_tokens: [{ token: '{{city}}', source: 'location', fallback: 'your city' }],
           },
           target_demographics: { age_range: '25-35', interests },
         },
@@ -415,15 +461,13 @@ export class CreativeService {
       },
     ];
 
-    return ideas.find(idea =>
-      idea.best_for.some(trait => interests.includes(trait))
-    ) || ideas[0];
+    return (
+      ideas.find((idea) => idea.best_for.some((trait) => interests.includes(trait))) || ideas[0]
+    );
   }
 
   // Feature 8: User Testimonial Style Matching
-  async matchTestimonial(
-    viewerProfile: Record<string, any>
-  ): Promise<TestimonialStyleMatch> {
+  async matchTestimonial(viewerProfile: Record<string, any>): Promise<TestimonialStyleMatch> {
     return {
       testimonial_pool: [
         {
@@ -437,7 +481,8 @@ export class CreativeService {
             interests: ['travel', 'fitness'],
           },
           content: {
-            quote: 'I never thought I would find someone who shares my passion for adventure. Thanks to Flamoral!',
+            quote:
+              'I never thought I would find someone who shares my passion for adventure. Thanks to Flamoral!',
             story_length: 'medium',
             emotional_tone: ['excitement', 'romance'],
             topics_mentioned: ['travel', 'adventure', 'connection'],
@@ -454,8 +499,18 @@ export class CreativeService {
       ],
       style_matching_rules: [
         { rule_id: uuidv4(), viewer_attribute: 'age', matching_strategy: 'similar', weight: 0.3 },
-        { rule_id: uuidv4(), viewer_attribute: 'interests', matching_strategy: 'similar', weight: 0.4 },
-        { rule_id: uuidv4(), viewer_attribute: 'relationship_goal', matching_strategy: 'aspirational', weight: 0.3 },
+        {
+          rule_id: uuidv4(),
+          viewer_attribute: 'interests',
+          matching_strategy: 'similar',
+          weight: 0.4,
+        },
+        {
+          rule_id: uuidv4(),
+          viewer_attribute: 'relationship_goal',
+          matching_strategy: 'aspirational',
+          weight: 0.3,
+        },
       ],
       personalized_selections: [
         {
@@ -526,8 +581,18 @@ export class CreativeService {
         device_restrictions: undefined,
       },
       success_metrics: [
-        { metric_name: 'CTR', metric_type: 'primary', target_improvement: 10, minimum_detectable_effect: 5 },
-        { metric_name: 'CVR', metric_type: 'secondary', target_improvement: 5, minimum_detectable_effect: 3 },
+        {
+          metric_name: 'CTR',
+          metric_type: 'primary',
+          target_improvement: 10,
+          minimum_detectable_effect: 5,
+        },
+        {
+          metric_name: 'CVR',
+          metric_type: 'secondary',
+          target_improvement: 5,
+          minimum_detectable_effect: 3,
+        },
       ],
       experiment_status: {
         status: 'draft',

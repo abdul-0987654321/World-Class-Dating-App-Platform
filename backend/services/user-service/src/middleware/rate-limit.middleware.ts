@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from 'redis';
+
 import logger from '../utils/logger';
 
 // Redis client for rate limiting
@@ -335,11 +336,9 @@ export class RateLimitMiddleware {
         tokens -= 1;
 
         // Update bucket state
-        await client.set(
-          key,
-          JSON.stringify({ tokens, lastRefill }),
-          { EX: Math.ceil(config.capacity / config.refillRate) }
-        );
+        await client.set(key, JSON.stringify({ tokens, lastRefill }), {
+          EX: Math.ceil(config.capacity / config.refillRate),
+        });
 
         // Add rate limit headers
         res.setHeader('X-RateLimit-Limit', config.capacity.toString());

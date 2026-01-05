@@ -1,13 +1,10 @@
 import Joi from 'joi';
 
 export const updateTierSchema = Joi.object({
-  tier: Joi.string()
-    .valid('free', 'basic', 'mid', 'ultra')
-    .required()
-    .messages({
-      'any.only': 'Tier must be one of: free, basic, mid, ultra',
-      'any.required': 'Tier is required',
-    }),
+  tier: Joi.string().valid('free', 'basic', 'mid', 'ultra').required().messages({
+    'any.only': 'Tier must be one of: free, basic, mid, ultra',
+    'any.required': 'Tier is required',
+  }),
 });
 
 export const cancelSubscriptionSchema = Joi.object({

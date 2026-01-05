@@ -15,7 +15,10 @@ export async function up(knex: Knex): Promise<void> {
     table.specificType('ip_address', 'inet').nullable();
     table.string('user_agent', 500).nullable();
     table.string('service', 100).nullable(); // Which service generated the event
-    table.enum('severity', ['debug', 'info', 'warning', 'error', 'critical']).notNullable().defaultTo('info');
+    table
+      .enum('severity', ['debug', 'info', 'warning', 'error', 'critical'])
+      .notNullable()
+      .defaultTo('info');
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
 
     // Indexes for frequent queries

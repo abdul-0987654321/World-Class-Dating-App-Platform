@@ -3,10 +3,11 @@
  * Generates personalized daily picks based on ML scoring and user behavior
  */
 
-import { db } from '../../database';
-import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@flamoral/backend-shared';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
+import { db } from '../../database';
 
 const logger = createLogger('curated-picks-service');
 
@@ -74,7 +75,8 @@ export class CuratedPicksService {
   async getDailyPicks(userId: string): Promise<CuratedPicksResponse> {
     try {
       const tier = await this.getUserTier(userId);
-      const pickCount = DAILY_PICKS_COUNT[tier as keyof typeof DAILY_PICKS_COUNT] || DAILY_PICKS_COUNT.free;
+      const pickCount =
+        DAILY_PICKS_COUNT[tier as keyof typeof DAILY_PICKS_COUNT] || DAILY_PICKS_COUNT.free;
 
       // Check if picks already exist for today
       const today = new Date();
@@ -197,31 +199,37 @@ export class CuratedPicksService {
   ): Promise<Array<{ userId: string; score: number; reasons: string[]; category: string }>> {
     try {
       // Fetch potential candidates from user service
-      const response = await axios.post(`${this.userServiceUrl}/api/users/search`, {
-        ageMin: userPrefs.ageMin || 18,
-        ageMax: userPrefs.ageMax || 99,
-        genderPreference: userPrefs.genderPreference,
-        maxDistance: userPrefs.maxDistance || 100,
-        excludedUserIds: [...excludedUserIds, userId],
-        limit: limit,
-        offset: 0,
-        includeScoring: true,
-      }, {
-        timeout: 10000,
-      });
+      const response = await axios.post(
+        `${this.userServiceUrl}/api/users/search`,
+        {
+          ageMin: userPrefs.ageMin || 18,
+          ageMax: userPrefs.ageMax || 99,
+          genderPreference: userPrefs.genderPreference,
+          maxDistance: userPrefs.maxDistance || 100,
+          excludedUserIds: [...excludedUserIds, userId],
+          limit: limit,
+          offset: 0,
+          includeScoring: true,
+        },
+        {
+          timeout: 10000,
+        }
+      );
 
       const candidates = response.data || [];
 
       // Score each candidate
-      return candidates.map((candidate: any) => {
-        const scoreBreakdown = this.calculateCandidateScore(candidate, userPrefs);
-        return {
-          userId: candidate.userId || candidate.id,
-          score: scoreBreakdown.totalScore,
-          reasons: scoreBreakdown.reasons,
-          category: this.determineCategory(candidate, scoreBreakdown),
-        };
-      }).sort((a: any, b: any) => b.score - a.score);
+      return candidates
+        .map((candidate: any) => {
+          const scoreBreakdown = this.calculateCandidateScore(candidate, userPrefs);
+          return {
+            userId: candidate.userId || candidate.id,
+            score: scoreBreakdown.totalScore,
+            reasons: scoreBreakdown.reasons,
+            category: this.determineCategory(candidate, scoreBreakdown),
+          };
+        })
+        .sort((a: any, b: any) => b.score - a.score);
     } catch (error) {
       logger.error('Failed to score candidates', error);
       return [];
@@ -231,7 +239,10 @@ export class CuratedPicksService {
   /**
    * Calculate comprehensive candidate score
    */
-  private calculateCandidateScore(candidate: any, userPrefs: any): { totalScore: number; reasons: string[] } {
+  private calculateCandidateScore(
+    candidate: any,
+    userPrefs: any
+  ): { totalScore: number; reasons: string[] } {
     let totalScore = 0;
     const reasons: string[] = [];
 
@@ -318,7 +329,10 @@ export class CuratedPicksService {
   /**
    * Determine pick category based on scoring
    */
-  private determineCategory(candidate: any, scoreBreakdown: { totalScore: number; reasons: string[] }): string {
+  private determineCategory(
+    candidate: any,
+    scoreBreakdown: { totalScore: number; reasons: string[] }
+  ): string {
     if (scoreBreakdown.totalScore >= 80) {
       return 'top_pick';
     }
@@ -326,13 +340,15 @@ export class CuratedPicksService {
       return 'high_compatibility';
     }
     if (candidate.createdAt) {
-      const daysSinceCreated = (Date.now() - new Date(candidate.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+      const daysSinceCreated =
+        (Date.now() - new Date(candidate.createdAt).getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceCreated < 7) {
         return 'new_user';
       }
     }
     if (candidate.lastActive) {
-      const hoursSinceActive = (Date.now() - new Date(candidate.lastActive).getTime()) / (1000 * 60 * 60);
+      const hoursSinceActive =
+        (Date.now() - new Date(candidate.lastActive).getTime()) / (1000 * 60 * 60);
       if (hoursSinceActive < 2) {
         return 'recently_active';
       }
@@ -350,13 +366,26 @@ export class CuratedPicksService {
     candidates: Array<{ userId: string; score: number; reasons: string[]; category: string }>,
     count: number
   ): Array<{ userId: string; score: number; reasons: string[]; category: string }> {
-    const categories = ['top_pick', 'high_compatibility', 'new_user', 'recently_active', 'mutual_interest'];
-    const selectedPicks: Array<{ userId: string; score: number; reasons: string[]; category: string }> = [];
+    const categories = [
+      'top_pick',
+      'high_compatibility',
+      'new_user',
+      'recently_active',
+      'mutual_interest',
+    ];
+    const selectedPicks: Array<{
+      userId: string;
+      score: number;
+      reasons: string[];
+      category: string;
+    }> = [];
     const usedUserIds = new Set<string>();
 
     // First pass: get at least one from each category
     for (const category of categories) {
-      const categoryPicks = candidates.filter((c) => c.category === category && !usedUserIds.has(c.userId));
+      const categoryPicks = candidates.filter(
+        (c) => c.category === category && !usedUserIds.has(c.userId)
+      );
       if (categoryPicks.length > 0) {
         selectedPicks.push(categoryPicks[0]);
         usedUserIds.add(categoryPicks[0].userId);
@@ -365,7 +394,9 @@ export class CuratedPicksService {
     }
 
     // Second pass: fill remaining with highest scored
-    const remaining = candidates.filter((c) => !usedUserIds.has(c.userId)).sort((a, b) => b.score - a.score);
+    const remaining = candidates
+      .filter((c) => !usedUserIds.has(c.userId))
+      .sort((a, b) => b.score - a.score);
     for (const pick of remaining) {
       if (selectedPicks.length >= count) break;
       selectedPicks.push(pick);
@@ -448,12 +479,26 @@ export class CuratedPicksService {
     if (userIds.length === 0) return [];
 
     try {
-      const response = await axios.post(`${this.userServiceUrl}/api/users/batch`, {
-        userIds,
-        fields: ['userId', 'displayName', 'age', 'city', 'photos', 'bio', 'interests', 'verified', 'compatibilityScore'],
-      }, {
-        timeout: 10000,
-      });
+      const response = await axios.post(
+        `${this.userServiceUrl}/api/users/batch`,
+        {
+          userIds,
+          fields: [
+            'userId',
+            'displayName',
+            'age',
+            'city',
+            'photos',
+            'bio',
+            'interests',
+            'verified',
+            'compatibilityScore',
+          ],
+        },
+        {
+          timeout: 10000,
+        }
+      );
       return response.data || [];
     } catch (error) {
       logger.warn('Failed to fetch user profiles');
@@ -466,9 +511,12 @@ export class CuratedPicksService {
    */
   private async getUserTier(userId: string): Promise<string> {
     try {
-      const response = await axios.get(`${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`, {
-        timeout: 5000,
-      });
+      const response = await axios.get(
+        `${this.paymentServiceUrl}/api/subscriptions/user/${userId}/tier`,
+        {
+          timeout: 5000,
+        }
+      );
       return response.data?.tier || 'free';
     } catch (error) {
       return 'free';

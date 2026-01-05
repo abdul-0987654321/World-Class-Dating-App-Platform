@@ -1,5 +1,5 @@
-import { BlockedUser, BlockedUserCreateInput } from '../entities/BlockedUser.entity';
 import db from '../../infrastructure/database/connection';
+import { BlockedUser, BlockedUserCreateInput } from '../entities/BlockedUser.entity';
 
 export class BlockedUserRepository {
   private tableName = 'blocked_users';
@@ -13,17 +13,13 @@ export class BlockedUserRepository {
       created_at: now,
     };
 
-    const [block] = await db(this.tableName)
-      .insert(blockData)
-      .returning('*');
+    const [block] = await db(this.tableName).insert(blockData).returning('*');
 
     return this.mapToEntity(block);
   }
 
   async findById(id: string): Promise<BlockedUser | null> {
-    const block = await db(this.tableName)
-      .where({ id })
-      .first();
+    const block = await db(this.tableName).where({ id }).first();
 
     return block ? this.mapToEntity(block) : null;
   }
@@ -55,19 +51,15 @@ export class BlockedUserRepository {
   }
 
   async getBlockedUserIds(blockerId: string): Promise<string[]> {
-    const blocks = await db(this.tableName)
-      .where({ blocker_id: blockerId })
-      .select('blocked_id');
+    const blocks = await db(this.tableName).where({ blocker_id: blockerId }).select('blocked_id');
 
-    return blocks.map(block => block.blocked_id);
+    return blocks.map((block) => block.blocked_id);
   }
 
   async getBlockerUserIds(blockedId: string): Promise<string[]> {
-    const blocks = await db(this.tableName)
-      .where({ blocked_id: blockedId })
-      .select('blocker_id');
+    const blocks = await db(this.tableName).where({ blocked_id: blockedId }).select('blocker_id');
 
-    return blocks.map(block => block.blocker_id);
+    return blocks.map((block) => block.blocker_id);
   }
 
   async isBlocked(blockerId: string, blockedId: string): Promise<boolean> {
@@ -80,9 +72,11 @@ export class BlockedUserRepository {
 
   async isBlockedBidirectional(userAId: string, userBId: string): Promise<boolean> {
     const blocks = await db(this.tableName)
-      .where(function() {
-        this.where({ blocker_id: userAId, blocked_id: userBId })
-          .orWhere({ blocker_id: userBId, blocked_id: userAId });
+      .where(function () {
+        this.where({ blocker_id: userAId, blocked_id: userBId }).orWhere({
+          blocker_id: userBId,
+          blocked_id: userAId,
+        });
       })
       .first();
 
@@ -99,22 +93,15 @@ export class BlockedUserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async deleteByBlockerAndBlocked(blockerId: string, blockedId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ blocker_id: blockerId, blocked_id: blockedId })
-      .del();
+    await db(this.tableName).where({ blocker_id: blockerId, blocked_id: blockedId }).del();
   }
 
   async deleteAllBlocksByUser(userId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ blocker_id: userId })
-      .orWhere({ blocked_id: userId })
-      .del();
+    await db(this.tableName).where({ blocker_id: userId }).orWhere({ blocked_id: userId }).del();
   }
 
   async countBlocksByUser(userId: string): Promise<{
@@ -132,8 +119,8 @@ export class BlockedUserRepository {
       .first();
 
     return {
-      blockedCount: parseInt(blockedResult?.count as string || '0', 10),
-      blockedByCount: parseInt(blockedByResult?.count as string || '0', 10),
+      blockedCount: parseInt((blockedResult?.count as string) || '0', 10),
+      blockedByCount: parseInt((blockedByResult?.count as string) || '0', 10),
     };
   }
 

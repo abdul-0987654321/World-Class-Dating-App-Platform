@@ -1,5 +1,11 @@
 import { Knex } from 'knex';
-import { ChallengeDefinition, UserChallenge, ChallengeType, ChallengeStatus } from '../entities/Challenge.entity';
+
+import {
+  ChallengeDefinition,
+  UserChallenge,
+  ChallengeType,
+  ChallengeStatus,
+} from '../entities/Challenge.entity';
 
 export class ChallengeRepository {
   constructor(private db: Knex) {}
@@ -10,8 +16,7 @@ export class ChallengeRepository {
   }
 
   async findChallengesByType(type: ChallengeType): Promise<ChallengeDefinition[]> {
-    const challenges = await this.db('challenge_definitions')
-      .where({ type, is_active: true });
+    const challenges = await this.db('challenge_definitions').where({ type, is_active: true });
     return challenges.map(this.mapToEntity);
   }
 
@@ -25,9 +30,11 @@ export class ChallengeRepository {
     return challenges.map(this.mapUserChallengeToEntity);
   }
 
-  async findUserChallengesByStatus(userId: string, status: ChallengeStatus): Promise<UserChallenge[]> {
-    const challenges = await this.db('user_challenges')
-      .where({ user_id: userId, status });
+  async findUserChallengesByStatus(
+    userId: string,
+    status: ChallengeStatus
+  ): Promise<UserChallenge[]> {
+    const challenges = await this.db('user_challenges').where({ user_id: userId, status });
     return challenges.map(this.mapUserChallengeToEntity);
   }
 

@@ -6,6 +6,7 @@
  */
 
 import { Router, json } from 'express';
+
 import { backgroundCheckController } from '../controllers/background-check.controller';
 import { authLimiter } from '../middleware/rate-limit.middleware';
 
@@ -150,10 +151,7 @@ router.post(
  *       404:
  *         description: Background check not found
  */
-router.get(
-  '/status',
-  backgroundCheckController.getStatus.bind(backgroundCheckController)
-);
+router.get('/status', backgroundCheckController.getStatus.bind(backgroundCheckController));
 
 /**
  * @swagger
@@ -187,7 +185,11 @@ router.get(
  */
 router.post(
   '/webhook/:provider',
-  json({ verify: (req, res, buf) => { (req as any).rawBody = buf.toString(); } }),
+  json({
+    verify: (req, res, buf) => {
+      (req as any).rawBody = buf.toString();
+    },
+  }),
   backgroundCheckController.handleWebhook.bind(backgroundCheckController)
 );
 
@@ -233,10 +235,7 @@ router.post(
  *                       items:
  *                         type: string
  */
-router.get(
-  '/tiers',
-  backgroundCheckController.getTiers.bind(backgroundCheckController)
-);
+router.get('/tiers', backgroundCheckController.getTiers.bind(backgroundCheckController));
 
 /**
  * @swagger

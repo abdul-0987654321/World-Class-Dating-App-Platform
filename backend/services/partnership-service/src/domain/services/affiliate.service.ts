@@ -1,4 +1,5 @@
 import { createLogger } from '@flamoral/backend-shared';
+
 import { db } from '../../infrastructure/database/connection';
 import {
   AffiliateClick,
@@ -71,9 +72,7 @@ export class AffiliateService {
     currency?: string;
   }): Promise<AffiliateCommission> {
     // Find the click
-    const click = await db('affiliate_clicks')
-      .where('tracking_id', params.trackingId)
-      .first();
+    const click = await db('affiliate_clicks').where('tracking_id', params.trackingId).first();
 
     if (!click) {
       throw new Error('Tracking ID not found');
@@ -97,27 +96,24 @@ export class AffiliateService {
     }
 
     // Get partner commission rate
-    const partner = await db('partners')
-      .where('id', click.partner_id)
-      .first();
+    const partner = await db('partners').where('id', click.partner_id).first();
 
     if (!partner) {
       throw new Error('Partner not found');
     }
 
     // Calculate commission
-    const commissionAmount = calculateCommission(
-      params.orderAmount * 100, // Convert to cents
-      partner.commissionRate
-    ) / 100; // Convert back to dollars
+    const commissionAmount =
+      calculateCommission(
+        params.orderAmount * 100, // Convert to cents
+        partner.commissionRate
+      ) / 100; // Convert back to dollars
 
     // Update click with conversion info
-    await db('affiliate_clicks')
-      .where('tracking_id', params.trackingId)
-      .update({
-        converted_at: db.fn.now(),
-        conversion_order_id: params.orderId,
-      });
+    await db('affiliate_clicks').where('tracking_id', params.trackingId).update({
+      converted_at: db.fn.now(),
+      conversion_order_id: params.orderId,
+    });
 
     // Create commission record
     const [commission] = await db('affiliate_commissions')
@@ -225,8 +221,7 @@ export class AffiliateService {
     const limit = params.limit || 20;
     const offset = (page - 1) * limit;
 
-    let query = db('affiliate_commissions')
-      .where('partner_id', partnerId);
+    let query = db('affiliate_commissions').where('partner_id', partnerId);
 
     if (params.status) {
       query = query.where('status', params.status);
@@ -246,13 +241,10 @@ export class AffiliateService {
     const total = parseInt(count as string) || 0;
 
     // Get paginated results
-    const commissions = await query
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset);
+    const commissions = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
     return {
-      commissions: commissions.map(c => this.mapCommission(c)),
+      commissions: commissions.map((c) => this.mapCommission(c)),
       total,
       page,
       limit,
@@ -262,10 +254,7 @@ export class AffiliateService {
   /**
    * Mark commissions as paid
    */
-  async markCommissionsAsPaid(
-    commissionIds: string[],
-    paymentReference?: string
-  ): Promise<number> {
+  async markCommissionsAsPaid(commissionIds: string[], paymentReference?: string): Promise<number> {
     const result = await db('affiliate_commissions')
       .whereIn('id', commissionIds)
       .where('status', 'approved')
@@ -289,11 +278,7 @@ export class AffiliateService {
   /**
    * Reject a commission (e.g., due to refund)
    */
-  async rejectCommission(
-    orderId: string,
-    orderType: string,
-    reason: string
-  ): Promise<void> {
+  async rejectCommission(orderId: string, orderType: string, reason: string): Promise<void> {
     await db('affiliate_commissions')
       .where('order_id', orderId)
       .where('order_type', orderType)
@@ -321,13 +306,13 @@ export class AffiliateService {
     byDay: { date: string; clicks: number; conversions: number }[];
   }> {
     // Total clicks and conversions
-    const [totals] = await db('affiliate_clicks')
+    const [totals] = (await db('affiliate_clicks')
       .where('partner_id', partnerId)
       .whereBetween('created_at', [startDate, endDate])
       .select(
         db.raw('COUNT(*) as total_clicks'),
         db.raw('COUNT(converted_at) as conversions')
-      ) as { total_clicks: string; conversions: string }[];
+      )) as { total_clicks: string; conversions: string }[];
 
     const totalClicks = parseInt(totals.total_clicks) || 0;
     const conversions = parseInt(totals.conversions) || 0;
@@ -354,7 +339,7 @@ export class AffiliateService {
     const byDay = await db('affiliate_clicks')
       .where('partner_id', partnerId)
       .whereBetween('created_at', [startDate, endDate])
-      .select(db.raw("DATE(created_at) as date"))
+      .select(db.raw('DATE(created_at) as date'))
       .count('* as clicks')
       .count('converted_at as conversions')
       .groupBy(db.raw('DATE(created_at)'))
@@ -365,7 +350,7 @@ export class AffiliateService {
       conversions,
       conversionRate: Math.round(conversionRate * 100) / 100,
       byResourceType: resourceTypeMap,
-      byDay: byDay.map(row => ({
+      byDay: byDay.map((row) => ({
         date: row.date,
         clicks: parseInt(row.clicks as string) || 0,
         conversions: parseInt(row.conversions as string) || 0,
@@ -376,9 +361,7 @@ export class AffiliateService {
   /**
    * Generate payout report for a partner
    */
-  async generatePayoutReport(
-    partnerId: string
-  ): Promise<{
+  async generatePayoutReport(partnerId: string): Promise<{
     partner: Partner;
     pendingPayout: number;
     approvedCommissions: AffiliateCommission[];
@@ -404,7 +387,7 @@ export class AffiliateService {
     return {
       partner: this.mapPartner(partner),
       pendingPayout: Math.round(pendingPayout * 100) / 100,
-      approvedCommissions: approvedCommissions.map(c => this.mapCommission(c)),
+      approvedCommissions: approvedCommissions.map((c) => this.mapCommission(c)),
       readyForPayout,
     };
   }

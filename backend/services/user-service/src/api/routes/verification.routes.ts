@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { VerificationController } from '../controllers/verification.controller';
 import { authLimiter } from '../middleware/rate-limit.middleware';
 

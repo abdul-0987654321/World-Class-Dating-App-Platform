@@ -1,6 +1,8 @@
 import { Knex } from 'knex';
-import encryptionService from './encryption.service';
+
 import { createLogger } from '../utils/logger';
+
+import encryptionService from './encryption.service';
 
 const logger = createLogger('key-management-service');
 
@@ -89,7 +91,7 @@ export class KeyManagementService {
       }));
 
       await this.db('one_time_prekeys').insert(
-        oneTimePreKeyInserts.map(k => ({
+        oneTimePreKeyInserts.map((k) => ({
           user_id: k.user_id,
           key_id: k.key_id,
           public_key: k.public_key,
@@ -105,11 +107,11 @@ export class KeyManagementService {
         identityKey: { publicKey: identityKeyPair.publicKey },
         signedPreKey: {
           keyId: signedPreKey.keyId,
-          publicKey: signedPreKey.publicKey
+          publicKey: signedPreKey.publicKey,
         },
-        oneTimePreKeys: oneTimePreKeys.map(k => ({
+        oneTimePreKeys: oneTimePreKeys.map((k) => ({
           keyId: k.keyId,
-          publicKey: k.publicKey
+          publicKey: k.publicKey,
         })),
       };
     } catch (error) {
@@ -163,21 +165,19 @@ export class KeyManagementService {
         keyId: signedPreKey.key_id,
         publicKey: signedPreKey.public_key,
       },
-      oneTimePreKey: oneTimePreKey ? {
-        keyId: oneTimePreKey.key_id,
-        publicKey: oneTimePreKey.public_key,
-      } : undefined,
+      oneTimePreKey: oneTimePreKey
+        ? {
+            keyId: oneTimePreKey.key_id,
+            publicKey: oneTimePreKey.public_key,
+          }
+        : undefined,
     };
   }
 
   /**
    * Create session key for conversation
    */
-  async createSessionKey(
-    conversationId: string,
-    rootKey: Buffer,
-    chainKey: Buffer
-  ): Promise<void> {
+  async createSessionKey(conversationId: string, rootKey: Buffer, chainKey: Buffer): Promise<void> {
     await this.db('session_keys').insert({
       conversation_id: conversationId,
       root_key: rootKey.toString('base64'),
@@ -259,13 +259,13 @@ export class KeyManagementService {
         .count('* as count')
         .first();
 
-      const count = parseInt(currentCount?.count as string || '0');
+      const count = parseInt((currentCount?.count as string) || '0');
 
       if (count < 20) {
         // Generate new keys
         const newKeys = await encryptionService.generateOneTimePreKeys(100);
 
-        const inserts = newKeys.map(key => ({
+        const inserts = newKeys.map((key) => ({
           user_id: userId,
           key_id: key.keyId,
           public_key: key.publicKey,
@@ -306,10 +306,10 @@ export class KeyManagementService {
         .delete();
 
       // Delete old session keys
-      const sevenDaysAgo = new Date(Date.now() - this.SESSION_KEY_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
-      await this.db('session_keys')
-        .where('last_used_at', '<', sevenDaysAgo)
-        .delete();
+      const sevenDaysAgo = new Date(
+        Date.now() - this.SESSION_KEY_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+      );
+      await this.db('session_keys').where('last_used_at', '<', sevenDaysAgo).delete();
 
       logger.info('Cleaned up expired encryption keys');
     } catch (error) {
@@ -332,7 +332,7 @@ export class KeyManagementService {
         .orWhere('user2_id', userId)
         .select('id');
 
-      const conversationIds = conversations.map(c => c.id);
+      const conversationIds = conversations.map((c) => c.id);
       if (conversationIds.length > 0) {
         await trx('session_keys').whereIn('conversation_id', conversationIds).delete();
       }

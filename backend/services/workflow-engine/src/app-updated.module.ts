@@ -1,38 +1,39 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { TerminusModule } from '@nestjs/terminus';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TerminusModule } from '@nestjs/terminus';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { ActionExecutorService } from './actions/action-executor.service';
+import { ConditionEvaluatorService } from './conditions/condition-evaluator.service';
 import configuration from './config/configuration';
 import { getDatabaseConfig } from './config/database.config';
 
 // Entities
-import { Workflow } from './models/workflow-updated.entity';
+import { AnalyticsController } from './controllers/analytics.controller';
+import { ExecutionController } from './controllers/execution.controller';
+import { HealthController } from './controllers/health.controller';
+import { WorkflowController } from './controllers/workflow.controller';
+import { WorkflowExecutorService } from './engine/workflow-executor.service';
+import { InternalServiceGuard } from './guards/internal-service.guard';
 import { WorkflowExecution } from './models/workflow-execution.entity';
+import { Workflow } from './models/workflow-updated.entity';
 
 // Controllers
-import { WorkflowController } from './controllers/workflow.controller';
-import { ExecutionController } from './controllers/execution.controller';
-import { AnalyticsController } from './controllers/analytics.controller';
-import { HealthController } from './controllers/health.controller';
 
 // Core Services
-import { WorkflowExecutorService } from './engine/workflow-executor.service';
-import { ConditionEvaluatorService } from './conditions/condition-evaluator.service';
-import { ActionExecutorService } from './actions/action-executor.service';
 
 // Business Services
-import { WorkflowService } from './services/workflow.service';
-import { AnalyticsService } from './services/analytics.service';
+import { RabbitMQService } from './queues/rabbitmq.service';
 import { ABTestingService } from './services/ab-testing.service';
-import { RetryService } from './services/retry.service';
+import { AnalyticsService } from './services/analytics.service';
 import { RedisCacheService } from './services/redis-cache.service';
+import { RetryService } from './services/retry.service';
+import { WorkflowService } from './services/workflow.service';
 
 // Infrastructure Services
-import { RabbitMQService } from './queues/rabbitmq.service';
 
 // Guards
-import { InternalServiceGuard } from './guards/internal-service.guard';
 
 @Module({
   imports: [
@@ -58,12 +59,7 @@ import { InternalServiceGuard } from './guards/internal-service.guard';
     // Task scheduling for cron workflows
     ScheduleModule.forRoot(),
   ],
-  controllers: [
-    WorkflowController,
-    ExecutionController,
-    AnalyticsController,
-    HealthController,
-  ],
+  controllers: [WorkflowController, ExecutionController, AnalyticsController, HealthController],
   providers: [
     // Core Workflow Engine
     WorkflowExecutorService,

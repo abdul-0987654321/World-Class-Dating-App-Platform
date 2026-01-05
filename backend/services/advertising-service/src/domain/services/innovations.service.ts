@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   ReadyToMingleAds,
   FirstDateSponsor,
@@ -23,10 +24,30 @@ export class InnovationsService {
     return {
       status_detection: {
         detection_signals: [
-          { signal_type: 'app_open', weight: 0.2, decay_rate_per_minute: 0.02, minimum_duration_seconds: 30 },
-          { signal_type: 'active_swiping', weight: 0.35, decay_rate_per_minute: 0.01, minimum_duration_seconds: 60 },
-          { signal_type: 'profile_browsing', weight: 0.25, decay_rate_per_minute: 0.015, minimum_duration_seconds: 45 },
-          { signal_type: 'message_responding', weight: 0.2, decay_rate_per_minute: 0.005, minimum_duration_seconds: 0 },
+          {
+            signal_type: 'app_open',
+            weight: 0.2,
+            decay_rate_per_minute: 0.02,
+            minimum_duration_seconds: 30,
+          },
+          {
+            signal_type: 'active_swiping',
+            weight: 0.35,
+            decay_rate_per_minute: 0.01,
+            minimum_duration_seconds: 60,
+          },
+          {
+            signal_type: 'profile_browsing',
+            weight: 0.25,
+            decay_rate_per_minute: 0.015,
+            minimum_duration_seconds: 45,
+          },
+          {
+            signal_type: 'message_responding',
+            weight: 0.2,
+            decay_rate_per_minute: 0.005,
+            minimum_duration_seconds: 0,
+          },
         ],
         confidence_threshold: 0.7,
         refresh_interval_minutes: 5,
@@ -37,14 +58,32 @@ export class InnovationsService {
         geographic_distribution: {
           'New York': 8500,
           'Los Angeles': 7200,
-          'Chicago': 4500,
-          'Miami': 3800,
-          'Other': 21000,
+          Chicago: 4500,
+          Miami: 3800,
+          Other: 21000,
         },
         peak_times: [
-          { day_of_week: 0, hour_start: 19, hour_end: 23, avg_active_users: 52000, engagement_multiplier: 1.4 },
-          { day_of_week: 5, hour_start: 20, hour_end: 24, avg_active_users: 65000, engagement_multiplier: 1.6 },
-          { day_of_week: 6, hour_start: 14, hour_end: 18, avg_active_users: 48000, engagement_multiplier: 1.3 },
+          {
+            day_of_week: 0,
+            hour_start: 19,
+            hour_end: 23,
+            avg_active_users: 52000,
+            engagement_multiplier: 1.4,
+          },
+          {
+            day_of_week: 5,
+            hour_start: 20,
+            hour_end: 24,
+            avg_active_users: 65000,
+            engagement_multiplier: 1.6,
+          },
+          {
+            day_of_week: 6,
+            hour_start: 14,
+            hour_end: 18,
+            avg_active_users: 48000,
+            engagement_multiplier: 1.3,
+          },
         ],
         audience_refresh_frequency_seconds: 300,
       },
@@ -65,11 +104,23 @@ export class InnovationsService {
           },
         ],
         placement_options: [
-          { placement_id: uuidv4(), placement_name: 'Post-Match Celebration', location_in_app: 'match_screen', visibility_score: 0.95, avg_viewability_rate: 0.92 },
-          { placement_id: uuidv4(), placement_name: 'Between Swipes', location_in_app: 'discovery_stack', visibility_score: 0.85, avg_viewability_rate: 0.78 },
+          {
+            placement_id: uuidv4(),
+            placement_name: 'Post-Match Celebration',
+            location_in_app: 'match_screen',
+            visibility_score: 0.95,
+            avg_viewability_rate: 0.92,
+          },
+          {
+            placement_id: uuidv4(),
+            placement_name: 'Between Swipes',
+            location_in_app: 'discovery_stack',
+            visibility_score: 0.85,
+            avg_viewability_rate: 0.78,
+          },
         ],
         pricing: {
-          base_cpm: 12.00,
+          base_cpm: 12.0,
           peak_time_multiplier: 1.5,
           high_intent_multiplier: 1.8,
           auction_type: 'second_price',
@@ -90,9 +141,30 @@ export class InnovationsService {
     return {
       sponsorship_config: {
         sponsor_tiers: [
-          { tier_id: uuidv4(), tier_name: 'platinum', monthly_fee: 10000, impressions_guaranteed: 500000, exclusive_categories: ['fine_dining', 'luxury_experiences'], featured_placement: true },
-          { tier_id: uuidv4(), tier_name: 'gold', monthly_fee: 5000, impressions_guaranteed: 200000, exclusive_categories: [], featured_placement: true },
-          { tier_id: uuidv4(), tier_name: 'silver', monthly_fee: 2500, impressions_guaranteed: 75000, exclusive_categories: [], featured_placement: false },
+          {
+            tier_id: uuidv4(),
+            tier_name: 'platinum',
+            monthly_fee: 10000,
+            impressions_guaranteed: 500000,
+            exclusive_categories: ['fine_dining', 'luxury_experiences'],
+            featured_placement: true,
+          },
+          {
+            tier_id: uuidv4(),
+            tier_name: 'gold',
+            monthly_fee: 5000,
+            impressions_guaranteed: 200000,
+            exclusive_categories: [],
+            featured_placement: true,
+          },
+          {
+            tier_id: uuidv4(),
+            tier_name: 'silver',
+            monthly_fee: 2500,
+            impressions_guaranteed: 75000,
+            exclusive_categories: [],
+            featured_placement: false,
+          },
         ],
         exclusivity_options: [
           { category: 'restaurants', exclusivity_duration_days: 30, premium_percentage: 50 },
@@ -112,7 +184,11 @@ export class InnovationsService {
           venue_id: uuidv4(),
           venue_name: 'The Romantic Table',
           venue_type: 'restaurant',
-          location: { address: '123 Main St', city: location.city, coordinates: { lat: 40.7128, lng: -74.006 } },
+          location: {
+            address: '123 Main St',
+            city: location.city,
+            coordinates: { lat: 40.7128, lng: -74.006 },
+          },
           partnership_terms: {
             discount_percentage: 15,
             revenue_share: 8,
@@ -149,7 +225,7 @@ export class InnovationsService {
         redemption_rate: 0.78,
         avg_time_to_redemption_days: 5.5,
         most_popular_packages: ['perfect_first_date', 'adventure_date'],
-        geographic_distribution: { [location.city]: 1500, 'Other': 1000 },
+        geographic_distribution: { [location.city]: 1500, Other: 1000 },
       },
     };
   }
@@ -232,7 +308,11 @@ export class InnovationsService {
       ],
       marketplace_dynamics: {
         demand_by_hour: {
-          19: 1.5, 20: 1.8, 21: 2.0, 22: 1.7, 23: 1.3,
+          19: 1.5,
+          20: 1.8,
+          21: 2.0,
+          22: 1.7,
+          23: 1.3,
         },
         pricing_algorithm: {
           algorithm_type: 'dynamic',
@@ -296,12 +376,30 @@ export class InnovationsService {
           tier: 'title',
           price: 5000,
           inclusions: [
-            { inclusion_type: 'Logo on all materials', description: 'Primary logo placement', quantity: 1, value: 2000 },
-            { inclusion_type: 'Speaking slot', description: '5-minute welcome speech', quantity: 1, value: 1500 },
+            {
+              inclusion_type: 'Logo on all materials',
+              description: 'Primary logo placement',
+              quantity: 1,
+              value: 2000,
+            },
+            {
+              inclusion_type: 'Speaking slot',
+              description: '5-minute welcome speech',
+              quantity: 1,
+              value: 1500,
+            },
           ],
           branding_rights: [
-            { right_type: 'naming_rights', details: 'Event named after sponsor', exclusivity: true },
-            { right_type: 'product_sampling', details: 'Product distribution to attendees', exclusivity: false },
+            {
+              right_type: 'naming_rights',
+              details: 'Event named after sponsor',
+              exclusivity: true,
+            },
+            {
+              right_type: 'product_sampling',
+              details: 'Product distribution to attendees',
+              exclusivity: false,
+            },
           ],
           performance_guarantees: [
             { metric: 'attendees', minimum_value: 40, remedy_if_not_met: 'Pro-rated refund' },
@@ -372,8 +470,16 @@ export class InnovationsService {
       ],
       milestone_detection: {
         detection_methods: [
-          { method_type: 'behavioral', confidence_level: 0.9, data_sources: ['message_count', 'match_date'] },
-          { method_type: 'stated', confidence_level: 1.0, data_sources: ['relationship_status_update'] },
+          {
+            method_type: 'behavioral',
+            confidence_level: 0.9,
+            data_sources: ['message_count', 'match_date'],
+          },
+          {
+            method_type: 'stated',
+            confidence_level: 1.0,
+            data_sources: ['relationship_status_update'],
+          },
         ],
         notification_timing: {
           advance_notice_days: 3,
@@ -381,7 +487,10 @@ export class InnovationsService {
           optimal_time_of_day: 18,
         },
         opt_in_required: true,
-        privacy_considerations: ['No sharing of relationship data', 'User controls milestone visibility'],
+        privacy_considerations: [
+          'No sharing of relationship data',
+          'User controls milestone visibility',
+        ],
       },
       celebration_ads: [
         {
@@ -396,12 +505,36 @@ export class InnovationsService {
       ],
       gifting_integration: {
         gift_categories: [
-          { category_id: uuidv4(), category_name: 'Flowers', price_range: { min: 30, max: 100 }, occasion_fit: ['anniversary', 'first_date'], avg_purchase_rate: 0.08 },
-          { category_id: uuidv4(), category_name: 'Experiences', price_range: { min: 50, max: 300 }, occasion_fit: ['anniversary', 'milestone'], avg_purchase_rate: 0.05 },
+          {
+            category_id: uuidv4(),
+            category_name: 'Flowers',
+            price_range: { min: 30, max: 100 },
+            occasion_fit: ['anniversary', 'first_date'],
+            avg_purchase_rate: 0.08,
+          },
+          {
+            category_id: uuidv4(),
+            category_name: 'Experiences',
+            price_range: { min: 50, max: 300 },
+            occasion_fit: ['anniversary', 'milestone'],
+            avg_purchase_rate: 0.05,
+          },
         ],
         partner_brands: [
-          { partner_id: uuidv4(), brand_name: '1-800-Flowers', categories: ['flowers'], commission_rate: 12, featured: true },
-          { partner_id: uuidv4(), brand_name: 'Airbnb Experiences', categories: ['experiences'], commission_rate: 8, featured: true },
+          {
+            partner_id: uuidv4(),
+            brand_name: '1-800-Flowers',
+            categories: ['flowers'],
+            commission_rate: 12,
+            featured: true,
+          },
+          {
+            partner_id: uuidv4(),
+            brand_name: 'Airbnb Experiences',
+            categories: ['experiences'],
+            commission_rate: 8,
+            featured: true,
+          },
         ],
         recommendation_engine: {
           factors: [
@@ -417,17 +550,47 @@ export class InnovationsService {
   }
 
   // Feature 7: Singles Event Discovery Ads
-  async discoverSinglesEvents(location: { city: string; coordinates: { lat: number; lng: number } }): Promise<SinglesEventDiscovery> {
+  async discoverSinglesEvents(location: {
+    city: string;
+    coordinates: { lat: number; lng: number };
+  }): Promise<SinglesEventDiscovery> {
     return {
       event_aggregation: {
         data_sources: [
-          { source_name: 'Eventbrite', source_type: 'api', reliability_score: 0.95, data_freshness_hours: 1 },
-          { source_name: 'Meetup', source_type: 'api', reliability_score: 0.90, data_freshness_hours: 2 },
-          { source_name: 'Local Partners', source_type: 'partnership', reliability_score: 1.0, data_freshness_hours: 24 },
+          {
+            source_name: 'Eventbrite',
+            source_type: 'api',
+            reliability_score: 0.95,
+            data_freshness_hours: 1,
+          },
+          {
+            source_name: 'Meetup',
+            source_type: 'api',
+            reliability_score: 0.9,
+            data_freshness_hours: 2,
+          },
+          {
+            source_name: 'Local Partners',
+            source_type: 'partnership',
+            reliability_score: 1.0,
+            data_freshness_hours: 24,
+          },
         ],
         event_categories: [
-          { category_id: uuidv4(), category_name: 'Speed Dating', subcategories: ['professional', 'casual', 'themed'], typical_age_range: { min: 25, max: 45 }, singles_friendliness_score: 1.0 },
-          { category_id: uuidv4(), category_name: 'Social Mixers', subcategories: ['happy_hour', 'networking', 'hobby_based'], typical_age_range: { min: 21, max: 50 }, singles_friendliness_score: 0.85 },
+          {
+            category_id: uuidv4(),
+            category_name: 'Speed Dating',
+            subcategories: ['professional', 'casual', 'themed'],
+            typical_age_range: { min: 25, max: 45 },
+            singles_friendliness_score: 1.0,
+          },
+          {
+            category_id: uuidv4(),
+            category_name: 'Social Mixers',
+            subcategories: ['happy_hour', 'networking', 'hobby_based'],
+            typical_age_range: { min: 21, max: 50 },
+            singles_friendliness_score: 0.85,
+          },
         ],
         geographic_coverage: [location.city],
         update_frequency_hours: 6,
@@ -454,7 +617,12 @@ export class InnovationsService {
       ],
       ticketing_integration: {
         ticketing_partners: [
-          { partner_id: uuidv4(), partner_name: 'Eventbrite', commission_rate: 5, supported_regions: ['US', 'UK', 'CA'] },
+          {
+            partner_id: uuidv4(),
+            partner_name: 'Eventbrite',
+            commission_rate: 5,
+            supported_regions: ['US', 'UK', 'CA'],
+          },
         ],
         in_app_purchase_enabled: true,
         group_booking_enabled: true,
@@ -543,8 +711,16 @@ export class InnovationsService {
       pricing_optimization: {
         base_prices: { gold: 14.99, platinum: 29.99, diamond: 59.99 },
         dynamic_discounting: [
-          { user_segment: 'high_engagement_free', discount_percentage: 30, rationale: 'High conversion potential' },
-          { user_segment: 'churned_premium', discount_percentage: 50, rationale: 'Win-back campaign' },
+          {
+            user_segment: 'high_engagement_free',
+            discount_percentage: 30,
+            rationale: 'High conversion potential',
+          },
+          {
+            user_segment: 'churned_premium',
+            discount_percentage: 50,
+            rationale: 'Win-back campaign',
+          },
         ],
         price_testing: [],
       },
@@ -569,7 +745,12 @@ export class InnovationsService {
             stage_name: 'inspiration',
             user_actions: ['browse_date_ideas', 'view_recommendations'],
             ad_opportunities: [
-              { opportunity_type: 'sponsored_idea', relevance_score: 0.9, recommended_formats: ['native', 'carousel'], sponsor_categories: ['restaurants', 'experiences'] },
+              {
+                opportunity_type: 'sponsored_idea',
+                relevance_score: 0.9,
+                recommended_formats: ['native', 'carousel'],
+                sponsor_categories: ['restaurants', 'experiences'],
+              },
             ],
             drop_off_rate: 0.4,
           },
@@ -578,27 +759,62 @@ export class InnovationsService {
             stage_name: 'booking',
             user_actions: ['select_venue', 'choose_time', 'complete_booking'],
             ad_opportunities: [
-              { opportunity_type: 'upsell', relevance_score: 0.85, recommended_formats: ['inline_offer'], sponsor_categories: ['transportation', 'flowers'] },
+              {
+                opportunity_type: 'upsell',
+                relevance_score: 0.85,
+                recommended_formats: ['inline_offer'],
+                sponsor_categories: ['transportation', 'flowers'],
+              },
             ],
             drop_off_rate: 0.25,
           },
         ],
         touchpoints: [
-          { touchpoint_id: uuidv4(), touchpoint_name: 'Date Ideas Feed', placement: 'discovery', ad_format: 'native', avg_engagement: 0.12 },
+          {
+            touchpoint_id: uuidv4(),
+            touchpoint_name: 'Date Ideas Feed',
+            placement: 'discovery',
+            ad_format: 'native',
+            avg_engagement: 0.12,
+          },
         ],
         completion_rate: 0.35,
         avg_time_to_complete_minutes: 15,
       },
       partner_ecosystem: {
         partner_categories: [
-          { category_id: uuidv4(), category_name: 'Restaurants', partner_count: 250, avg_user_rating: 4.3, commission_range: { min: 8, max: 15 } },
-          { category_id: uuidv4(), category_name: 'Activities', partner_count: 120, avg_user_rating: 4.5, commission_range: { min: 10, max: 20 } },
+          {
+            category_id: uuidv4(),
+            category_name: 'Restaurants',
+            partner_count: 250,
+            avg_user_rating: 4.3,
+            commission_range: { min: 8, max: 15 },
+          },
+          {
+            category_id: uuidv4(),
+            category_name: 'Activities',
+            partner_count: 120,
+            avg_user_rating: 4.5,
+            commission_range: { min: 10, max: 20 },
+          },
         ],
         featured_partners: [
-          { partner_id: uuidv4(), brand_name: 'OpenTable', category: 'restaurants', featured_offer: '10% off first booking', exclusive: false, performance_score: 0.92 },
+          {
+            partner_id: uuidv4(),
+            brand_name: 'OpenTable',
+            category: 'restaurants',
+            featured_offer: '10% off first booking',
+            exclusive: false,
+            performance_score: 0.92,
+          },
         ],
         partnership_tiers: [
-          { tier_name: 'Premier', benefits: ['Featured placement', 'Priority support', 'Custom promotions'], requirements: ['Min 100 bookings/month', '$5000 ad spend'], fee_structure: '12% commission' },
+          {
+            tier_name: 'Premier',
+            benefits: ['Featured placement', 'Priority support', 'Custom promotions'],
+            requirements: ['Min 100 bookings/month', '$5000 ad spend'],
+            fee_structure: '12% commission',
+          },
         ],
       },
       bundle_builder: {
@@ -652,8 +868,18 @@ export class InnovationsService {
             name: 'Dating Coach Sarah',
             niche: 'dating_coach',
             platforms: [
-              { platform: 'instagram', handle: '@datingsarah', followers: 250000, avg_engagement: 0.045 },
-              { platform: 'youtube', handle: 'DatingSarah', followers: 180000, avg_engagement: 0.08 },
+              {
+                platform: 'instagram',
+                handle: '@datingsarah',
+                followers: 250000,
+                avg_engagement: 0.045,
+              },
+              {
+                platform: 'youtube',
+                handle: 'DatingSarah',
+                followers: 180000,
+                avg_engagement: 0.08,
+              },
             ],
             audience_size: 430000,
             engagement_rate: 0.055,
@@ -675,7 +901,13 @@ export class InnovationsService {
         recruitment_pipeline: {
           prospects: [],
           outreach_templates: [
-            { template_id: uuidv4(), template_name: 'Initial Outreach', subject: 'Partnership with Flamoral', body: 'Hi {name}...', response_rate: 0.25 },
+            {
+              template_id: uuidv4(),
+              template_name: 'Initial Outreach',
+              subject: 'Partnership with Flamoral',
+              body: 'Hi {name}...',
+              response_rate: 0.25,
+            },
           ],
           conversion_rate: 0.15,
         },
@@ -688,8 +920,20 @@ export class InnovationsService {
       },
       content_library: {
         content_types: [
-          { type_id: uuidv4(), type_name: 'Dating Tips Video', format: 'video', typical_length: '5-10 min', engagement_benchmark: 0.06 },
-          { type_id: uuidv4(), type_name: 'Profile Review', format: 'video', typical_length: '3-5 min', engagement_benchmark: 0.08 },
+          {
+            type_id: uuidv4(),
+            type_name: 'Dating Tips Video',
+            format: 'video',
+            typical_length: '5-10 min',
+            engagement_benchmark: 0.06,
+          },
+          {
+            type_id: uuidv4(),
+            type_name: 'Profile Review',
+            format: 'video',
+            typical_length: '3-5 min',
+            engagement_benchmark: 0.08,
+          },
         ],
         content_items: [
           {
@@ -699,7 +943,13 @@ export class InnovationsService {
             title: '5 First Date Tips That Actually Work',
             url: 'https://youtube.com/watch?v=example',
             publish_date: new Date(),
-            performance: { views: 150000, engagement: 12000, shares: 3500, comments: 850, click_throughs: 4500 },
+            performance: {
+              views: 150000,
+              engagement: 12000,
+              shares: 3500,
+              comments: 850,
+              click_throughs: 4500,
+            },
             sponsored: true,
             brand_mentions: ['Flamoral'],
           },
@@ -723,15 +973,30 @@ export class InnovationsService {
               key_messages: ['Download Flamoral', 'AI-powered matching'],
               hashtags: ['#Flamoral', '#DatingTips', '#FindYourPerson'],
               mentions: ['@flamoral'],
-              dos_and_donts: { dos: ['Be authentic', 'Share personal experience'], donts: ['Don\'t compare to competitors'] },
+              dos_and_donts: {
+                dos: ['Be authentic', 'Share personal experience'],
+                donts: ["Don't compare to competitors"],
+              },
               approval_required: true,
             },
           ],
           budget: 25000,
           timeline: { start: new Date(), end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
           deliverables: [
-            { deliverable_id: uuidv4(), type: 'instagram_story', quantity: 3, due_date: new Date(), status: 'pending' },
-            { deliverable_id: uuidv4(), type: 'youtube_video', quantity: 1, due_date: new Date(), status: 'pending' },
+            {
+              deliverable_id: uuidv4(),
+              type: 'instagram_story',
+              quantity: 3,
+              due_date: new Date(),
+              status: 'pending',
+            },
+            {
+              deliverable_id: uuidv4(),
+              type: 'youtube_video',
+              quantity: 1,
+              due_date: new Date(),
+              status: 'pending',
+            },
           ],
           performance: {
             total_reach: 500000,

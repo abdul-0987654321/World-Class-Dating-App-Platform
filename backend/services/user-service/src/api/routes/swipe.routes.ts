@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { SwipeController } from '../controllers/swipe.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -128,7 +129,11 @@ router.get('/likes-received', authenticate, swipeController.getLikesReceived.bin
  *       401:
  *         description: Unauthorized
  */
-router.get('/super-likes-received', authenticate, swipeController.getSuperLikesReceived.bind(swipeController));
+router.get(
+  '/super-likes-received',
+  authenticate,
+  swipeController.getSuperLikesReceived.bind(swipeController)
+);
 
 /**
  * @swagger

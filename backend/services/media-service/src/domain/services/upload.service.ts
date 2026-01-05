@@ -1,11 +1,13 @@
-import { v4 as uuidv4 } from 'uuid';
-import imageProcessingService from './image-processing.service';
-import azureStorageService from '../../infrastructure/storage/azure-storage.service';
-import contentModerationService from './content-moderation.service';
-import mediaRepository from '../repositories/media.repository';
-import { queueDeepfakeDetection } from '../../workers/deepfake-detection.worker';
-import { MediaMetadata, ModerationStatus, UploadedFile } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+import { v4 as uuidv4 } from 'uuid';
+
+import azureStorageService from '../../infrastructure/storage/azure-storage.service';
+import { MediaMetadata, ModerationStatus, UploadedFile } from '../../types';
+import { queueDeepfakeDetection } from '../../workers/deepfake-detection.worker';
+import mediaRepository from '../repositories/media.repository';
+
+import contentModerationService from './content-moderation.service';
+import imageProcessingService from './image-processing.service';
 
 const logger = createLogger('upload-service');
 

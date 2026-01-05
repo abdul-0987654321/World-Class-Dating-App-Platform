@@ -1,6 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth.middleware';
+
 import logger from '../../utils/logger';
+
+import { AuthRequest } from './auth.middleware';
 
 /**
  * Middleware to require Elite tier subscription for access
@@ -126,11 +128,7 @@ export const requireMinimumTier = (minimumTier: string) => {
     elite: 5,
   };
 
-  return async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void | Response> => {
+  return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void | Response> => {
     try {
       if (!req.user) {
         return res.status(401).json({

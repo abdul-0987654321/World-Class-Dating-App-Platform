@@ -1,5 +1,5 @@
-import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import { BlockedUser, validateBlockAction } from '../entities/BlockedUser.entity';
+import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 
 export class BlockService {
   private blockedUserRepository: BlockedUserRepository;
@@ -11,11 +11,7 @@ export class BlockService {
   /**
    * Block a user
    */
-  async blockUser(
-    blockerId: string,
-    blockedId: string,
-    reason?: string
-  ): Promise<BlockedUser> {
+  async blockUser(blockerId: string, blockedId: string, reason?: string): Promise<BlockedUser> {
     // Validate the block action
     validateBlockAction(blockerId, blockedId);
 
@@ -41,10 +37,7 @@ export class BlockService {
    * Unblock a user
    */
   async unblockUser(blockerId: string, blockedId: string): Promise<void> {
-    const block = await this.blockedUserRepository.findByBlockerAndBlocked(
-      blockerId,
-      blockedId
-    );
+    const block = await this.blockedUserRepository.findByBlockerAndBlocked(blockerId, blockedId);
 
     if (!block) {
       throw new Error('Block record not found');
@@ -103,14 +96,14 @@ export class BlockService {
    * Check if user can interact with another user
    * Returns true if they can interact, false if blocked
    */
-  async canInteract(userAId: string, userBId: string): Promise<{
+  async canInteract(
+    userAId: string,
+    userBId: string
+  ): Promise<{
     canInteract: boolean;
     reason?: string;
   }> {
-    const isBlocked = await this.blockedUserRepository.isBlockedBidirectional(
-      userAId,
-      userBId
-    );
+    const isBlocked = await this.blockedUserRepository.isBlockedBidirectional(userAId, userBId);
 
     if (isBlocked) {
       // Check who blocked whom
@@ -138,14 +131,11 @@ export class BlockService {
   /**
    * Filter a list of user IDs to remove blocked users
    */
-  async filterBlockedUsers(
-    userId: string,
-    userIds: string[]
-  ): Promise<string[]> {
+  async filterBlockedUsers(userId: string, userIds: string[]): Promise<string[]> {
     const excludedUsers = await this.getUsersToExcludeFromDiscovery(userId);
     const excludedSet = new Set(excludedUsers);
 
-    return userIds.filter(id => !excludedSet.has(id));
+    return userIds.filter((id) => !excludedSet.has(id));
   }
 
   /**

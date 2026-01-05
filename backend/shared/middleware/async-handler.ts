@@ -12,15 +12,13 @@
  */
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
+
 import { CorrelatedRequest } from './correlation-id.middleware';
 
 /**
  * Standard async Express handler type
  */
-export type AsyncRequestHandler<
-  TRequest extends Request = Request,
-  TResponse = any
-> = (
+export type AsyncRequestHandler<TRequest extends Request = Request, TResponse = any> = (
   req: TRequest,
   res: Response,
   next: NextFunction
@@ -29,10 +27,7 @@ export type AsyncRequestHandler<
 /**
  * Handler that can be sync or async
  */
-export type MaybeAsyncHandler<
-  TRequest extends Request = Request,
-  TResponse = any
-> = (
+export type MaybeAsyncHandler<TRequest extends Request = Request, TResponse = any> = (
   req: TRequest,
   res: Response,
   next: NextFunction
@@ -61,10 +56,7 @@ export type MaybeAsyncHandler<
  * }));
  * ```
  */
-export function asyncHandler<
-  TRequest extends Request = Request,
-  TResponse = any
->(
+export function asyncHandler<TRequest extends Request = Request, TResponse = any>(
   handler: AsyncRequestHandler<TRequest, TResponse>
 ): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {

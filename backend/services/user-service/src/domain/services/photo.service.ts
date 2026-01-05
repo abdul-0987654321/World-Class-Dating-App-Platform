@@ -1,5 +1,5 @@
-import { PhotoRepository } from '../repositories/photo.repository';
 import { CreatePhotoDto, PhotoResponse } from '../entities/Photo.entity';
+import { PhotoRepository } from '../repositories/photo.repository';
 
 export class PhotoService {
   private photoRepository: PhotoRepository;

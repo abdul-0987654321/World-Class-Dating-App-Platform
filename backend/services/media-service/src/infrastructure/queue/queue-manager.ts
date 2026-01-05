@@ -1,12 +1,13 @@
+import { createLogger } from '@flamoral/backend-shared';
 import Queue from 'bull';
-import { QueueName, defaultQueueOptions, JobPriority } from './queue-config';
+
 import {
   ImageProcessingJobData,
   ContentModerationJobData,
   PhotoVerificationJobData,
   DeepfakeDetectionJobData,
 } from './job-types';
-import { createLogger } from '@flamoral/backend-shared';
+import { QueueName, defaultQueueOptions, JobPriority } from './queue-config';
 
 const logger = createLogger('queue-manager');
 
@@ -225,9 +226,7 @@ export class QueueManager {
   async closeAll(): Promise<void> {
     logger.info('Closing all queues...');
 
-    const closePromises = Array.from(this.queues.values()).map((queue) =>
-      queue.close()
-    );
+    const closePromises = Array.from(this.queues.values()).map((queue) => queue.close());
 
     await Promise.all(closePromises);
     logger.info('All queues closed');

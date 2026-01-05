@@ -1,6 +1,7 @@
 import { createClient, RedisClientType } from 'redis';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('redis');
 
@@ -150,11 +151,7 @@ class RedisClient {
   async cacheMessage(messageId: string, message: any): Promise<void> {
     try {
       const key = `message:${messageId}`;
-      await this.client?.setEx(
-        key,
-        config.redis.ttl.messageCache,
-        JSON.stringify(message)
-      );
+      await this.client?.setEx(key, config.redis.ttl.messageCache, JSON.stringify(message));
     } catch (error) {
       logger.error('Failed to cache message', error);
     }
@@ -167,7 +164,7 @@ class RedisClient {
     try {
       const key = `message:${messageId}`;
       const data = await this.client?.get(key);
-      return data ? (JSON.parse(data as string) as any) : null;
+      return data ? JSON.parse(data as string) : null;
     } catch (error) {
       logger.error('Failed to get cached message', error);
       return null;
@@ -272,7 +269,7 @@ class RedisClient {
    */
   async keys(pattern: string): Promise<string[]> {
     try {
-      return await this.client?.keys(pattern) || [];
+      return (await this.client?.keys(pattern)) || [];
     } catch (error) {
       logger.error('Failed to get keys:', error);
       return [];

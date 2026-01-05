@@ -62,17 +62,8 @@ export const USER_SUPPORT_AI = {
       'user-safety-scores',
       'fraud-signals',
     ],
-    neverPromise: [
-      'guaranteed-matches',
-      'specific-outcomes',
-      'timeline-for-love',
-    ],
-    neverShame: [
-      'lack-of-matches',
-      'rejection',
-      'profile-quality',
-      'age-or-appearance',
-    ],
+    neverPromise: ['guaranteed-matches', 'specific-outcomes', 'timeline-for-love'],
+    neverShame: ['lack-of-matches', 'rejection', 'profile-quality', 'age-or-appearance'],
   },
 
   /**
@@ -81,7 +72,8 @@ export const USER_SUPPORT_AI = {
   featureExplanations: {
     matching: {
       title: 'How Matching Works',
-      content: 'Our AI analyzes compatibility across 50+ factors including interests, values, and relationship goals to show you the most compatible profiles.',
+      content:
+        'Our AI analyzes compatibility across 50+ factors including interests, values, and relationship goals to show you the most compatible profiles.',
       freeVsPaid: {
         free: 'Limited daily swipes, see who likes you after matching',
         premium: 'Unlimited swipes, see all likes, Super Likes included',
@@ -90,7 +82,8 @@ export const USER_SUPPORT_AI = {
     },
     messaging: {
       title: 'Messaging',
-      content: 'Send unlimited messages to your matches. All conversations are encrypted end-to-end for your privacy.',
+      content:
+        'Send unlimited messages to your matches. All conversations are encrypted end-to-end for your privacy.',
       tips: [
         'Start with a personalized opener referencing their profile',
         'Keep initial messages friendly and respectful',
@@ -99,7 +92,8 @@ export const USER_SUPPORT_AI = {
     },
     verification: {
       title: 'Profile Verification',
-      content: 'Verified profiles have been confirmed through selfie matching. This helps ensure authenticity and builds trust.',
+      content:
+        'Verified profiles have been confirmed through selfie matching. This helps ensure authenticity and builds trust.',
       process: [
         'Take a selfie following the on-screen pose',
         'Our AI matches it to your profile photos',
@@ -108,7 +102,8 @@ export const USER_SUPPORT_AI = {
     },
     privacy: {
       title: 'Your Privacy',
-      content: 'Your data is encrypted and never sold. You control who sees your profile and can delete your account anytime.',
+      content:
+        'Your data is encrypted and never sold. You control who sees your profile and can delete your account anytime.',
       controls: [
         'Hide profile from discovery',
         'Control who can message you',
@@ -125,8 +120,14 @@ export const USER_SUPPORT_AI = {
     noMatches: {
       title: 'Not Getting Matches?',
       steps: [
-        { check: 'profile-completeness', question: 'Is your profile 100% complete with photos and bio?' },
-        { check: 'photo-quality', question: 'Are your photos clear, recent, and showing your face?' },
+        {
+          check: 'profile-completeness',
+          question: 'Is your profile 100% complete with photos and bio?',
+        },
+        {
+          check: 'photo-quality',
+          question: 'Are your photos clear, recent, and showing your face?',
+        },
         { check: 'preferences', question: 'Are your search preferences reasonable for your area?' },
         { check: 'activity', question: 'Are you swiping regularly to increase visibility?' },
         { check: 'verification', suggestion: 'Verified profiles get 30% more matches' },
@@ -138,7 +139,7 @@ export const USER_SUPPORT_AI = {
       steps: [
         { check: 'connection', question: 'Is your internet connection stable?' },
         { check: 'match-status', question: 'Is the match still active (not unmatched)?' },
-        { check: 'blocked', info: 'If blocked, messages won\'t be delivered' },
+        { check: 'blocked', info: "If blocked, messages won't be delivered" },
         { check: 'refresh', action: 'Pull down to refresh your message list' },
       ],
       resolution: 'Contact support if issue persists',
@@ -161,7 +162,7 @@ export const USER_SUPPORT_AI = {
         { action: 'Add details if needed' },
         { info: 'Reports are reviewed within 24 hours' },
       ],
-      assurance: 'The user won\'t know you reported them',
+      assurance: "The user won't know you reported them",
     },
     appealBan: {
       title: 'Appeal Account Action',
@@ -188,11 +189,11 @@ export const USER_SUPPORT_AI = {
     never: [
       'Be condescending or dismissive',
       'Use jargon or technical terms',
-      'Make promises you can\'t keep',
+      "Make promises you can't keep",
       'Blame the user for issues',
     ],
     examples: {
-      good: 'I understand this is frustrating. Let\'s try a few things to get this sorted.',
+      good: "I understand this is frustrating. Let's try a few things to get this sorted.",
       bad: 'You probably did something wrong. Check your settings.',
     },
   },
@@ -203,7 +204,14 @@ export const USER_SUPPORT_AI = {
 // ============================================================================
 
 export type ModerationAction = 'none' | 'warning' | 'restriction' | 'removal' | 'escalation';
-export type ReportCategory = 'spam' | 'scam' | 'harassment' | 'fake-profile' | 'inappropriate-content' | 'underage' | 'other';
+export type ReportCategory =
+  | 'spam'
+  | 'scam'
+  | 'harassment'
+  | 'fake-profile'
+  | 'inappropriate-content'
+  | 'underage'
+  | 'other';
 
 export interface ModerationCase {
   caseId: string;
@@ -298,8 +306,16 @@ export const TRUST_SAFETY_AI = {
   actionMatrix: {
     firstOffense: {
       minor: { action: 'warning', message: 'Your account has received a warning.' },
-      moderate: { action: 'restriction', duration: '24h', message: 'Some features are temporarily limited.' },
-      severe: { action: 'suspension', duration: '7d', message: 'Your account is suspended pending review.' },
+      moderate: {
+        action: 'restriction',
+        duration: '24h',
+        message: 'Some features are temporarily limited.',
+      },
+      severe: {
+        action: 'suspension',
+        duration: '7d',
+        message: 'Your account is suspended pending review.',
+      },
     },
     repeatOffense: {
       minor: { action: 'restriction', duration: '72h' },
@@ -426,7 +442,11 @@ export const ADMIN_PLATFORM_AI = {
     },
     regional: {
       description: 'Issue affecting specific geography',
-      examples: ['CDN outage in region', 'Payment provider down', 'Regional content moderation spike'],
+      examples: [
+        'CDN outage in region',
+        'Payment provider down',
+        'Regional content moderation spike',
+      ],
       response: 'Engineering + regional ops',
       escalation: 'If >5% of regional users affected',
     },
@@ -532,11 +552,23 @@ export const DIAGNOSIS_OPS_AI = {
     missingMatches: {
       name: 'Missing Matches Investigation',
       correlations: [
-        { check: 'profile-status', query: 'SELECT status FROM profiles WHERE user_id = ?', expect: 'active' },
+        {
+          check: 'profile-status',
+          query: 'SELECT status FROM profiles WHERE user_id = ?',
+          expect: 'active',
+        },
         { check: 'ban-status', query: 'SELECT * FROM bans WHERE user_id = ?', expect: 'empty' },
-        { check: 'preferences', query: 'SELECT * FROM preferences WHERE user_id = ?', expect: 'reasonable' },
+        {
+          check: 'preferences',
+          query: 'SELECT * FROM preferences WHERE user_id = ?',
+          expect: 'reasonable',
+        },
         { check: 'algorithm-participation', service: 'matching-service', expect: 'included' },
-        { check: 'feature-flags', flags: ['matching_enabled', 'discovery_enabled'], expect: 'true' },
+        {
+          check: 'feature-flags',
+          flags: ['matching_enabled', 'discovery_enabled'],
+          expect: 'true',
+        },
       ],
       resolutions: {
         profileInactive: 'Reactivate profile',
@@ -549,8 +581,16 @@ export const DIAGNOSIS_OPS_AI = {
     messageDeliveryFailure: {
       name: 'Message Delivery Investigation',
       correlations: [
-        { check: 'conversation-status', query: 'SELECT status FROM conversations WHERE id = ?', expect: 'active' },
-        { check: 'block-status', query: 'SELECT * FROM blocks WHERE blocker_id = ? OR blocked_id = ?', expect: 'none' },
+        {
+          check: 'conversation-status',
+          query: 'SELECT status FROM conversations WHERE id = ?',
+          expect: 'active',
+        },
+        {
+          check: 'block-status',
+          query: 'SELECT * FROM blocks WHERE blocker_id = ? OR blocked_id = ?',
+          expect: 'none',
+        },
         { check: 'queue-health', service: 'rabbitmq', expect: 'healthy' },
         { check: 'websocket-connection', service: 'realtime-service', expect: 'connected' },
         { check: 'encryption-keys', service: 'key-management', expect: 'valid' },
@@ -567,9 +607,17 @@ export const DIAGNOSIS_OPS_AI = {
       name: 'Login Issue Investigation',
       correlations: [
         { check: 'auth-service-health', service: 'auth-service', expect: 'healthy' },
-        { check: 'token-validity', query: 'SELECT expires_at FROM sessions WHERE user_id = ?', expect: 'valid' },
+        {
+          check: 'token-validity',
+          query: 'SELECT expires_at FROM sessions WHERE user_id = ?',
+          expect: 'valid',
+        },
         { check: 'rate-limit-status', service: 'rate-limiter', expect: 'not-limited' },
-        { check: 'account-lockout', query: 'SELECT locked_until FROM users WHERE id = ?', expect: 'null' },
+        {
+          check: 'account-lockout',
+          query: 'SELECT locked_until FROM users WHERE id = ?',
+          expect: 'null',
+        },
         { check: 'verification-provider', service: 'twilio', expect: 'healthy' },
       ],
       resolutions: {
@@ -584,7 +632,11 @@ export const DIAGNOSIS_OPS_AI = {
       name: 'Subscription Issue Investigation',
       correlations: [
         { check: 'stripe-webhook-status', service: 'webhook-service', expect: 'processing' },
-        { check: 'subscription-record', query: 'SELECT * FROM subscriptions WHERE user_id = ?', expect: 'active' },
+        {
+          check: 'subscription-record',
+          query: 'SELECT * FROM subscriptions WHERE user_id = ?',
+          expect: 'active',
+        },
         { check: 'payment-method', service: 'stripe', expect: 'valid' },
         { check: 'entitlement-sync', service: 'entitlement-service', expect: 'synced' },
       ],
@@ -608,7 +660,11 @@ export const DIAGNOSIS_OPS_AI = {
     ],
     semiAutomatic: [
       { trigger: 'service-unhealthy', action: 'restart-service', requiresApproval: 'on-call' },
-      { trigger: 'circuit-breaker-open', action: 'investigate-downstream', requiresApproval: 'none' },
+      {
+        trigger: 'circuit-breaker-open',
+        action: 'investigate-downstream',
+        requiresApproval: 'none',
+      },
     ],
     manual: [
       { trigger: 'data-corruption', action: 'restore-from-backup', requiresApproval: 'tech-lead' },
@@ -791,7 +847,7 @@ export const GLOBALIZATION_AI = {
    */
   languageGuidelines: {
     avoid: [
-      'Idioms that don\'t translate',
+      "Idioms that don't translate",
       'Cultural-specific references',
       'Humor that may offend',
       'Assumptions about dating norms',

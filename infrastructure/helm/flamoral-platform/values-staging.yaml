@@ -1,0 +1,60 @@
+# Staging environment values
+global:
+  environment: staging
+  image:
+    pullPolicy: Always
+
+services:
+  apiGateway:
+    replicaCount: 2
+
+  authService:
+    replicaCount: 2
+
+  userService:
+    replicaCount: 2
+
+  matchingService:
+    replicaCount: 2
+
+  messagingService:
+    replicaCount: 2
+
+  mediaService:
+    replicaCount: 2
+
+  paymentService:
+    replicaCount: 2
+
+  notificationService:
+    replicaCount: 2
+
+  analyticsService:
+    replicaCount: 2
+
+  moderationService:
+    replicaCount: 2
+
+  adminService:
+    replicaCount: 1
+
+  webApp:
+    replicaCount: 2
+
+ingress:
+  hosts:
+    - host: staging.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: webApp
+    - host: api.staging.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: apiGateway
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8

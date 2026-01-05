@@ -81,7 +81,8 @@ class FileValidationUtil {
       });
       return {
         isValid: false,
-        error: 'Unsupported file type. Only images (JPEG, PNG, GIF, WebP) and MP4 videos are allowed.',
+        error:
+          'Unsupported file type. Only images (JPEG, PNG, GIF, WebP) and MP4 videos are allowed.',
       };
     }
 
@@ -123,7 +124,7 @@ class FileValidationUtil {
     }
 
     // Verify it's an allowed image type
-    if (!ALLOWED_IMAGE_TYPES.includes(result.fileType!)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(result.fileType)) {
       return {
         isValid: false,
         error: 'Invalid image type. Only JPEG, PNG, GIF, and WebP images are allowed.',
@@ -152,7 +153,7 @@ class FileValidationUtil {
     }
 
     // Verify it's an allowed video type
-    if (!ALLOWED_VIDEO_TYPES.includes(result.fileType!)) {
+    if (!ALLOWED_VIDEO_TYPES.includes(result.fileType)) {
       return {
         isValid: false,
         error: 'Invalid video type. Only MP4 videos are allowed.',

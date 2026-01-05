@@ -1,7 +1,9 @@
-import logger from '../../utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
+
 import archiver from 'archiver';
+
+import logger from '../../utils/logger';
 
 export interface GDPRExportRequest {
   userId: string;
@@ -244,19 +246,27 @@ class GDPRExportService {
 
     await fs.promises.writeFile(
       path.join(exportPath, 'activity.json'),
-      JSON.stringify({
-        loginHistory: data.loginHistory,
-        deviceHistory: data.deviceHistory,
-      }, null, 2)
+      JSON.stringify(
+        {
+          loginHistory: data.loginHistory,
+          deviceHistory: data.deviceHistory,
+        },
+        null,
+        2
+      )
     );
 
     await fs.promises.writeFile(
       path.join(exportPath, 'moderation.json'),
-      JSON.stringify({
-        reportsMade: data.reportsMade,
-        reportsReceived: data.reportsReceived,
-        blocks: data.blocks,
-      }, null, 2)
+      JSON.stringify(
+        {
+          reportsMade: data.reportsMade,
+          reportsReceived: data.reportsReceived,
+          blocks: data.blocks,
+        },
+        null,
+        2
+      )
     );
 
     // Create README
@@ -323,10 +333,7 @@ If you have any questions about this data export, please contact our support tea
 Export generated: ${new Date().toISOString()}
 `;
 
-    await fs.promises.writeFile(
-      path.join(exportPath, 'README.txt'),
-      readme
-    );
+    await fs.promises.writeFile(path.join(exportPath, 'README.txt'), readme);
   }
 
   /**
@@ -437,7 +444,10 @@ Export generated: ${new Date().toISOString()}
 
   private async updateExportRequest(request: GDPRExportRequest): Promise<void> {
     // In production, update in database
-    logger.debug('Export request updated', { requestId: request.requestId, status: request.status });
+    logger.debug('Export request updated', {
+      requestId: request.requestId,
+      status: request.status,
+    });
   }
 
   private async getExportRequest(requestId: string): Promise<GDPRExportRequest | null> {

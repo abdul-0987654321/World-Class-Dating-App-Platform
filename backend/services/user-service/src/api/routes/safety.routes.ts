@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
+
 import { sosService } from '../../domain/services/sos.service';
-import { authenticate } from '../middleware/auth.middleware';
 import logger from '../../utils/logger';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -317,9 +318,10 @@ router.get('/sos/:alertId/notifications', async (req: Request, res: Response) =>
         notifications,
         summary: {
           total: notifications.length,
-          sent: notifications.filter(n => n.status === 'sent' || n.status === 'delivered').length,
-          failed: notifications.filter(n => n.status === 'failed').length,
-          pending: notifications.filter(n => n.status === 'pending' || n.status === 'retrying').length,
+          sent: notifications.filter((n) => n.status === 'sent' || n.status === 'delivered').length,
+          failed: notifications.filter((n) => n.status === 'failed').length,
+          pending: notifications.filter((n) => n.status === 'pending' || n.status === 'retrying')
+            .length,
         },
       },
     });

@@ -1,8 +1,9 @@
-import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import { userRepository } from '../repositories/user.repository';
+import speakeasy from 'speakeasy';
+
 import { comparePassword } from '../../utils/encryption';
 import logger from '../../utils/logger';
+import { userRepository } from '../repositories/user.repository';
 
 export interface TwoFactorSetupResponse {
   secret: string;
@@ -111,11 +112,7 @@ class TwoFactorService {
     const backupCodes = this.generateBackupCodes();
 
     // Store temporary secret (will be confirmed upon verification)
-    await userRepository.storeTempTwoFactorSecret(
-      data.userId,
-      secret.base32,
-      backupCodes
-    );
+    await userRepository.storeTempTwoFactorSecret(data.userId, secret.base32, backupCodes);
 
     logger.info(`2FA setup initiated for user: ${data.userId}`);
 

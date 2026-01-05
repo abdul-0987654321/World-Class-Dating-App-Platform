@@ -10,9 +10,7 @@ export class PhotoRepository {
   }
 
   async findByUserId(userId: string): Promise<PhotoEntity[]> {
-    return db(this.tableName)
-      .where({ user_id: userId })
-      .orderBy('position', 'asc');
+    return db(this.tableName).where({ user_id: userId }).orderBy('position', 'asc');
   }
 
   async findById(id: string): Promise<PhotoEntity | null> {
@@ -38,9 +36,7 @@ export class PhotoRepository {
   async setPrimary(userId: string, photoId: string): Promise<void> {
     await db.transaction(async (trx) => {
       // Set all photos as not primary
-      await trx(this.tableName)
-        .where({ user_id: userId })
-        .update({ is_primary: false });
+      await trx(this.tableName).where({ user_id: userId }).update({ is_primary: false });
 
       // Set the selected photo as primary
       await trx(this.tableName)
@@ -50,26 +46,19 @@ export class PhotoRepository {
   }
 
   async getPrimaryPhoto(userId: string): Promise<PhotoEntity | null> {
-    const photo = await db(this.tableName)
-      .where({ user_id: userId, is_primary: true })
-      .first();
+    const photo = await db(this.tableName).where({ user_id: userId, is_primary: true }).first();
     return photo || null;
   }
 
   async count(userId: string): Promise<number> {
-    const result = await db(this.tableName)
-      .where({ user_id: userId })
-      .count('* as count')
-      .first();
+    const result = await db(this.tableName).where({ user_id: userId }).count('* as count').first();
     return parseInt(result?.count as string) || 0;
   }
 
   async reorder(userId: string, photoOrders: { id: string; position: number }[]): Promise<void> {
     await db.transaction(async (trx) => {
       for (const { id, position } of photoOrders) {
-        await trx(this.tableName)
-          .where({ id, user_id: userId })
-          .update({ position });
+        await trx(this.tableName).where({ id, user_id: userId }).update({ position });
       }
     });
   }
@@ -83,9 +72,7 @@ export class PhotoRepository {
       return [];
     }
 
-    return db(this.tableName)
-      .whereIn('user_id', userIds)
-      .orderBy('position', 'asc');
+    return db(this.tableName).whereIn('user_id', userIds).orderBy('position', 'asc');
   }
 
   /**
@@ -97,8 +84,6 @@ export class PhotoRepository {
       return [];
     }
 
-    return db(this.tableName)
-      .whereIn('user_id', userIds)
-      .where('is_primary', true);
+    return db(this.tableName).whereIn('user_id', userIds).where('is_primary', true);
   }
 }

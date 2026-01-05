@@ -6,6 +6,7 @@
  */
 
 import { createLogger } from '@flamoral/backend-shared';
+
 import { SubscriptionTier } from './payment.service';
 
 const logger = createLogger('pricing-config-service');
@@ -60,52 +61,192 @@ export interface BoostPackageConfig {
 // Default pricing configuration - used as fallback
 const DEFAULT_SUBSCRIPTION_PRICES: TierPriceConfig[] = [
   // Free tier (no price)
-  { tier: 'free', billingCycle: 'monthly', currency: 'USD', amount: 0, stripePriceId: '', isActive: true },
+  {
+    tier: 'free',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 0,
+    stripePriceId: '',
+    isActive: true,
+  },
 
   // Basic tier
-  { tier: 'basic', billingCycle: 'monthly', currency: 'USD', amount: 999, stripePriceId: 'price_basic_monthly', isActive: true },
-  { tier: 'basic', billingCycle: 'yearly', currency: 'USD', amount: 9599, stripePriceId: 'price_basic_yearly', isActive: true, discountPercentage: 20 },
+  {
+    tier: 'basic',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 999,
+    stripePriceId: 'price_basic_monthly',
+    isActive: true,
+  },
+  {
+    tier: 'basic',
+    billingCycle: 'yearly',
+    currency: 'USD',
+    amount: 9599,
+    stripePriceId: 'price_basic_yearly',
+    isActive: true,
+    discountPercentage: 20,
+  },
 
   // Plus tier
-  { tier: 'plus', billingCycle: 'monthly', currency: 'USD', amount: 1999, stripePriceId: 'price_plus_monthly', isActive: true },
-  { tier: 'plus', billingCycle: 'yearly', currency: 'USD', amount: 19199, stripePriceId: 'price_plus_yearly', isActive: true, discountPercentage: 20 },
+  {
+    tier: 'plus',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 1999,
+    stripePriceId: 'price_plus_monthly',
+    isActive: true,
+  },
+  {
+    tier: 'plus',
+    billingCycle: 'yearly',
+    currency: 'USD',
+    amount: 19199,
+    stripePriceId: 'price_plus_yearly',
+    isActive: true,
+    discountPercentage: 20,
+  },
 
   // Premium tier
-  { tier: 'premium', billingCycle: 'monthly', currency: 'USD', amount: 2999, stripePriceId: 'price_premium_monthly', isActive: true, trialDays: 7 },
-  { tier: 'premium', billingCycle: 'yearly', currency: 'USD', amount: 28799, stripePriceId: 'price_premium_yearly', isActive: true, discountPercentage: 20, trialDays: 7 },
+  {
+    tier: 'premium',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 2999,
+    stripePriceId: 'price_premium_monthly',
+    isActive: true,
+    trialDays: 7,
+  },
+  {
+    tier: 'premium',
+    billingCycle: 'yearly',
+    currency: 'USD',
+    amount: 28799,
+    stripePriceId: 'price_premium_yearly',
+    isActive: true,
+    discountPercentage: 20,
+    trialDays: 7,
+  },
 
   // Premium+ tier
-  { tier: 'premium_plus', billingCycle: 'monthly', currency: 'USD', amount: 3999, stripePriceId: 'price_premium_plus_monthly', isActive: true },
-  { tier: 'premium_plus', billingCycle: 'yearly', currency: 'USD', amount: 38399, stripePriceId: 'price_premium_plus_yearly', isActive: true, discountPercentage: 20 },
+  {
+    tier: 'premium_plus',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 3999,
+    stripePriceId: 'price_premium_plus_monthly',
+    isActive: true,
+  },
+  {
+    tier: 'premium_plus',
+    billingCycle: 'yearly',
+    currency: 'USD',
+    amount: 38399,
+    stripePriceId: 'price_premium_plus_yearly',
+    isActive: true,
+    discountPercentage: 20,
+  },
 
   // Elite tier
-  { tier: 'elite', billingCycle: 'monthly', currency: 'USD', amount: 5999, stripePriceId: 'price_elite_monthly', isActive: true },
-  { tier: 'elite', billingCycle: 'yearly', currency: 'USD', amount: 57599, stripePriceId: 'price_elite_yearly', isActive: true, discountPercentage: 20 },
+  {
+    tier: 'elite',
+    billingCycle: 'monthly',
+    currency: 'USD',
+    amount: 5999,
+    stripePriceId: 'price_elite_monthly',
+    isActive: true,
+  },
+  {
+    tier: 'elite',
+    billingCycle: 'yearly',
+    currency: 'USD',
+    amount: 57599,
+    stripePriceId: 'price_elite_yearly',
+    isActive: true,
+    discountPercentage: 20,
+  },
 ];
 
 const DEFAULT_REGIONAL_PRICING: RegionalPricing[] = [
   { region: 'US', currency: 'USD', priceMultiplier: 1.0 },
   { region: 'EU', currency: 'EUR', priceMultiplier: 0.95 },
-  { region: 'UK', currency: 'GBP', priceMultiplier: 0.80 },
-  { region: 'CA', currency: 'CAD', priceMultiplier: 1.30 },
-  { region: 'AU', currency: 'AUD', priceMultiplier: 1.50 },
-  { region: 'LATAM', currency: 'USD', priceMultiplier: 0.50 },
-  { region: 'SSA', currency: 'USD', priceMultiplier: 0.40 },
-  { region: 'MENA', currency: 'USD', priceMultiplier: 0.70 },
-  { region: 'APAC', currency: 'USD', priceMultiplier: 0.80 },
+  { region: 'UK', currency: 'GBP', priceMultiplier: 0.8 },
+  { region: 'CA', currency: 'CAD', priceMultiplier: 1.3 },
+  { region: 'AU', currency: 'AUD', priceMultiplier: 1.5 },
+  { region: 'LATAM', currency: 'USD', priceMultiplier: 0.5 },
+  { region: 'SSA', currency: 'USD', priceMultiplier: 0.4 },
+  { region: 'MENA', currency: 'USD', priceMultiplier: 0.7 },
+  { region: 'APAC', currency: 'USD', priceMultiplier: 0.8 },
 ];
 
 const DEFAULT_COIN_PACKAGES: CoinPackageConfig[] = [
-  { sku: 'COIN_PACK_SMALL', coins: 100, bonusCoins: 0, currency: 'USD', amount: 499, stripePriceId: 'price_coins_small', isActive: true },
-  { sku: 'COIN_PACK_MEDIUM', coins: 500, bonusCoins: 50, currency: 'USD', amount: 1999, stripePriceId: 'price_coins_medium', isActive: true },
-  { sku: 'COIN_PACK_LARGE', coins: 1200, bonusCoins: 200, currency: 'USD', amount: 3999, stripePriceId: 'price_coins_large', isActive: true },
-  { sku: 'COIN_PACK_XL', coins: 2500, bonusCoins: 500, currency: 'USD', amount: 7499, stripePriceId: 'price_coins_xl', isActive: true },
+  {
+    sku: 'COIN_PACK_SMALL',
+    coins: 100,
+    bonusCoins: 0,
+    currency: 'USD',
+    amount: 499,
+    stripePriceId: 'price_coins_small',
+    isActive: true,
+  },
+  {
+    sku: 'COIN_PACK_MEDIUM',
+    coins: 500,
+    bonusCoins: 50,
+    currency: 'USD',
+    amount: 1999,
+    stripePriceId: 'price_coins_medium',
+    isActive: true,
+  },
+  {
+    sku: 'COIN_PACK_LARGE',
+    coins: 1200,
+    bonusCoins: 200,
+    currency: 'USD',
+    amount: 3999,
+    stripePriceId: 'price_coins_large',
+    isActive: true,
+  },
+  {
+    sku: 'COIN_PACK_XL',
+    coins: 2500,
+    bonusCoins: 500,
+    currency: 'USD',
+    amount: 7499,
+    stripePriceId: 'price_coins_xl',
+    isActive: true,
+  },
 ];
 
 const DEFAULT_BOOST_PACKAGES: BoostPackageConfig[] = [
-  { sku: 'BOOST_SINGLE', durationMinutes: 30, quantity: 1, currency: 'USD', amount: 599, stripePriceId: 'price_boost_single', isActive: true },
-  { sku: 'BOOST_3_PACK', durationMinutes: 30, quantity: 3, currency: 'USD', amount: 1499, stripePriceId: 'price_boost_3pack', isActive: true },
-  { sku: 'BOOST_10_PACK', durationMinutes: 30, quantity: 10, currency: 'USD', amount: 3999, stripePriceId: 'price_boost_10pack', isActive: true },
+  {
+    sku: 'BOOST_SINGLE',
+    durationMinutes: 30,
+    quantity: 1,
+    currency: 'USD',
+    amount: 599,
+    stripePriceId: 'price_boost_single',
+    isActive: true,
+  },
+  {
+    sku: 'BOOST_3_PACK',
+    durationMinutes: 30,
+    quantity: 3,
+    currency: 'USD',
+    amount: 1499,
+    stripePriceId: 'price_boost_3pack',
+    isActive: true,
+  },
+  {
+    sku: 'BOOST_10_PACK',
+    durationMinutes: 30,
+    quantity: 10,
+    currency: 'USD',
+    amount: 3999,
+    stripePriceId: 'price_boost_10pack',
+    isActive: true,
+  },
 ];
 
 /**
@@ -198,7 +339,7 @@ export class PricingConfigService {
    * Get all active subscription prices
    */
   getAllSubscriptionPrices(): TierPriceConfig[] {
-    return Array.from(this.subscriptionPrices.values()).filter(p => p.isActive);
+    return Array.from(this.subscriptionPrices.values()).filter((p) => p.isActive);
   }
 
   /**
@@ -211,7 +352,10 @@ export class PricingConfigService {
   /**
    * Calculate price for a region
    */
-  calculateRegionalPrice(baseAmount: number, region: string): { amount: number; currency: CurrencyCode } {
+  calculateRegionalPrice(
+    baseAmount: number,
+    region: string
+  ): { amount: number; currency: CurrencyCode } {
     const regional = this.getRegionalPricing(region);
     if (!regional) {
       return { amount: baseAmount, currency: 'USD' };
@@ -233,7 +377,7 @@ export class PricingConfigService {
    * Get all coin packages
    */
   getAllCoinPackages(): CoinPackageConfig[] {
-    return Array.from(this.coinPackages.values()).filter(p => p.isActive);
+    return Array.from(this.coinPackages.values()).filter((p) => p.isActive);
   }
 
   /**
@@ -247,7 +391,7 @@ export class PricingConfigService {
    * Get all boost packages
    */
   getAllBoostPackages(): BoostPackageConfig[] {
-    return Array.from(this.boostPackages.values()).filter(p => p.isActive);
+    return Array.from(this.boostPackages.values()).filter((p) => p.isActive);
   }
 
   /**
@@ -325,11 +469,17 @@ export class PricingConfigService {
    * Get pricing summary for frontend
    */
   getPricingSummary(): {
-    subscriptions: Record<SubscriptionTier, { monthly: number; yearly: number; yearlyDiscount: number }>;
+    subscriptions: Record<
+      SubscriptionTier,
+      { monthly: number; yearly: number; yearlyDiscount: number }
+    >;
     coins: { sku: string; coins: number; price: number }[];
     boosts: { sku: string; quantity: number; price: number }[];
   } {
-    const subscriptions: Record<string, { monthly: number; yearly: number; yearlyDiscount: number }> = {};
+    const subscriptions: Record<
+      string,
+      { monthly: number; yearly: number; yearlyDiscount: number }
+    > = {};
 
     const tiers: SubscriptionTier[] = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'];
     for (const tier of tiers) {
@@ -343,13 +493,16 @@ export class PricingConfigService {
     }
 
     return {
-      subscriptions: subscriptions as Record<SubscriptionTier, { monthly: number; yearly: number; yearlyDiscount: number }>,
-      coins: this.getAllCoinPackages().map(p => ({
+      subscriptions: subscriptions as Record<
+        SubscriptionTier,
+        { monthly: number; yearly: number; yearlyDiscount: number }
+      >,
+      coins: this.getAllCoinPackages().map((p) => ({
         sku: p.sku,
         coins: p.coins + p.bonusCoins,
         price: p.amount,
       })),
-      boosts: this.getAllBoostPackages().map(p => ({
+      boosts: this.getAllBoostPackages().map((p) => ({
         sku: p.sku,
         quantity: p.quantity,
         price: p.amount,

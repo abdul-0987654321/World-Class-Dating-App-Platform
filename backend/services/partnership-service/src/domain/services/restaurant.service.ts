@@ -1,7 +1,11 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { db } from '../../infrastructure/database/connection';
+
 import { OpenTableClient } from '../../infrastructure/clients/opentable.client';
 import { ResyClient } from '../../infrastructure/clients/resy.client';
+import { db } from '../../infrastructure/database/connection';
+import { RestaurantSearchParams, RestaurantAvailability } from '../../types';
+import { generateAffiliateTrackingId, calculateCommission } from '../entities/Affiliate.entity';
+import { Partner } from '../entities/Partner.entity';
 import {
   Restaurant,
   Reservation,
@@ -9,15 +13,6 @@ import {
   ReservationUpdateInput,
   RESERVATION_STATUS,
 } from '../entities/Reservation.entity';
-import { Partner } from '../entities/Partner.entity';
-import {
-  RestaurantSearchParams,
-  RestaurantAvailability,
-} from '../../types';
-import {
-  generateAffiliateTrackingId,
-  calculateCommission,
-} from '../entities/Affiliate.entity';
 
 const logger = createLogger('restaurant-service');
 
@@ -40,9 +35,7 @@ export class RestaurantService {
     const results: { restaurants: any[]; source: string }[] = [];
 
     // Get active restaurant partners
-    const partners = await db('partners')
-      .where('type', 'restaurant')
-      .where('status', 'active');
+    const partners = await db('partners').where('type', 'restaurant').where('status', 'active');
 
     for (const partner of partners) {
       try {
@@ -58,12 +51,12 @@ export class RestaurantService {
 
         // Filter for date-night restaurants if requested
         if (params.dateNightOnly) {
-          restaurants = restaurants.filter(r => r.isDateNight);
+          restaurants = restaurants.filter((r) => r.isDateNight);
         }
 
         // Filter by minimum rating
         if (params.minRating) {
-          restaurants = restaurants.filter(r => (r.rating || 0) >= params.minRating!);
+          restaurants = restaurants.filter((r) => (r.rating || 0) >= params.minRating);
         }
 
         // Cache restaurants in database
@@ -71,7 +64,7 @@ export class RestaurantService {
 
         results.push({
           source: partner.integrationType,
-          restaurants: restaurants.map(r => ({
+          restaurants: restaurants.map((r) => ({
             ...r,
             partnerId: partner.id,
             partnerName: partner.name,
@@ -237,10 +230,7 @@ export class RestaurantService {
   /**
    * Cancel a reservation
    */
-  async cancelReservation(
-    reservationId: string,
-    userId: string
-  ): Promise<Reservation> {
+  async cancelReservation(reservationId: string, userId: string): Promise<Reservation> {
     const reservation = await db('reservations')
       .where('id', reservationId)
       .where('user_id', userId)
@@ -302,10 +292,7 @@ export class RestaurantService {
   /**
    * Get user's reservations
    */
-  async getUserReservations(
-    userId: string,
-    status?: string
-  ): Promise<Reservation[]> {
+  async getUserReservations(userId: string, status?: string): Promise<Reservation[]> {
     let query = db('reservations')
       .where('user_id', userId)
       .orderBy('date', 'desc')
@@ -318,13 +305,12 @@ export class RestaurantService {
     const reservations = await query;
 
     // Join with restaurant data
-    const restaurantIds = reservations.map(r => r.restaurant_id);
-    const restaurants = await db('restaurants')
-      .whereIn('id', restaurantIds);
+    const restaurantIds = reservations.map((r) => r.restaurant_id);
+    const restaurants = await db('restaurants').whereIn('id', restaurantIds);
 
-    const restaurantMap = new Map(restaurants.map(r => [r.id, r]));
+    const restaurantMap = new Map(restaurants.map((r) => [r.id, r]));
 
-    return reservations.map(r => ({
+    return reservations.map((r) => ({
       ...this.mapReservation(r),
       restaurant: restaurantMap.get(r.restaurant_id),
     }));
@@ -334,17 +320,13 @@ export class RestaurantService {
    * Get reservation by ID
    */
   async getReservation(reservationId: string): Promise<Reservation | null> {
-    const reservation = await db('reservations')
-      .where('id', reservationId)
-      .first();
+    const reservation = await db('reservations').where('id', reservationId).first();
 
     if (!reservation) {
       return null;
     }
 
-    const restaurant = await db('restaurants')
-      .where('id', reservation.restaurant_id)
-      .first();
+    const restaurant = await db('restaurants').where('id', reservation.restaurant_id).first();
 
     return {
       ...this.mapReservation(reservation),
@@ -361,7 +343,11 @@ export class RestaurantService {
     budget?: number
   ): Promise<any[]> {
     const priceRange = budget
-      ? budget <= 50 ? [1, 2] : budget <= 100 ? [2, 3] : [3, 4]
+      ? budget <= 50
+        ? [1, 2]
+        : budget <= 100
+          ? [2, 3]
+          : [3, 4]
       : undefined;
 
     const results = await this.searchRestaurants('system', {
@@ -376,7 +362,7 @@ export class RestaurantService {
     });
 
     // Flatten and sort by romantic score
-    const allRestaurants = results.flatMap(r => r.restaurants);
+    const allRestaurants = results.flatMap((r) => r.restaurants);
     return allRestaurants
       .sort((a, b) => (b.romanticScore || 0) - (a.romanticScore || 0))
       .slice(0, 10);

@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { AchievementRepository } from '../repositories/Achievement.repository';
+
 import {
   AchievementDefinition,
   UserAchievement,
@@ -11,6 +11,7 @@ import {
   calculateProgressPercentage,
   isAchievementComplete,
 } from '../entities/Achievement.entity';
+import { AchievementRepository } from '../repositories/Achievement.repository';
 
 export class AchievementService {
   private repository: AchievementRepository;
@@ -53,7 +54,7 @@ export class AchievementService {
 
     return {
       user_id: userId,
-      achievement_ids: achievements.map(a => a.achievement_id),
+      achievement_ids: achievements.map((a) => a.achievement_id),
     };
   }
 
@@ -78,7 +79,7 @@ export class AchievementService {
       }
 
       // Recalculate stats if any achievements were unlocked
-      if (results.some(r => r.unlocked)) {
+      if (results.some((r) => r.unlocked)) {
         await repository.recalculateUserStats(userId);
       }
     });
@@ -162,10 +163,12 @@ export class AchievementService {
     return {
       unlocked,
       achievement: definition,
-      rewards: unlocked ? {
-        xp_granted: definition.xp_reward,
-        coins_granted: definition.coin_reward,
-      } : undefined,
+      rewards: unlocked
+        ? {
+            xp_granted: definition.xp_reward,
+            coins_granted: definition.coin_reward,
+          }
+        : undefined,
     };
   }
 
@@ -229,7 +232,11 @@ export class AchievementService {
     ]);
   }
 
-  async trackMatch(userId: string, totalMatches: number, isSuperLike: boolean = false): Promise<void> {
+  async trackMatch(
+    userId: string,
+    totalMatches: number,
+    isSuperLike: boolean = false
+  ): Promise<void> {
     const updates: AchievementProgressUpdate[] = [
       {
         user_id: userId,

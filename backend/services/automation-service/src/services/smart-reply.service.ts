@@ -1,8 +1,9 @@
-import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
-import { cache } from '../infrastructure/cache/redis';
-import config from '../config';
 import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
+import config from '../config';
+import { cache } from '../infrastructure/cache/redis';
 
 const logger = createLogger('automation-service:smart-reply');
 
@@ -160,15 +161,13 @@ export class SmartReplyService {
       const aiStarters = response.data.conversation_starters || [];
 
       // Transform to our format
-      const starters: ConversationStarter[] = aiStarters.map(
-        (starter: string, index: number) => ({
-          id: uuidv4(),
-          text: starter,
-          category: this.categorizeStarter(starter, userProfile, matchProfile),
-          relevanceScore: 0.95 - index * 0.05,
-          context: this.extractContext(starter, matchProfile),
-        })
-      );
+      const starters: ConversationStarter[] = aiStarters.map((starter: string, index: number) => ({
+        id: uuidv4(),
+        text: starter,
+        category: this.categorizeStarter(starter, userProfile, matchProfile),
+        relevanceScore: 0.95 - index * 0.05,
+        context: this.extractContext(starter, matchProfile),
+      }));
 
       // Cache for 1 hour
       await cache.set(cacheKey, starters, 3600);
@@ -292,10 +291,7 @@ export class SmartReplyService {
   /**
    * Detect user's preferred tone from conversation history
    */
-  private async detectUserTone(
-    userId: string,
-    conversationHistory: any[]
-  ): Promise<string> {
+  private async detectUserTone(userId: string, conversationHistory: any[]): Promise<string> {
     try {
       // Get user preferences from cache
       const cacheKey = `user:${userId}:tone_preference`;
@@ -305,9 +301,7 @@ export class SmartReplyService {
       }
 
       // Analyze recent messages to detect tone
-      const userMessages = conversationHistory
-        .filter((msg) => msg.senderId === userId)
-        .slice(-5);
+      const userMessages = conversationHistory.filter((msg) => msg.senderId === userId).slice(-5);
 
       if (userMessages.length === 0) {
         return 'casual';
@@ -354,11 +348,7 @@ export class SmartReplyService {
     }
 
     // Formal indicators
-    if (
-      lower.includes('pleased') ||
-      lower.includes('delighted') ||
-      lower.includes('appreciate')
-    ) {
+    if (lower.includes('pleased') || lower.includes('delighted') || lower.includes('appreciate')) {
       return 'formal';
     }
 
@@ -373,9 +363,7 @@ export class SmartReplyService {
   /**
    * Categorize reply type
    */
-  private categorizeReply(
-    text: string
-  ): 'question' | 'statement' | 'compliment' | 'followup' {
+  private categorizeReply(text: string): 'question' | 'statement' | 'compliment' | 'followup' {
     if (text.includes('?')) {
       return 'question';
     }
@@ -505,15 +493,12 @@ export class SmartReplyService {
    */
   private async getUserProfile(userId: string): Promise<any> {
     try {
-      const response = await axios.get(
-        `${config.services.user}/api/internal/users/${userId}`,
-        {
-          headers: {
-            'X-Service-API-Key': config.serviceAuth.apiKey,
-          },
-          timeout: 5000,
-        }
-      );
+      const response = await axios.get(`${config.services.user}/api/internal/users/${userId}`, {
+        headers: {
+          'X-Service-API-Key': config.serviceAuth.apiKey,
+        },
+        timeout: 5000,
+      });
 
       return response.data;
     } catch (error: any) {

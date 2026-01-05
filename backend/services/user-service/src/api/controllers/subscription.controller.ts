@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { SubscriptionService } from '../../domain/services/subscription.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class SubscriptionController {
   private subscriptionService: SubscriptionService;
@@ -120,8 +121,8 @@ export class SubscriptionController {
       const validTiers = ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'];
       // Legacy tier mapping for backwards compatibility
       const legacyTierMapping: Record<string, string> = {
-        'mid': 'premium',
-        'ultra': 'elite'
+        mid: 'premium',
+        ultra: 'elite',
       };
 
       let normalizedTier = tier?.toLowerCase();
@@ -136,7 +137,10 @@ export class SubscriptionController {
         });
       }
 
-      const subscription = await this.subscriptionService.updateSubscriptionTier(userId, normalizedTier);
+      const subscription = await this.subscriptionService.updateSubscriptionTier(
+        userId,
+        normalizedTier
+      );
 
       return res.status(200).json({
         success: true,

@@ -1,0 +1,58 @@
+# Development environment values
+global:
+  environment: development
+  image:
+    pullPolicy: IfNotPresent
+
+services:
+  apiGateway:
+    replicaCount: 1
+
+  authService:
+    replicaCount: 1
+
+  userService:
+    replicaCount: 1
+
+  matchingService:
+    replicaCount: 1
+
+  messagingService:
+    replicaCount: 1
+
+  mediaService:
+    replicaCount: 1
+
+  paymentService:
+    replicaCount: 1
+
+  notificationService:
+    replicaCount: 1
+
+  analyticsService:
+    replicaCount: 1
+
+  moderationService:
+    replicaCount: 1
+
+  adminService:
+    replicaCount: 1
+
+  webApp:
+    replicaCount: 1
+
+ingress:
+  hosts:
+    - host: dev.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: webApp
+    - host: api.dev.flamoral.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: apiGateway
+
+autoscaling:
+  enabled: false

@@ -74,7 +74,10 @@ export function getTierLevel(tier: SubscriptionTier): number {
 /**
  * Check if tier1 has higher or equal access than tier2
  */
-export function hasEqualOrHigherTier(userTier: SubscriptionTier, requiredTier: SubscriptionTier): boolean {
+export function hasEqualOrHigherTier(
+  userTier: SubscriptionTier,
+  requiredTier: SubscriptionTier
+): boolean {
   return getTierLevel(userTier) >= getTierLevel(requiredTier);
 }
 
@@ -96,12 +99,12 @@ export function getNextTier(currentTier: SubscriptionTier): SubscriptionTier | n
 export function mapLegacyTier(legacyTier: string): SubscriptionTier {
   const mapping: Record<string, SubscriptionTier> = {
     // Old 4-tier names
-    'mid': SUBSCRIPTION_TIERS.PREMIUM,
-    'ultra': SUBSCRIPTION_TIERS.ELITE,
+    mid: SUBSCRIPTION_TIERS.PREMIUM,
+    ultra: SUBSCRIPTION_TIERS.ELITE,
     // Handle any other variations
-    'gold': SUBSCRIPTION_TIERS.PLUS,
-    'platinum': SUBSCRIPTION_TIERS.PREMIUM_PLUS,
-    'vip': SUBSCRIPTION_TIERS.ELITE,
+    gold: SUBSCRIPTION_TIERS.PLUS,
+    platinum: SUBSCRIPTION_TIERS.PREMIUM_PLUS,
+    vip: SUBSCRIPTION_TIERS.ELITE,
   };
 
   if (isValidTier(legacyTier)) {
@@ -116,39 +119,39 @@ export function mapLegacyTier(legacyTier: string): SubscriptionTier {
  */
 export const FEATURE_TIER_REQUIREMENTS: Record<string, SubscriptionTier> = {
   // Basic features available to all
-  'basic_matching': SUBSCRIPTION_TIERS.FREE,
-  'limited_swipes': SUBSCRIPTION_TIERS.FREE,
-  'basic_profile': SUBSCRIPTION_TIERS.FREE,
+  basic_matching: SUBSCRIPTION_TIERS.FREE,
+  limited_swipes: SUBSCRIPTION_TIERS.FREE,
+  basic_profile: SUBSCRIPTION_TIERS.FREE,
 
   // Basic tier features
-  'unlimited_swipes': SUBSCRIPTION_TIERS.BASIC,
-  'see_who_liked_you': SUBSCRIPTION_TIERS.BASIC,
-  'rewind': SUBSCRIPTION_TIERS.BASIC,
-  'ad_free': SUBSCRIPTION_TIERS.BASIC,
+  unlimited_swipes: SUBSCRIPTION_TIERS.BASIC,
+  see_who_liked_you: SUBSCRIPTION_TIERS.BASIC,
+  rewind: SUBSCRIPTION_TIERS.BASIC,
+  ad_free: SUBSCRIPTION_TIERS.BASIC,
 
   // Plus tier features
-  'incognito_mode': SUBSCRIPTION_TIERS.PLUS,
-  'priority_likes': SUBSCRIPTION_TIERS.PLUS,
-  'read_receipts': SUBSCRIPTION_TIERS.PLUS,
+  incognito_mode: SUBSCRIPTION_TIERS.PLUS,
+  priority_likes: SUBSCRIPTION_TIERS.PLUS,
+  read_receipts: SUBSCRIPTION_TIERS.PLUS,
 
   // Premium tier features
-  'unlimited_super_likes': SUBSCRIPTION_TIERS.PREMIUM,
-  'passport': SUBSCRIPTION_TIERS.PREMIUM,
-  'advanced_filters': SUBSCRIPTION_TIERS.PREMIUM,
-  'profile_controls': SUBSCRIPTION_TIERS.PREMIUM,
+  unlimited_super_likes: SUBSCRIPTION_TIERS.PREMIUM,
+  passport: SUBSCRIPTION_TIERS.PREMIUM,
+  advanced_filters: SUBSCRIPTION_TIERS.PREMIUM,
+  profile_controls: SUBSCRIPTION_TIERS.PREMIUM,
 
   // Premium+ tier features
-  'message_before_match': SUBSCRIPTION_TIERS.PREMIUM_PLUS,
-  'weekly_boost': SUBSCRIPTION_TIERS.PREMIUM_PLUS,
-  'see_profile_visitors': SUBSCRIPTION_TIERS.PREMIUM_PLUS,
-  'priority_support': SUBSCRIPTION_TIERS.PREMIUM_PLUS,
+  message_before_match: SUBSCRIPTION_TIERS.PREMIUM_PLUS,
+  weekly_boost: SUBSCRIPTION_TIERS.PREMIUM_PLUS,
+  see_profile_visitors: SUBSCRIPTION_TIERS.PREMIUM_PLUS,
+  priority_support: SUBSCRIPTION_TIERS.PREMIUM_PLUS,
 
   // Elite tier features
-  'vip_badge': SUBSCRIPTION_TIERS.ELITE,
-  'elite_matches': SUBSCRIPTION_TIERS.ELITE,
-  'dedicated_account_manager': SUBSCRIPTION_TIERS.ELITE,
-  'unlimited_boosts': SUBSCRIPTION_TIERS.ELITE,
-  'early_access': SUBSCRIPTION_TIERS.ELITE,
+  vip_badge: SUBSCRIPTION_TIERS.ELITE,
+  elite_matches: SUBSCRIPTION_TIERS.ELITE,
+  dedicated_account_manager: SUBSCRIPTION_TIERS.ELITE,
+  unlimited_boosts: SUBSCRIPTION_TIERS.ELITE,
+  early_access: SUBSCRIPTION_TIERS.ELITE,
 };
 
 /**

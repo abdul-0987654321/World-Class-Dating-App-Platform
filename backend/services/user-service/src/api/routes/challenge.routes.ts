@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+
 import { ChallengeController } from '../controllers/challenge.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';

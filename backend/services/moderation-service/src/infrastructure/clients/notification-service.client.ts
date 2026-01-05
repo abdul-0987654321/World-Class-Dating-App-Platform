@@ -65,11 +65,7 @@ export class NotificationServiceClient {
   /**
    * Notify user that their content was flagged for review
    */
-  async notifyContentFlagged(
-    userId: string,
-    contentType: string,
-    reason: string
-  ): Promise<void> {
+  async notifyContentFlagged(userId: string, contentType: string, reason: string): Promise<void> {
     await this.sendNotification({
       userId,
       type: 'content_moderation',
@@ -87,11 +83,7 @@ export class NotificationServiceClient {
   /**
    * Notify user of a warning
    */
-  async notifyUserWarning(
-    userId: string,
-    violationCount: number,
-    reason: string
-  ): Promise<void> {
+  async notifyUserWarning(userId: string, violationCount: number, reason: string): Promise<void> {
     await this.sendNotification({
       userId,
       type: 'account_warning',
@@ -109,11 +101,7 @@ export class NotificationServiceClient {
   /**
    * Notify user of suspension
    */
-  async notifyUserSuspended(
-    userId: string,
-    suspensionEndsAt: Date,
-    reason: string
-  ): Promise<void> {
+  async notifyUserSuspended(userId: string, suspensionEndsAt: Date, reason: string): Promise<void> {
     await this.sendNotification({
       userId,
       type: 'account_suspended',

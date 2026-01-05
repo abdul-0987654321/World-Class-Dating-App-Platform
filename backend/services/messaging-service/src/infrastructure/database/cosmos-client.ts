@@ -1,6 +1,7 @@
 import { CosmosClient, Container, Database } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('cosmos-db');
 

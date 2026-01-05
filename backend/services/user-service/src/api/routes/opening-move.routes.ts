@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { OpeningMoveController } from '../controllers/opening-move.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
@@ -36,11 +37,7 @@ const controller = new OpeningMoveController();
  *                   items:
  *                     $ref: '#/components/schemas/OpeningMoveResponse'
  */
-router.get(
-  '/users/me/opening-moves',
-  authenticate,
-  controller.getOpeningMoves.bind(controller)
-);
+router.get('/users/me/opening-moves', authenticate, controller.getOpeningMoves.bind(controller));
 
 /**
  * @swagger
@@ -229,11 +226,7 @@ router.put(
  *                   items:
  *                     $ref: '#/components/schemas/OpeningMoveTemplate'
  */
-router.get(
-  '/opening-move-templates',
-  authenticate,
-  controller.getAllTemplates.bind(controller)
-);
+router.get('/opening-move-templates', authenticate, controller.getAllTemplates.bind(controller));
 
 /**
  * @swagger

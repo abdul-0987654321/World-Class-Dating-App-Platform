@@ -1,6 +1,6 @@
 import { Injectable, ExecutionContext, Logger, CanActivate } from '@nestjs/common';
-import { ThrottlerException } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
+import { ThrottlerException } from '@nestjs/throttler';
 import Redis from 'ioredis';
 
 @Injectable()
@@ -48,10 +48,7 @@ export class RedisThrottlerGuard implements CanActivate {
     return `throttle:ip:${ip}`;
   }
 
-  protected async storageIncrement(
-    tracker: string,
-    ttl: number,
-  ): Promise<number> {
+  protected async storageIncrement(tracker: string, ttl: number): Promise<number> {
     try {
       const current = await this.redis.incr(tracker);
 
@@ -68,11 +65,7 @@ export class RedisThrottlerGuard implements CanActivate {
     }
   }
 
-  async handleRequest(
-    context: ExecutionContext,
-    limit: number,
-    ttl: number,
-  ): Promise<boolean> {
+  async handleRequest(context: ExecutionContext, limit: number, ttl: number): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
     const tracker = await this.getTracker(request);

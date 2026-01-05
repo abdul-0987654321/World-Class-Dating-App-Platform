@@ -1,6 +1,7 @@
 import { Container } from '@azure/cosmos';
-import { createLogger } from '../../utils/logger';
+
 import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('chat-export-repository');
 

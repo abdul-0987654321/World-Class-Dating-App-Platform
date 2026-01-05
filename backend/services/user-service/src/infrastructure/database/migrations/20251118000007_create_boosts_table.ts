@@ -5,7 +5,10 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
     table.enum('type', ['standard', 'prime_time', 'spotlight']).notNullable().defaultTo('standard');
-    table.enum('status', ['pending', 'active', 'completed', 'expired', 'canceled']).notNullable().defaultTo('pending');
+    table
+      .enum('status', ['pending', 'active', 'completed', 'expired', 'canceled'])
+      .notNullable()
+      .defaultTo('pending');
     table.integer('duration_minutes').notNullable();
     table.integer('visibility_multiplier').notNullable().defaultTo(10);
     table.timestamp('started_at').nullable();

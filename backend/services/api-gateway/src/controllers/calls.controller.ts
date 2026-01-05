@@ -10,9 +10,10 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ProxyService } from '../services/proxy.service';
-import { SubscriptionGuard } from '../guards/subscription.guard';
+
 import { RequireSubscription, SubscriptionTier } from '../decorators/subscription.decorator';
+import { SubscriptionGuard } from '../guards/subscription.guard';
+import { ProxyService } from '../services/proxy.service';
 
 /**
  * Calls Controller
@@ -46,7 +47,7 @@ export class CallsController {
   @RequireSubscription(SubscriptionTier.PREMIUM)
   async requestCall(
     @Headers('authorization') authorization: string,
-    @Body() body: { calleeId: string; callType: 'video' | 'audio' },
+    @Body() body: { calleeId: string; callType: 'video' | 'audio' }
   ) {
     return this.proxyService.post('messagingService', '/api/v1/calls/request', body, {
       Authorization: authorization,
@@ -66,7 +67,7 @@ export class CallsController {
   @HttpCode(HttpStatus.OK)
   async acceptCall(
     @Headers('authorization') authorization: string,
-    @Body() body: { callId: string },
+    @Body() body: { callId: string }
   ) {
     return this.proxyService.post('messagingService', '/api/v1/calls/accept', body, {
       Authorization: authorization,
@@ -87,7 +88,7 @@ export class CallsController {
   @HttpCode(HttpStatus.OK)
   async rejectCall(
     @Headers('authorization') authorization: string,
-    @Body() body: { callId: string; reason?: string },
+    @Body() body: { callId: string; reason?: string }
   ) {
     return this.proxyService.post('messagingService', '/api/v1/calls/reject', body, {
       Authorization: authorization,
@@ -108,7 +109,7 @@ export class CallsController {
   @HttpCode(HttpStatus.OK)
   async endCall(
     @Headers('authorization') authorization: string,
-    @Body() body: { callId: string; duration?: number },
+    @Body() body: { callId: string; duration?: number }
   ) {
     return this.proxyService.post('messagingService', '/api/v1/calls/end', body, {
       Authorization: authorization,
@@ -124,7 +125,7 @@ export class CallsController {
   @Get(':callId')
   async getCallStatus(
     @Headers('authorization') authorization: string,
-    @Param('callId') callId: string,
+    @Param('callId') callId: string
   ) {
     return this.proxyService.get('messagingService', `/api/v1/calls/${callId}`, {
       Authorization: authorization,
@@ -139,7 +140,7 @@ export class CallsController {
   async getCallHistory(
     @Headers('authorization') authorization: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const queryString = new URLSearchParams();
     if (limit) queryString.append('limit', limit);
@@ -158,7 +159,7 @@ export class CallsController {
   @Get('availability/:userId')
   async checkCallAvailability(
     @Headers('authorization') authorization: string,
-    @Param('userId') userId: string,
+    @Param('userId') userId: string
   ) {
     return this.proxyService.get('messagingService', `/api/v1/calls/availability/${userId}`, {
       Authorization: authorization,

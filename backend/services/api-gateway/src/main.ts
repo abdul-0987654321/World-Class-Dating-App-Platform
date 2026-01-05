@@ -1,19 +1,20 @@
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import helmet from 'helmet';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { TracingMiddleware } from './middleware/tracing.middleware';
-import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
-import cookieParser from 'cookie-parser';
+import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
+import { TracingMiddleware } from './middleware/tracing.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -44,7 +45,7 @@ async function bootstrap() {
         xssFilter: false, // Handled by SecurityHeadersMiddleware
         referrerPolicy: false, // Handled by SecurityHeadersMiddleware
         permittedCrossDomainPolicies: false, // Handled by SecurityHeadersMiddleware
-      }),
+      })
     );
   }
 
@@ -55,7 +56,10 @@ async function bootstrap() {
   }
 
   // CORS - Enhanced configuration for CSRF protection
-  const corsOrigins = configService.get<string[]>('cors.origins') || ['http://localhost:5173', 'http://localhost:3000'];
+  const corsOrigins = configService.get<string[]>('cors.origins') || [
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ];
   const corsCredentials = configService.get<boolean>('cors.credentials') || true;
 
   app.enableCors({
@@ -113,15 +117,12 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
 
   // Global filters and interceptors
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(
-    new LoggingInterceptor(),
-    new TransformInterceptor(),
-  );
+  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
   // Swagger API documentation
   const swaggerConfig = new DocumentBuilder()
@@ -137,7 +138,7 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth',
+      'JWT-auth'
     )
     .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management endpoints')

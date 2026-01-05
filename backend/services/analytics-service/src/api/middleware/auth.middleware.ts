@@ -7,11 +7,13 @@
  * - Role-based access control (RBAC)
  */
 
+import crypto from 'crypto';
+
+import { createLogger } from '@flamoral/backend-shared';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+
 import config from '../../config';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('auth-middleware');
 
@@ -80,7 +82,7 @@ export const authenticate = async (
 ): Promise<void | Response> => {
   try {
     // Generate correlation ID for request tracing
-    req.correlationId = req.headers['x-correlation-id'] as string || generateCorrelationId();
+    req.correlationId = (req.headers['x-correlation-id'] as string) || generateCorrelationId();
     res.setHeader('X-Correlation-ID', req.correlationId);
 
     const authHeader = req.headers.authorization;
@@ -280,9 +282,10 @@ export const authenticateAny = async (
   next: NextFunction
 ): Promise<void | Response> => {
   // Generate correlation ID
-  req.correlationId = req.headers['x-correlation-id'] as string ||
-                      req.headers['x-request-id'] as string ||
-                      generateCorrelationId();
+  req.correlationId =
+    (req.headers['x-correlation-id'] as string) ||
+    (req.headers['x-request-id'] as string) ||
+    generateCorrelationId();
   res.setHeader('X-Correlation-ID', req.correlationId);
 
   // Check for internal service key first
@@ -290,7 +293,7 @@ export const authenticateAny = async (
   if (serviceKey) {
     const expectedKey = config.serviceApiKey;
     if (expectedKey && timingSafeEqual(serviceKey, expectedKey)) {
-      req.serviceId = req.headers['x-source-service'] as string || 'internal-service';
+      req.serviceId = (req.headers['x-source-service'] as string) || 'internal-service';
       req.requestId = req.headers['x-request-id'] as string;
       return next();
     }
@@ -333,7 +336,7 @@ export const optionalAuth = async (
   next: NextFunction
 ): Promise<void> => {
   // Generate correlation ID
-  req.correlationId = req.headers['x-correlation-id'] as string || generateCorrelationId();
+  req.correlationId = (req.headers['x-correlation-id'] as string) || generateCorrelationId();
   res.setHeader('X-Correlation-ID', req.correlationId);
 
   const authHeader = req.headers.authorization;

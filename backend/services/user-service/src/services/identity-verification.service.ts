@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
+
 import db from '../infrastructure/database/connection';
-import logger from '../utils/logger';
 import {
   VerificationType,
   VerificationStatus,
@@ -21,6 +21,7 @@ import {
   ArtifactProcessingStatus,
   VerificationDecision,
 } from '../types/verification.types';
+import logger from '../utils/logger';
 
 /**
  * Identity Verification Service
@@ -312,7 +313,10 @@ export class IdentityVerificationService {
   /**
    * Submit verification for review (called when all artifacts are uploaded)
    */
-  async submitForReview(userId: string, requestId: string): Promise<{ success: boolean; error?: string }> {
+  async submitForReview(
+    userId: string,
+    requestId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const request = await db('verification_requests')
         .where({
@@ -326,7 +330,10 @@ export class IdentityVerificationService {
       }
 
       if (request.status !== 'pending') {
-        return { success: false, error: `Cannot submit for review when status is ${request.status}` };
+        return {
+          success: false,
+          error: `Cannot submit for review when status is ${request.status}`,
+        };
       }
 
       // Check if all required artifacts are uploaded
@@ -397,11 +404,10 @@ export class IdentityVerificationService {
       }
 
       // Get all artifacts
-      const artifacts = await trx('verification_artifacts')
-        .where({ request_id: requestId });
+      const artifacts = await trx('verification_artifacts').where({ request_id: requestId });
 
       // Process each artifact
-      let allProcessed = true;
+      const allProcessed = true;
       let lowestConfidence = 1.0;
       let hasProcessingError = false;
 
@@ -433,7 +439,10 @@ export class IdentityVerificationService {
       if (hasProcessingError) {
         decision = 'inconclusive';
         reasonCode = VerificationReasonCode.PROCESSING_ERROR;
-      } else if (config.auto_approve_threshold && lowestConfidence >= config.auto_approve_threshold) {
+      } else if (
+        config.auto_approve_threshold &&
+        lowestConfidence >= config.auto_approve_threshold
+      ) {
         decision = 'approved';
         reasonCode = VerificationReasonCode.IDENTITY_CONFIRMED;
       } else if (lowestConfidence < 0.5) {
@@ -540,12 +549,10 @@ export class IdentityVerificationService {
 
       return { success: true, confidence };
     } catch (error: any) {
-      await trx('verification_artifacts')
-        .where({ artifact_id: artifact.artifact_id })
-        .update({
-          processing_status: 'failed',
-          processing_error: error.message,
-        });
+      await trx('verification_artifacts').where({ artifact_id: artifact.artifact_id }).update({
+        processing_status: 'failed',
+        processing_error: error.message,
+      });
 
       return { success: false };
     }
@@ -581,9 +588,7 @@ export class IdentityVerificationService {
         break;
     }
 
-    await trx('users')
-      .where({ id: userId })
-      .update(updateFields);
+    await trx('users').where({ id: userId }).update(updateFields);
 
     logger.info(`Updated verification status for user ${userId}`, {
       verificationType,
@@ -601,9 +606,7 @@ export class IdentityVerificationService {
   ): Promise<boolean> {
     const conn = trx || db;
 
-    const request = await conn('verification_requests')
-      .where({ request_id: requestId })
-      .first();
+    const request = await conn('verification_requests').where({ request_id: requestId }).first();
 
     if (!request) {
       return false;
@@ -622,12 +625,10 @@ export class IdentityVerificationService {
       return false;
     }
 
-    await conn('verification_requests')
-      .where({ request_id: requestId })
-      .update({
-        status: newStatus,
-        updated_at: new Date(),
-      });
+    await conn('verification_requests').where({ request_id: requestId }).update({
+      status: newStatus,
+      updated_at: new Date(),
+    });
 
     logger.info(`Transitioned verification status`, {
       requestId,
@@ -805,13 +806,11 @@ export class IdentityVerificationService {
       });
 
       // Update request status
-      await trx('verification_requests')
-        .where({ request_id: requestId })
-        .update({
-          status: 'approved',
-          completed_at: new Date(),
-          updated_at: new Date(),
-        });
+      await trx('verification_requests').where({ request_id: requestId }).update({
+        status: 'approved',
+        completed_at: new Date(),
+        updated_at: new Date(),
+      });
 
       // Update user verification status
       await this.updateUserVerificationStatus(request.user_id, request.type, trx);
@@ -875,13 +874,11 @@ export class IdentityVerificationService {
       });
 
       // Update request status
-      await trx('verification_requests')
-        .where({ request_id: requestId })
-        .update({
-          status: 'denied',
-          completed_at: new Date(),
-          updated_at: new Date(),
-        });
+      await trx('verification_requests').where({ request_id: requestId }).update({
+        status: 'denied',
+        completed_at: new Date(),
+        updated_at: new Date(),
+      });
 
       await trx.commit();
 
@@ -915,12 +912,7 @@ export class IdentityVerificationService {
       let query = db('verification_requests')
         .where({ status: 'in_review' })
         .leftJoin('users', 'verification_requests.user_id', 'users.id')
-        .select(
-          'verification_requests.*',
-          'users.email',
-          'users.first_name',
-          'users.last_name'
-        )
+        .select('verification_requests.*', 'users.email', 'users.first_name', 'users.last_name')
         .orderBy('verification_requests.submitted_at', 'asc');
 
       if (type) {

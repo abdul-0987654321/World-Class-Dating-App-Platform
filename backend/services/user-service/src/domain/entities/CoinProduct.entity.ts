@@ -51,7 +51,7 @@ export function getCoinValue(product: CoinProduct): number {
 
 // Helper to get best value product
 export function getBestValueProduct(products: CoinProduct[]): CoinProduct | null {
-  const activeProducts = products.filter(p => p.active);
+  const activeProducts = products.filter((p) => p.active);
 
   if (activeProducts.length === 0) {
     return null;
@@ -71,10 +71,7 @@ export function formatPrice(priceUsd: number): string {
 }
 
 // Calculate discount percentage
-export function calculateDiscountPercentage(
-  regularPrice: number,
-  salePrice: number
-): number {
+export function calculateDiscountPercentage(regularPrice: number, salePrice: number): number {
   if (regularPrice <= 0) return 0;
   const discount = ((regularPrice - salePrice) / regularPrice) * 100;
   return Math.round(discount);

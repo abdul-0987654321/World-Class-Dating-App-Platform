@@ -68,10 +68,7 @@ export class BadgeMatchingService {
    * Calculate interest badge compatibility score (0-100)
    * Higher score = more shared interests
    */
-  private calculateInterestBadgeScore(
-    userBadges: string[],
-    candidateBadges: string[]
-  ): number {
+  private calculateInterestBadgeScore(userBadges: string[], candidateBadges: string[]): number {
     if (userBadges.length === 0 || candidateBadges.length === 0) {
       return 50; // Neutral score if no badges selected
     }
@@ -102,10 +99,10 @@ export class BadgeMatchingService {
     }
 
     // Check for exact matches
-    const userBadgeIds = userBadges.map(b => b.badge_id);
-    const candidateBadgeIds = candidateBadges.map(b => b.badge_id);
+    const userBadgeIds = userBadges.map((b) => b.badge_id);
+    const candidateBadgeIds = candidateBadges.map((b) => b.badge_id);
 
-    const hasSharedIntention = userBadgeIds.some(id => candidateBadgeIds.includes(id));
+    const hasSharedIntention = userBadgeIds.some((id) => candidateBadgeIds.includes(id));
 
     if (!hasSharedIntention) {
       return 20; // Low score if no matching intentions
@@ -115,21 +112,23 @@ export class BadgeMatchingService {
     let score = 60; // Base score for any match
 
     // Primary intention match (both have same primary intention)
-    const userPrimary = userBadges.find(b => b.priority === 1);
-    const candidatePrimary = candidateBadges.find(b => b.priority === 1);
+    const userPrimary = userBadges.find((b) => b.priority === 1);
+    const candidatePrimary = candidateBadges.find((b) => b.priority === 1);
 
     if (userPrimary && candidatePrimary && userPrimary.badge_id === candidatePrimary.badge_id) {
       score += 40; // High bonus for matching primary intentions
     } else {
       // Check if either user's primary matches the other's secondary
-      const userSecondary = userBadges.find(b => b.priority === 2);
-      const candidateSecondary = candidateBadges.find(b => b.priority === 2);
+      const userSecondary = userBadges.find((b) => b.priority === 2);
+      const candidateSecondary = candidateBadges.find((b) => b.priority === 2);
 
       if (
-        (userPrimary && (candidatePrimary?.badge_id === userPrimary.badge_id ||
-                         candidateSecondary?.badge_id === userPrimary.badge_id)) ||
-        (candidatePrimary && (userPrimary?.badge_id === candidatePrimary.badge_id ||
-                              userSecondary?.badge_id === candidatePrimary.badge_id))
+        (userPrimary &&
+          (candidatePrimary?.badge_id === userPrimary.badge_id ||
+            candidateSecondary?.badge_id === userPrimary.badge_id)) ||
+        (candidatePrimary &&
+          (userPrimary?.badge_id === candidatePrimary.badge_id ||
+            userSecondary?.badge_id === candidatePrimary.badge_id))
       ) {
         score += 20; // Moderate bonus for partial match
       }
@@ -141,11 +140,8 @@ export class BadgeMatchingService {
   /**
    * Count number of shared interest badges
    */
-  private countSharedInterestBadges(
-    userBadges: string[],
-    candidateBadges: string[]
-  ): number {
-    return userBadges.filter(badge => candidateBadges.includes(badge)).length;
+  private countSharedInterestBadges(userBadges: string[], candidateBadges: string[]): number {
+    return userBadges.filter((badge) => candidateBadges.includes(badge)).length;
   }
 
   /**
@@ -159,10 +155,10 @@ export class BadgeMatchingService {
       return true; // No restrictions if no intentions set
     }
 
-    const userBadgeIds = userBadges.map(b => b.badge_id);
-    const candidateBadgeIds = candidateBadges.map(b => b.badge_id);
+    const userBadgeIds = userBadges.map((b) => b.badge_id);
+    const candidateBadgeIds = candidateBadges.map((b) => b.badge_id);
 
-    return userBadgeIds.some(id => candidateBadgeIds.includes(id));
+    return userBadgeIds.some((id) => candidateBadgeIds.includes(id));
   }
 
   /**
@@ -175,17 +171,17 @@ export class BadgeMatchingService {
   ): string[] {
     // If user has no intentions set, don't filter
     if (userBadges.intentionBadges.length === 0) {
-      return candidates.map(c => c.userId);
+      return candidates.map((c) => c.userId);
     }
 
     return candidates
-      .filter(candidate =>
+      .filter((candidate) =>
         this.checkIntentionCompatibility(
           userBadges.intentionBadges,
           candidate.badges.intentionBadges
         )
       )
-      .map(c => c.userId);
+      .map((c) => c.userId);
   }
 
   /**
@@ -197,14 +193,14 @@ export class BadgeMatchingService {
     minSharedInterests: number = 1
   ): string[] {
     return candidates
-      .filter(candidate => {
+      .filter((candidate) => {
         const shared = this.countSharedInterestBadges(
           userBadges.interestBadges,
           candidate.badges.interestBadges
         );
         return shared >= minSharedInterests;
       })
-      .map(c => c.userId);
+      .map((c) => c.userId);
   }
 
   /**

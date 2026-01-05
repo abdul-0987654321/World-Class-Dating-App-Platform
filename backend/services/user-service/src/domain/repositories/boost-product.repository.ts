@@ -1,9 +1,9 @@
+import db from '../../infrastructure/database/connection';
 import {
   BoostProduct,
   BoostProductCreateInput,
-  BoostProductUpdateInput
+  BoostProductUpdateInput,
 } from '../entities/BoostProduct.entity';
-import db from '../../infrastructure/database/connection';
 
 export class BoostProductRepository {
   private tableName = 'boost_products';
@@ -28,25 +28,19 @@ export class BoostProductRepository {
       updated_at: now,
     };
 
-    const [product] = await db(this.tableName)
-      .insert(productData)
-      .returning('*');
+    const [product] = await db(this.tableName).insert(productData).returning('*');
 
     return this.mapToEntity(product);
   }
 
   async findById(id: string): Promise<BoostProduct | null> {
-    const product = await db(this.tableName)
-      .where({ id })
-      .first();
+    const product = await db(this.tableName).where({ id }).first();
 
     return product ? this.mapToEntity(product) : null;
   }
 
   async findBySku(sku: string): Promise<BoostProduct | null> {
-    const product = await db(this.tableName)
-      .where({ sku })
-      .first();
+    const product = await db(this.tableName).where({ sku }).first();
 
     return product ? this.mapToEntity(product) : null;
   }
@@ -90,7 +84,8 @@ export class BoostProductRepository {
     if (input.name !== undefined) updateData.name = input.name;
     if (input.description !== undefined) updateData.description = input.description;
     if (input.durationMinutes !== undefined) updateData.duration_minutes = input.durationMinutes;
-    if (input.visibilityMultiplier !== undefined) updateData.visibility_multiplier = input.visibilityMultiplier;
+    if (input.visibilityMultiplier !== undefined)
+      updateData.visibility_multiplier = input.visibilityMultiplier;
     if (input.quantity !== undefined) updateData.quantity = input.quantity;
     if (input.coinPrice !== undefined) updateData.coin_price = input.coinPrice;
     if (input.usdPrice !== undefined) updateData.usd_price = input.usdPrice;
@@ -99,10 +94,7 @@ export class BoostProductRepository {
     if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
     if (input.badgeText !== undefined) updateData.badge_text = input.badgeText;
 
-    const [product] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [product] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(product);
   }
@@ -120,9 +112,7 @@ export class BoostProductRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   // Soft delete - just deactivate

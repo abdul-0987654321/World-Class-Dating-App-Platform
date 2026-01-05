@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware';
-import { messageController } from '../controllers/message.controller';
+
 import {
   validateBody,
   SendMessageDto,
@@ -8,6 +7,8 @@ import {
   DeleteMessageDto,
   UpdateMessageStatusDto,
 } from '../../dto';
+import { messageController } from '../controllers/message.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -96,11 +97,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  '/unread-count',
-  authenticate,
-  messageController.getUnreadCount.bind(messageController)
-);
+router.get('/unread-count', authenticate, messageController.getUnreadCount.bind(messageController));
 
 /**
  * @swagger
@@ -131,11 +128,7 @@ router.get(
  *       404:
  *         description: Message not found
  */
-router.get(
-  '/:messageId',
-  authenticate,
-  messageController.getMessage.bind(messageController)
-);
+router.get('/:messageId', authenticate, messageController.getMessage.bind(messageController));
 
 /**
  * @swagger

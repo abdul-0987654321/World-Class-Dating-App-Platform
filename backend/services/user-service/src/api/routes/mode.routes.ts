@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { ModeController } from '../controllers/mode.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -211,6 +212,10 @@ router.post('/switch', authenticate, modeController.switchMode.bind(modeControll
  *       401:
  *         description: Unauthorized
  */
-router.put('/:mode/preferences', authenticate, modeController.updateModePreferences.bind(modeController));
+router.put(
+  '/:mode/preferences',
+  authenticate,
+  modeController.updateModePreferences.bind(modeController)
+);
 
 export default router;

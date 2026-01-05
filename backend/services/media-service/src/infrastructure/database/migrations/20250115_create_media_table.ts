@@ -25,7 +25,8 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('is_verified').defaultTo(false);
 
     // Moderation
-    table.enum('moderation_status', ['pending', 'approved', 'rejected', 'flagged'])
+    table
+      .enum('moderation_status', ['pending', 'approved', 'rejected', 'flagged'])
       .defaultTo('pending')
       .index();
     table.jsonb('moderation_result').nullable();

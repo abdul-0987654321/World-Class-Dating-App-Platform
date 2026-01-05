@@ -1,10 +1,10 @@
+import db from '../../infrastructure/database/connection';
 import {
   UsageLimit,
   UsageLimitCreateInput,
   UsageLimitUpdateInput,
-  getNextResetTime
+  getNextResetTime,
 } from '../entities/UsageLimit.entity';
-import db from '../../infrastructure/database/connection';
 
 export class UsageLimitRepository {
   private tableName = 'usage_limits';
@@ -21,17 +21,13 @@ export class UsageLimitRepository {
       updated_at: now,
     };
 
-    const [limit] = await db(this.tableName)
-      .insert(limitData)
-      .returning('*');
+    const [limit] = await db(this.tableName).insert(limitData).returning('*');
 
     return this.mapToEntity(limit);
   }
 
   async findById(id: string): Promise<UsageLimit | null> {
-    const limit = await db(this.tableName)
-      .where({ id })
-      .first();
+    const limit = await db(this.tableName).where({ id }).first();
 
     return limit ? this.mapToEntity(limit) : null;
   }
@@ -45,9 +41,7 @@ export class UsageLimitRepository {
   }
 
   async findByUserId(userId: string): Promise<UsageLimit[]> {
-    const limits = await db(this.tableName)
-      .where({ user_id: userId })
-      .select('*');
+    const limits = await db(this.tableName).where({ user_id: userId }).select('*');
 
     return limits.map(this.mapToEntity);
   }
@@ -61,10 +55,7 @@ export class UsageLimitRepository {
     if (input.currentUsage !== undefined) updateData.current_usage = input.currentUsage;
     if (input.resetAt !== undefined) updateData.reset_at = input.resetAt;
 
-    const [limit] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [limit] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(limit);
   }
@@ -119,15 +110,11 @@ export class UsageLimitRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await db(this.tableName)
-      .where({ user_id: userId })
-      .del();
+    await db(this.tableName).where({ user_id: userId }).del();
   }
 
   // Map database row to entity

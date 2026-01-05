@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { DailyRewardService } from '../../domain/services/DailyReward.service';
 import { getDbConnection } from '../../infrastructure/database/connection';
 

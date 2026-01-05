@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { optimizationService } from '../../domain/services/optimization.service';
 import logger from '../../utils/logger';
 

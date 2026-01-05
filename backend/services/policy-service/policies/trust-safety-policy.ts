@@ -480,9 +480,7 @@ export const trustSafetyPolicy: TrustSafetyPolicy = {
     {
       region: 'European Union',
       emergency: '112',
-      hotlines: [
-        'EU Victims Rights: ec.europa.eu/victims-rights',
-      ],
+      hotlines: ['EU Victims Rights: ec.europa.eu/victims-rights'],
     },
     {
       region: 'Canada',
@@ -495,11 +493,7 @@ export const trustSafetyPolicy: TrustSafetyPolicy = {
     {
       region: 'Australia',
       emergency: '000',
-      hotlines: [
-        '1800 Respect: 1800 737 732',
-        'Lifeline: 13 11 14',
-        'Scamwatch: scamwatch.gov.au',
-      ],
+      hotlines: ['1800 Respect: 1800 737 732', 'Lifeline: 13 11 14', 'Scamwatch: scamwatch.gov.au'],
     },
   ],
 };

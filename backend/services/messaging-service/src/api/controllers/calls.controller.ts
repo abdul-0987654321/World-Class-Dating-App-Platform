@@ -3,11 +3,12 @@
  * Handles audio/video calling REST endpoints
  */
 
-import { Request, Response } from 'express';
-import { VideoCallService, CallSession } from '../../services/video-call.service';
-import { RedisClient } from '../../infrastructure/cache/redis';
-import { createLogger } from '../../utils/logger';
 import axios from 'axios';
+import { Request, Response } from 'express';
+
+import { RedisClient } from '../../infrastructure/cache/redis';
+import { VideoCallService, CallSession } from '../../services/video-call.service';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('calls-controller');
 
@@ -61,15 +62,20 @@ async function areUsersMatched(userId1: string, userId2: string): Promise<boolea
 /**
  * Check if user has premium subscription
  */
-async function checkUserSubscription(userId: string): Promise<{ isPremium: boolean; tier: string }> {
+async function checkUserSubscription(
+  userId: string
+): Promise<{ isPremium: boolean; tier: string }> {
   try {
-    const response = await axios.get(`${USER_SERVICE_URL}/api/internal/users/${userId}/subscription`, {
-      headers: {
-        'X-Service-Key': INTERNAL_SERVICE_KEY,
-        'Content-Type': 'application/json',
-      },
-      timeout: 5000,
-    });
+    const response = await axios.get(
+      `${USER_SERVICE_URL}/api/internal/users/${userId}/subscription`,
+      {
+        headers: {
+          'X-Service-Key': INTERNAL_SERVICE_KEY,
+          'Content-Type': 'application/json',
+        },
+        timeout: 5000,
+      }
+    );
 
     if (response.status === 200 && response.data.success) {
       const tier = response.data.data?.tier || 'free';

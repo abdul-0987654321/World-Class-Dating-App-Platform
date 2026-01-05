@@ -80,7 +80,8 @@ export const config = {
 
   // AI Services
   services: {
-    photoAnalysisUrl: process.env.PHOTO_ANALYSIS_SERVICE_URL || 'http://photo-analysis-service:8003',
+    photoAnalysisUrl:
+      process.env.PHOTO_ANALYSIS_SERVICE_URL || 'http://photo-analysis-service:8003',
   },
 
   // Photo Analysis Settings

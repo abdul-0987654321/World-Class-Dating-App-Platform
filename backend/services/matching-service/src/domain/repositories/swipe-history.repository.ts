@@ -1,8 +1,9 @@
-import { Knex } from 'knex';
-import db from '../../infrastructure/database/connection';
-import { SwipeHistory, RewindUsage } from '../entities/SwipeHistory.entity';
-import { SwipeAction } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+import { Knex } from 'knex';
+
+import db from '../../infrastructure/database/connection';
+import { SwipeAction } from '../../types';
+import { SwipeHistory, RewindUsage } from '../entities/SwipeHistory.entity';
 
 const logger = createLogger('swipe-history-repository');
 
@@ -54,9 +55,7 @@ export class SwipeHistoryRepository {
    */
   async findById(id: string): Promise<SwipeHistory | null> {
     try {
-      const record = await this.db('swipe_history')
-        .where({ id })
-        .first();
+      const record = await this.db('swipe_history').where({ id }).first();
 
       return record ? this.mapToSwipeHistory(record) : null;
     } catch (error) {
@@ -127,12 +126,10 @@ export class SwipeHistoryRepository {
    */
   async markAsRewound(id: string): Promise<boolean> {
     try {
-      const updated = await this.db('swipe_history')
-        .where({ id })
-        .update({
-          rewound: true,
-          rewound_at: new Date(),
-        });
+      const updated = await this.db('swipe_history').where({ id }).update({
+        rewound: true,
+        rewound_at: new Date(),
+      });
 
       return updated > 0;
     } catch (error) {
@@ -214,7 +211,7 @@ export class SwipeHistoryRepository {
         .count('* as count')
         .first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get rewind count for date', error);
       throw error;
@@ -224,11 +221,7 @@ export class SwipeHistoryRepository {
   /**
    * Get rewind count for a user in a date range
    */
-  async getRewindCountForPeriod(
-    userId: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<number> {
+  async getRewindCountForPeriod(userId: string, startDate: Date, endDate: Date): Promise<number> {
     try {
       const result = await this.db('rewind_usage')
         .where({ user_id: userId })
@@ -236,7 +229,7 @@ export class SwipeHistoryRepository {
         .count('* as count')
         .first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get rewind count for period', error);
       throw error;

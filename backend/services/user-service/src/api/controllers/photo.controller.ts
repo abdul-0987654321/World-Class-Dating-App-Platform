@@ -1,8 +1,9 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+
 import { PhotoService } from '../../domain/services/photo.service';
 import { uploadService } from '../../infrastructure/storage/upload.service';
 import logger from '../../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class PhotoController {
   private photoService: PhotoService;
@@ -13,7 +14,7 @@ export class PhotoController {
 
   async getUserPhotos(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const photos = await this.photoService.getUserPhotos(userId);
 
       return res.status(200).json({
@@ -31,7 +32,7 @@ export class PhotoController {
 
   async uploadPhoto(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const file = req.file;
 
       // Check if file was uploaded
@@ -74,7 +75,7 @@ export class PhotoController {
 
   async addPhoto(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { url, thumbnail_url } = req.body;
 
       if (!url) {
@@ -102,7 +103,7 @@ export class PhotoController {
 
   async deletePhoto(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { photoId } = req.params;
 
       await this.photoService.deletePhoto(userId, photoId);
@@ -122,7 +123,7 @@ export class PhotoController {
 
   async setPrimaryPhoto(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { photoId } = req.params;
 
       await this.photoService.setPrimaryPhoto(userId, photoId);
@@ -142,7 +143,7 @@ export class PhotoController {
 
   async reorderPhotos(req: AuthRequest, res: Response): Promise<Response> {
     try {
-      const userId = req.user!.userId;
+      const userId = req.user.userId;
       const { photoOrders } = req.body;
 
       if (!Array.isArray(photoOrders)) {

@@ -16,9 +16,10 @@
  * - Tamper detection
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { createLogger } from '../utils/logger';
+
+import { v4 as uuidv4 } from 'uuid';
+
 import db from '../infrastructure/database/connection';
 import {
   CSAMDetectionResult,
@@ -26,6 +27,7 @@ import {
   AuditEventType,
   AuditSeverity,
 } from '../types/csam.types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('csam-audit-service');
 
@@ -65,7 +67,6 @@ export class CSAMAuditService {
         },
         sensitiveData: true,
       });
-
     } catch (error: any) {
       logger.error('Failed to log detection event', error);
       // Don't throw - audit failure shouldn't block detection
@@ -100,7 +101,6 @@ export class CSAMAuditService {
         detectionId: params.detectionResult.detectionId,
         quarantineId: params.quarantineId,
       });
-
     } catch (error: any) {
       logger.error('Failed to log CSAM incident', error);
     }
@@ -132,7 +132,6 @@ export class CSAMAuditService {
         },
         sensitiveData: true,
       });
-
     } catch (error: any) {
       logger.error('Failed to log NCMEC report', error);
     }
@@ -162,7 +161,6 @@ export class CSAMAuditService {
         },
         sensitiveData: true,
       });
-
     } catch (error: any) {
       logger.error('Failed to log content quarantine', error);
     }
@@ -194,7 +192,6 @@ export class CSAMAuditService {
         },
         sensitiveData: true,
       });
-
     } catch (error: any) {
       logger.error('Failed to log law enforcement access', error);
     }
@@ -224,7 +221,6 @@ export class CSAMAuditService {
         },
         sensitiveData: false,
       });
-
     } catch (error: any) {
       logger.error('Failed to log user account action', error);
     }
@@ -256,7 +252,6 @@ export class CSAMAuditService {
         },
         sensitiveData: false,
       });
-
     } catch (error: any) {
       logger.error('Failed to log system error', error);
     }
@@ -290,7 +285,6 @@ export class CSAMAuditService {
         },
         sensitiveData: true,
       });
-
     } catch (error: any) {
       logger.error('Failed to log admin action', error);
     }
@@ -344,7 +338,6 @@ export class CSAMAuditService {
         eventType: params.eventType,
         severity: params.severity,
       });
-
     } catch (error: any) {
       logger.error('Failed to create audit log', {
         eventType: params.eventType,
@@ -361,10 +354,7 @@ export class CSAMAuditService {
    */
   private generateSignature(data: any): string {
     const dataString = JSON.stringify(data);
-    return crypto
-      .createHmac('sha256', this.signingKey)
-      .update(dataString)
-      .digest('hex');
+    return crypto.createHmac('sha256', this.signingKey).update(dataString).digest('hex');
   }
 
   /**
@@ -382,7 +372,6 @@ export class CSAMAuditService {
 
       const expectedSignature = this.generateSignature(data);
       return expectedSignature === auditLog.signature;
-
     } catch (error: any) {
       logger.error('Signature verification failed', error);
       return false;
@@ -392,15 +381,17 @@ export class CSAMAuditService {
   /**
    * Get audit logs
    */
-  async getAuditLogs(filters: {
-    eventType?: AuditEventType;
-    severity?: AuditSeverity;
-    detectionId?: string;
-    userId?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-  } = {}): Promise<CSAMAuditLog[]> {
+  async getAuditLogs(
+    filters: {
+      eventType?: AuditEventType;
+      severity?: AuditSeverity;
+      detectionId?: string;
+      userId?: string;
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    } = {}
+  ): Promise<CSAMAuditLog[]> {
     try {
       let query = db('csam_audit_logs');
 
@@ -428,12 +419,9 @@ export class CSAMAuditService {
         query = query.where('timestamp', '<=', filters.endDate);
       }
 
-      const logs = await query
-        .orderBy('timestamp', 'desc')
-        .limit(filters.limit || 100);
+      const logs = await query.orderBy('timestamp', 'desc').limit(filters.limit || 100);
 
       return logs;
-
     } catch (error: any) {
       logger.error('Failed to get audit logs', error);
       return [];
@@ -459,11 +447,21 @@ export class CSAMAuditService {
         .where('timestamp', '>=', startDate)
         .select(
           db.raw('COUNT(*) as total_events'),
-          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as csam_detected', [AuditEventType.CSAM_DETECTED]),
-          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as ncmec_reports', [AuditEventType.NCMEC_REPORT_SUBMITTED]),
-          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as quarantines', [AuditEventType.CONTENT_QUARANTINED]),
-          db.raw('COUNT(CASE WHEN severity = ? THEN 1 END) as critical_events', [AuditSeverity.CRITICAL]),
-          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as law_enforcement_access', [AuditEventType.LAW_ENFORCEMENT_ACCESS])
+          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as csam_detected', [
+            AuditEventType.CSAM_DETECTED,
+          ]),
+          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as ncmec_reports', [
+            AuditEventType.NCMEC_REPORT_SUBMITTED,
+          ]),
+          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as quarantines', [
+            AuditEventType.CONTENT_QUARANTINED,
+          ]),
+          db.raw('COUNT(CASE WHEN severity = ? THEN 1 END) as critical_events', [
+            AuditSeverity.CRITICAL,
+          ]),
+          db.raw('COUNT(CASE WHEN event_type = ? THEN 1 END) as law_enforcement_access', [
+            AuditEventType.LAW_ENFORCEMENT_ACCESS,
+          ])
         )
         .first();
 
@@ -472,7 +470,6 @@ export class CSAMAuditService {
         startDate,
         ...stats,
       };
-
     } catch (error: any) {
       logger.error('Failed to get audit statistics', error);
       throw error;
@@ -505,7 +502,6 @@ export class CSAMAuditService {
       });
 
       return logs;
-
     } catch (error: any) {
       logger.error('Failed to export audit logs', error);
       throw error;
@@ -515,7 +511,10 @@ export class CSAMAuditService {
   /**
    * Verify audit log chain integrity
    */
-  async verifyAuditChainIntegrity(startDate: Date, endDate: Date): Promise<{
+  async verifyAuditChainIntegrity(
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     valid: boolean;
     totalLogs: number;
     tamperedLogs: number;
@@ -550,7 +549,6 @@ export class CSAMAuditService {
       }
 
       return result;
-
     } catch (error: any) {
       logger.error('Failed to verify audit chain integrity', error);
       throw error;

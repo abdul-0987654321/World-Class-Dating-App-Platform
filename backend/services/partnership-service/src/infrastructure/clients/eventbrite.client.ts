@@ -1,7 +1,8 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
-import { EventSearchParams, EventCategory, Venue, Address } from '../../types';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
 import { DATE_FRIENDLY_KEYWORDS } from '../../domain/entities/Event.entity';
+import { EventSearchParams, EventCategory, Venue, Address } from '../../types';
 
 const logger = createLogger('eventbrite-client');
 
@@ -126,7 +127,7 @@ export class EventbriteClient {
     this.client = axios.create({
       baseURL: process.env.EVENTBRITE_API_URL || 'https://www.eventbriteapi.com/v3',
       headers: {
-        'Authorization': `Bearer ${this.apiToken}`,
+        Authorization: `Bearer ${this.apiToken}`,
         'Content-Type': 'application/json',
       },
       timeout: 30000,
@@ -182,9 +183,7 @@ export class EventbriteClient {
       }
 
       if (params.category && params.category.length > 0) {
-        const categoryIds = params.category.map(c =>
-          this.getCategoryId(c)
-        ).filter(Boolean);
+        const categoryIds = params.category.map((c) => this.getCategoryId(c)).filter(Boolean);
         if (categoryIds.length > 0) {
           queryParams.categories = categoryIds.join(',');
         }
@@ -262,8 +261,8 @@ export class EventbriteClient {
     let maxPrice = 0;
     if (event.ticket_classes && event.ticket_classes.length > 0) {
       const prices = event.ticket_classes
-        .filter(tc => tc.cost)
-        .map(tc => parseFloat(tc.cost!.major_value));
+        .filter((tc) => tc.cost)
+        .map((tc) => parseFloat(tc.cost.major_value));
 
       if (prices.length > 0) {
         minPrice = Math.min(...prices);
@@ -350,9 +349,7 @@ export class EventbriteClient {
 
     // Keyword-based check
     const searchText = `${event.name.text} ${event.description?.text || ''}`.toLowerCase();
-    return DATE_FRIENDLY_KEYWORDS.some(keyword =>
-      searchText.includes(keyword.toLowerCase())
-    );
+    return DATE_FRIENDLY_KEYWORDS.some((keyword) => searchText.includes(keyword.toLowerCase()));
   }
 
   /**

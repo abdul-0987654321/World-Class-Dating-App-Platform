@@ -1,4 +1,10 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createLogger } from '@flamoral/backend-shared';
 
@@ -38,11 +44,7 @@ class S3StorageService {
   /**
    * Upload a file to S3
    */
-  async uploadFile(
-    fileName: string,
-    fileBuffer: Buffer,
-    contentType: string
-  ): Promise<string> {
+  async uploadFile(fileName: string, fileBuffer: Buffer, contentType: string): Promise<string> {
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucket,

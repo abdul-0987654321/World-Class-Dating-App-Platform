@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { authenticateUser } from '../middleware/auth.middleware';
+
 import { MessageAutomationController } from '../controllers/message-automation.controller';
 import { SmartReplyController } from '../controllers/smart-reply.controller';
+import { authenticateUser } from '../middleware/auth.middleware';
 import { IcebreakerService } from '../services/icebreaker.service';
 
 const router = Router();
@@ -13,17 +14,9 @@ const smartReplyController = new SmartReplyController();
 /**
  * Message Automation Routes
  */
-router.post(
-  '/auto-response',
-  authenticateUser,
-  messageAutomationController.createAutoResponse
-);
+router.post('/auto-response', authenticateUser, messageAutomationController.createAutoResponse);
 
-router.post(
-  '/schedule-message',
-  authenticateUser,
-  messageAutomationController.scheduleMessage
-);
+router.post('/schedule-message', authenticateUser, messageAutomationController.scheduleMessage);
 
 router.get(
   '/scheduled-messages',
@@ -40,11 +33,7 @@ router.delete(
 /**
  * Smart Reply Routes
  */
-router.post(
-  '/smart-replies',
-  authenticateUser,
-  smartReplyController.generateSmartReplies
-);
+router.post('/smart-replies', authenticateUser, smartReplyController.generateSmartReplies);
 
 router.post(
   '/conversation-starters',
@@ -52,17 +41,9 @@ router.post(
   smartReplyController.generateConversationStarters
 );
 
-router.post(
-  '/analyze-message',
-  authenticateUser,
-  smartReplyController.analyzeMessage
-);
+router.post('/analyze-message', authenticateUser, smartReplyController.analyzeMessage);
 
-router.post(
-  '/rewrite-message',
-  authenticateUser,
-  smartReplyController.rewriteMessage
-);
+router.post('/rewrite-message', authenticateUser, smartReplyController.rewriteMessage);
 
 /**
  * Icebreaker Routes

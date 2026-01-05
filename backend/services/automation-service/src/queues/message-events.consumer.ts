@@ -1,7 +1,9 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { rabbitmqClient } from './rabbitmq-client';
-import { GhostingDetectionService } from '../services/ghosting-detection.service';
+
 import config from '../config';
+import { GhostingDetectionService } from '../services/ghosting-detection.service';
+
+import { rabbitmqClient } from './rabbitmq-client';
 
 const logger = createLogger('automation-service:message-events');
 

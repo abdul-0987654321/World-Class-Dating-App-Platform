@@ -1,12 +1,13 @@
-import Queue from 'bull';
-import queueManager from '../infrastructure/queue/queue-manager';
-import { QueueName } from '../infrastructure/queue/queue-config';
-import { ImageProcessingJobData, JobResult } from '../infrastructure/queue/job-types';
-import imageProcessingService from '../domain/services/image-processing.service';
-import azureStorageService from '../infrastructure/storage/azure-storage.service';
-import mediaRepository from '../domain/repositories/media.repository';
-import { MediaMetadata, ModerationStatus } from '../types';
 import { createLogger } from '@flamoral/backend-shared';
+import Queue from 'bull';
+
+import mediaRepository from '../domain/repositories/media.repository';
+import imageProcessingService from '../domain/services/image-processing.service';
+import { ImageProcessingJobData, JobResult } from '../infrastructure/queue/job-types';
+import { QueueName } from '../infrastructure/queue/queue-config';
+import queueManager from '../infrastructure/queue/queue-manager';
+import azureStorageService from '../infrastructure/storage/azure-storage.service';
+import { MediaMetadata, ModerationStatus } from '../types';
 
 const logger = createLogger('image-processing-worker');
 

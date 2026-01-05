@@ -1,10 +1,10 @@
-import { UserRepository } from '../repositories/user.repository';
-import { ProfileRepository } from '../repositories/profile.repository';
+import db from '../../infrastructure/database/connection';
+import { MatchRepository } from '../repositories/match.repository';
 import { PhotoRepository } from '../repositories/photo.repository';
+import { ProfileRepository } from '../repositories/profile.repository';
 import { PromptRepository } from '../repositories/prompt.repository';
 import { SwipeRepository } from '../repositories/swipe.repository';
-import { MatchRepository } from '../repositories/match.repository';
-import db from '../../infrastructure/database/connection';
+import { UserRepository } from '../repositories/user.repository';
 
 export interface DiscoveryProfile {
   id: string;
@@ -167,7 +167,7 @@ export class DiscoveryService {
       if (!photoMap.has(photo.user_id)) {
         photoMap.set(photo.user_id, []);
       }
-      photoMap.get(photo.user_id)!.push(photo);
+      photoMap.get(photo.user_id).push(photo);
     });
 
     // Fetch all prompts in a single query
@@ -177,7 +177,7 @@ export class DiscoveryService {
       if (!promptMap.has(prompt.user_id)) {
         promptMap.set(prompt.user_id, []);
       }
-      promptMap.get(prompt.user_id)!.push(prompt);
+      promptMap.get(prompt.user_id).push(prompt);
     });
 
     for (const candidate of candidates) {
@@ -280,12 +280,7 @@ export class DiscoveryService {
     return age;
   }
 
-  private calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const earthRadiusKm = 6371;
 
     const dLat = this.degreesToRadians(lat2 - lat1);

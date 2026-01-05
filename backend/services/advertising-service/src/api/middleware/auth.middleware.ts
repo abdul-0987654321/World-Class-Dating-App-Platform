@@ -1,6 +1,8 @@
+import crypto from 'crypto';
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+
 import logger from '../../utils/logger';
 
 /**
@@ -249,7 +251,9 @@ export const authenticateService = (
   const isValid = timingSafeEqual(serviceKey, expectedKey);
 
   if (!isValid) {
-    logger.warn(`Service auth failed: Invalid key from ${sourceService || 'unknown'} - ${req.method} ${req.path}`);
+    logger.warn(
+      `Service auth failed: Invalid key from ${sourceService || 'unknown'} - ${req.method} ${req.path}`
+    );
     res.status(403).json({
       success: false,
       error: 'Invalid service credentials',
@@ -272,15 +276,15 @@ export const authenticateService = (
 const rateLimitStore: Map<string, { count: number; resetTime: number }> = new Map();
 
 interface RateLimiterOptions {
-  windowMs?: number;  // Time window in milliseconds
-  maxRequests?: number;  // Maximum requests per window
+  windowMs?: number; // Time window in milliseconds
+  maxRequests?: number; // Maximum requests per window
 }
 
 export const createRateLimiter = (options: RateLimiterOptions = {}) => {
   const { windowMs = 60000, maxRequests = 100 } = options;
 
   return (req: Request, res: Response, next: NextFunction): void => {
-    const clientId = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
+    const clientId = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
     const now = Date.now();
 
     let clientData = rateLimitStore.get(clientId);
@@ -339,14 +343,17 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 // Clean up rate limit store periodically (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (now > value.resetTime) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 // Export authenticateJWT as authMiddleware for backward compatibility
 export const authMiddleware = authenticateJWT;

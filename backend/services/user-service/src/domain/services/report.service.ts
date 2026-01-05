@@ -1,17 +1,17 @@
 import { createLogger } from '../../utils/logger';
 const logger = createLogger('ReportService');
 
-import { ReportRepository } from '../repositories/report.repository';
-import { ReportCategoryRepository } from '../repositories/report-category.repository';
 import {
   Report,
   ReportCreateInput,
   REPORT_STATUS,
   ACTION_TAKEN,
   validateReport,
-  getPriorityScore
+  getPriorityScore,
 } from '../entities/Report.entity';
 import { requiresImmediateAction } from '../entities/ReportCategory.entity';
+import { ReportCategoryRepository } from '../repositories/report-category.repository';
+import { ReportRepository } from '../repositories/report.repository';
 
 export class ReportService {
   private reportRepository: ReportRepository;
@@ -35,7 +35,7 @@ export class ReportService {
     // Check if user has already reported this person
     const existingReports = await this.reportRepository.findByReporterId(input.reporterId);
     const alreadyReported = existingReports.some(
-      report => report.reportedId === input.reportedId && report.status === REPORT_STATUS.PENDING
+      (report) => report.reportedId === input.reportedId && report.status === REPORT_STATUS.PENDING
     );
 
     if (alreadyReported) {
@@ -111,10 +111,7 @@ export class ReportService {
   /**
    * Update report status
    */
-  async updateReportStatus(
-    reportId: string,
-    status: Report['status']
-  ): Promise<Report> {
+  async updateReportStatus(reportId: string, status: Report['status']): Promise<Report> {
     return await this.reportRepository.update(reportId, { status });
   }
 
@@ -138,11 +135,7 @@ export class ReportService {
   /**
    * Dismiss a report
    */
-  async dismissReport(
-    reportId: string,
-    moderatorId: string,
-    reason: string
-  ): Promise<Report> {
+  async dismissReport(reportId: string, moderatorId: string, reason: string): Promise<Report> {
     return await this.reportRepository.dismissReport(reportId, moderatorId, reason);
   }
 
@@ -195,10 +188,7 @@ export class ReportService {
   /**
    * Take automatic action based on report category
    */
-  private async takeAutoAction(
-    report: Report,
-    action: string
-  ): Promise<void> {
+  private async takeAutoAction(report: Report, action: string): Promise<void> {
     // This would integrate with user suspension/ban system
     // For now, just update report to investigating status
     await this.reportRepository.update(report.id, {
@@ -244,11 +234,15 @@ export class ReportService {
 
     const summary = {
       totalReports: reports.length,
-      pendingReports: reports.filter(r => r.status === REPORT_STATUS.PENDING).length,
-      resolvedReports: reports.filter(r =>
-        r.status === REPORT_STATUS.RESOLVED || r.status === REPORT_STATUS.ACTION_TAKEN || r.status === REPORT_STATUS.DISMISSED
+      pendingReports: reports.filter((r) => r.status === REPORT_STATUS.PENDING).length,
+      resolvedReports: reports.filter(
+        (r) =>
+          r.status === REPORT_STATUS.RESOLVED ||
+          r.status === REPORT_STATUS.ACTION_TAKEN ||
+          r.status === REPORT_STATUS.DISMISSED
       ).length,
-      actionsTaken: reports.filter(r => r.actionTaken && r.actionTaken !== ACTION_TAKEN.NONE).length,
+      actionsTaken: reports.filter((r) => r.actionTaken && r.actionTaken !== ACTION_TAKEN.NONE)
+        .length,
       mostCommonTypes: this.getMostCommonTypes(reports),
     };
 
@@ -261,7 +255,7 @@ export class ReportService {
   private getMostCommonTypes(reports: Report[]): Array<{ type: string; count: number }> {
     const typeCounts: Record<string, number> = {};
 
-    reports.forEach(report => {
+    reports.forEach((report) => {
       typeCounts[report.reportType] = (typeCounts[report.reportType] || 0) + 1;
     });
 

@@ -6,7 +6,16 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.string('name', 100).notNullable();
     table.enum('type', ['restaurant', 'events', 'gifts', 'experiences']).notNullable();
-    table.enum('integration_type', ['opentable', 'resy', 'ticketmaster', 'eventbrite', 'flowers', 'custom']).notNullable();
+    table
+      .enum('integration_type', [
+        'opentable',
+        'resy',
+        'ticketmaster',
+        'eventbrite',
+        'flowers',
+        'custom',
+      ])
+      .notNullable();
     table.enum('status', ['active', 'inactive', 'pending', 'suspended']).defaultTo('pending');
     table.text('api_key');
     table.text('api_secret');
@@ -71,7 +80,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('partner_id').notNullable().references('id').inTable('partners');
     table.uuid('restaurant_id').notNullable().references('id').inTable('restaurants');
     table.string('external_reservation_id', 100);
-    table.enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'no_show']).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'no_show'])
+      .defaultTo('pending');
     table.date('date').notNullable();
     table.time('time').notNullable();
     table.integer('party_size').notNullable().defaultTo(2);
@@ -99,7 +110,18 @@ export async function up(knex: Knex): Promise<void> {
     table.string('external_id', 100).notNullable();
     table.string('name', 300).notNullable();
     table.text('description');
-    table.enum('category', ['concerts', 'sports', 'theater', 'comedy', 'festivals', 'experiences', 'classes', 'food_drink']).notNullable();
+    table
+      .enum('category', [
+        'concerts',
+        'sports',
+        'theater',
+        'comedy',
+        'festivals',
+        'experiences',
+        'classes',
+        'food_drink',
+      ])
+      .notNullable();
     table.string('subcategory', 100);
     table.string('venue_name', 200);
     table.string('venue_street1', 200);
@@ -139,7 +161,9 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('partner_id').notNullable().references('id').inTable('partners');
     table.uuid('event_id').notNullable().references('id').inTable('events');
     table.string('external_order_id', 100);
-    table.enum('status', ['pending', 'confirmed', 'cancelled', 'refunded', 'attended']).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'confirmed', 'cancelled', 'refunded', 'attended'])
+      .defaultTo('pending');
     table.jsonb('tickets').notNullable().defaultTo('[]');
     table.decimal('total_amount', 10, 2).notNullable();
     table.string('currency', 3).defaultTo('USD');
@@ -164,7 +188,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('external_id', 100).notNullable();
     table.string('name', 200).notNullable();
     table.text('description');
-    table.enum('category', ['flowers', 'chocolates', 'wine', 'jewelry', 'experiences', 'custom']).notNullable();
+    table
+      .enum('category', ['flowers', 'chocolates', 'wine', 'jewelry', 'experiences', 'custom'])
+      .notNullable();
     table.decimal('price', 10, 2).notNullable();
     table.string('currency', 3).defaultTo('USD');
     table.specificType('image_urls', 'text[]').defaultTo('{}');
@@ -190,7 +216,17 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('recipient_match_id');
     table.uuid('partner_id').notNullable().references('id').inTable('partners');
     table.string('external_order_id', 100);
-    table.enum('status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']).defaultTo('pending');
+    table
+      .enum('status', [
+        'pending',
+        'confirmed',
+        'processing',
+        'shipped',
+        'delivered',
+        'cancelled',
+        'refunded',
+      ])
+      .defaultTo('pending');
     table.jsonb('items').notNullable().defaultTo('[]');
     table.jsonb('shipping_address').notNullable();
     table.jsonb('billing_address');

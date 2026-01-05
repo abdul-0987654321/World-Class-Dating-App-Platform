@@ -49,16 +49,16 @@ export class ConciergeRepository {
     };
   }
 
-  async updateRequest(id: string, data: ConciergeRequestUpdateInput): Promise<ConciergeRequest | null> {
+  async updateRequest(
+    id: string,
+    data: ConciergeRequestUpdateInput
+  ): Promise<ConciergeRequest | null> {
     const updateData: any = { ...data, updated_at: db.fn.now() };
     if (data.attachments) {
       updateData.attachments = JSON.stringify(data.attachments);
     }
 
-    const [request] = await db(this.requestsTable)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [request] = await db(this.requestsTable).where({ id }).update(updateData).returning('*');
 
     return request ? this.parseRequest(request) : null;
   }
@@ -67,9 +67,7 @@ export class ConciergeRepository {
     userId: string,
     options?: { status?: string; limit?: number; offset?: number }
   ): Promise<ConciergeRequest[]> {
-    let query = db(this.requestsTable)
-      .where({ user_id: userId })
-      .orderBy('created_at', 'desc');
+    let query = db(this.requestsTable).where({ user_id: userId }).orderBy('created_at', 'desc');
 
     if (options?.status) {
       query = query.where('status', options.status);
@@ -88,9 +86,7 @@ export class ConciergeRepository {
   }
 
   async countUserRequests(userId: string, status?: string): Promise<number> {
-    let query = db(this.requestsTable)
-      .where({ user_id: userId })
-      .count('id as count');
+    let query = db(this.requestsTable).where({ user_id: userId }).count('id as count');
 
     if (status) {
       query = query.where('status', status);

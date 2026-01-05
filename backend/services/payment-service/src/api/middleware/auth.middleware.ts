@@ -1,13 +1,13 @@
 /**
  * Authentication Middleware for Payment Service
- * 
+ *
  * SECURITY: This middleware validates JWT tokens and extracts user identity.
  * The userId attached to the request MUST come from the verified JWT token,
  * never from the request body, to prevent user impersonation attacks.
  */
 
-import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
 const logger = createLogger('payment-auth-middleware');
@@ -31,10 +31,10 @@ export interface AuthRequest extends Request {
 
 /**
  * JWT Authentication Middleware
- * 
+ *
  * Validates the JWT token from the Authorization header and attaches
  * the authenticated user to the request object.
- * 
+ *
  * SECURITY: This middleware MUST be applied to all payment endpoints
  * to ensure user identity comes from a verified JWT token.
  */
@@ -53,7 +53,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
     const token = authHeader.substring(7);
     const secret = process.env.JWT_ACCESS_SECRET;
-    
+
     if (!secret) {
       logger.error('[PaymentAuth] JWT_ACCESS_SECRET not configured');
       res.status(500).json({
@@ -65,16 +65,16 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
     try {
       // Verify and decode the JWT token
-      const decoded = jwt.verify(token, secret) as { 
-        userId?: string; 
+      const decoded = jwt.verify(token, secret) as {
+        userId?: string;
         id?: string;
         sub?: string;
         email?: string;
       };
-      
+
       // Extract user ID from various JWT structures
       const userId = decoded.userId || decoded.id || decoded.sub;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -83,17 +83,17 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
         });
         return;
       }
-      
+
       // Attach user data to request
       req.user = {
         id: userId,
         userId: userId,
         email: decoded.email || '',
       };
-      
+
       // Also set userId for backward compatibility
       req.userId = userId;
-      
+
       next();
     } catch (jwtError: any) {
       if (jwtError.name === 'TokenExpiredError') {
@@ -104,7 +104,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
         });
         return;
       }
-      
+
       res.status(401).json({
         success: false,
         error: 'Invalid token',

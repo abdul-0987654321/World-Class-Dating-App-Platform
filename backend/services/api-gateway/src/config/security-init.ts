@@ -1,13 +1,19 @@
-import express, { Application } from 'express';
-import helmet from 'helmet';
 import cors from 'cors';
-import hpp from 'hpp';
+import express, { Application } from 'express';
 import mongoSanitize from 'express-mongo-sanitize';
-import { getSecurityConfig } from './security.config';
-import { errorHandler, notFoundHandler, initializeErrorHandlers } from '../middleware/error-handler.middleware';
+import helmet from 'helmet';
+import hpp from 'hpp';
+
 import { apiVersioning } from '../middleware/api-versioning.middleware';
+import {
+  errorHandler,
+  notFoundHandler,
+  initializeErrorHandlers,
+} from '../middleware/error-handler.middleware';
 import { protectAgainstOpenRedirect } from '../middleware/redirect-protection.middleware';
 import logger from '../utils/logger';
+
+import { getSecurityConfig } from './security.config';
 
 /**
  * Initialize all security measures for the application

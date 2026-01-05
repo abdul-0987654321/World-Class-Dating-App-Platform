@@ -1,3 +1,8 @@
+import * as crypto from 'crypto';
+
+import { Logger, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -9,11 +14,7 @@ import {
   ConnectedSocket,
   WsException,
 } from '@nestjs/websockets';
-import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
 
 interface AuthenticatedSocket extends Socket {
   userId: string;
@@ -38,9 +39,7 @@ const ALLOWED_ORIGINS = [
   namespace: '/ws',
   transports: ['websocket', 'polling'],
 })
-export class WebsocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -50,7 +49,7 @@ export class WebsocketGateway
 
   constructor(
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   afterInit(server: Server) {
@@ -67,7 +66,7 @@ export class WebsocketGateway
     }
 
     // Check if origin is in allowed list
-    const isAllowed = ALLOWED_ORIGINS.some(allowed => {
+    const isAllowed = ALLOWED_ORIGINS.some((allowed) => {
       if (allowed.includes('*')) {
         const pattern = new RegExp('^' + allowed.replace(/\*/g, '.*') + '$');
         return pattern.test(origin);
@@ -99,10 +98,7 @@ export class WebsocketGateway
 
     // Constant-time comparison to prevent timing attacks
     try {
-      return crypto.timingSafeEqual(
-        Buffer.from(providedToken),
-        Buffer.from(storedData.token)
-      );
+      return crypto.timingSafeEqual(Buffer.from(providedToken), Buffer.from(storedData.token));
     } catch {
       return false;
     }
@@ -124,7 +120,10 @@ export class WebsocketGateway
       const origin = client.handshake.headers.origin;
       if (!this.validateOrigin(origin)) {
         this.logger.warn(`Client ${client.id} rejected: Invalid origin ${origin}`);
-        client.emit('error', { code: 'INVALID_ORIGIN', message: 'Connection not allowed from this origin' });
+        client.emit('error', {
+          code: 'INVALID_ORIGIN',
+          message: 'Connection not allowed from this origin',
+        });
         client.disconnect();
         return;
       }
@@ -223,7 +222,10 @@ export class WebsocketGateway
   /**
    * Validate CSRF token for sensitive operations
    */
-  private validateOperationCsrf(client: AuthenticatedSocket, providedToken: string | undefined): boolean {
+  private validateOperationCsrf(
+    client: AuthenticatedSocket,
+    providedToken: string | undefined
+  ): boolean {
     if (!providedToken) {
       return false;
     }
@@ -237,7 +239,8 @@ export class WebsocketGateway
   @SubscribeMessage('message:send')
   async handleSendMessage(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { conversationId: string; content: string; type?: string; csrfToken?: string },
+    @MessageBody()
+    data: { conversationId: string; content: string; type?: string; csrfToken?: string }
   ) {
     const { conversationId, content, type = 'text', csrfToken } = data;
 
@@ -269,7 +272,7 @@ export class WebsocketGateway
   @SubscribeMessage('message:typing')
   async handleTyping(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { conversationId: string; isTyping: boolean },
+    @MessageBody() data: { conversationId: string; isTyping: boolean }
   ) {
     const { conversationId, isTyping } = data;
 
@@ -284,7 +287,7 @@ export class WebsocketGateway
   @SubscribeMessage('message:read')
   async handleMessageRead(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { conversationId: string; messageId: string },
+    @MessageBody() data: { conversationId: string; messageId: string }
   ) {
     const { conversationId, messageId } = data;
 
@@ -304,7 +307,7 @@ export class WebsocketGateway
   @SubscribeMessage('conversation:join')
   async handleJoinConversation(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { conversationId: string },
+    @MessageBody() data: { conversationId: string }
   ) {
     const { conversationId } = data;
 
@@ -317,7 +320,7 @@ export class WebsocketGateway
   @SubscribeMessage('conversation:leave')
   async handleLeaveConversation(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { conversationId: string },
+    @MessageBody() data: { conversationId: string }
   ) {
     const { conversationId } = data;
 
@@ -334,7 +337,7 @@ export class WebsocketGateway
   @SubscribeMessage('match:notify')
   async handleMatchNotification(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { targetUserId: string; matchId: string },
+    @MessageBody() data: { targetUserId: string; matchId: string }
   ) {
     const { targetUserId, matchId } = data;
 
@@ -355,13 +358,11 @@ export class WebsocketGateway
   @SubscribeMessage('presence:get')
   async handleGetPresence(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { userIds: string[] },
+    @MessageBody() data: { userIds: string[] }
   ) {
     const { userIds } = data;
 
-    const onlineUsers = userIds.filter((userId) =>
-      this.connectedUsers.has(userId),
-    );
+    const onlineUsers = userIds.filter((userId) => this.connectedUsers.has(userId));
 
     return {
       success: true,
@@ -373,7 +374,7 @@ export class WebsocketGateway
   @SubscribeMessage('status:update')
   async handleStatusUpdate(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { status: 'online' | 'away' | 'busy' },
+    @MessageBody() data: { status: 'online' | 'away' | 'busy' }
   ) {
     const { status } = data;
 
@@ -394,7 +395,7 @@ export class WebsocketGateway
   @SubscribeMessage('call:initiate')
   async handleCallInitiate(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { targetUserId: string; callType: 'video' | 'audio'; csrfToken?: string },
+    @MessageBody() data: { targetUserId: string; callType: 'video' | 'audio'; csrfToken?: string }
   ) {
     const { targetUserId, callType, csrfToken } = data;
 
@@ -424,7 +425,7 @@ export class WebsocketGateway
   @SubscribeMessage('call:answer')
   async handleCallAnswer(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { callId: string; callerId: string; accepted: boolean },
+    @MessageBody() data: { callId: string; callerId: string; accepted: boolean }
   ) {
     const { callId, callerId, accepted } = data;
 
@@ -442,7 +443,7 @@ export class WebsocketGateway
   @SubscribeMessage('call:end')
   async handleCallEnd(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { callId: string; targetUserId: string },
+    @MessageBody() data: { callId: string; targetUserId: string }
   ) {
     const { callId, targetUserId } = data;
 
@@ -459,7 +460,7 @@ export class WebsocketGateway
   @SubscribeMessage('call:signal')
   async handleCallSignal(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { targetUserId: string; signal: any },
+    @MessageBody() data: { targetUserId: string; signal: any }
   ) {
     const { targetUserId, signal } = data;
 
@@ -479,7 +480,7 @@ export class WebsocketGateway
   @SubscribeMessage('reward:claim')
   async handleRewardClaim(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { rewardId: string; rewardType: string; csrfToken?: string },
+    @MessageBody() data: { rewardId: string; rewardType: string; csrfToken?: string }
   ) {
     const { rewardId, rewardType, csrfToken } = data;
 
@@ -502,12 +503,15 @@ export class WebsocketGateway
   /**
    * Emit coin balance update to a user (called from rewards service)
    */
-  emitCoinUpdate(userId: string, data: {
-    newBalance: number;
-    change: number;
-    reason: string;
-    transactionId?: string;
-  }): void {
+  emitCoinUpdate(
+    userId: string,
+    data: {
+      newBalance: number;
+      change: number;
+      reason: string;
+      transactionId?: string;
+    }
+  ): void {
     this.server.to(`user:${userId}`).emit('coins:updated', {
       ...data,
       timestamp: new Date().toISOString(),
@@ -517,12 +521,15 @@ export class WebsocketGateway
   /**
    * Emit streak update to a user (called from rewards service)
    */
-  emitStreakUpdate(userId: string, data: {
-    currentStreak: number;
-    longestStreak: number;
-    lastCheckIn: string;
-    streakBonus?: number;
-  }): void {
+  emitStreakUpdate(
+    userId: string,
+    data: {
+      currentStreak: number;
+      longestStreak: number;
+      lastCheckIn: string;
+      streakBonus?: number;
+    }
+  ): void {
     this.server.to(`user:${userId}`).emit('streak:updated', {
       ...data,
       timestamp: new Date().toISOString(),
@@ -532,14 +539,17 @@ export class WebsocketGateway
   /**
    * Emit reward milestone notification
    */
-  emitRewardMilestone(userId: string, data: {
-    milestone: string;
-    reward: {
-      type: string;
-      amount: number;
-    };
-    message: string;
-  }): void {
+  emitRewardMilestone(
+    userId: string,
+    data: {
+      milestone: string;
+      reward: {
+        type: string;
+        amount: number;
+      };
+      message: string;
+    }
+  ): void {
     this.server.to(`user:${userId}`).emit('reward:milestone', {
       ...data,
       timestamp: new Date().toISOString(),
@@ -547,9 +557,7 @@ export class WebsocketGateway
   }
 
   @SubscribeMessage('reward:subscribe')
-  async handleRewardSubscribe(
-    @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  async handleRewardSubscribe(@ConnectedSocket() client: AuthenticatedSocket) {
     // Join user's reward update room
     client.join(`rewards:${client.userId}`);
     this.logger.log(`User ${client.userId} subscribed to reward updates`);
@@ -558,9 +566,7 @@ export class WebsocketGateway
   }
 
   @SubscribeMessage('reward:unsubscribe')
-  async handleRewardUnsubscribe(
-    @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  async handleRewardUnsubscribe(@ConnectedSocket() client: AuthenticatedSocket) {
     // Leave reward update room
     client.leave(`rewards:${client.userId}`);
     this.logger.log(`User ${client.userId} unsubscribed from reward updates`);
@@ -573,12 +579,10 @@ export class WebsocketGateway
   // ==========================================
 
   @SubscribeMessage('csrf:refresh')
-  async handleCsrfRefresh(
-    @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  async handleCsrfRefresh(@ConnectedSocket() client: AuthenticatedSocket) {
     // Generate new CSRF token
     const newToken = this.generateCsrfToken(client.userId);
-    (client as AuthenticatedSocket).csrfToken = newToken;
+    client.csrfToken = newToken;
 
     return { success: true, csrfToken: newToken };
   }

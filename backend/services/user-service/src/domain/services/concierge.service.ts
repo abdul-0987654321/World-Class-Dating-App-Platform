@@ -1,4 +1,4 @@
-import { ConciergeRepository } from '../repositories/concierge.repository';
+import logger from '../../utils/logger';
 import {
   ConciergeRequest,
   ConciergeRequestCreateInput,
@@ -9,7 +9,7 @@ import {
   ConciergeRequestWithMessages,
   ConciergeRequestResponse,
 } from '../entities/ConciergeRequest.entity';
-import logger from '../../utils/logger';
+import { ConciergeRepository } from '../repositories/concierge.repository';
 
 export interface SubmitRequestInput {
   type: ConciergeRequestType;
@@ -57,7 +57,8 @@ export class ConciergeService {
       if (activeCount + inProgressCount >= 5) {
         return {
           success: false,
-          error: 'You have reached the maximum number of active requests. Please wait for some to be completed.',
+          error:
+            'You have reached the maximum number of active requests. Please wait for some to be completed.',
         };
       }
 
@@ -248,7 +249,11 @@ export class ConciergeService {
   /**
    * Get request priority options
    */
-  getPriorityOptions(): { priority: ConciergeRequestPriority; name: string; description: string }[] {
+  getPriorityOptions(): {
+    priority: ConciergeRequestPriority;
+    name: string;
+    description: string;
+  }[] {
     return [
       {
         priority: 'low',

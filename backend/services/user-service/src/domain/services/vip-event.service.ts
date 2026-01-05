@@ -1,4 +1,4 @@
-import { VipEventRepository } from '../repositories/vip-event.repository';
+import logger from '../../utils/logger';
 import {
   VipEvent,
   VipEventCreateInput,
@@ -6,11 +6,8 @@ import {
   VipEventListFilters,
   VipEventResponse,
 } from '../entities/VipEvent.entity';
-import {
-  VipEventAttendee,
-  VipEventAttendeeWithEvent,
-} from '../entities/VipEventAttendee.entity';
-import logger from '../../utils/logger';
+import { VipEventAttendee, VipEventAttendeeWithEvent } from '../entities/VipEventAttendee.entity';
+import { VipEventRepository } from '../repositories/vip-event.repository';
 
 export class VipEventService {
   private repository: VipEventRepository;
@@ -32,9 +29,7 @@ export class VipEventService {
       // Get user's registrations to mark which events they're registered for
       const userEvents = await this.repository.getUserEvents(userId, false);
       const registeredEventIds = new Set(
-        userEvents
-          .filter((e) => e.status === 'registered')
-          .map((e) => e.event_id)
+        userEvents.filter((e) => e.status === 'registered').map((e) => e.event_id)
       );
 
       return events.map((event) => this.toEventResponse(event, registeredEventIds.has(event.id)));
@@ -105,7 +100,7 @@ export class VipEventService {
             cancellation_reason: undefined,
           });
           await this.repository.incrementAttendeeCount(eventId);
-          return { success: true, attendee: updated! };
+          return { success: true, attendee: updated };
         }
       }
 

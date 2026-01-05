@@ -1,5 +1,5 @@
-import { IsString, IsUUID, IsEnum, IsOptional, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsString, IsUUID, IsEnum, IsOptional, IsInt, Min, Max } from 'class-validator';
 
 /**
  * Supported call types

@@ -4,15 +4,22 @@
  * participant matching, and interest recording
  */
 
-import speedDatingRepository, { EventFilters, RoundPairing } from '../repositories/speed-dating.repository';
-import matchRepository from '../repositories/match.repository';
-import { SpeedDatingEvent, SpeedDatingEventStatus } from '../entities/SpeedDatingEvent.entity';
-import { SpeedDatingParticipant, ParticipantStatus } from '../entities/SpeedDatingParticipant.entity';
-import { SpeedDatingMatch } from '../entities/SpeedDatingMatch.entity';
-import { Match } from '../entities/Match.entity';
-import { UserMode } from '../../types';
 import { createLogger } from '@flamoral/backend-shared';
+
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import { UserMode } from '../../types';
+import { Match } from '../entities/Match.entity';
+import { SpeedDatingEvent, SpeedDatingEventStatus } from '../entities/SpeedDatingEvent.entity';
+import { SpeedDatingMatch } from '../entities/SpeedDatingMatch.entity';
+import {
+  SpeedDatingParticipant,
+  ParticipantStatus,
+} from '../entities/SpeedDatingParticipant.entity';
+import matchRepository from '../repositories/match.repository';
+import speedDatingRepository, {
+  EventFilters,
+  RoundPairing,
+} from '../repositories/speed-dating.repository';
 
 const logger = createLogger('speed-dating-service');
 
@@ -123,7 +130,10 @@ export class SpeedDatingService {
       }
 
       // Check if user already registered
-      const existingParticipant = await speedDatingRepository.findParticipantByEventAndUser(eventId, userId);
+      const existingParticipant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        userId
+      );
       if (existingParticipant) {
         throw new Error('Already registered for this event');
       }
@@ -141,12 +151,14 @@ export class SpeedDatingService {
       // Refresh event to get updated count
       const updatedEvent = await speedDatingRepository.findEventById(eventId);
 
-      logger.info(`User ${userId} joined event ${eventId}, position ${updatedEvent!.currentParticipants}`);
+      logger.info(
+        `User ${userId} joined event ${eventId}, position ${updatedEvent.currentParticipants}`
+      );
 
       return {
         participant,
-        position: updatedEvent!.currentParticipants,
-        event: updatedEvent!,
+        position: updatedEvent.currentParticipants,
+        event: updatedEvent,
       };
     } catch (error) {
       logger.error('Failed to join event', error);
@@ -171,7 +183,10 @@ export class SpeedDatingService {
         throw new Error('Cannot leave an active or completed event');
       }
 
-      const participant = await speedDatingRepository.findParticipantByEventAndUser(eventId, userId);
+      const participant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        userId
+      );
 
       if (!participant) {
         throw new Error('Not registered for this event');
@@ -211,7 +226,10 @@ export class SpeedDatingService {
         throw new Error('Check-in not yet available');
       }
 
-      const participant = await speedDatingRepository.findParticipantByEventAndUser(eventId, userId);
+      const participant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        userId
+      );
 
       if (!participant) {
         throw new Error('Not registered for this event');
@@ -228,7 +246,7 @@ export class SpeedDatingService {
 
       logger.info(`User ${userId} checked in to event ${eventId}`);
 
-      return updatedParticipant!;
+      return updatedParticipant;
     } catch (error) {
       logger.error('Failed to check in', error);
       throw error;
@@ -253,10 +271,16 @@ export class SpeedDatingService {
       }
 
       // Update event status
-      const updatedEvent = await speedDatingRepository.updateEventStatus(eventId, SpeedDatingEventStatus.ACTIVE);
+      const updatedEvent = await speedDatingRepository.updateEventStatus(
+        eventId,
+        SpeedDatingEventStatus.ACTIVE
+      );
 
       // Get checked-in participants
-      const participants = await speedDatingRepository.getEventParticipants(eventId, ParticipantStatus.CHECKED_IN);
+      const participants = await speedDatingRepository.getEventParticipants(
+        eventId,
+        ParticipantStatus.CHECKED_IN
+      );
 
       // Mark non-checked-in participants as left
       const allParticipants = await speedDatingRepository.getEventParticipants(eventId);
@@ -272,7 +296,9 @@ export class SpeedDatingService {
 
       await speedDatingRepository.updateEventRound(eventId, 0, totalRounds);
 
-      logger.info(`Event ${eventId} started with ${numParticipants} participants, ${totalRounds} rounds planned`);
+      logger.info(
+        `Event ${eventId} started with ${numParticipants} participants, ${totalRounds} rounds planned`
+      );
 
       // Notify participants
       for (const p of participants) {
@@ -286,7 +312,7 @@ export class SpeedDatingService {
         });
       }
 
-      return updatedEvent!;
+      return updatedEvent;
     } catch (error) {
       logger.error('Failed to start event', error);
       throw error;
@@ -467,8 +493,14 @@ export class SpeedDatingService {
         throw new Error('Event not found');
       }
 
-      const participant = await speedDatingRepository.findParticipantByEventAndUser(eventId, userId);
-      const targetParticipant = await speedDatingRepository.findParticipantByEventAndUser(eventId, targetUserId);
+      const participant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        userId
+      );
+      const targetParticipant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        targetUserId
+      );
 
       if (!participant || !targetParticipant) {
         throw new Error('Participant not found');
@@ -517,7 +549,10 @@ export class SpeedDatingService {
           targetParticipant.updatePartnerInterest(event.currentRound, userId, true);
 
           await speedDatingRepository.updateMatchHistory(participant.id, participant.matchHistory);
-          await speedDatingRepository.updateMatchHistory(targetParticipant.id, targetParticipant.matchHistory);
+          await speedDatingRepository.updateMatchHistory(
+            targetParticipant.id,
+            targetParticipant.matchHistory
+          );
 
           logger.info(`Mutual match created between ${userId} and ${targetUserId}`);
 
@@ -555,7 +590,10 @@ export class SpeedDatingService {
         return null;
       }
 
-      const participant = await speedDatingRepository.findParticipantByEventAndUser(eventId, userId);
+      const participant = await speedDatingRepository.findParticipantByEventAndUser(
+        eventId,
+        userId
+      );
 
       if (!participant) {
         return null;
@@ -577,9 +615,8 @@ export class SpeedDatingService {
         };
       }
 
-      const partnerParticipantId = pairing.participantAId === participant.id
-        ? pairing.participantBId
-        : pairing.participantAId;
+      const partnerParticipantId =
+        pairing.participantAId === participant.id ? pairing.participantBId : pairing.participantAId;
       const partnerUserId = pairing.userAId === userId ? pairing.userBId : pairing.userAId;
 
       return {
@@ -589,7 +626,9 @@ export class SpeedDatingService {
           participantId: partnerParticipantId,
         },
         startTime: pairing.startedAt || event.startTime,
-        endTime: new Date((pairing.startedAt || event.startTime).getTime() + event.roundDuration * 1000),
+        endTime: new Date(
+          (pairing.startedAt || event.startTime).getTime() + event.roundDuration * 1000
+        ),
         status: pairing.status,
         roomId: pairing.roomId,
       };
@@ -602,7 +641,9 @@ export class SpeedDatingService {
   /**
    * Complete an event
    */
-  async completeEvent(eventId: string): Promise<{ event: SpeedDatingEvent; matchesCreated: number }> {
+  async completeEvent(
+    eventId: string
+  ): Promise<{ event: SpeedDatingEvent; matchesCreated: number }> {
     try {
       logger.info(`Completing event ${eventId}`);
 
@@ -661,13 +702,19 @@ export class SpeedDatingService {
               }),
             ]);
           } catch (error) {
-            logger.error(`Failed to create regular match for speed dating match ${speedMatch.id}`, error);
+            logger.error(
+              `Failed to create regular match for speed dating match ${speedMatch.id}`,
+              error
+            );
           }
         }
       }
 
       // Update event status
-      const updatedEvent = await speedDatingRepository.updateEventStatus(eventId, SpeedDatingEventStatus.COMPLETED);
+      const updatedEvent = await speedDatingRepository.updateEventStatus(
+        eventId,
+        SpeedDatingEventStatus.COMPLETED
+      );
 
       // Update all participants to completed
       const participants = await speedDatingRepository.getEventParticipants(eventId);
@@ -697,7 +744,7 @@ export class SpeedDatingService {
       logger.info(`Event ${eventId} completed. ${matchesCreated} regular matches created.`);
 
       return {
-        event: updatedEvent!,
+        event: updatedEvent,
         matchesCreated,
       };
     } catch (error) {

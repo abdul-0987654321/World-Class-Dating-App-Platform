@@ -4,6 +4,7 @@
  */
 
 import { Server, Socket } from 'socket.io';
+
 import { VideoCallService } from '../services/video-call.service';
 import { createLogger } from '../utils/logger';
 
@@ -77,7 +78,9 @@ export class CallSignalingHandler {
     const userId = socket.data.userId;
 
     if (!userId) {
-      logger.warn('Socket connection without userId (JWT verification failed)', { socketId: socket.id });
+      logger.warn('Socket connection without userId (JWT verification failed)', {
+        socketId: socket.id,
+      });
       socket.disconnect();
       return;
     }

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import voiceNoteController from '../controllers/voice-note.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { uploadAudio } from '../middleware/upload.middleware';
@@ -113,7 +114,10 @@ router.get('/:id', voiceNoteController.getVoiceNote.bind(voiceNoteController));
  *       200:
  *         description: Conversation voice notes retrieved successfully
  */
-router.get('/conversation/:conversationId', voiceNoteController.getConversationVoiceNotes.bind(voiceNoteController));
+router.get(
+  '/conversation/:conversationId',
+  voiceNoteController.getConversationVoiceNotes.bind(voiceNoteController)
+);
 
 /**
  * @swagger

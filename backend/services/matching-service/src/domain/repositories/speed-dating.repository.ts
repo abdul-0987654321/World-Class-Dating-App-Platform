@@ -3,12 +3,16 @@
  * Handles database operations for speed dating events, participants, and matches
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
 import db from '../../infrastructure/database/connection';
 import { SpeedDatingEvent, SpeedDatingEventStatus } from '../entities/SpeedDatingEvent.entity';
-import { SpeedDatingParticipant, ParticipantStatus } from '../entities/SpeedDatingParticipant.entity';
 import { SpeedDatingMatch, SpeedDatingInterest } from '../entities/SpeedDatingMatch.entity';
-import { createLogger } from '@flamoral/backend-shared';
+import {
+  SpeedDatingParticipant,
+  ParticipantStatus,
+} from '../entities/SpeedDatingParticipant.entity';
 
 const logger = createLogger('speed-dating-repository');
 
@@ -84,9 +88,7 @@ export class SpeedDatingRepository {
    */
   async findEventById(eventId: string): Promise<SpeedDatingEvent | null> {
     try {
-      const event = await this.db('speed_dating_events')
-        .where({ id: eventId })
-        .first();
+      const event = await this.db('speed_dating_events').where({ id: eventId }).first();
 
       return event ? this.mapToEvent(event) : null;
     } catch (error) {
@@ -98,10 +100,13 @@ export class SpeedDatingRepository {
   /**
    * Get upcoming events with filters
    */
-  async getUpcomingEvents(filters: EventFilters = {}, limit: number = 20, offset: number = 0): Promise<SpeedDatingEvent[]> {
+  async getUpcomingEvents(
+    filters: EventFilters = {},
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<SpeedDatingEvent[]> {
     try {
-      let query = this.db('speed_dating_events')
-        .where('start_time', '>', new Date());
+      let query = this.db('speed_dating_events').where('start_time', '>', new Date());
 
       if (filters.status) {
         query = query.andWhere('status', filters.status);
@@ -129,10 +134,7 @@ export class SpeedDatingRepository {
         query = query.andWhereRaw('current_participants < max_participants');
       }
 
-      const events = await query
-        .orderBy('start_time', 'asc')
-        .limit(limit)
-        .offset(offset);
+      const events = await query.orderBy('start_time', 'asc').limit(limit).offset(offset);
 
       return events.map(this.mapToEvent);
     } catch (error) {
@@ -144,7 +146,10 @@ export class SpeedDatingRepository {
   /**
    * Update event status
    */
-  async updateEventStatus(eventId: string, status: SpeedDatingEventStatus): Promise<SpeedDatingEvent | null> {
+  async updateEventStatus(
+    eventId: string,
+    status: SpeedDatingEventStatus
+  ): Promise<SpeedDatingEvent | null> {
     try {
       const [updated] = await this.db('speed_dating_events')
         .where({ id: eventId })
@@ -161,7 +166,11 @@ export class SpeedDatingRepository {
   /**
    * Update event round info
    */
-  async updateEventRound(eventId: string, currentRound: number, totalRounds?: number): Promise<SpeedDatingEvent | null> {
+  async updateEventRound(
+    eventId: string,
+    currentRound: number,
+    totalRounds?: number
+  ): Promise<SpeedDatingEvent | null> {
     try {
       const updateData: any = { current_round: currentRound };
       if (totalRounds !== undefined) {
@@ -213,7 +222,9 @@ export class SpeedDatingRepository {
   /**
    * Create a participant
    */
-  async createParticipant(participant: Partial<SpeedDatingParticipant>): Promise<SpeedDatingParticipant> {
+  async createParticipant(
+    participant: Partial<SpeedDatingParticipant>
+  ): Promise<SpeedDatingParticipant> {
     try {
       const [created] = await this.db('speed_dating_participants')
         .insert({
@@ -254,7 +265,10 @@ export class SpeedDatingRepository {
   /**
    * Find participant by event and user
    */
-  async findParticipantByEventAndUser(eventId: string, userId: string): Promise<SpeedDatingParticipant | null> {
+  async findParticipantByEventAndUser(
+    eventId: string,
+    userId: string
+  ): Promise<SpeedDatingParticipant | null> {
     try {
       const participant = await this.db('speed_dating_participants')
         .where({ event_id: eventId, user_id: userId })
@@ -270,10 +284,12 @@ export class SpeedDatingRepository {
   /**
    * Get all participants for an event
    */
-  async getEventParticipants(eventId: string, status?: ParticipantStatus): Promise<SpeedDatingParticipant[]> {
+  async getEventParticipants(
+    eventId: string,
+    status?: ParticipantStatus
+  ): Promise<SpeedDatingParticipant[]> {
     try {
-      let query = this.db('speed_dating_participants')
-        .where({ event_id: eventId });
+      let query = this.db('speed_dating_participants').where({ event_id: eventId });
 
       if (status) {
         query = query.andWhere('status', status);
@@ -295,7 +311,11 @@ export class SpeedDatingRepository {
     try {
       const participants = await this.db('speed_dating_participants')
         .where({ event_id: eventId })
-        .whereIn('status', [ParticipantStatus.CHECKED_IN, ParticipantStatus.WAITING, ParticipantStatus.IN_ROUND])
+        .whereIn('status', [
+          ParticipantStatus.CHECKED_IN,
+          ParticipantStatus.WAITING,
+          ParticipantStatus.IN_ROUND,
+        ])
         .orderBy('joined_at', 'asc');
 
       return participants.map(this.mapToParticipant);
@@ -308,7 +328,10 @@ export class SpeedDatingRepository {
   /**
    * Update participant status
    */
-  async updateParticipantStatus(participantId: string, status: ParticipantStatus): Promise<SpeedDatingParticipant | null> {
+  async updateParticipantStatus(
+    participantId: string,
+    status: ParticipantStatus
+  ): Promise<SpeedDatingParticipant | null> {
     try {
       const updateData: any = { status };
 
@@ -376,9 +399,7 @@ export class SpeedDatingRepository {
    */
   async deleteParticipant(participantId: string): Promise<boolean> {
     try {
-      const deleted = await this.db('speed_dating_participants')
-        .where({ id: participantId })
-        .del();
+      const deleted = await this.db('speed_dating_participants').where({ id: participantId }).del();
 
       return deleted > 0;
     } catch (error) {
@@ -390,7 +411,9 @@ export class SpeedDatingRepository {
   /**
    * Get user's registered events
    */
-  async getUserEvents(userId: string): Promise<{ event: SpeedDatingEvent; participant: SpeedDatingParticipant }[]> {
+  async getUserEvents(
+    userId: string
+  ): Promise<{ event: SpeedDatingEvent; participant: SpeedDatingParticipant }[]> {
     try {
       const results = await this.db('speed_dating_participants as p')
         .join('speed_dating_events as e', 'p.event_id', 'e.id')
@@ -482,8 +505,10 @@ export class SpeedDatingRepository {
       const interests = await this.db('speed_dating_interests')
         .where({ event_id: eventId, round_number: roundNumber })
         .where(function () {
-          this.where({ participant_id: participantAId, target_participant_id: participantBId })
-            .orWhere({ participant_id: participantBId, target_participant_id: participantAId });
+          this.where({
+            participant_id: participantAId,
+            target_participant_id: participantBId,
+          }).orWhere({ participant_id: participantBId, target_participant_id: participantAId });
         })
         .andWhere('interested', true);
 
@@ -566,7 +591,10 @@ export class SpeedDatingRepository {
   /**
    * Update match with regular match ID
    */
-  async linkRegularMatch(speedDatingMatchId: string, regularMatchId: string): Promise<SpeedDatingMatch | null> {
+  async linkRegularMatch(
+    speedDatingMatchId: string,
+    regularMatchId: string
+  ): Promise<SpeedDatingMatch | null> {
     try {
       const [updated] = await this.db('speed_dating_matches')
         .where({ id: speedDatingMatchId })
@@ -616,8 +644,10 @@ export class SpeedDatingRepository {
    */
   async getRoundPairings(eventId: string, roundNumber: number): Promise<RoundPairing[]> {
     try {
-      const pairings = await this.db('speed_dating_rounds')
-        .where({ event_id: eventId, round_number: roundNumber });
+      const pairings = await this.db('speed_dating_rounds').where({
+        event_id: eventId,
+        round_number: roundNumber,
+      });
 
       return pairings.map(this.mapToRoundPairing);
     } catch (error) {
@@ -695,10 +725,22 @@ export class SpeedDatingRepository {
       currentRound: record.current_round,
       status: record.status as SpeedDatingEventStatus,
       theme: record.theme,
-      ageRange: record.age_range ? (typeof record.age_range === 'string' ? JSON.parse(record.age_range) : record.age_range) : undefined,
+      ageRange: record.age_range
+        ? typeof record.age_range === 'string'
+          ? JSON.parse(record.age_range)
+          : record.age_range
+        : undefined,
       location: record.location,
-      requirements: record.requirements ? (typeof record.requirements === 'string' ? JSON.parse(record.requirements) : record.requirements) : undefined,
-      entryFee: record.entry_fee ? (typeof record.entry_fee === 'string' ? JSON.parse(record.entry_fee) : record.entry_fee) : undefined,
+      requirements: record.requirements
+        ? typeof record.requirements === 'string'
+          ? JSON.parse(record.requirements)
+          : record.requirements
+        : undefined,
+      entryFee: record.entry_fee
+        ? typeof record.entry_fee === 'string'
+          ? JSON.parse(record.entry_fee)
+          : record.entry_fee
+        : undefined,
       coverImage: record.cover_image,
       hostId: record.host_id,
       createdAt: new Date(record.created_at),

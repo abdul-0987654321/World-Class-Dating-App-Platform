@@ -62,7 +62,7 @@ export async function up(knex: Knex): Promise<void> {
         '50 daily swipes',
         '1 super like per day',
         'Basic matching algorithm',
-        'Limited profile visibility'
+        'Limited profile visibility',
       ]),
       daily_swipes: 50,
       daily_super_likes: 1,
@@ -92,9 +92,9 @@ export async function up(knex: Knex): Promise<void> {
       tier_code: 'basic',
       description: 'Unlock unlimited swipes and see who likes you',
       price_monthly: 9.99,
-      price_yearly: 95.88,      // $7.99/month
-      price_3_months: 26.97,    // $8.99/month
-      price_6_months: 47.94,    // $7.99/month
+      price_yearly: 95.88, // $7.99/month
+      price_3_months: 26.97, // $8.99/month
+      price_6_months: 47.94, // $7.99/month
       stripe_price_id_monthly: 'price_basic_monthly',
       stripe_price_id_yearly: 'price_basic_yearly',
       stripe_price_id_3_months: 'price_basic_3months',
@@ -105,7 +105,7 @@ export async function up(knex: Knex): Promise<void> {
         '5 super likes per day',
         'See who likes you',
         'Rewind last swipe',
-        'No ads'
+        'No ads',
       ]),
       daily_swipes: 9999,
       daily_super_likes: 5,
@@ -135,9 +135,9 @@ export async function up(knex: Knex): Promise<void> {
       tier_code: 'plus',
       description: 'Enhanced visibility and privacy features',
       price_monthly: 14.99,
-      price_yearly: 143.88,     // $11.99/month
-      price_3_months: 40.47,    // $13.49/month
-      price_6_months: 71.94,    // $11.99/month
+      price_yearly: 143.88, // $11.99/month
+      price_3_months: 40.47, // $13.49/month
+      price_6_months: 71.94, // $11.99/month
       stripe_price_id_monthly: 'price_plus_monthly',
       stripe_price_id_yearly: 'price_plus_yearly',
       stripe_price_id_3_months: 'price_plus_3months',
@@ -149,7 +149,7 @@ export async function up(knex: Knex): Promise<void> {
         'Incognito mode',
         'Priority likes',
         'Read receipts',
-        '1 free boost per month'
+        '1 free boost per month',
       ]),
       daily_swipes: 9999,
       daily_super_likes: 10,
@@ -179,9 +179,9 @@ export async function up(knex: Knex): Promise<void> {
       tier_code: 'premium',
       description: 'Full feature access with Passport',
       price_monthly: 19.99,
-      price_yearly: 191.88,     // $15.99/month
-      price_3_months: 53.97,    // $17.99/month
-      price_6_months: 95.94,    // $15.99/month
+      price_yearly: 191.88, // $15.99/month
+      price_3_months: 53.97, // $17.99/month
+      price_6_months: 95.94, // $15.99/month
       stripe_price_id_monthly: 'price_premium_monthly',
       stripe_price_id_yearly: 'price_premium_yearly',
       stripe_price_id_3_months: 'price_premium_3months',
@@ -193,7 +193,7 @@ export async function up(knex: Knex): Promise<void> {
         'Passport - swipe anywhere',
         'Profile controls',
         'Advanced filters',
-        '2 free boosts per month'
+        '2 free boosts per month',
       ]),
       daily_swipes: 9999,
       daily_super_likes: 9999,
@@ -223,9 +223,9 @@ export async function up(knex: Knex): Promise<void> {
       tier_code: 'premium_plus',
       description: 'Power user features with message before match',
       price_monthly: 29.99,
-      price_yearly: 287.88,     // $23.99/month
-      price_3_months: 80.97,    // $26.99/month
-      price_6_months: 143.94,   // $23.99/month
+      price_yearly: 287.88, // $23.99/month
+      price_3_months: 80.97, // $26.99/month
+      price_6_months: 143.94, // $23.99/month
       stripe_price_id_monthly: 'price_premium_plus_monthly',
       stripe_price_id_yearly: 'price_premium_plus_yearly',
       stripe_price_id_3_months: 'price_premium_plus_3months',
@@ -237,7 +237,7 @@ export async function up(knex: Knex): Promise<void> {
         '1 weekly boost',
         'Unlimited rewinds',
         'See who viewed your profile',
-        'Priority customer support'
+        'Priority customer support',
       ]),
       daily_swipes: 9999,
       daily_super_likes: 9999,
@@ -267,9 +267,9 @@ export async function up(knex: Knex): Promise<void> {
       tier_code: 'elite',
       description: 'The ultimate VIP dating experience',
       price_monthly: 49.99,
-      price_yearly: 479.88,     // $39.99/month
-      price_3_months: 134.97,   // $44.99/month
-      price_6_months: 239.94,   // $39.99/month
+      price_yearly: 479.88, // $39.99/month
+      price_3_months: 134.97, // $44.99/month
+      price_6_months: 239.94, // $39.99/month
       stripe_price_id_monthly: 'price_elite_monthly',
       stripe_price_id_yearly: 'price_elite_yearly',
       stripe_price_id_3_months: 'price_elite_3months',
@@ -282,7 +282,7 @@ export async function up(knex: Knex): Promise<void> {
         'Exclusive Elite matches',
         'Dedicated account manager',
         '24/7 priority support',
-        'Early access to new features'
+        'Early access to new features',
       ]),
       daily_swipes: 9999,
       daily_super_likes: 9999,
@@ -336,7 +336,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('paystack_event_id', 100).unique().notNullable();
     table.string('event_type', 100).notNullable();
     table.jsonb('payload').notNullable();
-    table.enum('status', ['pending', 'processed', 'failed', 'permanently_failed']).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'processed', 'failed', 'permanently_failed'])
+      .defaultTo('pending');
     table.text('error_message');
     table.integer('retry_count').defaultTo(0);
     table.timestamp('processed_at');
@@ -352,7 +354,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string('flutterwave_event_id', 100).unique().notNullable();
     table.string('event_type', 100).notNullable();
     table.jsonb('payload').notNullable();
-    table.enum('status', ['pending', 'processed', 'failed', 'permanently_failed']).defaultTo('pending');
+    table
+      .enum('status', ['pending', 'processed', 'failed', 'permanently_failed'])
+      .defaultTo('pending');
     table.text('error_message');
     table.integer('retry_count').defaultTo(0);
     table.timestamp('processed_at');

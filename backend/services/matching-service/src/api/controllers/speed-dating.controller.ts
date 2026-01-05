@@ -3,10 +3,11 @@
  * Handles HTTP requests for speed dating events
  */
 
-import { Request, Response } from 'express';
-import speedDatingService from '../../domain/services/speed-dating.service';
-import { SpeedDatingEventStatus } from '../../domain/entities/SpeedDatingEvent.entity';
 import { createLogger } from '@flamoral/backend-shared';
+import { Request, Response } from 'express';
+
+import { SpeedDatingEventStatus } from '../../domain/entities/SpeedDatingEvent.entity';
+import speedDatingService from '../../domain/services/speed-dating.service';
 
 const logger = createLogger('speed-dating-controller');
 
@@ -230,7 +231,10 @@ export class SpeedDatingController {
     } catch (error: any) {
       logger.error('Failed to check in', error);
 
-      if (error.message === 'Event not found' || error.message === 'Not registered for this event') {
+      if (
+        error.message === 'Event not found' ||
+        error.message === 'Not registered for this event'
+      ) {
         res.status(404).json({
           success: false,
           error: error.message,
@@ -295,7 +299,12 @@ export class SpeedDatingController {
       const { userId } = (req as any).user;
       const { eventId, targetUserId, interested } = req.body;
 
-      const result = await speedDatingService.recordInterest(userId, eventId, targetUserId, interested);
+      const result = await speedDatingService.recordInterest(
+        userId,
+        eventId,
+        targetUserId,
+        interested
+      );
 
       res.status(200).json({
         success: true,
@@ -401,20 +410,20 @@ export class SpeedDatingController {
       // Static list of icebreaker questions
       const icebreakers = [
         "What's the most spontaneous thing you've ever done?",
-        "If you could travel anywhere tomorrow, where would you go?",
+        'If you could travel anywhere tomorrow, where would you go?',
         "What's your go-to comfort food?",
-        "What are you currently binge-watching?",
+        'What are you currently binge-watching?',
         "What's your hidden talent?",
-        "If you could have dinner with anyone, dead or alive, who would it be?",
+        'If you could have dinner with anyone, dead or alive, who would it be?',
         "What's the best concert you've ever been to?",
         "What's on your bucket list?",
-        "What hobby have you always wanted to try?",
+        'What hobby have you always wanted to try?',
         "What's your favorite way to spend a lazy Sunday?",
         "If you won the lottery, what's the first thing you'd do?",
         "What's your most controversial food opinion?",
-        "What song always gets you on the dance floor?",
+        'What song always gets you on the dance floor?',
         "What's the best piece of advice you've ever received?",
-        "If you could learn any skill instantly, what would it be?",
+        'If you could learn any skill instantly, what would it be?',
       ];
 
       // Return a random selection

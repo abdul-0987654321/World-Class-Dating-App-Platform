@@ -1,20 +1,28 @@
-import { createLogger } from '../utils/logger';
-import axios from 'axios';
-import ffmpeg from 'fluent-ffmpeg';
-import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
-import { Readable, PassThrough } from 'stream';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { VoiceMessageMetadata } from '../types/enhanced-types';
+import { Readable, PassThrough } from 'stream';
+
+import axios from 'axios';
+import ffmpeg from 'fluent-ffmpeg';
+import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
+
 import config from '../config';
+import { VoiceMessageMetadata } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('voice-message-service');
 
 export class VoiceMessageService {
   private readonly MAX_DURATION: number;
   private readonly MAX_FILE_SIZE: number;
-  private readonly SUPPORTED_FORMATS = ['audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/webm', 'audio/ogg'];
+  private readonly SUPPORTED_FORMATS = [
+    'audio/mpeg',
+    'audio/mp4',
+    'audio/wav',
+    'audio/webm',
+    'audio/ogg',
+  ];
   private readonly TARGET_BITRATE: number;
   private speechConfig: sdk.SpeechConfig | null = null;
 
@@ -53,11 +61,10 @@ export class VoiceMessageService {
   /**
    * Validate voice message file
    */
-  validateVoiceMessage(file: {
-    size: number;
-    mimeType: string;
-    duration?: number;
-  }): { valid: boolean; error?: string } {
+  validateVoiceMessage(file: { size: number; mimeType: string; duration?: number }): {
+    valid: boolean;
+    error?: string;
+  } {
     // Check file size
     if (file.size > this.MAX_FILE_SIZE) {
       return {
@@ -301,7 +308,10 @@ export class VoiceMessageService {
   /**
    * Transcribe voice message to text using Azure Speech Service
    */
-  async transcribeVoiceMessage(audioBuffer: Buffer, mimeType: string = 'audio/wav'): Promise<string | null> {
+  async transcribeVoiceMessage(
+    audioBuffer: Buffer,
+    mimeType: string = 'audio/wav'
+  ): Promise<string | null> {
     if (!this.speechConfig) {
       logger.debug('Azure Speech Service not configured - skipping transcription');
       return null;
@@ -319,9 +329,7 @@ export class VoiceMessageService {
       await this.convertToWav(tempPath, wavPath);
 
       // Create audio config from WAV file
-      const audioConfig = sdk.AudioConfig.fromWavFileInput(
-        fs.readFileSync(wavPath)
-      );
+      const audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(wavPath));
 
       // Create speech recognizer
       const recognizer = new sdk.SpeechRecognizer(this.speechConfig, audioConfig);
@@ -329,7 +337,10 @@ export class VoiceMessageService {
       return new Promise<string | null>((resolve, reject) => {
         let transcription = '';
 
-        recognizer.recognized = (_sender: sdk.Recognizer, event: sdk.SpeechRecognitionEventArgs) => {
+        recognizer.recognized = (
+          _sender: sdk.Recognizer,
+          event: sdk.SpeechRecognitionEventArgs
+        ) => {
           if (event.result.reason === sdk.ResultReason.RecognizedSpeech) {
             transcription += event.result.text + ' ';
           }
@@ -523,7 +534,10 @@ export class VoiceMessageService {
   /**
    * Get audio metadata using ffprobe
    */
-  async getAudioMetadata(audioBuffer: Buffer, mimeType: string): Promise<{
+  async getAudioMetadata(
+    audioBuffer: Buffer,
+    mimeType: string
+  ): Promise<{
     duration: number;
     bitrate?: number;
     sampleRate?: number;

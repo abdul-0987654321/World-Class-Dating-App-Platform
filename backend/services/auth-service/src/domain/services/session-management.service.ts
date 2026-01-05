@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import redisCache from '../../infrastructure/cache/redis';
 import logger from '../../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface Session {
   id: string;
@@ -96,11 +97,9 @@ class SessionManagementService {
       return [];
     }
 
-    const sessions = await Promise.all(
-      sessionIds.map(id => this.getSession(id))
-    );
+    const sessions = await Promise.all(sessionIds.map((id) => this.getSession(id)));
 
-    return sessions.filter(s => s !== null) as Session[];
+    return sessions.filter((s) => s !== null);
   }
 
   /**
@@ -108,7 +107,7 @@ class SessionManagementService {
    */
   async getActiveSessions(userId: string): Promise<Session[]> {
     const sessions = await this.getUserSessions(userId);
-    return sessions.filter(s => s.isActive);
+    return sessions.filter((s) => s.isActive);
   }
 
   /**
@@ -164,9 +163,7 @@ class SessionManagementService {
   async revokeAllUserSessions(userId: string): Promise<void> {
     const sessions = await this.getUserSessions(userId);
 
-    await Promise.all(
-      sessions.map(session => this.revokeSession(session.id))
-    );
+    await Promise.all(sessions.map((session) => this.revokeSession(session.id)));
 
     logger.info(`All sessions revoked for user: ${userId}`);
   }
@@ -177,11 +174,9 @@ class SessionManagementService {
   async revokeOtherSessions(userId: string, currentSessionId: string): Promise<void> {
     const sessions = await this.getUserSessions(userId);
 
-    const otherSessions = sessions.filter(s => s.id !== currentSessionId);
+    const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
 
-    await Promise.all(
-      otherSessions.map(session => this.revokeSession(session.id))
-    );
+    await Promise.all(otherSessions.map((session) => this.revokeSession(session.id)));
 
     logger.info(`Other sessions revoked for user: ${userId}`);
   }
@@ -253,7 +248,9 @@ class SessionManagementService {
   /**
    * Get session details with enriched information
    */
-  async getSessionDetails(sessionId: string): Promise<Session & { location?: string; device?: string } | null> {
+  async getSessionDetails(
+    sessionId: string
+  ): Promise<(Session & { location?: string; device?: string }) | null> {
     const session = await this.getSession(sessionId);
 
     if (!session) {

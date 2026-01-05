@@ -3,9 +3,10 @@
  * Runs every 5 minutes to process expired matches and send expiration warnings
  */
 
-import cron, { ScheduledTask } from 'node-cron';
-import matchService from '../domain/services/match.service';
 import { createLogger } from '@flamoral/backend-shared';
+import cron, { ScheduledTask } from 'node-cron';
+
+import matchService from '../domain/services/match.service';
 
 const logger = createLogger('match-expiration-job');
 

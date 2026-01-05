@@ -36,7 +36,16 @@ export const updateProgressSchema = Joi.object({
     'any.required': 'User ID is required',
   }),
   actionType: Joi.string()
-    .valid('swipe', 'message', 'match', 'login', 'profile_update', 'photo_upload', 'refer_friend', 'verify_photo')
+    .valid(
+      'swipe',
+      'message',
+      'match',
+      'login',
+      'profile_update',
+      'photo_upload',
+      'refer_friend',
+      'verify_photo'
+    )
     .required()
     .messages({
       'any.only': 'Invalid action type',

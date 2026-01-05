@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
 import { RestaurantSearchParams, RestaurantAvailability, Address } from '../../types';
 
 const logger = createLogger('resy-client');
@@ -70,7 +71,7 @@ export class ResyClient {
     this.client = axios.create({
       baseURL: process.env.RESY_API_URL || 'https://api.resy.com',
       headers: {
-        'Authorization': `ResyAPI api_key="${this.apiKey}"`,
+        Authorization: `ResyAPI api_key="${this.apiKey}"`,
         'Content-Type': 'application/json',
         'X-Resy-Universal-Auth': this.apiKey,
       },
@@ -121,9 +122,7 @@ export class ResyClient {
         },
       });
 
-      return response.data.search.hits.map((venue: ResyVenue) =>
-        this.transformVenue(venue)
-      );
+      return response.data.search.hits.map((venue: ResyVenue) => this.transformVenue(venue));
     } catch (error: any) {
       logger.error('Failed to search Resy venues', { error: error.message });
       throw new Error(`Resy search failed: ${error.message}`);

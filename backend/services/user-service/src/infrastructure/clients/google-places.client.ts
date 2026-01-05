@@ -4,7 +4,8 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import logger from '../../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   Venue,
   VenueType,
@@ -14,7 +15,7 @@ import {
   PRICE_RANGES,
   EXTERNAL_SOURCES,
 } from '../../domain/entities/Venue.entity';
-import { v4 as uuidv4 } from 'uuid';
+import logger from '../../utils/logger';
 
 export interface GooglePlacesConfig {
   apiKey: string;
@@ -168,7 +169,8 @@ export class GooglePlacesClient {
         params: {
           key: this.apiKey,
           place_id: placeId,
-          fields: 'place_id,name,formatted_address,formatted_phone_number,website,url,rating,price_level,user_ratings_total,photos,geometry,opening_hours,types,reviews',
+          fields:
+            'place_id,name,formatted_address,formatted_phone_number,website,url,rating,price_level,user_ratings_total,photos,geometry,opening_hours,types,reviews',
         },
       });
 
@@ -323,10 +325,18 @@ export class GooglePlacesClient {
     if (types.includes('bar') || types.includes('night_club')) {
       return VENUE_TYPES.BAR;
     }
-    if (types.includes('tourist_attraction') || types.includes('park') || types.includes('museum')) {
+    if (
+      types.includes('tourist_attraction') ||
+      types.includes('park') ||
+      types.includes('museum')
+    ) {
       return VENUE_TYPES.ACTIVITY;
     }
-    if (types.includes('movie_theater') || types.includes('bowling_alley') || types.includes('amusement_park')) {
+    if (
+      types.includes('movie_theater') ||
+      types.includes('bowling_alley') ||
+      types.includes('amusement_park')
+    ) {
       return VENUE_TYPES.ENTERTAINMENT;
     }
     return VENUE_TYPES.RESTAURANT;

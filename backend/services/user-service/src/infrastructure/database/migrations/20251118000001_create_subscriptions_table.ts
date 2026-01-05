@@ -4,8 +4,14 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('subscriptions', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
-    table.enum('tier', ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite']).notNullable().defaultTo('free');
-    table.enum('status', ['active', 'canceled', 'expired', 'past_due', 'trialing']).notNullable().defaultTo('active');
+    table
+      .enum('tier', ['free', 'basic', 'plus', 'premium', 'premium_plus', 'elite'])
+      .notNullable()
+      .defaultTo('free');
+    table
+      .enum('status', ['active', 'canceled', 'expired', 'past_due', 'trialing'])
+      .notNullable()
+      .defaultTo('active');
     table.string('stripe_subscription_id', 100).nullable().unique();
     table.string('stripe_customer_id', 100).nullable();
     table.string('stripe_price_id', 100).nullable();

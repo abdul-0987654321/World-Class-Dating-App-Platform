@@ -9,9 +9,9 @@
  * Returns PASS/FAIL report for deployment validation.
  */
 
-import { Router, Request, Response } from 'express';
-import axios from 'axios';
 import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+import { Router, Request, Response } from 'express';
 
 const router = Router();
 const logger = createLogger('verification');
@@ -20,13 +20,21 @@ const logger = createLogger('verification');
 const SERVICE_URLS = {
   auth: process.env.AUTH_SERVICE_URL || 'http://auth-service.flamoral.svc.cluster.local:3001',
   user: process.env.USER_SERVICE_URL || 'http://user-service.flamoral.svc.cluster.local:3002',
-  matching: process.env.MATCHING_SERVICE_URL || 'http://matching-service.flamoral.svc.cluster.local:3003',
-  messaging: process.env.MESSAGING_SERVICE_URL || 'http://messaging-service.flamoral.svc.cluster.local:3004',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.flamoral.svc.cluster.local:3005',
+  matching:
+    process.env.MATCHING_SERVICE_URL || 'http://matching-service.flamoral.svc.cluster.local:3003',
+  messaging:
+    process.env.MESSAGING_SERVICE_URL || 'http://messaging-service.flamoral.svc.cluster.local:3004',
+  notification:
+    process.env.NOTIFICATION_SERVICE_URL ||
+    'http://notification-service.flamoral.svc.cluster.local:3005',
   media: process.env.MEDIA_SERVICE_URL || 'http://media-service.flamoral.svc.cluster.local:3006',
-  payment: process.env.PAYMENT_SERVICE_URL || 'http://payment-service.flamoral.svc.cluster.local:3007',
-  moderation: process.env.MODERATION_SERVICE_URL || 'http://moderation-service.flamoral.svc.cluster.local:3008',
-  analytics: process.env.ANALYTICS_SERVICE_URL || 'http://analytics-service.flamoral.svc.cluster.local:3009',
+  payment:
+    process.env.PAYMENT_SERVICE_URL || 'http://payment-service.flamoral.svc.cluster.local:3007',
+  moderation:
+    process.env.MODERATION_SERVICE_URL ||
+    'http://moderation-service.flamoral.svc.cluster.local:3008',
+  analytics:
+    process.env.ANALYTICS_SERVICE_URL || 'http://analytics-service.flamoral.svc.cluster.local:3009',
   admin: process.env.ADMIN_SERVICE_URL || 'http://admin-service.flamoral.svc.cluster.local:3010',
 };
 
@@ -61,10 +69,7 @@ interface VerificationReport {
 /**
  * Check if a service is healthy
  */
-async function checkServiceHealth(
-  name: string,
-  url: string
-): Promise<VerificationResult> {
+async function checkServiceHealth(name: string, url: string): Promise<VerificationResult> {
   const start = Date.now();
   try {
     const response = await axios.get(`${url}/health`, { timeout: 5000 });
@@ -92,9 +97,7 @@ async function checkServiceHealth(
     return {
       name,
       status: 'FAIL',
-      message: error.code === 'ECONNREFUSED'
-        ? 'Service unreachable'
-        : error.message,
+      message: error.code === 'ECONNREFUSED' ? 'Service unreachable' : error.message,
       latencyMs,
     };
   }
@@ -107,10 +110,7 @@ async function verifyPaymentSystem(): Promise<VerificationResult[]> {
   const results: VerificationResult[] = [];
 
   // Check Stripe configuration
-  const stripeConfigured = !!(
-    process.env.STRIPE_SECRET_KEY &&
-    process.env.STRIPE_WEBHOOK_SECRET
-  );
+  const stripeConfigured = !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
 
   results.push({
     name: 'Stripe Configuration',
@@ -137,23 +137,25 @@ async function verifyPaymentSystem(): Promise<VerificationResult[]> {
     'STRIPE_PRICE_ELITE',
   ];
 
-  const missingProducts = productIds.filter(id => !process.env[id]);
-  const missingPrices = priceIds.filter(id => !process.env[id]);
+  const missingProducts = productIds.filter((id) => !process.env[id]);
+  const missingPrices = priceIds.filter((id) => !process.env[id]);
 
   results.push({
     name: 'Product ID Mapping',
     status: missingProducts.length === 0 ? 'PASS' : 'WARN',
-    message: missingProducts.length === 0
-      ? 'All product IDs configured'
-      : `Missing product IDs: ${missingProducts.join(', ')}`,
+    message:
+      missingProducts.length === 0
+        ? 'All product IDs configured'
+        : `Missing product IDs: ${missingProducts.join(', ')}`,
   });
 
   results.push({
     name: 'Price ID Mapping',
     status: missingPrices.length === 0 ? 'PASS' : 'WARN',
-    message: missingPrices.length === 0
-      ? 'All price IDs configured'
-      : `Missing price IDs: ${missingPrices.join(', ')}`,
+    message:
+      missingPrices.length === 0
+        ? 'All price IDs configured'
+        : `Missing price IDs: ${missingPrices.join(', ')}`,
   });
 
   // Check payment service health
@@ -184,10 +186,7 @@ async function verifyAIServices(): Promise<VerificationResult[]> {
   });
 
   // Check OpenAI/AI configuration
-  const aiConfigured = !!(
-    process.env.OPENAI_API_KEY ||
-    process.env.AZURE_OPENAI_ENDPOINT
-  );
+  const aiConfigured = !!(process.env.OPENAI_API_KEY || process.env.AZURE_OPENAI_ENDPOINT);
 
   results.push({
     name: 'AI Provider Configuration',
@@ -232,10 +231,7 @@ async function verifySafetyServices(): Promise<VerificationResult[]> {
   });
 
   // Check Azure CV for image moderation
-  const cvConfigured = !!(
-    process.env.AZURE_CV_ENDPOINT &&
-    process.env.AZURE_CV_API_KEY
-  );
+  const cvConfigured = !!(process.env.AZURE_CV_ENDPOINT && process.env.AZURE_CV_API_KEY);
 
   results.push({
     name: 'Image Moderation API',
@@ -276,31 +272,21 @@ async function verifyCoreServices(): Promise<VerificationResult[]> {
   }
 
   // Check database connectivity
-  const dbConfigured = !!(
-    process.env.DATABASE_URL ||
-    (process.env.DB_HOST && process.env.DB_NAME)
-  );
+  const dbConfigured = !!(process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_NAME));
 
   results.push({
     name: 'Database Configuration',
     status: dbConfigured ? 'PASS' : 'FAIL',
-    message: dbConfigured
-      ? 'Database connection configured'
-      : 'Missing database configuration',
+    message: dbConfigured ? 'Database connection configured' : 'Missing database configuration',
   });
 
   // Check Redis connectivity
-  const redisConfigured = !!(
-    process.env.REDIS_HOST ||
-    process.env.REDIS_URL
-  );
+  const redisConfigured = !!(process.env.REDIS_HOST || process.env.REDIS_URL);
 
   results.push({
     name: 'Redis Configuration',
     status: redisConfigured ? 'PASS' : 'WARN',
-    message: redisConfigured
-      ? 'Redis connection configured'
-      : 'Missing Redis configuration',
+    message: redisConfigured ? 'Redis connection configured' : 'Missing Redis configuration',
   });
 
   return results;
@@ -321,10 +307,10 @@ async function generateVerificationReport(): Promise<VerificationReport> {
 
   const summary = {
     total: allResults.length,
-    passed: allResults.filter(r => r.status === 'PASS').length,
-    failed: allResults.filter(r => r.status === 'FAIL').length,
-    warnings: allResults.filter(r => r.status === 'WARN').length,
-    skipped: allResults.filter(r => r.status === 'SKIP').length,
+    passed: allResults.filter((r) => r.status === 'PASS').length,
+    failed: allResults.filter((r) => r.status === 'FAIL').length,
+    warnings: allResults.filter((r) => r.status === 'WARN').length,
+    skipped: allResults.filter((r) => r.status === 'SKIP').length,
   };
 
   // Critical failures that should block deployment
@@ -336,7 +322,7 @@ async function generateVerificationReport(): Promise<VerificationReport> {
   ];
 
   const hasCriticalFailure = allResults.some(
-    r => criticalChecks.includes(r.name) && r.status === 'FAIL'
+    (r) => criticalChecks.includes(r.name) && r.status === 'FAIL'
   );
 
   return {
@@ -391,7 +377,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/payments', async (req: Request, res: Response) => {
   try {
     const results = await verifyPaymentSystem();
-    const hasFailed = results.some(r => r.status === 'FAIL');
+    const hasFailed = results.some((r) => r.status === 'FAIL');
 
     res.status(hasFailed ? 503 : 200).json({
       timestamp: new Date().toISOString(),
@@ -411,7 +397,7 @@ router.get('/payments', async (req: Request, res: Response) => {
 router.get('/ai', async (req: Request, res: Response) => {
   try {
     const results = await verifyAIServices();
-    const hasFailed = results.some(r => r.status === 'FAIL');
+    const hasFailed = results.some((r) => r.status === 'FAIL');
 
     res.status(hasFailed ? 503 : 200).json({
       timestamp: new Date().toISOString(),
@@ -431,7 +417,7 @@ router.get('/ai', async (req: Request, res: Response) => {
 router.get('/safety', async (req: Request, res: Response) => {
   try {
     const results = await verifySafetyServices();
-    const hasFailed = results.some(r => r.status === 'FAIL');
+    const hasFailed = results.some((r) => r.status === 'FAIL');
 
     res.status(hasFailed ? 503 : 200).json({
       timestamp: new Date().toISOString(),

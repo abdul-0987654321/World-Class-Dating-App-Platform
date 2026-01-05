@@ -12,16 +12,32 @@
 // ============================================================================
 
 // Push Notifications via AWS SNS
-export {
-  SNSPushProvider,
-  snsPushProvider,
-  type PushMessage,
-  type BatchPushMessage,
-  type PushResult,
-  type BatchPushResult,
-  type EndpointResult,
-  type Platform,
-} from './sns-push.provider';
+// Note: Types are exported from central types file to avoid AWS SDK dependency issues
+export type {
+  PushMessage,
+  BatchPushMessage,
+  PushResult,
+  BatchPushResult,
+  EndpointResult,
+  Platform,
+} from '../types';
+
+// Re-export class and instance with try/catch for environments without AWS SDK
+let _SNSPushProvider: any;
+let _snsPushProvider: any;
+
+try {
+  const snsPushModule = require('./sns-push.provider');
+  _SNSPushProvider = snsPushModule.SNSPushProvider;
+  _snsPushProvider = snsPushModule.snsPushProvider;
+} catch {
+  // AWS SDK not installed - exports will be undefined
+  _SNSPushProvider = undefined;
+  _snsPushProvider = undefined;
+}
+
+export const SNSPushProvider = _SNSPushProvider;
+export const snsPushProvider = _snsPushProvider;
 
 // ============================================================================
 // DEPRECATED PROVIDERS (DO NOT USE)
@@ -44,4 +60,7 @@ export { APNsProvider, apnsProvider } from './apns.provider';
 // ============================================================================
 
 // Default push provider is AWS SNS
-export const pushProvider = snsPushProvider;
+export const pushProvider = _snsPushProvider;
+
+// Lazy getter alternative for runtime safety
+export const getPushProvider = () => _snsPushProvider;

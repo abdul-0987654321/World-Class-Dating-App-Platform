@@ -3,8 +3,10 @@
  * Orchestrates all notification channels
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
 import { db } from '../config/database';
-import logger from '../utils/logger';
+import { addNotificationJob } from '../queues/notification.queue';
 import {
   NotificationPayload,
   NotificationChannel,
@@ -14,8 +16,7 @@ import {
   Notification,
   UpdatePreferencesRequest,
 } from '../types';
-import { addNotificationJob } from '../queues/notification.queue';
-import { v4 as uuidv4 } from 'uuid';
+import logger from '../utils/logger';
 
 export class NotificationService {
   /**
@@ -99,10 +100,7 @@ export class NotificationService {
         query = query.whereNull('read_at');
       }
 
-      const notifications = await query
-        .orderBy('created_at', 'desc')
-        .limit(limit)
-        .offset(offset);
+      const notifications = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
       const [{ count: total }] = await db('notifications')
         .where({ user_id: userId })
@@ -247,9 +245,7 @@ export class NotificationService {
     userId: string
   ): Promise<{ success: boolean; preferences?: NotificationPreferences; error?: string }> {
     try {
-      let prefs = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      let prefs = await db('notification_preferences').where({ user_id: userId }).first();
 
       // Create default preferences if not found
       if (!prefs) {
@@ -316,8 +312,7 @@ export class NotificationService {
 
       if (updates.pushEnabled !== undefined) dbUpdates.push_enabled = updates.pushEnabled;
       if (updates.pushNewMatch !== undefined) dbUpdates.push_new_match = updates.pushNewMatch;
-      if (updates.pushNewMessage !== undefined)
-        dbUpdates.push_new_message = updates.pushNewMessage;
+      if (updates.pushNewMessage !== undefined) dbUpdates.push_new_message = updates.pushNewMessage;
       if (updates.pushNewLike !== undefined) dbUpdates.push_new_like = updates.pushNewLike;
       if (updates.pushSuperLike !== undefined) dbUpdates.push_super_like = updates.pushSuperLike;
       if (updates.pushProfileView !== undefined)
@@ -350,9 +345,7 @@ export class NotificationService {
       dbUpdates.updated_at = new Date();
 
       // Update or insert preferences
-      const existing = await db('notification_preferences')
-        .where({ user_id: userId })
-        .first();
+      const existing = await db('notification_preferences').where({ user_id: userId }).first();
 
       if (existing) {
         await db('notification_preferences').where({ user_id: userId }).update(dbUpdates);
@@ -458,11 +451,7 @@ export class NotificationService {
     });
   }
 
-  async notifyPaymentSuccess(
-    userId: string,
-    amount: number,
-    plan: string
-  ): Promise<void> {
+  async notifyPaymentSuccess(userId: string, amount: number, plan: string): Promise<void> {
     await this.sendNotification({
       userId,
       type: NotificationType.PAYMENT_SUCCESS,
@@ -474,10 +463,7 @@ export class NotificationService {
     });
   }
 
-  async notifyPaymentFailed(
-    userId: string,
-    reason: string
-  ): Promise<void> {
+  async notifyPaymentFailed(userId: string, reason: string): Promise<void> {
     await this.sendNotification({
       userId,
       type: NotificationType.PAYMENT_FAILED,
@@ -489,10 +475,7 @@ export class NotificationService {
     });
   }
 
-  async notifyProfileBoostActive(
-    userId: string,
-    durationMinutes: number
-  ): Promise<void> {
+  async notifyProfileBoostActive(userId: string, durationMinutes: number): Promise<void> {
     await this.sendNotification({
       userId,
       type: NotificationType.PROFILE_BOOST_ACTIVE,

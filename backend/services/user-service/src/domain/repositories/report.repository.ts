@@ -1,5 +1,10 @@
-import { Report, ReportCreateInput, ReportUpdateInput, REPORT_STATUS } from '../entities/Report.entity';
 import db from '../../infrastructure/database/connection';
+import {
+  Report,
+  ReportCreateInput,
+  ReportUpdateInput,
+  REPORT_STATUS,
+} from '../entities/Report.entity';
 
 export class ReportRepository {
   private tableName = 'reports';
@@ -18,28 +23,25 @@ export class ReportRepository {
       updated_at: now,
     };
 
-    const [report] = await db(this.tableName)
-      .insert(reportData)
-      .returning('*');
+    const [report] = await db(this.tableName).insert(reportData).returning('*');
 
     return this.mapToEntity(report);
   }
 
   async findById(id: string): Promise<Report | null> {
-    const report = await db(this.tableName)
-      .where({ id })
-      .first();
+    const report = await db(this.tableName).where({ id }).first();
 
     return report ? this.mapToEntity(report) : null;
   }
 
-  async findByReporterId(reporterId: string, options?: {
-    limit?: number;
-    offset?: number;
-  }): Promise<Report[]> {
-    let query = db(this.tableName)
-      .where({ reporter_id: reporterId })
-      .orderBy('created_at', 'desc');
+  async findByReporterId(
+    reporterId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<Report[]> {
+    let query = db(this.tableName).where({ reporter_id: reporterId }).orderBy('created_at', 'desc');
 
     if (options?.limit) query = query.limit(options.limit);
     if (options?.offset) query = query.offset(options.offset);
@@ -48,14 +50,15 @@ export class ReportRepository {
     return reports.map(this.mapToEntity);
   }
 
-  async findByReportedId(reportedId: string, options?: {
-    limit?: number;
-    offset?: number;
-    status?: string;
-  }): Promise<Report[]> {
-    let query = db(this.tableName)
-      .where({ reported_id: reportedId })
-      .orderBy('created_at', 'desc');
+  async findByReportedId(
+    reportedId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      status?: string;
+    }
+  ): Promise<Report[]> {
+    let query = db(this.tableName).where({ reported_id: reportedId }).orderBy('created_at', 'desc');
 
     if (options?.status) query = query.where({ status: options.status });
     if (options?.limit) query = query.limit(options.limit);
@@ -65,14 +68,15 @@ export class ReportRepository {
     return reports.map(this.mapToEntity);
   }
 
-  async findByStatus(status: string, options?: {
-    limit?: number;
-    offset?: number;
-    severity?: string;
-  }): Promise<Report[]> {
-    let query = db(this.tableName)
-      .where({ status })
-      .orderBy('created_at', 'asc');
+  async findByStatus(
+    status: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      severity?: string;
+    }
+  ): Promise<Report[]> {
+    let query = db(this.tableName).where({ status }).orderBy('created_at', 'asc');
 
     if (options?.severity) query = query.where({ severity: options.severity });
     if (options?.limit) query = query.limit(options.limit);
@@ -82,10 +86,13 @@ export class ReportRepository {
     return reports.map(this.mapToEntity);
   }
 
-  async findBySeverity(severity: string, options?: {
-    limit?: number;
-    offset?: number;
-  }): Promise<Report[]> {
+  async findBySeverity(
+    severity: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<Report[]> {
     let query = db(this.tableName)
       .where({ severity })
       .where('status', 'in', [REPORT_STATUS.PENDING, REPORT_STATUS.INVESTIGATING])
@@ -109,10 +116,7 @@ export class ReportRepository {
     if (input.resolvedBy !== undefined) updateData.resolved_by = input.resolvedBy;
     if (input.resolvedAt !== undefined) updateData.resolved_at = input.resolvedAt;
 
-    const [report] = await db(this.tableName)
-      .where({ id })
-      .update(updateData)
-      .returning('*');
+    const [report] = await db(this.tableName).where({ id }).update(updateData).returning('*');
 
     return this.mapToEntity(report);
   }
@@ -159,16 +163,13 @@ export class ReportRepository {
       .count('* as count')
       .first();
 
-    return parseInt(result?.count as string || '0', 10);
+    return parseInt((result?.count as string) || '0', 10);
   }
 
   async countByStatus(status: string): Promise<number> {
-    const result = await db(this.tableName)
-      .where({ status })
-      .count('* as count')
-      .first();
+    const result = await db(this.tableName).where({ status }).count('* as count').first();
 
-    return parseInt(result?.count as string || '0', 10);
+    return parseInt((result?.count as string) || '0', 10);
   }
 
   async getReportStats(): Promise<{
@@ -178,10 +179,7 @@ export class ReportRepository {
     resolved: number;
     dismissed: number;
   }> {
-    const stats = await db(this.tableName)
-      .select('status')
-      .count('* as count')
-      .groupBy('status');
+    const stats = await db(this.tableName).select('status').count('* as count').groupBy('status');
 
     const result = {
       total: 0,
@@ -216,9 +214,7 @@ export class ReportRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db(this.tableName)
-      .where({ id })
-      .del();
+    await db(this.tableName).where({ id }).del();
   }
 
   // Map database row to entity

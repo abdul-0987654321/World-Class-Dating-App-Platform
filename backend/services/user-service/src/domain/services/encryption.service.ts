@@ -1,9 +1,9 @@
-import { createLogger } from '../../utils/logger';
+import logger, { createLogger } from '../../utils/logger';
 const encryptionLogger = createLogger('EncryptionService');
 
 import crypto from 'crypto';
+
 import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
 
 /**
  * End-to-End Encryption Service
@@ -49,11 +49,16 @@ export class EncryptionService {
 
     if (!masterKeyHex) {
       if (process.env.NODE_ENV === 'production') {
-        throw new Error('CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use Azure Key Vault or AWS KMS.');
+        throw new Error(
+          'CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use Azure Key Vault or AWS KMS.'
+        );
       }
       // Development only: generate a consistent dev key (NOT random, so messages persist across restarts)
       encryptionLogger.warn('WARNING: Using development encryption key. DO NOT use in production!');
-      this.MASTER_KEY = Buffer.from('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', 'hex');
+      this.MASTER_KEY = Buffer.from(
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+        'hex'
+      );
     } else {
       if (masterKeyHex.length !== 64) {
         throw new Error('ENCRYPTION_MASTER_KEY must be 64 hex characters (32 bytes)');
@@ -219,9 +224,7 @@ export class EncryptionService {
   async getUserKeyBundle(userId: string): Promise<any> {
     try {
       // Get identity and signed pre key
-      const keys = await db('encryption_keys')
-        .where({ user_id: userId, is_active: true })
-        .first();
+      const keys = await db('encryption_keys').where({ user_id: userId, is_active: true }).first();
 
       if (!keys) {
         throw new Error('User encryption keys not found');
@@ -247,10 +250,12 @@ export class EncryptionService {
           signature: keys.signed_pre_key_signature,
           keyId: keys.signed_pre_key_id,
         },
-        oneTimePreKey: oneTimePreKey ? {
-          publicKey: oneTimePreKey.public_key,
-          keyId: oneTimePreKey.key_id,
-        } : null,
+        oneTimePreKey: oneTimePreKey
+          ? {
+              publicKey: oneTimePreKey.public_key,
+              keyId: oneTimePreKey.key_id,
+            }
+          : null,
       };
     } catch (error) {
       logger.error('Error getting user key bundle:', error);
@@ -285,10 +290,15 @@ export class EncryptionService {
   /**
    * Encrypt message for recipient
    */
-  async encryptMessage(senderId: string, recipientId: string, message: string, conversationId: string): Promise<EncryptedMessage> {
+  async encryptMessage(
+    senderId: string,
+    recipientId: string,
+    message: string,
+    conversationId: string
+  ): Promise<EncryptedMessage> {
     try {
       // Get or create session key
-      let sessionKey = await this.getOrCreateSessionKey(senderId, recipientId, conversationId);
+      const sessionKey = await this.getOrCreateSessionKey(senderId, recipientId, conversationId);
 
       // Encrypt message with session key
       const messageKey = Buffer.from(sessionKey.session_key, 'base64');
@@ -313,7 +323,12 @@ export class EncryptionService {
   /**
    * Decrypt message from sender
    */
-  async decryptMessage(recipientId: string, senderId: string, encryptedMessage: EncryptedMessage, conversationId: string): Promise<string> {
+  async decryptMessage(
+    recipientId: string,
+    senderId: string,
+    encryptedMessage: EncryptedMessage,
+    conversationId: string
+  ): Promise<string> {
     try {
       // Get session key
       const sessionKey = await this.getSessionKey(senderId, recipientId, conversationId);
@@ -341,7 +356,11 @@ export class EncryptionService {
   /**
    * Get or create session key for conversation
    */
-  private async getOrCreateSessionKey(userId1: string, userId2: string, conversationId: string): Promise<any> {
+  private async getOrCreateSessionKey(
+    userId1: string,
+    userId2: string,
+    conversationId: string
+  ): Promise<any> {
     // Check if session key exists
     let sessionKey = await db('session_keys')
       .where({ conversation_id: conversationId, is_active: true })
@@ -352,7 +371,9 @@ export class EncryptionService {
     }
 
     // Create new session key
-    const user1Keys = await db('encryption_keys').where({ user_id: userId1, is_active: true }).first();
+    const user1Keys = await db('encryption_keys')
+      .where({ user_id: userId1, is_active: true })
+      .first();
     const user2KeyBundle = await this.getUserKeyBundle(userId2);
 
     // Generate shared secret and derive session key
@@ -361,16 +382,18 @@ export class EncryptionService {
     const sessionKeyDerived = this.deriveKey(sharedSecret, salt, 'session-key');
     const rootKey = this.deriveKey(sharedSecret, salt, 'root-key');
 
-    sessionKey = await db('session_keys').insert({
-      conversation_id: conversationId,
-      user1_id: userId1,
-      user2_id: userId2,
-      session_key_user1: sessionKeyDerived.toString('base64'),
-      session_key_user2: sessionKeyDerived.toString('base64'),
-      root_key: rootKey.toString('base64'),
-      chain_key_index: 0,
-      last_used_at: new Date(),
-    }).returning('*');
+    sessionKey = await db('session_keys')
+      .insert({
+        conversation_id: conversationId,
+        user1_id: userId1,
+        user2_id: userId2,
+        session_key_user1: sessionKeyDerived.toString('base64'),
+        session_key_user2: sessionKeyDerived.toString('base64'),
+        root_key: rootKey.toString('base64'),
+        chain_key_index: 0,
+        last_used_at: new Date(),
+      })
+      .returning('*');
 
     return sessionKey[0];
   }
@@ -378,12 +401,18 @@ export class EncryptionService {
   /**
    * Get session key for conversation
    */
-  private async getSessionKey(userId1: string, userId2: string, conversationId: string): Promise<any> {
+  private async getSessionKey(
+    userId1: string,
+    userId2: string,
+    conversationId: string
+  ): Promise<any> {
     return db('session_keys')
       .where({ conversation_id: conversationId, is_active: true })
-      .andWhere(function() {
-        this.where({ user1_id: userId1, user2_id: userId2 })
-          .orWhere({ user1_id: userId2, user2_id: userId1 });
+      .andWhere(function () {
+        this.where({ user1_id: userId1, user2_id: userId2 }).orWhere({
+          user1_id: userId2,
+          user2_id: userId1,
+        });
       })
       .first();
   }
@@ -407,7 +436,7 @@ export class EncryptionService {
         .count('* as count')
         .first();
 
-      const unusedCount = parseInt(unusedPreKeys?.count as string || '0');
+      const unusedCount = parseInt((unusedPreKeys?.count as string) || '0');
       if (unusedCount < 20) {
         await this.generateOneTimePreKeys(userId, this.ONE_TIME_PREKEY_COUNT - unusedCount);
       }

@@ -64,12 +64,14 @@ export class ProfileRepository {
   private parseJsonFields(profile: any): ProfileEntity {
     return {
       ...profile,
-      interests: typeof profile.interests === 'string'
-        ? JSON.parse(profile.interests)
-        : profile.interests || [],
-      languages: typeof profile.languages === 'string'
-        ? JSON.parse(profile.languages)
-        : profile.languages || [],
+      interests:
+        typeof profile.interests === 'string'
+          ? JSON.parse(profile.interests)
+          : profile.interests || [],
+      languages:
+        typeof profile.languages === 'string'
+          ? JSON.parse(profile.languages)
+          : profile.languages || [],
     };
   }
 }

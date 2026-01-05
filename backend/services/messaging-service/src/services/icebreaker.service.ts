@@ -1,6 +1,6 @@
-import { createLogger } from '../utils/logger';
-import { Icebreaker, IcebreakerSuggestion } from '../types/enhanced-types';
 import { icebreakerRepository } from '../domain/repositories/icebreaker.repository';
+import { Icebreaker, IcebreakerSuggestion } from '../types/enhanced-types';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('icebreaker-service');
 
@@ -21,7 +21,7 @@ export class IcebreakerService {
       const icebreakers = await icebreakerRepository.getMostPopular(count);
 
       return {
-        icebreakers: icebreakers.map(ib => ({
+        icebreakers: icebreakers.map((ib) => ({
           id: ib.id,
           category: ib.category,
           text: ib.text,
@@ -46,7 +46,7 @@ export class IcebreakerService {
 
       const icebreakers = await icebreakerRepository.getByCategory(category, count);
 
-      return icebreakers.map(ib => ({
+      return icebreakers.map((ib) => ({
         id: ib.id,
         category: ib.category,
         text: ib.text,
@@ -94,7 +94,7 @@ export class IcebreakerService {
 
       const icebreakers = await icebreakerRepository.searchByTags(tags, count);
 
-      return icebreakers.map(ib => ({
+      return icebreakers.map((ib) => ({
         id: ib.id,
         category: ib.category,
         text: ib.text,
@@ -136,7 +136,7 @@ export class IcebreakerService {
       const icebreakers = await icebreakerRepository.getByInterests(userInterests, count);
 
       return {
-        icebreakers: icebreakers.map(ib => ({
+        icebreakers: icebreakers.map((ib) => ({
           id: ib.id,
           category: ib.category,
           text: ib.text,
@@ -220,7 +220,7 @@ export class IcebreakerService {
 
       const icebreakers = await icebreakerRepository.getCustomByUser(userId, limit);
 
-      return icebreakers.map(ib => ({
+      return icebreakers.map((ib) => ({
         id: ib.id,
         category: ib.category,
         text: ib.text,

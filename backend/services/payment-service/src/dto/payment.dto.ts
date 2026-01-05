@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNumber,
@@ -12,7 +13,6 @@ import {
   Max,
   Length,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * DTO for creating a payment intent

@@ -5,9 +5,10 @@
  * Designed to run as a cron job or scheduled task.
  */
 
-import { CronJob } from 'cron';
-import { churnPredictionService } from '../services/churn-prediction.service';
 import { createLogger } from '@flamoral/backend-shared';
+import { CronJob } from 'cron';
+
+import { churnPredictionService } from '../services/churn-prediction.service';
 import { ChurnPredictionJob, ChurnRiskTier } from '../types';
 
 const logger = createLogger('churn-prediction-job');
@@ -148,7 +149,9 @@ class ChurnPredictionJobRunner {
 
       this.lastJobResult = result;
 
-      logger.info(`Daily prediction job completed: ${job.usersProcessed}/${job.usersTotal} users processed in ${duration}ms`);
+      logger.info(
+        `Daily prediction job completed: ${job.usersProcessed}/${job.usersTotal} users processed in ${duration}ms`
+      );
 
       // Emit metrics for monitoring
       await this.emitJobMetrics(result);
@@ -204,7 +207,9 @@ class ChurnPredictionJobRunner {
         },
       };
 
-      logger.info(`Model update completed: v${modelWeights.version} with ${modelWeights.accuracy.toFixed(2)} accuracy`);
+      logger.info(
+        `Model update completed: v${modelWeights.version} with ${modelWeights.accuracy.toFixed(2)} accuracy`
+      );
 
       return result;
     } catch (error: any) {
@@ -238,10 +243,7 @@ class ChurnPredictionJobRunner {
       let interventionCount = 0;
 
       // Get critical risk users
-      const criticalUsers = await churnPredictionService.getAtRiskUsers(
-        ChurnRiskTier.CRITICAL,
-        50
-      );
+      const criticalUsers = await churnPredictionService.getAtRiskUsers(ChurnRiskTier.CRITICAL, 50);
 
       for (const user of criticalUsers) {
         // Only intervene if no recent campaign
@@ -267,10 +269,7 @@ class ChurnPredictionJobRunner {
       }
 
       // Get high risk users who haven't been contacted in a week
-      const highRiskUsers = await churnPredictionService.getAtRiskUsers(
-        ChurnRiskTier.HIGH,
-        100
-      );
+      const highRiskUsers = await churnPredictionService.getAtRiskUsers(ChurnRiskTier.HIGH, 100);
 
       for (const user of highRiskUsers) {
         const daysSinceLastCampaign = user.lastCampaignDate

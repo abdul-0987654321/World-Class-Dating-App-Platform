@@ -4,10 +4,11 @@
  */
 
 import { Request, Response } from 'express';
+
 import AppleIAPService from '../../domain/services/apple-iap.service';
 import GooglePlayService from '../../domain/services/google-play.service';
-import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
 import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
+import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
 import logger from '../../utils/logger';
 
 export class IAPController {
@@ -50,23 +51,25 @@ export class IAPController {
           // Check if it's a subscription or consumable
           if (validationResult.expiresDate) {
             // Subscription
-            tier = this.appleIAPService.mapProductIdToTier(validationResult.productId!);
+            tier = this.appleIAPService.mapProductIdToTier(validationResult.productId);
             await this.updateUserSubscription(
               userId,
               tier,
               provider,
-              validationResult.transactionId!,
+              validationResult.transactionId,
               validationResult.expiresDate,
               validationResult.autoRenewStatus || false
             );
           } else {
             // Consumable
-            consumableProduct = this.appleIAPService.parseConsumableProduct(validationResult.productId!);
+            consumableProduct = this.appleIAPService.parseConsumableProduct(
+              validationResult.productId
+            );
             await this.addConsumableToUser(
               userId,
               consumableProduct.type,
               consumableProduct.amount,
-              validationResult.transactionId!,
+              validationResult.transactionId,
               provider
             );
           }
@@ -80,7 +83,10 @@ export class IAPController {
         }
 
         // Try as subscription first
-        validationResult = await this.googlePlayService.validateSubscription(productId, purchaseToken);
+        validationResult = await this.googlePlayService.validateSubscription(
+          productId,
+          purchaseToken
+        );
 
         if (validationResult.isValid && validationResult.expiryTime) {
           // It's a subscription
@@ -93,7 +99,7 @@ export class IAPController {
             userId,
             tier,
             provider,
-            validationResult.orderId!,
+            validationResult.orderId,
             validationResult.expiryTime,
             validationResult.autoRenewing || false
           );
@@ -110,7 +116,7 @@ export class IAPController {
               userId,
               consumableProduct.type,
               consumableProduct.amount,
-              validationResult.orderId!,
+              validationResult.orderId,
               provider
             );
           }
@@ -197,12 +203,16 @@ export class IAPController {
       } else if (provider === 'google_play') {
         // Google Play restore is handled differently
         // Typically, the app would query for all purchases and validate each one
-        logger.info('Google Play restore requested - app should query purchases from Google Play SDK');
+        logger.info(
+          'Google Play restore requested - app should query purchases from Google Play SDK'
+        );
       }
 
       return res.status(200).json({
         success: true,
-        message: restoredSubscription ? 'Purchases restored successfully' : 'No active purchases found',
+        message: restoredSubscription
+          ? 'Purchases restored successfully'
+          : 'No active purchases found',
         data: {
           subscription: restoredSubscription,
         },

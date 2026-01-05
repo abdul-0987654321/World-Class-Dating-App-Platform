@@ -4,8 +4,9 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import { createLogger } from '../../utils/logger';
+
 import config from '../../config';
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('user-service-client');
 
@@ -84,7 +85,9 @@ export class UserServiceClient {
   async canSendBeforeMatch(userId: string): Promise<boolean> {
     try {
       const tier = await this.getUserSubscriptionTier(userId);
-      const canSend = BEFORE_MATCH_ALLOWED_TIERS.includes(tier as typeof BEFORE_MATCH_ALLOWED_TIERS[number]);
+      const canSend = BEFORE_MATCH_ALLOWED_TIERS.includes(
+        tier as (typeof BEFORE_MATCH_ALLOWED_TIERS)[number]
+      );
       logger.debug(`User ${userId} with tier ${tier} canSendBeforeMatch: ${canSend}`);
       return canSend;
     } catch (error: any) {
@@ -99,7 +102,9 @@ export class UserServiceClient {
    */
   async hasFeatureAccess(userId: string, featureKey: string): Promise<boolean> {
     try {
-      const response = await this.client.get(`/api/internal/users/${userId}/features/${featureKey}`);
+      const response = await this.client.get(
+        `/api/internal/users/${userId}/features/${featureKey}`
+      );
       return response.data.data?.hasAccess || false;
     } catch (error: any) {
       if (error.response?.status === 404) {

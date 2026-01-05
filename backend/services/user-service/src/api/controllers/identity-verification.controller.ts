@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+
 import { identityVerificationService } from '../../services/identity-verification.service';
-import logger from '../../utils/logger';
 import { VerificationType, StartVerificationRequest } from '../../types/verification.types';
+import logger from '../../utils/logger';
 
 /**
  * Identity Verification Controller
@@ -35,7 +36,13 @@ export class IdentityVerificationController {
 
       // Validate verification type
       const validTypes: VerificationType[] = [
-        'email', 'phone', 'id', 'selfie', 'liveness', 'video', 'biometric'
+        'email',
+        'phone',
+        'id',
+        'selfie',
+        'liveness',
+        'video',
+        'biometric',
       ];
 
       if (!validTypes.includes(type)) {
@@ -54,11 +61,7 @@ export class IdentityVerificationController {
         metadata,
       };
 
-      const result = await identityVerificationService.startVerification(
-        userId,
-        request,
-        clientIp
-      );
+      const result = await identityVerificationService.startVerification(userId, request, clientIp);
 
       if (!result.success) {
         return res.status(400).json(result);
@@ -291,11 +294,7 @@ export class IdentityVerificationAdminController {
       const offset = parseInt(req.query.offset as string) || 0;
       const type = req.query.type as VerificationType | undefined;
 
-      const result = await identityVerificationService.getPendingVerifications(
-        limit,
-        offset,
-        type
-      );
+      const result = await identityVerificationService.getPendingVerifications(limit, offset, type);
 
       return res.status(200).json({
         success: true,
@@ -336,11 +335,7 @@ export class IdentityVerificationAdminController {
         });
       }
 
-      const result = await identityVerificationService.adminApprove(
-        requestId,
-        adminUserId,
-        notes
-      );
+      const result = await identityVerificationService.adminApprove(requestId, adminUserId, notes);
 
       if (!result.success) {
         return res.status(400).json(result);

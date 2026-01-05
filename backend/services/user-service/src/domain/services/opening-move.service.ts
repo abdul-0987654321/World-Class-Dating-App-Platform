@@ -1,4 +1,4 @@
-import { OpeningMoveRepository } from '../repositories/opening-move.repository';
+import logger from '../../utils/logger';
 import {
   OpeningMoveResponse,
   OpeningMoveTemplateResponse,
@@ -7,7 +7,7 @@ import {
   CreateOpeningResponseDto,
   TemplateCategory,
 } from '../entities/OpeningMove.entity';
-import logger from '../../utils/logger';
+import { OpeningMoveRepository } from '../repositories/opening-move.repository';
 
 const MAX_OPENING_MOVES = 3;
 
@@ -25,7 +25,10 @@ export class OpeningMoveService {
   }
 
   // Create a new opening move
-  async createOpeningMove(userId: string, moveData: CreateOpeningMoveDto): Promise<OpeningMoveResponse> {
+  async createOpeningMove(
+    userId: string,
+    moveData: CreateOpeningMoveDto
+  ): Promise<OpeningMoveResponse> {
     // Check if user already has 3 active opening moves
     const activeCount = await this.repository.countActiveByUserId(userId);
     if (activeCount >= MAX_OPENING_MOVES) {
@@ -100,7 +103,7 @@ export class OpeningMoveService {
 
     // Verify all IDs belong to the user
     const userMoves = await this.repository.findActiveByUserId(userId);
-    const userMoveIds = userMoves.map(m => m.id);
+    const userMoveIds = userMoves.map((m) => m.id);
 
     for (const id of orderedIds) {
       if (!userMoveIds.includes(id)) {

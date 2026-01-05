@@ -4,14 +4,15 @@
  * Premium feature for expressing strong interest
  */
 
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
+import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
+import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import userServiceClient from '../../infrastructure/clients/user-service.client';
 import db from '../../infrastructure/database/connection';
 import { SwipeAction } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 import swipeRepository from '../repositories/swipe.repository';
-import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
-import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
-import userServiceClient from '../../infrastructure/clients/user-service.client';
 
 const logger = createLogger('super-like-service');
 
@@ -127,7 +128,8 @@ export class SuperLikeService {
       // Track analytics
       await analyticsServiceClient.trackEvent({
         userId,
-        eventType: 'engagement', eventName: 'super_like_sent',
+        eventType: 'engagement',
+        eventName: 'super_like_sent',
         eventData: {
           targetUserId,
           hasMessage: !!message,
@@ -196,17 +198,13 @@ export class SuperLikeService {
     try {
       const { limit = 20, offset = 0, unreadOnly = false } = options || {};
 
-      let query = this.db('super_like_messages')
-        .where('target_user_id', userId);
+      let query = this.db('super_like_messages').where('target_user_id', userId);
 
       if (unreadOnly) {
         query = query.where('read', false);
       }
 
-      const messages = await query
-        .orderBy('created_at', 'desc')
-        .limit(limit)
-        .offset(offset);
+      const messages = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
       return messages.map(this.mapToSuperLikeMessage);
     } catch (error) {
@@ -243,9 +241,7 @@ export class SuperLikeService {
    */
   async getSuperLikeMessage(messageId: string): Promise<SuperLikeMessage | null> {
     try {
-      const message = await this.db('super_like_messages')
-        .where('id', messageId)
-        .first();
+      const message = await this.db('super_like_messages').where('id', messageId).first();
 
       return message ? this.mapToSuperLikeMessage(message) : null;
     } catch (error) {
@@ -294,7 +290,7 @@ export class SuperLikeService {
         .count('* as count')
         .first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get unread count', error);
       throw error;
@@ -352,7 +348,7 @@ export class SuperLikeService {
         .count('* as count')
         .first();
 
-      return parseInt(count?.count as string || '0', 10);
+      return parseInt((count?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to get today Super Like count', error);
       throw error;
@@ -419,7 +415,7 @@ export class SuperLikeService {
         .count('* as count')
         .first();
 
-      const totalSent = parseInt(sentCount?.count as string || '0', 10);
+      const totalSent = parseInt((sentCount?.count as string) || '0', 10);
 
       // Total received
       const receivedCount = await this.db('swipes')
@@ -430,7 +426,7 @@ export class SuperLikeService {
         .count('* as count')
         .first();
 
-      const totalReceived = parseInt(receivedCount?.count as string || '0', 10);
+      const totalReceived = parseInt((receivedCount?.count as string) || '0', 10);
 
       // Calculate match rate (approximate - would need to query matches table)
       const matchesFromSuperLikes = 0; // Placeholder
@@ -475,9 +471,7 @@ export class SuperLikeService {
         throw new Error('Delete window expired');
       }
 
-      const deleted = await this.db('super_like_messages')
-        .where('id', messageId)
-        .delete();
+      const deleted = await this.db('super_like_messages').where('id', messageId).delete();
 
       return deleted > 0;
     } catch (error) {

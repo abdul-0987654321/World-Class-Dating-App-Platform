@@ -1,5 +1,6 @@
-import amqp, { Channel, ConsumeMessage } from 'amqplib';
 import { createLogger } from '@flamoral/backend-shared';
+import amqp, { Channel, ConsumeMessage } from 'amqplib';
+
 import config from '../config';
 
 const logger = createLogger('automation-service:rabbitmq');

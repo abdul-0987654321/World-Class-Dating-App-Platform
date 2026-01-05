@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Logger, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
+
 import { Public } from '../decorators/public.decorator';
 
 /**
@@ -9,11 +10,11 @@ import { Public } from '../decorators/public.decorator';
 interface CSPViolationReport {
   'csp-report': {
     'document-uri': string;
-    'referrer'?: string;
+    referrer?: string;
     'violated-directive': string;
     'effective-directive': string;
     'original-policy': string;
-    'disposition': string;
+    disposition: string;
     'blocked-uri': string;
     'line-number'?: number;
     'column-number'?: number;
@@ -49,10 +50,7 @@ export class SecurityController {
     status: 204,
     description: 'CSP violation report received successfully',
   })
-  async reportCSPViolation(
-    @Body() report: CSPViolationReport,
-    @Req() req: Request,
-  ): Promise<void> {
+  async reportCSPViolation(@Body() report: CSPViolationReport, @Req() req: Request): Promise<void> {
     try {
       const violation = report['csp-report'];
 
@@ -109,14 +107,10 @@ export class SecurityController {
    * Determine if a CSP violation is critical
    */
   private isCriticalViolation(violation: CSPViolationReport['csp-report']): boolean {
-    const criticalDirectives = [
-      'script-src',
-      'default-src',
-      'frame-ancestors',
-    ];
+    const criticalDirectives = ['script-src', 'default-src', 'frame-ancestors'];
 
     const effectiveDirective = violation['effective-directive'];
-    return criticalDirectives.some(directive => effectiveDirective.startsWith(directive));
+    return criticalDirectives.some((directive) => effectiveDirective.startsWith(directive));
   }
 
   /**
@@ -129,10 +123,7 @@ export class SecurityController {
     summary: 'Report security events',
     description: 'Generic security event reporting endpoint',
   })
-  async reportSecurityEvent(
-    @Body() event: any,
-    @Req() req: Request,
-  ): Promise<void> {
+  async reportSecurityEvent(@Body() event: any, @Req() req: Request): Promise<void> {
     try {
       this.logger.warn('Security Event Reported', {
         event,

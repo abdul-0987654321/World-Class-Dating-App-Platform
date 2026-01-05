@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { createLogger } from '../../../utils/logger';
+
 import { outlookCalendarConfig } from '../../../config/calendar.config';
 import {
   CalendarOAuthTokens,
@@ -12,6 +12,7 @@ import {
   CalendarEventResult,
   TimeSlot,
 } from '../../../types/calendar.types';
+import { createLogger } from '../../../utils/logger';
 
 const logger = createLogger('outlook-calendar-oauth');
 
@@ -94,7 +95,9 @@ export class OutlookCalendarOAuth {
       });
 
       // Find the default calendar
-      const defaultCalendar = calendarsResponse.data.value.find((cal: any) => cal.isDefaultCalendar);
+      const defaultCalendar = calendarsResponse.data.value.find(
+        (cal: any) => cal.isDefaultCalendar
+      );
       const calendarId = defaultCalendar?.id || calendarsResponse.data.value[0]?.id || 'calendar';
 
       logger.info(`Successfully obtained tokens for Outlook account: ${email}`);
@@ -102,7 +105,10 @@ export class OutlookCalendarOAuth {
       return { tokens, email, calendarId };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to exchange code for tokens:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to exchange code for tokens:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to authenticate with Outlook: ${axiosError.message}`);
     }
   }
@@ -129,7 +135,13 @@ export class OutlookCalendarOAuth {
         }
       );
 
-      const { access_token, refresh_token: new_refresh_token, expires_in, token_type, scope } = tokenResponse.data;
+      const {
+        access_token,
+        refresh_token: new_refresh_token,
+        expires_in,
+        token_type,
+        scope,
+      } = tokenResponse.data;
 
       return {
         accessToken: access_token,
@@ -140,7 +152,10 @@ export class OutlookCalendarOAuth {
       };
     } catch (error) {
       const axiosError = error as AxiosError;
-      logger.error('Failed to refresh access token:', axiosError.response?.data || axiosError.message);
+      logger.error(
+        'Failed to refresh access token:',
+        axiosError.response?.data || axiosError.message
+      );
       throw new Error(`Failed to refresh Outlook token: ${axiosError.message}`);
     }
   }
@@ -212,13 +227,17 @@ export class OutlookCalendarOAuth {
 
       const outlookEvent: any = {
         subject: event.title,
-        body: event.description ? {
-          contentType: 'text',
-          content: event.description,
-        } : undefined,
-        location: event.location ? {
-          displayName: event.location,
-        } : undefined,
+        body: event.description
+          ? {
+              contentType: 'text',
+              content: event.description,
+            }
+          : undefined,
+        location: event.location
+          ? {
+              displayName: event.location,
+            }
+          : undefined,
         start: {
           dateTime: event.startTime.toISOString().replace('Z', ''),
           timeZone: event.timezone,
@@ -233,7 +252,7 @@ export class OutlookCalendarOAuth {
 
       // Add attendees if provided
       if (event.attendees && event.attendees.length > 0) {
-        outlookEvent.attendees = event.attendees.map(attendee => ({
+        outlookEvent.attendees = event.attendees.map((attendee) => ({
           emailAddress: {
             address: attendee.email,
             name: attendee.name,
@@ -363,14 +382,11 @@ export class OutlookCalendarOAuth {
     try {
       logger.info(`Deleting calendar event: ${eventId}`);
 
-      await axios.delete(
-        `${GRAPH_API}/me/calendars/${calendarId}/events/${eventId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      await axios.delete(`${GRAPH_API}/me/calendars/${calendarId}/events/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       logger.info(`Deleted event: ${eventId}`);
 
@@ -400,20 +416,17 @@ export class OutlookCalendarOAuth {
     try {
       logger.info(`Listing events for calendar ${calendarId}`);
 
-      const response = await axios.get(
-        `${GRAPH_API}/me/calendars/${calendarId}/calendarView`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          params: {
-            startDateTime: startTime.toISOString(),
-            endDateTime: endTime.toISOString(),
-            $orderby: 'start/dateTime',
-            $top: 100,
-          },
-        }
-      );
+      const response = await axios.get(`${GRAPH_API}/me/calendars/${calendarId}/calendarView`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          startDateTime: startTime.toISOString(),
+          endDateTime: endTime.toISOString(),
+          $orderby: 'start/dateTime',
+          $top: 100,
+        },
+      });
 
       const events: CalendarEvent[] = (response.data.value || []).map((item: any) => ({
         id: item.id,

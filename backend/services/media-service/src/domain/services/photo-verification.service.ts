@@ -1,11 +1,13 @@
-import contentModerationService from './content-moderation.service';
-import mediaRepository from '../repositories/media.repository';
-import queueManager from '../../infrastructure/queue/queue-manager';
-import { JobPriority } from '../../infrastructure/queue/queue-config';
-import { createLogger } from '@flamoral/backend-shared';
-import axios from 'axios';
 import * as faceapi from '@azure/cognitiveservices-face';
 import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
+import { createLogger } from '@flamoral/backend-shared';
+import axios from 'axios';
+
+import { JobPriority } from '../../infrastructure/queue/queue-config';
+import queueManager from '../../infrastructure/queue/queue-manager';
+import mediaRepository from '../repositories/media.repository';
+
+import contentModerationService from './content-moderation.service';
 
 const logger = createLogger('photo-verification-service');
 
@@ -98,8 +100,10 @@ export class PhotoVerificationService {
     }
 
     // Reduce score for poor exposure
-    if (faceAttributes.exposure?.exposureLevel === 'overExposure' ||
-        faceAttributes.exposure?.exposureLevel === 'underExposure') {
+    if (
+      faceAttributes.exposure?.exposureLevel === 'overExposure' ||
+      faceAttributes.exposure?.exposureLevel === 'underExposure'
+    ) {
       qualityScore -= 0.2;
     }
 
@@ -335,7 +339,10 @@ export class PhotoVerificationService {
    * Check if same face exists in multiple accounts
    * Helps detect duplicate/fake profiles
    */
-  async detectDuplicateProfile(userId: string, faceId: string): Promise<{
+  async detectDuplicateProfile(
+    userId: string,
+    faceId: string
+  ): Promise<{
     isDuplicate: boolean;
     matchingUserIds: string[];
   }> {
@@ -498,8 +505,10 @@ export class PhotoVerificationService {
 
       // Check for signs of photo-of-photo
       // High blur + good exposure = potential screen/print
-      if (face.faceAttributes?.blur?.blurLevel === 'low' &&
-          face.faceAttributes?.noise?.noiseLevel === 'low') {
+      if (
+        face.faceAttributes?.blur?.blurLevel === 'low' &&
+        face.faceAttributes?.noise?.noiseLevel === 'low'
+      ) {
         livenessScore += 0.2; // Real photos have some natural imperfections
       }
 
@@ -515,7 +524,10 @@ export class PhotoVerificationService {
       // Check for natural expressions
       if (face.faceAttributes?.emotion) {
         const emotions = face.faceAttributes.emotion;
-        const totalEmotion = Object.values(emotions).reduce<number>((a, b) => a + (typeof b === 'number' ? b : 0), 0);
+        const totalEmotion = Object.values(emotions).reduce<number>(
+          (a, b) => a + (typeof b === 'number' ? b : 0),
+          0
+        );
         if (totalEmotion > 0) {
           livenessScore += 0.1; // Natural emotions present
         }
@@ -552,19 +564,17 @@ export class PhotoVerificationService {
     userId: string,
     imageUrl: string,
     referencePhotoUrl?: string
-  ): Promise<VerificationResult & {
-    liveness?: { isLive: boolean; confidence: number };
-    duplicate?: { isDuplicate: boolean; matchingUserIds: string[] };
-  }> {
+  ): Promise<
+    VerificationResult & {
+      liveness?: { isLive: boolean; confidence: number };
+      duplicate?: { isDuplicate: boolean; matchingUserIds: string[] };
+    }
+  > {
     try {
       logger.info(`Starting comprehensive verification for ${mediaId}`);
 
       // Step 1: Basic verification with optional face matching
-      const basicResult = await this.verifyProfilePhoto(
-        mediaId,
-        imageUrl,
-        referencePhotoUrl
-      );
+      const basicResult = await this.verifyProfilePhoto(mediaId, imageUrl, referencePhotoUrl);
 
       if (!basicResult.verified) {
         return basicResult;
@@ -588,10 +598,7 @@ export class PhotoVerificationService {
       let duplicateResult;
 
       if (media?.verificationData?.faceId) {
-        duplicateResult = await this.detectDuplicateProfile(
-          userId,
-          media.verificationData.faceId
-        );
+        duplicateResult = await this.detectDuplicateProfile(userId, media.verificationData.faceId);
 
         if (duplicateResult.isDuplicate) {
           logger.warn(`Duplicate profile detected for user ${userId}`);

@@ -9,8 +9,8 @@
  * - Escalation to support team
  */
 
-import { db } from '../infrastructure/database';
 import { sosService, TriggerSOSResult } from '../domain/services/sos.service';
+import { db } from '../infrastructure/database';
 import logger from '../utils/logger';
 
 export interface PanicLocation {
@@ -152,7 +152,13 @@ class PanicButtonService {
     // Trigger the SOS alert first (notifies emergency contacts)
     const sosResult = await sosService.triggerSOS(
       userId,
-      location ? { latitude: location.latitude, longitude: location.longitude, accuracy: location.accuracy } : undefined,
+      location
+        ? {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy,
+          }
+        : undefined,
       reason
     );
 
@@ -171,11 +177,15 @@ class PanicButtonService {
         venue_name: location?.venueName,
         emergency_services_contacted: false,
         live_location_enabled: enableLiveLocation,
-        location_history: location ? JSON.stringify([{
-          latitude: location.latitude,
-          longitude: location.longitude,
-          timestamp: new Date(),
-        }]) : JSON.stringify([]),
+        location_history: location
+          ? JSON.stringify([
+              {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                timestamp: new Date(),
+              },
+            ])
+          : JSON.stringify([]),
         audio_recording_enabled: enableAudioRecording,
         status: 'active',
         created_at: new Date(),
@@ -229,9 +239,9 @@ class PanicButtonService {
 
     // Update location history
     const locationHistory = panicEvent.location_history
-      ? (typeof panicEvent.location_history === 'string'
+      ? typeof panicEvent.location_history === 'string'
         ? JSON.parse(panicEvent.location_history)
-        : panicEvent.location_history)
+        : panicEvent.location_history
       : [];
 
     locationHistory.push({
@@ -282,19 +292,14 @@ class PanicButtonService {
       };
     }
 
-    const location = panicEvent.latitude && panicEvent.longitude
-      ? { latitude: panicEvent.latitude, longitude: panicEvent.longitude }
-      : undefined;
+    const location =
+      panicEvent.latitude && panicEvent.longitude
+        ? { latitude: panicEvent.latitude, longitude: panicEvent.longitude }
+        : undefined;
 
-    const success = await this.initiateEmergencyServicesContact(
-      panicEventId,
-      userId,
-      location
-    );
+    const success = await this.initiateEmergencyServicesContact(panicEventId, userId, location);
 
-    const updated = await db('panic_events')
-      .where({ id: panicEventId })
-      .first();
+    const updated = await db('panic_events').where({ id: panicEventId }).first();
 
     return {
       success,
@@ -353,14 +358,8 @@ class PanicButtonService {
   /**
    * Escalate panic event (support team intervention)
    */
-  async escalatePanic(
-    panicEventId: string,
-    reason: string,
-    adminId?: string
-  ): Promise<PanicEvent> {
-    const panicEvent = await db('panic_events')
-      .where({ id: panicEventId })
-      .first();
+  async escalatePanic(panicEventId: string, reason: string, adminId?: string): Promise<PanicEvent> {
+    const panicEvent = await db('panic_events').where({ id: panicEventId }).first();
 
     if (!panicEvent) {
       throw new Error('Panic event not found');
@@ -400,10 +399,7 @@ class PanicButtonService {
   /**
    * Get panic event history for a user
    */
-  async getPanicHistory(
-    userId: string,
-    options: { limit?: number } = {}
-  ): Promise<PanicEvent[]> {
+  async getPanicHistory(userId: string, options: { limit?: number } = {}): Promise<PanicEvent[]> {
     const { limit = 50 } = options;
 
     const events = await db('panic_events')
@@ -418,9 +414,7 @@ class PanicButtonService {
    * Get panic event by ID
    */
   async getPanicEvent(panicEventId: string, userId: string): Promise<PanicEvent | null> {
-    const event = await db('panic_events')
-      .where({ id: panicEventId, user_id: userId })
-      .first();
+    const event = await db('panic_events').where({ id: panicEventId, user_id: userId }).first();
 
     return event ? this.mapToPanicEvent(event) : null;
   }
@@ -447,7 +441,7 @@ class PanicButtonService {
     }
 
     return this.emergencyResources.filter(
-      resource => !resource.region || resource.region === region
+      (resource) => !resource.region || resource.region === region
     );
   }
 
@@ -550,14 +544,12 @@ class PanicButtonService {
       // 4. Send location data to first responders
 
       // Update the panic event
-      await db('panic_events')
-        .where({ id: panicEventId })
-        .update({
-          emergency_services_contacted: true,
-          emergency_services_contacted_at: new Date(),
-          emergency_reference_number: referenceNumber,
-          updated_at: new Date(),
-        });
+      await db('panic_events').where({ id: panicEventId }).update({
+        emergency_services_contacted: true,
+        emergency_services_contacted_at: new Date(),
+        emergency_reference_number: referenceNumber,
+        updated_at: new Date(),
+      });
 
       return true;
     } catch (error) {
@@ -575,15 +567,16 @@ class PanicButtonService {
       userId: record.user_id,
       sosAlertId: record.sos_alert_id,
       triggerType: record.trigger_type,
-      location: record.latitude && record.longitude
-        ? {
-          latitude: record.latitude,
-          longitude: record.longitude,
-          accuracy: record.location_accuracy,
-          address: record.address,
-          venueName: record.venue_name,
-        }
-        : undefined,
+      location:
+        record.latitude && record.longitude
+          ? {
+              latitude: record.latitude,
+              longitude: record.longitude,
+              accuracy: record.location_accuracy,
+              address: record.address,
+              venueName: record.venue_name,
+            }
+          : undefined,
       relatedMatchId: record.related_match_id,
       relatedUserId: record.related_user_id,
       emergencyServicesContacted: record.emergency_services_contacted,
@@ -591,9 +584,9 @@ class PanicButtonService {
       emergencyReferenceNumber: record.emergency_reference_number,
       liveLocationEnabled: record.live_location_enabled,
       locationHistory: record.location_history
-        ? (typeof record.location_history === 'string'
+        ? typeof record.location_history === 'string'
           ? JSON.parse(record.location_history)
-          : record.location_history)
+          : record.location_history
         : [],
       audioRecordingEnabled: record.audio_recording_enabled,
       audioRecordingUrl: record.audio_recording_url,

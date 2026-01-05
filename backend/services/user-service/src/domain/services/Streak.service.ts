@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { StreakRepository } from '../repositories/Streak.repository';
+
 import {
   UserStreak,
   StreakType,
@@ -7,6 +7,7 @@ import {
   UserStreakMilestone,
   StreakUpdateResult,
 } from '../entities/Streak.entity';
+import { StreakRepository } from '../repositories/Streak.repository';
 
 export class StreakService {
   private repository: StreakRepository;
@@ -81,8 +82,14 @@ export class StreakService {
       }
 
       const lastActivity = new Date(streak.lastActivityDate);
-      const lastActivityDay = new Date(lastActivity.getFullYear(), lastActivity.getMonth(), lastActivity.getDate());
-      const daysDifference = Math.floor((today.getTime() - lastActivityDay.getTime()) / (1000 * 60 * 60 * 24));
+      const lastActivityDay = new Date(
+        lastActivity.getFullYear(),
+        lastActivity.getMonth(),
+        lastActivity.getDate()
+      );
+      const daysDifference = Math.floor(
+        (today.getTime() - lastActivityDay.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       let increased = false;
       let broken = false;
@@ -112,7 +119,11 @@ export class StreakService {
         streak = updatedStreak;
       } else {
         // Streak broken
-        if (streak.isProtected && streak.protectionExpiresAt && new Date(streak.protectionExpiresAt) > now) {
+        if (
+          streak.isProtected &&
+          streak.protectionExpiresAt &&
+          new Date(streak.protectionExpiresAt) > now
+        ) {
           // Streak is protected - maintain it
           wasProtected = true;
 
@@ -150,7 +161,13 @@ export class StreakService {
 
       // Check for milestone achievements
       const milestonesReached = increased
-        ? await this.checkAndAwardMilestones(repository, userId, streak.id, newStreakCount, streakType)
+        ? await this.checkAndAwardMilestones(
+            repository,
+            userId,
+            streak.id,
+            newStreakCount,
+            streakType
+          )
         : [];
 
       return {
@@ -172,7 +189,7 @@ export class StreakService {
   ): Promise<StreakMilestone[]> {
     const milestones = await repository.findMilestonesByType(streakType);
     const userMilestones = await repository.findUserMilestones(userId);
-    const achievedMilestoneIds = new Set(userMilestones.map(um => um.milestoneId));
+    const achievedMilestoneIds = new Set(userMilestones.map((um) => um.milestoneId));
 
     const newMilestonesReached: StreakMilestone[] = [];
 
@@ -197,10 +214,19 @@ export class StreakService {
     return newMilestonesReached;
   }
 
-  private async awardMilestoneRewards(db: Knex, userId: string, milestone: StreakMilestone): Promise<void> {
+  private async awardMilestoneRewards(
+    db: Knex,
+    userId: string,
+    milestone: StreakMilestone
+  ): Promise<void> {
     // Award coins
     if (milestone.coinReward > 0) {
-      await this.awardCoins(db, userId, milestone.coinReward, `Streak Milestone: ${milestone.title}`);
+      await this.awardCoins(
+        db,
+        userId,
+        milestone.coinReward,
+        `Streak Milestone: ${milestone.title}`
+      );
     }
 
     // Award boosts
@@ -214,7 +240,11 @@ export class StreakService {
     }
   }
 
-  async protectStreak(userId: string, streakType: StreakType, durationHours: number = 24): Promise<UserStreak> {
+  async protectStreak(
+    userId: string,
+    streakType: StreakType,
+    durationHours: number = 24
+  ): Promise<UserStreak> {
     const streak = await this.repository.findUserStreakByType(userId, streakType);
 
     if (!streak) {
@@ -243,7 +273,12 @@ export class StreakService {
     return this.repository.findUserMilestonesWithDetails(userId);
   }
 
-  private async awardCoins(db: Knex, userId: string, amount: number, reason: string): Promise<void> {
+  private async awardCoins(
+    db: Knex,
+    userId: string,
+    amount: number,
+    reason: string
+  ): Promise<void> {
     const existingCoins = await db('coins').where({ user_id: userId }).first();
 
     if (existingCoins) {

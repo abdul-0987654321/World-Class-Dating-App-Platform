@@ -1,10 +1,10 @@
-import { PromptRepository } from '../repositories/prompt.repository';
 import {
   PromptResponse,
   UserPromptResponse,
   CreateUserPromptDto,
   UpdateUserPromptDto,
 } from '../entities/Prompt.entity';
+import { PromptRepository } from '../repositories/prompt.repository';
 
 export class PromptService {
   private promptRepository: PromptRepository;

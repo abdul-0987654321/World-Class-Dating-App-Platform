@@ -1,4 +1,5 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
+
 import { config } from '../../config';
 import logger from '../../utils/logger';
 
@@ -19,10 +20,19 @@ async function withRetry<T>(
       lastError = error;
 
       // Check if error is retryable
-      const retryableErrors = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', '08003', '08006', '08001'];
-      const isRetryable = retryableErrors.includes(error.code) ||
-                          error.message?.toLowerCase().includes('connection') ||
-                          error.message?.toLowerCase().includes('timeout');
+      const retryableErrors = [
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EHOSTUNREACH',
+        '08003',
+        '08006',
+        '08001',
+      ];
+      const isRetryable =
+        retryableErrors.includes(error.code) ||
+        error.message?.toLowerCase().includes('connection') ||
+        error.message?.toLowerCase().includes('timeout');
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -39,11 +49,11 @@ async function withRetry<T>(
         code: error.code,
       });
 
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+      await new Promise((resolve) => setTimeout(resolve, finalDelay));
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }
 
 /**
@@ -62,8 +72,8 @@ const pool = new Pool({
   min: 2,
 
   // Timeout configuration with retry-friendly values
-  idleTimeoutMillis: 30000,         // Close idle connections after 30s
-  connectionTimeoutMillis: 10000,    // Increased from 2s to 10s for better reliability
+  idleTimeoutMillis: 30000, // Close idle connections after 30s
+  connectionTimeoutMillis: 10000, // Increased from 2s to 10s for better reliability
 
   // Keep-alive to detect dead connections
   keepAlive: true,
@@ -97,14 +107,18 @@ pool.on('error', (err) => {
  */
 export async function testConnection(): Promise<boolean> {
   try {
-    await withRetry(async () => {
-      const client = await pool.connect();
-      try {
-        await client.query('SELECT 1');
-      } finally {
-        client.release();
-      }
-    }, 3, 1000);
+    await withRetry(
+      async () => {
+        const client = await pool.connect();
+        try {
+          await client.query('SELECT 1');
+        } finally {
+          client.release();
+        }
+      },
+      3,
+      1000
+    );
 
     logger.info('Database connection successful');
     return true;
@@ -122,15 +136,19 @@ export async function queryWithRetry<T = any>(
   params?: any[],
   maxRetries = 3
 ): Promise<T> {
-  return withRetry(async () => {
-    const client = await pool.connect();
-    try {
-      const result = await client.query(queryText, params);
-      return result.rows as T;
-    } finally {
-      client.release();
-    }
-  }, maxRetries, 500);
+  return withRetry(
+    async () => {
+      const client = await pool.connect();
+      try {
+        const result = await client.query(queryText, params);
+        return result.rows as T;
+      } finally {
+        client.release();
+      }
+    },
+    maxRetries,
+    500
+  );
 }
 
 /**
@@ -140,31 +158,31 @@ export async function transactionWithRetry<T>(
   callback: (client: PoolClient) => Promise<T>,
   maxRetries = 3
 ): Promise<T> {
-  return withRetry(async () => {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const result = await callback(client);
-      await client.query('COMMIT');
-      return result;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
-  }, maxRetries, 1000);
+  return withRetry(
+    async () => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const result = await callback(client);
+        await client.query('COMMIT');
+        return result;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+    maxRetries,
+    1000
+  );
 }
 
 /**
  * Get a connection from the pool with retry logic
  */
 export async function getConnectionWithRetry(): Promise<PoolClient> {
-  return withRetry(
-    () => pool.connect(),
-    3,
-    1000
-  );
+  return withRetry(() => pool.connect(), 3, 1000);
 }
 
 /**

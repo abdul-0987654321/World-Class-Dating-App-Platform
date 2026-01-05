@@ -2,6 +2,7 @@ import { createLogger } from '../../utils/logger';
 const logger = createLogger('ServiceAuth');
 
 import { Request, Response, NextFunction } from 'express';
+
 import crypto from 'crypto';
 
 /**
@@ -52,7 +53,9 @@ export const authenticateInternal = (
 
   // Validate service key is provided
   if (!serviceKey) {
-    logger.warn(`[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`);
+    logger.warn(
+      `[ServiceAuth] Authentication failed: Missing X-Service-Key header - ${req.method} ${req.path}`
+    );
     return res.status(401).json({
       success: false,
       error: 'Service authentication required',
@@ -63,7 +66,9 @@ export const authenticateInternal = (
 
   // Validate request ID
   if (!requestId) {
-    logger.warn(`[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`);
+    logger.warn(
+      `[ServiceAuth] Authentication failed: Missing X-Request-ID header - ${req.method} ${req.path}`
+    );
     return res.status(401).json({
       success: false,
       error: 'Request ID required',

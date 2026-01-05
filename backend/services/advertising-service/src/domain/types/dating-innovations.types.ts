@@ -19,7 +19,12 @@ export interface MingleStatusDetection {
 }
 
 export interface MingleSignal {
-  signal_type: 'app_open' | 'active_swiping' | 'profile_browsing' | 'message_responding' | 'location_social_venue';
+  signal_type:
+    | 'app_open'
+    | 'active_swiping'
+    | 'profile_browsing'
+    | 'message_responding'
+    | 'location_social_venue';
   weight: number;
   decay_rate_per_minute: number;
   minimum_duration_seconds: number;
@@ -191,7 +196,12 @@ export interface CompatibilityTrigger {
 }
 
 export interface TriggerEvent {
-  event_type: 'new_match' | 'mutual_super_like' | 'first_message' | 'conversation_milestone' | 'date_scheduled';
+  event_type:
+    | 'new_match'
+    | 'mutual_super_like'
+    | 'first_message'
+    | 'conversation_milestone'
+    | 'date_scheduled';
   priority: number;
   time_sensitivity_minutes: number;
 }
@@ -324,7 +334,12 @@ export interface SponsorshipInclusion {
 }
 
 export interface BrandingRight {
-  right_type: 'logo_placement' | 'naming_rights' | 'product_sampling' | 'speaking_opportunity' | 'booth_space';
+  right_type:
+    | 'logo_placement'
+    | 'naming_rights'
+    | 'product_sampling'
+    | 'speaking_opportunity'
+    | 'booth_space';
   details: string;
   exclusivity: boolean;
 }
@@ -385,7 +400,12 @@ export interface MilestoneAdvertising {
 export interface RelationshipMilestone {
   milestone_id: string;
   milestone_name: string;
-  milestone_type: 'match_anniversary' | 'message_milestone' | 'first_date' | 'relationship_status' | 'engagement';
+  milestone_type:
+    | 'match_anniversary'
+    | 'message_milestone'
+    | 'first_date'
+    | 'relationship_status'
+    | 'engagement';
   days_from_match?: number;
   message_count?: number;
   celebration_potential: number;
@@ -763,7 +783,12 @@ export interface InfluencerNetwork {
 export interface DatingInfluencer {
   influencer_id: string;
   name: string;
-  niche: 'dating_coach' | 'relationship_expert' | 'lifestyle' | 'entertainment' | 'self_improvement';
+  niche:
+    | 'dating_coach'
+    | 'relationship_expert'
+    | 'lifestyle'
+    | 'entertainment'
+    | 'self_improvement';
   platforms: SocialPlatform[];
   audience_size: number;
   engagement_rate: number;

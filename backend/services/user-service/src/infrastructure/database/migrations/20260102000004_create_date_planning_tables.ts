@@ -40,18 +40,8 @@ export async function up(knex: Knex): Promise<void> {
   // Create date_plans table
   await knex.schema.createTable('date_plans', (table) => {
     table.uuid('id').primary();
-    table
-      .uuid('user_id')
-      .notNullable()
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE');
-    table
-      .uuid('match_id')
-      .notNullable()
-      .references('id')
-      .inTable('matches')
-      .onDelete('CASCADE');
+    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+    table.uuid('match_id').notNullable().references('id').inTable('matches').onDelete('CASCADE');
     table.string('title', 100).notNullable();
     table.text('description').nullable();
     table.timestamp('date').notNullable();

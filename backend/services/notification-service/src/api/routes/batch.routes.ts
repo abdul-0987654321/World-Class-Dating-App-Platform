@@ -4,9 +4,10 @@
  */
 
 import { Router } from 'express';
-import { batchController } from '../controllers/batch.controller';
+
 import { requireAuth } from '../../middleware/auth';
 import { authenticateService } from '../../middleware/service-auth.middleware';
+import { batchController } from '../controllers/batch.controller';
 
 const router = Router();
 

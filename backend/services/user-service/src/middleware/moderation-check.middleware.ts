@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
+import { Request, Response, NextFunction } from 'express';
+
 import logger from '../utils/logger';
 
 // Moderation Service URL

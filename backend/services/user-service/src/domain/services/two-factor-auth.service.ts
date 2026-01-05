@@ -1,6 +1,8 @@
 import crypto from 'crypto';
+
 import db from '../../infrastructure/database/connection';
-import logger from '../../utils/logger';
+import emailService from '../../infrastructure/email/email.service';
+import twilioService from '../../infrastructure/sms/twilio.service';
 import {
   encryptTOTPSecret,
   decryptTOTPSecret,
@@ -10,8 +12,7 @@ import {
   generateSecureBackupCode,
   getKeyVersion,
 } from '../../utils/encryption';
-import twilioService from '../../infrastructure/sms/twilio.service';
-import emailService from '../../infrastructure/email/email.service';
+import logger from '../../utils/logger';
 
 export interface TwoFactorAuthConfig {
   userId: string;
@@ -59,18 +60,21 @@ export class TwoFactorAuthService {
       const keyVersion = getKeyVersion();
 
       // Store encrypted secret in database
-      await db('user_two_factor_auth').insert({
-        user_id: userId,
-        method: '2fa_totp',
-        secret_encrypted: encryptedSecret,
-        encryption_key_version: keyVersion,
-        is_enabled: false,
-        created_at: new Date(),
-      }).onConflict(['user_id', 'method']).merge({
-        secret_encrypted: encryptedSecret,
-        encryption_key_version: keyVersion,
-        updated_at: new Date(),
-      });
+      await db('user_two_factor_auth')
+        .insert({
+          user_id: userId,
+          method: '2fa_totp',
+          secret_encrypted: encryptedSecret,
+          encryption_key_version: keyVersion,
+          is_enabled: false,
+          created_at: new Date(),
+        })
+        .onConflict(['user_id', 'method'])
+        .merge({
+          secret_encrypted: encryptedSecret,
+          encryption_key_version: keyVersion,
+          updated_at: new Date(),
+        });
 
       logger.info(`TOTP secret generated and encrypted for user ${userId}`);
 
@@ -115,11 +119,9 @@ export class TwoFactorAuthService {
 
       if (isValid) {
         // Update last verified timestamp
-        await db('user_two_factor_auth')
-          .where({ id: twoFactorAuth.id })
-          .update({
-            last_verified_at: new Date(),
-          });
+        await db('user_two_factor_auth').where({ id: twoFactorAuth.id }).update({
+          last_verified_at: new Date(),
+        });
 
         logger.info(`TOTP verified successfully for user ${userId}`);
       } else {
@@ -151,12 +153,12 @@ export class TwoFactorAuthService {
 
     // Dynamic truncation
     const offset = hash[hash.length - 1] & 0x0f;
-    const code = (
-      ((hash[offset] & 0x7f) << 24) |
-      ((hash[offset + 1] & 0xff) << 16) |
-      ((hash[offset + 2] & 0xff) << 8) |
-      (hash[offset + 3] & 0xff)
-    ) % Math.pow(10, this.TOTP_DIGITS);
+    const code =
+      (((hash[offset] & 0x7f) << 24) |
+        ((hash[offset + 1] & 0xff) << 16) |
+        ((hash[offset + 2] & 0xff) << 8) |
+        (hash[offset + 3] & 0xff)) %
+      Math.pow(10, this.TOTP_DIGITS);
 
     // Pad with zeros to ensure 6 digits
     return code.toString().padStart(this.TOTP_DIGITS, '0');
@@ -186,7 +188,11 @@ export class TwoFactorAuthService {
   /**
    * Enable 2FA for user
    */
-  async enableTwoFactorAuth(userId: string, method: '2fa_totp' | '2fa_sms' | '2fa_email', verificationCode: string): Promise<{ backupCodes: string[] }> {
+  async enableTwoFactorAuth(
+    userId: string,
+    method: '2fa_totp' | '2fa_sms' | '2fa_email',
+    verificationCode: string
+  ): Promise<{ backupCodes: string[] }> {
     try {
       // Verify the code first
       let isValid = false;
@@ -229,7 +235,10 @@ export class TwoFactorAuthService {
   /**
    * Disable 2FA for user
    */
-  async disableTwoFactorAuth(userId: string, method: '2fa_totp' | '2fa_sms' | '2fa_email'): Promise<void> {
+  async disableTwoFactorAuth(
+    userId: string,
+    method: '2fa_totp' | '2fa_sms' | '2fa_email'
+  ): Promise<void> {
     try {
       await db('user_two_factor_auth')
         .where({
@@ -242,9 +251,7 @@ export class TwoFactorAuthService {
         });
 
       // Delete backup codes
-      await db('user_backup_codes')
-        .where({ user_id: userId })
-        .delete();
+      await db('user_backup_codes').where({ user_id: userId }).delete();
 
       logger.info(`2FA disabled for user ${userId} with method ${method}`);
     } catch (error) {
@@ -259,9 +266,7 @@ export class TwoFactorAuthService {
   async generateBackupCodes(userId: string): Promise<string[]> {
     try {
       // Delete existing backup codes
-      await db('user_backup_codes')
-        .where({ user_id: userId })
-        .delete();
+      await db('user_backup_codes').where({ user_id: userId }).delete();
 
       // Generate new backup codes
       const backupCodes: string[] = [];
@@ -300,11 +305,10 @@ export class TwoFactorAuthService {
   async verifyBackupCode(userId: string, code: string): Promise<boolean> {
     try {
       // Get all unused backup codes for the user
-      const backupCodes = await db('user_backup_codes')
-        .where({
-          user_id: userId,
-          is_used: false,
-        });
+      const backupCodes = await db('user_backup_codes').where({
+        user_id: userId,
+        is_used: false,
+      });
 
       if (!backupCodes || backupCodes.length === 0) {
         logger.warn(`No unused backup codes found for user ${userId}`);
@@ -317,12 +321,10 @@ export class TwoFactorAuthService {
 
         if (isValid) {
           // Mark code as used
-          await db('user_backup_codes')
-            .where({ id: backupCode.id })
-            .update({
-              is_used: true,
-              used_at: new Date(),
-            });
+          await db('user_backup_codes').where({ id: backupCode.id }).update({
+            is_used: true,
+            used_at: new Date(),
+          });
 
           logger.info(`Backup code verified for user ${userId}`);
           return true;
@@ -388,12 +390,10 @@ export class TwoFactorAuthService {
       }
 
       // Mark code as used
-      await db('user_verification_codes')
-        .where({ id: verificationCode.id })
-        .update({
-          is_used: true,
-          verified_at: new Date(),
-        });
+      await db('user_verification_codes').where({ id: verificationCode.id }).update({
+        is_used: true,
+        verified_at: new Date(),
+      });
 
       logger.info(`SMS code verified for user ${userId}`);
 
@@ -470,12 +470,10 @@ export class TwoFactorAuthService {
       }
 
       // Mark code as used
-      await db('user_verification_codes')
-        .where({ id: verificationCode.id })
-        .update({
-          is_used: true,
-          verified_at: new Date(),
-        });
+      await db('user_verification_codes').where({ id: verificationCode.id }).update({
+        is_used: true,
+        verified_at: new Date(),
+      });
 
       logger.info(`Email code verified for user ${userId}`);
       return true;
@@ -499,4 +497,3 @@ export class TwoFactorAuthService {
 }
 
 export default TwoFactorAuthService;
-

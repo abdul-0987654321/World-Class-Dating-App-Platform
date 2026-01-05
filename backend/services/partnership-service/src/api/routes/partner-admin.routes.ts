@@ -1,7 +1,13 @@
-import express, { Request, Response } from 'express';
-import { db } from '../../infrastructure/database/connection';
 import { createLogger } from '@flamoral/backend-shared';
-import { Partner, PartnerCreateInput, PartnerUpdateInput, PARTNER_STATUS } from '../../domain/entities/Partner.entity';
+import express, { Request, Response } from 'express';
+
+import {
+  Partner,
+  PartnerCreateInput,
+  PartnerUpdateInput,
+  PARTNER_STATUS,
+} from '../../domain/entities/Partner.entity';
+import { db } from '../../infrastructure/database/connection';
 
 const router = express.Router();
 const logger = createLogger('partner-admin-routes');
@@ -33,9 +39,8 @@ router.get('/', async (req: AdminRequest, res: Response) => {
       query = query.where('status', status);
     }
     if (search) {
-      query = query.where(function() {
-        this.where('name', 'ilike', `%${search}%`)
-          .orWhere('contact_email', 'ilike', `%${search}%`);
+      query = query.where(function () {
+        this.where('name', 'ilike', `%${search}%`).orWhere('contact_email', 'ilike', `%${search}%`);
       });
     }
 
@@ -48,7 +53,7 @@ router.get('/', async (req: AdminRequest, res: Response) => {
 
     res.json({
       success: true,
-      data: partners.map(p => mapPartner(p)),
+      data: partners.map((p) => mapPartner(p)),
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -86,9 +91,7 @@ router.get('/:partnerId', async (req: AdminRequest, res: Response) => {
     const [restaurantCount] = await db('restaurants')
       .where('partner_id', partnerId)
       .count('* as count');
-    const [eventCount] = await db('events')
-      .where('partner_id', partnerId)
-      .count('* as count');
+    const [eventCount] = await db('events').where('partner_id', partnerId).count('* as count');
     const [giftCount] = await db('gift_products')
       .where('partner_id', partnerId)
       .count('* as count');
@@ -109,13 +112,16 @@ router.get('/:partnerId', async (req: AdminRequest, res: Response) => {
           restaurants: parseInt(restaurantCount.count as string) || 0,
           events: parseInt(eventCount.count as string) || 0,
           products: parseInt(giftCount.count as string) || 0,
-          commissions: commissionStats.reduce((acc, row) => {
-            acc[row.status] = {
-              count: parseInt(row.count as string) || 0,
-              amount: parseFloat(row.amount as string) || 0,
-            };
-            return acc;
-          }, {} as Record<string, { count: number; amount: number }>),
+          commissions: commissionStats.reduce(
+            (acc, row) => {
+              acc[row.status] = {
+                count: parseInt(row.count as string) || 0,
+                amount: parseFloat(row.amount as string) || 0,
+              };
+              return acc;
+            },
+            {} as Record<string, { count: number; amount: number }>
+          ),
         },
       },
     });
@@ -145,9 +151,7 @@ router.post('/', async (req: AdminRequest, res: Response) => {
     }
 
     // Check for duplicate name
-    const existing = await db('partners')
-      .where('name', input.name)
-      .first();
+    const existing = await db('partners').where('name', input.name).first();
 
     if (existing) {
       return res.status(409).json({
@@ -228,10 +232,7 @@ router.put('/:partnerId', async (req: AdminRequest, res: Response) => {
     if (input.termsUrl !== undefined) updateData.terms_url = input.termsUrl;
     if (input.metadata !== undefined) updateData.metadata = input.metadata;
 
-    const [partner] = await db('partners')
-      .where('id', partnerId)
-      .update(updateData)
-      .returning('*');
+    const [partner] = await db('partners').where('id', partnerId).update(updateData).returning('*');
 
     logger.info('Partner updated', { partnerId, changes: Object.keys(input) });
 
@@ -300,7 +301,9 @@ router.post('/:partnerId/suspend', async (req: AdminRequest, res: Response) => {
       .where('id', partnerId)
       .update({
         status: PARTNER_STATUS.SUSPENDED,
-        metadata: db.raw(`metadata || '{"suspension_reason": "${reason || 'Not specified'}"}'::jsonb`),
+        metadata: db.raw(
+          `metadata || '{"suspension_reason": "${reason || 'Not specified'}"}'::jsonb`
+        ),
         updated_at: db.fn.now(),
       })
       .returning('*');
@@ -393,30 +396,37 @@ router.get('/dashboard/summary', async (req: AdminRequest, res: Response) => {
       .groupBy('status');
 
     // Recent orders
-    const recentOrders = await db('order_history')
-      .orderBy('created_at', 'desc')
-      .limit(10);
+    const recentOrders = await db('order_history').orderBy('created_at', 'desc').limit(10);
 
     res.json({
       success: true,
       data: {
         partners: {
-          byStatus: partnerStats.reduce((acc, row) => {
-            acc[row.status] = parseInt(row.count as string) || 0;
-            return acc;
-          }, {} as Record<string, number>),
-          byType: partnerTypes.reduce((acc, row) => {
-            acc[row.type] = parseInt(row.count as string) || 0;
-            return acc;
-          }, {} as Record<string, number>),
+          byStatus: partnerStats.reduce(
+            (acc, row) => {
+              acc[row.status] = parseInt(row.count as string) || 0;
+              return acc;
+            },
+            {} as Record<string, number>
+          ),
+          byType: partnerTypes.reduce(
+            (acc, row) => {
+              acc[row.type] = parseInt(row.count as string) || 0;
+              return acc;
+            },
+            {} as Record<string, number>
+          ),
         },
-        commissions: commissionStats.reduce((acc, row) => {
-          acc[row.status] = {
-            count: parseInt(row.count as string) || 0,
-            amount: parseFloat(row.amount as string) || 0,
-          };
-          return acc;
-        }, {} as Record<string, { count: number; amount: number }>),
+        commissions: commissionStats.reduce(
+          (acc, row) => {
+            acc[row.status] = {
+              count: parseInt(row.count as string) || 0,
+              amount: parseFloat(row.amount as string) || 0,
+            };
+            return acc;
+          },
+          {} as Record<string, { count: number; amount: number }>
+        ),
         recentOrders: recentOrders,
       },
     });

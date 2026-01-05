@@ -9,9 +9,10 @@
  * - Aggregating feedback statistics
  */
 
-import db from '../../infrastructure/database/connection';
 import { createLogger } from '@flamoral/backend-shared';
+
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
+import db from '../../infrastructure/database/connection';
 import {
   ScheduledDate,
   ScheduledDateStatus,
@@ -55,7 +56,7 @@ export class PostDateFeedbackService {
       // Verify the match exists and user is part of it
       const match = await db('matches')
         .where('id', request.matchId)
-        .andWhere(function() {
+        .andWhere(function () {
           this.where('user1_id', userId).orWhere('user2_id', userId);
         })
         .first();
@@ -81,7 +82,9 @@ export class PostDateFeedbackService {
           scheduled_time: request.scheduledTime,
           location_name: request.locationName || null,
           location_type: request.locationType || null,
-          location_coordinates: request.locationCoordinates ? JSON.stringify(request.locationCoordinates) : null,
+          location_coordinates: request.locationCoordinates
+            ? JSON.stringify(request.locationCoordinates)
+            : null,
           notes: request.notes || null,
           status: ScheduledDateStatus.SCHEDULED,
           created_by: userId,
@@ -172,12 +175,10 @@ export class PostDateFeedbackService {
       }
 
       // Update status to completed
-      await db('scheduled_dates')
-        .where('id', scheduledDateId)
-        .update({
-          status: ScheduledDateStatus.COMPLETED,
-          completed_at: new Date(),
-        });
+      await db('scheduled_dates').where('id', scheduledDateId).update({
+        status: ScheduledDateStatus.COMPLETED,
+        completed_at: new Date(),
+      });
 
       logger.info(`Scheduled date ${scheduledDateId} marked as completed`);
 
@@ -317,7 +318,11 @@ export class PostDateFeedbackService {
   /**
    * Submit feedback for a date
    */
-  async submitFeedback(requestId: string, userId: string, feedback: SubmitFeedbackRequest): Promise<void> {
+  async submitFeedback(
+    requestId: string,
+    userId: string,
+    feedback: SubmitFeedbackRequest
+  ): Promise<void> {
     try {
       logger.info(`User ${userId} submitting feedback for request ${requestId}`);
 
@@ -394,18 +399,20 @@ export class PostDateFeedbackService {
           logger.warn(`Safety issue reported by user ${userId} about user ${request.partner_id}`);
 
           // If severity is high or critical, flag for immediate review
-          if ([SafetyIssueSeverity.HIGH, SafetyIssueSeverity.CRITICAL].includes(feedback.safetyIssue.severity)) {
+          if (
+            [SafetyIssueSeverity.HIGH, SafetyIssueSeverity.CRITICAL].includes(
+              feedback.safetyIssue.severity
+            )
+          ) {
             logger.error(`URGENT: Critical safety issue reported - Feedback ${feedbackRecord.id}`);
           }
         }
 
         // Update feedback request status
-        await trx('feedback_requests')
-          .where('id', requestId)
-          .update({
-            status: FeedbackRequestStatus.COMPLETED,
-            completed_at: new Date(),
-          });
+        await trx('feedback_requests').where('id', requestId).update({
+          status: FeedbackRequestStatus.COMPLETED,
+          completed_at: new Date(),
+        });
 
         // Update partner's feedback summary
         await this.updateFeedbackSummary(trx, request.partner_id);
@@ -454,7 +461,7 @@ export class PostDateFeedbackService {
     try {
       // Get total dates
       const totalDates = await db('scheduled_dates')
-        .where(function() {
+        .where(function () {
           this.where('user1_id', userId).orWhere('user2_id', userId);
         })
         .count('id as count')
@@ -462,7 +469,7 @@ export class PostDateFeedbackService {
 
       // Get completed dates
       const completedDates = await db('scheduled_dates')
-        .where(function() {
+        .where(function () {
           this.where('user1_id', userId).orWhere('user2_id', userId);
         })
         .andWhere('status', ScheduledDateStatus.COMPLETED)
@@ -490,9 +497,7 @@ export class PostDateFeedbackService {
         .first();
 
       // Get average rating received (from summary table)
-      const summary = await db('date_feedback_summary')
-        .where('user_id', userId)
-        .first();
+      const summary = await db('date_feedback_summary').where('user_id', userId).first();
 
       // Calculate date success rate
       const successfulDates = summary ? summary.would_date_again_yes_count : 0;
@@ -500,19 +505,31 @@ export class PostDateFeedbackService {
       const dateSuccessRate = totalFeedback > 0 ? (successfulDates / totalFeedback) * 100 : null;
 
       return {
-        totalDates: parseInt(totalDates?.count as string || '0', 10),
-        completedDates: parseInt(completedDates?.count as string || '0', 10),
-        feedbackProvided: parseInt(feedbackProvided?.count as string || '0', 10),
-        feedbackPending: parseInt(feedbackPending?.count as string || '0', 10),
+        totalDates: parseInt((totalDates?.count as string) || '0', 10),
+        completedDates: parseInt((completedDates?.count as string) || '0', 10),
+        feedbackProvided: parseInt((feedbackProvided?.count as string) || '0', 10),
+        feedbackPending: parseInt((feedbackPending?.count as string) || '0', 10),
         avgRatingGiven: avgRatingGiven?.avg ? parseFloat(avgRatingGiven.avg as string) : null,
-        avgRatingReceived: summary?.avg_overall_rating ? parseFloat(summary.avg_overall_rating) : null,
+        avgRatingReceived: summary?.avg_overall_rating
+          ? parseFloat(summary.avg_overall_rating)
+          : null,
         dateSuccessRate,
         categoryAverages: {
-          conversation: summary?.avg_conversation_rating ? parseFloat(summary.avg_conversation_rating) : null,
-          chemistry: summary?.avg_chemistry_rating ? parseFloat(summary.avg_chemistry_rating) : null,
-          punctuality: summary?.avg_punctuality_rating ? parseFloat(summary.avg_punctuality_rating) : null,
-          appearanceAccuracy: summary?.avg_appearance_accuracy_rating ? parseFloat(summary.avg_appearance_accuracy_rating) : null,
-          respectfulness: summary?.avg_respectfulness_rating ? parseFloat(summary.avg_respectfulness_rating) : null,
+          conversation: summary?.avg_conversation_rating
+            ? parseFloat(summary.avg_conversation_rating)
+            : null,
+          chemistry: summary?.avg_chemistry_rating
+            ? parseFloat(summary.avg_chemistry_rating)
+            : null,
+          punctuality: summary?.avg_punctuality_rating
+            ? parseFloat(summary.avg_punctuality_rating)
+            : null,
+          appearanceAccuracy: summary?.avg_appearance_accuracy_rating
+            ? parseFloat(summary.avg_appearance_accuracy_rating)
+            : null,
+          respectfulness: summary?.avg_respectfulness_rating
+            ? parseFloat(summary.avg_respectfulness_rating)
+            : null,
         },
       };
     } catch (error) {
@@ -526,9 +543,7 @@ export class PostDateFeedbackService {
    */
   async getDateSuccessRate(userId: string): Promise<DateSuccessRateResponse> {
     try {
-      const summary = await db('date_feedback_summary')
-        .where('user_id', userId)
-        .first();
+      const summary = await db('date_feedback_summary').where('user_id', userId).first();
 
       if (!summary || summary.total_feedback_received === 0) {
         return {
@@ -539,17 +554,19 @@ export class PostDateFeedbackService {
         };
       }
 
-      const successRate = (summary.would_date_again_yes_count / summary.total_feedback_received) * 100;
+      const successRate =
+        (summary.would_date_again_yes_count / summary.total_feedback_received) * 100;
 
       return {
         successRate: Math.round(successRate * 10) / 10, // Round to 1 decimal
         totalDates: summary.total_dates_completed,
         successfulDates: summary.would_date_again_yes_count,
-        message: successRate >= 70
-          ? 'Great job! Your dates love meeting you.'
-          : successRate >= 50
-            ? 'You\'re doing well! Keep being yourself.'
-            : 'Room for improvement. Consider reading our dating tips.',
+        message:
+          successRate >= 70
+            ? 'Great job! Your dates love meeting you.'
+            : successRate >= 50
+              ? "You're doing well! Keep being yourself."
+              : 'Room for improvement. Consider reading our dating tips.',
       };
     } catch (error) {
       logger.error('Failed to get date success rate', error);
@@ -574,13 +591,13 @@ export class PostDateFeedbackService {
         .orderBy('created_at', 'desc');
 
       if (feedback.length < MIN_FEEDBACK_FOR_WEIGHT_UPDATE) {
-        throw new Error(`Need at least ${MIN_FEEDBACK_FOR_WEIGHT_UPDATE} feedback entries to update weights`);
+        throw new Error(
+          `Need at least ${MIN_FEEDBACK_FOR_WEIGHT_UPDATE} feedback entries to update weights`
+        );
       }
 
       // Get current weights (or create default)
-      let currentWeights = await db('user_matching_weights')
-        .where('user_id', userId)
-        .first();
+      const currentWeights = await db('user_matching_weights').where('user_id', userId).first();
 
       const previousWeights = currentWeights ? { ...currentWeights } : null;
 
@@ -591,8 +608,11 @@ export class PostDateFeedbackService {
       const newWeights = this.calculateNewWeights(analysisResult);
 
       // Calculate success stats
-      const successfulDates = feedback.filter((f: any) => f.would_date_again === WouldDateAgain.YES).length;
-      const avgRating = feedback.reduce((sum: number, f: any) => sum + f.overall_rating, 0) / feedback.length;
+      const successfulDates = feedback.filter(
+        (f: any) => f.would_date_again === WouldDateAgain.YES
+      ).length;
+      const avgRating =
+        feedback.reduce((sum: number, f: any) => sum + f.overall_rating, 0) / feedback.length;
 
       // Upsert the weights
       if (currentWeights) {
@@ -623,7 +643,9 @@ export class PostDateFeedbackService {
       // Determine significant changes
       const significantChanges = this.detectSignificantChanges(previousWeights, newWeights);
 
-      logger.info(`Matching weights updated for user ${userId}. Changes: ${significantChanges.join(', ') || 'minor adjustments'}`);
+      logger.info(
+        `Matching weights updated for user ${userId}. Changes: ${significantChanges.join(', ') || 'minor adjustments'}`
+      );
 
       return {
         userId,
@@ -643,9 +665,7 @@ export class PostDateFeedbackService {
    */
   async getUserMatchingWeights(userId: string): Promise<UserMatchingWeights | null> {
     try {
-      const weights = await db('user_matching_weights')
-        .where('user_id', userId)
-        .first();
+      const weights = await db('user_matching_weights').where('user_id', userId).first();
 
       return weights ? this.mapUserMatchingWeightsFromDb(weights) : null;
     } catch (error) {
@@ -671,9 +691,7 @@ export class PostDateFeedbackService {
     }
   ): Promise<void> {
     try {
-      const feedback = await db('post_date_feedback')
-        .where('id', feedbackId)
-        .first();
+      const feedback = await db('post_date_feedback').where('id', feedbackId).first();
 
       if (!feedback) {
         throw new Error('Feedback not found');
@@ -697,7 +715,9 @@ export class PostDateFeedbackService {
           category: issue.category,
           severity: issue.severity,
           description: issue.description,
-          additional_details: issue.additionalDetails ? JSON.stringify(issue.additionalDetails) : null,
+          additional_details: issue.additionalDetails
+            ? JSON.stringify(issue.additionalDetails)
+            : null,
           status: SafetyIssueStatus.NEW,
         });
 
@@ -724,9 +744,7 @@ export class PostDateFeedbackService {
    */
   async getSafetyIssues(status?: SafetyIssueStatus, limit = 50): Promise<SafetyIssue[]> {
     try {
-      let query = db('feedback_safety_issues')
-        .orderBy('created_at', 'desc')
-        .limit(limit);
+      let query = db('feedback_safety_issues').orderBy('created_at', 'desc').limit(limit);
 
       if (status) {
         query = query.where('status', status);
@@ -788,9 +806,8 @@ export class PostDateFeedbackService {
           .whereIn('status', [FeedbackRequestStatus.SENT, FeedbackRequestStatus.OPENED])
           .andWhere('sent_at', '<=', reminderThreshold)
           .andWhere('expires_at', '>', now)
-          .andWhere(function() {
-            this.where('last_reminder_at', '<', reminderThreshold)
-              .orWhereNull('last_reminder_at');
+          .andWhere(function () {
+            this.where('last_reminder_at', '<', reminderThreshold).orWhereNull('last_reminder_at');
           })
           .andWhere('reminder_count', '<', REMINDER_INTERVALS_HOURS.length)
           .limit(100);
@@ -801,7 +818,7 @@ export class PostDateFeedbackService {
               userId: request.user_id,
               type: 'reminder',
               title: 'Feedback Reminder',
-              body: 'We\'d love to hear about your recent date! Your feedback helps us improve your matches.',
+              body: "We'd love to hear about your recent date! Your feedback helps us improve your matches.",
               data: {
                 feedbackRequestId: request.id,
                 scheduledDateId: request.scheduled_date_id,
@@ -837,7 +854,11 @@ export class PostDateFeedbackService {
       logger.info('Expiring old feedback requests...');
 
       const result = await db('feedback_requests')
-        .whereIn('status', [FeedbackRequestStatus.PENDING, FeedbackRequestStatus.SENT, FeedbackRequestStatus.OPENED])
+        .whereIn('status', [
+          FeedbackRequestStatus.PENDING,
+          FeedbackRequestStatus.SENT,
+          FeedbackRequestStatus.OPENED,
+        ])
         .andWhere('expires_at', '<=', new Date())
         .update({ status: FeedbackRequestStatus.EXPIRED });
 
@@ -896,9 +917,15 @@ export class PostDateFeedbackService {
         trx.raw('AVG(appearance_accuracy_rating) as avg_appearance'),
         trx.raw('AVG(respectfulness_rating) as avg_respectfulness'),
         trx.raw('COUNT(*) as total_feedback'),
-        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as yes_count', [WouldDateAgain.YES]),
-        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as maybe_count', [WouldDateAgain.MAYBE]),
-        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as no_count', [WouldDateAgain.NO]),
+        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as yes_count', [
+          WouldDateAgain.YES,
+        ]),
+        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as maybe_count', [
+          WouldDateAgain.MAYBE,
+        ]),
+        trx.raw('SUM(CASE WHEN would_date_again = ? THEN 1 ELSE 0 END) as no_count', [
+          WouldDateAgain.NO,
+        ]),
         trx.raw('SUM(CASE WHEN date_happened = false THEN 1 ELSE 0 END) as no_show_count'),
         trx.raw('SUM(CASE WHEN has_safety_concerns = true THEN 1 ELSE 0 END) as safety_count')
       )
@@ -906,7 +933,7 @@ export class PostDateFeedbackService {
 
     // Get total completed dates
     const datesCount = await trx('scheduled_dates')
-      .where(function() {
+      .where(function () {
         this.where('user1_id', userId).orWhere('user2_id', userId);
       })
       .andWhere('status', ScheduledDateStatus.COMPLETED)
@@ -926,7 +953,7 @@ export class PostDateFeedbackService {
         would_date_again_yes_count: parseInt(aggregates.yes_count || '0', 10),
         would_date_again_maybe_count: parseInt(aggregates.maybe_count || '0', 10),
         would_date_again_no_count: parseInt(aggregates.no_count || '0', 10),
-        total_dates_completed: parseInt(datesCount?.count as string || '0', 10),
+        total_dates_completed: parseInt((datesCount?.count as string) || '0', 10),
         total_feedback_received: parseInt(aggregates.total_feedback || '0', 10),
         no_show_count: parseInt(aggregates.no_show_count || '0', 10),
         safety_concerns_count: parseInt(aggregates.safety_count || '0', 10),
@@ -944,12 +971,10 @@ export class PostDateFeedbackService {
       .count('id as count')
       .first();
 
-    const count = parseInt(feedbackCount?.count as string || '0', 10);
+    const count = parseInt((feedbackCount?.count as string) || '0', 10);
 
     if (count >= MIN_FEEDBACK_FOR_WEIGHT_UPDATE) {
-      const existingWeights = await db('user_matching_weights')
-        .where('user_id', userId)
-        .first();
+      const existingWeights = await db('user_matching_weights').where('user_id', userId).first();
 
       // Only update if we have new feedback since last calculation
       if (!existingWeights || count > existingWeights.feedback_count_at_calculation) {
@@ -966,7 +991,13 @@ export class PostDateFeedbackService {
     successPatterns: Record<string, any>;
   } {
     // Calculate correlation between each category rating and "would_date_again = yes"
-    const categories = ['conversation', 'chemistry', 'punctuality', 'appearance_accuracy', 'respectfulness'];
+    const categories = [
+      'conversation',
+      'chemistry',
+      'punctuality',
+      'appearance_accuracy',
+      'respectfulness',
+    ];
     const correlations: Record<string, number> = {};
 
     for (const category of categories) {
@@ -974,13 +1005,15 @@ export class PostDateFeedbackService {
       const successfulDates = feedback.filter((f) => f.would_date_again === WouldDateAgain.YES);
       const unsuccessfulDates = feedback.filter((f) => f.would_date_again !== WouldDateAgain.YES);
 
-      const avgSuccessRating = successfulDates.length > 0
-        ? successfulDates.reduce((sum, f) => sum + f[ratingKey], 0) / successfulDates.length
-        : 0;
+      const avgSuccessRating =
+        successfulDates.length > 0
+          ? successfulDates.reduce((sum, f) => sum + f[ratingKey], 0) / successfulDates.length
+          : 0;
 
-      const avgFailRating = unsuccessfulDates.length > 0
-        ? unsuccessfulDates.reduce((sum, f) => sum + f[ratingKey], 0) / unsuccessfulDates.length
-        : 0;
+      const avgFailRating =
+        unsuccessfulDates.length > 0
+          ? unsuccessfulDates.reduce((sum, f) => sum + f[ratingKey], 0) / unsuccessfulDates.length
+          : 0;
 
       // Higher difference = more important factor
       correlations[category] = Math.max(0, avgSuccessRating - avgFailRating);
@@ -1002,9 +1035,11 @@ export class PostDateFeedbackService {
     return {
       categoryCorrelations: correlations,
       successPatterns: {
-        avgSuccessfulRating: feedback
-          .filter((f) => f.would_date_again === WouldDateAgain.YES)
-          .reduce((sum, f) => sum + f.overall_rating, 0) / Math.max(1, feedback.filter((f) => f.would_date_again === WouldDateAgain.YES).length),
+        avgSuccessfulRating:
+          feedback
+            .filter((f) => f.would_date_again === WouldDateAgain.YES)
+            .reduce((sum, f) => sum + f.overall_rating, 0) /
+          Math.max(1, feedback.filter((f) => f.would_date_again === WouldDateAgain.YES).length),
       },
     };
   }
@@ -1012,7 +1047,9 @@ export class PostDateFeedbackService {
   /**
    * Calculate new weights based on feedback analysis
    */
-  private calculateNewWeights(analysis: { categoryCorrelations: Record<string, number> }): Partial<UserMatchingWeights> {
+  private calculateNewWeights(analysis: {
+    categoryCorrelations: Record<string, number>;
+  }): Partial<UserMatchingWeights> {
     const { categoryCorrelations } = analysis;
 
     return {
@@ -1050,7 +1087,9 @@ export class PostDateFeedbackService {
       const diff = currVal - prevVal;
 
       if (Math.abs(diff) >= threshold) {
-        changes.push(`${name} ${diff > 0 ? 'increased' : 'decreased'} by ${Math.round(Math.abs(diff) * 100)}%`);
+        changes.push(
+          `${name} ${diff > 0 ? 'increased' : 'decreased'} by ${Math.round(Math.abs(diff) * 100)}%`
+        );
       }
     }
 
@@ -1070,7 +1109,9 @@ export class PostDateFeedbackService {
       scheduledTime: new Date(row.scheduled_time),
       locationName: row.location_name,
       locationType: row.location_type,
-      locationCoordinates: row.location_coordinates ? JSON.parse(row.location_coordinates) : undefined,
+      locationCoordinates: row.location_coordinates
+        ? JSON.parse(row.location_coordinates)
+        : undefined,
       notes: row.notes,
       status: row.status,
       createdBy: row.created_by,

@@ -1,7 +1,8 @@
+import { createLogger } from '@flamoral/backend-shared';
 import { Knex } from 'knex';
+
 import db from '../../infrastructure/database/connection';
 import { MediaMetadata, ModerationStatus } from '../../types';
-import { createLogger } from '@flamoral/backend-shared';
 
 const logger = createLogger('media-repository');
 
@@ -54,9 +55,7 @@ export class MediaRepository {
    */
   async findById(id: string): Promise<MediaRecord | null> {
     try {
-      const media = await this.db('media')
-        .where({ id })
-        .first();
+      const media = await this.db('media').where({ id }).first();
 
       return media ? this.mapToMediaRecord(media) : null;
     } catch (error) {
@@ -81,22 +80,17 @@ export class MediaRepository {
     }
   }
 
-
   /**
    * Find all media with optional filters
    */
-  async findAll(options?: {
-    where?: any;
-    select?: string[];
-  }): Promise<MediaRecord[]> {
+  async findAll(options?: { where?: any; select?: string[] }): Promise<MediaRecord[]> {
     try {
       let query = this.db('media');
 
       if (options?.where) {
         // Handle special operators like $ne
         Object.entries(options.where).forEach(([key, value]: [string, any]) => {
-          const dbKey = key === 'userId' ? 'user_id' :
-                       key === 'isVerified' ? 'is_verified' : key;
+          const dbKey = key === 'userId' ? 'user_id' : key === 'isVerified' ? 'is_verified' : key;
 
           if (value && typeof value === 'object' && value.$ne !== undefined) {
             query = query.whereNot(dbKey, value.$ne);
@@ -107,7 +101,7 @@ export class MediaRepository {
       }
 
       if (options?.select) {
-        const dbColumns = options.select.map(col => {
+        const dbColumns = options.select.map((col) => {
           if (col === 'userId') return 'user_id';
           if (col === 'isVerified') return 'is_verified';
           if (col === 'verificationData') return 'verification_data';
@@ -176,10 +170,7 @@ export class MediaRepository {
 
       updateData.updated_at = new Date();
 
-      const [updated] = await this.db('media')
-        .where({ id })
-        .update(updateData)
-        .returning('*');
+      const [updated] = await this.db('media').where({ id }).update(updateData).returning('*');
 
       return updated ? this.mapToMediaRecord(updated) : null;
     } catch (error) {
@@ -193,9 +184,7 @@ export class MediaRepository {
    */
   async unsetProfilePhotos(userId: string): Promise<void> {
     try {
-      await this.db('media')
-        .where({ user_id: userId })
-        .update({ is_profile_photo: false });
+      await this.db('media').where({ user_id: userId }).update({ is_profile_photo: false });
     } catch (error) {
       logger.error('Failed to unset profile photos', error);
       throw error;
@@ -207,9 +196,7 @@ export class MediaRepository {
    */
   async delete(id: string): Promise<boolean> {
     try {
-      const deleted = await this.db('media')
-        .where({ id })
-        .del();
+      const deleted = await this.db('media').where({ id }).del();
 
       return deleted > 0;
     } catch (error) {
@@ -223,12 +210,9 @@ export class MediaRepository {
    */
   async countByUserId(userId: string): Promise<number> {
     try {
-      const result = await this.db('media')
-        .where({ user_id: userId })
-        .count('* as count')
-        .first();
+      const result = await this.db('media').where({ user_id: userId }).count('* as count').first();
 
-      return parseInt(result?.count as string || '0', 10);
+      return parseInt((result?.count as string) || '0', 10);
     } catch (error) {
       logger.error('Failed to count user media', error);
       throw error;
@@ -263,14 +247,15 @@ export class MediaRepository {
       mimeType: record.mime_type,
       size: record.size,
       urls: typeof record.urls === 'string' ? JSON.parse(record.urls) : record.urls,
-      dimensions: typeof record.dimensions === 'string' ? JSON.parse(record.dimensions) : record.dimensions,
+      dimensions:
+        typeof record.dimensions === 'string' ? JSON.parse(record.dimensions) : record.dimensions,
       isProfilePhoto: record.is_profile_photo,
       isVerified: record.is_verified,
       moderationStatus: record.moderation_status,
       moderationResult: record.moderation_result
-        ? (typeof record.moderation_result === 'string'
+        ? typeof record.moderation_result === 'string'
           ? JSON.parse(record.moderation_result)
-          : record.moderation_result)
+          : record.moderation_result
         : undefined,
       uploadedAt: new Date(record.uploaded_at),
       updatedAt: new Date(record.updated_at),
@@ -285,9 +270,9 @@ export class MediaRepository {
     return {
       ...base,
       verificationData: record.verification_data
-        ? (typeof record.verification_data === 'string'
+        ? typeof record.verification_data === 'string'
           ? JSON.parse(record.verification_data)
-          : record.verification_data)
+          : record.verification_data
         : undefined,
       flaggedForReview: record.flagged_for_review,
       flagReason: record.flag_reason,

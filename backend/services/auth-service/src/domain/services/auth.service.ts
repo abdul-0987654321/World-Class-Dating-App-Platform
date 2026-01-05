@@ -1,16 +1,17 @@
-import { userRepository, User, CreateUserDto } from '../repositories/user.repository';
-import { tokenRepository } from '../repositories/token.repository';
+import redisCache from '../../infrastructure/cache/redis';
+import emailService from '../../infrastructure/email/email.service';
 import { hashPassword, comparePassword } from '../../utils/encryption';
 import jwtUtils, { JwtPayload, TokenPair } from '../../utils/jwt';
-import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validation';
-import emailService from '../../infrastructure/email/email.service';
-import redisCache from '../../infrastructure/cache/redis';
 import logger from '../../utils/logger';
+import { isValidEmail, isValidPassword, isValidAge } from '../../utils/validation';
+import { tokenRepository } from '../repositories/token.repository';
+import { userRepository, User, CreateUserDto } from '../repositories/user.repository';
+
 import accountLockoutService from './account-lockout.service';
-import sessionManagementService from './session-management.service';
 import deviceFingerprintService, { DeviceFingerprintData } from './device-fingerprint.service';
-import suspiciousLoginDetectorService, { LoginAttempt } from './suspicious-login-detector.service';
 import passwordBreachCheckerService from './password-breach-checker.service';
+import sessionManagementService from './session-management.service';
+import suspiciousLoginDetectorService, { LoginAttempt } from './suspicious-login-detector.service';
 
 export interface RegisterDto {
   email: string;
@@ -90,8 +91,9 @@ class AuthService {
     });
 
     // Send verification email (async, don't wait)
-    this.sendVerificationEmail(user)
-      .catch(error => logger.error('Failed to send verification email', error));
+    this.sendVerificationEmail(user).catch((error) =>
+      logger.error('Failed to send verification email', error)
+    );
 
     logger.info(`New user registered: ${user.email}`);
 
@@ -129,7 +131,9 @@ class AuthService {
     const isLocked = await accountLockoutService.isAccountLocked(user.id);
     if (isLocked) {
       const remainingTime = await accountLockoutService.getRemainingLockoutTime(user.id);
-      throw new Error(`Account is temporarily locked. Please try again in ${Math.ceil(remainingTime / 60)} minutes.`);
+      throw new Error(
+        `Account is temporarily locked. Please try again in ${Math.ceil(remainingTime / 60)} minutes.`
+      );
     }
 
     // Check if user is active
@@ -142,10 +146,13 @@ class AuthService {
     const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
     if (requireEmailVerification && !user.is_email_verified) {
       // Allow resending verification email
-      this.sendVerificationEmail(user)
-        .catch(error => logger.warn('Failed to resend verification email', error));
+      this.sendVerificationEmail(user).catch((error) =>
+        logger.warn('Failed to resend verification email', error)
+      );
 
-      throw new Error('Email verification required. Please check your inbox for the verification link. A new verification email has been sent.');
+      throw new Error(
+        'Email verification required. Please check your inbox for the verification link. A new verification email has been sent.'
+      );
     }
 
     // Verify password
@@ -168,7 +175,9 @@ class AuthService {
       // Provide feedback about remaining attempts
       const remainingAttempts = 5 - lockoutInfo.failedAttempts;
       if (remainingAttempts > 0) {
-        throw new Error(`Invalid credentials. ${remainingAttempts} attempts remaining before lockout.`);
+        throw new Error(
+          `Invalid credentials. ${remainingAttempts} attempts remaining before lockout.`
+        );
       } else {
         throw new Error('Invalid credentials. Account has been temporarily locked.');
       }
@@ -189,7 +198,10 @@ class AuthService {
     // Record device
     let isNewDevice = false;
     if (deviceFingerprint) {
-      const isRecognized = await deviceFingerprintService.isDeviceRecognized(user.id, deviceFingerprint);
+      const isRecognized = await deviceFingerprintService.isDeviceRecognized(
+        user.id,
+        deviceFingerprint
+      );
       isNewDevice = !isRecognized;
 
       await deviceFingerprintService.recordDevice(user.id, deviceFingerprint, {
@@ -211,7 +223,8 @@ class AuthService {
       success: true,
       deviceFingerprint,
     };
-    const suspicionIndicators = await suspiciousLoginDetectorService.analyzeLoginAttempt(loginAttempt);
+    const suspicionIndicators =
+      await suspiciousLoginDetectorService.analyzeLoginAttempt(loginAttempt);
 
     // Send notification for new device or suspicious login
     if (isNewDevice || suspicionIndicators.score >= 50) {
@@ -222,7 +235,7 @@ class AuthService {
         isNewDevice,
         suspicionScore: suspicionIndicators.score,
         timestamp: new Date(),
-      }).catch(error => logger.error('Failed to send login notification', error));
+      }).catch((error) => logger.error('Failed to send login notification', error));
     }
 
     // Create session with device tracking
@@ -276,7 +289,9 @@ class AuthService {
         if (isReused) {
           // Token reuse detected - invalidate all tokens for this user
           await redisCache.invalidateAllUserTokens(payload.userId);
-          logger.error(`Refresh token reuse detected for user ${payload.userId}. All tokens invalidated.`);
+          logger.error(
+            `Refresh token reuse detected for user ${payload.userId}. All tokens invalidated.`
+          );
           throw new Error('Token reuse detected. All sessions have been invalidated for security.');
         }
       }
@@ -380,8 +395,9 @@ class AuthService {
     // Send welcome email
     const user = await userRepository.findById(verificationToken.user_id);
     if (user) {
-      emailService.sendWelcomeEmail(user.email, user.first_name)
-        .catch(error => logger.error('Failed to send welcome email', error));
+      emailService
+        .sendWelcomeEmail(user.email, user.first_name)
+        .catch((error) => logger.error('Failed to send welcome email', error));
     }
 
     logger.info(`Email verified for user: ${verificationToken.user_id}`);
@@ -457,7 +473,9 @@ class AuthService {
     // Revoke all active sessions
     await sessionManagementService.revokeAllUserSessions(resetToken.user_id);
 
-    logger.info(`Password reset for user: ${resetToken.user_id}. All tokens and sessions invalidated.`);
+    logger.info(
+      `Password reset for user: ${resetToken.user_id}. All tokens and sessions invalidated.`
+    );
   }
 
   /**
@@ -550,6 +568,7 @@ class AuthService {
       email: user.email,
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: user.subscription_status || 'inactive',
+      roles: user.roles || ['USER'],
     };
 
     return jwtUtils.generateTokenPair(payload);

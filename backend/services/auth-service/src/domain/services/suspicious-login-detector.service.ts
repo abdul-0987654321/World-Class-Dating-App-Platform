@@ -1,6 +1,6 @@
 import redisCache from '../../infrastructure/cache/redis';
-import logger from '../../utils/logger';
 import emailService from '../../infrastructure/email/email.service';
+import logger from '../../utils/logger';
 
 export interface LoginAttempt {
   userId: string;
@@ -68,7 +68,7 @@ class SuspiciousLoginDetectorService {
     if (indicators.rapidAttempts) indicators.score += 25;
 
     // Check for multiple failures
-    const recentFailures = recentAttempts.filter(a => !a.success).length;
+    const recentFailures = recentAttempts.filter((a) => !a.success).length;
     indicators.multipleFailures = recentFailures >= 3;
     if (indicators.multipleFailures) indicators.score += 30;
 
@@ -127,7 +127,8 @@ class SuspiciousLoginDetectorService {
     }
 
     // Calculate time difference in hours
-    const timeDiff = (currentAttempt.timestamp.getTime() - lastAttempt.timestamp.getTime()) / (1000 * 60 * 60);
+    const timeDiff =
+      (currentAttempt.timestamp.getTime() - lastAttempt.timestamp.getTime()) / (1000 * 60 * 60);
 
     // If more than 12 hours, not impossible
     if (timeDiff > 12) {
@@ -187,7 +188,7 @@ class SuspiciousLoginDetectorService {
     }
 
     return data
-      .map(item => {
+      .map((item) => {
         try {
           const parsed = JSON.parse(item);
           return {
@@ -198,7 +199,7 @@ class SuspiciousLoginDetectorService {
           return null;
         }
       })
-      .filter(item => item !== null) as LoginAttempt[];
+      .filter((item) => item !== null) as LoginAttempt[];
   }
 
   /**
@@ -258,9 +259,7 @@ class SuspiciousLoginDetectorService {
 
     // Count failed attempts in last 15 minutes
     const cutoff = new Date(Date.now() - this.ATTEMPT_WINDOW * 1000);
-    const recentFailures = recentAttempts.filter(
-      a => !a.success && a.timestamp >= cutoff
-    ).length;
+    const recentFailures = recentAttempts.filter((a) => !a.success && a.timestamp >= cutoff).length;
 
     return recentFailures >= 5;
   }
@@ -278,11 +277,11 @@ class SuspiciousLoginDetectorService {
     let score = 0;
 
     // Recent failures
-    const recentFailures = recentAttempts.filter(a => !a.success).length;
+    const recentFailures = recentAttempts.filter((a) => !a.success).length;
     score += recentFailures * 10;
 
     // Multiple different IPs
-    const uniqueIps = new Set(recentAttempts.map(a => a.ip)).size;
+    const uniqueIps = new Set(recentAttempts.map((a) => a.ip)).size;
     if (uniqueIps > 3) {
       score += 20;
     }

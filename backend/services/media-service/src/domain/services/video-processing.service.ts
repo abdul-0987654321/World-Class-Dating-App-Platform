@@ -1,12 +1,14 @@
-import { createLogger } from '@flamoral/backend-shared';
-import sharp from 'sharp';
-import ffmpeg from 'fluent-ffmpeg';
-import { promisify } from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { promisify } from 'util';
+
+import { createLogger } from '@flamoral/backend-shared';
+import ffmpeg from 'fluent-ffmpeg';
+import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
+
 import config from '../../config';
 import {
   VideoValidationResult,
@@ -109,9 +111,10 @@ export class VideoProcessingService {
       return {
         valid: true,
         duration: metadata?.duration,
-        dimensions: metadata?.width && metadata?.height
-          ? { width: metadata.width, height: metadata.height }
-          : undefined,
+        dimensions:
+          metadata?.width && metadata?.height
+            ? { width: metadata.width, height: metadata.height }
+            : undefined,
       };
     } catch (error: any) {
       logger.error('Video validation failed:', error);
@@ -126,7 +129,10 @@ export class VideoProcessingService {
    * Get video metadata using ffprobe
    * Extracts complete video information including duration, dimensions, codec, bitrate, etc.
    */
-  async getVideoMetadata(buffer: Buffer, mimetype: string): Promise<{
+  async getVideoMetadata(
+    buffer: Buffer,
+    mimetype: string
+  ): Promise<{
     size: number;
     mimetype: string;
     duration: number;
@@ -194,7 +200,7 @@ export class VideoProcessingService {
         }
 
         try {
-          const videoStream = metadata.streams.find(s => s.codec_type === 'video');
+          const videoStream = metadata.streams.find((s) => s.codec_type === 'video');
 
           if (!videoStream) {
             return reject(new Error('No video stream found'));
@@ -204,7 +210,11 @@ export class VideoProcessingService {
           const width = videoStream.width || 0;
           const height = videoStream.height || 0;
           const codec = videoStream.codec_name;
-          const bitrate = metadata.format.bit_rate ? (typeof metadata.format.bit_rate === 'string' ? parseInt(metadata.format.bit_rate, 10) : metadata.format.bit_rate) : undefined;
+          const bitrate = metadata.format.bit_rate
+            ? typeof metadata.format.bit_rate === 'string'
+              ? parseInt(metadata.format.bit_rate, 10)
+              : metadata.format.bit_rate
+            : undefined;
 
           // Calculate frame rate
           let frameRate: number | undefined;
@@ -241,7 +251,9 @@ export class VideoProcessingService {
     let tempOutputPath: string | null = null;
 
     try {
-      logger.info(`Generating thumbnail at ${frameTimestamp}s with dimensions ${options.width}x${options.height}`);
+      logger.info(
+        `Generating thumbnail at ${frameTimestamp}s with dimensions ${options.width}x${options.height}`
+      );
 
       // Create temporary files for input video and output thumbnail
       const tempId = uuidv4();
@@ -329,7 +341,8 @@ export class VideoProcessingService {
       logger.info(`Generating ${options.count} thumbnails`);
 
       const thumbnails: Buffer[] = [];
-      const timestamps = options.timestamps || this.calculateThumbnailTimestamps(options.count, duration);
+      const timestamps =
+        options.timestamps || this.calculateThumbnailTimestamps(options.count, duration);
 
       for (const timestamp of timestamps.slice(0, options.count)) {
         const thumbnail = await this.generateThumbnail(videoBuffer, options, timestamp);
@@ -351,7 +364,7 @@ export class VideoProcessingService {
     if (!duration) {
       // If duration is unknown, return evenly spaced positions at 25%, 50%, 75%
       const positions = [0.25, 0.5, 0.75];
-      return positions.slice(0, count).map(p => p * 30); // Assume 30s default
+      return positions.slice(0, count).map((p) => p * 30); // Assume 30s default
     }
 
     const timestamps: number[] = [];
@@ -422,8 +435,8 @@ export class VideoProcessingService {
 
       logger.info(
         `Video compression complete. Original: ${(originalSize / 1024 / 1024).toFixed(2)}MB, ` +
-        `Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)}MB, ` +
-        `Ratio: ${(compressionRatio * 100).toFixed(2)}%`
+          `Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)}MB, ` +
+          `Ratio: ${(compressionRatio * 100).toFixed(2)}%`
       );
 
       return {
@@ -555,9 +568,14 @@ export class VideoProcessingService {
       let videoMetadata;
       try {
         videoMetadata = await this.getVideoMetadata(file.buffer, file.mimetype);
-        logger.info(`Video metadata extracted: ${videoMetadata.duration}s, ${videoMetadata.width}x${videoMetadata.height}`);
+        logger.info(
+          `Video metadata extracted: ${videoMetadata.duration}s, ${videoMetadata.width}x${videoMetadata.height}`
+        );
       } catch (metadataError: any) {
-        logger.error('Failed to extract metadata, falling back to basic validation:', metadataError);
+        logger.error(
+          'Failed to extract metadata, falling back to basic validation:',
+          metadataError
+        );
         // If metadata extraction fails, try basic validation
         const validation = this.validateVideo(file, metadata);
         if (!validation.valid) {
@@ -763,11 +781,11 @@ export class VideoProcessingService {
       await writeFileAsync(tempInputPath, videoBuffer);
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .noVideo()
           .audioCodec('libmp3lame')
           .audioBitrate('128k')
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();
@@ -810,12 +828,12 @@ export class VideoProcessingService {
       await writeFileAsync(tempInputPath, videoBuffer);
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .setStartTime(0)
           .setDuration(duration)
           .fps(fps)
           .size(`${width}x${height}`)
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();
@@ -880,7 +898,7 @@ export class VideoProcessingService {
       await writeFileAsync(tempFilePath, videoBuffer);
 
       return new Promise((resolve, reject) => {
-        ffmpeg.ffprobe(tempFilePath!, (err, metadata) => {
+        ffmpeg.ffprobe(tempFilePath, (err, metadata) => {
           if (err) return reject(err);
           resolve({
             format: metadata.format,
@@ -932,9 +950,9 @@ export class VideoProcessingService {
       }
 
       await new Promise<void>((resolve, reject) => {
-        ffmpeg(tempInputPath!)
+        ffmpeg(tempInputPath)
           .videoFilters(`transpose=${transpose}`)
-          .output(tempOutputPath!)
+          .output(tempOutputPath)
           .on('end', () => resolve())
           .on('error', (err) => reject(err))
           .run();

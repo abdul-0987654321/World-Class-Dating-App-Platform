@@ -7,7 +7,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import logger from '../../utils/logger';
+
 import {
   IIDVerificationProvider,
   VerificationProvider,
@@ -22,6 +22,7 @@ import {
   DocumentDetails,
   ExtractedIDData,
 } from '../../types/id-verification-provider.types';
+import logger from '../../utils/logger';
 
 // In-memory storage for mock verifications
 const mockVerifications = new Map<string, MockVerificationData>();
@@ -54,7 +55,9 @@ export class MockProvider implements IIDVerificationProvider {
   /**
    * Initiate a mock ID verification session
    */
-  async initiateVerification(request: InitiateIDVerificationRequest): Promise<InitiateIDVerificationResponse> {
+  async initiateVerification(
+    request: InitiateIDVerificationRequest
+  ): Promise<InitiateIDVerificationResponse> {
     // Simulate error if configured
     if (this.config.simulate_errors && Math.random() < 0.1) {
       logger.warn('Mock provider simulating error');
@@ -106,7 +109,10 @@ export class MockProvider implements IIDVerificationProvider {
   /**
    * Process mock webhook callback
    */
-  async processWebhook(payload: Record<string, any>, headers: Record<string, string>): Promise<IDVerificationResult> {
+  async processWebhook(
+    payload: Record<string, any>,
+    headers: Record<string, string>
+  ): Promise<IDVerificationResult> {
     const verificationId = payload.verification_id;
     const action = payload.action; // 'approve', 'decline', 'error'
 
@@ -141,7 +147,13 @@ export class MockProvider implements IIDVerificationProvider {
         status = this.config.default_result;
     }
 
-    const result = this.generateMockResult(mockData, status, documentCheck, faceMatch, declineReasons);
+    const result = this.generateMockResult(
+      mockData,
+      status,
+      documentCheck,
+      faceMatch,
+      declineReasons
+    );
 
     // Update stored data
     mockData.status = status;
@@ -203,7 +215,13 @@ export class MockProvider implements IIDVerificationProvider {
     const faceMatch: FaceMatchResult = status === 'approved' ? 'match' : 'no_match';
     const declineReasons = status === 'declined' ? ['Manual mock decline'] : undefined;
 
-    const result = this.generateMockResult(mockData, status, documentCheck, faceMatch, declineReasons);
+    const result = this.generateMockResult(
+      mockData,
+      status,
+      documentCheck,
+      faceMatch,
+      declineReasons
+    );
 
     mockData.status = status;
     mockData.completed_at = new Date();

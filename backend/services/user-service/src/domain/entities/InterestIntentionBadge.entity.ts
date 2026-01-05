@@ -6,7 +6,16 @@ export interface InterestBadge {
   name: string;
   slug: string;
   icon: string;
-  category: 'lifestyle' | 'sports_fitness' | 'arts_culture' | 'food_drink' | 'entertainment' | 'outdoor' | 'social' | 'tech' | 'other';
+  category:
+    | 'lifestyle'
+    | 'sports_fitness'
+    | 'arts_culture'
+    | 'food_drink'
+    | 'entertainment'
+    | 'outdoor'
+    | 'social'
+    | 'tech'
+    | 'other';
   display_order: number;
   is_active: boolean;
   created_at: Date;

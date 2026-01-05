@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+
 import pool from '../../infrastructure/database/pool';
 import logger from '../../utils/logger';
 
@@ -65,7 +66,7 @@ export class UserRepository {
       userData.phone_number || null,
       false, // is_email_verified
       false, // is_phone_verified
-      true,  // is_active
+      true, // is_active
       now,
       now,
     ];
@@ -364,7 +365,9 @@ export class UserRepository {
 
     try {
       await pool.query(query, [updatedCodes, new Date(), userId]);
-      logger.info(`Backup code consumed for user: ${userId}. Remaining codes: ${updatedCodes.length}`);
+      logger.info(
+        `Backup code consumed for user: ${userId}. Remaining codes: ${updatedCodes.length}`
+      );
       return true;
     } catch (error) {
       logger.error(`Failed to consume backup code for user: ${userId}`, error);
