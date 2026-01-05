@@ -141,7 +141,7 @@ variable "enable_size_constraints" {
 variable "max_body_size" {
   description = "Maximum request body size in bytes (default 10MB)"
   type        = number
-  default     = 10485760  # 10MB
+  default     = 10485760 # 10MB
 
   validation {
     condition     = var.max_body_size >= 1000 && var.max_body_size <= 104857600
@@ -152,7 +152,7 @@ variable "max_body_size" {
 variable "max_uri_size" {
   description = "Maximum URI size in bytes"
   type        = number
-  default     = 8192  # 8KB
+  default     = 8192 # 8KB
 
   validation {
     condition     = var.max_uri_size >= 100 && var.max_uri_size <= 65536

@@ -81,7 +81,7 @@ data "archive_file" "request_transform" {
   output_path = "${path.module}/files/request-transform.zip"
 
   source {
-    content = <<-EOF
+    content  = <<-EOF
 'use strict';
 
 /**
@@ -193,7 +193,7 @@ data "archive_file" "auth_edge" {
   output_path = "${path.module}/files/auth-edge.zip"
 
   source {
-    content = <<-EOF
+    content  = <<-EOF
 'use strict';
 
 /**
@@ -371,7 +371,7 @@ data "archive_file" "ab_testing" {
   output_path = "${path.module}/files/ab-testing.zip"
 
   source {
-    content = <<-EOF
+    content  = <<-EOF
 'use strict';
 
 /**
@@ -634,7 +634,7 @@ data "archive_file" "response_headers" {
   output_path = "${path.module}/files/response-headers.zip"
 
   source {
-    content = <<-EOF
+    content  = <<-EOF
 'use strict';
 
 /**

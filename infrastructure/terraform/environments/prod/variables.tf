@@ -292,7 +292,7 @@ variable "enable_waf_bot_control" {
 variable "max_request_body_size" {
   description = "Maximum request body size in bytes"
   type        = number
-  default     = 10485760  # 10MB
+  default     = 10485760 # 10MB
 }
 
 variable "waf_allowed_ips" {

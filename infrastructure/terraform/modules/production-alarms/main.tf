@@ -281,7 +281,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections_high" {
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Average"
-  threshold           = var.rds_max_connections * 0.8  # 80% of max connections
+  threshold           = var.rds_max_connections * 0.8 # 80% of max connections
   alarm_description   = "RDS database connections approaching limit"
   treat_missing_data  = "notBreaching"
 
@@ -335,7 +335,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_read_latency" {
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Average"
-  threshold           = 0.02  # 20ms
+  threshold           = 0.02 # 20ms
   alarm_description   = "RDS read latency is high (>20ms)"
   treat_missing_data  = "notBreaching"
 
@@ -362,7 +362,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_write_latency" {
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Average"
-  threshold           = 0.05  # 50ms
+  threshold           = 0.05 # 50ms
   alarm_description   = "RDS write latency is high (>50ms)"
   treat_missing_data  = "notBreaching"
 
@@ -389,7 +389,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_replication_lag" {
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Maximum"
-  threshold           = 100  # 100ms
+  threshold           = 100 # 100ms
   alarm_description   = "Aurora replica lag is high - may impact read consistency"
   treat_missing_data  = "notBreaching"
 
@@ -501,7 +501,7 @@ resource "aws_cloudwatch_metric_alarm" "elasticache_replication_lag" {
   namespace           = "AWS/ElastiCache"
   period              = 300
   statistic           = "Maximum"
-  threshold           = 1  # 1 second
+  threshold           = 1 # 1 second
   alarm_description   = "ElastiCache replication lag is high"
   treat_missing_data  = "notBreaching"
 
@@ -613,7 +613,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_latency_high" {
   namespace           = "AWS/ApplicationELB"
   period              = 300
   extended_statistic  = "p99"
-  threshold           = 2  # 2 seconds p99
+  threshold           = 2 # 2 seconds p99
   alarm_description   = "ALB p99 latency is high (>2s)"
   treat_missing_data  = "notBreaching"
 
@@ -831,7 +831,7 @@ resource "aws_ce_anomaly_subscription" "cost" {
   threshold_expression {
     dimension {
       key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"
-      values        = ["10"]  # Alert if anomaly is 10% or more
+      values        = ["10"] # Alert if anomaly is 10% or more
       match_options = ["GREATER_THAN_OR_EQUAL"]
     }
   }

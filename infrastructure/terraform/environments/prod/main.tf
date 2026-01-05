@@ -262,7 +262,7 @@ module "networking" {
   cluster_name       = "${var.project_name}-${var.environment}-eks"
 
   enable_nat_gateway   = true
-  single_nat_gateway   = true  # Temporarily single NAT due to EIP quota limit (5 max, 4 used by dev/staging)
+  single_nat_gateway   = true # Temporarily single NAT due to EIP quota limit (5 max, 4 used by dev/staging)
   enable_flow_logs     = true
   enable_vpc_endpoints = true
 
@@ -293,11 +293,11 @@ module "eks" {
   # 4. Scale to zero during off-peak hours (if applicable)
   node_groups = {
     system = {
-      instance_types             = ["t3.large", "t3a.large"]  # Cost-effective for system workloads
-      capacity_type              = "ON_DEMAND"                 # Keep On-Demand for reliability
-      disk_size                  = 50                          # Reduced from 100GB
-      desired_size               = 2                           # Reduced from 3
-      min_size                   = 2                           # Minimum for HA
+      instance_types             = ["t3.large", "t3a.large"] # Cost-effective for system workloads
+      capacity_type              = "ON_DEMAND"               # Keep On-Demand for reliability
+      disk_size                  = 50                        # Reduced from 100GB
+      desired_size               = 2                         # Reduced from 3
+      min_size                   = 2                         # Minimum for HA
       max_size                   = 4
       max_unavailable_percentage = 50
       labels = {
@@ -312,11 +312,11 @@ module "eks" {
       ]
     }
     application = {
-      instance_types             = ["t3.xlarge", "t3a.xlarge", "m5.large"]  # Mix of cost-effective instances
-      capacity_type              = "SPOT"                                    # Use Spot for app workloads
+      instance_types             = ["t3.xlarge", "t3a.xlarge", "m5.large"] # Mix of cost-effective instances
+      capacity_type              = "SPOT"                                  # Use Spot for app workloads
       disk_size                  = 50
-      desired_size               = 2                                         # Start small, autoscale up
-      min_size                   = 0                                         # Allow scale-to-zero
+      desired_size               = 2 # Start small, autoscale up
+      min_size                   = 0 # Allow scale-to-zero
       max_size                   = 10
       max_unavailable_percentage = 50
       labels = {
@@ -328,7 +328,7 @@ module "eks" {
       instance_types             = ["m5.large", "m5a.large", "m6i.large", "m6a.large"]
       capacity_type              = "SPOT"
       disk_size                  = 50
-      desired_size               = 0                           # Start at 0, scale on demand
+      desired_size               = 0 # Start at 0, scale on demand
       min_size                   = 0
       max_size                   = 10
       max_unavailable_percentage = 100
@@ -399,8 +399,8 @@ module "rds" {
   # - Provisioned db.r6g.xlarge x 3: ~$1,200/month minimum
   # - Serverless v2 (0.5-16 ACU): ~$87/month at minimum, scales as needed
   enable_serverless_v2    = true
-  serverless_min_capacity = 0.5   # Minimum ACU (cost savings during low traffic)
-  serverless_max_capacity = 16    # Max ACU for production peaks
+  serverless_min_capacity = 0.5 # Minimum ACU (cost savings during low traffic)
+  serverless_max_capacity = 16  # Max ACU for production peaks
 
   # Fallback: If not using Serverless, use smaller provisioned instances
   # instance_class = "db.r6g.large"    # 50% cheaper than xlarge
@@ -409,7 +409,7 @@ module "rds" {
   database_name   = "flamoral"
   master_username = "dbadmin"
 
-  backup_retention_period      = 14        # Reduced from 35 (still sufficient for prod)
+  backup_retention_period      = 14 # Reduced from 35 (still sufficient for prod)
   deletion_protection          = true
   skip_final_snapshot          = false
   preferred_backup_window      = "03:00-04:00"
@@ -449,17 +449,17 @@ module "elasticache" {
   # - cache.r6g.large x 2: ~$400/month (67% savings)
   # Can scale up if metrics show need for more capacity
   engine_version     = "7.0"
-  node_type          = "cache.r6g.large"   # Reduced from xlarge (~$200/month each)
-  num_cache_clusters = 2                    # Reduced from 3 (1 primary + 1 replica)
+  node_type          = "cache.r6g.large" # Reduced from xlarge (~$200/month each)
+  num_cache_clusters = 2                 # Reduced from 3 (1 primary + 1 replica)
 
-  automatic_failover_enabled = true         # Keep for HA
-  multi_az_enabled           = true         # Keep for HA
+  automatic_failover_enabled = true # Keep for HA
+  multi_az_enabled           = true # Keep for HA
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
   kms_key_arn                = module.eks.kms_key_arn
 
-  snapshot_retention_limit = 3              # Reduced from 7 (save storage costs)
+  snapshot_retention_limit = 3 # Reduced from 7 (save storage costs)
   snapshot_window          = "02:00-03:00"
   maintenance_window       = "sun:03:00-sun:04:00"
 
@@ -670,7 +670,7 @@ module "monitoring" {
   # Cost Optimization: Reduce log retention from 90 to 30 days
   # Archive to S3/Glacier for long-term storage if needed
   log_groups = { for service in local.microservices : service => {
-    retention_in_days = 30    # Reduced from 90 (~67% savings on CloudWatch Logs)
+    retention_in_days = 30 # Reduced from 90 (~67% savings on CloudWatch Logs)
   } }
 
   create_dashboard       = true
@@ -683,18 +683,18 @@ module "monitoring" {
 
   # Cost Optimization: Reduce Container Insights retention
   enable_container_insights         = true
-  container_insights_retention_days = 14   # Reduced from 90 (~85% savings)
+  container_insights_retention_days = 14 # Reduced from 90 (~85% savings)
 
   xray_sampling_rules = {
     default = {
       priority       = 1000
-      reservoir_size = 5      # Reduced from 10
-      fixed_rate     = 0.005  # Sample 0.5% of requests (was 1%)
+      reservoir_size = 5     # Reduced from 10
+      fixed_rate     = 0.005 # Sample 0.5% of requests (was 1%)
     }
     errors = {
       priority       = 100
-      reservoir_size = 25     # Reduced from 50
-      fixed_rate     = 1.0    # Keep 100% for errors (critical for debugging)
+      reservoir_size = 25  # Reduced from 50
+      fixed_rate     = 1.0 # Keep 100% for errors (critical for debugging)
     }
   }
 
@@ -805,10 +805,10 @@ module "cloudfront" {
     }
   ]
 
-  default_origin_id     = "ALB-api"
-  default_root_object   = ""
-  price_class           = "PriceClass_All"
-  origin_shield_region  = var.aws_region
+  default_origin_id    = "ALB-api"
+  default_root_object  = ""
+  price_class          = "PriceClass_All"
+  origin_shield_region = var.aws_region
 
   # WAF configuration
   enable_waf         = true
@@ -817,7 +817,7 @@ module "cloudfront" {
 
   # Logging
   enable_logging = true
-  logging_bucket = "${module.s3.bucket_domain_names["logs"]}"
+  logging_bucket = module.s3.bucket_domain_names["logs"]
   logging_prefix = "cloudfront/"
 
   # Custom error pages
@@ -1017,9 +1017,9 @@ module "cicd" {
   eks_cluster_arn  = module.eks.cluster_arn
   kms_key_arn      = module.eks.kms_key_arn
 
-  github_repository       = var.github_repository
-  github_branch           = var.github_branch
-  codestar_connection_arn = var.codestar_connection_arn
+  github_repository        = var.github_repository
+  github_branch            = var.github_branch
+  codestar_connection_arn  = var.codestar_connection_arn
   create_github_connection = var.codestar_connection_arn == ""
 
   # Build all microservices
@@ -1102,16 +1102,16 @@ module "waf" {
   rate_limit = var.waf_rate_limit
 
   # Enable all security rules
-  enable_rate_limiting         = true
-  enable_common_rules          = true
+  enable_rate_limiting          = true
+  enable_common_rules           = true
   enable_known_bad_inputs_rules = true
-  enable_sqli_rules            = true
-  enable_xss_rules             = true
-  enable_anonymous_ip_rules    = true
-  enable_ip_reputation_rules   = true
-  enable_bot_control           = var.enable_waf_bot_control
-  enable_api_protection        = true
-  enable_size_constraints      = true
+  enable_sqli_rules             = true
+  enable_xss_rules              = true
+  enable_anonymous_ip_rules     = true
+  enable_ip_reputation_rules    = true
+  enable_bot_control            = var.enable_waf_bot_control
+  enable_api_protection         = true
+  enable_size_constraints       = true
 
   # Rate limits
   api_rate_limit = var.api_rate_limit
@@ -1131,7 +1131,7 @@ module "waf" {
   blocked_ips = var.waf_blocked_ips
 
   # Logging
-  enable_logging            = true
+  enable_logging                = true
   cloudwatch_log_retention_days = 30
 
   tags = local.common_tags
@@ -1152,11 +1152,11 @@ module "guardduty" {
   finding_publishing_frequency = "FIFTEEN_MINUTES"
 
   # Protection features
-  enable_s3_protection      = true
-  enable_eks_protection     = true
-  enable_malware_protection = true
-  enable_rds_protection     = true
-  enable_lambda_protection  = true
+  enable_s3_protection          = true
+  enable_eks_protection         = true
+  enable_malware_protection     = true
+  enable_rds_protection         = true
+  enable_lambda_protection      = true
   enable_eks_runtime_monitoring = true
 
   # Findings export to S3
@@ -1165,9 +1165,9 @@ module "guardduty" {
   kms_key_arn            = module.eks.kms_key_arn
 
   # Alert configuration
-  create_finding_alerts      = true
-  alert_severity_threshold   = 4.0  # Medium and above
-  alert_sns_topic_arn        = module.production_alarms.critical_alerts_topic_arn
+  create_finding_alerts    = true
+  alert_severity_threshold = 4.0 # Medium and above
+  alert_sns_topic_arn      = module.production_alarms.critical_alerts_topic_arn
 
   tags = local.common_tags
 }
@@ -1183,9 +1183,9 @@ module "security_hub" {
   project_name = var.project_name
   environment  = var.environment
 
-  enable_security_hub       = true
-  enable_default_standards  = false
-  auto_enable_controls      = true
+  enable_security_hub      = true
+  enable_default_standards = false
+  auto_enable_controls     = true
 
   # Enable compliance standards
   enable_aws_foundational_standard = true
@@ -1201,9 +1201,9 @@ module "security_hub" {
   enable_config_integration          = true
 
   # Alert configuration
-  create_finding_alerts   = true
-  alert_severity_labels   = ["CRITICAL", "HIGH"]
-  alert_sns_topic_arn     = module.production_alarms.critical_alerts_topic_arn
+  create_finding_alerts = true
+  alert_severity_labels = ["CRITICAL", "HIGH"]
+  alert_sns_topic_arn   = module.production_alarms.critical_alerts_topic_arn
 
   tags = local.common_tags
 }

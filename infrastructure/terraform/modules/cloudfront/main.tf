@@ -151,7 +151,7 @@ resource "aws_cloudfront_cache_policy" "api" {
   name        = "${var.project_name}-${var.environment}-api-cache"
   comment     = "Cache policy for API responses - no caching"
   default_ttl = 0
-  max_ttl     = 1    # Must be at least 1 when using header_behavior none
+  max_ttl     = 1 # Must be at least 1 when using header_behavior none
   min_ttl     = 0
 
   parameters_in_cache_key_and_forwarded_to_origin {
@@ -159,7 +159,7 @@ resource "aws_cloudfront_cache_policy" "api" {
       cookie_behavior = "none"
     }
     headers_config {
-      header_behavior = "none"  # Must be none when caching is essentially disabled
+      header_behavior = "none" # Must be none when caching is essentially disabled
     }
     query_strings_config {
       query_string_behavior = "all"

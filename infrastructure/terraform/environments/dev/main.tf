@@ -185,12 +185,12 @@ module "eks" {
   node_groups = {
     general = {
       instance_types             = ["t3.medium", "t3a.medium"] # Smaller instances, multiple types for Spot availability
-      capacity_type              = "SPOT"                       # 60-90% cost savings vs On-Demand
-      disk_size                  = 30                           # Reduced from 50GB
-      desired_size               = 0                            # Start at 0, scale up when needed
-      min_size                   = 0                            # Allow scale-to-zero
-      max_size                   = 3                            # Reduced max for dev
-      max_unavailable_percentage = 100                          # Allow full rollover for dev
+      capacity_type              = "SPOT"                      # 60-90% cost savings vs On-Demand
+      disk_size                  = 30                          # Reduced from 50GB
+      desired_size               = 0                           # Start at 0, scale up when needed
+      min_size                   = 0                           # Allow scale-to-zero
+      max_size                   = 3                           # Reduced max for dev
+      max_unavailable_percentage = 100                         # Allow full rollover for dev
       labels = {
         role = "general"
       }
@@ -259,11 +259,11 @@ module "elasticache" {
 
   # Cost Optimization: Smallest viable Redis for dev
   engine_version     = "7.0"
-  node_type          = "cache.t3.micro"  # Smallest instance (~$12/month vs $49/month for medium)
-  num_cache_clusters = 1                  # Single node for dev (no replication)
+  node_type          = "cache.t3.micro" # Smallest instance (~$12/month vs $49/month for medium)
+  num_cache_clusters = 1                # Single node for dev (no replication)
 
-  automatic_failover_enabled = false  # Disabled for single-node dev
-  multi_az_enabled           = false  # Cost optimization for dev
+  automatic_failover_enabled = false # Disabled for single-node dev
+  multi_az_enabled           = false # Cost optimization for dev
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
@@ -414,18 +414,18 @@ module "monitoring" {
 
   # Cost Optimization: Minimal logging and monitoring for dev
   log_groups = { for service in local.microservices : service => {
-    retention_in_days = 3  # Minimal retention for dev (reduces CloudWatch costs)
+    retention_in_days = 3 # Minimal retention for dev (reduces CloudWatch costs)
   } }
 
-  create_dashboard       = false  # Skip dashboard for dev
+  create_dashboard       = false # Skip dashboard for dev
   eks_cluster_name       = module.eks.cluster_name
   rds_cluster_identifier = module.rds.aurora_cluster_id
   elasticache_cluster_id = module.elasticache.replication_group_id
 
-  create_alarm_topic    = false  # Skip alarms for dev
+  create_alarm_topic    = false # Skip alarms for dev
   alarm_email_endpoints = []
 
-  enable_container_insights         = false  # Disable for dev (saves ~$2-5/day)
+  enable_container_insights         = false # Disable for dev (saves ~$2-5/day)
   container_insights_retention_days = 3
 
   xray_sampling_rules = {

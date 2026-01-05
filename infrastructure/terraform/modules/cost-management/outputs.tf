@@ -133,7 +133,7 @@ output "cost_management_summary" {
       sns_topic     = aws_sns_topic.cost_anomaly_alerts.arn
       email_targets = var.alert_email_addresses
     }
-    dashboard = var.create_cost_dashboard ? aws_cloudwatch_dashboard.cost_optimization[0].dashboard_arn : null
+    dashboard            = var.create_cost_dashboard ? aws_cloudwatch_dashboard.cost_optimization[0].dashboard_arn : null
     savings_plans_lambda = var.enable_savings_plans_notifications ? aws_lambda_function.savings_plans_recommendations[0].arn : null
     cost_categories = {
       environment = var.create_cost_categories ? aws_ce_cost_category.environment[0].arn : null

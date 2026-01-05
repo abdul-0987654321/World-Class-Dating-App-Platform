@@ -157,7 +157,7 @@ module "networking" {
   cluster_name       = "${var.project_name}-${var.environment}-eks"
 
   enable_nat_gateway   = true
-  single_nat_gateway   = true  # Cost optimization: Single NAT (saves ~$65/month, fits EIP quota)
+  single_nat_gateway   = true # Cost optimization: Single NAT (saves ~$65/month, fits EIP quota)
   enable_flow_logs     = true
   enable_vpc_endpoints = true
 
@@ -184,12 +184,12 @@ module "eks" {
   # Cost Optimization: Use smaller instances with scale-to-zero capability
   node_groups = {
     general = {
-      instance_types             = ["t3.medium", "t3a.medium"]  # Smaller instances
-      capacity_type              = "SPOT"                        # Use Spot for staging too
-      disk_size                  = 50                            # Reduced disk
-      desired_size               = 0                             # Start at 0
-      min_size                   = 0                             # Allow scale-to-zero
-      max_size                   = 5                             # Reduced max
+      instance_types             = ["t3.medium", "t3a.medium"] # Smaller instances
+      capacity_type              = "SPOT"                      # Use Spot for staging too
+      disk_size                  = 50                          # Reduced disk
+      desired_size               = 0                           # Start at 0
+      min_size                   = 0                           # Allow scale-to-zero
+      max_size                   = 5                           # Reduced max
       max_unavailable_percentage = 50
       labels = {
         role = "general"
@@ -239,8 +239,8 @@ module "rds" {
 
   # Cost Optimization: Use Serverless v2 instead of provisioned instances
   enable_serverless_v2    = true
-  serverless_min_capacity = 0.5   # Minimum ACU (scales to zero-ish)
-  serverless_max_capacity = 4     # Max ACU for staging
+  serverless_min_capacity = 0.5 # Minimum ACU (scales to zero-ish)
+  serverless_max_capacity = 4   # Max ACU for staging
 
   database_name   = "flamoral"
   master_username = "dbadmin"
@@ -252,7 +252,7 @@ module "rds" {
   eks_security_group_id = module.eks.node_security_group_id
   kms_key_arn           = module.eks.kms_key_arn
 
-  create_cloudwatch_alarms = false  # Disable alarms for staging
+  create_cloudwatch_alarms = false # Disable alarms for staging
   alarm_actions            = []
 
   tags = local.common_tags
@@ -272,11 +272,11 @@ module "elasticache" {
 
   # Cost Optimization: Smaller Redis instance
   engine_version     = "7.0"
-  node_type          = "cache.t3.small"  # ~$24/month vs ~$130/month for r6g.large
-  num_cache_clusters = 1                  # Single node for staging
+  node_type          = "cache.t3.small" # ~$24/month vs ~$130/month for r6g.large
+  num_cache_clusters = 1                # Single node for staging
 
-  automatic_failover_enabled = false  # Disabled for single node
-  multi_az_enabled           = false  # Cost optimization
+  automatic_failover_enabled = false # Disabled for single node
+  multi_az_enabled           = false # Cost optimization
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
@@ -284,7 +284,7 @@ module "elasticache" {
 
   eks_security_group_id = module.eks.node_security_group_id
 
-  create_cloudwatch_alarms = false  # Disable alarms for staging
+  create_cloudwatch_alarms = false # Disable alarms for staging
   alarm_actions            = []
 
   tags = local.common_tags
@@ -345,7 +345,7 @@ module "cognito" {
   create_identity_pool             = true
   allow_unauthenticated_identities = false
 
-  deletion_protection = "INACTIVE"  # Allow deletion in staging
+  deletion_protection = "INACTIVE" # Allow deletion in staging
 
   tags = local.common_tags
 }
@@ -434,18 +434,18 @@ module "monitoring" {
 
   # Cost Optimization: Reduced logging and monitoring for staging
   log_groups = { for service in local.microservices : service => {
-    retention_in_days = 7  # Reduced from 30 days
+    retention_in_days = 7 # Reduced from 30 days
   } }
 
-  create_dashboard       = false  # Skip dashboard for staging
+  create_dashboard       = false # Skip dashboard for staging
   eks_cluster_name       = module.eks.cluster_name
   rds_cluster_identifier = module.rds.aurora_cluster_id
   elasticache_cluster_id = module.elasticache.replication_group_id
 
-  create_alarm_topic    = false  # Disable alarms for staging
+  create_alarm_topic    = false # Disable alarms for staging
   alarm_email_endpoints = []
 
-  enable_container_insights         = false  # Disable for staging
+  enable_container_insights         = false # Disable for staging
   container_insights_retention_days = 7
 
   xray_sampling_rules = {

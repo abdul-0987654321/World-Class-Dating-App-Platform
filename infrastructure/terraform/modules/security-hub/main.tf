@@ -253,11 +253,11 @@ resource "aws_securityhub_insight" "main" {
 resource "aws_securityhub_automation_rule" "main" {
   for_each = var.enable_security_hub ? var.automation_rules : {}
 
-  rule_name    = "${var.project_name}-${var.environment}-${each.key}"
-  description  = each.value.description
-  rule_order   = each.value.rule_order
-  is_terminal  = each.value.is_terminal
-  rule_status  = each.value.enabled ? "ENABLED" : "DISABLED"
+  rule_name   = "${var.project_name}-${var.environment}-${each.key}"
+  description = each.value.description
+  rule_order  = each.value.rule_order
+  is_terminal = each.value.is_terminal
+  rule_status = each.value.enabled ? "ENABLED" : "DISABLED"
 
   criteria {
     dynamic "severity_label" {

@@ -134,7 +134,7 @@ variable "enable_savings_plans_notifications" {
 variable "savings_plans_notification_schedule" {
   description = "Cron expression for Savings Plans notification schedule"
   type        = string
-  default     = "cron(0 9 ? * MON *)"  # Every Monday at 9 AM UTC
+  default     = "cron(0 9 ? * MON *)" # Every Monday at 9 AM UTC
 }
 
 variable "min_savings_threshold" {

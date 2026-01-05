@@ -100,7 +100,7 @@ resource "aws_ce_anomaly_monitor" "custom_service_monitors" {
       Values       = [each.value]
       MatchOptions = null
     }
-    Tags         = null
+    Tags           = null
     CostCategories = null
   })
 
@@ -439,9 +439,9 @@ resource "aws_lambda_function" "savings_plans_recommendations" {
 
   environment {
     variables = {
-      SNS_TOPIC_ARN        = aws_sns_topic.cost_anomaly_alerts.arn
-      ENVIRONMENT          = var.environment
-      PROJECT_NAME         = var.project_name
+      SNS_TOPIC_ARN         = aws_sns_topic.cost_anomaly_alerts.arn
+      ENVIRONMENT           = var.environment
+      PROJECT_NAME          = var.project_name
       MIN_SAVINGS_THRESHOLD = tostring(var.min_savings_threshold)
     }
   }
@@ -497,9 +497,9 @@ def handler(event, context):
             if estimated_savings >= min_savings:
                 recommendations.append({
                     'type': 'Savings Plans (Compute)',
-                    'estimated_monthly_savings': f"${estimated_savings:.2f}",
+                    'estimated_monthly_savings': f"$${estimated_savings:.2f}",
                     'estimated_savings_percentage': sp_rec.get('EstimatedSavingsPercentage', 'N/A'),
-                    'recommended_commitment': f"${sp_rec.get('HourlyCommitmentToPurchase', 'N/A')}/hour"
+                    'recommended_commitment': f"$${sp_rec.get('HourlyCommitmentToPurchase', 'N/A')}/hour"
                 })
     except Exception as e:
         print(f"Error fetching Savings Plans recommendations: {e}")
@@ -520,7 +520,7 @@ def handler(event, context):
                     recommendations.append({
                         'type': 'EC2 Reserved Instance',
                         'instance_type': detail.get('InstanceDetails', {}).get('EC2InstanceDetails', {}).get('InstanceType', 'N/A'),
-                        'estimated_monthly_savings': f"${savings:.2f}",
+                        'estimated_monthly_savings': f"$${savings:.2f}",
                         'recommended_quantity': detail.get('RecommendedNumberOfInstancesToPurchase', 'N/A')
                     })
     except Exception as e:
@@ -544,7 +544,7 @@ def handler(event, context):
             recommendations.append({
                 'type': 'Right-sizing',
                 'instance_count': rightsizing_count,
-                'total_estimated_monthly_savings': f"${rightsizing_savings:.2f}"
+                'total_estimated_monthly_savings': f"$${rightsizing_savings:.2f}"
             })
     except Exception as e:
         print(f"Error fetching right-sizing recommendations: {e}")
@@ -688,8 +688,8 @@ resource "aws_ce_cost_category" "environment" {
   }
 
   tags = merge(var.tags, {
-    Name        = "${var.project_name}-environment-category"
-    Purpose     = "cost-management"
+    Name    = "${var.project_name}-environment-category"
+    Purpose = "cost-management"
   })
 }
 

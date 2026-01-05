@@ -196,9 +196,9 @@ data "aws_iam_policy_document" "secret_policy" {
   dynamic "statement" {
     for_each = each.value.require_ssl ? [1] : []
     content {
-      sid     = "RequireSSL"
-      effect  = "Deny"
-      actions = ["secretsmanager:*"]
+      sid       = "RequireSSL"
+      effect    = "Deny"
+      actions   = ["secretsmanager:*"]
       resources = [aws_secretsmanager_secret.main[each.key].arn]
       principals {
         type        = "*"
