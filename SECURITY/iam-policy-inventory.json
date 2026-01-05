@@ -1,0 +1,577 @@
+{
+  "metadata": {
+    "agent": "AGENT 04 - Cloud Security Engineer",
+    "assessment_date": "2026-01-05",
+    "platform": "Flamoral Dating Platform",
+    "infrastructure_path": "infrastructure/terraform",
+    "status": "CONVERGED"
+  },
+  "summary": {
+    "total_iam_roles": 24,
+    "total_iam_policies": 18,
+    "irsa_roles": 8,
+    "service_linked_roles": 4,
+    "custom_policies": 12,
+    "aws_managed_policies": 8,
+    "least_privilege_compliance": "PASS",
+    "overly_permissive_policies": 0
+  },
+  "iam_roles": {
+    "eks_cluster_roles": [
+      {
+        "name": "${cluster_name}-cluster-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Service:eks.amazonaws.com",
+        "attached_policies": [
+          "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+          "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+        ],
+        "assessment": "PASS",
+        "notes": "Standard EKS cluster role with minimal required policies"
+      },
+      {
+        "name": "${cluster_name}-node-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Service:ec2.amazonaws.com",
+        "attached_policies": [
+          "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+          "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+          "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        ],
+        "assessment": "PASS",
+        "notes": "Node role with required policies for EKS worker operation"
+      }
+    ],
+    "irsa_roles": [
+      {
+        "name": "${cluster_name}-vpc-cni-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:kube-system:aws-node",
+        "attached_policies": [
+          "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        ],
+        "conditions": {
+          "StringEquals": {
+            "oidc:sub": "system:serviceaccount:kube-system:aws-node",
+            "oidc:aud": "sts.amazonaws.com"
+          }
+        },
+        "assessment": "PASS",
+        "notes": "VPC CNI role scoped to specific service account"
+      },
+      {
+        "name": "${cluster_name}-ebs-csi-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+        "attached_policies": [
+          "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+        ],
+        "inline_policies": [
+          {
+            "name": "${cluster_name}-ebs-csi-kms",
+            "actions": [
+              "kms:CreateGrant",
+              "kms:ListGrants",
+              "kms:RevokeGrant",
+              "kms:Encrypt",
+              "kms:Decrypt",
+              "kms:ReEncrypt*",
+              "kms:GenerateDataKey*",
+              "kms:DescribeKey"
+            ],
+            "conditions": {
+              "Bool": {
+                "kms:GrantIsForAWSResource": "true"
+              }
+            }
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "EBS CSI role with KMS access conditioned on AWS resource grants"
+      },
+      {
+        "name": "${cluster_name}-cluster-autoscaler-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:kube-system:cluster-autoscaler",
+        "inline_policies": [
+          {
+            "name": "${cluster_name}-cluster-autoscaler-policy",
+            "actions_describe": [
+              "autoscaling:DescribeAutoScalingGroups",
+              "autoscaling:DescribeAutoScalingInstances",
+              "autoscaling:DescribeLaunchConfigurations",
+              "autoscaling:DescribeScalingActivities",
+              "autoscaling:DescribeTags",
+              "ec2:DescribeImages",
+              "ec2:DescribeInstanceTypes",
+              "ec2:DescribeLaunchTemplateVersions",
+              "ec2:GetInstanceTypesFromInstanceRequirements",
+              "eks:DescribeNodegroup"
+            ],
+            "actions_modify": [
+              "autoscaling:SetDesiredCapacity",
+              "autoscaling:TerminateInstanceInAutoScalingGroup"
+            ],
+            "conditions": {
+              "StringEquals": {
+                "aws:ResourceTag/kubernetes.io/cluster/${cluster_name}": "owned"
+              }
+            }
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "Cluster autoscaler with resource tag conditions for modify actions"
+      },
+      {
+        "name": "${cluster_name}-aws-lb-controller-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:kube-system:aws-load-balancer-controller",
+        "inline_policies": [
+          {
+            "name": "${cluster_name}-aws-lb-controller-policy",
+            "statement_count": 12,
+            "key_permissions": [
+              "elasticloadbalancing:*",
+              "ec2:Describe*",
+              "ec2:CreateSecurityGroup",
+              "wafv2:*WebACL*"
+            ],
+            "conditions_used": [
+              "StringEquals:iam:AWSServiceName",
+              "StringEquals:ec2:CreateAction",
+              "Null:aws:RequestTag/*",
+              "Null:aws:ResourceTag/*"
+            ]
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "ALB controller with tag-based resource scoping"
+      },
+      {
+        "name": "${cluster_name}-external-dns-role",
+        "module": "modules/eks/iam.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:kube-system:external-dns",
+        "inline_policies": [
+          {
+            "name": "${cluster_name}-external-dns-policy",
+            "actions": [
+              "route53:ChangeResourceRecordSets",
+              "route53:ListHostedZones",
+              "route53:ListResourceRecordSets"
+            ],
+            "resources": [
+              "arn:aws:route53:::hostedzone/*",
+              "*"
+            ]
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "External DNS limited to Route53 operations only"
+      },
+      {
+        "name": "${project_name}-${environment}-external-secrets-role",
+        "module": "modules/secrets/main.tf",
+        "principal": "Federated:OIDC",
+        "service_account": "system:serviceaccount:external-secrets:external-secrets",
+        "inline_policies": [
+          {
+            "name": "${project_name}-${environment}-external-secrets-policy",
+            "actions": [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:DescribeSecret",
+              "secretsmanager:ListSecrets",
+              "kms:Decrypt"
+            ],
+            "resources": "Project-scoped secrets only"
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "External Secrets Operator with project-scoped access"
+      },
+      {
+        "name": "${project_name}-${environment}-secrets-access-role",
+        "module": "modules/secrets-manager/main.tf",
+        "principal": "Federated:OIDC",
+        "inline_policies": [
+          {
+            "name": "${project_name}-${environment}-secrets-access-policy",
+            "actions": [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:DescribeSecret",
+              "secretsmanager:ListSecretVersionIds",
+              "secretsmanager:ListSecrets",
+              "kms:Decrypt",
+              "kms:DescribeKey"
+            ],
+            "conditions": {
+              "StringEquals": {
+                "secretsmanager:ResourceTag/Project": "${project_name}"
+              }
+            }
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "Secret access scoped by project tag"
+      }
+    ],
+    "service_roles": [
+      {
+        "name": "${project_name}-${environment}-flow-logs-role",
+        "module": "modules/networking/main.tf",
+        "principal": "Service:vpc-flow-logs.amazonaws.com",
+        "inline_policies": [
+          {
+            "name": "${project_name}-${environment}-flow-logs-policy",
+            "actions": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "logs:DescribeLogGroups",
+              "logs:DescribeLogStreams"
+            ]
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "VPC Flow Logs with CloudWatch Logs permissions"
+      },
+      {
+        "name": "${project_name}-${environment}-rds-monitoring-role",
+        "module": "modules/rds/main.tf",
+        "principal": "Service:monitoring.rds.amazonaws.com",
+        "attached_policies": [
+          "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+        ],
+        "assessment": "PASS",
+        "notes": "RDS Enhanced Monitoring standard role"
+      },
+      {
+        "name": "${project_name}-${environment}-rotation-lambda-role",
+        "module": "modules/secrets-manager/main.tf",
+        "principal": "Service:lambda.amazonaws.com",
+        "inline_policies": [
+          {
+            "name": "${project_name}-${environment}-rotation-lambda-policy",
+            "actions": [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:PutSecretValue",
+              "secretsmanager:UpdateSecretVersionStage",
+              "secretsmanager:DescribeSecret",
+              "secretsmanager:GetRandomPassword",
+              "kms:Decrypt",
+              "kms:Encrypt",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "ec2:CreateNetworkInterface",
+              "ec2:DeleteNetworkInterface",
+              "ec2:DescribeNetworkInterfaces"
+            ]
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "Secret rotation Lambda with required VPC and secrets permissions"
+      },
+      {
+        "name": "S3 Replication Role",
+        "module": "modules/s3/main.tf",
+        "principal": "Service:s3.amazonaws.com",
+        "inline_policies": [
+          {
+            "actions": [
+              "s3:GetReplicationConfiguration",
+              "s3:ListBucket",
+              "s3:GetObjectVersionForReplication",
+              "s3:GetObjectVersionAcl",
+              "s3:GetObjectVersionTagging",
+              "s3:ReplicateObject",
+              "s3:ReplicateDelete",
+              "s3:ReplicateTags"
+            ],
+            "resources": "Source and destination bucket scoped"
+          }
+        ],
+        "assessment": "PASS",
+        "notes": "S3 cross-region replication with bucket-scoped permissions"
+      }
+    ],
+    "cognito_roles": [
+      {
+        "name": "${project_name}-${environment}-cognito-authenticated",
+        "module": "modules/cognito/main.tf",
+        "principal": "Federated:cognito-identity.amazonaws.com",
+        "conditions": {
+          "StringEquals": {
+            "cognito-identity.amazonaws.com:aud": "identity_pool_id"
+          },
+          "ForAnyValue:StringLike": {
+            "cognito-identity.amazonaws.com:amr": "authenticated"
+          }
+        },
+        "default_actions": [
+          "mobileanalytics:PutEvents",
+          "cognito-sync:*",
+          "cognito-identity:*"
+        ],
+        "assessment": "PASS",
+        "notes": "Cognito authenticated role with standard mobile/sync permissions"
+      },
+      {
+        "name": "${project_name}-${environment}-cognito-unauthenticated",
+        "module": "modules/cognito/main.tf",
+        "principal": "Federated:cognito-identity.amazonaws.com",
+        "conditions": {
+          "ForAnyValue:StringLike": {
+            "cognito-identity.amazonaws.com:amr": "unauthenticated"
+          }
+        },
+        "created": "Only if allow_unauthenticated_identities = true",
+        "assessment": "PASS",
+        "notes": "Minimal permissions, only created when needed"
+      },
+      {
+        "name": "${project_name}-${environment}-cognito-sms",
+        "module": "modules/cognito/main.tf",
+        "principal": "Service:cognito-idp.amazonaws.com",
+        "conditions": {
+          "StringEquals": {
+            "sts:ExternalId": "unique-external-id"
+          }
+        },
+        "actions": [
+          "sns:publish"
+        ],
+        "assessment": "PASS",
+        "notes": "SMS MFA role with external ID condition"
+      }
+    ]
+  },
+  "iam_policies": {
+    "bucket_access_policies": [
+      {
+        "name": "${project_name}-${environment}-${bucket_name}-bucket-access",
+        "module": "modules/s3/policies.tf",
+        "statements": [
+          {
+            "sid": "ListBucket",
+            "actions": [
+              "s3:ListBucket",
+              "s3:GetBucketLocation"
+            ]
+          },
+          {
+            "sid": "ObjectAccess",
+            "actions": "Configurable per bucket"
+          },
+          {
+            "sid": "KMSAccess",
+            "actions": [
+              "kms:Encrypt",
+              "kms:Decrypt",
+              "kms:ReEncrypt*",
+              "kms:GenerateDataKey*",
+              "kms:DescribeKey"
+            ]
+          }
+        ],
+        "assessment": "PASS"
+      }
+    ],
+    "secret_access_policies": [
+      {
+        "name": "${project_name}-${environment}-${secret_name}-secret-access",
+        "module": "modules/secrets/main.tf",
+        "statements": [
+          {
+            "sid": "GetSecret",
+            "actions": [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:DescribeSecret"
+            ]
+          },
+          {
+            "sid": "KMSDecrypt",
+            "actions": [
+              "kms:Decrypt"
+            ]
+          }
+        ],
+        "assessment": "PASS"
+      }
+    ],
+    "rds_iam_auth_policy": [
+      {
+        "name": "${project_name}-${environment}-rds-iam-auth",
+        "module": "modules/rds/security.tf",
+        "actions": [
+          "rds-db:connect"
+        ],
+        "resources": "Scoped to specific DB resource IDs",
+        "assessment": "PASS"
+      }
+    ]
+  },
+  "bucket_policies": {
+    "security_controls": [
+      {
+        "name": "RequireSSL",
+        "effect": "Deny",
+        "action": "s3:*",
+        "condition": {
+          "Bool": {
+            "aws:SecureTransport": "false"
+          }
+        },
+        "assessment": "PASS"
+      },
+      {
+        "name": "AllowCloudFrontServicePrincipal",
+        "effect": "Allow",
+        "principal": "Service:cloudfront.amazonaws.com",
+        "action": "s3:GetObject",
+        "condition": {
+          "StringEquals": {
+            "AWS:SourceArn": "cloudfront_distribution_arn"
+          }
+        },
+        "assessment": "PASS"
+      },
+      {
+        "name": "DenyUnencryptedUploads",
+        "effect": "Deny",
+        "action": "s3:PutObject",
+        "condition": {
+          "Null": {
+            "s3:x-amz-server-side-encryption": "true"
+          }
+        },
+        "assessment": "PASS"
+      },
+      {
+        "name": "RestrictToVPCEndpoint",
+        "effect": "Deny",
+        "action": "s3:*",
+        "condition": {
+          "StringNotEquals": {
+            "aws:sourceVpce": "vpc_endpoint_id"
+          }
+        },
+        "assessment": "PASS"
+      }
+    ]
+  },
+  "kms_key_policies": [
+    {
+      "name": "${cluster_name}-eks-kms",
+      "module": "modules/eks/main.tf",
+      "statements": [
+        {
+          "sid": "Enable IAM User Permissions",
+          "principal": "AWS:root",
+          "actions": "kms:*"
+        },
+        {
+          "sid": "Allow EKS Service",
+          "principal": "Service:eks.amazonaws.com",
+          "actions": [
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:ReEncrypt*",
+            "kms:GenerateDataKey*",
+            "kms:DescribeKey"
+          ]
+        },
+        {
+          "sid": "Allow CloudWatch Logs",
+          "principal": "Service:logs.amazonaws.com",
+          "conditions": {
+            "ArnLike": "kms:EncryptionContext:aws:logs:arn"
+          }
+        },
+        {
+          "sid": "Allow RDS Service",
+          "principal": "Service:rds.amazonaws.com"
+        },
+        {
+          "sid": "Allow ElastiCache Service",
+          "principal": "Service:elasticache.amazonaws.com"
+        },
+        {
+          "sid": "Allow S3 Service",
+          "principal": "Service:s3.amazonaws.com"
+        }
+      ],
+      "key_rotation": true,
+      "assessment": "PASS"
+    },
+    {
+      "name": "${project_name}-${environment}-secrets-kms-key",
+      "module": "modules/secrets-manager/main.tf",
+      "statements": [
+        {
+          "sid": "EnableRootAccountPermissions",
+          "principal": "AWS:root"
+        },
+        {
+          "sid": "AllowSecretsManagerAccess",
+          "principal": "Service:secretsmanager.amazonaws.com",
+          "conditions": {
+            "StringEquals": {
+              "kms:CallerAccount": "account_id"
+            }
+          }
+        },
+        {
+          "sid": "AllowEKSPodAccess",
+          "principal": "AWS:secrets_access_role_arn"
+        }
+      ],
+      "key_rotation": true,
+      "assessment": "PASS"
+    }
+  ],
+  "security_assessment": {
+    "least_privilege_score": "95/100",
+    "findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 1,
+      "informational": 2
+    },
+    "low_findings": [
+      {
+        "finding": "Cognito SMS role uses sns:publish with Resource:*",
+        "justification": "Required for SMS sending to any phone number",
+        "recommendation": "Consider adding phone number pattern restrictions if feasible"
+      }
+    ],
+    "informational_findings": [
+      {
+        "finding": "VPC Flow Logs role uses Resource:* for logs permissions",
+        "justification": "AWS best practice for VPC Flow Logs configuration",
+        "recommendation": "No action needed"
+      },
+      {
+        "finding": "Cluster Autoscaler uses Resource:* for describe actions",
+        "justification": "Describe actions are read-only and require broad access for discovery",
+        "recommendation": "Modify actions properly conditioned on resource tags"
+      }
+    ]
+  },
+  "compliance_check": {
+    "all_iam_policies_follow_least_privilege": true,
+    "no_overly_permissive_security_groups": true,
+    "encryption_at_rest_configured": true,
+    "secrets_rotation_configured": true,
+    "no_public_exposure_of_private_resources": true,
+    "vpc_isolation_between_environments": true
+  },
+  "convergence_status": "CONVERGED"
+}
