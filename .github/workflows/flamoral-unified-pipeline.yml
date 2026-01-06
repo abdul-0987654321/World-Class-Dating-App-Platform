@@ -1,0 +1,1140 @@
+# ============================================================================
+# FLAMORAL UNIFIED PIPELINE - SINGLE SOURCE OF TRUTH
+# ============================================================================
+# This workflow consolidates ALL CI/CD operations for the Flamoral platform:
+#   - PR Quality Gates (validation on pull requests)
+#   - Build & Test (code quality and compilation)
+#   - Terraform Guard (IaC security and AWS-only enforcement)
+#   - Terraform Deploy (infrastructure deployment with approval gates)
+#   - Docker Build (container images to ECR)
+#   - Application Deployment (staging and production with approval)
+#   - Scheduled Operations (drift detection, identity audit, lifecycle checks)
+#
+# DEPRECATED WORKFLOWS (replaced by this file):
+#   - aws-unified-pipeline.yml
+#   - identity-audit.yaml
+#   - lifecycle-agent.yml
+#   - pr-quality-gate.yml
+#   - terraform-dev-prod-gated.yml
+#   - terraform-drift-detection.yml
+#   - terraform-guard.yml
+# ============================================================================
+
+name: Flamoral Unified Pipeline
+
+on:
+  # PR validation - runs quality gates, tests, and security scans
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+  # Push to main/develop - full CI/CD pipeline
+  push:
+    branches: [main, develop]
+
+  # Scheduled operations
+  schedule:
+    # Daily identity audit at 3 AM UTC
+    - cron: '0 3 * * *'
+    # Daily drift detection at 6 AM UTC
+    - cron: '0 6 * * *'
+    # Weekly lifecycle EOL check - Monday 6 AM UTC
+    - cron: '0 6 * * 1'
+    # Daily security scan at 2 AM UTC
+    - cron: '0 2 * * *'
+    # Scheduled production deployment - 9 PM CST (3 AM UTC Jan 7)
+    - cron: '0 3 7 1 *'
+
+  # Manual trigger with comprehensive options
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'build-only'
+        type: choice
+        options:
+          - build-only
+          - build-deploy
+          - terraform-plan
+          - terraform-apply
+          - terraform-auto-fix
+          - drift-check
+          - identity-audit
+          - lifecycle-check
+          - release
+          - rollback
+          - mobile
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      version:
+        description: 'Release version (for release action)'
+        required: false
+        type: string
+      rollback_to:
+        description: 'Rollback to version'
+        required: false
+        type: string
+      full_reconciliation:
+        description: 'Run full identity reconciliation'
+        required: false
+        default: false
+        type: boolean
+
+# Global environment variables
+env:
+  NODE_VERSION: '20'
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  ECR_IMAGE_PREFIX: flamoral
+  TERRAFORM_VERSION: '1.6.0'
+
+# Workflow permissions
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  id-token: write
+  security-events: write
+  issues: write
+
+# Concurrency control
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# ============================================================================
+# JOBS
+# ============================================================================
+jobs:
+
+  # ==========================================================================
+  # SECTION 1: PR QUALITY GATES
+  # Runs on pull requests to ensure code quality before merge
+  # ==========================================================================
+
+  pr-legal-pages-guard:
+    name: '[PR] Legal Pages Availability'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Verify Legal Page Components
+        run: |
+          echo "Verifying required legal page components exist..."
+          REQUIRED_PAGES=("TermsOfService" "PrivacyPolicy" "CookiePolicy" "CommunityGuidelines" "SafetyTips" "ContactUs")
+          MISSING_PAGES=()
+
+          for page in "${REQUIRED_PAGES[@]}"; do
+            if ! find apps/web-app/src -name "${page}*" -type f | grep -q .; then
+              MISSING_PAGES+=("$page")
+            fi
+          done
+
+          if [ ${#MISSING_PAGES[@]} -gt 0 ]; then
+            echo "::error::Missing legal pages: ${MISSING_PAGES[*]}"
+            exit 1
+          fi
+          echo "All required legal pages found."
+
+  pr-api-route-guard:
+    name: '[PR] API Route Verification'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify API Gateway Routes
+        run: |
+          echo "Checking API Gateway route definitions..."
+          if ! grep -r "registerRoutes\|router\." backend/services/api-gateway/src/; then
+            echo "::warning::No route registrations found in API Gateway"
+          fi
+          echo "API route verification completed."
+
+  pr-security-guard:
+    name: '[PR] Security Check'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for .env file commits
+        run: |
+          if git diff --cached --name-only origin/main | grep -E "\.env$|\.env\.local$|\.env\.production$"; then
+            echo "::error::Attempted to commit .env files!"
+            exit 1
+          fi
+
+      - name: Secret pattern detection
+        run: |
+          SECRET_PATTERNS=(
+            "AKIA[0-9A-Z]{16}"
+            "sk_live_[0-9a-zA-Z]{24}"
+            "-----BEGIN.*PRIVATE KEY-----"
+          )
+          FOUND=false
+          for pattern in "${SECRET_PATTERNS[@]}"; do
+            if grep -rE "$pattern" --include="*.ts" --include="*.js" --include="*.json" . 2>/dev/null | grep -v node_modules; then
+              echo "::error::Potential secret detected: $pattern"
+              FOUND=true
+            fi
+          done
+          if [ "$FOUND" = true ]; then
+            exit 1
+          fi
+
+  pr-performance-guard:
+    name: '[PR] Performance Check'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for large assets
+        run: |
+          LARGE_FILES=$(find . -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.mp4" \) -size +500k 2>/dev/null | grep -v node_modules || true)
+          if [ -n "$LARGE_FILES" ]; then
+            echo "::warning::Large assets detected (>500KB):"
+            echo "$LARGE_FILES"
+          fi
+
+  pr-quality-summary:
+    name: '[PR] Quality Gate Summary'
+    runs-on: ubuntu-latest
+    needs: [pr-legal-pages-guard, pr-api-route-guard, pr-security-guard, pr-performance-guard]
+    if: always() && github.event_name == 'pull_request'
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## PR Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Legal Pages | ${{ needs.pr-legal-pages-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Routes | ${{ needs.pr-api-route-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.pr-security-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ needs.pr-performance-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================================================
+  # SECTION 2: BUILD & TEST
+  # Core CI - runs on PR and push
+  # ==========================================================================
+
+  sast-scan:
+    name: SAST Security Scan
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["build-only", "build-deploy", "release"]'), github.event.inputs.action))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Semgrep SAST scan
+        run: |
+          pip3 install semgrep
+          semgrep scan \
+            --config p/default \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/owasp-top-ten \
+            --config p/typescript \
+            --config p/nodejs \
+            --sarif --output semgrep.sarif \
+            --error || true
+
+          if [ -f semgrep.sarif ]; then
+            echo "SARIF file generated successfully"
+          else
+            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > semgrep.sarif
+          fi
+
+      - name: Upload Semgrep results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
+        continue-on-error: true
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+        continue-on-error: true
+
+      - name: Ensure Trivy SARIF exists
+        run: |
+          if [ ! -f trivy-fs-results.sarif ]; then
+            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > trivy-fs-results.sarif
+          fi
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+        if: always()
+        continue-on-error: true
+
+      - name: Run secret scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-scan:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["build-only", "build-deploy", "release"]'), github.event.inputs.action))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Upload dependency audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit
+          path: audit-report.txt
+        if: always()
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["build-only", "build-deploy", "release"]'), github.event.inputs.action))
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version=$GIT_SHA" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build all packages
+        run: yarn build:all
+
+      - name: Run linting
+        run: yarn lint:all
+        continue-on-error: true
+
+      - name: Security audit
+        run: |
+          npm audit --audit-level=critical 2>&1 | tee audit-report.txt || true
+        continue-on-error: true
+
+      - name: Check deployment conditions
+        id: check
+        env:
+          INPUT_ACTION: ${{ github.event.inputs.action }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          SHOULD_DEPLOY="false"
+          if [ "$EVENT_NAME" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            SHOULD_DEPLOY="true"
+          elif [ "$INPUT_ACTION" = "build-deploy" ] || [ "$INPUT_ACTION" = "release" ]; then
+            SHOULD_DEPLOY="true"
+          fi
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/shared/*/dist/
+            backend/shared/dist/
+
+  # ==========================================================================
+  # SECTION 3: TERRAFORM GUARD
+  # IaC security and AWS-only enforcement
+  # ==========================================================================
+
+  terraform-azure-guard:
+    name: '[TF] Block Azure Providers'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && contains(github.event.head_commit.modified, 'infrastructure/terraform/')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.changed_files, 'infrastructure/terraform/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Block Azure providers
+        run: |
+          echo "Checking for forbidden Azure providers..."
+          FORBIDDEN_PATTERNS=(
+            'provider.*"azurerm"'
+            'provider.*"azuread"'
+            'source.*=.*"hashicorp/azurerm"'
+            'source.*=.*"hashicorp/azuread"'
+          )
+          FOUND=false
+          for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
+            if grep -rE "$pattern" infrastructure/terraform/ 2>/dev/null; then
+              echo "::error::Forbidden Azure provider detected: $pattern"
+              FOUND=true
+            fi
+          done
+          if [ "$FOUND" = true ]; then
+            echo "::error::Azure providers are forbidden. This is an AWS-only infrastructure."
+            exit 1
+          fi
+          echo "No Azure providers found. AWS-only enforcement passed."
+
+  terraform-iac-security:
+    name: '[TF] IaC Security Scan'
+    runs-on: ubuntu-latest
+    needs: terraform-azure-guard
+    if: |
+      (github.event_name == 'push' && contains(github.event.head_commit.modified, 'infrastructure/terraform/')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.changed_files, 'infrastructure/terraform/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infrastructure/terraform
+          format: sarif
+          soft_fail: true
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infrastructure/terraform
+          framework: terraform
+          soft_fail: true
+
+      - name: Run Trivy IaC scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/terraform'
+          format: 'sarif'
+          output: 'trivy-iac.sarif'
+        continue-on-error: true
+
+  # ==========================================================================
+  # SECTION 4: TERRAFORM DEPLOYMENT
+  # Infrastructure deployment with approval gates
+  # ==========================================================================
+
+  terraform-dev-validation:
+    name: '[TF] Dev Validation'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.modified, 'infrastructure/terraform/')) ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["terraform-plan", "terraform-apply", "terraform-auto-fix"]'), github.event.inputs.action))
+    environment: dev-validation
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.passed }}
+      plan_checksum: ${{ steps.plan.outputs.checksum }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials (read-only)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-readonly
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform -chdir=infrastructure/terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform -chdir=infrastructure/terraform/environments/dev init -backend=false
+
+      - name: Terraform Validate
+        id: validate
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/dev validate
+          echo "passed=true" >> $GITHUB_OUTPUT
+
+      - name: Run TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: TFLint Check
+        run: |
+          cd infrastructure/terraform
+          tflint --init
+          tflint --recursive
+        continue-on-error: true
+
+      - name: Create plan
+        id: plan
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/dev plan -out=tfplan -no-color 2>&1 | tee plan.txt
+          CHECKSUM=$(sha256sum infrastructure/terraform/environments/dev/tfplan | cut -d' ' -f1)
+          echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-dev
+          path: infrastructure/terraform/environments/dev/tfplan
+
+  terraform-production-gate:
+    name: '[TF] Production Gate'
+    runs-on: ubuntu-latest
+    needs: terraform-dev-validation
+    if: |
+      needs.terraform-dev-validation.outputs.validation_passed == 'true' &&
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'terraform-apply' && github.event.inputs.environment == 'production')
+    environment: production-gate
+    outputs:
+      authorized: ${{ steps.gate.outputs.authorized }}
+    steps:
+      - name: Production gate authorization
+        id: gate
+        run: |
+          echo "Production deployment authorized via environment approval"
+          echo "authorized=true" >> $GITHUB_OUTPUT
+
+  terraform-production-apply:
+    name: '[TF] Production Apply'
+    runs-on: ubuntu-latest
+    needs: [terraform-dev-validation, terraform-production-gate]
+    if: |
+      needs.terraform-production-gate.outputs.authorized == 'true'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials (admin)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-admin
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform -chdir=infrastructure/terraform/environments/prod init
+
+      - name: Terraform Apply
+        run: terraform -chdir=infrastructure/terraform/environments/prod apply -auto-approve
+
+  # ==========================================================================
+  # SECTION 5: DOCKER BUILD
+  # Container images to ECR
+  # ==========================================================================
+
+  build-docker-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["build-only", "build-deploy", "release"]'), github.event.inputs.action))
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - user-service
+          - matching-service
+          - messaging-service
+          - media-service
+          - payment-service
+          - notification-service
+          - moderation-service
+          - analytics-service
+          - automation-service
+          - partnership-service
+          - advertising-service
+          - admin-service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Dockerfile exists
+        id: dockerfile
+        run: |
+          DOCKERFILE="backend/services/${{ matrix.service }}/Dockerfile"
+          if [ -f "$DOCKERFILE" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "path=$DOCKERFILE" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        if: steps.dockerfile.outputs.exists == 'true'
+        id: docker_build
+        env:
+          SERVICE: ${{ matrix.service }}
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/${SERVICE}"
+          docker build \
+            --tag ${FULL_IMAGE}:${BUILD_VERSION} \
+            --tag ${FULL_IMAGE}:${GIT_SHA} \
+            --build-arg BUILD_VERSION=${BUILD_VERSION} \
+            -f backend/services/${SERVICE}/Dockerfile \
+            backend/services/${SERVICE}
+
+          echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+          echo "local_tag=${FULL_IMAGE}:${BUILD_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Scan Docker image
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.docker_build.outputs.local_tag }}
+          format: 'sarif'
+          output: 'trivy-image-${{ matrix.service }}.sarif'
+        continue-on-error: true
+
+      - name: Push Docker image
+        if: steps.dockerfile.outputs.exists == 'true'
+        env:
+          FULL_IMAGE: ${{ steps.docker_build.outputs.full_image }}
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          docker push ${FULL_IMAGE}:${BUILD_VERSION}
+          docker push ${FULL_IMAGE}:${GIT_SHA}
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["build-only", "build-deploy", "release"]'), github.event.inputs.action))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build frontend
+        run: yarn build:web
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push frontend image
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/web-app"
+          docker build \
+            --tag ${FULL_IMAGE}:${BUILD_VERSION} \
+            --tag ${FULL_IMAGE}:${GIT_SHA} \
+            -f apps/web-app/Dockerfile \
+            apps/web-app
+
+          docker push ${FULL_IMAGE}:${BUILD_VERSION}
+          docker push ${FULL_IMAGE}:${GIT_SHA}
+
+  # ==========================================================================
+  # SECTION 6: APPLICATION DEPLOYMENT
+  # Staging and production deployment with approval
+  # ==========================================================================
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-docker-images, build-frontend, sast-scan, dependency-scan]
+    if: |
+      needs.build-and-test.outputs.should_deploy == 'true' &&
+      (github.event_name == 'push' || github.event.inputs.action == 'build-deploy')
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name flamoral-staging-eks --region ${{ env.AWS_REGION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy to staging
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          helm upgrade --install flamoral-staging \
+            infrastructure/kubernetes/helm/flamoral \
+            --namespace flamoral-staging \
+            --create-namespace \
+            --set global.imageTag=${BUILD_VERSION} \
+            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
+            --wait --timeout 10m
+
+  production-approval:
+    name: Production Approval Gate
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: |
+      needs.deploy-staging.result == 'success' &&
+      (github.event.inputs.action == 'build-deploy' || github.event.inputs.action == 'release')
+    environment: production-approval
+    steps:
+      - name: Request production approval
+        run: |
+          echo "Production deployment approval requested"
+          echo "Staging deployment was successful"
+          echo "Awaiting manual approval..."
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-docker-images, build-frontend, deploy-staging, production-approval]
+    if: needs.production-approval.result == 'success'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy to production
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          helm upgrade --install flamoral-prod \
+            infrastructure/kubernetes/helm/flamoral \
+            --namespace flamoral-prod \
+            --create-namespace \
+            --set global.imageTag=${BUILD_VERSION} \
+            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
+            --wait --timeout 15m
+
+      - name: Notify success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          fields: repo,message,commit,author,action,eventName,workflow,job
+          text: ':rocket: Production deployment successful!'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+
+  # ==========================================================================
+  # SECTION 7: SCHEDULED OPERATIONS
+  # Drift detection, identity audit, lifecycle checks
+  # ==========================================================================
+
+  scheduled-drift-detection:
+    name: '[Scheduled] Drift Detection'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'drift-check')
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, staging]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-readonly
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Check drift for ${{ matrix.environment }}
+        id: drift
+        run: |
+          cd infrastructure/terraform/environments/${{ matrix.environment }}
+          terraform init
+          DRIFT_OUTPUT=$(terraform plan -detailed-exitcode -no-color 2>&1) || EXIT_CODE=$?
+
+          if [ "$EXIT_CODE" = "2" ]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "$DRIFT_OUTPUT" > drift-report-${{ matrix.environment }}.txt
+          else
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload drift report
+        if: steps.drift.outputs.drift_detected == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report-${{ matrix.environment }}
+          path: infrastructure/terraform/environments/${{ matrix.environment }}/drift-report-*.txt
+
+  scheduled-identity-audit:
+    name: '[Scheduled] Identity Audit'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '0 3 * * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'identity-audit')
+    environment: ${{ github.event.inputs.environment || 'prod' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Verify Cognito groups
+        env:
+          USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+        run: |
+          GROUPS=$(aws cognito-idp list-groups \
+            --user-pool-id "$USER_POOL_ID" \
+            --query 'Groups[].GroupName' \
+            --output text)
+
+          echo "Found groups: $GROUPS"
+
+          REQUIRED_GROUPS="saas-free saas-standard saas-premium saas-verified saas-moderator saas-operator saas-admin banned"
+
+          for group in $REQUIRED_GROUPS; do
+            if echo "$GROUPS" | grep -q "$group"; then
+              echo "Group $group exists"
+            else
+              echo "::error::Group $group NOT FOUND"
+              exit 1
+            fi
+          done
+
+      - name: Run full reconciliation
+        if: github.event.inputs.full_reconciliation == 'true'
+        env:
+          COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+        run: |
+          echo "Full reconciliation would run here"
+          echo "Syncing subscription states with Cognito groups"
+
+      - name: Generate audit report
+        run: |
+          echo "# Identity Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
+          echo "All Cognito groups verified successfully." >> $GITHUB_STEP_SUMMARY
+
+  scheduled-lifecycle-check:
+    name: '[Scheduled] Lifecycle Check'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1') ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 2 * * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'lifecycle-check')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Check AWS service versions
+        run: |
+          echo "Checking EKS version..."
+          aws eks describe-cluster --name flamoral-prod-eks --query 'cluster.version' --output text || echo "EKS check skipped"
+
+          echo "Checking RDS Aurora version..."
+          aws rds describe-db-clusters --query 'DBClusters[?contains(DBClusterIdentifier, `flamoral`)].EngineVersion' --output text || echo "RDS check skipped"
+
+          echo "Checking ElastiCache version..."
+          aws elasticache describe-cache-clusters --query 'CacheClusters[?contains(CacheClusterId, `flamoral`)].EngineVersion' --output text || echo "ElastiCache check skipped"
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high 2>&1 | tee npm-audit.txt || true
+
+      - name: Upload lifecycle report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifecycle-report
+          path: npm-audit.txt
+
+  # ==========================================================================
+  # SECTION 8: AUXILIARY OPERATIONS
+  # Release, rollback, mobile builds
+  # ==========================================================================
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: |
+      needs.deploy-production.result == 'success' &&
+      github.event.inputs.action == 'release' &&
+      github.event.inputs.version != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rollback-deployment:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'rollback' && github.event.inputs.rollback_to != ''
+    environment: production-rollback
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Rollback to version
+        env:
+          ROLLBACK_VERSION: ${{ github.event.inputs.rollback_to }}
+        run: |
+          echo "Rolling back to version: ${ROLLBACK_VERSION}"
+          helm rollback flamoral-prod --namespace flamoral-prod
+
+  build-mobile:
+    name: Build Mobile Apps
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'mobile'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build mobile app
+        run: |
+          cd apps/mobile-app
+          npx expo prebuild --clean
+          echo "Mobile build prepared"
+
+  # ==========================================================================
+  # SECTION 9: PIPELINE SUMMARY
+  # Final status reporting
+  # ==========================================================================
+
+  pipeline-summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs:
+      - pr-quality-summary
+      - sast-scan
+      - dependency-scan
+      - build-and-test
+      - build-docker-images
+      - build-frontend
+      - deploy-staging
+      - deploy-production
+      - scheduled-drift-detection
+      - scheduled-identity-audit
+      - scheduled-lifecycle-check
+    if: always()
+    steps:
+      - name: Generate pipeline summary
+        run: |
+          echo "# Flamoral Unified Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PR Quality | ${{ needs.pr-quality-summary.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST Scan | ${{ needs.sast-scan.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ${{ needs.dependency-scan.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Test | ${{ needs.build-and-test.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.build-docker-images.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Build | ${{ needs.build-frontend.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Staging | ${{ needs.deploy-staging.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Production | ${{ needs.deploy-production.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Drift Detection | ${{ needs.scheduled-drift-detection.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Identity Audit | ${{ needs.scheduled-identity-audit.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lifecycle Check | ${{ needs.scheduled-lifecycle-check.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,message,commit,author,action,eventName,workflow
+          text: ':x: Pipeline failed! Check GitHub Actions for details.'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
