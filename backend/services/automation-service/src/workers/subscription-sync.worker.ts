@@ -614,9 +614,9 @@ export class SubscriptionSyncWorker extends BaseWorker<
           stripeCustomerId: stripeSubscription.customer,
           status,
           tier,
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-          cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+          currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
+          currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
+          cancelAtPeriodEnd: (stripeSubscription as any).cancel_at_period_end,
           updatedAt: new Date().toISOString(),
         },
         {
@@ -644,7 +644,7 @@ export class SubscriptionSyncWorker extends BaseWorker<
           subscriptionTier: tier,
           subscriptionStatus: subscription?.status || 'canceled',
           subscriptionExpiresAt: subscription
-            ? new Date(subscription.current_period_end * 1000)
+            ? new Date((subscription as any).current_period_end * 1000)
             : null,
         },
         {

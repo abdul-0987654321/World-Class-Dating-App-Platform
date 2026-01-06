@@ -1871,7 +1871,7 @@ export class DynamicPricingService {
 
       if (subscription) {
         const monthsActive = Math.floor(
-          (Date.now() - new Date(subscription.current_period_start).getTime()) /
+          (Date.now() - new Date((subscription as any).current_period_start).getTime()) /
             (30 * 24 * 60 * 60 * 1000)
         );
         if (monthsActive < conditions.minSubscriptionMonths) return false;
