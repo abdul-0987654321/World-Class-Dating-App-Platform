@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "npmClient": "yarn",
   "packages": [
+    "packages/shared/types",
+    "packages/shared/utils",
+    "packages/shared/constants",
+    "packages/shared/validators",
+    "packages/shared/api-client",
+    "packages/shared",
     "packages/*",
     "apps/*",
     "backend/services/*",

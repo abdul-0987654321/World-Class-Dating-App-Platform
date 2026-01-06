@@ -63,7 +63,7 @@ export class DatabaseConnectionManager {
       });
 
       // Test connection
-      await this.primaryConnection.raw('SELECT 1');
+      await this.primaryConnection!.raw('SELECT 1');
       logger.info('Primary database connection established');
     } catch (error) {
       logger.error('Failed to initialize primary connection', error);
@@ -245,8 +245,10 @@ export class DatabaseConnectionManager {
 
     // Check primary
     try {
-      await this.primaryConnection?.raw('SELECT 1');
-      health.primary = true;
+      if (this.primaryConnection) {
+        await this.primaryConnection.raw('SELECT 1');
+        health.primary = true;
+      }
     } catch (error) {
       logger.error('Primary health check failed', error);
     }
