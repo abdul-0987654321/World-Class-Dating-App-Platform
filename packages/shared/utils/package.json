@@ -5,14 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
     "test": "jest",
     "lint": "eslint src "
   },
   "dependencies": {
-    "@flamoral/types": "*",
-    "@flamoral/constants": "*",
+    "@flamoral/types": "workspace:*",
+    "@flamoral/constants": "workspace:*",
     "date-fns": "^3.0.0"
   },
   "devDependencies": {
