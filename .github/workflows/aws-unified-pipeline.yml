@@ -254,11 +254,14 @@ jobs:
 
       - name: Determine version
         id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          GIT_SHA: ${{ github.sha }}
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          if [ -n "$INPUT_VERSION" ]; then
+            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
           else
-            echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
+            echo "version=$GIT_SHA" >> $GITHUB_OUTPUT
           fi
 
       - name: Install dependencies
@@ -290,22 +293,27 @@ jobs:
 
       - name: Check deployment conditions
         id: check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GIT_REF: ${{ github.ref }}
+          INPUT_ACTION: ${{ github.event.inputs.action }}
+          INPUT_ENV: ${{ github.event.inputs.environment || 'production' }}
         run: |
           # Always build images on push to main/develop
-          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [ "$EVENT_NAME" == "push" ] && [ "$GIT_REF" == "refs/heads/main" ]; then
             echo "should_build_images=true" >> $GITHUB_OUTPUT
           else
             echo "should_build_images=false" >> $GITHUB_OUTPUT
           fi
 
           # Deploy only on scheduled 9 PM run or manual workflow_dispatch
-          if [ "${{ github.event_name }}" == "schedule" ]; then
+          if [ "$EVENT_NAME" == "schedule" ]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "::notice::Scheduled 9 PM production deployment - deploying all accumulated changes"
-          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && \
-               ([ "${{ github.event.inputs.action }}" == "build-deploy" ] || [ "${{ github.event.inputs.action }}" == "release" ]); then
+          elif [ "$EVENT_NAME" == "workflow_dispatch" ] && \
+               ([ "$INPUT_ACTION" == "build-deploy" ] || [ "$INPUT_ACTION" == "release" ]); then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "::notice::Manual deployment triggered for ${{ github.event.inputs.environment || 'production' }}"
+            echo "::notice::Manual deployment triggered for $INPUT_ENV"
           else
             echo "should_deploy=false" >> $GITHUB_OUTPUT
             echo "::notice::Build only - images pushed to ECR. Production deployment runs daily at 9 PM UTC."
@@ -372,11 +380,14 @@ jobs:
 
       - name: Determine Dockerfile path
         id: dockerfile
+        env:
+          MATRIX_DOCKERFILE_PATH: ${{ matrix.dockerfile_path }}
+          MATRIX_SERVICE: ${{ matrix.service }}
         run: |
-          if [ -n "${{ matrix.dockerfile_path }}" ]; then
-            DOCKERFILE="${{ matrix.dockerfile_path }}"
+          if [ -n "$MATRIX_DOCKERFILE_PATH" ]; then
+            DOCKERFILE="$MATRIX_DOCKERFILE_PATH"
           else
-            DOCKERFILE="backend/services/${{ matrix.service }}/Dockerfile"
+            DOCKERFILE="backend/services/$MATRIX_SERVICE/Dockerfile"
           fi
           echo "path=$DOCKERFILE" >> $GITHUB_OUTPUT
 
@@ -386,7 +397,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-          IMAGE_NAME=$(echo "${{ matrix.service }}" | sed 's|ai-services/||')
+          IMAGE_NAME=$(echo "$MATRIX_SERVICE" | sed 's|ai-services/||')
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       # AWS Authentication via OIDC (no long-lived credentials)
@@ -404,28 +415,35 @@ jobs:
       - name: Build Docker image ${{ matrix.service }}
         if: steps.dockerfile.outputs.exists == 'true'
         id: docker_build
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          IMAGE_NAME: ${{ steps.dockerfile.outputs.image_name }}
+          ECR_REG: ${{ env.ECR_REGISTRY }}
+          ECR_PREFIX: ${{ env.ECR_IMAGE_PREFIX }}
+          DOCKERFILE_PATH: ${{ steps.dockerfile.outputs.path }}
+          GIT_SHA: ${{ github.sha }}
+          GIT_SERVER_URL: ${{ github.server_url }}
+          GIT_REPOSITORY: ${{ github.repository }}
         run: |
-          VERSION="${{ needs.build-and-test.outputs.version }}"
-          IMAGE_NAME="${{ steps.dockerfile.outputs.image_name }}"
-          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/${IMAGE_NAME}"
+          FULL_IMAGE="${ECR_REG}/${ECR_PREFIX}/${IMAGE_NAME}"
           BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
           # Build with immutable labels
           docker build \
-            -t ${FULL_IMAGE}:${VERSION} \
-            -t ${FULL_IMAGE}:${{ github.sha }} \
-            -f ${{ steps.dockerfile.outputs.path }} \
-            --build-arg VERSION=${VERSION} \
+            -t ${FULL_IMAGE}:${BUILD_VERSION} \
+            -t ${FULL_IMAGE}:${GIT_SHA} \
+            -f ${DOCKERFILE_PATH} \
+            --build-arg VERSION=${BUILD_VERSION} \
             --build-arg BUILD_DATE=${BUILD_DATE} \
-            --build-arg VCS_REF=${{ github.sha }} \
+            --build-arg VCS_REF=${GIT_SHA} \
             --label "org.opencontainers.image.created=${BUILD_DATE}" \
-            --label "org.opencontainers.image.revision=${{ github.sha }}" \
-            --label "org.opencontainers.image.version=${VERSION}" \
-            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${GIT_SHA}" \
+            --label "org.opencontainers.image.version=${BUILD_VERSION}" \
+            --label "org.opencontainers.image.source=${GIT_SERVER_URL}/${GIT_REPOSITORY}" \
             .
 
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
-          echo "local_tag=${FULL_IMAGE}:${VERSION}" >> $GITHUB_OUTPUT
+          echo "local_tag=${FULL_IMAGE}:${BUILD_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image for vulnerabilities
         if: steps.dockerfile.outputs.exists == 'true'
@@ -447,16 +465,17 @@ jobs:
       - name: Push Docker image with SHA digest
         if: steps.dockerfile.outputs.exists == 'true'
         id: docker_push
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          FULL_IMAGE: ${{ steps.docker_build.outputs.full_image }}
+          GIT_SHA: ${{ github.sha }}
         run: |
-          VERSION="${{ needs.build-and-test.outputs.version }}"
-          FULL_IMAGE="${{ steps.docker_build.outputs.full_image }}"
-
           # Push versioned tag first
-          docker push ${FULL_IMAGE}:${VERSION}
-          docker push ${FULL_IMAGE}:${{ github.sha }}
+          docker push ${FULL_IMAGE}:${BUILD_VERSION}
+          docker push ${FULL_IMAGE}:${GIT_SHA}
 
           # Get immutable digest after push
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${VERSION} | cut -d'@' -f2)
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${BUILD_VERSION} | cut -d'@' -f2)
           echo "Image digest: $DIGEST"
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
@@ -479,9 +498,9 @@ jobs:
         if: steps.dockerfile.outputs.exists == 'true'
         env:
           COSIGN_EXPERIMENTAL: 1
+          FULL_IMAGE: ${{ steps.docker_push.outputs.full_image }}
+          DIGEST: ${{ steps.docker_push.outputs.digest }}
         run: |
-          FULL_IMAGE="${{ steps.docker_push.outputs.full_image }}"
-          DIGEST="${{ steps.docker_push.outputs.digest }}"
           echo "Signing image: ${FULL_IMAGE}@${DIGEST}"
           cosign sign --yes ${FULL_IMAGE}@${DIGEST}
 
@@ -528,12 +547,16 @@ jobs:
 
       - name: Build and push frontend
         id: frontend_build
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'production' }}
+          ECR_REG: ${{ env.ECR_REGISTRY }}
+          ECR_PREFIX: ${{ env.ECR_IMAGE_PREFIX }}
+          GIT_SHA: ${{ github.sha }}
         run: |
-          VERSION="${{ needs.build-and-test.outputs.version }}"
-          ENV="${{ github.event.inputs.environment || 'production' }}"
-          FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/web-app"
+          FULL_IMAGE="${ECR_REG}/${ECR_PREFIX}/web-app"
 
-          case $ENV in
+          case $DEPLOY_ENV in
             production)
               API_URL="https://api.flamoral.com"
               WS_URL="wss://api.flamoral.com"
@@ -554,19 +577,19 @@ jobs:
 
           cd apps/web-app
           docker build \
-            -t ${FULL_IMAGE}:${VERSION} \
-            -t ${FULL_IMAGE}:${{ github.sha }} \
+            -t ${FULL_IMAGE}:${BUILD_VERSION} \
+            -t ${FULL_IMAGE}:${GIT_SHA} \
             -t ${FULL_IMAGE}:latest \
             --build-arg CACHE_BUST=$(date +%s) \
             --build-arg VITE_API_URL=${API_URL} \
             --build-arg VITE_WS_URL=${WS_URL} \
-            --build-arg VITE_APP_ENV=${ENV} \
+            --build-arg VITE_APP_ENV=${DEPLOY_ENV} \
             .
-          docker push ${FULL_IMAGE}:${VERSION}
-          docker push ${FULL_IMAGE}:${{ github.sha }}
+          docker push ${FULL_IMAGE}:${BUILD_VERSION}
+          docker push ${FULL_IMAGE}:${GIT_SHA}
           docker push ${FULL_IMAGE}:latest
 
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${VERSION} | cut -d'@' -f2)
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${FULL_IMAGE}:${BUILD_VERSION} | cut -d'@' -f2)
           echo "Frontend image digest: $DIGEST"
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
@@ -577,9 +600,9 @@ jobs:
       - name: Sign frontend container image with cosign
         env:
           COSIGN_EXPERIMENTAL: 1
+          FULL_IMAGE: ${{ steps.frontend_build.outputs.full_image }}
+          DIGEST: ${{ steps.frontend_build.outputs.digest }}
         run: |
-          FULL_IMAGE="${{ steps.frontend_build.outputs.full_image }}"
-          DIGEST="${{ steps.frontend_build.outputs.digest }}"
           echo "Signing image: ${FULL_IMAGE}@${DIGEST}"
           cosign sign --yes ${FULL_IMAGE}@${DIGEST}
 
@@ -631,19 +654,23 @@ jobs:
           version: 'v3.13.0'
 
       - name: Get EKS credentials for Staging
+        env:
+          EKS_CLUSTER: ${{ env.EKS_CLUSTER_STAGING }}
+          AWS_REG: ${{ env.AWS_REGION }}
         run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_STAGING }} --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REG
           echo "NAMESPACE=flamoral-staging" >> $GITHUB_ENV
 
       - name: Deploy to Staging via Helm
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          ECR_REG: ${{ env.ECR_REGISTRY }}
         run: |
-          VERSION="${{ needs.build-and-test.outputs.version }}"
-
           helm upgrade --install flamoral-platform ./infrastructure/helm/flamoral-platform \
             --namespace flamoral-staging \
             --create-namespace \
-            --set global.image.tag=${VERSION} \
-            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
+            --set global.image.tag=${BUILD_VERSION} \
+            --set global.imageRegistry=${ECR_REG} \
             --set global.environment=staging \
             --values ./infrastructure/helm/flamoral-platform/values-staging.yaml \
             --wait \
@@ -739,25 +766,31 @@ jobs:
           version: 'v3.13.0'
 
       - name: Get EKS credentials for Production
+        env:
+          EKS_CLUSTER: ${{ env.EKS_CLUSTER_PROD }}
+          AWS_REG: ${{ env.AWS_REGION }}
         run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_PROD }} --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REG
           echo "NAMESPACE=flamoral-prod" >> $GITHUB_ENV
 
       - name: Create pre-deployment backup
+        env:
+          RUN_ID: ${{ github.run_id }}
         run: |
           echo "Creating pre-deployment backup..."
-          kubectl get all -n flamoral-prod -o yaml > backup-${{ github.run_id }}.yaml || true
-          echo "Backup created: backup-${{ github.run_id }}.yaml"
+          kubectl get all -n flamoral-prod -o yaml > backup-${RUN_ID}.yaml || true
+          echo "Backup created: backup-${RUN_ID}.yaml"
 
       - name: Deploy to Production via Helm
+        env:
+          BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          ECR_REG: ${{ env.ECR_REGISTRY }}
         run: |
-          VERSION="${{ needs.build-and-test.outputs.version }}"
-
           helm upgrade --install flamoral-platform ./infrastructure/helm/flamoral-platform \
             --namespace flamoral-prod \
             --create-namespace \
-            --set global.image.tag=${VERSION} \
-            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
+            --set global.image.tag=${BUILD_VERSION} \
+            --set global.imageRegistry=${ECR_REG} \
             --set global.environment=production \
             --values ./infrastructure/helm/flamoral-platform/values-prod.yaml \
             --wait \
@@ -808,9 +841,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate environment
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'development' }}
         run: |
-          ENV="${{ github.event.inputs.environment || 'development' }}"
-          if [ "$ENV" == "production" ]; then
+          if [ "$DEPLOY_ENV" == "production" ]; then
             echo "::error::Terraform apply is DISABLED for production!"
             echo "::error::Production infrastructure changes must be done via GitOps"
             exit 1
@@ -959,19 +993,24 @@ jobs:
           version: 'v3.13.0'
 
       - name: Get EKS credentials
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'production' }}
+          EKS_PROD: ${{ env.EKS_CLUSTER_PROD }}
+          EKS_STAGING: ${{ env.EKS_CLUSTER_STAGING }}
+          EKS_DEV: ${{ env.EKS_CLUSTER_DEV }}
+          AWS_REG: ${{ env.AWS_REGION }}
         run: |
-          ENV="${{ github.event.inputs.environment || 'production' }}"
-          case $ENV in
+          case $DEPLOY_ENV in
             production)
-              aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_PROD }} --region ${{ env.AWS_REGION }}
+              aws eks update-kubeconfig --name $EKS_PROD --region $AWS_REG
               NAMESPACE="flamoral-prod"
               ;;
             staging)
-              aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_STAGING }} --region ${{ env.AWS_REGION }}
+              aws eks update-kubeconfig --name $EKS_STAGING --region $AWS_REG
               NAMESPACE="flamoral-staging"
               ;;
             development)
-              aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_DEV }} --region ${{ env.AWS_REGION }}
+              aws eks update-kubeconfig --name $EKS_DEV --region $AWS_REG
               NAMESPACE="flamoral-dev"
               ;;
           esac
@@ -979,15 +1018,19 @@ jobs:
           echo "RELEASE=flamoral-platform" >> $GITHUB_ENV
 
       - name: Backup current state
+        env:
+          RUN_ID: ${{ github.run_id }}
         run: |
-          kubectl get all -n $NAMESPACE -o yaml > backup-${{ github.run_id }}.yaml
+          kubectl get all -n $NAMESPACE -o yaml > backup-${RUN_ID}.yaml
           helm history $RELEASE -n $NAMESPACE
 
       - name: Perform rollback
+        env:
+          ROLLBACK_VERSION: ${{ github.event.inputs.rollback_to }}
         run: |
-          if [ -n "${{ github.event.inputs.rollback_to }}" ]; then
+          if [ -n "$ROLLBACK_VERSION" ]; then
             TARGET_REV=$(helm history $RELEASE -n $NAMESPACE -o json | \
-              jq -r ".[] | select(.app_version==\"${{ github.event.inputs.rollback_to }}\") | .revision" | head -1)
+              jq -r ".[] | select(.app_version==\"$ROLLBACK_VERSION\") | .revision" | head -1)
             helm rollback $RELEASE $TARGET_REV -n $NAMESPACE --wait
           else
             helm rollback $RELEASE -n $NAMESPACE --wait
@@ -1014,10 +1057,11 @@ jobs:
           fetch-depth: 0
 
       - name: Validate version format
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version format: $VERSION"
+          if [[ ! $RELEASE_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format: $RELEASE_VERSION"
             exit 1
           fi
 
@@ -1040,12 +1084,13 @@ jobs:
           } >> $GITHUB_OUTPUT
 
       - name: Create and push tag
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
         run: |
-          VERSION="${{ github.event.inputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin "v$VERSION"
+          git tag -a "v$RELEASE_VERSION" -m "Release v$RELEASE_VERSION"
+          git push origin "v$RELEASE_VERSION"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -1087,11 +1132,15 @@ jobs:
 
       - name: Build Android
         working-directory: apps/mobile-app
-        run: eas build --platform android --profile ${{ github.event.inputs.environment || 'production' }} --non-interactive
+        env:
+          BUILD_PROFILE: ${{ github.event.inputs.environment || 'production' }}
+        run: eas build --platform android --profile $BUILD_PROFILE --non-interactive
 
       - name: Build iOS
         working-directory: apps/mobile-app
-        run: eas build --platform ios --profile ${{ github.event.inputs.environment || 'production' }} --non-interactive
+        env:
+          BUILD_PROFILE: ${{ github.event.inputs.environment || 'production' }}
+        run: eas build --platform ios --profile $BUILD_PROFILE --non-interactive
 
   # ===========================================================================
   # SUMMARY
@@ -1104,37 +1153,55 @@ jobs:
 
     steps:
       - name: Generate Summary
+        env:
+          SAST_RESULT: ${{ needs.sast-scan.result }}
+          DEP_RESULT: ${{ needs.dependency-scan.result }}
+          BUILD_RESULT: ${{ needs.build-and-test.result }}
+          DOCKER_RESULT: ${{ needs.build-docker-images.result }}
+          FRONTEND_RESULT: ${{ needs.build-frontend.result }}
+          STAGING_RESULT: ${{ needs.deploy-staging.result }}
+          APPROVAL_RESULT: ${{ needs.production-approval.result }}
+          PROD_RESULT: ${{ needs.deploy-production.result }}
+          RELEASE_RESULT: ${{ needs.release.result }}
+          ROLLBACK_RESULT: ${{ needs.rollback.result }}
+          INFRA_RESULT: ${{ needs.infrastructure.result }}
+          MOBILE_RESULT: ${{ needs.mobile.result }}
+          DRIFT_RESULT: ${{ needs.drift-detection.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR_NAME: ${{ github.actor }}
         run: |
           echo "# AWS Unified Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Security Gates" >> $GITHUB_STEP_SUMMARY
           echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| SAST Security Scan | ${{ needs.sast-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Dependency Scan | ${{ needs.dependency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST Security Scan | $SAST_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | $DEP_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Build Status" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Build & Test | ${{ needs.build-and-test.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Images | ${{ needs.build-docker-images.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Test | $BUILD_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Images | $DOCKER_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | $FRONTEND_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Deployment Status" >> $GITHUB_STEP_SUMMARY
           echo "| Environment | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Staging | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Production Approval | ${{ needs.production-approval.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Production | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging | $STAGING_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production Approval | $APPROVAL_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production | $PROD_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Other Jobs" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Release | ${{ needs.release.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Infrastructure | ${{ needs.infrastructure.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mobile | ${{ needs.mobile.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Drift Detection | ${{ needs.drift-detection.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release | $RELEASE_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | $ROLLBACK_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Infrastructure | $INFRA_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile | $MOBILE_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Drift Detection | $DRIFT_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Pipeline Flow" >> $GITHUB_STEP_SUMMARY
           echo "1. SAST + Dependency Scan (parallel)" >> $GITHUB_STEP_SUMMARY
@@ -1146,10 +1213,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Metadata" >> $GITHUB_STEP_SUMMARY
           echo "- **Cloud Provider**: AWS (Azure forbidden)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Actor**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: $EVENT_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "- **Actor**: $ACTOR_NAME" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
