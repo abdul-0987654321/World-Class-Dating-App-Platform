@@ -17,7 +17,8 @@
   ],
   "scripts": {
     "install:all": "yarn install",
-    "build:all": "lerna run build",
+    "build:shared": "tsc --build packages/shared/types packages/shared/constants packages/shared/utils packages/shared/validators packages/shared/api-client",
+    "build:all": "yarn build:shared && lerna run build --ignore @flamoral/types --ignore @flamoral/constants --ignore @flamoral/utils --ignore @flamoral/validators --ignore @flamoral/api-client",
     "test:all": "lerna run test",
     "lint:all": "lerna run lint",
     "clean": "lerna clean -y && rm -rf node_modules",
