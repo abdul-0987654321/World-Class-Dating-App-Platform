@@ -3,12 +3,21 @@ version: '3.8'
 # LOCAL DEVELOPMENT ONLY
 # This Docker Compose file is for local development environments only.
 # DO NOT use this for production, staging, or any cloud deployment.
-# Production infrastructure uses Azure services (AKS, PostgreSQL, Redis, etc.) via Terraform.
+# Production infrastructure uses AWS services (EKS, Aurora PostgreSQL, ElastiCache, etc.) via Terraform.
+#
+# Service Port Mapping (per README.md):
+# - API Gateway: 4000        - Auth Service: 3001
+# - User Service: 3002       - Matching Service: 3003
+# - Messaging Service: 5000  - Payment Service: 3005
+# - Analytics Service: 3007  - Notification Service: 3008
+# - Media Service: 3009      - Admin Service: 3010
+# - Advertising Service: 3011 - Moderation Service: 3012
+# - Automation Service: 3013 - Partnership Service: 3014
 
 services:
   # ==================== Infrastructure ====================
 
-  # PostgreSQL Database
+  # PostgreSQL Database (simulates Aurora PostgreSQL)
   postgres:
     image: postgres:16-alpine
     container_name: flamoral-postgres-dev
@@ -28,7 +37,7 @@ services:
     networks:
       - flamoral-dev-network
 
-  # Redis Cache
+  # Redis Cache (simulates ElastiCache)
   redis:
     image: redis:7-alpine
     container_name: flamoral-redis-dev
@@ -45,7 +54,7 @@ services:
     networks:
       - flamoral-dev-network
 
-  # MongoDB Database
+  # MongoDB Database (simulates DocumentDB)
   mongodb:
     image: mongo:7
     container_name: flamoral-mongodb-dev
@@ -63,22 +72,24 @@ services:
     networks:
       - flamoral-dev-network
 
-  # RabbitMQ Message Queue
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: flamoral-rabbitmq-dev
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+  # LocalStack (simulates AWS S3, SQS, SNS, SES)
+  localstack:
+    image: localstack/localstack:3.0
+    container_name: flamoral-localstack-dev
     ports:
-      - "5672:5672"
-      - "15672:15672"  # Management UI
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,sqs,sns,ses
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - localstack_data:/var/lib/localstack
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 15s
+      timeout: 10s
       retries: 5
     networks:
       - flamoral-dev-network
@@ -107,7 +118,7 @@ volumes:
   postgres_data:
   redis_data:
   mongodb_data:
-  rabbitmq_data:
+  localstack_data:
   elasticsearch_data:
 
 networks:

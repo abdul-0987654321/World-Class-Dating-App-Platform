@@ -3,6 +3,15 @@
 # =============================================================================
 # Production-like local environment with all services
 # Usage: docker-compose up -d
+#
+# Service Port Mapping (per README.md):
+# - API Gateway: 4000        - Auth Service: 3001
+# - User Service: 3002       - Matching Service: 3003
+# - Messaging Service: 5000  - Payment Service: 3005
+# - Analytics Service: 3007  - Notification Service: 3008
+# - Media Service: 3009      - Admin Service: 3010
+# - Advertising Service: 3011 - Moderation Service: 3012
+# - Automation Service: 3013 - Partnership Service: 3014
 # =============================================================================
 
 version: "3.9"
@@ -131,13 +140,20 @@ services:
       - flamoral-network
     depends_on:
       - web-app
+      - api-gateway
+      - auth-service
       - user-service
       - matching-service
       - messaging-service
       - payment-service
-      - notification-service
       - analytics-service
+      - notification-service
+      - media-service
+      - admin-service
       - advertising-service
+      - moderation-service
+      - automation-service
+      - partnership-service
     healthcheck:
       test: ["CMD", "nginx", "-t"]
       interval: 30s
@@ -147,9 +163,81 @@ services:
     <<: *resource-limits
 
   # ===========================================================================
-  # Backend Microservices
+  # Backend Microservices (Port Mapping per README.md)
   # ===========================================================================
 
+  # API Gateway - Port 4000
+  api-gateway:
+    <<: *backend-common
+    container_name: flamoral-api-gateway
+    working_dir: /app/backend/services/api-gateway
+    command: npm run dev
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - SERVICE_NAME=api-gateway
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - MATCHING_SERVICE_URL=http://matching-service:3003
+      - MESSAGING_SERVICE_URL=http://messaging-service:5000
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3007
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
+      - MEDIA_SERVICE_URL=http://media-service:3009
+      - ADMIN_SERVICE_URL=http://admin-service:3010
+      - ADVERTISING_SERVICE_URL=http://advertising-service:3011
+      - MODERATION_SERVICE_URL=http://moderation-service:3012
+      - AUTOMATION_SERVICE_URL=http://automation-service:3013
+      - PARTNERSHIP_SERVICE_URL=http://partnership-service:3014
+    volumes:
+      - ./backend:/app/backend
+      - api-gateway-modules:/app/backend/services/api-gateway/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # Auth Service - Port 3001
+  auth-service:
+    <<: *backend-common
+    container_name: flamoral-auth-service
+    working_dir: /app/backend/services/auth-service
+    command: npm run dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - SERVICE_NAME=auth-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - auth-service-modules:/app/backend/services/auth-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # User Service - Port 3002
   user-service:
     <<: *backend-common
     container_name: flamoral-user-service
@@ -221,10 +309,10 @@ services:
     working_dir: /app/backend/services/messaging-service
     command: npm run dev
     ports:
-      - "3004:3004"
+      - "5000:5000"
     environment:
       - NODE_ENV=development
-      - PORT=3004
+      - PORT=5000
       - SERVICE_NAME=messaging-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -236,7 +324,7 @@ services:
       - messaging-service-modules:/app/backend/services/messaging-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -283,10 +371,10 @@ services:
     working_dir: /app/backend/services/notification-service
     command: npm run dev
     ports:
-      - "3006:3006"
+      - "3008:3008"
     environment:
       - NODE_ENV=development
-      - PORT=3006
+      - PORT=3008
       - SERVICE_NAME=notification-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -298,7 +386,7 @@ services:
       - notification-service-modules:/app/backend/services/notification-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3008/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -345,10 +433,10 @@ services:
     working_dir: /app/backend/services/advertising-service
     command: npm run dev
     ports:
-      - "3008:3008"
+      - "3011:3011"
     environment:
       - NODE_ENV=development
-      - PORT=3008
+      - PORT=3011
       - SERVICE_NAME=advertising-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -360,7 +448,153 @@ services:
       - advertising-service-modules:/app/backend/services/advertising-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3008/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+
+  # Media Service - Port 3009
+  media-service:
+    <<: *backend-common
+    container_name: flamoral-media-service
+    working_dir: /app/backend/services/media-service
+    command: npm run dev
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=development
+      - PORT=3009
+      - SERVICE_NAME=media-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - media-service-modules:/app/backend/services/media-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # Admin Service - Port 3010
+  admin-service:
+    <<: *backend-common
+    container_name: flamoral-admin-service
+    working_dir: /app/backend/services/admin-service
+    command: npm run dev
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=development
+      - PORT=3010
+      - SERVICE_NAME=admin-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - admin-service-modules:/app/backend/services/admin-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # Moderation Service - Port 3012
+  moderation-service:
+    <<: *backend-common
+    container_name: flamoral-moderation-service
+    working_dir: /app/backend/services/moderation-service
+    command: npm run dev
+    ports:
+      - "3012:3012"
+    environment:
+      - NODE_ENV=development
+      - PORT=3012
+      - SERVICE_NAME=moderation-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - moderation-service-modules:/app/backend/services/moderation-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3012/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # Automation Service - Port 3013
+  automation-service:
+    <<: *backend-common
+    container_name: flamoral-automation-service
+    working_dir: /app/backend/services/automation-service
+    command: npm run dev
+    ports:
+      - "3013:3013"
+    environment:
+      - NODE_ENV=development
+      - PORT=3013
+      - SERVICE_NAME=automation-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - automation-service-modules:/app/backend/services/automation-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3013/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    <<: *resource-limits
+
+  # Partnership Service - Port 3014
+  partnership-service:
+    <<: *backend-common
+    container_name: flamoral-partnership-service
+    working_dir: /app/backend/services/partnership-service
+    command: npm run dev
+    ports:
+      - "3014:3014"
+    environment:
+      - NODE_ENV=development
+      - PORT=3014
+      - SERVICE_NAME=partnership-service
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./backend:/app/backend
+      - partnership-service-modules:/app/backend/services/partnership-service/node_modules
+      - shared-modules:/app/backend/shared/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3014/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -377,8 +611,8 @@ services:
       context: ./apps/web-app
       dockerfile: Dockerfile.simple
       args:
-        - VITE_API_URL=http://localhost:80/api
-        - VITE_WS_URL=ws://localhost:80
+        - VITE_API_URL=http://localhost:4000/api
+        - VITE_WS_URL=ws://localhost:5000
         - VITE_APP_NAME=Flamoral
         - VITE_APP_ENV=development
     ports:
@@ -421,6 +655,10 @@ volumes:
     driver: local
   localstack-data:
     driver: local
+  api-gateway-modules:
+    driver: local
+  auth-service-modules:
+    driver: local
   user-service-modules:
     driver: local
   matching-service-modules:
@@ -429,11 +667,21 @@ volumes:
     driver: local
   payment-service-modules:
     driver: local
-  notification-service-modules:
-    driver: local
   analytics-service-modules:
     driver: local
+  notification-service-modules:
+    driver: local
+  media-service-modules:
+    driver: local
+  admin-service-modules:
+    driver: local
   advertising-service-modules:
+    driver: local
+  moderation-service-modules:
+    driver: local
+  automation-service-modules:
+    driver: local
+  partnership-service-modules:
     driver: local
   shared-modules:
     driver: local
