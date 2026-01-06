@@ -167,3 +167,7 @@ android/**/*.iml
 # React Native
 .expo/
 .expo-shared/
+
+# Claude Code local settings (may contain credentials)
+.claude/settings.local.json
+.claude/*.local.*
