@@ -10,8 +10,8 @@
     "lint": "eslint src "
   },
   "dependencies": {
-    "@flamoral/types": "workspace:*",
-    "@flamoral/constants": "workspace:*",
+    "@flamoral/types": "*",
+    "@flamoral/constants": "*",
     "joi": "^17.11.0"
   },
   "devDependencies": {

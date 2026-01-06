@@ -26,11 +26,11 @@
     "test": "echo 'Run tests from subpackages'"
   },
   "dependencies": {
-    "@flamoral/types": "workspace:*",
-    "@flamoral/utils": "workspace:*",
-    "@flamoral/constants": "workspace:*",
-    "@flamoral/validators": "workspace:*",
-    "@flamoral/api-client": "workspace:*"
+    "@flamoral/types": "*",
+    "@flamoral/utils": "*",
+    "@flamoral/constants": "*",
+    "@flamoral/validators": "*",
+    "@flamoral/api-client": "*"
   },
   "devDependencies": {
     "typescript": "^5.3.2"
