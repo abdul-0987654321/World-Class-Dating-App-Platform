@@ -11,6 +11,8 @@
     "emitDecoratorMetadata": true,
     "strict": false,
     "skipLibCheck": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "./dist",
