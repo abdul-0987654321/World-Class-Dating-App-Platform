@@ -297,7 +297,7 @@ export class WebhookService {
       user_id: userId,
       subscription_id: subscriptionId,
       stripe_invoice_id: invoice.id,
-      stripe_payment_intent_id: invoice.payment_intent as string,
+      stripe_payment_intent_id: (invoice as any).payment_intent as string,
       type: 'subscription',
       status: 'succeeded',
       amount,
