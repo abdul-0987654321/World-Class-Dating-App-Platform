@@ -18,7 +18,8 @@
   "scripts": {
     "install:all": "yarn install",
     "build:shared": "tsc --build --force packages/shared/types packages/shared/constants && tsc --build --force packages/shared/utils packages/shared/validators packages/shared/api-client && tsc --build --force packages/shared",
-    "build:all": "yarn build:shared && lerna run build --ignore @flamoral/shared --ignore @flamoral/types --ignore @flamoral/constants --ignore @flamoral/utils --ignore @flamoral/validators --ignore @flamoral/api-client",
+    "build:backend-shared": "cd backend/shared && yarn build",
+    "build:all": "yarn build:shared && yarn build:backend-shared && lerna run build --ignore @flamoral/shared --ignore @flamoral/types --ignore @flamoral/constants --ignore @flamoral/utils --ignore @flamoral/validators --ignore @flamoral/api-client --ignore @flamoral/backend-shared",
     "test:all": "lerna run test",
     "lint:all": "lerna run lint",
     "clean": "lerna clean -y && rm -rf node_modules",
