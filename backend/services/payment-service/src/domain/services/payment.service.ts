@@ -451,7 +451,7 @@ export class PaymentService {
         tier,
         tierName: tierDisplayNames[tier] || 'Free',
         subscriptionId: subscription.id,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         entitlements,
       };
@@ -657,7 +657,7 @@ export class PaymentService {
         tier: this.userServiceClient.mapTierName(tier || 'free'),
         stripeSubscriptionId: subscription.id,
         status,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
       });
 
       // Get tier display name
@@ -721,11 +721,11 @@ export class PaymentService {
     logger.info('Invoice payment succeeded:', invoice.id);
 
     try {
-      if (!invoice.subscription) {
+      if (!(invoice as any).subscription) {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve(invoice.subscription as string);
+      const subscription = await this.stripe.subscriptions.retrieve((invoice as any).subscription as string);
 
       const userId = subscription.metadata.userId;
 
@@ -750,11 +750,11 @@ export class PaymentService {
     logger.info('Invoice payment failed:', invoice.id);
 
     try {
-      if (!invoice.subscription) {
+      if (!(invoice as any).subscription) {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve(invoice.subscription as string);
+      const subscription = await this.stripe.subscriptions.retrieve((invoice as any).subscription as string);
 
       const userId = subscription.metadata.userId;
 

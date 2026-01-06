@@ -738,9 +738,9 @@ export class BillingReconciliationService {
     }
 
     // Check period end date
-    if (appSubscription.current_period_end && stripeSubscription.current_period_end) {
+    if (appSubscription.current_period_end && (stripeSubscription as any).current_period_end) {
       const appPeriodEnd = new Date(appSubscription.current_period_end).getTime();
-      const stripePeriodEnd = stripeSubscription.current_period_end * 1000;
+      const stripePeriodEnd = (stripeSubscription as any).current_period_end * 1000;
       const timeDiff = Math.abs(appPeriodEnd - stripePeriodEnd);
 
       // Allow 1 hour tolerance
@@ -1061,8 +1061,8 @@ export class BillingReconciliationService {
       });
 
       for (const invoice of failedInvoices.data) {
-        if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        if ((invoice as any).subscription) {
+          const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
           const userId = subscription.metadata?.userId;
 
           if (userId) {
@@ -1131,7 +1131,7 @@ export class BillingReconciliationService {
               .update({
                 status: this.mapStripeStatusToAppStatus(stripeSubscription.status),
                 cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-                current_period_end: new Date((stripeSubscription.current_period_end as number) * 1000),
+                current_period_end: new Date(((stripeSubscription as any).current_period_end as number) * 1000),
                 updated_at: new Date(),
               });
 
@@ -1152,8 +1152,8 @@ export class BillingReconciliationService {
             await db('user_subscriptions')
               .where({ id: discrepancy.appRecordId })
               .update({
-                current_period_end: new Date((stripeSubscription.current_period_end as number) * 1000),
-                current_period_start: new Date((stripeSubscription.current_period_start as number) * 1000),
+                current_period_end: new Date(((stripeSubscription as any).current_period_end as number) * 1000),
+                current_period_start: new Date(((stripeSubscription as any).current_period_start as number) * 1000),
                 updated_at: new Date(),
               });
 
@@ -1183,7 +1183,7 @@ export class BillingReconciliationService {
             .update({
               status: this.mapStripeStatusToAppStatus(stripeSub.status),
               cancel_at_period_end: stripeSub.cancel_at_period_end,
-              current_period_end: new Date(stripeSub.current_period_end * 1000),
+              current_period_end: new Date((stripeSub as any).current_period_end * 1000),
               updated_at: new Date(),
             });
         }
