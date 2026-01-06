@@ -1025,15 +1025,15 @@ export class BillingReconciliationService {
               this.createDiscrepancy({
                 type: 'duplicate_charge',
                 severity: 'critical',
-                userId: dup.user_id,
-                appRecordId: transactions[i].id,
+                userId: String(dup.user_id),
+                appRecordId: String(transactions[i].id),
                 appTableName: 'transactions',
                 description: `Potential duplicate charge detected. Amount: $${dup.amount}, Time diff: ${Math.round((curr - prev) / 1000)}s`,
                 appData: {
                   originalTransaction: transactions[i - 1],
                   duplicateTransaction: transactions[i],
                 },
-                amountDifference: parseFloat(dup.amount),
+                amountDifference: parseFloat(String(dup.amount)),
               })
             );
           }

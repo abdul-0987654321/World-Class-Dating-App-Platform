@@ -17,46 +17,89 @@ import profileReducer from '../store/slices/profileSlice';
 import matchingReducer from '../store/slices/matchingSlice';
 import messagingReducer from '../store/slices/messagingSlice';
 
-// Default theme for testing
-const testTheme = {
+// Import the actual theme to ensure type compatibility
+import { theme as appTheme } from '../styles/theme';
+
+// Test theme that matches the full theme structure for type compatibility
+const testTheme: typeof appTheme = {
   colors: {
-    primary: '#ec4899',
-    primaryHover: '#db2777',
-    primaryLight: 'rgba(236, 72, 153, 0.1)',
-    secondary: '#8b5cf6',
-    secondaryHover: '#7c3aed',
-    gradient: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-    gradientHover: 'linear-gradient(135deg, #db2777 0%, #7c3aed 100%)',
-    text: '#1f2937',
-    textSecondary: '#6b7280',
-    textLight: '#9ca3af',
-    background: '#ffffff',
-    backgroundSecondary: '#f9fafb',
-    backgroundTertiary: '#f3f4f6',
-    white: '#ffffff',
-    border: '#e5e7eb',
-    error: '#ef4444',
+    // Primary Brand Colors
+    primary: '#ff2d75',
+    primaryLight: '#ff5a94',
+    primaryDark: '#d91a5c',
+    primaryHover: '#ff5a94',
+    secondary: '#ffb8d1',
+    secondaryHover: '#ffe0eb',
+    gradient: 'linear-gradient(135deg, #ff2d75 0%, #7B61FF 50%, #2ED4FF 100%)',
+    gradientHover: 'linear-gradient(135deg, #d91a5c 0%, #ff2d75 50%, #ff5a94 100%)',
+
+    // Dark Theme Surfaces
+    white: '#2d2d44',
+    black: '#000000',
+    background: '#1a1a2e',
+    backgroundSecondary: '#232342',
+    backgroundTertiary: '#2d2d44',
+    surface: '#232342',
+    surfaceElevated: '#2d2d44',
+    surfaceOverlay: 'rgba(26, 26, 46, 0.7)',
+
+    // Text Colors
+    text: '#FFFFFF',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#B5B8C5',
+    textTertiary: '#8A8F9E',
+    textMuted: '#6B7280',
+    textLight: '#9CA3AF',
+
+    // Border Colors
+    border: 'rgba(255, 255, 255, 0.1)',
+    borderSubtle: 'rgba(255, 255, 255, 0.05)',
+    borderStrong: 'rgba(255, 255, 255, 0.2)',
+
+    // Status Colors
+    success: '#00d9a5',
+    successLight: 'rgba(0, 217, 165, 0.1)',
+    warning: '#F59E0B',
+    warningLight: 'rgba(245, 158, 11, 0.1)',
+    error: '#EF4444',
     errorLight: 'rgba(239, 68, 68, 0.1)',
-    success: '#22c55e',
-    warning: '#f59e0b',
+    info: '#3B82F6',
+    infoLight: 'rgba(59, 130, 246, 0.1)',
+
+    // Accent Colors
+    pink: '#ff2d75',
+    coral: '#ff5a94',
+    softPink: '#ffb8d1',
+    purple: '#9333EA',
+    blue: '#3B82F6',
+    cyan: '#06B6D4',
+    green: '#00d9a5',
+    gold: '#D9A657',
+
+    // Coin/Premium Colors
+    coinPrimary: '#D9A657',
+    coinSecondary: '#C77A45',
   },
   spacing: {
-    xs: '0.25rem',
-    sm: '0.5rem',
-    md: '1rem',
-    lg: '1.5rem',
-    xl: '2rem',
-    '2xl': '2.5rem',
-    '3xl': '3rem',
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px',
+    '2xl': '48px',
+    '3xl': '64px',
   },
   fontSize: {
-    xs: '0.75rem',
-    sm: '0.875rem',
-    md: '1rem',
-    lg: '1.125rem',
-    xl: '1.25rem',
-    '2xl': '1.5rem',
-    '3xl': '1.875rem',
+    xs: '12px',
+    sm: '14px',
+    md: '16px',
+    base: '16px',
+    lg: '18px',
+    xl: '24px',
+    xxl: '32px',
+    '2xl': '32px',
+    '3xl': '48px',
   },
   fontWeight: {
     normal: 400,
@@ -65,23 +108,27 @@ const testTheme = {
     bold: 700,
   },
   borderRadius: {
-    sm: '0.25rem',
-    md: '0.375rem',
-    lg: '0.5rem',
-    xl: '0.75rem',
-    '2xl': '1rem',
+    sm: '4px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+    '2xl': '24px',
+    '3xl': '32px',
     full: '9999px',
   },
   shadows: {
-    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-    md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-    xl: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+    sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.4)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
+    xl: '0 20px 25px rgba(0, 0, 0, 0.6)',
+    '2xl': '0 25px 50px rgba(0, 0, 0, 0.7)',
+    glow: '0 0 20px rgba(255, 45, 117, 0.3)',
+    glowStrong: '0 0 40px rgba(255, 45, 117, 0.5)',
   },
   transitions: {
-    base: '150ms ease-in-out',
-    fast: '100ms ease-in-out',
-    slow: '300ms ease-in-out',
+    fast: '0.15s ease',
+    base: '0.2s ease',
+    slow: '0.3s ease',
   },
   breakpoints: {
     xs: '320px',
@@ -106,9 +153,22 @@ interface WrapperProps {
   children: ReactNode;
 }
 
+// Store reducer configuration
+const storeReducers = {
+  auth: authReducer,
+  profile: profileReducer,
+  matching: matchingReducer,
+  messaging: messagingReducer,
+} as const;
+
+// Get proper types from a dummy store (needed for Redux Toolkit v2 strict typing)
+const dummyStore = configureStore({ reducer: storeReducers });
+type TestRootState = ReturnType<typeof dummyStore.getState>;
+type TestStore = typeof dummyStore;
+
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  preloadedState?: Record<string, unknown>;
-  store?: EnhancedStore;
+  preloadedState?: Partial<TestRootState>;
+  store?: TestStore;
   route?: string;
   initialEntries?: string[];
   withRouter?: boolean;
@@ -118,15 +178,10 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'wrapper'> {
 }
 
 // Create a test store
-export function createTestStore(preloadedState: Record<string, unknown> = {}) {
+export function createTestStore(preloadedState: Partial<TestRootState> = {}) {
   return configureStore({
-    reducer: {
-      auth: authReducer,
-      profile: profileReducer,
-      matching: matchingReducer,
-      messaging: messagingReducer,
-    },
-    preloadedState,
+    reducer: storeReducers,
+    preloadedState: preloadedState as TestRootState,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
