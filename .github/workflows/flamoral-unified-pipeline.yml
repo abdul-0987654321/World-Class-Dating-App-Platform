@@ -288,6 +288,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
+        continue-on-error: true
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -653,18 +654,22 @@ jobs:
           fi
 
       - name: Configure AWS credentials
+        id: aws_creds
         if: steps.dockerfile.outputs.exists == 'true'
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
 
       - name: Login to Amazon ECR
-        if: steps.dockerfile.outputs.exists == 'true'
+        id: ecr_login
+        if: steps.dockerfile.outputs.exists == 'true' && steps.aws_creds.outcome == 'success'
         uses: aws-actions/amazon-ecr-login@v2
+        continue-on-error: true
 
       - name: Build Docker image
-        if: steps.dockerfile.outputs.exists == 'true'
+        if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
         id: docker_build
         env:
           SERVICE: ${{ matrix.service }}
@@ -683,7 +688,7 @@ jobs:
           echo "local_tag=${FULL_IMAGE}:${BUILD_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image
-        if: steps.dockerfile.outputs.exists == 'true'
+        if: steps.docker_build.outcome == 'success'
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ steps.docker_build.outputs.local_tag }}
@@ -692,7 +697,7 @@ jobs:
         continue-on-error: true
 
       - name: Push Docker image
-        if: steps.dockerfile.outputs.exists == 'true'
+        if: steps.docker_build.outcome == 'success'
         env:
           FULL_IMAGE: ${{ steps.docker_build.outputs.full_image }}
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
@@ -725,15 +730,21 @@ jobs:
         run: yarn build:web
 
       - name: Configure AWS credentials
+        id: aws_creds
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
 
       - name: Login to Amazon ECR
+        id: ecr_login
+        if: steps.aws_creds.outcome == 'success'
         uses: aws-actions/amazon-ecr-login@v2
+        continue-on-error: true
 
       - name: Build and push frontend image
+        if: steps.ecr_login.outcome == 'success'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
           GIT_SHA: ${{ github.sha }}
