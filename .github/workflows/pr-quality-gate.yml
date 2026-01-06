@@ -373,25 +373,31 @@ jobs:
 
     steps:
       - name: Generate Summary
+        env:
+          LEGAL_PAGES_RESULT: ${{ needs.legal-pages-guard.result }}
+          API_ROUTES_RESULT: ${{ needs.api-route-guard.result }}
+          UI_COMPONENTS_RESULT: ${{ needs.ui-component-guard.result }}
+          SECURITY_RESULT: ${{ needs.security-guard.result }}
+          PERFORMANCE_RESULT: ${{ needs.performance-guard.result }}
         run: |
           echo "# PR Quality Gate Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Legal Pages | ${{ needs.legal-pages-guard.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| API Routes | ${{ needs.api-route-guard.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| UI Components | ${{ needs.ui-component-guard.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security | ${{ needs.security-guard.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Performance | ${{ needs.performance-guard.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Legal Pages | $LEGAL_PAGES_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Routes | $API_ROUTES_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| UI Components | $UI_COMPONENTS_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | $SECURITY_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | $PERFORMANCE_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Determine overall status
-          if [ "${{ needs.legal-pages-guard.result }}" == "failure" ] || \
-             [ "${{ needs.security-guard.result }}" == "failure" ]; then
+          if [ "$LEGAL_PAGES_RESULT" == "failure" ] || \
+             [ "$SECURITY_RESULT" == "failure" ]; then
             echo "## BLOCKED" >> $GITHUB_STEP_SUMMARY
             echo "This PR cannot be merged due to critical failures." >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.ui-component-guard.result }}" == "failure" ] || \
-               [ "${{ needs.api-route-guard.result }}" == "failure" ]; then
+          elif [ "$UI_COMPONENTS_RESULT" == "failure" ] || \
+               [ "$API_ROUTES_RESULT" == "failure" ]; then
             echo "## WARNING" >> $GITHUB_STEP_SUMMARY
             echo "This PR has issues that should be addressed before merging." >> $GITHUB_STEP_SUMMARY
           else

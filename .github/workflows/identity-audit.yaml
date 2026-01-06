@@ -65,10 +65,12 @@ jobs:
 
       - name: Verify Cognito groups exist
         id: verify-groups
+        env:
+          USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
         run: |
           # List Cognito user pool groups
           GROUPS=$(aws cognito-idp list-groups \
-            --user-pool-id ${{ secrets.COGNITO_USER_POOL_ID }} \
+            --user-pool-id "$USER_POOL_ID" \
             --query 'Groups[].GroupName' \
             --output text)
 
@@ -87,10 +89,12 @@ jobs:
           done
 
       - name: Generate audit report
+        env:
+          AUDIT_ENV: ${{ github.event.inputs.environment || 'prod' }}
         run: |
           echo "# Identity Audit Report (AWS Cognito)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** $AUDIT_ENV" >> $GITHUB_STEP_SUMMARY
           echo "**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Cognito User Groups" >> $GITHUB_STEP_SUMMARY
@@ -170,16 +174,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Update kubeconfig for EKS
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'prod' }}
+          AWS_REG: ${{ env.AWS_REGION }}
         run: |
           aws eks update-kubeconfig \
-            --name flamoral-${{ github.event.inputs.environment || 'prod' }}-eks \
-            --region ${{ env.AWS_REGION }}
+            --name flamoral-${DEPLOY_ENV}-eks \
+            --region "$AWS_REG"
 
       - name: Run infrastructure checks
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment || 'prod' }}
         run: |
           # Check EKS cluster status
           kubectl get nodes
-          kubectl get pods -n flamoral-${{ github.event.inputs.environment || 'prod' }}
+          kubectl get pods -n flamoral-${DEPLOY_ENV}
         continue-on-error: true
 
       - name: Generate infrastructure report

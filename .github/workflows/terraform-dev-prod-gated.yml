@@ -558,17 +558,19 @@ jobs:
       # =========================================================================
       - name: "FINAL VERDICT: Dev Validation"
         id: final-verdict
+        env:
+          FMT_STATUS: ${{ steps.fmt.outputs.status }}
+          PROVIDERS_STATUS: ${{ steps.providers.outputs.status }}
+          INIT_STATUS: ${{ steps.init.outputs.status }}
+          VALIDATE_STATUS: ${{ steps.validate.outputs.status }}
+          TFSEC_STATUS: ${{ steps.tfsec.outputs.status }}
+          PLAN_STATUS: ${{ steps.plan.outputs.status }}
+          SECRETS_STATUS: ${{ steps.secrets.outputs.status }}
+          COMMIT_SHA: ${{ github.sha }}
+          TARGET_ENV: ${{ github.event.inputs.environment || 'dev' }}
+          PLAN_CHECKSUM: ${{ steps.plan.outputs.checksum }}
         run: |
           echo "::group::Final Validation Verdict"
-
-          # Collect all check statuses
-          FMT_STATUS="${{ steps.fmt.outputs.status }}"
-          PROVIDERS_STATUS="${{ steps.providers.outputs.status }}"
-          INIT_STATUS="${{ steps.init.outputs.status }}"
-          VALIDATE_STATUS="${{ steps.validate.outputs.status }}"
-          TFSEC_STATUS="${{ steps.tfsec.outputs.status }}"
-          PLAN_STATUS="${{ steps.plan.outputs.status }}"
-          SECRETS_STATUS="${{ steps.secrets.outputs.status }}"
 
           # Critical checks that MUST pass
           CRITICAL_PASSED=true
@@ -582,8 +584,8 @@ jobs:
           REPORT=$(cat <<EOF
           {
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "commit": "${{ github.sha }}",
-            "environment": "${{ github.event.inputs.environment || 'dev' }}",
+            "commit": "$COMMIT_SHA",
+            "environment": "$TARGET_ENV",
             "checks": {
               "format": "$FMT_STATUS",
               "providers": "$PROVIDERS_STATUS",
@@ -594,7 +596,7 @@ jobs:
               "secrets": "$SECRETS_STATUS"
             },
             "verdict": "$( [ "$CRITICAL_PASSED" = true ] && echo "PASS" || echo "FAIL" )",
-            "plan_checksum": "${{ steps.plan.outputs.checksum }}"
+            "plan_checksum": "$PLAN_CHECKSUM"
           }
           EOF
           )
@@ -776,6 +778,9 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
 
       - name: Verify Dev Validation Artifacts
         id: verify
+        env:
+          EXPECTED_COMMIT_SHA: ${{ needs.dev-validation.outputs.commit_sha }}
+          EXPECTED_PLAN_CHECKSUM: ${{ needs.dev-validation.outputs.plan_checksum }}
         run: |
           echo "::group::Production Gate Verification"
 
@@ -788,7 +793,7 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
 
           # Verify the commit SHA matches
           ARTIFACT_COMMIT=$(cat ./artifacts/dev-validation-report.json | jq -r '.commit')
-          if [ "$ARTIFACT_COMMIT" != "${{ needs.dev-validation.outputs.commit_sha }}" ]; then
+          if [ "$ARTIFACT_COMMIT" != "$EXPECTED_COMMIT_SHA" ]; then
             echo "::error::Commit SHA mismatch! Artifacts may be stale."
             echo "authorized=false" >> $GITHUB_OUTPUT
             exit 1
@@ -797,7 +802,7 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
           # Verify plan checksum
           if [ -f "./artifacts/validated-plan.tfplan" ]; then
             CURRENT_CHECKSUM=$(sha256sum ./artifacts/validated-plan.tfplan | cut -d' ' -f1)
-            if [ "$CURRENT_CHECKSUM" != "${{ needs.dev-validation.outputs.plan_checksum }}" ]; then
+            if [ "$CURRENT_CHECKSUM" != "$EXPECTED_PLAN_CHECKSUM" ]; then
               echo "::error::Plan checksum mismatch!"
               echo "authorized=false" >> $GITHUB_OUTPUT
               exit 1
@@ -873,11 +878,13 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
           terraform validate
 
       - name: Create Pre-Apply Backup
+        env:
+          REGION: ${{ env.AWS_REGION }}
         run: |
           echo "Creating state backup..."
           aws s3 cp s3://flamoral-terraform-state/prod/terraform.tfstate \
             s3://flamoral-terraform-state-backup/prod/terraform-$(date +%Y%m%d-%H%M%S).tfstate \
-            --region ${{ env.AWS_REGION }} || true
+            --region "$REGION" || true
 
       - name: "🚀 TERRAFORM APPLY (PRODUCTION)"
         id: apply
@@ -932,15 +939,19 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
 
       - name: Generate Deployment Report
         if: always()
+        env:
+          APPLY_STATUS: ${{ steps.apply.outputs.status }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
           echo "## Production Deployment Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | ${{ steps.apply.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | $APPLY_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | $COMMIT_SHA |" >> $GITHUB_STEP_SUMMARY
           echo "| Timestamp | $(date -u +%Y-%m-%dT%H:%M:%SZ) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Actor | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor | $ACTOR |" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on Failure
         if: failure()
@@ -1001,32 +1012,43 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
 
     steps:
       - name: Generate Validation Matrix
+        env:
+          DEV_VALIDATION_RESULT: ${{ needs.dev-validation.result }}
+          PRODUCTION_GATE_RESULT: ${{ needs.production-gate.result || 'skipped' }}
+          PRODUCTION_APPLY_RESULT: ${{ needs.production-apply.result || 'skipped' }}
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # Determine outcome indicator
+          if [ "$DEV_VALIDATION_RESULT" == "success" ]; then
+            OUTCOME="✅"
+          else
+            OUTCOME="❌"
+          fi
+
+          cat >> $GITHUB_STEP_SUMMARY << EOF
           # Terraform Dev-Prod Gated Pipeline Summary
 
           ## Validation Matrix
 
           | Check | Category | Outcome | Blocks Production |
           |-------|----------|---------|-------------------|
-          | Terraform Format | Syntax | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Provider Validation | Compatibility | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Terraform Init | Backend | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Terraform Validate | Syntax | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Variable Completeness | Type Safety | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | No |
-          | TFLint | Best Practices | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | No |
-          | tfsec | Security | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes (HIGH+) |
-          | Checkov | Policy | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | No |
-          | Terraform Plan | Determinism | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Destructive Changes | Risk | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Warning |
-          | Cost Estimation | FinOps | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | No |
-          | Secrets Check | Security | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
-          | Environment Isolation | Multi-tenancy | ${{ needs.dev-validation.result == 'success' && '✅' || '❌' }} | Yes |
+          | Terraform Format | Syntax | $OUTCOME | Yes |
+          | Provider Validation | Compatibility | $OUTCOME | Yes |
+          | Terraform Init | Backend | $OUTCOME | Yes |
+          | Terraform Validate | Syntax | $OUTCOME | Yes |
+          | Variable Completeness | Type Safety | $OUTCOME | No |
+          | TFLint | Best Practices | $OUTCOME | No |
+          | tfsec | Security | $OUTCOME | Yes (HIGH+) |
+          | Checkov | Policy | $OUTCOME | No |
+          | Terraform Plan | Determinism | $OUTCOME | Yes |
+          | Destructive Changes | Risk | $OUTCOME | Warning |
+          | Cost Estimation | FinOps | $OUTCOME | No |
+          | Secrets Check | Security | $OUTCOME | Yes |
+          | Environment Isolation | Multi-tenancy | $OUTCOME | Yes |
 
           ## Pipeline Enforcement Rules
 
           - ✅ Dev NEVER deploys resources (validation only)
-          - ✅ Production is the ONLY environment that runs `terraform apply`
+          - ✅ Production is the ONLY environment that runs \`terraform apply\`
           - ✅ Auto-fix agent triggers on ANY Dev failure
           - ✅ Production is HARD-BLOCKED until Dev passes 100%
           - ✅ Artifact verification prevents stale deployments
@@ -1036,8 +1058,8 @@ Co-Authored-By: Auto-Fix Agent <noreply@github.com>"
 
           | Stage | Status |
           |-------|--------|
-          | Dev Validation | ${{ needs.dev-validation.result }} |
-          | Production Gate | ${{ needs.production-gate.result || 'skipped' }} |
-          | Production Apply | ${{ needs.production-apply.result || 'skipped' }} |
+          | Dev Validation | $DEV_VALIDATION_RESULT |
+          | Production Gate | $PRODUCTION_GATE_RESULT |
+          | Production Apply | $PRODUCTION_APPLY_RESULT |
 
           EOF

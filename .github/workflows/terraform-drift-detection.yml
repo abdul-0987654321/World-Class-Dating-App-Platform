@@ -68,6 +68,8 @@ jobs:
       - name: Terraform Plan (Drift Check)
         id: plan
         working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
         run: |
           set +e
           terraform plan -detailed-exitcode -out=drift-check.tfplan 2>&1 | tee plan-output.txt
@@ -77,7 +79,7 @@ jobs:
           if [ $EXITCODE -eq 0 ]; then
             echo "drift=false" >> $GITHUB_OUTPUT
             echo "summary=No drift detected" >> $GITHUB_OUTPUT
-            echo "No drift detected in ${{ matrix.environment }}"
+            echo "No drift detected in $ENVIRONMENT"
           elif [ $EXITCODE -eq 2 ]; then
             echo "drift=true" >> $GITHUB_OUTPUT
 
@@ -89,7 +91,7 @@ jobs:
             SUMMARY="Drift detected: +$ADDS ~$CHANGES -$DESTROYS"
             echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
 
-            echo "::warning::$SUMMARY in ${{ matrix.environment }}"
+            echo "::warning::$SUMMARY in $ENVIRONMENT"
           else
             echo "drift=error" >> $GITHUB_OUTPUT
             echo "summary=Terraform plan failed" >> $GITHUB_OUTPUT
@@ -99,13 +101,16 @@ jobs:
       - name: Generate Drift Report
         if: steps.plan.outputs.drift == 'true'
         working-directory: infrastructure/terraform/aws/environments/${{ matrix.environment }}
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+          DRIFT_SUMMARY: ${{ steps.plan.outputs.summary }}
         run: |
-          echo "# Drift Report - ${{ matrix.environment }}" > drift-report.md
+          echo "# Drift Report - $ENVIRONMENT" > drift-report.md
           echo "" >> drift-report.md
           echo "**Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> drift-report.md
           echo "" >> drift-report.md
           echo "## Summary" >> drift-report.md
-          echo "${{ steps.plan.outputs.summary }}" >> drift-report.md
+          echo "$DRIFT_SUMMARY" >> drift-report.md
           echo "" >> drift-report.md
           echo "## Detailed Changes" >> drift-report.md
           echo '```hcl' >> drift-report.md
@@ -257,6 +262,9 @@ jobs:
 
     steps:
       - name: Generate Summary
+        env:
+          DRIFT_CHECK_RESULT: ${{ needs.drift-check.result }}
+          PROD_PLAN_RESULT: ${{ needs.prod-plan-only.result }}
         run: |
           echo "# Terraform Drift Detection Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -265,9 +273,9 @@ jobs:
           echo "## Environment Status" >> $GITHUB_STEP_SUMMARY
           echo "| Environment | Status | Details |" >> $GITHUB_STEP_SUMMARY
           echo "|-------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Dev | ${{ needs.drift-check.result }} | Check artifacts |" >> $GITHUB_STEP_SUMMARY
-          echo "| Staging | ${{ needs.drift-check.result }} | Check artifacts |" >> $GITHUB_STEP_SUMMARY
-          echo "| Prod | ${{ needs.prod-plan-only.result }} | Plan only (no apply) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dev | $DRIFT_CHECK_RESULT | Check artifacts |" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging | $DRIFT_CHECK_RESULT | Check artifacts |" >> $GITHUB_STEP_SUMMARY
+          echo "| Prod | $PROD_PLAN_RESULT | Plan only (no apply) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Policy Reminders" >> $GITHUB_STEP_SUMMARY
           echo "- Dev/Staging: Auto-remediation available" >> $GITHUB_STEP_SUMMARY

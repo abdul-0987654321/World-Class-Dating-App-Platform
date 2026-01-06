@@ -313,15 +313,19 @@ jobs:
 
     steps:
       - name: Generate Summary
+        env:
+          AZURE_CHECK_RESULT: ${{ needs.azure-provider-check.result }}
+          IAC_SCAN_RESULT: ${{ needs.iac-security-scan.result }}
+          TF_VALIDATE_RESULT: ${{ needs.terraform-validate.result }}
         run: |
           echo "# Terraform Provider Guard Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Checks Performed" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Azure Provider Block | ${{ needs.azure-provider-check.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| IaC Security Scan | ${{ needs.iac-security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Terraform Validation | ${{ needs.terraform-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Azure Provider Block | $AZURE_CHECK_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| IaC Security Scan | $IAC_SCAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Validation | $TF_VALIDATE_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Security Scans" >> $GITHUB_STEP_SUMMARY
           echo "- tfsec: Terraform security vulnerabilities" >> $GITHUB_STEP_SUMMARY

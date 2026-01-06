@@ -240,8 +240,9 @@ jobs:
 
       - name: Generate security report
         id: scan
+        env:
+          CRITICAL_COUNT: ${{ steps.npm_audit.outputs.critical }}
         run: |
-          CRITICAL_COUNT=${{ steps.npm_audit.outputs.critical }}
           VULN_FOUND="false"
 
           if [ "$CRITICAL_COUNT" -gt "0" ]; then
@@ -277,6 +278,13 @@ jobs:
           path: reports/
 
       - name: Generate summary
+        env:
+          EOL_CHECK_RESULT: ${{ needs.eol-check.result }}
+          DOCKER_CHECK_RESULT: ${{ needs.docker-digest-check.result }}
+          SECURITY_SCAN_RESULT: ${{ needs.security-scan.result }}
+          DOCKER_UPDATES_AVAILABLE: ${{ needs.docker-digest-check.outputs.updates_available }}
+          SECURITY_VULNS_FOUND: ${{ needs.security-scan.outputs.vulnerabilities_found }}
+          SECURITY_CRITICAL_COUNT: ${{ needs.security-scan.outputs.critical_count }}
         run: |
           echo "# Lifecycle Intelligence Agent Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -284,15 +292,15 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| EOL/EOS Check | ${{ needs.eol-check.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Digest Check | ${{ needs.docker-digest-check.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EOL/EOS Check | $EOL_CHECK_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Digest Check | $DOCKER_CHECK_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | $SECURITY_SCAN_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Details" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker updates available: ${{ needs.docker-digest-check.outputs.updates_available }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Security vulnerabilities: ${{ needs.security-scan.outputs.vulnerabilities_found }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Critical CVEs: ${{ needs.security-scan.outputs.critical_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker updates available: $DOCKER_UPDATES_AVAILABLE" >> $GITHUB_STEP_SUMMARY
+          echo "- Security vulnerabilities: $SECURITY_VULNS_FOUND" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical CVEs: $SECURITY_CRITICAL_COUNT" >> $GITHUB_STEP_SUMMARY
 
       - name: Create issue for critical findings
         if: needs.eol-check.outputs.has_critical == 'true' || needs.security-scan.outputs.critical_count > 0
