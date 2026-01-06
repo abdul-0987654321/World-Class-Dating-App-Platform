@@ -72,7 +72,7 @@ export class VerificationController {
       },
     },
   })
-  async startVerification(@Headers('authorization') authorization: string, @Body() body: any) {
+  async startVerification(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('userService', '/api/v1/identity-verification/start', body, {
       Authorization: authorization,
     });
@@ -111,7 +111,7 @@ export class VerificationController {
   })
   async uploadArtifact(
     @Headers('authorization') authorization: string,
-    @Body() body: any,
+    @Body() body: Record<string, unknown>,
     @UploadedFile() file: Express.Multer.File
   ) {
     // Forward multipart form data to user service
@@ -151,7 +151,7 @@ export class VerificationController {
       },
     },
   })
-  async submitForReview(@Headers('authorization') authorization: string, @Body() body: any) {
+  async submitForReview(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('userService', '/api/v1/identity-verification/submit', body, {
       Authorization: authorization,
     });
@@ -198,7 +198,7 @@ export class VerificationController {
       },
     },
   })
-  async retryVerification(@Headers('authorization') authorization: string, @Body() body: any) {
+  async retryVerification(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('userService', '/api/v1/identity-verification/retry', body, {
       Authorization: authorization,
     });
@@ -266,7 +266,7 @@ export class VerificationController {
   async approveVerification(
     @Headers('authorization') authorization: string,
     @Param('requestId') requestId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.post(
       'userService',
@@ -305,7 +305,7 @@ export class VerificationController {
   async denyVerification(
     @Headers('authorization') authorization: string,
     @Param('requestId') requestId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.post(
       'userService',

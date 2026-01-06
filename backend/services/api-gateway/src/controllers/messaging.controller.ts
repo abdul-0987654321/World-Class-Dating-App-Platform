@@ -111,7 +111,7 @@ export class MessagingController {
    */
   @Post('conversations')
   @HttpCode(HttpStatus.CREATED)
-  async createConversation(@Headers('authorization') authorization: string, @Body() body: any) {
+  async createConversation(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('messagingService', '/api/conversations', body, {
       Authorization: authorization,
     });
@@ -245,7 +245,7 @@ export class MessagingController {
    */
   @Post('messages')
   @HttpCode(HttpStatus.CREATED)
-  async sendMessage(@Headers('authorization') authorization: string, @Body() body: any) {
+  async sendMessage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('messagingService', '/api/messages', body, {
       Authorization: authorization,
     });
@@ -284,7 +284,7 @@ export class MessagingController {
   async updateMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.put('messagingService', `/api/messages/${messageId}`, body, {
       Authorization: authorization,
@@ -298,7 +298,7 @@ export class MessagingController {
   async deleteMessage(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.delete('messagingService', `/api/messages/${messageId}`, {
       Authorization: authorization,
@@ -312,7 +312,7 @@ export class MessagingController {
   async updateMessageStatus(
     @Headers('authorization') authorization: string,
     @Param('messageId') messageId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.put('messagingService', `/api/messages/${messageId}/status`, body, {
       Authorization: authorization,

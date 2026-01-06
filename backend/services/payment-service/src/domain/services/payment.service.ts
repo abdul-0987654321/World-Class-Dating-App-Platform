@@ -63,7 +63,7 @@ export class PaymentService {
       });
 
       return customer;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to create Stripe customer: ${error.message}`);
     }
   }
@@ -88,7 +88,7 @@ export class PaymentService {
       }
 
       return await this.createCustomer(userId, email, name);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to get or create customer: ${error.message}`);
     }
   }
@@ -114,7 +114,7 @@ export class PaymentService {
       });
 
       return paymentIntent;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to create payment intent: ${error.message}`);
     }
   }
@@ -163,7 +163,7 @@ export class PaymentService {
       const subscription = await this.stripe.subscriptions.create(subscriptionParams);
 
       return { subscription, customer };
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to purchase subscription: ${error.message}`);
     }
   }
@@ -183,7 +183,7 @@ export class PaymentService {
           cancel_at_period_end: true,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to cancel subscription: ${error.message}`);
     }
   }
@@ -196,7 +196,7 @@ export class PaymentService {
       return await this.stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
       });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to reactivate subscription: ${error.message}`);
     }
   }
@@ -220,7 +220,7 @@ export class PaymentService {
         ],
         proration_behavior: 'always_invoice',
       });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to update subscription tier: ${error.message}`);
     }
   }
@@ -243,7 +243,7 @@ export class PaymentService {
       });
 
       return { paymentIntent, customer };
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to purchase coins: ${error.message}`);
     }
   }
@@ -266,7 +266,7 @@ export class PaymentService {
       });
 
       return { paymentIntent, customer };
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to purchase boost: ${error.message}`);
     }
   }
@@ -293,7 +293,7 @@ export class PaymentService {
       }
 
       return await this.stripe.refunds.create(refundParams);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to process refund: ${error.message}`);
     }
   }
@@ -309,7 +309,7 @@ export class PaymentService {
       });
 
       return paymentMethods.data;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to get payment methods: ${error.message}`);
     }
   }
@@ -325,7 +325,7 @@ export class PaymentService {
       return await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerId,
       });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to add payment method: ${error.message}`);
     }
   }
@@ -336,7 +336,7 @@ export class PaymentService {
   async removePaymentMethod(paymentMethodId: string): Promise<Stripe.PaymentMethod> {
     try {
       return await this.stripe.paymentMethods.detach(paymentMethodId);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to remove payment method: ${error.message}`);
     }
   }
@@ -354,7 +354,7 @@ export class PaymentService {
           default_payment_method: paymentMethodId,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to set default payment method: ${error.message}`);
     }
   }
@@ -365,7 +365,7 @@ export class PaymentService {
   async getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to get subscription: ${error.message}`);
     }
   }
@@ -376,7 +376,7 @@ export class PaymentService {
   async getCustomer(customerId: string): Promise<Stripe.Customer> {
     try {
       return (await this.stripe.customers.retrieve(customerId)) as Stripe.Customer;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to get customer: ${error.message}`);
     }
   }
@@ -455,7 +455,7 @@ export class PaymentService {
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         entitlements,
       };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error getting user subscription:', error.message);
       return null;
     }
@@ -471,7 +471,7 @@ export class PaymentService {
       const event = this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
 
       return event;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Webhook signature verification failed: ${error.message}`);
     }
   }
@@ -510,7 +510,7 @@ export class PaymentService {
         default:
           logger.info(`Unhandled event type: ${event.type}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to process webhook event: ${error.message}`);
     }
   }
@@ -575,7 +575,7 @@ export class PaymentService {
         default:
           logger.info(`Payment type ${type} handled by other webhook events`);
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling payment intent succeeded:', error.message);
     }
   }
@@ -621,7 +621,7 @@ export class PaymentService {
           body: 'Your payment failed. Please check your payment method and try again.',
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling payment intent failed:', error.message);
     }
   }
@@ -676,7 +676,7 @@ export class PaymentService {
         title: 'Subscription Updated',
         body: `Your subscription has been updated to ${tierDisplayNames[tier] || 'Free'} tier.`,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling subscription updated:', error.message);
     }
   }
@@ -709,7 +709,7 @@ export class PaymentService {
         title: 'Subscription Canceled',
         body: 'Your subscription has been canceled. You have been downgraded to the free tier.',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling subscription deleted:', error.message);
     }
   }
@@ -738,7 +738,7 @@ export class PaymentService {
           body: 'Your subscription has been successfully renewed.',
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling invoice payment succeeded:', error.message);
     }
   }
@@ -781,7 +781,7 @@ export class PaymentService {
         title: 'Payment Failed',
         body: 'Your subscription renewal payment failed. You have 3 days to update your payment method before losing access to premium features.',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error handling invoice payment failed:', error.message);
     }
   }
@@ -811,7 +811,7 @@ export class PaymentService {
         totalCustomers: 0,
         activeSubscriptions: 0,
       };
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to get payment analytics: ${error.message}`);
     }
   }
@@ -825,7 +825,7 @@ export class PaymentService {
         customer: customerId,
         payment_method_types: ['card'],
       });
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to create setup intent: ${error.message}`);
     }
   }

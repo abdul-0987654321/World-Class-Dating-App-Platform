@@ -106,7 +106,7 @@ export class GooglePlayService {
 
       this.isInitialized = true;
       logger.info('Google Play service initialized successfully');
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to initialize Google Play service:', error);
       throw new Error(`Google Play initialization failed: ${error.message}`);
     }
@@ -177,7 +177,7 @@ export class GooglePlayService {
         orderId: subscription.orderId,
         rawResponse: subscription,
       };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Google Play subscription validation failed:', error);
 
       // Check if it's a 404 (purchase not found)
@@ -227,7 +227,7 @@ export class GooglePlayService {
         orderId: product.orderId,
         rawResponse: product,
       };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Google Play product validation failed:', error);
 
       if (error.code === 404) {
@@ -259,7 +259,7 @@ export class GooglePlayService {
       });
 
       logger.info(`Purchase acknowledged: ${productId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to acknowledge purchase:', error);
       throw new Error(`Failed to acknowledge purchase: ${error.message}`);
     }
@@ -284,7 +284,7 @@ export class GooglePlayService {
       });
 
       logger.info(`Subscription acknowledged: ${subscriptionId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to acknowledge subscription:', error);
       throw new Error(`Failed to acknowledge subscription: ${error.message}`);
     }
@@ -308,7 +308,7 @@ export class GooglePlayService {
       });
 
       logger.info(`Subscription canceled: ${subscriptionId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to cancel subscription:', error);
       throw new Error(`Failed to cancel subscription: ${error.message}`);
     }
@@ -332,7 +332,7 @@ export class GooglePlayService {
       });
 
       logger.info(`Subscription refunded: ${subscriptionId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to refund subscription:', error);
       throw new Error(`Failed to refund subscription: ${error.message}`);
     }
@@ -356,7 +356,7 @@ export class GooglePlayService {
       });
 
       logger.info(`Subscription revoked: ${subscriptionId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to revoke subscription:', error);
       throw new Error(`Failed to revoke subscription: ${error.message}`);
     }

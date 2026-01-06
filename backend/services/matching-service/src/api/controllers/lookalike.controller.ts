@@ -129,7 +129,7 @@ export class LookalikeController {
           count: result.profiles.length,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Lookalike search failed', {
         userId,
         error: error.message,
@@ -246,7 +246,7 @@ export class LookalikeController {
           isPrimary: storedEmbedding.isPrimary,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to store face embedding', {
         userId,
         error: error.message,
@@ -292,7 +292,7 @@ export class LookalikeController {
           count: embeddings.length,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get embeddings', {
         userId,
         error: error.message,
@@ -351,7 +351,7 @@ export class LookalikeController {
           embeddingId,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to delete embedding', {
         userId,
         embeddingId,
@@ -405,7 +405,7 @@ export class LookalikeController {
           featureAvailable: status.dailyLimit > 0,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get rate limit status', {
         userId,
         error: error.message,
@@ -448,7 +448,7 @@ export class LookalikeController {
           count: history.length,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get search history', {
         userId,
         error: error.message,
@@ -542,7 +542,7 @@ export class LookalikeController {
           recommendation: this.getImageRecommendation(result),
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to analyze image', {
         userId,
         error: error.message,

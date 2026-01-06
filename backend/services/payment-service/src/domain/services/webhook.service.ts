@@ -481,7 +481,7 @@ export class WebhookService {
           logger.info(`One-time payment succeeded: ${paymentIntent.id}`);
           await this.recordTransaction(userId, paymentIntent, 'one_time', 'succeeded');
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`Error processing payment intent ${paymentIntent.id}:`, error);
       throw error;
     }
@@ -775,7 +775,7 @@ export class WebhookService {
       }
 
       logger.info(`Refund processed: ${refund.id} - Status: ${refund.status}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`Error processing refund.created for ${refund.id}:`, error);
       throw error;
     }
@@ -829,7 +829,7 @@ export class WebhookService {
       }
 
       logger.info(`Refund updated: ${refund.id} - Status: ${refund.status}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`Error processing refund.updated for ${refund.id}:`, error);
       throw error;
     }

@@ -19,7 +19,7 @@ class AuthController {
         message: 'Registration successful. Please verify your email.',
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Registration failed', error);
       return res.status(400).json({
         success: false,
@@ -53,7 +53,7 @@ class AuthController {
         message: 'Login successful',
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Login failed', error);
 
       // Return specific error messages for lockout scenarios
@@ -90,7 +90,7 @@ class AuthController {
         success: true,
         message: 'Logout successful',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Logout failed', error);
       return res.status(500).json({
         success: false,
@@ -121,7 +121,7 @@ class AuthController {
         message: 'Token refreshed successfully',
         data: tokens,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Token refresh failed', error);
       return res.status(401).json({
         success: false,
@@ -151,7 +151,7 @@ class AuthController {
         success: true,
         message: 'Email verified successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Email verification failed', error);
       return res.status(400).json({
         success: false,
@@ -181,7 +181,7 @@ class AuthController {
         success: true,
         message: 'Verification email sent',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Resend verification failed', error);
       return res.status(400).json({
         success: false,
@@ -212,7 +212,7 @@ class AuthController {
         success: true,
         message: 'If an account exists with this email, a password reset link will be sent',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Password reset request failed', error);
       return res.status(500).json({
         success: false,
@@ -242,7 +242,7 @@ class AuthController {
         success: true,
         message: 'Password reset successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Password reset failed', error);
       return res.status(400).json({
         success: false,
@@ -271,7 +271,7 @@ class AuthController {
         success: true,
         data: user,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get user info', error);
       return res.status(500).json({
         success: false,
@@ -308,7 +308,7 @@ class AuthController {
         success: true,
         data: { valid: true, user },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Token validation failed', error);
       return res.status(500).json({
         success: false,
@@ -351,7 +351,7 @@ class AuthController {
         success: true,
         data: status,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get 2FA status', error);
       return res.status(500).json({
         success: false,
@@ -384,7 +384,7 @@ class AuthController {
         message: 'Scan the QR code with your authenticator app, then verify with a code',
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('2FA setup failed', error);
 
       // Return 401 Unauthorized for password verification failures
@@ -435,7 +435,7 @@ class AuthController {
         success: true,
         message: result.message,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('2FA verification failed', error);
       return res.status(400).json({
         success: false,
@@ -485,7 +485,7 @@ class AuthController {
         success: true,
         message: result.message,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('2FA disable failed', error);
 
       // Return 401 Unauthorized for password verification failures
@@ -531,7 +531,7 @@ class AuthController {
         success: true,
         message: result.message,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('2FA validation failed', error);
       return res.status(400).json({
         success: false,
@@ -564,7 +564,7 @@ class AuthController {
         message: 'Backup codes regenerated successfully. Please store them securely.',
         data: { backupCodes },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Backup codes regeneration failed', error);
 
       // Return 401 Unauthorized for password verification failures

@@ -29,7 +29,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload a photo' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadPhoto(@Headers('authorization') authorization: string, @Body() body: any) {
+  async uploadPhoto(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('mediaService', '/api/media/upload', body, {
       Authorization: authorization,
     });
@@ -42,7 +42,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload an image' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadImage(@Headers('authorization') authorization: string, @Body() body: any) {
+  async uploadImage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('mediaService', '/api/media/upload', body, {
       Authorization: authorization,
     });
@@ -55,7 +55,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload a video' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadVideo(@Headers('authorization') authorization: string, @Body() body: any) {
+  async uploadVideo(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('mediaService', '/api/media/upload/video', body, {
       Authorization: authorization,
     });
@@ -68,7 +68,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload multiple files' })
   @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async uploadBatch(@Headers('authorization') authorization: string, @Body() body: any) {
+  async uploadBatch(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('mediaService', '/api/media/upload/batch', body, {
       Authorization: authorization,
     });
@@ -152,7 +152,7 @@ export class MediaController {
   async resizeImage(
     @Headers('authorization') authorization: string,
     @Param('mediaId') mediaId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.post('mediaService', `/api/media/${mediaId}/resize`, body, {
       Authorization: authorization,
@@ -168,7 +168,7 @@ export class MediaController {
   async generateThumbnail(
     @Headers('authorization') authorization: string,
     @Param('mediaId') mediaId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.post('mediaService', `/api/media/${mediaId}/thumbnail`, body, {
       Authorization: authorization,

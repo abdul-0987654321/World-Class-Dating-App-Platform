@@ -98,6 +98,7 @@ export interface ReconciliationSummary {
 export interface SubscriptionReconciliationResult {
   userId: string;
   stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
   appSubscriptionId?: string;
   isReconciled: boolean;
   discrepancies: Discrepancy[];

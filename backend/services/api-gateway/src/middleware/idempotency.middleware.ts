@@ -18,6 +18,7 @@
 import { Injectable, NestMiddleware, HttpStatus } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { Redis } from 'ioredis';
+import logger from '../utils/logger';
 
 // Idempotency key TTL: 24 hours
 const IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60;
@@ -42,7 +43,7 @@ const REQUIRED_IDEMPOTENCY_ENDPOINTS = [
 interface CachedResponse {
   statusCode: number;
   headers: Record<string, string>;
-  body: any;
+  body: unknown;
   timestamp: number;
 }
 
@@ -66,10 +67,10 @@ export class IdempotencyMiddleware implements NestMiddleware {
       });
 
       this.redis.on('error', (err) => {
-        console.error('Redis connection error in IdempotencyMiddleware:', err.message);
+        logger.error('Redis connection error in IdempotencyMiddleware', { message: err.message });
       });
     } catch (error) {
-      console.error('Failed to initialize Redis for idempotency:', error);
+      logger.error('Failed to initialize Redis for idempotency', error);
     }
   }
 
@@ -115,7 +116,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
 
     // If Redis is not available, proceed without caching
     if (!this.redis) {
-      console.warn('Redis not available for idempotency check, proceeding without cache');
+      logger.warn('Redis not available for idempotency check, proceeding without cache');
       return next();
     }
 
@@ -161,7 +162,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
       const originalJson = res.json.bind(res);
       const originalSend = res.send.bind(res);
 
-      const cacheResponse = async (body: any): Promise<void> => {
+      const cacheResponse = async (body: unknown): Promise<void> => {
         try {
           if (this.redis) {
             const responseToCache: CachedResponse = {
@@ -175,17 +176,17 @@ export class IdempotencyMiddleware implements NestMiddleware {
             await this.redis.del(lockKey);
           }
         } catch (error) {
-          console.error('Failed to cache idempotent response:', error);
+          logger.error('Failed to cache idempotent response', error);
         }
       };
 
-      res.json = (body: any): Response => {
+      res.json = (body: unknown): Response => {
         cacheResponse(body);
         res.setHeader('X-Idempotency-Key', idempotencyKey);
         return originalJson(body);
       };
 
-      res.send = (body: any): Response => {
+      res.send = (body: unknown): Response => {
         if (typeof body === 'string') {
           try {
             const parsed = JSON.parse(body);
@@ -200,7 +201,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
 
       next();
     } catch (error) {
-      console.error('Idempotency middleware error:', error);
+      logger.error('Idempotency middleware error', error);
       // On error, proceed without caching
       next();
     }
@@ -208,7 +209,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
 
   private buildCacheKey(req: Request, idempotencyKey: string): string {
     // Include user ID if authenticated for user-scoped idempotency
-    const userId = (req as any).user?.id || 'anonymous';
+    const userId = (req as { user?: { id?: string; userId?: string } }).user?.id || 'anonymous';
     return `idempotency:${userId}:${req.method}:${req.path}:${idempotencyKey}`;
   }
 
@@ -261,7 +262,7 @@ export function idempotencyMiddleware(redis: Redis | null) {
       return next();
     }
 
-    const userId = (req as any).user?.id || (req as any).user?.userId || 'anonymous';
+    const userId = (req as { user?: { id?: string; userId?: string } }).user?.id || (req as { user?: { id?: string; userId?: string } }).user?.userId || 'anonymous';
     const cacheKey = `idempotency:${userId}:${req.method}:${req.path}:${idempotencyKey}`;
 
     try {
@@ -291,7 +292,7 @@ export function idempotencyMiddleware(redis: Redis | null) {
       // Intercept response
       const originalJson = res.json.bind(res);
 
-      res.json = (body: any): Response => {
+      res.json = (body: unknown): Response => {
         const responseToCache: CachedResponse = {
           statusCode: res.statusCode,
           headers: {},
@@ -307,7 +308,7 @@ export function idempotencyMiddleware(redis: Redis | null) {
 
       next();
     } catch (error) {
-      console.error('Idempotency middleware error:', error);
+      logger.error('Idempotency middleware error', error);
       next();
     }
   };

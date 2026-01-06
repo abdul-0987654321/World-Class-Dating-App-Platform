@@ -152,7 +152,7 @@ export class IAPController {
           validationResult,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('IAP validation error:', error);
 
       return res.status(500).json({
@@ -217,7 +217,7 @@ export class IAPController {
           subscription: restoredSubscription,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Restore purchases error:', error);
 
       return res.status(500).json({
@@ -244,7 +244,7 @@ export class IAPController {
           subscription,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get subscription status error:', error);
 
       return res.status(500).json({
@@ -276,7 +276,7 @@ export class IAPController {
           offset,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get transaction history error:', error);
 
       return res.status(500).json({
@@ -301,7 +301,7 @@ export class IAPController {
           wallet,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get wallet error:', error);
 
       return res.status(500).json({
@@ -340,7 +340,7 @@ export class IAPController {
       });
 
       logger.info(`Updated subscription for user ${userId}: ${tier}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to update user subscription:', error);
       throw error;
     }
@@ -403,7 +403,7 @@ export class IAPController {
       }
 
       logger.info(`Added ${amount} ${type} to user ${userId}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to add consumable to user:', error);
       throw error;
     }

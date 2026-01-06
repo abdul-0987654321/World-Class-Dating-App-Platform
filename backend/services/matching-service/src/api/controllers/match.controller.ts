@@ -194,7 +194,7 @@ export class MatchController {
         message: 'Match extended successfully',
         data: extendedMatch,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to extend match', error);
 
       if (error.message === 'Match extension is a Premium feature') {
@@ -245,7 +245,7 @@ export class MatchController {
         message: 'Rematch successful',
         data: match,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to rematch', error);
 
       if (error.message === 'Rematch is a Premium feature') {

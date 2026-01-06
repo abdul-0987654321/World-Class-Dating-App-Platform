@@ -36,7 +36,7 @@ export class PaymentController {
           paymentIntentId: paymentIntent.id,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Create payment intent error:', error);
 
       return res.status(400).json({
@@ -68,7 +68,7 @@ export class PaymentController {
         message: 'Subscription created successfully',
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Purchase subscription error:', error);
 
       return res.status(400).json({
@@ -99,7 +99,7 @@ export class PaymentController {
         message: 'Subscription canceled successfully',
         data: subscription,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Cancel subscription error:', error);
 
       return res.status(400).json({
@@ -127,7 +127,7 @@ export class PaymentController {
         success: true,
         message: 'Webhook processed successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Webhook error:', error);
 
       return res.status(400).json({
@@ -154,7 +154,7 @@ export class PaymentController {
         success: true,
         data: paymentMethods,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get payment methods error:', error);
 
       return res.status(500).json({
@@ -182,7 +182,7 @@ export class PaymentController {
         message: 'Payment method added successfully',
         data: paymentMethod,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Add payment method error:', error);
 
       return res.status(400).json({
@@ -210,7 +210,7 @@ export class PaymentController {
         message: 'Refund processed successfully',
         data: refund,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Process refund error:', error);
 
       return res.status(400).json({
@@ -240,7 +240,7 @@ export class PaymentController {
         success: true,
         data: plans,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get plans error:', error);
 
       return res.status(500).json({
@@ -286,7 +286,7 @@ export class PaymentController {
         success: true,
         data: subscription,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Get subscription error:', error);
 
       return res.status(500).json({

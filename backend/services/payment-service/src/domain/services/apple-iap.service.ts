@@ -79,7 +79,7 @@ export class AppleIAPService {
       }
 
       return this.parseValidationResponse(response);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Apple receipt validation failed:', error);
       return {
         isValid: false,

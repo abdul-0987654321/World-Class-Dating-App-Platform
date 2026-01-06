@@ -123,7 +123,7 @@ export class SecurityController {
     summary: 'Report security events',
     description: 'Generic security event reporting endpoint',
   })
-  async reportSecurityEvent(@Body() event: any, @Req() req: Request): Promise<void> {
+  async reportSecurityEvent(@Body() event: Record<string, unknown>, @Req() req: Request): Promise<void> {
     try {
       this.logger.warn('Security Event Reported', {
         event,

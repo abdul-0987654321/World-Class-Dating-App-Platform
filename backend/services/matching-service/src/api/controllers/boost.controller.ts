@@ -25,7 +25,7 @@ export class BoostController {
         success: true,
         data: boost,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to activate boost', error);
       res.status(400).json({
         success: false,

@@ -206,7 +206,7 @@ export class FlutterwaveWebhookService {
       }
 
       await this.markEventProcessed(eventId);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`[FLUTTERWAVE] Error processing webhook: ${error.message}`);
       await this.markEventFailed(eventId, error.message);
       throw error;
@@ -247,7 +247,7 @@ export class FlutterwaveWebhookService {
           logger.warn('[FLUTTERWAVE] Transaction verification failed', { tx_ref });
           return;
         }
-      } catch (error: any) {
+      } catch (error) {
         logger.error('[FLUTTERWAVE] Verification API error:', error.message);
         // Continue anyway for non-critical failures
       }

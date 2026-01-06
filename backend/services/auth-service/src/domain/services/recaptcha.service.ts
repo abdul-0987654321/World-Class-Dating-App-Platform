@@ -301,7 +301,7 @@ class RecaptchaService {
         throw new Error(`reCAPTCHA API returned status ${response.status}`);
       }
 
-      const data: RecaptchaApiResponse = await response.json();
+      const data = (await response.json()) as RecaptchaApiResponse;
 
       if (!data.success) {
         logger.warn('reCAPTCHA verification failed', {

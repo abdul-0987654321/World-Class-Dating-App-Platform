@@ -65,7 +65,7 @@ export class PaymentController {
   @Post('subscriptions')
   @ApiOperation({ summary: 'Create a new subscription' })
   @HttpCode(HttpStatus.CREATED)
-  async createSubscription(@Headers('authorization') authorization: string, @Body() body: any) {
+  async createSubscription(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -77,7 +77,7 @@ export class PaymentController {
   @Post('subscriptions/subscribe')
   @ApiOperation({ summary: 'Subscribe to a plan' })
   @HttpCode(HttpStatus.CREATED)
-  async subscribe(@Headers('authorization') authorization: string, @Body() body: any) {
+  async subscribe(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/create', body, {
       Authorization: authorization,
     });
@@ -88,7 +88,7 @@ export class PaymentController {
    */
   @Put('subscriptions/me/upgrade')
   @ApiOperation({ summary: 'Upgrade current subscription' })
-  async upgradeSubscription(@Headers('authorization') authorization: string, @Body() body: any) {
+  async upgradeSubscription(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.put('paymentService', '/api/subscriptions/me/upgrade', body, {
       Authorization: authorization,
     });
@@ -116,7 +116,7 @@ export class PaymentController {
   @Post('subscriptions/cancel')
   @ApiOperation({ summary: 'Cancel current subscription' })
   @HttpCode(HttpStatus.OK)
-  async cancelSubscriptionPost(@Headers('authorization') authorization: string, @Body() body: any) {
+  async cancelSubscriptionPost(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/payment/subscription/cancel', body, {
       Authorization: authorization,
     });
@@ -158,7 +158,7 @@ export class PaymentController {
   @Post('payment-methods')
   @ApiOperation({ summary: 'Add a new payment method' })
   @HttpCode(HttpStatus.CREATED)
-  async addPaymentMethod(@Headers('authorization') authorization: string, @Body() body: any) {
+  async addPaymentMethod(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/payment-methods', body, {
       Authorization: authorization,
     });
@@ -252,7 +252,7 @@ export class PaymentController {
   @Post('purchases')
   @ApiOperation({ summary: 'Purchase a product' })
   @HttpCode(HttpStatus.CREATED)
-  async purchaseProduct(@Headers('authorization') authorization: string, @Body() body: any) {
+  async purchaseProduct(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/purchases', body, {
       Authorization: authorization,
     });
@@ -323,7 +323,7 @@ export class PaymentController {
   @Post('webhooks/stripe')
   @ApiOperation({ summary: 'Handle Stripe webhook events' })
   @HttpCode(HttpStatus.OK)
-  async stripeWebhook(@Body() body: any, @Headers() headers: any) {
+  async stripeWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
     return this.proxyService.post('paymentService', '/api/webhooks/stripe', body, headers);
   }
 
@@ -334,7 +334,7 @@ export class PaymentController {
   @Post('webhooks/paystack')
   @ApiOperation({ summary: 'Handle Paystack webhook events' })
   @HttpCode(HttpStatus.OK)
-  async paystackWebhook(@Body() body: any, @Headers() headers: any) {
+  async paystackWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
     return this.proxyService.post('paymentService', '/api/webhooks/paystack', body, headers);
   }
 
@@ -345,7 +345,7 @@ export class PaymentController {
   @Post('webhooks/flutterwave')
   @ApiOperation({ summary: 'Handle Flutterwave webhook events' })
   @HttpCode(HttpStatus.OK)
-  async flutterwaveWebhook(@Body() body: any, @Headers() headers: any) {
+  async flutterwaveWebhook(@Body() body: Record<string, unknown>, @Headers() headers: Record<string, string>) {
     return this.proxyService.post('paymentService', '/api/webhooks/flutterwave', body, headers);
   }
 
@@ -357,7 +357,7 @@ export class PaymentController {
   @Post('promo-codes/apply')
   @ApiOperation({ summary: 'Apply a promo code' })
   @HttpCode(HttpStatus.OK)
-  async applyPromoCode(@Headers('authorization') authorization: string, @Body() body: any) {
+  async applyPromoCode(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/promo-codes/apply', body, {
       Authorization: authorization,
     });
@@ -369,7 +369,7 @@ export class PaymentController {
   @Post('promo-codes/validate')
   @ApiOperation({ summary: 'Validate a promo code' })
   @HttpCode(HttpStatus.OK)
-  async validatePromoCode(@Headers('authorization') authorization: string, @Body() body: any) {
+  async validatePromoCode(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('paymentService', '/api/promo-codes/validate', body, {
       Authorization: authorization,
     });

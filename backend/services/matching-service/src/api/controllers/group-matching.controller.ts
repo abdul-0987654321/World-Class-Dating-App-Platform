@@ -39,7 +39,7 @@ export class GroupMatchingController {
         message: 'Group created successfully',
         data: { group },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to create group', error);
       this.handleError(res, error);
     }
@@ -72,7 +72,7 @@ export class GroupMatchingController {
           members,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get group', error);
       this.handleError(res, error);
     }
@@ -95,7 +95,7 @@ export class GroupMatchingController {
         message: 'Group updated successfully',
         data: { group },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to update group', error);
       this.handleError(res, error);
     }
@@ -116,7 +116,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Group disbanded successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to disband group', error);
       this.handleError(res, error);
     }
@@ -139,7 +139,7 @@ export class GroupMatchingController {
           groups,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get user groups', error);
       this.handleError(res, error);
     }
@@ -169,7 +169,7 @@ export class GroupMatchingController {
         message: 'Invitation sent successfully',
         data: { invitation },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to invite member', error);
       this.handleError(res, error);
     }
@@ -190,7 +190,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Invitation accepted successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to accept invitation', error);
       this.handleError(res, error);
     }
@@ -211,7 +211,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Invitation declined',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to decline invitation', error);
       this.handleError(res, error);
     }
@@ -234,7 +234,7 @@ export class GroupMatchingController {
           invitations,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get pending invitations', error);
       this.handleError(res, error);
     }
@@ -255,7 +255,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Member removed successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to remove member', error);
       this.handleError(res, error);
     }
@@ -276,7 +276,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Left group successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to leave group', error);
       this.handleError(res, error);
     }
@@ -298,7 +298,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Admin rights transferred successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to transfer admin', error);
       this.handleError(res, error);
     }
@@ -321,7 +321,7 @@ export class GroupMatchingController {
           members,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get group members', error);
       this.handleError(res, error);
     }
@@ -359,7 +359,7 @@ export class GroupMatchingController {
           profiles,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get group feed', error);
       this.handleError(res, error);
     }
@@ -381,7 +381,7 @@ export class GroupMatchingController {
         success: true,
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to like group', error);
       this.handleError(res, error);
     }
@@ -403,7 +403,7 @@ export class GroupMatchingController {
         success: true,
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to super like group', error);
       this.handleError(res, error);
     }
@@ -425,7 +425,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Passed on group',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to pass on group', error);
       this.handleError(res, error);
     }
@@ -449,7 +449,7 @@ export class GroupMatchingController {
           matches,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get group matches', error);
       this.handleError(res, error);
     }
@@ -470,7 +470,7 @@ export class GroupMatchingController {
         success: true,
         message: 'Unmatched successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to unmatch group', error);
       this.handleError(res, error);
     }
@@ -501,7 +501,7 @@ export class GroupMatchingController {
           suggestions,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to get activity suggestions', error);
       this.handleError(res, error);
     }

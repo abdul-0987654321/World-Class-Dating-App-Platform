@@ -76,7 +76,7 @@ export class MatchingController {
   @Post('discovery/search')
   @ApiOperation({ summary: 'Search for profiles with filters' })
   @HttpCode(HttpStatus.OK)
-  async searchProfiles(@Headers('authorization') authorization: string, @Body() body: any) {
+  async searchProfiles(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('matchingService', '/api/discovery/search', body, {
       Authorization: authorization,
     });
@@ -280,7 +280,7 @@ export class MatchingController {
   @Post('likes')
   @ApiOperation({ summary: 'Like a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async likeProfile(@Headers('authorization') authorization: string, @Body() body: any) {
+  async likeProfile(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('matchingService', '/api/likes', body, {
       Authorization: authorization,
     });
@@ -332,7 +332,7 @@ export class MatchingController {
   @Post('passes')
   @ApiOperation({ summary: 'Pass on a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async passProfile(@Headers('authorization') authorization: string, @Body() body: any) {
+  async passProfile(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('matchingService', '/api/passes', body, {
       Authorization: authorization,
     });
@@ -424,7 +424,7 @@ export class MatchingController {
   @Post('super-likes')
   @ApiOperation({ summary: 'Super like a profile' })
   @HttpCode(HttpStatus.CREATED)
-  async superLike(@Headers('authorization') authorization: string, @Body() body: any) {
+  async superLike(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('matchingService', '/api/super-likes', body, {
       Authorization: authorization,
     });

@@ -56,7 +56,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() body: any) {
+  async register(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/register', body);
   }
 
@@ -66,7 +66,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() body: any) {
+  async login(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/login', body);
   }
 
@@ -92,7 +92,7 @@ export class AuthController {
   @Public()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body() body: any) {
+  async refreshToken(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/refresh-token', body);
   }
 
@@ -102,7 +102,7 @@ export class AuthController {
   @Public()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() body: any) {
+  async verifyEmail(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/verify-email', body);
   }
 
@@ -112,7 +112,7 @@ export class AuthController {
   @Public()
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
-  async resendVerification(@Body() body: any) {
+  async resendVerification(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/resend-verification', body);
   }
 
@@ -122,7 +122,7 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() body: any) {
+  async forgotPassword(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/forgot-password', body);
   }
 
@@ -132,7 +132,7 @@ export class AuthController {
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() body: any) {
+  async resetPassword(@Body() body: Record<string, unknown>) {
     return this.proxyService.post('authService', '/api/v1/auth/reset-password', body);
   }
 

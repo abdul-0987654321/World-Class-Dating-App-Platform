@@ -120,7 +120,7 @@ export class AnalyticsController {
   @Post('events')
   @ApiOperation({ summary: 'Track analytics event' })
   @HttpCode(HttpStatus.CREATED)
-  async trackEvent(@Headers('authorization') authorization: string, @Body() body: any) {
+  async trackEvent(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('analyticsService', '/api/analytics/events', body, {
       Authorization: authorization,
     });
@@ -132,7 +132,7 @@ export class AnalyticsController {
   @Post('pageviews')
   @ApiOperation({ summary: 'Track page view' })
   @HttpCode(HttpStatus.CREATED)
-  async trackPageView(@Headers('authorization') authorization: string, @Body() body: any) {
+  async trackPageView(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('analyticsService', '/api/analytics/pageviews', body, {
       Authorization: authorization,
     });
@@ -144,7 +144,7 @@ export class AnalyticsController {
   @Post('actions')
   @ApiOperation({ summary: 'Track user action' })
   @HttpCode(HttpStatus.CREATED)
-  async trackAction(@Headers('authorization') authorization: string, @Body() body: any) {
+  async trackAction(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('analyticsService', '/api/analytics/actions', body, {
       Authorization: authorization,
     });
@@ -322,7 +322,7 @@ export class AnalyticsController {
   @Post('export')
   @ApiOperation({ summary: 'Export analytics data' })
   @HttpCode(HttpStatus.OK)
-  async exportData(@Headers('authorization') authorization: string, @Body() body: any) {
+  async exportData(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('analyticsService', '/api/analytics/export', body, {
       Authorization: authorization,
     });

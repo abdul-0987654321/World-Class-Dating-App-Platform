@@ -241,7 +241,7 @@ export class LookalikeMatchingService {
         qualityBrightness: brightness / 100,
         qualitySharpness: sharpness / 100,
       };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to extract face embedding', {
         error: error.message,
         processingTimeMs: Date.now() - startTime,
@@ -586,7 +586,7 @@ export class LookalikeMatchingService {
         totalCandidates: storedEmbeddings.length,
         referenceEmbedding: embeddingResult.embedding,
       };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to find similar profiles', {
         userId,
         error: error.message,

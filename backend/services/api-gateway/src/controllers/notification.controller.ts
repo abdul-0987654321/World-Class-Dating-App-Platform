@@ -148,7 +148,7 @@ export class NotificationController {
    */
   @Put('settings')
   @ApiOperation({ summary: 'Update notification settings' })
-  async updateSettings(@Headers('authorization') authorization: string, @Body() body: any) {
+  async updateSettings(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.put('notificationService', '/api/notifications/settings', body, {
       Authorization: authorization,
     });
@@ -162,7 +162,7 @@ export class NotificationController {
   @Post('push/register')
   @ApiOperation({ summary: 'Register push notification token' })
   @HttpCode(HttpStatus.CREATED)
-  async registerPushToken(@Headers('authorization') authorization: string, @Body() body: any) {
+  async registerPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('notificationService', '/api/notifications/push/register', body, {
       Authorization: authorization,
     });
@@ -173,7 +173,7 @@ export class NotificationController {
    */
   @Delete('push/register')
   @ApiOperation({ summary: 'Unregister push notification token' })
-  async unregisterPushToken(@Headers('authorization') authorization: string, @Body() body: any) {
+  async unregisterPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.delete('notificationService', '/api/notifications/push/register', {
       Authorization: authorization,
     });
@@ -214,7 +214,7 @@ export class NotificationController {
    */
   @Put('email/preferences')
   @ApiOperation({ summary: 'Update email notification preferences' })
-  async updateEmailPreferences(@Headers('authorization') authorization: string, @Body() body: any) {
+  async updateEmailPreferences(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.put(
       'notificationService',
       '/api/notifications/email/preferences',

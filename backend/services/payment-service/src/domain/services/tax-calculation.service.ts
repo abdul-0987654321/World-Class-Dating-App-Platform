@@ -218,7 +218,7 @@ const EU_VAT_RATES: Record<string, number> = {
  * HST: Combined federal + provincial (some provinces)
  * PST: Provincial sales tax (some provinces, on top of GST)
  */
-const CANADA_TAX_RATES: Record<string, { gst: number; hst?: number; pst?: number; qst?: number }> = {
+const CANADA_TAX_RATES: Record<string, { gst?: number; hst?: number; pst?: number; qst?: number }> = {
   AB: { gst: 0.05 }, // Alberta - GST only
   BC: { gst: 0.05, pst: 0.07 }, // British Columbia - GST + PST
   MB: { gst: 0.05, pst: 0.07 }, // Manitoba - GST + PST

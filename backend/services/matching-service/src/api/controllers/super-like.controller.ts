@@ -259,7 +259,7 @@ export class SuperLikeController {
           error: 'Failed to delete message',
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to delete message', error);
       res.status(400).json({
         success: false,

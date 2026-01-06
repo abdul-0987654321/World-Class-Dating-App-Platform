@@ -15,6 +15,7 @@ import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { TracingMiddleware } from './middleware/tracing.middleware';
+import logger from './utils/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -156,9 +157,9 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 4000;
   await app.listen(port);
 
-  console.log(`🚀 Heartly API Gateway running on: http://localhost:${port}`);
-  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
-  console.log(`🔌 WebSocket endpoint: ws://localhost:${port}/ws`);
+  logger.info(`Heartly API Gateway running on: http://localhost:${port}`);
+  logger.info(`API Documentation: http://localhost:${port}/api/docs`);
+  logger.info(`WebSocket endpoint: ws://localhost:${port}/ws`);
 }
 
 bootstrap();

@@ -14,7 +14,7 @@
     "migrate:rollback": "knex migrate:rollback --knexfile src/infrastructure/database/knexfile.ts"
   },
   "dependencies": {
-    "@flamoral/backend-shared": "workspace:*",
+    "@flamoral/backend-shared": "file:../../shared",
     "axios": "^1.6.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

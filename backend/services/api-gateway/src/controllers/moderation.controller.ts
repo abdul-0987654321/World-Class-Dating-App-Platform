@@ -31,7 +31,7 @@ export class ModerationController {
   @Post('submit')
   @ApiOperation({ summary: 'Submit content for moderation' })
   @HttpCode(HttpStatus.CREATED)
-  async submitContent(@Headers('authorization') authorization: string, @Body() body: any) {
+  async submitContent(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/submit', body, {
       Authorization: authorization,
     });
@@ -109,7 +109,7 @@ export class ModerationController {
   async rejectContent(
     @Headers('authorization') authorization: string,
     @Param('contentId') contentId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.put('moderationService', `/api/moderation/reject/${contentId}`, body, {
       Authorization: authorization,
@@ -124,7 +124,7 @@ export class ModerationController {
   @Post('reports')
   @ApiOperation({ summary: 'Submit a report' })
   @HttpCode(HttpStatus.CREATED)
-  async submitReport(@Headers('authorization') authorization: string, @Body() body: any) {
+  async submitReport(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/reports', body, {
       Authorization: authorization,
     });
@@ -205,7 +205,7 @@ export class ModerationController {
   async updateReport(
     @Headers('authorization') authorization: string,
     @Param('reportId') reportId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.put('moderationService', `/api/moderation/reports/${reportId}`, body, {
       Authorization: authorization,
@@ -224,7 +224,7 @@ export class ModerationController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Ban user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async banUser(@Headers('authorization') authorization: string, @Body() body: any) {
+  async banUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/ban', body, {
       Authorization: authorization,
     });
@@ -239,7 +239,7 @@ export class ModerationController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Unban user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async unbanUser(@Headers('authorization') authorization: string, @Body() body: any) {
+  async unbanUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/unban', body, {
       Authorization: authorization,
     });
@@ -254,7 +254,7 @@ export class ModerationController {
   @Roles(Role.ADMIN, Role.MODERATOR)
   @ApiOperation({ summary: 'Warn user (admin)' })
   @HttpCode(HttpStatus.OK)
-  async warnUser(@Headers('authorization') authorization: string, @Body() body: any) {
+  async warnUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/actions/warn', body, {
       Authorization: authorization,
     });
@@ -285,7 +285,7 @@ export class ModerationController {
   @Post('scan/text')
   @ApiOperation({ summary: 'Scan text for inappropriate content' })
   @HttpCode(HttpStatus.OK)
-  async scanText(@Headers('authorization') authorization: string, @Body() body: any) {
+  async scanText(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/text', body, {
       Authorization: authorization,
     });
@@ -297,7 +297,7 @@ export class ModerationController {
   @Post('scan/image')
   @ApiOperation({ summary: 'Scan image for inappropriate content' })
   @HttpCode(HttpStatus.OK)
-  async scanImage(@Headers('authorization') authorization: string, @Body() body: any) {
+  async scanImage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.post('moderationService', '/api/moderation/scan/image', body, {
       Authorization: authorization,
     });

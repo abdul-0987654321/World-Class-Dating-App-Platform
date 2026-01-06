@@ -136,7 +136,7 @@ export class SpeedDatingController {
           event: result.event,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to join event', error);
 
       if (error.message === 'Event not found') {
@@ -181,7 +181,7 @@ export class SpeedDatingController {
         success: true,
         message: 'Successfully left the event',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to leave event', error);
 
       if (error.message === 'Event not found') {
@@ -228,7 +228,7 @@ export class SpeedDatingController {
           participant,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to check in', error);
 
       if (
@@ -314,7 +314,7 @@ export class SpeedDatingController {
         },
         message: result.mutual ? "It's a match!" : 'Interest recorded',
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Failed to record interest', error);
 
       if (error.message === 'Event not found' || error.message === 'Participant not found') {

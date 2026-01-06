@@ -100,7 +100,7 @@ export class SafetyController {
   async updateEmergencyContact(
     @Headers('authorization') authorization: string,
     @Param('contactId') contactId: string,
-    @Body() body: any
+    @Body() body: Record<string, unknown>
   ) {
     return this.proxyService.put(
       'userService',

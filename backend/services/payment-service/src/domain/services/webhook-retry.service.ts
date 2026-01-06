@@ -73,7 +73,7 @@ export class WebhookRetryService {
       await this.webhookService.markEventProcessed(eventRecord.stripe_event_id);
 
       logger.info(`Successfully retried webhook event ${eventRecord.stripe_event_id}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`Retry failed for event ${eventRecord.stripe_event_id}:`, error);
 
       // Update error message

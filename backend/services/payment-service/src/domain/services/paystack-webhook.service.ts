@@ -194,7 +194,7 @@ export class PaystackWebhookService {
       }
 
       await this.markEventProcessed(eventId);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`[PAYSTACK] Error processing webhook: ${error.message}`);
       await this.markEventFailed(eventId, error.message);
       throw error;
@@ -233,7 +233,7 @@ export class PaystackWebhookService {
           logger.warn('[PAYSTACK] Transaction verification failed', { reference });
           return;
         }
-      } catch (error: any) {
+      } catch (error) {
         logger.error('[PAYSTACK] Verification API error:', error.message);
       }
     }
