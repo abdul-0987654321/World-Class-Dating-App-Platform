@@ -35,6 +35,7 @@ export default defineConfig({
       });
 
       // Code coverage collection
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@cypress/code-coverage/task')(on, config);
 
       return config;

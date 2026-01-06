@@ -45,8 +45,8 @@ export const SUBSCRIPTION_PLANS = {
       `${FREE_DAILY_SWIPES} daily swipes`,
       'Basic matching',
       'Limited filters',
-      '1 super like per day'
-    ]
+      '1 super like per day',
+    ],
   },
   PREMIUM: {
     name: 'Premium',
@@ -57,8 +57,8 @@ export const SUBSCRIPTION_PLANS = {
       'Advanced filters',
       '5 super likes per day',
       'Rewind swipes',
-      'Boost profile'
-    ]
+      'Boost profile',
+    ],
   },
   PREMIUM_PLUS: {
     name: 'Premium+',
@@ -69,9 +69,9 @@ export const SUBSCRIPTION_PLANS = {
       'Free monthly boost',
       'Read receipts',
       'Ad-free experience',
-      'Passport (change location)'
-    ]
-  }
+      'Passport (change location)',
+    ],
+  },
 };
 
 // Coins
@@ -79,13 +79,13 @@ export const COIN_PACKAGES = [
   { coins: 10, price: 4.99 },
   { coins: 25, price: 9.99 },
   { coins: 50, price: 17.99 },
-  { coins: 100, price: 29.99 }
+  { coins: 100, price: 29.99 },
 ];
 
 export const COIN_COSTS = {
   SUPER_LIKE: 1,
   BOOST_30_MIN: 3,
-  REWIND: 1
+  REWIND: 1,
 };
 
 // Moderation
@@ -97,7 +97,7 @@ export const REPORT_REASONS = [
   'fake-profile',
   'underage',
   'violence',
-  'other'
+  'other',
 ];
 
 // Regex Patterns
@@ -114,7 +114,7 @@ export const ERROR_MESSAGES = {
   AGE_RESTRICTION: `You must be at least ${MIN_AGE} years old`,
   MIN_PHOTOS: `Please upload at least ${MIN_PHOTOS} photos`,
   MAX_PHOTOS: `You can upload up to ${MAX_PHOTOS} photos`,
-  SWIPE_LIMIT: 'Daily swipe limit reached. Upgrade to Premium for unlimited swipes!'
+  SWIPE_LIMIT: 'Daily swipe limit reached. Upgrade to Premium for unlimited swipes!',
 };
 
 // Success Messages
@@ -123,7 +123,7 @@ export const SUCCESS_MESSAGES = {
   PHOTO_UPLOADED: 'Photo uploaded successfully',
   SETTINGS_SAVED: 'Settings saved successfully',
   EMAIL_SENT: 'Email sent successfully',
-  VERIFICATION_SENT: 'Verification code sent'
+  VERIFICATION_SENT: 'Verification code sent',
 };
 
 // Routes (for deep linking)
@@ -136,5 +136,5 @@ export const ROUTES = {
   DISCOVERY: '/discovery',
   MATCHES: '/matches',
   MESSAGES: '/messages',
-  SUBSCRIPTION: '/subscription'
+  SUBSCRIPTION: '/subscription',
 };

@@ -280,9 +280,8 @@ describe('Accessibility Tests', () => {
       cy.get('[data-testid="like-button"]').should(($button) => {
         const styles = window.getComputedStyle($button[0]);
         // Should have visible outline or box-shadow for focus
-        expect(
-          styles.outline !== 'none' || styles.boxShadow !== 'none'
-        ).to.be.true;
+        const hasVisibleFocusIndicator = styles.outline !== 'none' || styles.boxShadow !== 'none';
+        expect(hasVisibleFocusIndicator).to.be.true;
       });
     });
 

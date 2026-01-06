@@ -8,6 +8,7 @@ import { mount } from 'cypress/react18';
 
 // Augment the Cypress namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       mount: typeof mount;

@@ -1,5 +1,3 @@
-import type { Profile } from './profile';
-
 export interface Conversation {
   id: string;
   matchId: string;
