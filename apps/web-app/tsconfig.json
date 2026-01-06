@@ -45,6 +45,7 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/__tests__/**",
+    "src/test/**",
     "src/components/VideoCall/**",
     "src/components/Verification/**",
     "src/components/admin/**"

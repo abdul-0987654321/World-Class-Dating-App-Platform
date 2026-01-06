@@ -66,6 +66,7 @@ const Stack = createStackNavigator<AppStackParamList>();
 const MainTabs = () => {
   return (
     <Tab.Navigator
+      id="MainTabs"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: string = '';
@@ -129,6 +130,7 @@ const MainTabs = () => {
 const AppNavigator = () => {
   return (
     <Stack.Navigator
+      id="AppStack"
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#F2F2F7' },
@@ -179,7 +181,7 @@ const AppNavigator = () => {
         name="VideoCall"
         component={VideoCallScreen}
         options={{
-          presentation: 'fullScreenModal',
+          presentation: 'modal',
         }}
       />
       <Stack.Screen name="CallHistory" component={CallHistoryScreen} />

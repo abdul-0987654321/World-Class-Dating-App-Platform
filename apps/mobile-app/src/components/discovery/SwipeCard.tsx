@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 20,
-    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   nameRow: {
     flexDirection: 'row',
@@ -365,4 +365,4 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
   },
-});
+} as any);

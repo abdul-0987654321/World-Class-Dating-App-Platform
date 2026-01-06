@@ -91,8 +91,8 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
       if (credentialState === appleAuth.State.AUTHORIZED) {
         // Send to backend
         const result = await loginWithApple({
-          code: appleAuthRequestResponse.authorizationCode,
-          id_token: appleAuthRequestResponse.identityToken,
+          code: appleAuthRequestResponse.authorizationCode || '',
+          id_token: appleAuthRequestResponse.identityToken || '',
           user: appleAuthRequestResponse.fullName
             ? {
                 name: {

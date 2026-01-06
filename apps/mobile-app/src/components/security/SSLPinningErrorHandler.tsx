@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Platform,
 } from 'react-native';
 import { SSLPinningErrorType } from '../../services/network/SecureHttpClient';
 

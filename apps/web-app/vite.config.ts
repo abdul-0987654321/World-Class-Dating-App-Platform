@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite';
+import { defineConfig, UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): UserConfig => {
   const isProduction = mode === 'production';
 
   return {
     plugins: [
-      react(),
+      react() as any,
     ],
     resolve: {
       alias: {

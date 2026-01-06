@@ -1124,14 +1124,14 @@ export class BillingReconciliationService {
             // Sync from Stripe (source of truth)
             const stripeSubscription = await stripe.subscriptions.retrieve(
               discrepancy.stripeSubscriptionId
-            );
+            ) as Stripe.Subscription;
 
             await db('user_subscriptions')
               .where({ id: discrepancy.appRecordId })
               .update({
                 status: this.mapStripeStatusToAppStatus(stripeSubscription.status),
                 cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-                current_period_end: new Date(stripeSubscription.current_period_end * 1000),
+                current_period_end: new Date((stripeSubscription.current_period_end as number) * 1000),
                 updated_at: new Date(),
               });
 
@@ -1147,13 +1147,13 @@ export class BillingReconciliationService {
           if (discrepancy.stripeSubscriptionId && discrepancy.appRecordId) {
             const stripeSubscription = await stripe.subscriptions.retrieve(
               discrepancy.stripeSubscriptionId
-            );
+            ) as Stripe.Subscription;
 
             await db('user_subscriptions')
               .where({ id: discrepancy.appRecordId })
               .update({
-                current_period_end: new Date(stripeSubscription.current_period_end * 1000),
-                current_period_start: new Date(stripeSubscription.current_period_start * 1000),
+                current_period_end: new Date((stripeSubscription.current_period_end as number) * 1000),
+                current_period_start: new Date((stripeSubscription.current_period_start as number) * 1000),
                 updated_at: new Date(),
               });
 
