@@ -777,19 +777,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
+        id: aws_creds
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
 
       - name: Update kubeconfig
+        if: steps.aws_creds.outcome == 'success'
         run: |
           aws eks update-kubeconfig --name flamoral-staging-eks --region ${{ env.AWS_REGION }}
 
       - name: Setup Helm
+        if: steps.aws_creds.outcome == 'success'
         uses: azure/setup-helm@v4
 
       - name: Deploy to staging
+        if: steps.aws_creds.outcome == 'success'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
         run: |
@@ -800,6 +805,11 @@ jobs:
             --set global.imageTag=${BUILD_VERSION} \
             --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
             --wait --timeout 10m
+
+      - name: Skip deployment notice
+        if: steps.aws_creds.outcome != 'success'
+        run: |
+          echo "::warning::Skipping deployment - AWS credentials not configured"
 
   production-approval:
     name: Production Approval Gate
@@ -827,19 +837,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
+        id: aws_creds
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
 
       - name: Update kubeconfig
+        if: steps.aws_creds.outcome == 'success'
         run: |
           aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
 
       - name: Setup Helm
+        if: steps.aws_creds.outcome == 'success'
         uses: azure/setup-helm@v4
 
       - name: Deploy to production
+        if: steps.aws_creds.outcome == 'success'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
         run: |
@@ -859,7 +874,12 @@ jobs:
           text: ':rocket: Production deployment successful!'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: success()
+        if: steps.aws_creds.outcome == 'success'
+
+      - name: Skip deployment notice
+        if: steps.aws_creds.outcome != 'success'
+        run: |
+          echo "::warning::Skipping production deployment - AWS credentials not configured"
 
   # ==========================================================================
   # SECTION 7: SCHEDULED OPERATIONS
