@@ -144,7 +144,12 @@ locals {
     "webhook-service",
     "scheduler-service",
     "worker-service",
-    "email-service"
+    "email-service",
+    "realtime-service",
+    "workflow-engine",
+    "automation-service",
+    "advertising-service",
+    "partnership-service"
   ]
 
   s3_buckets = {

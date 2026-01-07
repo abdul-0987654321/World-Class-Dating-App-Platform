@@ -70,7 +70,7 @@ locals {
     Owner       = var.owner
   }
 
-  # 22 Microservices from the Azure infrastructure
+  # All microservices for the platform
   microservices = [
     "api-gateway",
     "auth-service",
@@ -93,7 +93,12 @@ locals {
     "webhook-service",
     "scheduler-service",
     "worker-service",
-    "email-service"
+    "email-service",
+    "realtime-service",
+    "workflow-engine",
+    "automation-service",
+    "advertising-service",
+    "partnership-service"
   ]
 
   # S3 bucket configurations

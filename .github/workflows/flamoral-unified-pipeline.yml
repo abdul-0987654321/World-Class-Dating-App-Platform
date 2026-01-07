@@ -639,6 +639,19 @@ jobs:
           - partnership-service
           - advertising-service
           - admin-service
+          - realtime-service
+          - workflow-engine
+          - email-service
+          - location-service
+          - profile-service
+          - recommendation-service
+          - report-service
+          - scheduler-service
+          - subscription-service
+          - verification-service
+          - webhook-service
+          - worker-service
+          - search-service
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
