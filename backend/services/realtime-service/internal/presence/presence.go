@@ -43,7 +43,7 @@ type Manager struct {
 	cacheMu sync.RWMutex
 
 	// Subscribers for presence changes
-	subscribers   map[string][]chan<- *UserPresence
+	subscribers   map[string][]chan *UserPresence
 	subscribersMu sync.RWMutex
 
 	done chan struct{}
@@ -56,7 +56,7 @@ func NewManager(redisClient *redis.Client, cfg *config.Config) *Manager {
 		ctx:         context.Background(),
 		config:      cfg,
 		cache:       make(map[string]*UserPresence),
-		subscribers: make(map[string][]chan<- *UserPresence),
+		subscribers: make(map[string][]chan *UserPresence),
 		done:        make(chan struct{}),
 	}
 
@@ -274,7 +274,7 @@ func (m *Manager) GetOnlineCount() (int64, error) {
 }
 
 // Subscribe subscribes to presence changes for a user
-func (m *Manager) Subscribe(userID string) <-chan *UserPresence {
+func (m *Manager) Subscribe(userID string) chan *UserPresence {
 	ch := make(chan *UserPresence, 10)
 
 	m.subscribersMu.Lock()
@@ -285,7 +285,7 @@ func (m *Manager) Subscribe(userID string) <-chan *UserPresence {
 }
 
 // Unsubscribe unsubscribes from presence changes
-func (m *Manager) Unsubscribe(userID string, ch <-chan *UserPresence) {
+func (m *Manager) Unsubscribe(userID string, ch chan *UserPresence) {
 	m.subscribersMu.Lock()
 	defer m.subscribersMu.Unlock()
 

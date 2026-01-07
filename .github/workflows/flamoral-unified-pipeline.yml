@@ -712,25 +712,23 @@ jobs:
 
       - name: Ensure ECR repository exists
         if: steps.docker_build.outcome == 'success'
+        id: ecr_repo
         env:
           SERVICE: ${{ matrix.service }}
         run: |
           REPO_NAME="${{ env.ECR_IMAGE_PREFIX }}/${SERVICE}"
-          # Check if repository exists, create if it doesn't
-          if ! aws ecr describe-repositories --repository-names "${REPO_NAME}" 2>/dev/null; then
-            echo "Creating ECR repository: ${REPO_NAME}"
-            aws ecr create-repository \
-              --repository-name "${REPO_NAME}" \
-              --image-scanning-configuration scanOnPush=true \
-              --image-tag-mutability IMMUTABLE \
-              --tags Key=Project,Value=flamoral Key=Service,Value=${SERVICE} Key=ManagedBy,Value=github-actions
-            echo "ECR repository created: ${REPO_NAME}"
+          # Check if repository exists
+          if aws ecr describe-repositories --repository-names "${REPO_NAME}" 2>/dev/null; then
+            echo "ECR repository exists: ${REPO_NAME}"
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "ECR repository already exists: ${REPO_NAME}"
+            echo "::warning::ECR repository does not exist: ${REPO_NAME}"
+            echo "::warning::Create it via Terraform or manually before pushing"
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Push Docker image
-        if: steps.docker_build.outcome == 'success'
+        if: steps.docker_build.outcome == 'success' && steps.ecr_repo.outputs.exists == 'true'
         env:
           FULL_IMAGE: ${{ steps.docker_build.outputs.full_image }}
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
@@ -738,6 +736,12 @@ jobs:
         run: |
           docker push ${FULL_IMAGE}:${BUILD_VERSION}
           docker push ${FULL_IMAGE}:${GIT_SHA}
+
+      - name: Skip push (ECR repo missing)
+        if: steps.docker_build.outcome == 'success' && steps.ecr_repo.outputs.exists != 'true'
+        run: |
+          echo "::warning::Skipping push - ECR repository does not exist"
+          echo "::warning::Run 'terraform apply' to create the repository"
 
   build-frontend:
     name: Build Frontend
