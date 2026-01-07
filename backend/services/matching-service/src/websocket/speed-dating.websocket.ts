@@ -14,11 +14,15 @@ import speedDatingService from '../domain/services/speed-dating.service';
 
 const logger = createLogger('speed-dating-websocket');
 
-interface AuthenticatedSocket extends Socket {
+/**
+ * Extended Socket type with authentication properties.
+ * Uses type intersection to properly inherit all Socket properties.
+ */
+type AuthenticatedSocket = Socket & {
   userId?: string;
   eventId?: string;
   participantId?: string;
-}
+};
 
 interface RoundTimers {
   [eventId: string]: {
