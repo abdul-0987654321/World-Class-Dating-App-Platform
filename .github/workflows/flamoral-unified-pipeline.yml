@@ -710,6 +710,25 @@ jobs:
           output: 'trivy-image-${{ matrix.service }}.sarif'
         continue-on-error: true
 
+      - name: Ensure ECR repository exists
+        if: steps.docker_build.outcome == 'success'
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          REPO_NAME="${{ env.ECR_IMAGE_PREFIX }}/${SERVICE}"
+          # Check if repository exists, create if it doesn't
+          if ! aws ecr describe-repositories --repository-names "${REPO_NAME}" 2>/dev/null; then
+            echo "Creating ECR repository: ${REPO_NAME}"
+            aws ecr create-repository \
+              --repository-name "${REPO_NAME}" \
+              --image-scanning-configuration scanOnPush=true \
+              --image-tag-mutability IMMUTABLE \
+              --tags Key=Project,Value=flamoral Key=Service,Value=${SERVICE} Key=ManagedBy,Value=github-actions
+            echo "ECR repository created: ${REPO_NAME}"
+          else
+            echo "ECR repository already exists: ${REPO_NAME}"
+          fi
+
       - name: Push Docker image
         if: steps.docker_build.outcome == 'success'
         env:

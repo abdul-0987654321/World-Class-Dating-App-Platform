@@ -7,12 +7,14 @@ RUN apk add --no-cache git ca-certificates tzdata
 # Set working directory
 WORKDIR /app
 
-# Copy go mod files from service directory
+# Copy go mod file from service directory
 COPY backend/services/realtime-service/go.mod ./
-RUN go mod download || true
 
 # Copy source code
 COPY backend/services/realtime-service/ .
+
+# Tidy modules to ensure all dependencies are resolved and go.sum is generated
+RUN go mod tidy
 
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
