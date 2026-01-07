@@ -25,10 +25,13 @@ RUN npm install --legacy-peer-deps && npm run build
 
 # Install service dependencies
 WORKDIR /app/backend/services/advertising-service
+
+# Install service dependencies (file: reference to shared will resolve now that shared is built)
 RUN npm install --legacy-peer-deps
 
-# Link shared module into service node_modules BEFORE building
-RUN mkdir -p node_modules/@flamoral/backend-shared && \
+# Ensure shared module dist is in node_modules (npm may have created symlink, we need actual files)
+RUN rm -rf node_modules/@flamoral/backend-shared 2>/dev/null || true && \
+    mkdir -p node_modules/@flamoral/backend-shared && \
     cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
     cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
 

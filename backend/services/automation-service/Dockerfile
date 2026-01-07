@@ -23,14 +23,22 @@ WORKDIR /app/backend/shared
 COPY backend/shared ./
 RUN npm install --legacy-peer-deps && npm run build
 
+# Verify shared module build succeeded
+RUN test -f dist/index.js && test -f dist/index.d.ts && echo "Shared module built successfully"
+
 # Install service dependencies
 WORKDIR /app/backend/services/automation-service
 RUN npm install --legacy-peer-deps
 
 # Link shared module into service node_modules BEFORE building
+# The package.json references main: "dist/index.js" so we need dist/ folder
 RUN mkdir -p node_modules/@flamoral/backend-shared && \
     cp -r /app/backend/shared/dist node_modules/@flamoral/backend-shared/ && \
     cp /app/backend/shared/package.json node_modules/@flamoral/backend-shared/
+
+# Verify the shared module is properly linked
+RUN test -f node_modules/@flamoral/backend-shared/dist/index.js && \
+    echo "Shared module linked successfully"
 
 # Copy service source
 COPY backend/services/automation-service/src ./src
