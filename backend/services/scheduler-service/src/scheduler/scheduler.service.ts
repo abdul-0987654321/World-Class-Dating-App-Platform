@@ -97,7 +97,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         'UTC'
       );
 
-      this.schedulerRegistry.addCronJob(jobId, cronJob);
+      this.schedulerRegistry.addCronJob(jobId, cronJob as any);
 
       const scheduledJob: ScheduledJob = {
         id: jobId,

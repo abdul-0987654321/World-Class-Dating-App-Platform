@@ -38,7 +38,7 @@ async function bootstrap() {
   );
 
   // Health check endpoint at root level
-  app.getHttpAdapter().get('/health', (_req, res) => {
+  app.getHttpAdapter().get('/health', (_req: any, res: any) => {
     res.status(200).json({
       status: 'healthy',
       service: 'search-service',
@@ -48,7 +48,7 @@ async function bootstrap() {
   });
 
   // Root endpoint
-  app.getHttpAdapter().get('/', (_req, res) => {
+  app.getHttpAdapter().get('/', (_req: any, res: any) => {
     res.json({
       service: 'Flamoral Search Service',
       version: '1.0.0',
