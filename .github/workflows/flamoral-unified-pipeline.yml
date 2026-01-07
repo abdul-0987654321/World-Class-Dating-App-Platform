@@ -785,17 +785,29 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
         continue-on-error: true
 
-      - name: Update kubeconfig
+      - name: Check if EKS cluster exists
+        id: eks_check
         if: steps.aws_creds.outcome == 'success'
+        run: |
+          if aws eks describe-cluster --name flamoral-staging-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "cluster_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "cluster_exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::EKS cluster flamoral-staging-eks does not exist - skipping deployment"
+          fi
+        continue-on-error: true
+
+      - name: Update kubeconfig
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         run: |
           aws eks update-kubeconfig --name flamoral-staging-eks --region ${{ env.AWS_REGION }}
 
       - name: Setup Helm
-        if: steps.aws_creds.outcome == 'success'
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         uses: azure/setup-helm@v4
 
       - name: Deploy to staging
-        if: steps.aws_creds.outcome == 'success'
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
         run: |
@@ -808,9 +820,13 @@ jobs:
             --wait --timeout 10m
 
       - name: Skip deployment notice
-        if: steps.aws_creds.outcome != 'success'
+        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
         run: |
-          echo "::warning::Skipping deployment - AWS credentials not configured"
+          if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
+            echo "::warning::Skipping deployment - AWS credentials not configured"
+          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::warning::Skipping deployment - EKS cluster flamoral-staging-eks does not exist"
+          fi
 
   production-approval:
     name: Production Approval Gate
@@ -845,17 +861,29 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
         continue-on-error: true
 
-      - name: Update kubeconfig
+      - name: Check if EKS cluster exists
+        id: eks_check
         if: steps.aws_creds.outcome == 'success'
+        run: |
+          if aws eks describe-cluster --name flamoral-prod-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "cluster_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "cluster_exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::EKS cluster flamoral-prod-eks does not exist - skipping deployment"
+          fi
+        continue-on-error: true
+
+      - name: Update kubeconfig
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         run: |
           aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
 
       - name: Setup Helm
-        if: steps.aws_creds.outcome == 'success'
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         uses: azure/setup-helm@v4
 
       - name: Deploy to production
-        if: steps.aws_creds.outcome == 'success'
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
         run: |
@@ -875,12 +903,16 @@ jobs:
           text: ':rocket: Production deployment successful!'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: steps.aws_creds.outcome == 'success'
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
 
       - name: Skip deployment notice
-        if: steps.aws_creds.outcome != 'success'
+        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
         run: |
-          echo "::warning::Skipping production deployment - AWS credentials not configured"
+          if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
+            echo "::warning::Skipping production deployment - AWS credentials not configured"
+          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::warning::Skipping production deployment - EKS cluster flamoral-prod-eks does not exist"
+          fi
 
   # ==========================================================================
   # SECTION 7: SCHEDULED OPERATIONS
@@ -1068,24 +1100,52 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
+        id: aws_creds
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
+
+      - name: Check if EKS cluster exists
+        id: eks_check
+        if: steps.aws_creds.outcome == 'success'
+        run: |
+          if aws eks describe-cluster --name flamoral-prod-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "cluster_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "cluster_exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::EKS cluster flamoral-prod-eks does not exist - skipping rollback"
+          fi
+        continue-on-error: true
 
       - name: Update kubeconfig
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         run: |
           aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
 
       - name: Setup Helm
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         uses: azure/setup-helm@v4
 
       - name: Rollback to version
+        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
         env:
           ROLLBACK_VERSION: ${{ github.event.inputs.rollback_to }}
         run: |
           echo "Rolling back to version: ${ROLLBACK_VERSION}"
           helm rollback flamoral-prod --namespace flamoral-prod
+
+      - name: Skip rollback notice
+        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
+        run: |
+          if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
+            echo "::error::Rollback failed - AWS credentials not configured"
+            exit 1
+          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::error::Rollback failed - EKS cluster flamoral-prod-eks does not exist"
+            exit 1
+          fi
 
   build-mobile:
     name: Build Mobile Apps
