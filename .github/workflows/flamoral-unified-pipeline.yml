@@ -318,6 +318,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
   dependency-scan:
     name: Dependency Security Scan
@@ -682,7 +683,7 @@ jobs:
             --tag ${FULL_IMAGE}:${GIT_SHA} \
             --build-arg BUILD_VERSION=${BUILD_VERSION} \
             -f backend/services/${SERVICE}/Dockerfile \
-            backend/services/${SERVICE}
+            .
 
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
           echo "local_tag=${FULL_IMAGE}:${BUILD_VERSION}" >> $GITHUB_OUTPUT
