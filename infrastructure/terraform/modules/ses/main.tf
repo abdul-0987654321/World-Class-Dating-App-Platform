@@ -108,7 +108,7 @@ resource "aws_ses_configuration_set" "main" {
   reputation_metrics_enabled = var.enable_reputation_metrics
 
   delivery_options {
-    tls_policy = "REQUIRE"
+    tls_policy = "Require"
   }
 
   dynamic "tracking_options" {

@@ -62,9 +62,12 @@ variable "control_finding_generator" {
 }
 
 variable "disabled_controls" {
-  description = "List of control IDs to disable (e.g., ['CIS.1.1', 'CIS.1.2'])"
-  type        = list(string)
-  default     = []
+  description = "Map of controls to disable with their reasons"
+  type = map(object({
+    control_arn = string
+    reason      = string
+  }))
+  default = {}
 }
 
 ################################################################################
@@ -105,5 +108,183 @@ variable "sns_topic_arn" {
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
+  default     = {}
+}
+
+################################################################################
+# Additional Variables (Required by main.tf)
+################################################################################
+
+variable "enable_security_hub" {
+  description = "Enable Security Hub"
+  type        = bool
+  default     = true
+}
+
+variable "enable_default_standards" {
+  description = "Enable default security standards"
+  type        = bool
+  default     = false
+}
+
+variable "create_finding_alerts" {
+  description = "Create CloudWatch event rules for findings alerts"
+  type        = bool
+  default     = false
+}
+
+variable "alert_severity_labels" {
+  description = "Severity labels to alert on"
+  type        = list(string)
+  default     = ["CRITICAL", "HIGH"]
+}
+
+variable "alert_sns_topic_arn" {
+  description = "SNS topic ARN for alerts"
+  type        = string
+  default     = null
+}
+
+################################################################################
+# CIS Benchmark Variables
+################################################################################
+
+variable "enable_cis_benchmark" {
+  description = "Enable CIS benchmark standard"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cis_benchmark_v14" {
+  description = "Enable CIS benchmark v1.4 standard"
+  type        = bool
+  default     = false
+}
+
+variable "cis_benchmark_version" {
+  description = "CIS benchmark version"
+  type        = string
+  default     = "1.2.0"
+}
+
+################################################################################
+# Integration Variables
+################################################################################
+
+variable "enable_guardduty_integration" {
+  description = "Enable GuardDuty integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_inspector_integration" {
+  description = "Enable Inspector integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_macie_integration" {
+  description = "Enable Macie integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_access_analyzer_integration" {
+  description = "Enable IAM Access Analyzer integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_config_integration" {
+  description = "Enable AWS Config integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_firewall_manager_integration" {
+  description = "Enable Firewall Manager integration"
+  type        = bool
+  default     = false
+}
+
+variable "enable_health_integration" {
+  description = "Enable AWS Health integration"
+  type        = bool
+  default     = false
+}
+
+################################################################################
+# Insights and Automation Rules
+################################################################################
+
+variable "insights" {
+  description = "Custom Security Hub insights"
+  type        = map(any)
+  default     = {}
+}
+
+variable "automation_rules" {
+  description = "Security Hub automation rules"
+  type        = map(any)
+  default     = {}
+}
+
+################################################################################
+# Organization Variables
+################################################################################
+
+variable "enable_organization_admin" {
+  description = "Enable organization admin account"
+  type        = bool
+  default     = false
+}
+
+variable "delegated_admin_account_id" {
+  description = "Delegated admin account ID"
+  type        = string
+  default     = null
+}
+
+variable "auto_enable_organization_members" {
+  description = "Auto-enable for organization members"
+  type        = bool
+  default     = false
+}
+
+variable "auto_enable_standards" {
+  description = "Auto-enable standards setting"
+  type        = string
+  default     = "NONE"
+}
+
+variable "organization_configuration_type" {
+  description = "Organization configuration type"
+  type        = string
+  default     = "LOCAL"
+}
+
+################################################################################
+# Finding Aggregator Variables
+################################################################################
+
+variable "enable_finding_aggregator" {
+  description = "Enable finding aggregator"
+  type        = bool
+  default     = false
+}
+
+variable "finding_aggregator_linking_mode" {
+  description = "Finding aggregator linking mode"
+  type        = string
+  default     = "ALL_REGIONS"
+}
+
+################################################################################
+# Action Targets
+################################################################################
+
+variable "action_targets" {
+  description = "Custom action targets"
+  type        = map(any)
   default     = {}
 }

@@ -399,13 +399,6 @@ resource "aws_securityhub_finding_aggregator" "main" {
 
   linking_mode = var.finding_aggregator_linking_mode
 
-  dynamic "specified_regions" {
-    for_each = var.finding_aggregator_linking_mode == "SPECIFIED_REGIONS" ? [1] : []
-    content {
-      # Regions to aggregate from - not directly supported, handled via linking_mode
-    }
-  }
-
   depends_on = [aws_securityhub_account.main]
 }
 

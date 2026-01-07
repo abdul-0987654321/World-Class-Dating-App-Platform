@@ -1183,27 +1183,16 @@ module "security_hub" {
   project_name = var.project_name
   environment  = var.environment
 
-  enable_security_hub      = true
-  enable_default_standards = false
-  auto_enable_controls     = true
+  auto_enable_controls = true
 
   # Enable compliance standards
   enable_aws_foundational_standard = true
-  enable_cis_benchmark             = true
-  enable_cis_benchmark_v14         = true
+  enable_cis_standard              = true
   enable_pci_dss_standard          = var.enable_pci_compliance
   enable_nist_standard             = false
 
-  # Integrations
-  enable_guardduty_integration       = true
-  enable_inspector_integration       = true
-  enable_access_analyzer_integration = true
-  enable_config_integration          = true
-
   # Alert configuration
-  create_finding_alerts = true
-  alert_severity_labels = ["CRITICAL", "HIGH"]
-  alert_sns_topic_arn   = module.production_alarms.critical_alerts_topic_arn
+  sns_topic_arn = module.production_alarms.critical_alerts_topic_arn
 
   tags = local.common_tags
 }
