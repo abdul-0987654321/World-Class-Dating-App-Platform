@@ -1,24 +1,28 @@
 {
-  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./src",
+    "baseUrl": ".",
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "types": ["node"],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "module": "commonjs",
-    "target": "ES2022",
-    "lib": ["ES2022"],
     "strict": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "moduleResolution": "node",
+    "paths": {
+      "@flamoral/backend-shared": ["../../shared/dist"],
+      "@flamoral/backend-shared/*": ["../../shared/dist/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
