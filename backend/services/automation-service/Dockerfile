@@ -21,7 +21,8 @@ RUN npm install --legacy-peer-deps || true
 # Build shared module first
 WORKDIR /app/backend/shared
 COPY backend/shared ./
-RUN npm install --legacy-peer-deps && npm run build
+# Force install dependencies locally (not from root hoisted modules)
+RUN rm -rf node_modules && npm install --legacy-peer-deps && npm run build
 
 # Verify shared module build succeeded
 RUN test -f dist/index.js && test -f dist/index.d.ts && echo "Shared module built successfully"
