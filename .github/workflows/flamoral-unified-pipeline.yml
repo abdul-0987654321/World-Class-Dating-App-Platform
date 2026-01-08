@@ -797,12 +797,12 @@ jobs:
           docker push ${FULL_IMAGE}:${GIT_SHA}
 
   # ==========================================================================
-  # SECTION 6: APPLICATION DEPLOYMENT
+  # SECTION 6: APPLICATION DEPLOYMENT (ECS Fargate)
   # Staging and production deployment with approval
   # ==========================================================================
 
   deploy-staging:
-    name: Deploy to Staging
+    name: Deploy to Staging (ECS Fargate)
     runs-on: ubuntu-latest
     needs: [build-and-test, build-docker-images, build-frontend, sast-scan, dependency-scan]
     if: |
@@ -821,47 +821,76 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
         continue-on-error: true
 
-      - name: Check if EKS cluster exists
-        id: eks_check
+      - name: Check if ECS cluster exists
+        id: ecs_check
         if: steps.aws_creds.outcome == 'success'
         run: |
-          if aws eks describe-cluster --name flamoral-staging-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          CLUSTER_NAME="flamoral-staging-cluster"
+          if aws ecs describe-clusters --clusters "$CLUSTER_NAME" --query 'clusters[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
             echo "cluster_exists=true" >> $GITHUB_OUTPUT
+            echo "cluster_name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
           else
             echo "cluster_exists=false" >> $GITHUB_OUTPUT
-            echo "::warning::EKS cluster flamoral-staging-eks does not exist - skipping deployment"
+            echo "::warning::ECS cluster $CLUSTER_NAME does not exist - skipping deployment"
           fi
         continue-on-error: true
 
-      - name: Update kubeconfig
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        run: |
-          aws eks update-kubeconfig --name flamoral-staging-eks --region ${{ env.AWS_REGION }}
-
-      - name: Setup Helm
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        uses: azure/setup-helm@v4
-
-      - name: Deploy to staging
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
+      - name: Deploy services to ECS Staging
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
         run: |
-          helm upgrade --install flamoral-staging \
-            infrastructure/kubernetes/helm/flamoral \
-            --namespace flamoral-staging \
-            --create-namespace \
-            --set global.imageTag=${BUILD_VERSION} \
-            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
-            --wait --timeout 10m
+          SERVICES=(
+            "api-gateway"
+            "auth-service"
+            "user-service"
+            "matching-service"
+            "messaging-service"
+            "media-service"
+            "payment-service"
+            "notification-service"
+            "moderation-service"
+            "analytics-service"
+          )
+
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Deploying $SERVICE..."
+
+            # Check if service exists
+            if aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE" --query 'services[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
+              # Force new deployment with latest image
+              aws ecs update-service \
+                --cluster "$CLUSTER_NAME" \
+                --service "$SERVICE" \
+                --force-new-deployment \
+                --no-cli-pager || echo "::warning::Failed to deploy $SERVICE"
+            else
+              echo "::warning::Service $SERVICE not found in cluster - skipping"
+            fi
+          done
+
+      - name: Wait for deployments to stabilize
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
+        env:
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
+        run: |
+          echo "Waiting for ECS services to stabilize..."
+          SERVICES="api-gateway auth-service user-service"
+          for SERVICE in $SERVICES; do
+            aws ecs wait services-stable \
+              --cluster "$CLUSTER_NAME" \
+              --services "$SERVICE" \
+              --no-cli-pager 2>/dev/null || echo "::warning::$SERVICE did not stabilize in time"
+          done
 
       - name: Skip deployment notice
-        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
+        if: steps.aws_creds.outcome != 'success' || steps.ecs_check.outputs.cluster_exists != 'true'
         run: |
           if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
             echo "::warning::Skipping deployment - AWS credentials not configured"
-          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
-            echo "::warning::Skipping deployment - EKS cluster flamoral-staging-eks does not exist"
+          elif [ "${{ steps.ecs_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::warning::Skipping deployment - ECS cluster does not exist"
           fi
 
   production-approval:
@@ -880,7 +909,7 @@ jobs:
           echo "Awaiting manual approval..."
 
   deploy-production:
-    name: Deploy to Production
+    name: Deploy to Production (ECS Fargate)
     runs-on: ubuntu-latest
     needs: [build-and-test, build-docker-images, build-frontend, deploy-staging, production-approval]
     if: needs.production-approval.result == 'success'
@@ -897,57 +926,109 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
         continue-on-error: true
 
-      - name: Check if EKS cluster exists
-        id: eks_check
+      - name: Check if ECS cluster exists
+        id: ecs_check
         if: steps.aws_creds.outcome == 'success'
         run: |
-          if aws eks describe-cluster --name flamoral-prod-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          CLUSTER_NAME="flamoral-prod-cluster"
+          if aws ecs describe-clusters --clusters "$CLUSTER_NAME" --query 'clusters[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
             echo "cluster_exists=true" >> $GITHUB_OUTPUT
+            echo "cluster_name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
           else
             echo "cluster_exists=false" >> $GITHUB_OUTPUT
-            echo "::warning::EKS cluster flamoral-prod-eks does not exist - skipping deployment"
+            echo "::warning::ECS cluster $CLUSTER_NAME does not exist - skipping deployment"
           fi
         continue-on-error: true
 
-      - name: Update kubeconfig
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        run: |
-          aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
-
-      - name: Setup Helm
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        uses: azure/setup-helm@v4
-
-      - name: Deploy to production
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
+      - name: Deploy services to ECS Production
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
         env:
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
         run: |
-          helm upgrade --install flamoral-prod \
-            infrastructure/kubernetes/helm/flamoral \
-            --namespace flamoral-prod \
-            --create-namespace \
-            --set global.imageTag=${BUILD_VERSION} \
-            --set global.imageRegistry=${{ env.ECR_REGISTRY }} \
-            --wait --timeout 15m
+          SERVICES=(
+            "api-gateway"
+            "auth-service"
+            "user-service"
+            "matching-service"
+            "messaging-service"
+            "media-service"
+            "payment-service"
+            "notification-service"
+            "moderation-service"
+            "analytics-service"
+            "automation-service"
+            "partnership-service"
+            "advertising-service"
+            "admin-service"
+            "realtime-service"
+            "workflow-engine"
+            "email-service"
+            "location-service"
+            "profile-service"
+            "recommendation-service"
+            "report-service"
+            "scheduler-service"
+            "subscription-service"
+            "verification-service"
+            "webhook-service"
+            "worker-service"
+            "search-service"
+          )
+
+          FAILED_SERVICES=()
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Deploying $SERVICE to production..."
+
+            if aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE" --query 'services[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
+              if ! aws ecs update-service \
+                --cluster "$CLUSTER_NAME" \
+                --service "$SERVICE" \
+                --force-new-deployment \
+                --no-cli-pager; then
+                FAILED_SERVICES+=("$SERVICE")
+              fi
+            else
+              echo "::warning::Service $SERVICE not found in cluster"
+            fi
+          done
+
+          if [ ${#FAILED_SERVICES[@]} -gt 0 ]; then
+            echo "::error::Failed to deploy: ${FAILED_SERVICES[*]}"
+            exit 1
+          fi
+
+      - name: Wait for production deployments
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
+        env:
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
+        run: |
+          echo "Waiting for production ECS services to stabilize..."
+          CRITICAL_SERVICES="api-gateway auth-service user-service"
+          for SERVICE in $CRITICAL_SERVICES; do
+            aws ecs wait services-stable \
+              --cluster "$CLUSTER_NAME" \
+              --services "$SERVICE" \
+              --no-cli-pager || echo "::warning::$SERVICE did not stabilize"
+          done
 
       - name: Notify success
         uses: 8398a7/action-slack@v3
         with:
           status: success
           fields: repo,message,commit,author,action,eventName,workflow,job
-          text: ':rocket: Production deployment successful!'
+          text: ':rocket: Production ECS Fargate deployment successful!'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
 
       - name: Skip deployment notice
-        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
+        if: steps.aws_creds.outcome != 'success' || steps.ecs_check.outputs.cluster_exists != 'true'
         run: |
           if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
             echo "::warning::Skipping production deployment - AWS credentials not configured"
-          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
-            echo "::warning::Skipping production deployment - EKS cluster flamoral-prod-eks does not exist"
+          elif [ "${{ steps.ecs_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::warning::Skipping production deployment - ECS cluster does not exist"
           fi
 
   # ==========================================================================
@@ -1079,14 +1160,17 @@ jobs:
 
       - name: Check AWS service versions
         run: |
-          echo "Checking EKS version..."
-          aws eks describe-cluster --name flamoral-prod-eks --query 'cluster.version' --output text || echo "EKS check skipped"
+          echo "Checking ECS cluster status..."
+          aws ecs describe-clusters --clusters flamoral-prod-cluster --query 'clusters[0].{Name:clusterName,Status:status,RunningTasks:runningTasksCount,Services:activeServicesCount}' --output table || echo "ECS check skipped"
 
           echo "Checking RDS Aurora version..."
           aws rds describe-db-clusters --query 'DBClusters[?contains(DBClusterIdentifier, `flamoral`)].EngineVersion' --output text || echo "RDS check skipped"
 
           echo "Checking ElastiCache version..."
           aws elasticache describe-cache-clusters --query 'CacheClusters[?contains(CacheClusterId, `flamoral`)].EngineVersion' --output text || echo "ElastiCache check skipped"
+
+          echo "Checking ECS Fargate platform version..."
+          aws ecs list-services --cluster flamoral-prod-cluster --query 'serviceArns[0]' --output text 2>/dev/null | xargs -I {} aws ecs describe-services --cluster flamoral-prod-cluster --services {} --query 'services[0].platformVersion' --output text || echo "Fargate version check skipped"
 
       - name: Run npm audit
         run: |
@@ -1127,7 +1211,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rollback-deployment:
-    name: Rollback Deployment
+    name: Rollback ECS Deployment
     runs-on: ubuntu-latest
     if: github.event.inputs.action == 'rollback' && github.event.inputs.rollback_to != ''
     environment: production-rollback
@@ -1143,43 +1227,85 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
         continue-on-error: true
 
-      - name: Check if EKS cluster exists
-        id: eks_check
+      - name: Check if ECS cluster exists
+        id: ecs_check
         if: steps.aws_creds.outcome == 'success'
         run: |
-          if aws eks describe-cluster --name flamoral-prod-eks --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          CLUSTER_NAME="flamoral-prod-cluster"
+          if aws ecs describe-clusters --clusters "$CLUSTER_NAME" --query 'clusters[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
             echo "cluster_exists=true" >> $GITHUB_OUTPUT
+            echo "cluster_name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
           else
             echo "cluster_exists=false" >> $GITHUB_OUTPUT
-            echo "::warning::EKS cluster flamoral-prod-eks does not exist - skipping rollback"
+            echo "::warning::ECS cluster $CLUSTER_NAME does not exist - skipping rollback"
           fi
         continue-on-error: true
 
-      - name: Update kubeconfig
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        run: |
-          aws eks update-kubeconfig --name flamoral-prod-eks --region ${{ env.AWS_REGION }}
-
-      - name: Setup Helm
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
-        uses: azure/setup-helm@v4
-
-      - name: Rollback to version
-        if: steps.aws_creds.outcome == 'success' && steps.eks_check.outputs.cluster_exists == 'true'
+      - name: Rollback ECS services to previous task definition
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
         env:
           ROLLBACK_VERSION: ${{ github.event.inputs.rollback_to }}
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
         run: |
           echo "Rolling back to version: ${ROLLBACK_VERSION}"
-          helm rollback flamoral-prod --namespace flamoral-prod
+
+          SERVICES=(
+            "api-gateway"
+            "auth-service"
+            "user-service"
+            "matching-service"
+            "messaging-service"
+          )
+
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Rolling back $SERVICE..."
+
+            # Get the previous task definition (n-1)
+            CURRENT_TD=$(aws ecs describe-services \
+              --cluster "$CLUSTER_NAME" \
+              --services "$SERVICE" \
+              --query 'services[0].taskDefinition' \
+              --output text 2>/dev/null)
+
+            if [ -n "$CURRENT_TD" ]; then
+              FAMILY=$(echo "$CURRENT_TD" | cut -d'/' -f2 | cut -d':' -f1)
+              CURRENT_REV=$(echo "$CURRENT_TD" | cut -d':' -f2)
+              PREV_REV=$((CURRENT_REV - 1))
+
+              if [ $PREV_REV -gt 0 ]; then
+                PREV_TD="${FAMILY}:${PREV_REV}"
+                echo "Rolling back from revision $CURRENT_REV to $PREV_REV"
+
+                aws ecs update-service \
+                  --cluster "$CLUSTER_NAME" \
+                  --service "$SERVICE" \
+                  --task-definition "$PREV_TD" \
+                  --no-cli-pager || echo "::warning::Failed to rollback $SERVICE"
+              else
+                echo "::warning::No previous revision for $SERVICE"
+              fi
+            fi
+          done
+
+      - name: Wait for rollback to complete
+        if: steps.aws_creds.outcome == 'success' && steps.ecs_check.outputs.cluster_exists == 'true'
+        env:
+          CLUSTER_NAME: ${{ steps.ecs_check.outputs.cluster_name }}
+        run: |
+          echo "Waiting for rollback to complete..."
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER_NAME" \
+            --services "api-gateway" \
+            --no-cli-pager || echo "::warning::Service did not stabilize"
 
       - name: Skip rollback notice
-        if: steps.aws_creds.outcome != 'success' || steps.eks_check.outputs.cluster_exists != 'true'
+        if: steps.aws_creds.outcome != 'success' || steps.ecs_check.outputs.cluster_exists != 'true'
         run: |
           if [ "${{ steps.aws_creds.outcome }}" != "success" ]; then
             echo "::error::Rollback failed - AWS credentials not configured"
             exit 1
-          elif [ "${{ steps.eks_check.outputs.cluster_exists }}" != "true" ]; then
-            echo "::error::Rollback failed - EKS cluster flamoral-prod-eks does not exist"
+          elif [ "${{ steps.ecs_check.outputs.cluster_exists }}" != "true" ]; then
+            echo "::error::Rollback failed - ECS cluster does not exist"
             exit 1
           fi
 

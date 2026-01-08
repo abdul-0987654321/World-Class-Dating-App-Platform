@@ -55,14 +55,10 @@ variable "allowed_cidr_blocks" {
 }
 
 ################################################################################
-# EKS Variables
+# ECS Variables (Replaces EKS)
 ################################################################################
 
-variable "eks_cluster_version" {
-  description = "Kubernetes version for EKS"
-  type        = string
-  default     = "1.28"
-}
+# No cluster version needed - Fargate is serverless
 
 ################################################################################
 # RDS Variables
