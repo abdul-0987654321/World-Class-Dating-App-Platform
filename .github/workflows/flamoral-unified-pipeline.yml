@@ -733,9 +733,19 @@ jobs:
           FULL_IMAGE: ${{ steps.docker_build.outputs.full_image }}
           BUILD_VERSION: ${{ needs.build-and-test.outputs.version }}
           GIT_SHA: ${{ github.sha }}
+          SERVICE: ${{ matrix.service }}
         run: |
-          docker push ${FULL_IMAGE}:${BUILD_VERSION}
-          docker push ${FULL_IMAGE}:${GIT_SHA}
+          REPO_NAME="${{ env.ECR_IMAGE_PREFIX }}/${SERVICE}"
+
+          # Check if image with this tag already exists (immutable tags enabled)
+          if aws ecr describe-images --repository-name "${REPO_NAME}" --image-ids imageTag="${GIT_SHA}" 2>/dev/null; then
+            echo "Image ${REPO_NAME}:${GIT_SHA} already exists - skipping push (immutable tags)"
+          else
+            echo "Pushing ${FULL_IMAGE}:${BUILD_VERSION}"
+            docker push ${FULL_IMAGE}:${BUILD_VERSION}
+            echo "Pushing ${FULL_IMAGE}:${GIT_SHA}"
+            docker push ${FULL_IMAGE}:${GIT_SHA}
+          fi
 
       - name: Skip push (ECR repo missing)
         if: steps.docker_build.outcome == 'success' && steps.ecr_repo.outputs.exists != 'true'
@@ -787,14 +797,23 @@ jobs:
           GIT_SHA: ${{ github.sha }}
         run: |
           FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/web-app"
-          docker build \
-            --tag ${FULL_IMAGE}:${BUILD_VERSION} \
-            --tag ${FULL_IMAGE}:${GIT_SHA} \
-            -f apps/web-app/Dockerfile \
-            apps/web-app
+          REPO_NAME="${{ env.ECR_IMAGE_PREFIX }}/web-app"
 
-          docker push ${FULL_IMAGE}:${BUILD_VERSION}
-          docker push ${FULL_IMAGE}:${GIT_SHA}
+          # Check if image with this tag already exists (immutable tags enabled)
+          if aws ecr describe-images --repository-name "${REPO_NAME}" --image-ids imageTag="${GIT_SHA}" 2>/dev/null; then
+            echo "Image ${REPO_NAME}:${GIT_SHA} already exists - skipping build and push (immutable tags)"
+          else
+            docker build \
+              --tag ${FULL_IMAGE}:${BUILD_VERSION} \
+              --tag ${FULL_IMAGE}:${GIT_SHA} \
+              -f apps/web-app/Dockerfile \
+              apps/web-app
+
+            echo "Pushing ${FULL_IMAGE}:${BUILD_VERSION}"
+            docker push ${FULL_IMAGE}:${BUILD_VERSION}
+            echo "Pushing ${FULL_IMAGE}:${GIT_SHA}"
+            docker push ${FULL_IMAGE}:${GIT_SHA}
+          fi
 
   # ==========================================================================
   # SECTION 6: APPLICATION DEPLOYMENT (ECS Fargate)
