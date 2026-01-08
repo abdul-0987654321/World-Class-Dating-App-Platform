@@ -99,9 +99,9 @@ resource "aws_iam_role_policy" "codebuild" {
       {
         Effect = "Allow"
         Action = [
-          "eks:DescribeCluster"
+          "ecs:UpdateService", "ecs:DescribeServices", "ecs:DescribeTaskDefinition", "ecs:RegisterTaskDefinition", "ecs:DescribeClusters"
         ]
-        Resource = var.eks_cluster_arn
+        Resource = var.ecs_cluster_arn
       },
       {
         Effect = "Allow"
@@ -210,8 +210,8 @@ resource "aws_codebuild_project" "services" {
     }
 
     environment_variable {
-      name  = "EKS_CLUSTER_NAME"
-      value = var.eks_cluster_name
+      name  = "ECS_CLUSTER_NAME"
+      value = var.ecs_cluster_name
     }
 
     environment_variable {

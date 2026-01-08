@@ -1,23 +1,15 @@
 ################################################################################
-# Production Environment Configuration
-# AWS-only infrastructure - No Azure providers allowed
+# Development Environment Configuration - ECS Fargate
+# Serverless container orchestration (replaces EKS)
 ################################################################################
 
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.5.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.12"
     }
     random = {
       source  = "hashicorp/random"
@@ -31,10 +23,10 @@ terraform {
 
   backend "s3" {
     bucket         = "flamoral-terraform-state-992382449461"
-    key            = "prod/terraform.tfstate"
+    key            = "flamoral/dev/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "terraform-state-lock"
+    dynamodb_table = "flamoral-terraform-locks"
   }
 }
 
@@ -45,67 +37,8 @@ terraform {
 provider "aws" {
   region = var.aws_region
 
-  # Assume role for production (if using cross-account)
-  dynamic "assume_role" {
-    for_each = var.assume_role_arn != null ? [1] : []
-    content {
-      role_arn = var.assume_role_arn
-    }
-  }
-
   default_tags {
     tags = local.common_tags
-  }
-}
-
-# Secondary region provider for disaster recovery
-provider "aws" {
-  alias  = "dr"
-  region = var.dr_region
-
-  dynamic "assume_role" {
-    for_each = var.assume_role_arn != null ? [1] : []
-    content {
-      role_arn = var.assume_role_arn
-    }
-  }
-
-  default_tags {
-    tags = local.common_tags
-  }
-}
-
-# us-east-1 provider for CloudFront/ACM
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-
-  default_tags {
-    tags = local.common_tags
-  }
-}
-
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-  }
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-    }
   }
 }
 
@@ -122,6 +55,7 @@ locals {
     Owner       = var.owner
   }
 
+  # All microservices for the platform
   microservices = [
     "api-gateway",
     "auth-service",
@@ -152,6 +86,38 @@ locals {
     "partnership-service"
   ]
 
+  # Service configurations for ECS
+  service_configs = {
+    "api-gateway"          = { port = 3000, priority = 1, path = "/api/*", cpu = 256, memory = 512 }
+    "auth-service"         = { port = 3001, priority = 10, path = "/api/auth/*", cpu = 256, memory = 512 }
+    "user-service"         = { port = 3002, priority = 11, path = "/api/users/*", cpu = 256, memory = 512 }
+    "profile-service"      = { port = 3003, priority = 12, path = "/api/profiles/*", cpu = 256, memory = 512 }
+    "matching-service"     = { port = 3004, priority = 13, path = "/api/matching/*", cpu = 512, memory = 1024 }
+    "messaging-service"    = { port = 3005, priority = 14, path = "/api/messages/*", cpu = 256, memory = 512 }
+    "notification-service" = { port = 3006, priority = 15, path = "/api/notifications/*", cpu = 256, memory = 512 }
+    "payment-service"      = { port = 3007, priority = 16, path = "/api/payments/*", cpu = 256, memory = 512 }
+    "subscription-service" = { port = 3008, priority = 17, path = "/api/subscriptions/*", cpu = 256, memory = 512 }
+    "media-service"        = { port = 3009, priority = 18, path = "/api/media/*", cpu = 512, memory = 1024 }
+    "moderation-service"   = { port = 3010, priority = 19, path = "/api/moderation/*", cpu = 512, memory = 1024 }
+    "analytics-service"    = { port = 3011, priority = 20, path = "/api/analytics/*", cpu = 256, memory = 512 }
+    "recommendation-service" = { port = 3012, priority = 21, path = "/api/recommendations/*", cpu = 512, memory = 1024 }
+    "search-service"       = { port = 3013, priority = 22, path = "/api/search/*", cpu = 256, memory = 512 }
+    "location-service"     = { port = 3014, priority = 23, path = "/api/location/*", cpu = 256, memory = 512 }
+    "verification-service" = { port = 3015, priority = 24, path = "/api/verification/*", cpu = 256, memory = 512 }
+    "report-service"       = { port = 3016, priority = 25, path = "/api/reports/*", cpu = 256, memory = 512 }
+    "admin-service"        = { port = 3017, priority = 26, path = "/api/admin/*", cpu = 256, memory = 512 }
+    "webhook-service"      = { port = 3018, priority = 27, path = "/api/webhooks/*", cpu = 256, memory = 512 }
+    "scheduler-service"    = { port = 3019, priority = 28, path = "/api/scheduler/*", cpu = 256, memory = 512 }
+    "worker-service"       = { port = 3020, priority = 29, path = null, cpu = 256, memory = 512 }
+    "email-service"        = { port = 3021, priority = 30, path = "/api/email/*", cpu = 256, memory = 512 }
+    "realtime-service"     = { port = 3022, priority = 31, path = "/api/realtime/*", cpu = 256, memory = 512 }
+    "workflow-engine"      = { port = 3023, priority = 32, path = "/api/workflows/*", cpu = 256, memory = 512 }
+    "automation-service"   = { port = 3024, priority = 33, path = "/api/automation/*", cpu = 256, memory = 512 }
+    "advertising-service"  = { port = 3025, priority = 34, path = "/api/advertising/*", cpu = 256, memory = 512 }
+    "partnership-service"  = { port = 3026, priority = 35, path = "/api/partnerships/*", cpu = 256, memory = 512 }
+  }
+
+  # S3 bucket configurations
   s3_buckets = {
     media = {
       purpose            = "User media storage"
@@ -182,72 +148,17 @@ locals {
           { days = 30, storage_class = "STANDARD_IA" },
           { days = 90, storage_class = "GLACIER" }
         ]
-        expiration_days = 730 # 2 years
+        expiration_days = 365
       }]
     }
     logs = {
       purpose            = "Application and access logs"
       versioning_enabled = false
-      enable_acl         = true  # Required for CloudFront logging
-      use_kms_encryption = false # CloudFront logs require AES256 encryption
       lifecycle_rules = [{
         id              = "log-lifecycle"
         enabled         = true
-        expiration_days = 365
+        expiration_days = 90
       }]
-    }
-  }
-
-  # Queue definitions for messaging
-  queues = {
-    matching = {
-      purpose         = "Match processing queue"
-      alarm_threshold = 1000
-    }
-    notification = {
-      purpose         = "Push notification queue"
-      alarm_threshold = 500
-    }
-    analytics = {
-      purpose         = "Analytics events queue"
-      alarm_threshold = 5000
-    }
-    moderation = {
-      purpose         = "Content moderation queue"
-      alarm_threshold = 200
-    }
-    media-processing = {
-      purpose                    = "Media processing queue"
-      visibility_timeout_seconds = 300
-      alarm_threshold            = 100
-    }
-    email = {
-      purpose         = "Email delivery queue"
-      alarm_threshold = 500
-    }
-    sms = {
-      purpose         = "SMS delivery queue"
-      alarm_threshold = 200
-    }
-  }
-
-  # Topic definitions for pub/sub
-  topics = {
-    user-events = {
-      purpose      = "User lifecycle events"
-      display_name = "User Events"
-    }
-    match-events = {
-      purpose      = "Match and like events"
-      display_name = "Match Events"
-    }
-    message-events = {
-      purpose      = "Chat message events"
-      display_name = "Message Events"
-    }
-    payment-events = {
-      purpose      = "Payment and subscription events"
-      display_name = "Payment Events"
     }
   }
 }
@@ -264,126 +175,256 @@ module "networking" {
   aws_region         = var.aws_region
   vpc_cidr           = var.vpc_cidr
   availability_zones = var.availability_zones
-  cluster_name       = "${var.project_name}-${var.environment}-eks"
+  cluster_name       = "${var.project_name}-${var.environment}-ecs"
 
-  enable_nat_gateway   = true
-  single_nat_gateway   = true # Temporarily single NAT due to EIP quota limit (5 max, 4 used by dev/staging)
-  enable_flow_logs     = true
-  enable_vpc_endpoints = true
+  # Use existing dev-vpc to avoid VPC limit issues
+  use_existing_vpc            = true
+  existing_vpc_id             = "vpc-0c2bfd018fd47e71e"
+  existing_public_subnet_ids  = ["subnet-0d2cff7b202bb18b7", "subnet-0a7aa44e8ef3e13fc"]
+  existing_private_subnet_ids = ["subnet-0ce55ec05b318a63c", "subnet-01964b38a9af18356"]
+  existing_database_subnet_ids = ["subnet-0c70078dfecee736b", "subnet-0d6010d23969f7599"]
+
+  enable_nat_gateway   = false # NAT already exists in shared VPC
+  single_nat_gateway   = true
+  enable_flow_logs     = false # Flow logs already configured
+  enable_vpc_endpoints = false # VPC endpoints already exist
 
   tags = local.common_tags
 }
 
 ################################################################################
-# EKS Module
+# ECS Cluster Module (Replaces EKS)
 ################################################################################
 
-module "eks" {
-  source = "../../modules/eks"
+module "ecs_cluster" {
+  source = "../../modules/ecs-cluster"
 
-  cluster_name    = "${var.project_name}-${var.environment}-eks"
-  cluster_version = var.eks_cluster_version
-  vpc_id          = module.networking.vpc_id
-  subnet_ids      = module.networking.private_subnet_ids
-  node_subnet_ids = module.networking.private_subnet_ids
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_id       = module.networking.vpc_id
 
-  cluster_endpoint_private_access      = true
-  cluster_endpoint_public_access       = false # Private only in production
-  cluster_endpoint_public_access_cidrs = []
+  # Container Insights disabled for dev (cost optimization)
+  enable_container_insights = false
 
-  # Cost Optimization Best Practices for Production:
-  # 1. Use Savings Plans for predictable workloads (up to 72% savings)
-  # 2. Use Spot for fault-tolerant workloads (up to 90% savings)
-  # 3. Right-size instances based on actual usage metrics
-  # 4. Scale to zero during off-peak hours (if applicable)
-  node_groups = {
-    system = {
-      instance_types             = ["t3.large", "t3a.large"] # Cost-effective for system workloads
-      capacity_type              = "ON_DEMAND"               # Keep On-Demand for reliability
-      disk_size                  = 50                        # Reduced from 100GB
-      desired_size               = 2                         # Reduced from 3
-      min_size                   = 2                         # Minimum for HA
-      max_size                   = 4
-      max_unavailable_percentage = 50
-      labels = {
-        role = "system"
+  # Fargate Spot for cost savings in dev
+  enable_fargate_spot = true
+  fargate_base_count  = 0
+  fargate_weight      = 1
+  fargate_spot_weight = 3
+
+  # Minimal log retention for dev
+  log_retention_days = 7
+
+  # Enable service discovery for internal communication
+  enable_service_discovery = true
+
+  tags = local.common_tags
+}
+
+################################################################################
+# Security Group Rule: Allow ALB to ECS Tasks
+# Created separately to avoid circular dependency
+################################################################################
+
+resource "aws_security_group_rule" "alb_to_ecs" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
+  source_security_group_id = module.ecs_alb.security_group_id
+  security_group_id        = module.ecs_cluster.security_group_id
+  description              = "Allow inbound from ALB to ECS tasks"
+}
+
+################################################################################
+# Application Load Balancer for ECS (Replaces K8s Ingress)
+################################################################################
+
+module "ecs_alb" {
+  source = "../../modules/ecs-alb"
+
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_id       = module.networking.vpc_id
+  subnet_ids   = module.networking.public_subnet_ids
+
+  internal                   = false
+  enable_deletion_protection = false # Allow deletion in dev
+
+  # HTTPS disabled for dev (no certificate)
+  enable_https    = false
+  certificate_arn = null
+
+  # Define services with path-based routing
+  services = {
+    for name, config in local.service_configs : name => {
+      port     = config.port
+      priority = config.priority
+      path_patterns = config.path != null ? [config.path] : null
+      host_headers  = null
+      health_check = {
+        path                = "/health"
+        matcher             = "200"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
       }
-      taints = [
-        {
-          key    = "CriticalAddonsOnly"
-          value  = "true"
-          effect = "PREFER_NO_SCHEDULE"
-        }
-      ]
-    }
-    application = {
-      instance_types             = ["t3.xlarge", "t3a.xlarge", "m5.large"] # Mix of cost-effective instances
-      capacity_type              = "SPOT"                                  # Use Spot for app workloads
-      disk_size                  = 50
-      desired_size               = 2 # Start small, autoscale up
-      min_size                   = 0 # Allow scale-to-zero
-      max_size                   = 10
-      max_unavailable_percentage = 50
-      labels = {
-        role = "application"
-      }
-      taints = []
-    }
-    spot = {
-      instance_types             = ["m5.large", "m5a.large", "m6i.large", "m6a.large"]
-      capacity_type              = "SPOT"
-      disk_size                  = 50
-      desired_size               = 0 # Start at 0, scale on demand
-      min_size                   = 0
-      max_size                   = 10
-      max_unavailable_percentage = 100
-      labels = {
-        role = "spot"
-      }
-      taints = [
-        {
-          key    = "spot"
-          value  = "true"
-          effect = "PREFER_NO_SCHEDULE"
-        }
-      ]
-    }
-    # GPU nodes commented out - enable only when needed for ML/AI workloads
-    # Each g4dn.xlarge costs ~$380/month On-Demand
-    # gpu = {
-    #   instance_types             = ["g4dn.xlarge"]
-    #   capacity_type              = "SPOT"  # Use Spot for GPU to save ~60%
-    #   disk_size                  = 100
-    #   desired_size               = 0
-    #   min_size                   = 0
-    #   max_size                   = 2
-    #   max_unavailable_percentage = 100
-    #   labels = {
-    #     role             = "gpu"
-    #     "nvidia.com/gpu" = "true"
-    #   }
-    #   taints = [
-    #     {
-    #       key    = "nvidia.com/gpu"
-    #       value  = "true"
-    #       effect = "NO_SCHEDULE"
-    #     }
-    #   ]
-    # }
+    } if config.path != null # Only create target groups for services with paths
   }
 
-  enable_cluster_autoscaler = true
-  enable_aws_lb_controller  = true
-  enable_external_dns       = true
-  enable_ebs_csi_driver     = true
+  # Disable alarms for dev
+  create_alarms = false
+  alarm_actions = []
 
   tags = local.common_tags
 }
 
 ################################################################################
-# RDS Module (Aurora PostgreSQL)
-# Cost Optimization: Aurora Serverless v2 scales automatically (0.5-16 ACU)
-# This saves significant cost during low-traffic periods while scaling for peaks
+# ECS IAM Roles (Replaces IRSA)
+################################################################################
+
+module "ecs_iam" {
+  source = "../../modules/ecs-iam"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  service_permissions = {
+    "api-gateway" = {
+      secrets        = ["${var.project_name}/${var.environment}/jwt"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "auth-service" = {
+      secrets            = ["${var.project_name}/${var.environment}/jwt", "${var.project_name}/${var.environment}/database"]
+      ssm_parameters     = ["/${var.project_name}/${var.environment}/*"]
+      cognito_user_pools = [module.cognito.user_pool_arn]
+    }
+    "user-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      s3_buckets     = [module.s3.bucket_ids["media"]]
+    }
+    "profile-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      s3_buckets     = [module.s3.bucket_ids["media"]]
+    }
+    "matching-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      enable_bedrock = true
+    }
+    "messaging-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "notification-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      sns_topics     = ["${var.project_name}-${var.environment}-notifications"]
+      enable_ses     = true
+    }
+    "payment-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/stripe"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "subscription-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/stripe"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "media-service" = {
+      secrets            = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters     = ["/${var.project_name}/${var.environment}/*"]
+      s3_buckets         = [module.s3.bucket_ids["media"]]
+      enable_rekognition = true
+    }
+    "moderation-service" = {
+      secrets            = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters     = ["/${var.project_name}/${var.environment}/*"]
+      enable_rekognition = true
+      enable_bedrock     = true
+    }
+    "analytics-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "recommendation-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      enable_bedrock = true
+    }
+    "search-service" = {
+      secrets           = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters    = ["/${var.project_name}/${var.environment}/*"]
+      opensearch_domains = ["${var.project_name}-${var.environment}"]
+    }
+    "location-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "verification-service" = {
+      secrets            = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters     = ["/${var.project_name}/${var.environment}/*"]
+      s3_buckets         = [module.s3.bucket_ids["media"]]
+      enable_rekognition = true
+    }
+    "report-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "admin-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/jwt"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "webhook-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      sqs_queues     = ["${var.project_name}-${var.environment}-webhooks"]
+    }
+    "scheduler-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      sqs_queues     = ["${var.project_name}-${var.environment}-scheduler"]
+    }
+    "worker-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      sqs_queues     = ["${var.project_name}-${var.environment}-jobs"]
+    }
+    "email-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      enable_ses     = true
+    }
+    "realtime-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "workflow-engine" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+      sqs_queues     = ["${var.project_name}-${var.environment}-workflows"]
+    }
+    "automation-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database", "${var.project_name}/${var.environment}/redis"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "advertising-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+    "partnership-service" = {
+      secrets        = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters = ["/${var.project_name}/${var.environment}/*"]
+    }
+  }
+
+  tags = local.common_tags
+}
+
+################################################################################
+# RDS Module
 ################################################################################
 
 module "rds" {
@@ -400,45 +441,30 @@ module "rds" {
   engine_version         = var.rds_engine_version
   parameter_group_family = "aurora-postgresql15"
 
-  # Cost Optimization: Use Aurora Serverless v2 instead of provisioned instances
-  # - Provisioned db.r6g.xlarge x 3: ~$1,200/month minimum
-  # - Serverless v2 (0.5-16 ACU): ~$87/month at minimum, scales as needed
-  enable_serverless_v2    = true
-  serverless_min_capacity = 0.5 # Minimum ACU (cost savings during low traffic)
-  serverless_max_capacity = 16  # Max ACU for production peaks
-
-  # Fallback: If not using Serverless, use smaller provisioned instances
-  # instance_class = "db.r6g.large"    # 50% cheaper than xlarge
-  # instance_count = 2                  # 1 writer + 1 reader
+  enable_serverless_v2    = true # Cost optimization for dev
+  serverless_min_capacity = 0.5
+  serverless_max_capacity = 4
 
   database_name   = "flamoral"
   master_username = "dbadmin"
 
-  backup_retention_period      = 14 # Reduced from 35 (still sufficient for prod)
-  deletion_protection          = true
-  skip_final_snapshot          = false
-  preferred_backup_window      = "03:00-04:00"
-  preferred_maintenance_window = "sun:04:00-sun:05:00"
+  backup_retention_period = 7
+  deletion_protection     = false # Allow deletion in dev
+  skip_final_snapshot     = true
 
-  # Performance Insights - keep enabled for prod troubleshooting
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
+  # Use ECS security group instead of EKS node security group
+  eks_security_group_id = module.ecs_cluster.security_group_id
+  kms_key_arn           = module.ecs_cluster.kms_key_arn
 
-  # Enhanced Monitoring - reduce interval to save costs
-  monitoring_interval = 60
-
-  eks_security_group_id = module.eks.node_security_group_id
-  kms_key_arn           = module.eks.kms_key_arn
-
-  create_cloudwatch_alarms = true
-  alarm_actions            = [module.monitoring.sns_topic_arn]
+  # Cost Optimization: Disable alarms for dev
+  create_cloudwatch_alarms = false
+  alarm_actions            = []
 
   tags = local.common_tags
 }
 
 ################################################################################
-# ElastiCache Module (Redis)
-# Cost Optimization: Right-sized for typical Flamoral app workload
+# ElastiCache Module
 ################################################################################
 
 module "elasticache" {
@@ -449,29 +475,24 @@ module "elasticache" {
   vpc_id       = module.networking.vpc_id
   subnet_ids   = module.networking.database_subnet_ids
 
-  # Cost Optimization: Right-size Redis for actual workload
-  # - cache.r6g.xlarge x 3: ~$1,200/month
-  # - cache.r6g.large x 2: ~$400/month (67% savings)
-  # Can scale up if metrics show need for more capacity
+  # Cost Optimization: Smallest viable Redis for dev
   engine_version     = "7.0"
-  node_type          = "cache.r6g.large" # Reduced from xlarge (~$200/month each)
-  num_cache_clusters = 2                 # Reduced from 3 (1 primary + 1 replica)
+  node_type          = "cache.t3.micro"
+  num_cache_clusters = 1
 
-  automatic_failover_enabled = true # Keep for HA
-  multi_az_enabled           = true # Keep for HA
+  automatic_failover_enabled = false
+  multi_az_enabled           = false
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  kms_key_arn                = module.eks.kms_key_arn
+  kms_key_arn                = module.ecs_cluster.kms_key_arn
 
-  snapshot_retention_limit = 3 # Reduced from 7 (save storage costs)
-  snapshot_window          = "02:00-03:00"
-  maintenance_window       = "sun:03:00-sun:04:00"
+  # Use ECS security group
+  eks_security_group_id = module.ecs_cluster.security_group_id
 
-  eks_security_group_id = module.eks.node_security_group_id
-
-  create_cloudwatch_alarms = true
-  alarm_actions            = [module.monitoring.sns_topic_arn]
+  # Cost Optimization: Disable alarms for dev
+  create_cloudwatch_alarms = false
+  alarm_actions            = []
 
   tags = local.common_tags
 }
@@ -485,7 +506,7 @@ module "s3" {
 
   project_name        = var.project_name
   environment         = var.environment
-  default_kms_key_arn = module.eks.kms_key_arn
+  default_kms_key_arn = module.ecs_cluster.kms_key_arn
 
   buckets = local.s3_buckets
 
@@ -511,7 +532,7 @@ module "cognito" {
   password_require_symbols   = true
   password_require_uppercase = true
 
-  mfa_configuration = "ON" # Required in production
+  mfa_configuration = "OPTIONAL"
 
   user_pool_clients = {
     web = {
@@ -531,7 +552,7 @@ module "cognito" {
   create_identity_pool             = true
   allow_unauthenticated_identities = false
 
-  deletion_protection = "ACTIVE"
+  deletion_protection = "INACTIVE"
 
   tags = local.common_tags
 }
@@ -544,14 +565,16 @@ module "ecr" {
   source = "../../modules/ecr"
 
   project_name        = var.project_name
-  default_kms_key_arn = module.eks.kms_key_arn
-  eks_node_role_arns  = [module.eks.node_iam_role_arn]
+  default_kms_key_arn = module.ecs_cluster.kms_key_arn
+
+  # ECS task execution role needs pull access
+  eks_node_role_arns = [module.ecs_cluster.task_execution_role_arn]
 
   repositories = { for service in local.microservices : service => {
     scan_on_push               = true
-    image_tag_mutability       = "IMMUTABLE" # Enforce immutable tags in prod
-    keep_tagged_images         = 50
-    untagged_image_expiry_days = 14
+    image_tag_mutability       = "MUTABLE"
+    keep_tagged_images         = 10
+    untagged_image_expiry_days = 3
     allow_eks_pull             = true
   } }
 
@@ -568,101 +591,38 @@ module "secrets" {
   project_name = var.project_name
   environment  = var.environment
 
-  default_kms_key_arn   = module.eks.kms_key_arn
-  eks_oidc_provider_arn = module.eks.oidc_provider_arn
-  eks_oidc_provider_url = module.eks.oidc_provider_url
+  default_kms_key_arn = module.ecs_cluster.kms_key_arn
+
+  # Remove EKS OIDC references - ECS uses task roles directly
+  eks_oidc_provider_arn = null
+  eks_oidc_provider_url = null
 
   secrets = {
     database = {
       description              = "Database credentials"
       generate_random_password = true
-      random_password_length   = 32
-      allow_eks_access         = true
-      rotation_days            = 30
+      allow_eks_access         = false
     }
     redis = {
       description              = "Redis auth token"
       generate_random_password = true
-      random_password_length   = 64
-      allow_eks_access         = true
+      allow_eks_access         = false
     }
     jwt = {
       description              = "JWT signing keys"
       generate_random_password = true
       random_password_length   = 64
-      allow_eks_access         = true
-    }
-    stripe = {
-      description      = "Stripe API keys"
-      allow_eks_access = true
-    }
-    firebase = {
-      description      = "Firebase credentials"
-      allow_eks_access = true
-    }
-    sendgrid = {
-      description      = "SendGrid API key"
-      allow_eks_access = true
-    }
-    twilio = {
-      description      = "Twilio credentials"
-      allow_eks_access = true
-    }
-    openai = {
-      description      = "OpenAI API key"
-      allow_eks_access = true
+      allow_eks_access         = false
     }
   }
 
-  create_external_secrets_role = true
-
-  tags = local.common_tags
-}
-
-################################################################################
-# Messaging Module (SQS/SNS)
-################################################################################
-
-module "messaging" {
-  source = "../../modules/messaging"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  queues = local.queues
-  topics = local.topics
-
-  # SNS to SQS subscriptions for fan-out
-  sqs_subscriptions = {
-    user-to-notification = {
-      topic_key            = "user-events"
-      queue_key            = "notification"
-      raw_message_delivery = true
-    }
-    match-to-notification = {
-      topic_key            = "match-events"
-      queue_key            = "notification"
-      raw_message_delivery = true
-    }
-    match-to-analytics = {
-      topic_key            = "match-events"
-      queue_key            = "analytics"
-      raw_message_delivery = true
-    }
-  }
-
-  create_eks_role       = true
-  eks_oidc_provider_arn = module.eks.oidc_provider_arn
-  eks_oidc_provider_url = module.eks.oidc_provider_url
-
-  alarm_actions = [module.monitoring.sns_topic_arn]
+  create_external_secrets_role = false # Not needed for ECS
 
   tags = local.common_tags
 }
 
 ################################################################################
 # Monitoring Module
-# Cost Optimization: Reduced log retention while maintaining observability
 ################################################################################
 
 module "monitoring" {
@@ -670,36 +630,29 @@ module "monitoring" {
 
   project_name        = var.project_name
   environment         = var.environment
-  default_kms_key_arn = module.eks.kms_key_arn
+  default_kms_key_arn = module.ecs_cluster.kms_key_arn
 
-  # Cost Optimization: Reduce log retention from 90 to 30 days
-  # Archive to S3/Glacier for long-term storage if needed
+  # Cost Optimization: Minimal logging and monitoring for dev
   log_groups = { for service in local.microservices : service => {
-    retention_in_days = 30 # Reduced from 90 (~67% savings on CloudWatch Logs)
+    retention_in_days = 3
   } }
 
-  create_dashboard       = true
-  eks_cluster_name       = module.eks.cluster_name
+  create_dashboard       = false
+  eks_cluster_name       = null # No EKS cluster
   rds_cluster_identifier = module.rds.aurora_cluster_id
   elasticache_cluster_id = module.elasticache.replication_group_id
 
-  create_alarm_topic    = true
-  alarm_email_endpoints = var.alarm_email_endpoints
+  create_alarm_topic    = false
+  alarm_email_endpoints = []
 
-  # Cost Optimization: Reduce Container Insights retention
-  enable_container_insights         = true
-  container_insights_retention_days = 14 # Reduced from 90 (~85% savings)
+  enable_container_insights         = false
+  container_insights_retention_days = 3
 
   xray_sampling_rules = {
     default = {
       priority       = 1000
-      reservoir_size = 5     # Reduced from 10
-      fixed_rate     = 0.005 # Sample 0.5% of requests (was 1%)
-    }
-    errors = {
-      priority       = 100
-      reservoir_size = 25  # Reduced from 50
-      fixed_rate     = 1.0 # Keep 100% for errors (critical for debugging)
+      reservoir_size = 1
+      fixed_rate     = 0.05
     }
   }
 
@@ -707,517 +660,52 @@ module "monitoring" {
 }
 
 ################################################################################
-# Route53 Module (DNS Management)
+# Outputs
 ################################################################################
 
-module "route53" {
-  source = "../../modules/route53"
-
-  project_name = var.project_name
-  environment  = var.environment
-  domain_name  = var.domain_name
-
-  create_public_zone  = var.create_route53_zone
-  create_private_zone = true
-  vpc_id              = module.networking.vpc_id
-
-  # CloudFront alias records will be created separately to avoid circular dependency
-  # (ACM needs Route53 for validation, but Route53 alias needs CloudFront which needs ACM)
-  create_www_record = false
-
-  # Internal DNS records
-  create_rds_record         = true
-  rds_endpoint              = module.rds.endpoint
-  create_elasticache_record = true
-  elasticache_endpoint      = module.elasticache.primary_endpoint_address
-
-  # Health checks (created after CloudFront is deployed)
-  health_checks = {}
-
-  alarm_actions = [module.monitoring.sns_topic_arn]
-
-  # DNSSEC (optional - requires KMS key in us-east-1)
-  enable_dnssec      = var.dnssec_kms_key_arn != null
-  dnssec_kms_key_arn = var.dnssec_kms_key_arn
-
-  tags = local.common_tags
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.networking.vpc_id
 }
 
-################################################################################
-# ACM Module (SSL/TLS Certificates)
-# Note: For CloudFront, certificates MUST be in us-east-1
-################################################################################
-
-module "acm" {
-  source = "../../modules/acm"
-
-  providers = {
-    aws = aws.us_east_1
-  }
-
-  project_name = var.project_name
-  environment  = var.environment
-  domain_name  = var.domain_name
-
-  subject_alternative_names = [
-    "*.${var.domain_name}",
-    "www.${var.domain_name}",
-    "api.${var.domain_name}"
-  ]
-
-  route53_zone_id        = module.route53.public_zone_id
-  create_route53_records = true
-  wait_for_validation    = true
-
-  tags = local.common_tags
+output "ecs_cluster_name" {
+  description = "ECS cluster name"
+  value       = module.ecs_cluster.cluster_name
 }
 
-################################################################################
-# CloudFront Module (CDN + WAF)
-################################################################################
-
-module "cloudfront" {
-  source = "../../modules/cloudfront"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  # Domain configuration
-  domain_names        = var.domain_names
-  acm_certificate_arn = module.acm.validated_certificate_arn
-
-  # S3 origin for media files
-  s3_origins = [
-    {
-      bucket_regional_domain_name = module.s3.bucket_regional_domain_names["media"]
-      origin_id                   = "S3-media"
-      path_pattern                = "/media/*"
-      enable_origin_shield        = true
-    }
-  ]
-
-  # ALB origin for API (via API Gateway or direct to ALB)
-  alb_origins = [
-    {
-      domain_name = "api-internal.${var.domain_name}"
-      origin_id   = "ALB-api"
-      custom_headers = var.origin_verify_header != "" ? [
-        {
-          name  = "X-Origin-Verify"
-          value = var.origin_verify_header
-        }
-      ] : []
-    }
-  ]
-
-  default_origin_id    = "ALB-api"
-  default_root_object  = ""
-  price_class          = "PriceClass_All"
-  origin_shield_region = var.aws_region
-
-  # WAF configuration
-  enable_waf         = true
-  enable_bot_control = true
-  blocked_countries  = var.blocked_countries
-
-  # Logging
-  enable_logging = true
-  logging_bucket = module.s3.bucket_domain_names["logs"]
-  logging_prefix = "cloudfront/"
-
-  # Custom error pages
-  custom_error_responses = [
-    {
-      error_code            = 403
-      response_code         = 403
-      response_page_path    = "/error/403.html"
-      error_caching_min_ttl = 60
-    },
-    {
-      error_code            = 404
-      response_code         = 404
-      response_page_path    = "/error/404.html"
-      error_caching_min_ttl = 60
-    },
-    {
-      error_code            = 500
-      response_code         = 500
-      response_page_path    = "/error/500.html"
-      error_caching_min_ttl = 10
-    }
-  ]
-
-  tags = local.common_tags
-
-  depends_on = [module.acm]
+output "ecs_cluster_arn" {
+  description = "ECS cluster ARN"
+  value       = module.ecs_cluster.cluster_arn
 }
 
-################################################################################
-# Route53 CloudFront Alias Records
-# Created separately to avoid circular dependency with ACM validation
-################################################################################
-
-resource "aws_route53_record" "cloudfront_root" {
-  count = var.create_route53_zone ? 1 : 0
-
-  zone_id = module.route53.public_zone_id
-  name    = var.domain_name
-  type    = "A"
-
-  alias {
-    name                   = module.cloudfront.distribution_domain_name
-    zone_id                = module.cloudfront.distribution_hosted_zone_id
-    evaluate_target_health = false
-  }
+output "alb_dns_name" {
+  description = "ALB DNS name"
+  value       = module.ecs_alb.alb_dns_name
 }
 
-resource "aws_route53_record" "cloudfront_www" {
-  count = var.create_route53_zone ? 1 : 0
-
-  zone_id = module.route53.public_zone_id
-  name    = "www.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = module.cloudfront.distribution_domain_name
-    zone_id                = module.cloudfront.distribution_hosted_zone_id
-    evaluate_target_health = false
-  }
+output "service_discovery_namespace" {
+  description = "Service discovery namespace"
+  value       = module.ecs_cluster.service_discovery_namespace_name
 }
 
-resource "aws_route53_record" "cloudfront_api" {
-  count = var.create_route53_zone ? 1 : 0
-
-  zone_id = module.route53.public_zone_id
-  name    = "api.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = module.cloudfront.distribution_domain_name
-    zone_id                = module.cloudfront.distribution_hosted_zone_id
-    evaluate_target_health = false
-  }
+output "rds_endpoint" {
+  description = "RDS cluster endpoint"
+  value       = module.rds.aurora_cluster_endpoint
+  sensitive   = true
 }
 
-################################################################################
-# Route53 Health Checks (for CloudFront endpoints)
-################################################################################
-
-resource "aws_route53_health_check" "api" {
-  count = var.create_route53_zone ? 1 : 0
-
-  fqdn              = "api.${var.domain_name}"
-  port              = 443
-  type              = "HTTPS"
-  resource_path     = "/health"
-  failure_threshold = 3
-  request_interval  = 30
-
-  regions = ["us-east-1", "us-west-2", "eu-west-1"]
-
-  tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.environment}-api-health"
-  })
+output "elasticache_endpoint" {
+  description = "ElastiCache primary endpoint"
+  value       = module.elasticache.primary_endpoint_address
+  sensitive   = true
 }
 
-resource "aws_cloudwatch_metric_alarm" "api_health" {
-  count = var.create_route53_zone ? 1 : 0
-
-  alarm_name          = "${var.project_name}-${var.environment}-api-health"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "HealthCheckStatus"
-  namespace           = "AWS/Route53"
-  period              = 60
-  statistic           = "Minimum"
-  threshold           = 1
-  alarm_description   = "Route53 health check failed for API"
-
-  dimensions = {
-    HealthCheckId = aws_route53_health_check.api[0].id
-  }
-
-  alarm_actions = [module.monitoring.sns_topic_arn]
-  ok_actions    = [module.monitoring.sns_topic_arn]
-
-  tags = local.common_tags
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID"
+  value       = module.cognito.user_pool_id
 }
 
-################################################################################
-# SES Module (Email Infrastructure)
-# AWS-Native email service - replaces SendGrid
-################################################################################
-
-module "ses" {
-  source = "../../modules/ses"
-
-  project_name = var.project_name
-  environment  = var.environment
-  aws_region   = var.aws_region
-
-  domain              = var.domain_name
-  mail_from_subdomain = "mail"
-
-  route53_zone_id            = module.route53.public_zone_id
-  create_dns_records         = var.create_route53_zone
-  create_verification_record = var.create_route53_zone
-
-  dmarc_policy = "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@${var.domain_name}"
-
-  enable_reputation_metrics = true
-  enable_cloudwatch_metrics = true
-
-  # Bounce/complaint handling via SNS
-  bounce_topic_arn    = module.messaging.topic_arns["user-events"]
-  complaint_topic_arn = module.messaging.topic_arns["user-events"]
-
-  allowed_from_addresses = [
-    "noreply@${var.domain_name}",
-    "support@${var.domain_name}",
-    "hello@${var.domain_name}",
-    "*@${var.domain_name}"
-  ]
-
-  tags = local.common_tags
-}
-
-################################################################################
-# Budgets Module (Cost Control)
-# Enforces budget alerts and cost monitoring
-################################################################################
-
-module "budgets" {
-  source = "../../modules/budgets"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  monthly_budget_amount = var.monthly_budget_limit
-  budget_start_date     = "2024-01-01_00:00"
-
-  alert_email_addresses = var.alarm_email_endpoints
-  alert_sns_topic_arns  = [module.monitoring.sns_topic_arn]
-
-  create_service_budgets = true
-  eks_budget_amount      = var.eks_budget_limit
-  rds_budget_amount      = var.rds_budget_limit
-  s3_budget_amount       = var.s3_budget_limit
-
-  enable_budget_actions = false # Enable after review
-
-  tags = local.common_tags
-}
-
-################################################################################
-# CI/CD Module (CodePipeline + CodeBuild + Nightly Builds)
-# Includes EventBridge trigger for 9 PM nightly production builds
-################################################################################
-
-module "cicd" {
-  source = "../../modules/cicd"
-
-  project_name     = var.project_name
-  environment      = var.environment
-  eks_cluster_name = module.eks.cluster_name
-  eks_cluster_arn  = module.eks.cluster_arn
-  kms_key_arn      = module.eks.kms_key_arn
-
-  github_repository        = var.github_repository
-  github_branch            = var.github_branch
-  codestar_connection_arn  = var.codestar_connection_arn
-  create_github_connection = var.codestar_connection_arn == ""
-
-  # Build all microservices
-  services = { for service in local.microservices : service => {
-    enabled = true
-  } }
-
-  # Enable nightly builds at 9 PM UTC
-  enable_nightly_build   = true
-  nightly_build_schedule = "cron(0 21 * * ? *)"
-
-  # Pipeline notifications
-  create_notification_topic    = true
-  notification_email_addresses = var.alarm_email_endpoints
-
-  tags = local.common_tags
-}
-
-################################################################################
-# Production Alarms Module
-# Comprehensive CloudWatch alarms for production monitoring
-################################################################################
-
-module "production_alarms" {
-  source = "../../modules/production-alarms"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  # KMS for SNS encryption
-  kms_key_arn = module.eks.kms_key_arn
-
-  # SNS Configuration
-  create_sns_topics     = true
-  critical_alert_emails = var.critical_alert_emails
-  warning_alert_emails  = var.alarm_email_endpoints
-
-  # Pass alarm action ARNs (populated after topic creation)
-  critical_alarm_actions = var.critical_alarm_actions
-  warning_alarm_actions  = var.warning_alarm_actions
-
-  # Resource identifiers for monitoring
-  eks_cluster_name                 = module.eks.cluster_name
-  rds_cluster_identifier           = module.rds.aurora_cluster_id
-  rds_max_connections              = 1000
-  elasticache_replication_group_id = module.elasticache.replication_group_id
-  alb_arn_suffix                   = module.cloudfront.alb_arn_suffix
-  waf_web_acl_name                 = module.cloudfront.waf_web_acl_name
-
-  # SQS Queue monitoring
-  sqs_queues = { for name, config in local.queues : name => {
-    queue_name      = module.messaging.queue_names[name]
-    depth_threshold = config.alarm_threshold
-  } if can(config.alarm_threshold) }
-
-  # DLQ monitoring (critical - any message here indicates failures)
-  sqs_dlq_queues = { for name, _ in local.queues : "${name}-dlq" => {
-    queue_name = "${module.messaging.queue_names[name]}-dlq"
-  } }
-
-  # Cost anomaly detection
-  enable_cost_anomaly_detection = true
-  cost_anomaly_email            = var.cost_alert_email
-
-  tags = local.common_tags
-}
-
-################################################################################
-# WAF Module with Enhanced Rules
-# Production-grade WAF configuration
-################################################################################
-
-module "waf" {
-  source = "../../modules/waf"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  scope      = "REGIONAL"
-  rate_limit = var.waf_rate_limit
-
-  # Enable all security rules
-  enable_rate_limiting          = true
-  enable_common_rules           = true
-  enable_known_bad_inputs_rules = true
-  enable_sqli_rules             = true
-  enable_xss_rules              = true
-  enable_anonymous_ip_rules     = true
-  enable_ip_reputation_rules    = true
-  enable_bot_control            = var.enable_waf_bot_control
-  enable_api_protection         = true
-  enable_size_constraints       = true
-
-  # Rate limits
-  api_rate_limit = var.api_rate_limit
-
-  # Size constraints
-  max_body_size = var.max_request_body_size
-  max_uri_size  = 8192
-
-  # Bot Control configuration
-  bot_control_inspection_level = "COMMON"
-
-  # Geo-blocking
-  blocked_countries = var.blocked_countries
-
-  # IP lists
-  allowed_ips = var.waf_allowed_ips
-  blocked_ips = var.waf_blocked_ips
-
-  # Logging
-  enable_logging                = true
-  cloudwatch_log_retention_days = 30
-
-  tags = local.common_tags
-}
-
-################################################################################
-# GuardDuty Module
-# Threat detection and continuous security monitoring
-################################################################################
-
-module "guardduty" {
-  source = "../../modules/guardduty"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  enable_guardduty             = true
-  finding_publishing_frequency = "FIFTEEN_MINUTES"
-
-  # Protection features
-  enable_s3_protection          = true
-  enable_eks_protection         = true
-  enable_malware_protection     = true
-  enable_rds_protection         = true
-  enable_lambda_protection      = true
-  enable_eks_runtime_monitoring = true
-
-  # Findings export to S3
-  create_findings_bucket = true
-  publish_to_s3          = true
-  kms_key_arn            = module.eks.kms_key_arn
-
-  # Alert configuration
-  create_finding_alerts    = true
-  alert_severity_threshold = 4.0 # Medium and above
-  alert_sns_topic_arn      = module.production_alarms.critical_alerts_topic_arn
-
-  tags = local.common_tags
-}
-
-################################################################################
-# Security Hub Module
-# Security posture management and compliance monitoring
-################################################################################
-
-module "security_hub" {
-  source = "../../modules/security-hub"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  auto_enable_controls = true
-
-  # Enable compliance standards
-  enable_aws_foundational_standard = true
-  enable_cis_standard              = true
-  enable_pci_dss_standard          = var.enable_pci_compliance
-  enable_nist_standard             = false
-
-  # Alert configuration
-  sns_topic_arn = module.production_alarms.critical_alerts_topic_arn
-
-  tags = local.common_tags
-}
-
-################################################################################
-# CloudWatch Dashboard Module
-# Comprehensive dashboards for operations monitoring
-################################################################################
-
-module "cloudwatch_dashboard" {
-  source = "../../modules/cloudwatch-dashboard"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  # Resource identifiers
-  eks_cluster_name       = module.eks.cluster_name
-  rds_cluster_id         = module.rds.aurora_cluster_id
-  elasticache_cluster_id = module.elasticache.replication_group_id
-  alb_arn_suffix         = module.cloudfront.alb_arn_suffix
-
-  tags = local.common_tags
+output "ecr_repository_urls" {
+  description = "ECR repository URLs for all services"
+  value       = module.ecr.repository_urls
 }

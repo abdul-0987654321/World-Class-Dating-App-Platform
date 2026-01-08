@@ -18,7 +18,6 @@ availability_zones = [
 ]
 
 # EKS - Upgraded from 1.28 to 1.31 (1.29/1.30 past standard support)
-eks_cluster_version = "1.31"
 
 # RDS
 rds_engine_version = "15.6"

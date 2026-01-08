@@ -18,7 +18,6 @@ vpc_cidr           = "10.30.0.0/16"
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
 # EKS Configuration
-eks_cluster_version = "1.29"
 
 # RDS Configuration
 rds_engine_version = "15.4"

@@ -1,6 +1,6 @@
 ################################################################################
 # AWS Terraform Provider Configuration
-# AZURE IS FORBIDDEN - AWS ONLY
+# AWS ECS FARGATE ONLY - NO KUBERNETES/EKS/HELM
 ################################################################################
 
 terraform {
@@ -10,19 +10,7 @@ terraform {
     # AWS Provider - PRIMARY AND ONLY CLOUD PROVIDER
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.27"
-    }
-
-    # Kubernetes Provider - For EKS integration
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
-    }
-
-    # Helm Provider - For Kubernetes package management
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.12"
+      version = "~> 5.0"
     }
 
     # Random Provider - For generating random values
@@ -63,8 +51,11 @@ terraform {
 # - azurerm (Azure Resource Manager)
 # - azuread (Azure Active Directory)
 # - azurestack
+# - kubernetes (Kubernetes - use ECS instead)
+# - helm (Helm - use ECS task definitions instead)
 # - Any Azure-related providers
+# - Any Kubernetes-related providers
 #
-# This infrastructure is AWS-ONLY.
-# Any attempt to add Azure providers will fail validation.
+# This infrastructure is AWS ECS FARGATE ONLY.
+# NO EKS, NO KUBERNETES, NO HELM.
 ################################################################################

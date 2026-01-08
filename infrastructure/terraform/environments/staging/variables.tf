@@ -58,11 +58,6 @@ variable "allowed_cidr_blocks" {
 # EKS Variables
 ################################################################################
 
-variable "eks_cluster_version" {
-  description = "Kubernetes version for EKS"
-  type        = string
-  default     = "1.28"
-}
 
 ################################################################################
 # RDS Variables

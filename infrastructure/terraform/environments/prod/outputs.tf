@@ -1,5 +1,5 @@
 ################################################################################
-# Production Environment Outputs
+# Production Environment Outputs - ECS Fargate
 ################################################################################
 
 # Networking
@@ -18,27 +18,31 @@ output "public_subnet_ids" {
   value       = module.networking.public_subnet_ids
 }
 
-# EKS
-output "eks_cluster_name" {
-  description = "EKS cluster name"
-  value       = module.eks.cluster_name
+# ECS Cluster
+output "ecs_cluster_name" {
+  description = "ECS cluster name"
+  value       = module.ecs_cluster.cluster_name
 }
 
-output "eks_cluster_endpoint" {
-  description = "EKS cluster endpoint"
-  value       = module.eks.cluster_endpoint
-  sensitive   = true
+output "ecs_cluster_arn" {
+  description = "ECS cluster ARN"
+  value       = module.ecs_cluster.cluster_arn
 }
 
-output "eks_cluster_certificate_authority" {
-  description = "EKS cluster CA certificate"
-  value       = module.eks.cluster_certificate_authority_data
-  sensitive   = true
+output "ecs_service_discovery_namespace" {
+  description = "ECS service discovery namespace"
+  value       = module.ecs_cluster.service_discovery_namespace_id
 }
 
-output "eks_oidc_provider_arn" {
-  description = "EKS OIDC provider ARN"
-  value       = module.eks.oidc_provider_arn
+# ECS ALB
+output "alb_dns_name" {
+  description = "Application Load Balancer DNS name"
+  value       = module.ecs_alb.dns_name
+}
+
+output "alb_zone_id" {
+  description = "ALB Zone ID"
+  value       = module.ecs_alb.zone_id
 }
 
 # RDS
@@ -160,4 +164,10 @@ output "waf_web_acl_arn" {
 output "monitoring_sns_topic_arn" {
   description = "Monitoring SNS topic ARN"
   value       = module.monitoring.sns_topic_arn
+}
+
+# KMS
+output "kms_key_arn" {
+  description = "KMS key ARN for ECS encryption"
+  value       = aws_kms_key.ecs.arn
 }

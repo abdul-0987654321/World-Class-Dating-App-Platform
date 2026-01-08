@@ -65,20 +65,8 @@ variable "availability_zones" {
 }
 
 ################################################################################
-# EKS
-################################################################################
 
-variable "eks_cluster_version" {
-  description = "EKS cluster version"
-  type        = string
-  default     = "1.29"
-}
 
-variable "allowed_cidr_blocks" {
-  description = "CIDR blocks allowed to access EKS API (not used in prod - private only)"
-  type        = list(string)
-  default     = []
-}
 
 ################################################################################
 # RDS
