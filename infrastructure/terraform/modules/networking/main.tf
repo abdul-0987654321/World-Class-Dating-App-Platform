@@ -14,10 +14,28 @@ terraform {
 }
 
 ################################################################################
+# Local Variables
+################################################################################
+
+locals {
+  # Use existing VPC or create new one
+  vpc_id = var.use_existing_vpc ? var.existing_vpc_id : aws_vpc.main[0].id
+
+  # Use existing subnets or created ones
+  public_subnet_ids = var.use_existing_vpc ? var.existing_public_subnet_ids : aws_subnet.public[*].id
+  private_subnet_ids = var.use_existing_vpc ? var.existing_private_subnet_ids : aws_subnet.private[*].id
+  database_subnet_ids = var.use_existing_vpc ? (
+    length(var.existing_database_subnet_ids) > 0 ? var.existing_database_subnet_ids : var.existing_private_subnet_ids
+  ) : aws_subnet.database[*].id
+}
+
+################################################################################
 # VPC
 ################################################################################
 
 resource "aws_vpc" "main" {
+  count = var.use_existing_vpc ? 0 : 1
+
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -32,7 +50,9 @@ resource "aws_vpc" "main" {
 ################################################################################
 
 resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
+  count = var.use_existing_vpc ? 0 : 1
+
+  vpc_id = aws_vpc.main[0].id
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-${var.environment}-igw"
@@ -44,9 +64,9 @@ resource "aws_internet_gateway" "main" {
 ################################################################################
 
 resource "aws_subnet" "public" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
-  vpc_id                  = aws_vpc.main.id
+  vpc_id                  = aws_vpc.main[0].id
   cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index)
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
@@ -63,9 +83,9 @@ resource "aws_subnet" "public" {
 ################################################################################
 
 resource "aws_subnet" "private" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = aws_vpc.main[0].id
   cidr_block        = cidrsubnet(var.vpc_cidr, 4, count.index + length(var.availability_zones))
   availability_zone = var.availability_zones[count.index]
 
@@ -81,9 +101,9 @@ resource "aws_subnet" "private" {
 ################################################################################
 
 resource "aws_subnet" "database" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = aws_vpc.main[0].id
   cidr_block        = cidrsubnet(var.vpc_cidr, 4, count.index + (2 * length(var.availability_zones)))
   availability_zone = var.availability_zones[count.index]
 
@@ -97,7 +117,7 @@ resource "aws_subnet" "database" {
 ################################################################################
 
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
+  count  = var.use_existing_vpc ? 0 : (var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0)
   domain = "vpc"
 
   tags = merge(var.tags, {
@@ -112,7 +132,7 @@ resource "aws_eip" "nat" {
 ################################################################################
 
 resource "aws_nat_gateway" "main" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0)
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
@@ -129,11 +149,13 @@ resource "aws_nat_gateway" "main" {
 ################################################################################
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
+  count = var.use_existing_vpc ? 0 : 1
+
+  vpc_id = aws_vpc.main[0].id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
+    gateway_id = aws_internet_gateway.main[0].id
   }
 
   tags = merge(var.tags, {
@@ -142,10 +164,10 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
   subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.public[0].id
 }
 
 ################################################################################
@@ -153,9 +175,9 @@ resource "aws_route_table_association" "public" {
 ################################################################################
 
 resource "aws_route_table" "private" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 1
+  count = var.use_existing_vpc ? 0 : (var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 1)
 
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main[0].id
 
   dynamic "route" {
     for_each = var.enable_nat_gateway ? [1] : []
@@ -171,14 +193,14 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index].id
 }
 
 resource "aws_route_table_association" "database" {
-  count = length(var.availability_zones)
+  count = var.use_existing_vpc ? 0 : length(var.availability_zones)
 
   subnet_id      = aws_subnet.database[count.index].id
   route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[min(count.index, length(aws_route_table.private) - 1)].id
@@ -189,12 +211,12 @@ resource "aws_route_table_association" "database" {
 ################################################################################
 
 resource "aws_flow_log" "main" {
-  count = var.enable_flow_logs ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_flow_logs ? 1 : 0)
 
   iam_role_arn    = aws_iam_role.flow_logs[0].arn
   log_destination = aws_cloudwatch_log_group.flow_logs[0].arn
   traffic_type    = "ALL"
-  vpc_id          = aws_vpc.main.id
+  vpc_id          = local.vpc_id
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-${var.environment}-flow-logs"
@@ -202,7 +224,7 @@ resource "aws_flow_log" "main" {
 }
 
 resource "aws_cloudwatch_log_group" "flow_logs" {
-  count = var.enable_flow_logs ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_flow_logs ? 1 : 0)
 
   name              = "/aws/vpc/${var.project_name}-${var.environment}/flow-logs"
   retention_in_days = var.flow_logs_retention_days
@@ -212,7 +234,7 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
 }
 
 resource "aws_iam_role" "flow_logs" {
-  count = var.enable_flow_logs ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_flow_logs ? 1 : 0)
 
   name = "${var.project_name}-${var.environment}-flow-logs-role"
 
@@ -233,7 +255,7 @@ resource "aws_iam_role" "flow_logs" {
 }
 
 resource "aws_iam_role_policy" "flow_logs" {
-  count = var.enable_flow_logs ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_flow_logs ? 1 : 0)
 
   name = "${var.project_name}-${var.environment}-flow-logs-policy"
   role = aws_iam_role.flow_logs[0].id
@@ -261,9 +283,9 @@ resource "aws_iam_role_policy" "flow_logs" {
 ################################################################################
 
 resource "aws_vpc_endpoint" "s3" {
-  count = var.enable_vpc_endpoints ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_vpc_endpoints ? 1 : 0)
 
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = local.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = aws_route_table.private[*].id
@@ -274,9 +296,9 @@ resource "aws_vpc_endpoint" "s3" {
 }
 
 resource "aws_vpc_endpoint" "ecr_api" {
-  count = var.enable_vpc_endpoints ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_vpc_endpoints ? 1 : 0)
 
-  vpc_id              = aws_vpc.main.id
+  vpc_id              = local.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = aws_subnet.private[*].id
@@ -289,9 +311,9 @@ resource "aws_vpc_endpoint" "ecr_api" {
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
-  count = var.enable_vpc_endpoints ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_vpc_endpoints ? 1 : 0)
 
-  vpc_id              = aws_vpc.main.id
+  vpc_id              = local.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = aws_subnet.private[*].id
@@ -304,9 +326,9 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
 }
 
 resource "aws_vpc_endpoint" "secretsmanager" {
-  count = var.enable_vpc_endpoints ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_vpc_endpoints ? 1 : 0)
 
-  vpc_id              = aws_vpc.main.id
+  vpc_id              = local.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = aws_subnet.private[*].id
@@ -319,11 +341,11 @@ resource "aws_vpc_endpoint" "secretsmanager" {
 }
 
 resource "aws_security_group" "vpc_endpoints" {
-  count = var.enable_vpc_endpoints ? 1 : 0
+  count = var.use_existing_vpc ? 0 : (var.enable_vpc_endpoints ? 1 : 0)
 
   name_prefix = "${var.project_name}-${var.environment}-vpc-endpoints-"
   description = "Security group for VPC endpoints"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
 
   ingress {
     description = "HTTPS from VPC"
@@ -355,9 +377,11 @@ resource "aws_security_group" "vpc_endpoints" {
 ################################################################################
 
 resource "aws_db_subnet_group" "main" {
+  count = var.use_existing_vpc ? 0 : 1
+
   name        = "${var.project_name}-${var.environment}-db-subnet-group"
   description = "Database subnet group for ${var.project_name} ${var.environment}"
-  subnet_ids  = aws_subnet.database[*].id
+  subnet_ids  = local.database_subnet_ids
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-${var.environment}-db-subnet-group"
@@ -369,9 +393,11 @@ resource "aws_db_subnet_group" "main" {
 ################################################################################
 
 resource "aws_elasticache_subnet_group" "main" {
+  count = var.use_existing_vpc ? 0 : 1
+
   name        = "${var.project_name}-${var.environment}-cache-subnet-group"
   description = "ElastiCache subnet group for ${var.project_name} ${var.environment}"
-  subnet_ids  = aws_subnet.database[*].id
+  subnet_ids  = local.database_subnet_ids
 
   tags = var.tags
 }

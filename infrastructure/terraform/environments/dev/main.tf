@@ -23,10 +23,10 @@ terraform {
 
   backend "s3" {
     bucket         = "flamoral-terraform-state-992382449461"
-    key            = "dev/terraform.tfstate"
+    key            = "flamoral/dev/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "terraform-state-lock"
+    dynamodb_table = "flamoral-terraform-locks"
   }
 }
 
@@ -177,10 +177,17 @@ module "networking" {
   availability_zones = var.availability_zones
   cluster_name       = "${var.project_name}-${var.environment}-ecs"
 
-  enable_nat_gateway   = true
-  single_nat_gateway   = true # Cost optimization for dev
-  enable_flow_logs     = true
-  enable_vpc_endpoints = true
+  # Use existing dev-vpc to avoid VPC limit issues
+  use_existing_vpc            = true
+  existing_vpc_id             = "vpc-0c2bfd018fd47e71e"
+  existing_public_subnet_ids  = ["subnet-0d2cff7b202bb18b7", "subnet-0a7aa44e8ef3e13fc"]
+  existing_private_subnet_ids = ["subnet-0ce55ec05b318a63c", "subnet-01964b38a9af18356"]
+  existing_database_subnet_ids = ["subnet-0c70078dfecee736b", "subnet-0d6010d23969f7599"]
+
+  enable_nat_gateway   = false # NAT already exists in shared VPC
+  single_nat_gateway   = true
+  enable_flow_logs     = false # Flow logs already configured
+  enable_vpc_endpoints = false # VPC endpoints already exist
 
   tags = local.common_tags
 }
