@@ -374,18 +374,8 @@ resource "aws_security_group" "ecs_tasks" {
   }
 }
 
-# Allow inbound from ALB
-resource "aws_security_group_rule" "ecs_tasks_from_alb" {
-  count = var.alb_security_group_id != null ? 1 : 0
-
-  type                     = "ingress"
-  from_port                = 0
-  to_port                  = 65535
-  protocol                 = "tcp"
-  source_security_group_id = var.alb_security_group_id
-  security_group_id        = aws_security_group.ecs_tasks.id
-  description              = "Allow inbound from ALB"
-}
+# Note: ALB ingress rule should be created in the environment config
+# after both ECS cluster and ALB modules are instantiated to avoid circular dependency
 
 # Allow inter-service communication within ECS tasks
 resource "aws_security_group_rule" "ecs_tasks_self" {

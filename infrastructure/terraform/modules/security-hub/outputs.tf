@@ -42,9 +42,9 @@ output "automation_rules" {
   value       = { for k, v in aws_securityhub_automation_rule.main : k => v.arn }
 }
 
-output "finding_aggregator_arn" {
-  description = "ARN of the finding aggregator (if enabled)"
-  value       = var.enable_finding_aggregator ? try(aws_securityhub_finding_aggregator.main[0].arn, null) : null
+output "finding_aggregator_id" {
+  description = "ID of the finding aggregator (if enabled)"
+  value       = var.enable_finding_aggregator ? try(aws_securityhub_finding_aggregator.main[0].id, null) : null
 }
 
 output "cis_standard_arn" {

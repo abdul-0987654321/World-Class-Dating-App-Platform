@@ -85,3 +85,12 @@ output "event_rule_arns" {
   description = "Map of EventBridge rule ARNs"
   value       = { for k, v in aws_cloudwatch_event_rule.main : k => v.arn }
 }
+
+# Queue Names
+output "queue_names" {
+  description = "Map of queue names"
+  value = merge(
+    { for k, v in aws_sqs_queue.standard : k => v.name },
+    { for k, v in aws_sqs_queue.fifo : k => v.name }
+  )
+}

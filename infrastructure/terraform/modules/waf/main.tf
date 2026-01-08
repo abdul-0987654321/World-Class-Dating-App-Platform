@@ -88,6 +88,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "waf_logs" {
     id     = "log-expiration"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = var.log_retention_days > 30 ? 30 : var.log_retention_days
       storage_class = "STANDARD_IA"

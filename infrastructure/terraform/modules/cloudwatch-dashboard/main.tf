@@ -37,6 +37,898 @@ locals {
     Module      = "cloudwatch-dashboard"
     ManagedBy   = "terraform"
   })
+
+  # Operations Dashboard widgets - built conditionally
+  ops_header_widgets = [
+    {
+      type   = "text"
+      x      = 0
+      y      = 0
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "# ${var.project_name} Operations Dashboard - ${upper(var.environment)}"
+        background = "transparent"
+      }
+    }
+  ]
+
+  ops_eks_widgets = var.eks_cluster_name != null ? [
+    {
+      type   = "text"
+      x      = 0
+      y      = 1
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## EKS Cluster Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Pod CPU Utilization"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["ContainerInsights", "pod_cpu_utilization", "ClusterName", var.eks_cluster_name],
+          [".", "pod_cpu_utilization_over_pod_limit", ".", "."]
+        ]
+        yAxis = {
+          left = {
+            min   = 0
+            max   = 100
+            label = "Percent"
+          }
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Pod Memory Utilization"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["ContainerInsights", "pod_memory_utilization", "ClusterName", var.eks_cluster_name],
+          [".", "pod_memory_utilization_over_pod_limit", ".", "."]
+        ]
+        yAxis = {
+          left = {
+            min   = 0
+            max   = 100
+            label = "Percent"
+          }
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Cluster Node Count"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["ContainerInsights", "cluster_node_count", "ClusterName", var.eks_cluster_name]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 8
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Pod Network Traffic"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["ContainerInsights", "pod_network_rx_bytes", "ClusterName", var.eks_cluster_name, { label = "RX Bytes" }],
+          [".", "pod_network_tx_bytes", ".", ".", { label = "TX Bytes" }]
+        ]
+        yAxis = {
+          left = {
+            label = "Bytes"
+          }
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = 8
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Running Pods"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["ContainerInsights", "cluster_running_pod_count", "ClusterName", var.eks_cluster_name]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = 8
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Failed Pods"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Sum"
+        metrics = [
+          ["ContainerInsights", "cluster_failed_pod_count", "ClusterName", var.eks_cluster_name]
+        ]
+      }
+    }
+  ] : []
+
+  ops_rds_y_offset = var.eks_cluster_name != null ? 14 : 1
+  ops_rds_widgets = var.rds_cluster_id != null ? [
+    {
+      type   = "text"
+      x      = 0
+      y      = local.ops_rds_y_offset
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## RDS Aurora Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ops_rds_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "CPU Utilization"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "CPUUtilization", "DBClusterIdentifier", var.rds_cluster_id]
+        ]
+        yAxis = {
+          left = {
+            min   = 0
+            max   = 100
+            label = "Percent"
+          }
+        }
+        annotations = {
+          horizontal = [
+            { label = "Critical", value = 90, color = "#ff0000" },
+            { label = "Warning", value = 70, color = "#ff9900" }
+          ]
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 6
+      y      = local.ops_rds_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Database Connections"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "DatabaseConnections", "DBClusterIdentifier", var.rds_cluster_id]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 12
+      y      = local.ops_rds_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Read/Write Latency"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "ReadLatency", "DBClusterIdentifier", var.rds_cluster_id, { label = "Read Latency" }],
+          [".", "WriteLatency", ".", ".", { label = "Write Latency" }]
+        ]
+        yAxis = { left = { label = "Seconds" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 18
+      y      = local.ops_rds_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Freeable Memory"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "FreeableMemory", "DBClusterIdentifier", var.rds_cluster_id]
+        ]
+        yAxis = { left = { label = "Bytes" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ops_rds_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Read/Write IOPS"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "ReadIOPS", "DBClusterIdentifier", var.rds_cluster_id, { label = "Read IOPS" }],
+          [".", "WriteIOPS", ".", ".", { label = "Write IOPS" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 6
+      y      = local.ops_rds_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Network Throughput"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "NetworkReceiveThroughput", "DBClusterIdentifier", var.rds_cluster_id, { label = "Receive" }],
+          [".", "NetworkTransmitThroughput", ".", ".", { label = "Transmit" }]
+        ]
+        yAxis = { left = { label = "Bytes/Second" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 12
+      y      = local.ops_rds_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Buffer Cache Hit Ratio"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/RDS", "BufferCacheHitRatio", "DBClusterIdentifier", var.rds_cluster_id]
+        ]
+        yAxis = { left = { min = 0, max = 100, label = "Percent" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 18
+      y      = local.ops_rds_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Deadlocks"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Sum"
+        metrics = [
+          ["AWS/RDS", "Deadlocks", "DBClusterIdentifier", var.rds_cluster_id]
+        ]
+      }
+    }
+  ] : []
+
+  ops_elasticache_y_offset = local.ops_rds_y_offset + (var.rds_cluster_id != null ? 14 : 0)
+  ops_elasticache_widgets = var.elasticache_cluster_id != null ? [
+    {
+      type   = "text"
+      x      = 0
+      y      = local.ops_elasticache_y_offset
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## ElastiCache Redis Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ops_elasticache_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "CPU Utilization"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/ElastiCache", "CPUUtilization", "CacheClusterId", var.elasticache_cluster_id],
+          [".", "EngineCPUUtilization", ".", "."]
+        ]
+        yAxis = { left = { min = 0, max = 100, label = "Percent" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 6
+      y      = local.ops_elasticache_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Memory Usage"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/ElastiCache", "DatabaseMemoryUsagePercentage", "CacheClusterId", var.elasticache_cluster_id],
+          [".", "BytesUsedForCache", ".", "."]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 12
+      y      = local.ops_elasticache_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Cache Hit Rate"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/ElastiCache", "CacheHitRate", "CacheClusterId", var.elasticache_cluster_id]
+        ]
+        yAxis = { left = { min = 0, max = 100, label = "Percent" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 18
+      y      = local.ops_elasticache_y_offset + 1
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Current Connections"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/ElastiCache", "CurrConnections", "CacheClusterId", var.elasticache_cluster_id],
+          [".", "NewConnections", ".", "."]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ops_elasticache_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Cache Hits/Misses"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ElastiCache", "CacheHits", "CacheClusterId", var.elasticache_cluster_id, { label = "Hits" }],
+          [".", "CacheMisses", ".", ".", { label = "Misses" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 6
+      y      = local.ops_elasticache_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Get/Set Commands"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ElastiCache", "GetTypeCmds", "CacheClusterId", var.elasticache_cluster_id, { label = "GET" }],
+          [".", "SetTypeCmds", ".", ".", { label = "SET" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 12
+      y      = local.ops_elasticache_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Evictions"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ElastiCache", "Evictions", "CacheClusterId", var.elasticache_cluster_id]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 18
+      y      = local.ops_elasticache_y_offset + 7
+      width  = 6
+      height = 6
+      properties = {
+        title   = "Replication Lag"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 300
+        stat    = "Average"
+        metrics = [
+          ["AWS/ElastiCache", "ReplicationLag", "CacheClusterId", var.elasticache_cluster_id]
+        ]
+        yAxis = { left = { label = "Seconds" } }
+      }
+    }
+  ] : []
+
+  # API Performance Dashboard widgets
+  api_header_widgets = [
+    {
+      type   = "text"
+      x      = 0
+      y      = 0
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "# ${var.project_name} API Performance Dashboard - ${upper(var.environment)}"
+        background = "transparent"
+      }
+    }
+  ]
+
+  api_alb_widgets = var.alb_arn_suffix != null ? [
+    {
+      type   = "text"
+      x      = 0
+      y      = 1
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## Application Load Balancer Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Request Count"
+        region  = local.region
+        stacked = true
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", var.alb_arn_suffix, { label = "Total Requests" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Target Response Time"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Average"
+        metrics = [
+          ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", var.alb_arn_suffix, { label = "Avg Response Time" }],
+          ["...", { stat = "p50", label = "p50" }],
+          ["...", { stat = "p90", label = "p90" }],
+          ["...", { stat = "p99", label = "p99" }]
+        ]
+        yAxis = { left = { label = "Seconds" } }
+        annotations = {
+          horizontal = [
+            { label = "SLA Target", value = 0.5, color = "#2ca02c" },
+            { label = "Warning", value = 1.0, color = "#ff9900" },
+            { label = "Critical", value = 2.0, color = "#ff0000" }
+          ]
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = 2
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Active Connections"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "ActiveConnectionCount", "LoadBalancer", var.alb_arn_suffix],
+          [".", "NewConnectionCount", ".", "."]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 8
+      width  = 6
+      height = 6
+      properties = {
+        title   = "HTTP 2xx Responses"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "HTTPCode_Target_2XX_Count", "LoadBalancer", var.alb_arn_suffix, { color = "#2ca02c" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 6
+      y      = 8
+      width  = 6
+      height = 6
+      properties = {
+        title   = "HTTP 3xx Responses"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "HTTPCode_Target_3XX_Count", "LoadBalancer", var.alb_arn_suffix, { color = "#1f77b4" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 12
+      y      = 8
+      width  = 6
+      height = 6
+      properties = {
+        title   = "HTTP 4xx Errors (Client)"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "HTTPCode_Target_4XX_Count", "LoadBalancer", var.alb_arn_suffix, { color = "#ff9900", label = "Target 4XX" }],
+          [".", "HTTPCode_ELB_4XX_Count", ".", ".", { color = "#d62728", label = "ELB 4XX" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 18
+      y      = 8
+      width  = 6
+      height = 6
+      properties = {
+        title   = "HTTP 5xx Errors (Server)"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", var.alb_arn_suffix, { color = "#ff0000", label = "Target 5XX" }],
+          [".", "HTTPCode_ELB_5XX_Count", ".", ".", { color = "#9467bd", label = "ELB 5XX" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 14
+      width  = 8
+      height = 6
+      properties = {
+        title  = "Error Rate (%)"
+        region = local.region
+        stacked = false
+        view   = "timeSeries"
+        period = 60
+        metrics = [
+          [{ expression = "(m1+m2)/(m3+0.0001)*100", label = "Error Rate %", id = "e1", color = "#ff0000" }],
+          ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", var.alb_arn_suffix, { id = "m1", visible = false }],
+          [".", "HTTPCode_ELB_5XX_Count", ".", ".", { id = "m2", visible = false }],
+          [".", "RequestCount", ".", ".", { id = "m3", visible = false }]
+        ]
+        yAxis = { left = { min = 0, max = 10, label = "Percent" } }
+        annotations = {
+          horizontal = [
+            { label = "Target", value = 0.1, color = "#2ca02c" },
+            { label = "Warning", value = 1, color = "#ff9900" },
+            { label = "Critical", value = 5, color = "#ff0000" }
+          ]
+        }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = 14
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Healthy vs Unhealthy Hosts"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Average"
+        metrics = [
+          ["AWS/ApplicationELB", "HealthyHostCount", "LoadBalancer", var.alb_arn_suffix, { color = "#2ca02c", label = "Healthy" }],
+          [".", "UnHealthyHostCount", ".", ".", { color = "#ff0000", label = "Unhealthy" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = 14
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Processed Bytes"
+        region  = local.region
+        stacked = true
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApplicationELB", "ProcessedBytes", "LoadBalancer", var.alb_arn_suffix]
+        ]
+        yAxis = { left = { label = "Bytes" } }
+      }
+    }
+  ] : []
+
+  api_gateway_y_offset = var.alb_arn_suffix != null ? 20 : 1
+  api_gateway_widgets = var.api_gateway_id != null ? [
+    {
+      type   = "text"
+      x      = 0
+      y      = local.api_gateway_y_offset
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## API Gateway Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.api_gateway_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "API Requests"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApiGateway", "Count", "ApiId", var.api_gateway_id]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = local.api_gateway_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "API Latency"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        metrics = [
+          ["AWS/ApiGateway", "Latency", "ApiId", var.api_gateway_id, { stat = "Average", label = "Average" }],
+          ["...", { stat = "p50", label = "p50" }],
+          ["...", { stat = "p90", label = "p90" }],
+          ["...", { stat = "p99", label = "p99" }]
+        ]
+        yAxis = { left = { label = "Milliseconds" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = local.api_gateway_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "API Errors"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["AWS/ApiGateway", "4XXError", "ApiId", var.api_gateway_id, { color = "#ff9900", label = "4XX Errors" }],
+          [".", "5XXError", ".", ".", { color = "#ff0000", label = "5XX Errors" }]
+        ]
+      }
+    }
+  ] : []
+
+  api_app_y_offset = local.api_gateway_y_offset + (var.api_gateway_id != null ? 8 : 0)
+  api_app_widgets = [
+    {
+      type   = "text"
+      x      = 0
+      y      = local.api_app_y_offset
+      width  = 24
+      height = 1
+      properties = {
+        markdown   = "## Application Performance Metrics"
+        background = "transparent"
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.api_app_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "API Endpoint Latency by Service"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Average"
+        metrics = [
+          ["${var.project_name}/${var.environment}", "api_latency_ms", "service", "user-service", { label = "User Service" }],
+          ["...", "matching-service", { label = "Matching Service" }],
+          ["...", "messaging-service", { label = "Messaging Service" }],
+          ["...", "payment-service", { label = "Payment Service" }]
+        ]
+        yAxis = { left = { label = "Milliseconds" } }
+      }
+    },
+    {
+      type   = "metric"
+      x      = 8
+      y      = local.api_app_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Request Rate by Service"
+        region  = local.region
+        stacked = true
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["${var.project_name}/${var.environment}", "request_count", "service", "user-service", { label = "User Service" }],
+          ["...", "matching-service", { label = "Matching Service" }],
+          ["...", "messaging-service", { label = "Messaging Service" }],
+          ["...", "payment-service", { label = "Payment Service" }]
+        ]
+      }
+    },
+    {
+      type   = "metric"
+      x      = 16
+      y      = local.api_app_y_offset + 1
+      width  = 8
+      height = 6
+      properties = {
+        title   = "Error Rate by Service"
+        region  = local.region
+        stacked = false
+        view    = "timeSeries"
+        period  = 60
+        stat    = "Sum"
+        metrics = [
+          ["${var.project_name}/${var.environment}", "error_count", "service", "user-service", { label = "User Service" }],
+          ["...", "matching-service", { label = "Matching Service" }],
+          ["...", "messaging-service", { label = "Messaging Service" }],
+          ["...", "payment-service", { label = "Payment Service" }]
+        ]
+      }
+    }
+  ]
 }
 
 ################################################################################
@@ -48,180 +940,48 @@ resource "aws_cloudwatch_dashboard" "operations" {
   dashboard_name = "${local.name_prefix}-operations"
 
   dashboard_body = jsonencode({
-    widgets = concat(
-      # Header
-      [
-        {
-          type   = "text"
-          x      = 0
-          y      = 0
-          width  = 24
-          height = 1
-          properties = {
-            markdown   = "# ${var.project_name} Operations Dashboard - ${upper(var.environment)}"
-            background = "transparent"
-          }
-        }
-      ],
+    widgets = flatten([
+      local.ops_header_widgets,
+      local.ops_eks_widgets,
+      local.ops_rds_widgets,
+      local.ops_elasticache_widgets
+    ])
+  })
+}
 
-      # EKS Cluster Section
-      var.eks_cluster_name != null ? [
-        {
-          type   = "text"
-          x      = 0
-          y      = 1
-          width  = 24
-          height = 1
-          properties = {
-            markdown   = "## EKS Cluster Metrics"
-            background = "transparent"
-          }
-        },
-        {
-          type   = "metric"
-          x      = 0
-          y      = 2
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Pod CPU Utilization"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Average"
-            metrics = [
-              ["ContainerInsights", "pod_cpu_utilization", "ClusterName", var.eks_cluster_name],
-              [".", "pod_cpu_utilization_over_pod_limit", ".", "."]
-            ]
-            yAxis = {
-              left = {
-                min   = 0
-                max   = 100
-                label = "Percent"
-              }
-            }
-          }
-        },
-        {
-          type   = "metric"
-          x      = 8
-          y      = 2
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Pod Memory Utilization"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Average"
-            metrics = [
-              ["ContainerInsights", "pod_memory_utilization", "ClusterName", var.eks_cluster_name],
-              [".", "pod_memory_utilization_over_pod_limit", ".", "."]
-            ]
-            yAxis = {
-              left = {
-                min   = 0
-                max   = 100
-                label = "Percent"
-              }
-            }
-          }
-        },
-        {
-          type   = "metric"
-          x      = 16
-          y      = 2
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Cluster Node Count"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Average"
-            metrics = [
-              ["ContainerInsights", "cluster_node_count", "ClusterName", var.eks_cluster_name]
-            ]
-          }
-        },
-        {
-          type   = "metric"
-          x      = 0
-          y      = 8
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Pod Network Traffic"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Average"
-            metrics = [
-              ["ContainerInsights", "pod_network_rx_bytes", "ClusterName", var.eks_cluster_name, { label = "RX Bytes" }],
-              [".", "pod_network_tx_bytes", ".", ".", { label = "TX Bytes" }]
-            ]
-            yAxis = {
-              left = {
-                label = "Bytes"
-              }
-            }
-          }
-        },
-        {
-          type   = "metric"
-          x      = 8
-          y      = 8
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Running Pods"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Average"
-            metrics = [
-              ["ContainerInsights", "cluster_running_pod_count", "ClusterName", var.eks_cluster_name]
-            ]
-          }
-        },
-        {
-          type   = "metric"
-          x      = 16
-          y      = 8
-          width  = 8
-          height = 6
-          properties = {
-            title   = "Failed Pods"
-            region  = local.region
-            stacked = false
-            view    = "timeSeries"
-            period  = 300
-            stat    = "Sum"
-            metrics = [
-              ["ContainerInsights", "cluster_failed_pod_count", "ClusterName", var.eks_cluster_name]
-            ]
-          }
-        }
-      ] : [],
+################################################################################
+# API Performance Dashboard
+# Monitors latency, error rates, and request counts
+################################################################################
 
-      # RDS Section
-      var.rds_cluster_id != null ? [
-        {
-          type   = "text"
-          x      = 0
-          y      = var.eks_cluster_name != null ? 14 : 1
-          width  = 24
-          height = 1
-          properties = {
-            markdown   = "## RDS Aurora Metrics"
-            background = "transparent"
-          }
-        },
+resource "aws_cloudwatch_dashboard" "api_performance" {
+  dashboard_name = "${local.name_prefix}-api-performance"
+
+  dashboard_body = jsonencode({
+    widgets = flatten([
+      local.api_header_widgets,
+      local.api_alb_widgets,
+      local.api_gateway_widgets,
+      local.api_app_widgets
+    ])
+  })
+}
+
+################################################################################
+# Business Metrics Dashboard
+# Monitors user registrations, matches, messages, and engagement
+# NOTE: Moved to separate resource section below
+################################################################################
+
+# Placeholder for remaining dashboard content that doesn't have conditionals
+# The business_metrics and cost dashboards don't have conditional type issues
+# so they remain unchanged
+
+################################################################################
+# Business Metrics Dashboard
+# Monitors user registrations, matches, messages, and engagement
+# NOTE: This dashboard uses static widget lists (no conditional type issues)
+################################################################################
         {
           type   = "metric"
           x      = 0

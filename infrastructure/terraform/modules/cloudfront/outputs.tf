@@ -46,3 +46,13 @@ output "media_cache_policy_id" {
   description = "Media cache policy ID"
   value       = var.media_cache_policy_id != null ? var.media_cache_policy_id : (length(aws_cloudfront_cache_policy.media) > 0 ? aws_cloudfront_cache_policy.media[0].id : null)
 }
+
+output "waf_web_acl_name" {
+  description = "WAF Web ACL name"
+  value       = var.enable_waf ? aws_wafv2_web_acl.main[0].name : null
+}
+
+output "alb_arn_suffix" {
+  description = "ALB ARN suffix - not managed by CloudFront module, returns null"
+  value       = null
+}

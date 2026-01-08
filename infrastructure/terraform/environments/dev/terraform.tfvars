@@ -17,8 +17,7 @@ availability_zones = [
   "us-east-1c"
 ]
 
-# EKS - Upgraded from 1.28 to 1.31 (1.29/1.30 past standard support)
-eks_cluster_version = "1.31"
+# ECS Fargate - No cluster version needed (serverless)
 
 # RDS
 rds_engine_version = "15.6"

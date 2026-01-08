@@ -97,8 +97,5 @@ variable "enable_service_discovery" {
 # Security
 ################################################################################
 
-variable "alb_security_group_id" {
-  description = "Security group ID of the ALB to allow inbound traffic from"
-  type        = string
-  default     = null
-}
+# Note: ALB security group rule should be created in environment config
+# to avoid circular dependency between ECS cluster and ALB modules

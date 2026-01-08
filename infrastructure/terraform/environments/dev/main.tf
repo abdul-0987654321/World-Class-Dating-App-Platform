@@ -211,10 +211,22 @@ module "ecs_cluster" {
   # Enable service discovery for internal communication
   enable_service_discovery = true
 
-  # ALB security group will be set after ALB is created
-  alb_security_group_id = module.ecs_alb.security_group_id
-
   tags = local.common_tags
+}
+
+################################################################################
+# Security Group Rule: Allow ALB to ECS Tasks
+# Created separately to avoid circular dependency
+################################################################################
+
+resource "aws_security_group_rule" "alb_to_ecs" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
+  source_security_group_id = module.ecs_alb.security_group_id
+  security_group_id        = module.ecs_cluster.security_group_id
+  description              = "Allow inbound from ALB to ECS tasks"
 }
 
 ################################################################################

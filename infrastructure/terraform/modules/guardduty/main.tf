@@ -157,6 +157,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "guardduty_findings" {
     id     = "findings-retention"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = var.findings_transition_to_ia_days
       storage_class = "STANDARD_IA"
