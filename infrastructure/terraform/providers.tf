@@ -4,7 +4,7 @@
 ################################################################################
 
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.7.0"
 
   required_providers {
     # AWS Provider - PRIMARY AND ONLY CLOUD PROVIDER

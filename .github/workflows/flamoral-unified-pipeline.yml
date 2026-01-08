@@ -78,7 +78,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
   ECR_IMAGE_PREFIX: flamoral
-  TERRAFORM_VERSION: '1.6.0'
+  TERRAFORM_VERSION: '1.7.5'
 
 permissions:
   contents: write
