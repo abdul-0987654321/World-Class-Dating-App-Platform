@@ -1,27 +1,83 @@
 {
-  "name": "@dating-app/asset-branding",
+  "name": "@flamoral/asset-branding",
   "version": "1.0.0",
-  "description": "Brand assets, design tokens, and themes for the dating app platform",
-  "main": "src/index.js",
+  "description": "Flamoral Brand System - Design tokens, CSS variables, and Tailwind preset",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./tokens": {
+      "import": "./tokens.json",
+      "require": "./tokens.json"
+    },
+    "./tokens.json": "./tokens.json",
+    "./theme.css": "./theme.css",
+    "./tailwind.preset": {
+      "import": "./tailwind.preset.js",
+      "require": "./tailwind.preset.js"
+    },
+    "./tailwind.preset.js": "./tailwind.preset.js"
+  },
   "files": [
-    "src/",
     "tokens.json",
     "theme.css",
-    "tailwind.preset.js"
+    "tailwind.preset.js",
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "README.md"
   ],
   "scripts": {
-    "build": "echo 'No build step required'",
-    "serve": "npx http-server . -p 3000"
+    "build": "node scripts/build.js",
+    "lint": "eslint .",
+    "test": "jest",
+    "serve": "npx http-server . -p 3000",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "branding",
+    "flamoral",
+    "design-system",
     "design-tokens",
+    "tailwind",
+    "css",
+    "branding",
     "theme",
-    "tailwind"
+    "dating-app"
   ],
-  "author": "Dating App Platform Team",
+  "author": "Flamoral Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flamoral/dating-app-platform.git",
+    "directory": "packages/asset-branding"
+  },
+  "bugs": {
+    "url": "https://github.com/flamoral/dating-app-platform/issues"
+  },
+  "homepage": "https://github.com/flamoral/dating-app-platform/tree/main/packages/asset-branding#readme",
+  "peerDependencies": {
+    "tailwindcss": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "eslint": "^8.56.0",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
