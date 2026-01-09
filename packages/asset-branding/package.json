@@ -1,0 +1,27 @@
+{
+  "name": "@dating-app/asset-branding",
+  "version": "1.0.0",
+  "description": "Brand assets, design tokens, and themes for the dating app platform",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "tokens.json",
+    "theme.css",
+    "tailwind.preset.js"
+  ],
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "serve": "npx http-server . -p 3000"
+  },
+  "keywords": [
+    "branding",
+    "design-tokens",
+    "theme",
+    "tailwind"
+  ],
+  "author": "Dating App Platform Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
