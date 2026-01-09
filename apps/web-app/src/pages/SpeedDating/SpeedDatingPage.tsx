@@ -50,7 +50,7 @@ export const SpeedDatingPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const eventsRes = await fetch('/api/speed-dating/events', { headers });

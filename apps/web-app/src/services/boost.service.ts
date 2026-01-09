@@ -64,7 +64,7 @@ class BoostService {
 
     const response = await fetch('/api/boosts/active', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -84,7 +84,7 @@ class BoostService {
 
     const response = await fetch('/api/boosts/history', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -137,7 +137,7 @@ class BoostService {
 
     const response = await fetch('/api/boosts/packages', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -170,7 +170,7 @@ class BoostService {
     const response = await fetch('/api/boosts/activate', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ packageId, paymentMethod }),
@@ -194,7 +194,7 @@ class BoostService {
 
     const response = await fetch('/api/boosts/stats', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

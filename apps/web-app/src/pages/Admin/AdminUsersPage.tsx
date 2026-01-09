@@ -33,7 +33,7 @@ export const AdminUsersPage: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/users?page=${page}&filter=${filter}&search=${search}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -62,7 +62,7 @@ export const AdminUsersPage: React.FC = () => {
 
   const handleAction = async (userId: string, action: 'ban' | 'unban' | 'verify' | 'delete' | 'reset_password') => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/users/${userId}/${action}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },

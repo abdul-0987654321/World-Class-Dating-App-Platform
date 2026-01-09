@@ -3,6 +3,7 @@
  * Manages push notification permissions and subscriptions
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import { useState, useEffect, useCallback } from 'react';
 
 interface PushNotificationState {
@@ -177,7 +178,7 @@ async function sendSubscriptionToServer(subscription: PushSubscription): Promise
   const response = await fetch('/api/notifications/subscribe', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+      ...authTokenService.getAuthorizationHeader(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(subscription),
@@ -193,7 +194,7 @@ async function removeSubscriptionFromServer(subscription: PushSubscription): Pro
   const response = await fetch('/api/notifications/unsubscribe', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+      ...authTokenService.getAuthorizationHeader(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ endpoint: subscription.endpoint }),

@@ -92,7 +92,7 @@ class ReportService {
     const response = await fetch('/api/reports', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
@@ -140,7 +140,7 @@ class ReportService {
 
     const response = await fetch('/api/reports/my', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -168,7 +168,7 @@ class ReportService {
 
     const response = await fetch(`/api/reports/${reportId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

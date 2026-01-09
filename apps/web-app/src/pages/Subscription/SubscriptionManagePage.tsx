@@ -45,7 +45,7 @@ export const SubscriptionManagePage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = { 'Authorization': `Bearer ${token}` };
 
       // Load subscription
@@ -71,7 +71,7 @@ export const SubscriptionManagePage: React.FC = () => {
   const handleCancelSubscription = async () => {
     setCanceling(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/subscriptions/cancel', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -94,7 +94,7 @@ export const SubscriptionManagePage: React.FC = () => {
 
   const handleReactivateSubscription = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/subscriptions/reactivate', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },

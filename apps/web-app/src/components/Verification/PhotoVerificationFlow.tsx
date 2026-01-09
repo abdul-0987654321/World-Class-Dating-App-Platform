@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { FaCheckCircle, FaTimesCircle, FaSpinner, FaCamera, FaInfoCircle } from 'react-icons/fa';
@@ -84,7 +85,7 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
     const response = await fetch('/api/media/upload', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        ...authTokenService.getAuthorizationHeader(),
       },
       body: formData,
     });
@@ -103,7 +104,7 @@ const PhotoVerificationFlow: React.FC<PhotoVerificationFlowProps> = ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        ...authTokenService.getAuthorizationHeader(),
       },
       body: JSON.stringify({
         userId,

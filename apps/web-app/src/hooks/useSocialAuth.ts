@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+/**
+ * Social Authentication Hook - SECURE VERSION
+ * Handles social login (Google, Apple, Facebook) with secure token storage
+ *
+ * SECURITY FEATURES:
+ * - Uses authTokenService for secure token storage (sessionStorage, not localStorage)
+ * - Uses apiClient for CSRF protection and httpOnly cookie support
+ * - Clears legacy localStorage tokens on login
+ */
 
-// SECURITY: No localhost fallback - production must have VITE_API_URL configured
-const API_URL = import.meta.env.VITE_API_URL;
-if (!API_URL && import.meta.env.PROD) {
-  throw new Error('CRITICAL: VITE_API_URL environment variable is required in production');
-}
+import { useState } from 'react';
+import { authTokenService } from '../services/auth-token.service';
+import apiClient from '../services/api.client';
 
 interface GoogleTokenPayload {
   code?: string;
@@ -32,38 +36,54 @@ interface FacebookTokenPayload {
 
 interface SocialAuthResponse {
   user: any;
-  accessToken: string;
-  refreshToken: string;
   isNewUser: boolean;
   needsProfileSetup: boolean;
 }
 
 export const useSocialAuth = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Store user session after successful social auth
+   * Tokens are expected to be in httpOnly cookies set by the backend
+   */
+  const saveSession = (user: any, accessToken?: string, refreshToken?: string): void => {
+    // Store user in sessionStorage (non-sensitive data)
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+    // If backend returns tokens (mock/dev mode), store them securely
+    if (accessToken) {
+      authTokenService.setTokens(accessToken, refreshToken);
+    }
+
+    // Clear any legacy localStorage tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+  };
 
   const loginWithGoogle = async (payload: GoogleTokenPayload): Promise<SocialAuthResponse> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/google`, payload);
+      const response = await apiClient.post<{ success: boolean; data: any; message?: string }>(
+        '/api/v1/auth/google',
+        payload,
+        { skipAuth: true, skipCsrf: true }
+      );
 
-      if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
-
-        // Store tokens
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-
-        return { user, accessToken, refreshToken, isNewUser, needsProfileSetup };
+      if (response.success) {
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data;
+        saveSession(user, accessToken, refreshToken);
+        return { user, isNewUser, needsProfileSetup };
       } else {
-        throw new Error(response.data.message || 'Google login failed');
+        throw new Error(response.message || 'Google login failed');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Google login failed';
+      const errorMessage = err.message || 'Google login failed';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -76,22 +96,21 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/apple`, payload);
+      const response = await apiClient.post<{ success: boolean; data: any; message?: string }>(
+        '/api/v1/auth/apple',
+        payload,
+        { skipAuth: true, skipCsrf: true }
+      );
 
-      if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
-
-        // Store tokens
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-
-        return { user, accessToken, refreshToken, isNewUser, needsProfileSetup };
+      if (response.success) {
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data;
+        saveSession(user, accessToken, refreshToken);
+        return { user, isNewUser, needsProfileSetup };
       } else {
-        throw new Error(response.data.message || 'Apple login failed');
+        throw new Error(response.message || 'Apple login failed');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Apple login failed';
+      const errorMessage = err.message || 'Apple login failed';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -104,22 +123,21 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/facebook`, payload);
+      const response = await apiClient.post<{ success: boolean; data: any; message?: string }>(
+        '/api/v1/auth/facebook',
+        payload,
+        { skipAuth: true, skipCsrf: true }
+      );
 
-      if (response.data.success) {
-        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data.data;
-
-        // Store tokens
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-
-        return { user, accessToken, refreshToken, isNewUser, needsProfileSetup };
+      if (response.success) {
+        const { user, accessToken, refreshToken, isNewUser, needsProfileSetup } = response.data;
+        saveSession(user, accessToken, refreshToken);
+        return { user, isNewUser, needsProfileSetup };
       } else {
-        throw new Error(response.data.message || 'Facebook login failed');
+        throw new Error(response.message || 'Facebook login failed');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Facebook login failed';
+      const errorMessage = err.message || 'Facebook login failed';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -135,22 +153,16 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        `${API_URL}/api/auth/social/link`,
-        { provider, token },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      const response = await apiClient.post<{ success: boolean; message?: string }>(
+        '/api/v1/auth/social/link',
+        { provider, token }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to link account');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to link account');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to link account';
+      const errorMessage = err.message || 'Failed to link account';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -163,22 +175,16 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        `${API_URL}/api/auth/social/unlink`,
-        { provider },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      const response = await apiClient.post<{ success: boolean; message?: string }>(
+        '/api/v1/auth/social/unlink',
+        { provider }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to unlink account');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to unlink account');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to unlink account';
+      const errorMessage = err.message || 'Failed to unlink account';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -191,20 +197,17 @@ export const useSocialAuth = () => {
     setError(null);
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_URL}/api/auth/social/linked`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await apiClient.get<{ success: boolean; data: any[]; message?: string }>(
+        '/api/v1/auth/social/linked'
+      );
 
-      if (response.data.success) {
-        return response.data.data;
+      if (response.success) {
+        return response.data;
       } else {
-        throw new Error(response.data.message || 'Failed to get linked accounts');
+        throw new Error(response.message || 'Failed to get linked accounts');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to get linked accounts';
+      const errorMessage = err.message || 'Failed to get linked accounts';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

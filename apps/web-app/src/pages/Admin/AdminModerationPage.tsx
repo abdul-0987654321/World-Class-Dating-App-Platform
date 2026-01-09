@@ -27,7 +27,7 @@ export const AdminModerationPage: React.FC = () => {
   const fetchFlaggedContent = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/moderation?type=${filter}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -106,7 +106,7 @@ export const AdminModerationPage: React.FC = () => {
 
   const handleAction = async (contentId: string, action: 'approve' | 'remove' | 'warn') => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/admin/moderation/${contentId}/${action}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },

@@ -3,6 +3,7 @@
  * UI for managing push notification preferences
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
@@ -57,7 +58,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
   useEffect(() => {
     const loadPreferences = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = authTokenService.getToken();
         if (!token) return;
 
         const response = await axios.get('/api/settings/notifications', {
@@ -84,7 +85,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       setError(null);
       setSuccess(null);
 
-      const token = localStorage.getItem('token');
+      const token = authTokenService.getToken();
       if (!token) {
         setError('User not authenticated');
         return;

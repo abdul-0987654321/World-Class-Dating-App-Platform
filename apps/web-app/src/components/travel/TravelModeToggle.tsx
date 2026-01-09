@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import { Plane, MapPin } from 'lucide-react';
 
@@ -67,7 +68,7 @@ export const TravelModeToggle: React.FC<TravelModeToggleProps> = ({
 
   const getAuthToken = async (): Promise<string> => {
     // Implement your auth token retrieval logic
-    return localStorage.getItem('authToken') || '';
+    return authTokenService.getToken() || '';
   };
 
   if (loading) {

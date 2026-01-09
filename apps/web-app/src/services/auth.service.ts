@@ -3,6 +3,7 @@
  * Handles user authentication and session management
  */
 
+import { authTokenService } from './auth-token.service';
 import apiClient, { ApiError } from './api.client';
 
 export interface User {
@@ -59,6 +60,8 @@ export interface RegisterData {
 }
 
 class AuthService {
+  private cachedUser: User | null = null;
+  private cachedEntitlements: Entitlements | null = null;
   private isMock = !import.meta.env.VITE_API_URL;
 
   async login(email: string, password: string): Promise<LoginResponse> {
@@ -171,7 +174,7 @@ class AuthService {
   async getSession(): Promise<SessionResponse | null> {
     if (this.isMock) {
       // Mock session response
-      const storedUser = localStorage.getItem('currentUser');
+      const storedUser = sessionStorage.getItem('currentUser');
       if (!storedUser) return null;
 
       const user = JSON.parse(storedUser);
@@ -296,14 +299,14 @@ class AuthService {
    * Save entitlements to local storage for UI display
    */
   private saveEntitlements(entitlements: Entitlements): void {
-    localStorage.setItem('entitlements', JSON.stringify(entitlements));
+    sessionStorage.setItem('entitlements', JSON.stringify(entitlements));
   }
 
   /**
    * Get stored entitlements (for UI display only)
    */
   getStoredEntitlements(): Entitlements | null {
-    const stored = localStorage.getItem('entitlements');
+    const stored = sessionStorage.getItem('entitlements');
     return stored ? JSON.parse(stored) : null;
   }
 
@@ -317,7 +320,7 @@ class AuthService {
   }
 
   async refreshToken(): Promise<LoginResponse> {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = authTokenService.getRefreshToken();
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -373,26 +376,24 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('authToken');
+    return authTokenService.isAuthenticated();
   }
 
   getToken(): string | null {
-    return localStorage.getItem('authToken');
+    return authTokenService.getToken();
   }
 
   private saveSession(response: LoginResponse): void {
-    localStorage.setItem('authToken', response.token);
-    localStorage.setItem('currentUser', JSON.stringify(response.user));
+    authTokenService.setTokens(response.token, response.refreshToken);
+    sessionStorage.setItem('currentUser', JSON.stringify(response.user));
     if (response.refreshToken) {
-      localStorage.setItem('refreshToken', response.refreshToken);
     }
   }
 
   private clearSession(): void {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('entitlements');
+    authTokenService.clearTokens();
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('entitlements');
     localStorage.removeItem('userGender');
   }
 }

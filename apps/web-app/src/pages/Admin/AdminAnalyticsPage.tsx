@@ -48,7 +48,7 @@ export const AdminAnalyticsPage: React.FC = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/analytics?range=${timeRange}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });

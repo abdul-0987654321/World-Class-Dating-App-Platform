@@ -41,7 +41,7 @@ class BlockService {
     const response = await fetch('/api/users/block', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ userId, reason }),
@@ -66,7 +66,7 @@ class BlockService {
     const response = await fetch(`/api/users/block/${userId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -85,7 +85,7 @@ class BlockService {
 
     const response = await fetch('/api/users/blocked', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -104,7 +104,7 @@ class BlockService {
 
     const response = await fetch(`/api/users/block/check/${userId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

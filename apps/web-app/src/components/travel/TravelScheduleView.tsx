@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import {
   Calendar,
@@ -95,7 +96,7 @@ export const TravelScheduleView: React.FC<TravelScheduleViewProps> = ({
   };
 
   const getAuthToken = async (): Promise<string> => {
-    return localStorage.getItem('authToken') || '';
+    return authTokenService.getToken() || '';
   };
 
   const getStatusColor = (status: string) => {

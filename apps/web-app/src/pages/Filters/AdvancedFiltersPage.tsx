@@ -63,7 +63,7 @@ export const AdvancedFiltersPage: React.FC = () => {
 
   const loadFilters = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/discovery/preferences', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -83,7 +83,7 @@ export const AdvancedFiltersPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/discovery/preferences', {
         method: 'PUT',
         headers: {

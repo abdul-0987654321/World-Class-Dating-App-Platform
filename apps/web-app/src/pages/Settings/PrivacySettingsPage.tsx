@@ -36,7 +36,7 @@ export const PrivacySettingsPage: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/safety/privacy-settings', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -54,7 +54,7 @@ export const PrivacySettingsPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/safety/privacy-settings', {
         method: 'PUT',
         headers: {

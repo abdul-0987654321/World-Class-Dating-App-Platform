@@ -40,7 +40,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/dashboard?range=${timeRange}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });

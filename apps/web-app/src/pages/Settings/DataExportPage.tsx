@@ -26,7 +26,7 @@ export const DataExportPage: React.FC = () => {
   const handleRequestExport = async () => {
     setRequesting(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/users/data-export', {
         method: 'POST',
         headers: {

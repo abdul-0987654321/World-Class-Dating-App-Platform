@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useEffect, useState, useCallback } from 'react';
 
 interface DailyRewardCalendarDay {
@@ -65,7 +66,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
 
       const response = await fetch('/api/v1/gamification/daily-rewards/status', {
         headers: { Authorization: `Bearer ${token}` },
@@ -124,7 +125,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ isOpen, onClose, onRewardCl
     try {
       setClaiming(true);
       setError(null);
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
 
       const response = await fetch('/api/v1/gamification/daily-rewards/claim', {
         method: 'POST',

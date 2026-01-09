@@ -1,3 +1,12 @@
+/**
+ * PhotoWithModerationStatus Component
+ *
+ * SECURITY NOTE: The isAdmin prop should ONLY be passed from components
+ * that have already verified admin status via the useAdminAuth hook or
+ * RequireAdmin component. Never derive isAdmin from localStorage or
+ * client-side state. This prop is for UI display only - sensitive moderation
+ * actions are protected by backend authorization.
+ */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaCheckCircle, FaExclamationTriangle, FaBan, FaHourglass, FaEye } from 'react-icons/fa';

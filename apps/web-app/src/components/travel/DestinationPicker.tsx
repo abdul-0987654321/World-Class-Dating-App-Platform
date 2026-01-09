@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, X, Plane } from 'lucide-react';
 
@@ -98,7 +99,7 @@ export const DestinationPicker: React.FC<DestinationPickerProps> = ({
   };
 
   const getAuthToken = async (): Promise<string> => {
-    return localStorage.getItem('authToken') || '';
+    return authTokenService.getToken() || '';
   };
 
   const handleSelectDestination = (destination: City) => {

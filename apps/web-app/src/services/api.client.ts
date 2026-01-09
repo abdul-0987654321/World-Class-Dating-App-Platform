@@ -4,6 +4,8 @@
  * Includes CSRF protection support
  */
 
+import { authTokenService } from './auth-token.service';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface RequestOptions extends RequestInit {
@@ -128,9 +130,13 @@ class ApiClient {
     return this.fetchCsrfToken();
   }
 
+  /**
+   * Get Authorization header using AuthTokenService
+   * This abstraction allows easy migration to httpOnly cookies
+   */
   private getAuthHeader(): Record<string, string> {
-    const token = localStorage.getItem('authToken');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return authTokenService.getAuthorizationHeader();
+    
   }
 
   /**

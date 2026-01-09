@@ -49,7 +49,7 @@ export const CommunitiesPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const [communitiesRes, eventsRes] = await Promise.all([

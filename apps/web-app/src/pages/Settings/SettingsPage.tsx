@@ -80,7 +80,7 @@ export const SettingsPage: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/users/settings', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -119,7 +119,7 @@ export const SettingsPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/users/settings', {
         method: 'PUT',
         headers: {
@@ -152,7 +152,7 @@ export const SettingsPage: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: {
@@ -179,7 +179,7 @@ export const SettingsPage: React.FC = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/users/account', {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },

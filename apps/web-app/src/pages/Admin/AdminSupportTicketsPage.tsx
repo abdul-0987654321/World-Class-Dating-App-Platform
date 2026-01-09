@@ -41,7 +41,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/admin/tickets?status=${filter !== 'all' ? filter : ''}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -94,7 +94,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/admin/tickets/stats', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -118,7 +118,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
 
   const handleAssign = async (ticketId: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/admin/tickets/${ticketId}/assign`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -133,7 +133,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
     if (!replyMessage.trim()) return;
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/admin/tickets/${ticketId}/messages`, {
         method: 'POST',
         headers: {
@@ -158,7 +158,7 @@ export const AdminSupportTicketsPage: React.FC = () => {
 
   const handleUpdateStatus = async (ticketId: string, status: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/admin/tickets/${ticketId}/status`, {
         method: 'PUT',
         headers: {

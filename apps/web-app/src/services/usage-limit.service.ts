@@ -104,7 +104,7 @@ class UsageLimitService {
 
     const response = await fetch('/api/limits', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -140,7 +140,7 @@ class UsageLimitService {
 
     const response = await fetch(`/api/limits/check/${action}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -161,7 +161,7 @@ class UsageLimitService {
     const response = await fetch(`/api/limits/use/${action}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -226,7 +226,7 @@ class UsageLimitService {
 
     const response = await fetch('/api/limits/user', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

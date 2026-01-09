@@ -95,7 +95,7 @@ export const EnhancedMessagesPage: React.FC = () => {
   }, [messages]);
 
   const setupSocketListeners = () => {
-    const token = localStorage.getItem('authToken') || '';
+    const token = authTokenService.getToken() || '';
     socketService.connect(token).catch(console.error);
 
     // Listen for new messages
@@ -267,7 +267,7 @@ export const EnhancedMessagesPage: React.FC = () => {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
       const message = await response.json();
@@ -314,7 +314,7 @@ export const EnhancedMessagesPage: React.FC = () => {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
       const message = await response.json();
@@ -351,7 +351,7 @@ export const EnhancedMessagesPage: React.FC = () => {
         }),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
       const message = await response.json();
@@ -370,7 +370,7 @@ export const EnhancedMessagesPage: React.FC = () => {
         body: JSON.stringify({ emoji: reaction.emoji }),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 

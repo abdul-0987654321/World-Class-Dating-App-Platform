@@ -1,0 +1,133 @@
+# API Endpoint Inventory - Flamoral Platform
+
+**Generated:** 2026-01-09
+**Status:** Phase 0 Complete
+
+## Executive Summary
+
+| Metric | Count |
+|--------|-------|
+| Total Services | 29 |
+| API Endpoints | 230+ |
+| Payment-Relevant | 45+ |
+| Public Endpoints | 15 |
+| Authenticated | 200+ |
+| Admin-Only | 20+ |
+
+## Critical Security Findings
+
+### HIGH SEVERITY
+1. **Client-Side Authorization Decisions** - Frontend determines feature access via localStorage
+2. **Token Storage in localStorage** - Vulnerable to XSS attacks
+3. **Admin Access Not Role-Gated** - Only token check, no role verification
+4. **Overly Permissive ALB Security Groups** - 0.0.0.0/0 ingress
+5. **Mutable Image Tags** - "latest" tag allowed despite ECR immutability
+
+### MEDIUM SEVERITY
+1. Client-modifiable entitlements in localStorage
+2. Platform version set to "LATEST" (not pinned)
+3. ECS desired_count in ignore_changes
+
+## Service Endpoint Matrix
+
+### Auth Service (12 endpoints)
+| Route | Method | Auth | Payment |
+|-------|--------|------|---------|
+| /api/v1/auth/register | POST | Public | No |
+| /api/v1/auth/login | POST | Public | No |
+| /api/v1/auth/logout | POST | Auth | No |
+| /api/v1/auth/refresh-token | POST | Public | No |
+| /api/v1/auth/verify-email | POST | Public | No |
+| /api/v1/auth/forgot-password | POST | Public | No |
+| /api/v1/auth/reset-password | POST | Public | No |
+| /api/v1/auth/2fa/setup | POST | Auth | No |
+| /api/v1/auth/2fa/verify | POST | Auth | No |
+| /api/v1/auth/2fa/disable | POST | Auth | No |
+| /api/v1/auth/2fa/validate | POST | Public | No |
+| /api/v1/auth/2fa/backup-codes | POST | Auth | No |
+
+### User Service (50+ endpoints)
+| Route | Method | Auth | AuthZ | Payment |
+|-------|--------|------|-------|---------|
+| /api/users/me | GET | Auth | Own | No |
+| /api/users/me | PUT | Auth | Own | No |
+| /api/users/:userId | GET | Auth | Public | No |
+| /api/users/:userId | DELETE | Auth | Own+Admin | No |
+| /api/photos | POST | Auth | Own | Yes |
+| /api/swipes | POST | Auth | Own+TierCap | No |
+| /api/swipes/undo | POST | Auth | Premium+ | Yes |
+| /api/boost/activate | POST | Auth | Own+Balance | Yes |
+| /api/coins/purchase | POST | Auth | Own | Yes |
+| /api/subscriptions/current | GET | Auth | Own | No |
+
+### Payment Service (12 endpoints)
+| Route | Method | Auth | Payment |
+|-------|--------|------|---------|
+| /api/subscriptions/plans | GET | Public | No |
+| /api/payment/subscription/create | POST | Auth | Yes |
+| /api/payment/subscription/cancel | POST | Auth | Yes |
+| /api/payment/create-intent | POST | Auth | Yes |
+| /api/payment/methods/add | POST | Auth | Yes |
+| /api/payment/refund | POST | Admin | Yes |
+| /api/payment/webhook | POST | Webhook | Yes |
+| /api/payment/iap/verify | POST | Auth | Yes |
+
+### Matching Service (25+ endpoints)
+| Route | Method | Auth | AuthZ | Payment |
+|-------|--------|------|-------|---------|
+| /api/v1/discovery/feed | GET | Auth | Tier | No |
+| /api/v1/discovery/like | POST | Auth | DailyCap | No |
+| /api/v1/discovery/super-like | POST | Auth | TierLimit | Yes |
+| /api/matches | GET | Auth | Own | No |
+| /api/matches/:matchId/extend | POST | Auth | Premium+ | Yes |
+| /api/curated-picks | GET | Auth | Plus+ | Yes |
+
+### Messaging Service (30+ endpoints)
+| Route | Method | Auth | AuthZ | Payment |
+|-------|--------|------|-------|---------|
+| /api/conversations | GET | Auth | Own | No |
+| /api/messages | POST | Auth | MatchVerify | No |
+| /api/calls/initiate | POST | Auth | MatchVerify | No |
+| /api/virtual-gifts/send | POST | Auth | Balance | Yes |
+
+### Media Service (15 endpoints)
+| Route | Method | Auth | Payment |
+|-------|--------|------|---------|
+| /api/media/upload | POST | Auth | Yes |
+| /api/verification/photos | POST | Auth | Yes |
+| /api/video/upload | POST | Auth | Yes |
+| /api/voice-note/upload | POST | Auth | Yes |
+
+### Moderation Service (10 endpoints)
+| Route | Method | Auth | AuthZ |
+|-------|--------|------|-------|
+| /api/moderation/image | POST | Mod | Role |
+| /api/moderation/reports | GET | Mod | Role |
+| /api/moderation/reports/:id/action | POST | Admin | Role |
+| /api/csam/detect | POST | Internal | S2S |
+
+## Security Test Coverage
+
+| Category | Tests | Status |
+|----------|-------|--------|
+| Authentication | 32 | Implemented |
+| IDOR Prevention | 23 | Implemented |
+| Mass Assignment | 13 | Implemented |
+| Approval Flow | 21 | Implemented |
+| Subscription Bypass | 19 | Implemented |
+| **Authorization Bypass** | 0 | **MISSING** |
+| **Tenant Isolation** | 0 | **MISSING** |
+| **Payment Abuse** | 6 | **Partial** |
+
+## Infrastructure Status
+
+| Component | Status | Issue |
+|-----------|--------|-------|
+| ECS Fargate | Deployed | ignore_changes violation |
+| ECR | Immutable | "latest" tag allowed |
+| ALB | Active | 0.0.0.0/0 ingress |
+| Secrets Manager | KMS encrypted | Compliant |
+| CloudWatch | Enabled | Compliant |
+
+---
+*Auto-generated by Autonomous Platform Agent*

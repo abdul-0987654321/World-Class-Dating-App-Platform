@@ -92,7 +92,7 @@ class DiscoveryService {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -184,7 +184,7 @@ class DiscoveryService {
     const response = await fetch(`${this.baseUrl}/like`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ target_user_id: targetUserId }),
@@ -224,7 +224,7 @@ class DiscoveryService {
     const response = await fetch(`${this.baseUrl}/pass`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ target_user_id: targetUserId }),
@@ -252,7 +252,7 @@ class DiscoveryService {
     const response = await fetch(`${this.baseUrl}/super-like`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ target_user_id: targetUserId }),
@@ -303,7 +303,7 @@ class DiscoveryService {
 
     const response = await fetch(`${this.baseUrl}/stats`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

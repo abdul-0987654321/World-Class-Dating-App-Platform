@@ -45,7 +45,7 @@ export const AdminSystemHealthPage: React.FC = () => {
 
   const fetchHealth = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/admin/health', {
         headers: { 'Authorization': `Bearer ${token}` },
       });

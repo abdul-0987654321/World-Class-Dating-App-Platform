@@ -46,7 +46,7 @@ class CuratedPicksService {
 
     const response = await fetch(this.baseUrl, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -76,7 +76,7 @@ class CuratedPicksService {
     await fetch(`${this.baseUrl}/${pickId}/view`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -91,7 +91,7 @@ class CuratedPicksService {
     await fetch(`${this.baseUrl}/${pickId}/action`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -108,7 +108,7 @@ class CuratedPicksService {
     const response = await fetch(`${this.baseUrl}/regenerate`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

@@ -92,7 +92,7 @@ class ModerationService {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -116,7 +116,7 @@ class ModerationService {
 
     const response = await fetch(`/api/moderation/violations/${violationId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -141,7 +141,7 @@ class ModerationService {
     const response = await fetch('/api/moderation/appeals', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
@@ -167,7 +167,7 @@ class ModerationService {
 
     const response = await fetch(`/api/moderation/appeals/${appealId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -193,7 +193,7 @@ class ModerationService {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -219,7 +219,7 @@ class ModerationService {
     const response = await fetch(`/api/admin/moderation/review/${params.moderationLogId}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -247,7 +247,7 @@ class ModerationService {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -271,7 +271,7 @@ class ModerationService {
 
     const response = await fetch(`/api/moderation/users/${userId}/status`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

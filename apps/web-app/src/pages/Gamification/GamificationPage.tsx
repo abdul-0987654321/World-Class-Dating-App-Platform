@@ -53,7 +53,7 @@ export const GamificationPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const [streakRes, achievementsRes, questsRes, balanceRes] = await Promise.all([
@@ -121,7 +121,7 @@ export const GamificationPage: React.FC = () => {
   const handleSpin = async () => {
     setSpinning(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/gamification/spin', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -141,7 +141,7 @@ export const GamificationPage: React.FC = () => {
 
   const handleClaimDailyReward = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/gamification/daily-reward', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },

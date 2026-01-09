@@ -3,6 +3,10 @@
  *
  * This file demonstrates how to integrate the user management system
  * into your application routing.
+ *
+ * SECURITY NOTE: This example uses the RequireAdmin component which
+ * verifies admin status via a real API call. Never use hardcoded
+ * isAdmin = true patterns in production code.
  */
 
 import React from 'react';
@@ -10,6 +14,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserManagementPage } from './UserManagementPage';
 import { AdminDashboardPage } from './AdminDashboardPage';
 import { AdminReportsPage } from './AdminReportsPage';
+import { RequireAdmin } from '../../components/auth/RequireAdmin';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 // ... other admin pages
 
 // Example: Admin Layout Component
@@ -41,21 +47,56 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-// Example: Protected Route Component
+/**
+ * Protected Admin Route Component
+ *
+ * SECURITY: This component uses RequireAdmin which makes a real API call
+ * to verify admin status. The server validates the session/token and returns
+ * the actual role. This prevents privilege escalation attacks.
+ *
+ * DO NOT use patterns like:
+ *   const isAdmin = true; // INSECURE - hardcoded
+ *   const isAdmin = localStorage.getItem('isAdmin'); // INSECURE - client-side
+ *
+ * ALWAYS verify admin status via API call to the server.
+ */
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if user is authenticated and has admin role
-  const isAuthenticated = true; // Replace with actual auth check
-  const isAdmin = true; // Replace with actual role check
+  return (
+    <RequireAdmin
+      loginRedirect="/login"
+      unauthorizedRedirect="/unauthorized"
+    >
+      {children}
+    </RequireAdmin>
+  );
+};
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+/**
+ * Example: Using the useAdminAuth hook for conditional rendering
+ *
+ * This demonstrates how to use the hook when you need admin status
+ * in a component that's already within a protected route.
+ */
+const AdminContentExample: React.FC = () => {
+  const { isLoading, isAdmin, permissions } = useAdminAuth();
+
+  // SECURITY: Always check isLoading before trusting isAdmin
+  if (isLoading) {
+    return <div>Verifying admin access...</div>;
   }
 
+  // SECURITY: Do not render sensitive content until verification completes
   if (!isAdmin) {
     return <Navigate to="/unauthorized" />;
   }
 
-  return <>{children}</>;
+  return (
+    <div>
+      <h1>Admin Content</h1>
+      {/* Safe to render admin content here - server verified */}
+      <p>Your permissions: {permissions.join(', ') || 'All'}</p>
+    </div>
+  );
 };
 
 // Example: Admin Routes Configuration
@@ -81,66 +122,5 @@ export const AdminRoutes: React.FC = () => {
     </ProtectedAdminRoute>
   );
 };
-
-// Example: App.tsx Integration
-/*
-import { AdminRoutes } from './pages/Admin/INTEGRATION_EXAMPLE';
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes *\/}
-          <Route path="/login" element={<LoginPage />} />
-
-          {/* User Routes *\/}
-          <Route path="/*" element={<UserRoutes />} />
-
-          {/* Admin Routes - Prefix with /admin *\/}
-          <Route path="/admin/*" element={<AdminRoutes />} />
-        </Routes>
-      </BrowserRouter>
-
-      {/* Toast Container for notifications *\/}
-      <ToastContainer position="top-right" />
-    </QueryClientProvider>
-  );
-}
-*/
-
-// Example: Direct Usage (without routing)
-/*
-import { UserManagementPage } from './pages/Admin/UserManagementPage';
-
-function AdminPanel() {
-  return <UserManagementPage />;
-}
-*/
-
-// Example: Using Individual Components
-/*
-import { useState } from 'react';
-import { UserManagementDashboard } from './pages/Admin/UserManagementDashboard';
-import { UserDetailView, UserModerationActions } from './components/Admin';
-import type { AdminUser } from './services/admin-user.service';
-
-function CustomAdminPage() {
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-
-  return (
-    <div>
-      {!selectedUser ? (
-        <UserManagementDashboard onSelectUser={setSelectedUser} />
-      ) : (
-        <div>
-          <UserDetailView userId={selectedUser.id} />
-          <UserModerationActions user={selectedUser} />
-        </div>
-      )}
-    </div>
-  );
-}
-*/
 
 export default AdminRoutes;

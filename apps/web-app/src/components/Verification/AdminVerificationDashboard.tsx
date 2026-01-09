@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
@@ -99,7 +100,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
     try {
       const response = await fetch('/api/admin/verification/duplicate-flags', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 
@@ -116,7 +117,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
     try {
       const response = await fetch('/api/admin/verification/attempts', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 
@@ -133,7 +134,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
     try {
       const response = await fetch('/api/admin/verification/stats', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 
@@ -152,7 +153,7 @@ const AdminVerificationDashboard: React.FC<AdminVerificationDashboardProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
         body: JSON.stringify({
           status: action,

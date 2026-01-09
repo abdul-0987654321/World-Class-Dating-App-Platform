@@ -87,7 +87,7 @@ export const ProfileEditPage: React.FC = () => {
 
   const loadProfile = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/profiles/me', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -120,7 +120,7 @@ export const ProfileEditPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/profiles/me', {
         method: 'PUT',
         headers: {
@@ -160,7 +160,7 @@ export const ProfileEditPage: React.FC = () => {
       const formData = new FormData();
       formData.append('photo', files[0]);
 
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/profiles/photos', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },

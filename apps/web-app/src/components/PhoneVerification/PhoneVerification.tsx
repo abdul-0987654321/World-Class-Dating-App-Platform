@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
@@ -40,7 +41,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
   // Get auth token from localStorage
   const getAuthToken = () => {
-    return localStorage.getItem('accessToken') || '';
+    return authTokenService.getToken() || '';
   };
 
   // Format phone number for display

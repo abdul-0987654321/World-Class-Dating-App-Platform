@@ -73,7 +73,7 @@ export const AdminRevenuePage: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Load all data in parallel

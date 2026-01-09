@@ -46,7 +46,7 @@ class PassportService {
 
     const response = await fetch(`${this.baseUrl}/status`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -103,7 +103,7 @@ class PassportService {
     const response = await fetch(`${this.baseUrl}/location`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -148,7 +148,7 @@ class PassportService {
     const response = await fetch(`${this.baseUrl}/location`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -168,7 +168,7 @@ class PassportService {
 
     const response = await fetch(`${this.baseUrl}/destinations`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -213,7 +213,7 @@ class PassportService {
 
     const response = await fetch(`${this.baseUrl}/search?q=${encodeURIComponent(query)}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { Camera, Check, X, RefreshCw, Upload, Shield } from 'lucide-react';
@@ -137,7 +138,7 @@ export const PhotoVerification: React.FC<PhotoVerificationProps> = ({
       formData.append('selfie', blob, 'selfie.jpg');
 
       // Get auth token
-      const token = localStorage.getItem('token');
+      const token = authTokenService.getToken();
 
       // Submit to API
       const apiResponse = await fetch('/api/photo-verification/submit', {

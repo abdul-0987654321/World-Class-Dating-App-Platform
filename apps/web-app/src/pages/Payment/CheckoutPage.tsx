@@ -41,7 +41,7 @@ export const CheckoutPage: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/subscriptions/plans/${planId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -65,7 +65,7 @@ export const CheckoutPage: React.FC = () => {
     setProcessing(true);
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: {

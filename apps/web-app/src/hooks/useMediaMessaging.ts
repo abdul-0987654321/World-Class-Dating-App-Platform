@@ -8,6 +8,7 @@
  * - Typing indicators with WebSocket integration
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { apiClient } from '../services/api.client';
 
@@ -595,7 +596,7 @@ export function useMediaMessaging(options: UseMediaMessagingOptions) {
       xhr.open('POST', url);
 
       // Add auth header
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       if (token) {
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       }

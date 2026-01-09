@@ -7,6 +7,7 @@
  * - Paystack (African markets)
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import { loadStripe, Stripe, StripeElements } from '@stripe/stripe-js';
 import {
@@ -165,7 +166,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
 
   const loadProviders = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/payments/providers?country=${userCountry}&platform=web`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -200,7 +201,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   const initializeStripePayment = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/payments/intent', {
         method: 'POST',
         headers: {
@@ -233,7 +234,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   const handlePayPalCheckout = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/payments/checkout', {
         method: 'POST',
         headers: {
@@ -268,7 +269,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   const handleFlutterwaveCheckout = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/payments/checkout', {
         method: 'POST',
         headers: {
@@ -303,7 +304,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   const handlePaystackCheckout = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/payments/checkout', {
         method: 'POST',
         headers: {

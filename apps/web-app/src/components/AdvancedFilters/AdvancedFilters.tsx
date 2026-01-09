@@ -3,6 +3,7 @@
  * Comprehensive filtering for discovery feed
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
@@ -88,7 +89,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   const loadSavedPresets = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = authTokenService.getToken();
       const response = await axios.get('/api/search/filters', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -119,7 +120,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = authTokenService.getToken();
       await axios.post(
         '/api/search/filters',
         { name: presetName, filters },
@@ -144,7 +145,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     if (!confirm('Delete this preset?')) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = authTokenService.getToken();
       await axios.delete(`/api/search/filters/${presetId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });

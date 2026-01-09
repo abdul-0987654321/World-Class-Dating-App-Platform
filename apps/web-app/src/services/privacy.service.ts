@@ -51,7 +51,7 @@ class PrivacyService {
 
     const response = await fetch('/api/privacy/settings', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -82,7 +82,7 @@ class PrivacyService {
     const response = await fetch('/api/privacy/settings', {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(settings),
@@ -107,7 +107,7 @@ class PrivacyService {
     const response = await fetch('/api/privacy/incognito', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ enabled }),

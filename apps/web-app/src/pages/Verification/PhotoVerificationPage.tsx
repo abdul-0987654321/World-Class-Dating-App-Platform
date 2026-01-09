@@ -99,7 +99,7 @@ export const PhotoVerificationPage: React.FC = () => {
 
   const processVerification = async (photos: string[]) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/safety/verification/submit', {
         method: 'POST',
         headers: {

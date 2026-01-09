@@ -40,6 +40,8 @@ import {
 } from './pages/Admin';
 
 import { authService } from './services/auth.service';
+import { RequireAdmin } from './components/auth/RequireAdmin';
+import { UnauthorizedPage } from './pages/Unauthorized';
 
 // Auth check hook - SECURE VERSION (no localStorage)
 const useAuth = () => {
@@ -132,6 +134,9 @@ const App: React.FC = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
 
+        {/* Unauthorized page for admin access denied */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
         {/* Protected routes */}
         <Route path="/discover" element={
           <ProtectedRoute><DiscoveryPage /></ProtectedRoute>
@@ -190,25 +195,25 @@ const App: React.FC = () => {
 
         {/* Admin routes */}
         <Route path="/admin" element={
-          <ProtectedRoute><AdminDashboardPage /></ProtectedRoute>
+          <RequireAdmin><AdminDashboardPage /></RequireAdmin>
         } />
         <Route path="/admin/users" element={
-          <ProtectedRoute><AdminUsersPage /></ProtectedRoute>
+          <RequireAdmin><AdminUsersPage /></RequireAdmin>
         } />
         <Route path="/admin/verifications" element={
-          <ProtectedRoute><AdminVerificationsPage /></ProtectedRoute>
+          <RequireAdmin><AdminVerificationsPage /></RequireAdmin>
         } />
         <Route path="/admin/reports" element={
-          <ProtectedRoute><AdminReportsPage /></ProtectedRoute>
+          <RequireAdmin><AdminReportsPage /></RequireAdmin>
         } />
         <Route path="/admin/analytics" element={
-          <ProtectedRoute><AdminAnalyticsPage /></ProtectedRoute>
+          <RequireAdmin><AdminAnalyticsPage /></RequireAdmin>
         } />
         <Route path="/admin/moderation" element={
-          <ProtectedRoute><AdminModerationPage /></ProtectedRoute>
+          <RequireAdmin><AdminModerationPage /></RequireAdmin>
         } />
         <Route path="/admin/settings" element={
-          <ProtectedRoute><AdminSettingsPage /></ProtectedRoute>
+          <RequireAdmin><AdminSettingsPage /></RequireAdmin>
         } />
 
         {/* Default redirect */}

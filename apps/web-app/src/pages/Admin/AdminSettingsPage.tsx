@@ -88,7 +88,7 @@ export const AdminSettingsPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: {

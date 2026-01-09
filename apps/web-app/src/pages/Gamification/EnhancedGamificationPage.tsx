@@ -86,7 +86,7 @@ export const EnhancedGamificationPage: React.FC = () => {
   }, []);
 
   const loadDashboard = useCallback(async () => {
-    const token = localStorage.getItem('authToken');
+    const token = authTokenService.getToken();
     const headers = { Authorization: `Bearer ${token}` };
 
     // Fetch dashboard data
@@ -194,7 +194,7 @@ export const EnhancedGamificationPage: React.FC = () => {
 
   const handleProtectStreak = useCallback(async (streakType: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/v1/gamification/streaks/protect', {
         method: 'POST',
         headers: {
@@ -220,7 +220,7 @@ export const EnhancedGamificationPage: React.FC = () => {
   const handlePurchase = useCallback(async (productId: string) => {
     setPurchaseLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/v1/gamification/purchase', {
         method: 'POST',
         headers: {
@@ -252,7 +252,7 @@ export const EnhancedGamificationPage: React.FC = () => {
 
   const handleToggleBadgeDisplay = useCallback(async (badgeId: string, display: boolean) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch(`/api/v1/gamification/achievements/${badgeId}/display`, {
         method: 'PUT',
         headers: {

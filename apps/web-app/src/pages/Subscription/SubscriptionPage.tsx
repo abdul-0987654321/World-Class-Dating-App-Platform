@@ -169,7 +169,7 @@ export const SubscriptionPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
 
       // Get plans
@@ -223,7 +223,7 @@ export const SubscriptionPage: React.FC = () => {
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/subscriptions/subscribe', {
         method: 'POST',
         headers: {
@@ -262,7 +262,7 @@ export const SubscriptionPage: React.FC = () => {
     if (!confirm('Are you sure you want to cancel your subscription?')) return;
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/subscriptions/cancel', {
         method: 'POST',
         headers: {

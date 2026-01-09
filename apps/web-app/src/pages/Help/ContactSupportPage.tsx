@@ -82,7 +82,7 @@ export const ContactSupportPage: React.FC = () => {
         formData.append(`attachment_${index}`, file);
       });
 
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/support/tickets', {
         method: 'POST',
         headers: {

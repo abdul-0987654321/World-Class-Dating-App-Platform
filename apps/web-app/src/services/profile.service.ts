@@ -3,6 +3,7 @@
  * Handles user profile management
  */
 
+import { authTokenService } from './auth-token.service';
 import apiClient from './api.client';
 
 export interface UserProfile {
@@ -164,7 +165,7 @@ class ProfileService {
     const response = await fetch('/api/profile/photos', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
       },
       body: formData,
     });

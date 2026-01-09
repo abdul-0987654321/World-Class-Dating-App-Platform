@@ -60,7 +60,7 @@ class CoinService {
 
     const response = await fetch('/api/coins/balance', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -118,7 +118,7 @@ class CoinService {
 
     const response = await fetch('/api/coins/packages', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -148,7 +148,7 @@ class CoinService {
     const response = await fetch('/api/coins/purchase', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ packageId, paymentMethodId }),
@@ -178,7 +178,7 @@ class CoinService {
     const response = await fetch('/api/coins/spend', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ amount, itemType, itemId }),
@@ -223,7 +223,7 @@ class CoinService {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

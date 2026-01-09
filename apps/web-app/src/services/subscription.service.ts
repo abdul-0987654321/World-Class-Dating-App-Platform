@@ -140,7 +140,7 @@ class SubscriptionService {
 
     const response = await fetch(`${this.baseUrl}/current`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -241,7 +241,7 @@ class SubscriptionService {
     const response = await fetch(`${this.baseUrl}/upgrade`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ tier, billingCycle }),
@@ -263,7 +263,7 @@ class SubscriptionService {
     const response = await fetch(`${this.baseUrl}/cancel`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

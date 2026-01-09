@@ -1,3 +1,4 @@
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FaCheckCircle, FaTimesCircle, FaClock, FaUpload, FaShieldAlt } from 'react-icons/fa';
@@ -49,7 +50,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
 
       const response = await fetch(`/api/verification/user/${userId}/stats`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 
@@ -73,7 +74,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
     try {
       const response = await fetch(`/api/media/user/${userId}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
       });
 

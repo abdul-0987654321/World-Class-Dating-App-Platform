@@ -13,6 +13,7 @@ export {
   useCompatibility,
 } from './useAIServices';
 export { useAdminUsers } from './useAdminUsers';
+export { useAdminAuth, useAdminPermission } from './useAdminAuth';
 export { usePushNotifications } from './usePushNotifications';
 export { useCsrfToken } from './useCsrfToken';
 export { useSocialAuth } from './useSocialAuth';

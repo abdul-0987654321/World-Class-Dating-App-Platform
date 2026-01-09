@@ -3,6 +3,7 @@
  * Purchase coins and boosts with multiple payment providers
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useEffect } from 'react';
 import { PaymentCheckout } from './PaymentCheckout';
 
@@ -41,7 +42,7 @@ export const CoinShop: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Load products

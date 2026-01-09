@@ -31,7 +31,7 @@ export const NotificationCenterPage: React.FC = () => {
 
   const loadNotifications = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/notifications', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -114,7 +114,7 @@ export const NotificationCenterPage: React.FC = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/notifications/${notificationId}/read`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -131,7 +131,7 @@ export const NotificationCenterPage: React.FC = () => {
   const markAllAsRead = async () => {
     setMarkingAllRead(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/notifications/read-all', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -147,7 +147,7 @@ export const NotificationCenterPage: React.FC = () => {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch(`/api/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },

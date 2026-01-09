@@ -3,6 +3,7 @@
  * Web client for photo analysis AI service
  */
 
+import { authTokenService } from '../auth-token.service';
 import { apiClient } from '../api.client';
 import { AI_CONFIG } from './config';
 
@@ -147,7 +148,7 @@ class PhotoAnalysisService {
       formData.append('analysis_types', JSON.stringify(analysisTypes));
     }
 
-    const token = localStorage.getItem('authToken');
+    const token = authTokenService.getToken();
     const response = await fetch(`${this.baseUrl}/upload-analyze`, {
       method: 'POST',
       headers: {
@@ -177,7 +178,7 @@ class PhotoAnalysisService {
     formData.append('user_id', userId);
     formData.append('reference_photo_url', referencePhotoUrl);
 
-    const token = localStorage.getItem('authToken');
+    const token = authTokenService.getToken();
     const response = await fetch(`${this.baseUrl}/verify/selfie`, {
       method: 'POST',
       headers: {
@@ -206,7 +207,7 @@ class PhotoAnalysisService {
     formData.append('file', videoFile);
     formData.append('user_id', userId);
 
-    const token = localStorage.getItem('authToken');
+    const token = authTokenService.getToken();
     const response = await fetch(`${this.baseUrl}/verify/liveness`, {
       method: 'POST',
       headers: {

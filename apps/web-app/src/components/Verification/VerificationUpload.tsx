@@ -3,6 +3,7 @@
  * Handles document and selfie upload for verification
  */
 
+import { authTokenService } from '@/services/auth-token.service';
 import React, { useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { FaCamera, FaUpload, FaCheckCircle, FaTimesCircle, FaSpinner, FaRedo } from 'react-icons/fa';
@@ -195,7 +196,7 @@ const VerificationUpload: React.FC<VerificationUploadProps> = ({
       const response = await fetch('/api/verification/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          ...authTokenService.getAuthorizationHeader(),
         },
         body: formData,
       });

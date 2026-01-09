@@ -56,7 +56,7 @@ export const NotificationSettingsPage: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/users/settings', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -91,7 +91,7 @@ export const NotificationSettingsPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       await fetch('/api/users/settings', {
         method: 'PUT',
         headers: {

@@ -35,7 +35,7 @@ export const AdminAuditLogsPage: React.FC = () => {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const params = new URLSearchParams();
       if (filters.action) params.append('action', filters.action);
       if (filters.resource) params.append('resource', filters.resource);

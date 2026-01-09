@@ -46,7 +46,7 @@ export const VideoCallPage: React.FC = () => {
   useEffect(() => {
     const loadMatchInfo = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = authTokenService.getToken();
         const res = await fetch(`/api/matches/${matchId}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });

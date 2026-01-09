@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { authService } from './services';
 import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
+import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { FlamoralBackground } from '@/components/theme';
 
 // Pages
@@ -47,6 +48,7 @@ import {
   AdminModerationPage,
   AdminSettingsPage,
 } from './pages/Admin';
+import { UnauthorizedPage } from './pages/Unauthorized';
 
 // Auth check hook - uses httpOnly cookie based authentication
 const useAuth = () => {
@@ -124,6 +126,9 @@ const App: React.FC = () => {
         <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
 
+        {/* Unauthorized page for admin access denied */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
         {/* Protected routes */}
         <Route path="/discover" element={
           <ProtectedRoute><DiscoveryFeaturePage /></ProtectedRoute>
@@ -188,25 +193,25 @@ const App: React.FC = () => {
 
         {/* Admin routes */}
         <Route path="/admin" element={
-          <ProtectedRoute><AdminDashboardPage /></ProtectedRoute>
+          <RequireAdmin><AdminDashboardPage /></RequireAdmin>
         } />
         <Route path="/admin/users" element={
-          <ProtectedRoute><AdminUsersPage /></ProtectedRoute>
+          <RequireAdmin><AdminUsersPage /></RequireAdmin>
         } />
         <Route path="/admin/verifications" element={
-          <ProtectedRoute><AdminVerificationsPage /></ProtectedRoute>
+          <RequireAdmin><AdminVerificationsPage /></RequireAdmin>
         } />
         <Route path="/admin/reports" element={
-          <ProtectedRoute><AdminReportsPage /></ProtectedRoute>
+          <RequireAdmin><AdminReportsPage /></RequireAdmin>
         } />
         <Route path="/admin/analytics" element={
-          <ProtectedRoute><AdminAnalyticsPage /></ProtectedRoute>
+          <RequireAdmin><AdminAnalyticsPage /></RequireAdmin>
         } />
         <Route path="/admin/moderation" element={
-          <ProtectedRoute><AdminModerationPage /></ProtectedRoute>
+          <RequireAdmin><AdminModerationPage /></RequireAdmin>
         } />
         <Route path="/admin/settings" element={
-          <ProtectedRoute><AdminSettingsPage /></ProtectedRoute>
+          <RequireAdmin><AdminSettingsPage /></RequireAdmin>
         } />
 
         {/* Default redirect */}

@@ -73,7 +73,7 @@ export const CoinShopPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = { 'Authorization': `Bearer ${token}` };
 
       // Load packages
@@ -102,7 +102,7 @@ export const CoinShopPage: React.FC = () => {
   const handlePurchase = async (pkg: CoinPackage) => {
     setPurchasing(pkg.id);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/coins/purchase', {
         method: 'POST',
         headers: {

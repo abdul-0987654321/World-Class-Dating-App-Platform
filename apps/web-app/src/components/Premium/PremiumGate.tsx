@@ -1,4 +1,14 @@
-import React, { useState, useMemo } from 'react';
+/**
+ * PremiumGate Component
+ *
+ * SECURITY NOTES:
+ * 1. This component fetches subscription tier from the server API.
+ * 2. The tier check here is for UI/UX purposes only - to show upgrade prompts.
+ * 3. The backend ALWAYS enforces subscription-gated features.
+ * 4. Never trust client-side subscription state for authorization decisions.
+ */
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Canonical subscription tier type (matches backend)
@@ -41,6 +51,44 @@ function normalizeTier(tier: string | undefined): SubscriptionTier {
   return LEGACY_TIER_MAP[tier.toUpperCase()] || 'free';
 }
 
+
+/**
+ * Hook to fetch subscription tier from server
+ * SECURITY: Always fetches from server, never trusts client-side storage
+ */
+const useSubscriptionTier = () => {
+  const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const response = await fetch('/api/v1/subscription/status', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTier(normalizeTier(data.tier || data.subscriptionTier || data.data?.tier));
+        } else {
+          setTier('free');
+        }
+      } catch (err) {
+        console.error('Subscription fetch error:', err);
+        setTier('free');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscription();
+  }, []);
+
+  return { tier, isLoading };
+};
+
 interface PremiumGateProps {
   feature: string;
   requiredTier?: SubscriptionTier;
@@ -61,27 +109,17 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(true);
 
-  // Get user subscription from session storage (set by auth service, not modifiable by user)
-  // Note: In production, this should come from a secure context/hook that fetches from the server
-  const currentTier = useMemo(() => {
-    try {
-      // Try session storage first (more secure than localStorage)
-      const sessionUser = sessionStorage.getItem('flamoral_session');
-      if (sessionUser) {
-        const parsed = JSON.parse(sessionUser);
-        return normalizeTier(parsed?.subscription?.tier || parsed?.subscriptionTier);
-      }
-      // Fallback to localStorage for backwards compatibility
-      const localUser = localStorage.getItem('currentUser');
-      if (localUser) {
-        const parsed = JSON.parse(localUser);
-        return normalizeTier(parsed?.subscriptionTier);
-      }
-      return 'free' as SubscriptionTier;
-    } catch {
-      return 'free' as SubscriptionTier;
-    }
-  }, []);
+  // SECURITY: Fetch subscription tier from server API, not client storage
+  const { tier: currentTier, isLoading } = useSubscriptionTier();
+
+  // Show loading state while fetching subscription from server
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
 
   const hasAccess = TIER_HIERARCHY[currentTier] >= TIER_HIERARCHY[requiredTier];
 

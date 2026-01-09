@@ -6,6 +6,7 @@
 // Core Services
 export { apiClient, ApiError } from './api.client';
 export { authService } from './auth.service';
+export { authTokenService } from './auth-token.service';
 export { discoveryService } from './discovery.service';
 export { matchingService } from './matching.service';
 export { messagingService } from './messaging.service';

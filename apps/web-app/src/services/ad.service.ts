@@ -166,7 +166,7 @@ class AdService {
 
     const response = await fetch(`${this.baseUrl}/config`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -220,7 +220,7 @@ class AdService {
 
     const response = await fetch(`${this.baseUrl}/state`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -266,7 +266,7 @@ class AdService {
     await fetch(`${this.baseUrl}/action`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -293,7 +293,7 @@ class AdService {
     const response = await fetch(`${this.baseUrl}/impression`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -326,7 +326,7 @@ class AdService {
     await fetch(`${this.baseUrl}/click`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ impressionId, adType }),
@@ -359,7 +359,7 @@ class AdService {
 
     const response = await fetch(`${this.baseUrl}/rewards`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -416,7 +416,7 @@ class AdService {
     const response = await fetch(`${this.baseUrl}/rewards/claim`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -448,7 +448,7 @@ class AdService {
     await fetch(`${this.baseUrl}/purchase`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        ...authTokenService.getAuthorizationHeader(),
         'Content-Type': 'application/json',
       },
     });

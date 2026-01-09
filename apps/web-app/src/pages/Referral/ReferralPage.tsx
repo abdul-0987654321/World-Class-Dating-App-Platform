@@ -53,7 +53,7 @@ export const ReferralPage: React.FC = () => {
 
   const loadReferralData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
 
       // Get referral code
@@ -121,7 +121,7 @@ export const ReferralPage: React.FC = () => {
     if (!customCode || customCode.length < 4) return;
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authTokenService.getToken();
       const res = await fetch('/api/referrals/code/custom', {
         method: 'POST',
         headers: {
