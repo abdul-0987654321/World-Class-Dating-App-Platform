@@ -42,8 +42,8 @@ variable "create_service_budgets" {
   default     = true
 }
 
-variable "eks_budget_amount" {
-  description = "Monthly budget for EKS in USD"
+variable "ecs_budget_amount" {
+  description = "Monthly budget for ECS in USD"
   type        = string
   default     = "300"
 }

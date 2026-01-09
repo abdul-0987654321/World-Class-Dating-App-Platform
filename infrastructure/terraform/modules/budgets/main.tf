@@ -70,12 +70,12 @@ resource "aws_budgets_budget" "monthly_cost" {
 # ============================================================================
 
 # EKS Budget
-resource "aws_budgets_budget" "eks" {
+resource "aws_budgets_budget" "ecs" {
   count = var.create_service_budgets ? 1 : 0
 
-  name              = "${var.project_name}-${var.environment}-eks-budget"
+  name              = "${var.project_name}-${var.environment}-ecs-budget"
   budget_type       = "COST"
-  limit_amount      = var.eks_budget_amount
+  limit_amount      = var.ecs_budget_amount
   limit_unit        = "USD"
   time_unit         = "MONTHLY"
   time_period_start = var.budget_start_date

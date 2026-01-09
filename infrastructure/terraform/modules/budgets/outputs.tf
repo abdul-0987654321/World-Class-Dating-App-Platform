@@ -12,9 +12,9 @@ output "monthly_budget_name" {
   value       = aws_budgets_budget.monthly_cost.name
 }
 
-output "eks_budget_id" {
-  description = "ID of the EKS budget"
-  value       = var.create_service_budgets ? aws_budgets_budget.eks[0].id : null
+output "ecs_budget_id" {
+  description = "ID of the ECS budget"
+  value       = var.create_service_budgets ? aws_budgets_budget.ecs[0].id : null
 }
 
 output "rds_budget_id" {
