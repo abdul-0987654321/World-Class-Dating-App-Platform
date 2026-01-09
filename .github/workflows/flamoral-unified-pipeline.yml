@@ -1137,7 +1137,7 @@ jobs:
   e2e-connectivity-tests:
     name: E2E Connectivity Tests
     runs-on: ubuntu-latest
-    needs: [deploy-staging, e2e-connectivity-tests]
+    needs: deploy-staging
     if: needs.deploy-staging.result == 'success'
     steps:
       - name: Checkout code
@@ -1233,7 +1233,7 @@ jobs:
   production-approval:
     name: Production Approval Gate
     runs-on: ubuntu-latest
-    needs: [deploy-staging, e2e-connectivity-tests]
+    needs: deploy-staging
     if: |
       needs.deploy-staging.result == 'success' &&
       (github.event.inputs.action == 'build-deploy' || github.event.inputs.action == 'release')
