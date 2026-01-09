@@ -84,7 +84,8 @@ locals {
     "automation-service",
     "advertising-service",
     "partnership-service",
-    "asset-branding"
+    "asset-branding",
+    "web-app"
   ]
 
   # Service configurations for ECS
