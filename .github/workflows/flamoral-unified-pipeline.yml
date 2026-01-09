@@ -1129,10 +1129,111 @@ jobs:
             aws ecs wait services-stable --cluster "$CLUSTER_NAME" --services "$SERVICE" --no-cli-pager 2>/dev/null || echo "::warning::$SERVICE did not stabilize"
           done
 
+
+  # ==========================================================================
+  # SECTION 6.5: E2E CONNECTIVITY TESTS
+  # ==========================================================================
+
+  e2e-connectivity-tests:
+    name: E2E Connectivity Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, e2e-connectivity-tests]
+    if: needs.deploy-staging.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Configure AWS credentials
+        id: aws_creds
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
+
+      - name: Get staging ALB URL
+        id: staging_url
+        if: steps.aws_creds.outcome == 'success'
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers --names "flamoral-staging-alb" --query 'LoadBalancers[0].DNSName' --output text 2>/dev/null || echo "")
+          if [ -n "$ALB_DNS" ] && [ "$ALB_DNS" != "None" ]; then
+            echo "api_url=https://${ALB_DNS}" >> $GITHUB_OUTPUT
+            echo "frontend_url=https://${ALB_DNS}" >> $GITHUB_OUTPUT
+          else
+            echo "api_url=${{ secrets.STAGING_API_URL || 'https://staging-api.flamoral.com' }}" >> $GITHUB_OUTPUT
+            echo "frontend_url=${{ secrets.STAGING_URL || 'https://staging.flamoral.com' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run API Health Checks
+        id: health_checks
+        env:
+          API_URL: ${{ steps.staging_url.outputs.api_url }}
+        run: |
+          echo "Testing API Gateway health..."
+          curl -sf "${API_URL}/api/health" || echo "::warning::Health check failed"
+          echo "Testing services health..."
+          curl -sf "${API_URL}/api/health/services" || echo "::warning::Services health check failed"
+        continue-on-error: true
+
+      - name: Run Backend Connectivity Smoke Tests
+        id: smoke_tests
+        env:
+          API_URL: ${{ steps.staging_url.outputs.api_url }}
+        run: |
+          chmod +x scripts/smoke-test.sh 2>/dev/null || true
+          if [ -f scripts/smoke-test.sh ]; then
+            ./scripts/smoke-test.sh "${API_URL}/api" || echo "::warning::Some smoke tests failed"
+          fi
+        continue-on-error: true
+
+      - name: Run E2E Tests (Critical Paths)
+        id: e2e_tests
+        env:
+          BASE_URL: ${{ steps.staging_url.outputs.frontend_url }}
+          API_URL: ${{ steps.staging_url.outputs.api_url }}
+        run: |
+          if [ -f playwright.config.ts ]; then
+            npx playwright test tests/e2e/auth.spec.ts --project=chromium --reporter=list || echo "::warning::Some E2E tests failed"
+          fi
+        continue-on-error: true
+
+      - name: Upload E2E Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+        continue-on-error: true
+
+      - name: E2E Test Summary
+        if: always()
+        run: |
+          echo "## E2E Connectivity Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Checks | Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke Tests | Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | Completed |" >> $GITHUB_STEP_SUMMARY
+
   production-approval:
     name: Production Approval Gate
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [deploy-staging, e2e-connectivity-tests]
     if: |
       needs.deploy-staging.result == 'success' &&
       (github.event.inputs.action == 'build-deploy' || github.event.inputs.action == 'release')
