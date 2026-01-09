@@ -18,9 +18,13 @@ variable "aws_region" {
 }
 
 variable "vpc_id" {
+variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
   description = "ID of the VPC"
+variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
   type        = string
+variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
 }
+variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
 
 variable "db_subnet_group_name" {
   description = "Name of the DB subnet group"

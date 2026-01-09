@@ -109,7 +109,17 @@ export const config = {
   },
 
   // Internal service key for service-to-service communication
-  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+  internalServiceKey: (() => {
+    const key = process.env.INTERNAL_SERVICE_KEY;
+    if (!key || key === 'internal-service-key') {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('INTERNAL_SERVICE_KEY must be set to a secure value in production');
+      }
+      console.warn('WARNING: Using default INTERNAL_SERVICE_KEY. Set a secure value in INTERNAL_SERVICE_KEY environment variable.');
+      return 'dev-internal-service-key-not-for-production';
+    }
+    return key;
+  })(),
 
   // Frontend URLs
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',

@@ -193,14 +193,14 @@ app.use((req: Request, res: Response) => {
 // Error handler
 app.use((err: any, req: Request, res: Response, next: any) => {
   logger.error('Unhandled error', {
-    error: err.message,
-    stack: err.stack,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     path: req.path,
   });
 
   res.status(500).json({
     success: false,
-    error: config.nodeEnv === 'production' ? 'Internal server error' : err.message,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
   });
 });
 

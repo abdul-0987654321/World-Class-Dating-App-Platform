@@ -57,14 +57,17 @@ resource "aws_security_group_rule" "rds_ingress_additional_sgs" {
   description              = "Allow PostgreSQL access from additional security group"
 }
 
-resource "aws_security_group_rule" "rds_egress" {
+# SECURITY FIX: RDS should not have unrestricted egress to the internet.
+# Database instances should only communicate within the VPC.
+# Egress is now restricted to VPC CIDR block only.
+resource "aws_security_group_rule" "rds_egress_vpc" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = [var.vpc_cidr]
   security_group_id = aws_security_group.rds.id
-  description       = "Allow all outbound traffic"
+  description       = "Allow outbound traffic within VPC only - SECURITY HARDENED"
 }
 
 ################################################################################

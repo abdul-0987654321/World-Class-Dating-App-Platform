@@ -342,7 +342,7 @@ router.post(
       source: req.body.source,
       region: req.body.region,
       policyType: req.body.policyType,
-      apiKey: req.headers['x-api-key'],
+      apiKeyPresent: !!req.headers['x-api-key'], // API key redacted for security
     });
 
     const result = await updateController.triggerUpdate(req.body);
@@ -600,8 +600,8 @@ router.get('/health', (req: Request, res: Response) => {
  */
 router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   logger.error('Route error', {
-    error: err.message,
-    stack: err.stack,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     path: req.path,
     method: req.method,
   });
@@ -609,7 +609,7 @@ router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred',
+    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
   });
 });
 

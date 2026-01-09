@@ -206,7 +206,7 @@ resource "aws_codebuild_project" "services" {
 
     environment_variable {
       name  = "IMAGE_TAG"
-      value = "latest"
+      value = "$"  # Use git commit SHA for immutable tags - NEVER use latest
     }
 
     environment_variable {

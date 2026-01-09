@@ -122,9 +122,9 @@ resource "aws_security_group_rule" "redis_egress" {
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = [var.vpc_cidr]
   security_group_id = aws_security_group.redis.id
-  description       = "Allow all outbound traffic"
+  description       = "Allow outbound traffic within VPC only - SECURITY HARDENED"
 }
 
 ################################################################################

@@ -567,3 +567,76 @@ resource "aws_wafv2_web_acl_logging_configuration" "main" {
     }
   }
 }
+
+################################################################################
+# CloudFront Response Headers Policy (Security Headers)
+# SECURITY FIX: Add security headers directly in CloudFront
+################################################################################
+
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name    = "${var.project_name}-${var.environment}-security-headers"
+  comment = "Security headers policy for ${var.project_name} ${var.environment}"
+
+  security_headers_config {
+    # Strict Transport Security
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+
+    # Content Type Options
+    content_type_options {
+      override = true
+    }
+
+    # Frame Options
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    # XSS Protection
+    xss_protection {
+      mode_block = true
+      protection = true
+      override   = true
+    }
+
+    # Referrer Policy
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    # Content Security Policy
+    content_security_policy {
+      content_security_policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
+      override                = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "Permissions-Policy"
+      value    = "camera=(), microphone=(), geolocation=(self), payment=(self)"
+      override = true
+    }
+
+    items {
+      header   = "X-Permitted-Cross-Domain-Policies"
+      value    = "none"
+      override = true
+    }
+  }
+}
+
+################################################################################
+# Output the Response Headers Policy ID for use in distributions
+################################################################################
+
+output "security_headers_policy_id" {
+  description = "ID of the CloudFront security headers policy"
+  value       = aws_cloudfront_response_headers_policy.security_headers.id
+}

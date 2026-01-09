@@ -48,12 +48,20 @@ export class PaymentController {
 
   async purchaseSubscription(req: Request, res: Response): Promise<Response> {
     try {
-      const { userId, tier, priceId, email, paymentMethodId, trialDays } = req.body;
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+      }
 
-      if (!userId || !tier || !priceId || !email || !paymentMethodId) {
+      const { tier, priceId, email, paymentMethodId, trialDays } = req.body;
+
+      if (!tier || !priceId || !email || !paymentMethodId) {
         return res.status(400).json({
           success: false,
-          message: 'User ID, tier, price ID, email, and payment method are required',
+          message: 'Tier, price ID, email, and payment method are required',
         });
       }
 

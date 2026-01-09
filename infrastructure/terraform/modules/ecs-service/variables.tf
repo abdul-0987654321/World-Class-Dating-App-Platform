@@ -47,9 +47,15 @@ variable "ecr_repository_url" {
 }
 
 variable "image_tag" {
-  description = "Container image tag"
+  description = "Container image tag. SECURITY: MUST use immutable tags (git commit SHA or image digest). NEVER use 'latest' in production."
   type        = string
-  default     = "latest"
+  # SECURITY: No default - forces explicit image tag specification
+  # Use git commit SHA (e.g., 'abc123def') or digest (e.g., 'sha256:...')
+  
+  validation {
+    condition     = var.image_tag != "latest"
+    error_message = "SECURITY VIOLATION: 'latest' tag is not allowed. Use immutable tags (git SHA or image digest) for container traceability and rollback capability."
+  }
 }
 
 variable "container_port" {
@@ -342,4 +348,26 @@ variable "alarm_actions" {
   description = "List of ARNs to notify on alarm"
   type        = list(string)
   default     = []
+}
+
+################################################################################
+# Container Security Configuration
+################################################################################
+
+variable "readonly_root_filesystem" {
+  description = "SECURITY: When enabled, the container's root filesystem is mounted as read-only. Applications must write to mounted volumes (e.g., /tmp). Recommended for production."
+  type        = bool
+  default     = true
+}
+
+variable "container_capabilities" {
+  description = "SECURITY: Linux capabilities to add to the container. By default, all capabilities are dropped (least privilege). Only add capabilities that are absolutely required."
+  type        = list(string)
+  default     = []  # Empty = no additional capabilities beyond what's strictly needed
+}
+
+variable "container_user" {
+  description = "SECURITY: User to run the container as. Format: 'uid' or 'uid:gid'. Set to non-root user (e.g., '1000:1000') for enhanced security. Null = container default."
+  type        = string
+  default     = null
 }

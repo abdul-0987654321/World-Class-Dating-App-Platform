@@ -82,9 +82,25 @@ locals {
       startPeriod = var.container_health_check.start_period
     } : null
 
+    # SECURITY: Container hardening settings
+    # No privileged mode - containers run without elevated privileges
+    privileged = false
+    
+    # SECURITY: Read-only root filesystem - prevents container modifications
+    # Applications should write to mounted volumes only (e.g., /tmp, /var/log)
+    readonlyRootFilesystem = var.readonly_root_filesystem
+    
     linuxParameters = {
       initProcessEnabled = true
+      # SECURITY: Drop all Linux capabilities by default (least privilege)
+      capabilities = {
+        drop = ["ALL"]
+        add  = var.container_capabilities
+      }
     }
+    
+    # SECURITY: Run container as non-root user when specified
+    user = var.container_user
 
     stopTimeout = var.stop_timeout
   }

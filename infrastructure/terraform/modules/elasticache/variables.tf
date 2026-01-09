@@ -13,7 +13,23 @@ variable "environment" {
 }
 
 variable "vpc_id" {
+nvariable "vpc_cidr" {
+  description = "VPC CIDR block for security group egress rules"
+  type        = string
+}
   description = "ID of the VPC"
+nvariable "vpc_cidr" {
+  description = "VPC CIDR block for security group egress rules"
+  type        = string
+}
+  type        = string
+nvariable "vpc_cidr" {
+  description = "VPC CIDR block for security group egress rules"
+  type        = string
+}
+}
+nvariable "vpc_cidr" {
+  description = "VPC CIDR block for security group egress rules"
   type        = string
 }
 

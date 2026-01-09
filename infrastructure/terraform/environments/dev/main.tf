@@ -436,6 +436,7 @@ module "rds" {
   environment          = var.environment
   aws_region           = var.aws_region
   vpc_id               = module.networking.vpc_id
+  vpc_cidr             = module.networking.vpc_cidr
   db_subnet_group_name = module.networking.db_subnet_group_name
 
   engine_mode            = "aurora"
@@ -475,6 +476,7 @@ module "elasticache" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
+  vpc_cidr     = module.networking.vpc_cidr
   subnet_ids   = module.networking.database_subnet_ids
 
   # Cost Optimization: Smallest viable Redis for dev

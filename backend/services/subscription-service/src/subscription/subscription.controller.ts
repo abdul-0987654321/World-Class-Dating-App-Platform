@@ -8,10 +8,13 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { IsString, IsEnum, IsOptional } from 'class-validator';
 
 import { SubscriptionService, SubscriptionPlan, Subscription, SubscriptionFeatures } from './subscription.service';
+import { JwtAuthGuard, AuthenticatedRequest, verifyOwnership } from '../guards/jwt-auth.guard';
 
 class CreateSubscriptionDto {
   @IsString()
@@ -37,6 +40,7 @@ interface ApiResponse<T> {
 }
 
 @Controller('subscriptions')
+@UseGuards(JwtAuthGuard)
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
@@ -45,7 +49,13 @@ export class SubscriptionController {
    * GET /api/v1/subscriptions/:userId
    */
   @Get(':userId')
-  async getSubscription(@Param('userId') userId: string): Promise<ApiResponse<Subscription>> {
+  async getSubscription(
+    @Param('userId') userId: string,
+    @Request() req: AuthenticatedRequest
+  ): Promise<ApiResponse<Subscription>> {
+    // Verify the user can access this subscription (own subscription or admin)
+    verifyOwnership(req.user, userId);
+
     const subscription = await this.subscriptionService.getSubscription(userId);
     return {
       success: true,
@@ -61,6 +71,7 @@ export class SubscriptionController {
   getSubscriptionFeatures(
     @Param('plan') plan: SubscriptionPlan
   ): ApiResponse<SubscriptionFeatures> {
+    // No ownership check needed - public endpoint for plan info
     const features = this.subscriptionService.getSubscriptionFeatures(plan);
     return {
       success: true,
@@ -74,6 +85,7 @@ export class SubscriptionController {
    */
   @Get('plans')
   getAllPlans(): ApiResponse<SubscriptionFeatures[]> {
+    // No ownership check needed - public endpoint for plan info
     const plans: SubscriptionPlan[] = ['free', 'premium', 'elite', 'platinum'];
     const allFeatures = plans.map((plan) =>
       this.subscriptionService.getSubscriptionFeatures(plan)
@@ -91,8 +103,12 @@ export class SubscriptionController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createSubscription(
-    @Body() createDto: CreateSubscriptionDto
+    @Body() createDto: CreateSubscriptionDto,
+    @Request() req: AuthenticatedRequest
   ): Promise<ApiResponse<Subscription>> {
+    // Verify the user can create a subscription for this userId (own account or admin)
+    verifyOwnership(req.user, createDto.userId);
+
     const subscription = await this.subscriptionService.createSubscription(
       createDto.userId,
       createDto.plan,
@@ -112,8 +128,12 @@ export class SubscriptionController {
   @Put(':userId/upgrade')
   async upgradeSubscription(
     @Param('userId') userId: string,
-    @Body() upgradeDto: UpgradeSubscriptionDto
+    @Body() upgradeDto: UpgradeSubscriptionDto,
+    @Request() req: AuthenticatedRequest
   ): Promise<ApiResponse<Subscription>> {
+    // Verify the user can upgrade this subscription (own subscription or admin)
+    verifyOwnership(req.user, userId);
+
     const subscription = await this.subscriptionService.upgradeSubscription(
       userId,
       upgradeDto.newPlan
@@ -130,7 +150,13 @@ export class SubscriptionController {
    * DELETE /api/v1/subscriptions/:userId
    */
   @Delete(':userId')
-  async cancelSubscription(@Param('userId') userId: string): Promise<ApiResponse<Subscription>> {
+  async cancelSubscription(
+    @Param('userId') userId: string,
+    @Request() req: AuthenticatedRequest
+  ): Promise<ApiResponse<Subscription>> {
+    // Verify the user can cancel this subscription (own subscription or admin)
+    verifyOwnership(req.user, userId);
+
     const subscription = await this.subscriptionService.cancelSubscription(userId);
     return {
       success: true,
@@ -144,7 +170,10 @@ export class SubscriptionController {
    * GET /api/v1/subscriptions/:userId/status
    */
   @Get(':userId/status')
-  async getSubscriptionStatus(@Param('userId') userId: string): Promise<
+  async getSubscriptionStatus(
+    @Param('userId') userId: string,
+    @Request() req: AuthenticatedRequest
+  ): Promise<
     ApiResponse<{
       isActive: boolean;
       plan: SubscriptionPlan;
@@ -152,6 +181,9 @@ export class SubscriptionController {
       expiresAt: Date;
     }>
   > {
+    // Verify the user can access this subscription status (own subscription or admin)
+    verifyOwnership(req.user, userId);
+
     const subscription = await this.subscriptionService.getSubscription(userId);
     const features = this.subscriptionService.getSubscriptionFeatures(subscription.plan);
 
