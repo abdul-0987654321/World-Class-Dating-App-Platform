@@ -22,6 +22,7 @@ import {
   MediaContent,
   Reaction,
 } from '../../components/messaging';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface Participant {
   id: string;

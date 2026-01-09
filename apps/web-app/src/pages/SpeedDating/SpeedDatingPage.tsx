@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SpeedDatingSession } from '../../components/speed-dating';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface SpeedDatingEvent {
   id: string;

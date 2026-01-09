@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../../components/Navigation';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface ProfileData {
   firstName: string;

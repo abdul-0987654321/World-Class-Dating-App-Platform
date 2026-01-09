@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface SupportTicket {
   id: string;

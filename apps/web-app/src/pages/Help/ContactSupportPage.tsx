@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../../components/Navigation';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface SupportTicket {
   category: string;

@@ -684,7 +684,7 @@ jobs:
       - name: Check Dockerfile exists
         id: dockerfile
         run: |
-          DOCKERFILE="backend/services/asset-branding/Dockerfile"
+          DOCKERFILE="packages/asset-branding/Dockerfile"
           if [ -f "$DOCKERFILE" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "path=$DOCKERFILE" >> $GITHUB_OUTPUT
@@ -738,8 +738,8 @@ jobs:
             --label "org.opencontainers.image.version=${SEMVER}" \
             --label "org.opencontainers.image.revision=${GIT_SHA}" \
             --build-arg BUILD_VERSION=${SEMVER} \
-            -f backend/services/asset-branding/Dockerfile \
-            .
+            -f packages/asset-branding/Dockerfile \
+            packages/asset-branding
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
           echo "local_tag=${FULL_IMAGE}:${SEMVER}" >> $GITHUB_OUTPUT
 

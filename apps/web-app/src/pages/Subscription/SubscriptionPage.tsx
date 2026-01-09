@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface Plan {
   id: string;

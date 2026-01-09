@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface CallState {
   status: 'connecting' | 'ringing' | 'connected' | 'ended' | 'failed';

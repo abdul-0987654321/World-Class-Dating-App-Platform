@@ -4,6 +4,7 @@ import { DailyRewardsModal } from '../../components/gamification/DailyRewardsMod
 import { AchievementBadgeCard, AchievementBadge } from '../../components/gamification/AchievementBadgeCard';
 import { StreakDisplay, StreakData } from '../../components/gamification/StreakDisplay';
 import { CoinWallet, CoinBalance, CoinTransaction } from '../../components/gamification/CoinWallet';
+import { authTokenService } from '../../services/auth-token.service';
 
 interface GamificationDashboard {
   dailyRewards: {
