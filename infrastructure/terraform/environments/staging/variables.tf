@@ -55,9 +55,10 @@ variable "allowed_cidr_blocks" {
 }
 
 ################################################################################
-# EKS Variables
+# ECS Variables (Serverless - no cluster version needed)
 ################################################################################
 
+# Fargate is serverless, no version management required
 
 ################################################################################
 # RDS Variables
@@ -108,11 +109,27 @@ variable "allowed_origins" {
 }
 
 ################################################################################
+# SSL/TLS Variables
+################################################################################
+
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS"
+  type        = string
+  default     = null
+}
+
+################################################################################
 # Monitoring Variables
 ################################################################################
 
 variable "alarm_email_endpoints" {
   description = "Email endpoints for alarm notifications"
+  type        = list(string)
+  default     = []
+}
+
+variable "alarm_actions" {
+  description = "List of ARNs to notify when alarm triggers"
   type        = list(string)
   default     = []
 }

@@ -65,8 +65,10 @@ variable "availability_zones" {
 }
 
 ################################################################################
+# ECS Variables (Serverless - no cluster version needed)
+################################################################################
 
-
+# Fargate is serverless, no version management required
 
 ################################################################################
 # RDS
@@ -187,8 +189,8 @@ variable "monthly_budget_limit" {
   default     = "5000"
 }
 
-variable "eks_budget_limit" {
-  description = "Monthly EKS budget limit in USD"
+variable "ecs_budget_limit" {
+  description = "Monthly ECS budget limit in USD"
   type        = string
   default     = "1500"
 }

@@ -13,12 +13,12 @@ variable "environment" {
 }
 
 variable "ecs_cluster_name" {
-  description = "Name of the EKS cluster"
+  description = "Name of the ECS cluster"
   type        = string
 }
 
 variable "ecs_cluster_arn" {
-  description = "ARN of the EKS cluster"
+  description = "ARN of the ECS cluster"
   type        = string
 }
 

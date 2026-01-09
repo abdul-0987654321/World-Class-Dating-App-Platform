@@ -1,10 +1,10 @@
 ################################################################################
-# Development Environment Configuration - ECS Fargate
+# Production Environment Configuration - ECS Fargate
 # Serverless container orchestration (replaces EKS)
 ################################################################################
 
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.6.0"
 
   required_providers {
     aws = {
@@ -23,10 +23,10 @@ terraform {
 
   backend "s3" {
     bucket         = "flamoral-terraform-state-992382449461"
-    key            = "flamoral/dev/terraform.tfstate"
+    key            = "prod/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "flamoral-terraform-locks"
+    dynamodb_table = "terraform-state-lock"
   }
 }
 
@@ -177,17 +177,10 @@ module "networking" {
   availability_zones = var.availability_zones
   cluster_name       = "${var.project_name}-${var.environment}-ecs"
 
-  # Use existing dev-vpc to avoid VPC limit issues
-  use_existing_vpc            = true
-  existing_vpc_id             = "vpc-0c2bfd018fd47e71e"
-  existing_public_subnet_ids  = ["subnet-0d2cff7b202bb18b7", "subnet-0a7aa44e8ef3e13fc"]
-  existing_private_subnet_ids = ["subnet-0ce55ec05b318a63c", "subnet-01964b38a9af18356"]
-  existing_database_subnet_ids = ["subnet-0c70078dfecee736b", "subnet-0d6010d23969f7599"]
-
-  enable_nat_gateway   = false # NAT already exists in shared VPC
-  single_nat_gateway   = true
-  enable_flow_logs     = false # Flow logs already configured
-  enable_vpc_endpoints = false # VPC endpoints already exist
+  enable_nat_gateway   = true
+  single_nat_gateway   = false  # Multi-NAT for production HA
+  enable_flow_logs     = true
+  enable_vpc_endpoints = true
 
   tags = local.common_tags
 }
@@ -204,16 +197,16 @@ module "ecs_cluster" {
   vpc_id       = module.networking.vpc_id
 
   # Container Insights disabled for dev (cost optimization)
-  enable_container_insights = false
+  enable_container_insights = true
 
   # Fargate Spot for cost savings in dev
   enable_fargate_spot = true
-  fargate_base_count  = 0
-  fargate_weight      = 1
-  fargate_spot_weight = 3
+  fargate_base_count  = 2
+  fargate_weight      = 2
+  fargate_spot_weight = 1
 
   # Minimal log retention for dev
-  log_retention_days = 7
+  log_retention_days = 30
 
   # Enable service discovery for internal communication
   enable_service_discovery = true
@@ -249,11 +242,11 @@ module "ecs_alb" {
   subnet_ids   = module.networking.public_subnet_ids
 
   internal                   = false
-  enable_deletion_protection = false # Allow deletion in dev
+  enable_deletion_protection = true  # Protect production
 
-  # HTTPS disabled for dev (no certificate)
-  enable_https    = false
-  certificate_arn = null
+  # HTTPS required for production
+  enable_https    = true
+  certificate_arn = var.acm_certificate_arn
 
   # Define services with path-based routing
   services = {
@@ -273,9 +266,9 @@ module "ecs_alb" {
     } if config.path != null # Only create target groups for services with paths
   }
 
-  # Disable alarms for dev
-  create_alarms = false
-  alarm_actions = []
+  # Enable alarms for production
+  create_alarms = true
+  alarm_actions = var.critical_alarm_actions
 
   tags = local.common_tags
 }
@@ -442,15 +435,15 @@ module "rds" {
   parameter_group_family = "aurora-postgresql15"
 
   enable_serverless_v2    = true # Cost optimization for dev
-  serverless_min_capacity = 0.5
-  serverless_max_capacity = 4
+  serverless_min_capacity = 2
+  serverless_max_capacity = 16
 
   database_name   = "flamoral"
   master_username = "dbadmin"
 
-  backup_retention_period = 7
-  deletion_protection     = false # Allow deletion in dev
-  skip_final_snapshot     = true
+  backup_retention_period = 35
+  deletion_protection     = true   # Protect production
+  skip_final_snapshot     = false
 
   # Use ECS security group instead of EKS node security group
   eks_security_group_id = module.ecs_cluster.security_group_id
@@ -477,11 +470,11 @@ module "elasticache" {
 
   # Cost Optimization: Smallest viable Redis for dev
   engine_version     = "7.0"
-  node_type          = "cache.t3.micro"
-  num_cache_clusters = 1
+  node_type          = "cache.r6g.large"
+  num_cache_clusters = 2
 
-  automatic_failover_enabled = false
-  multi_az_enabled           = false
+  automatic_failover_enabled = true
+  multi_az_enabled           = true
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
@@ -552,7 +545,7 @@ module "cognito" {
   create_identity_pool             = true
   allow_unauthenticated_identities = false
 
-  deletion_protection = "INACTIVE"
+  deletion_protection = "ACTIVE"
 
   tags = local.common_tags
 }
@@ -572,9 +565,9 @@ module "ecr" {
 
   repositories = { for service in local.microservices : service => {
     scan_on_push               = true
-    image_tag_mutability       = "MUTABLE"
-    keep_tagged_images         = 10
-    untagged_image_expiry_days = 3
+    image_tag_mutability       = "IMMUTABLE"
+    keep_tagged_images         = 50
+    untagged_image_expiry_days = 14
     allow_eks_pull             = true
   } }
 
@@ -614,6 +607,14 @@ module "secrets" {
       random_password_length   = 64
       allow_eks_access         = false
     }
+    stripe = {
+      description      = "Stripe API keys"
+      allow_eks_access = false
+    }
+    firebase = {
+      description      = "Firebase credentials"
+      allow_eks_access = false
+    }
   }
 
   create_external_secrets_role = false # Not needed for ECS
@@ -634,25 +635,25 @@ module "monitoring" {
 
   # Cost Optimization: Minimal logging and monitoring for dev
   log_groups = { for service in local.microservices : service => {
-    retention_in_days = 3
+    retention_in_days = 30
   } }
 
-  create_dashboard       = false
+  create_dashboard       = true
   eks_cluster_name       = null # No EKS cluster
   rds_cluster_identifier = module.rds.aurora_cluster_id
   elasticache_cluster_id = module.elasticache.replication_group_id
 
-  create_alarm_topic    = false
+  create_alarm_topic    = true
   alarm_email_endpoints = []
 
-  enable_container_insights         = false
-  container_insights_retention_days = 3
+  enable_container_insights         = true
+  container_insights_retention_days = 30
 
   xray_sampling_rules = {
     default = {
       priority       = 1000
-      reservoir_size = 1
-      fixed_rate     = 0.05
+      reservoir_size = 10
+      fixed_rate     = 0.01
     }
   }
 
@@ -708,4 +709,14 @@ output "cognito_user_pool_id" {
 output "ecr_repository_urls" {
   description = "ECR repository URLs for all services"
   value       = module.ecr.repository_urls
+}
+
+output "target_group_arns" {
+  description = "Map of service names to target group ARNs for ECS service deployment"
+  value       = module.ecs_alb.target_group_arns
+}
+
+output "task_role_arns" {
+  description = "Map of service names to task role ARNs"
+  value       = module.ecs_iam.task_role_arns
 }
