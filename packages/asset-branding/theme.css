@@ -1,0 +1,204 @@
+/**
+ * Flamoral Brand System - CSS Variables
+ *
+ * This file contains all CSS custom properties for the Flamoral design system.
+ * Import this file to use Flamoral brand tokens in your stylesheets.
+ */
+
+:root {
+  /* ================================
+     Primary Colors (Blue Gradient)
+     ================================ */
+  --color-primary-gradient-start: #0066FF;
+  --color-primary-gradient-end: #00CCFF;
+  --color-primary-gradient: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+
+  /* ================================
+     Secondary Colors (Pink)
+     ================================ */
+  --color-secondary-pink: #FF1493;
+  --color-secondary-pink-light: #FF69B4;
+  --color-secondary-gradient: linear-gradient(135deg, var(--color-secondary-pink), var(--color-secondary-pink-light));
+
+  /* ================================
+     Accent Colors (Green)
+     ================================ */
+  --color-accent-green: #00FF7F;
+  --color-accent-green-dark: #00CC66;
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent-green-dark), var(--color-accent-green));
+
+  /* ================================
+     Surface Colors
+     ================================ */
+  --color-surface-black: #0A0A0A;
+  --color-surface-dark: #1A1A1A;
+  --color-surface-dark-elevated: #2A2A2A;
+
+  /* ================================
+     Text Colors
+     ================================ */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #B0B0B0;
+  --color-text-muted: #666666;
+
+  /* ================================
+     State Colors
+     ================================ */
+  --color-state-success: #00FF7F;
+  --color-state-error: #FF4444;
+  --color-state-warning: #FFAA00;
+  --color-state-info: #00CCFF;
+
+  /* ================================
+     Typography - Font Families
+     ================================ */
+  --font-family-display: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+  /* ================================
+     Typography - Font Sizes
+     ================================ */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 2rem;      /* 32px */
+  --font-size-4xl: 2.5rem;    /* 40px */
+  --font-size-5xl: 3rem;      /* 48px */
+
+  /* ================================
+     Typography - Font Weights
+     ================================ */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ================================
+     Typography - Line Heights
+     ================================ */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ================================
+     Spacing
+     ================================ */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+
+  /* ================================
+     Border Radius
+     ================================ */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* ================================
+     Shadows
+     ================================ */
+  --shadow-glow-blue: 0 0 20px rgba(0, 102, 255, 0.3);
+  --shadow-glow-pink: 0 0 20px rgba(255, 20, 147, 0.3);
+  --shadow-glow-green: 0 0 20px rgba(0, 255, 127, 0.3);
+  --shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.3);
+
+  /* ================================
+     Transitions
+     ================================ */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* ================================
+     Z-Index Scale
+     ================================ */
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-modal-backdrop: 300;
+  --z-index-modal: 400;
+  --z-index-popover: 500;
+  --z-index-tooltip: 600;
+  --z-index-toast: 700;
+}
+
+/* ================================
+   Dark Mode (Default for Flamoral)
+   ================================ */
+body {
+  background-color: var(--color-surface-black);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+/* ================================
+   Utility Classes
+   ================================ */
+
+/* Gradient Text */
+.text-gradient-primary {
+  background: var(--color-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-secondary {
+  background: var(--color-secondary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-accent {
+  background: var(--color-accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+  background: var(--color-primary-gradient);
+}
+
+.bg-gradient-secondary {
+  background: var(--color-secondary-gradient);
+}
+
+.bg-gradient-accent {
+  background: var(--color-accent-gradient);
+}
+
+/* Glow Effects */
+.glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.glow-pink {
+  box-shadow: var(--shadow-glow-pink);
+}
+
+.glow-green {
+  box-shadow: var(--shadow-glow-green);
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

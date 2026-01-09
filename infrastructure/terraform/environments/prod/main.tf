@@ -83,7 +83,8 @@ locals {
     "workflow-engine",
     "automation-service",
     "advertising-service",
-    "partnership-service"
+    "partnership-service",
+    "asset-branding"
   ]
 
   # Service configurations for ECS
