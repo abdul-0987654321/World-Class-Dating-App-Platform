@@ -3,6 +3,7 @@
  * Handles profile discovery and recommendations
  */
 
+import { authTokenService } from './auth-token.service';
 export interface ProfilePhoto {
   url: string;
   is_primary: boolean;

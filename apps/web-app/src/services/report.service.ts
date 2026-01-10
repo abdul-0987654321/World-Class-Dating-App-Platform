@@ -3,6 +3,7 @@
  * Handles user reports and content moderation
  */
 
+import { authTokenService } from './auth-token.service';
 export type ReportStatus = 'pending' | 'investigating' | 'resolved' | 'dismissed' | 'action_taken';
 
 export type ReportCategory =

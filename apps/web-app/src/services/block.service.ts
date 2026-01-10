@@ -3,6 +3,7 @@
  * Handles user blocking functionality
  */
 
+import { authTokenService } from './auth-token.service';
 export interface BlockedUser {
   id: string;
   userId: string;

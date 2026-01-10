@@ -3,6 +3,7 @@
  * Handles passport/travel mode API interactions
  */
 
+import { authTokenService } from './auth-token.service';
 export interface PassportLocation {
   id?: string;
   city: string;

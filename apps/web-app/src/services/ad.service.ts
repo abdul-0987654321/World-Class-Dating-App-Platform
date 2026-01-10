@@ -3,6 +3,7 @@
  * Handles ad configuration, impressions, and rewards for the web platform
  */
 
+import { authTokenService } from './auth-token.service';
 // Ad Types
 export type AdType = 'banner' | 'interstitial' | 'rewarded';
 export type AdNetwork = 'admob' | 'facebook' | 'adsense' | 'custom';

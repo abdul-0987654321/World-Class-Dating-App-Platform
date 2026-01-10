@@ -10,6 +10,7 @@
  * - PREMIUM_PLUS: Power user tier ($29.99/month)
  * - ELITE: VIP tier ($49.99/month)
  */
+import { authTokenService } from './auth-token.service';
 
 export type SubscriptionTier = 'FREE' | 'BASIC' | 'PLUS' | 'PREMIUM' | 'PREMIUM_PLUS' | 'ELITE';
 export type BillingCycle = 'monthly' | '3_months' | '6_months' | 'yearly';

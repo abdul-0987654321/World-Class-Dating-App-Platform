@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 
 export interface JwtUser {
   userId: string;
+  sub?: string; // Alternative user ID field from JWT standard
   email?: string;
   role?: string;
   isAdmin?: boolean;

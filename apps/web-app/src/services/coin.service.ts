@@ -3,6 +3,7 @@
  * Handles virtual currency functionality
  */
 
+import { authTokenService } from './auth-token.service';
 export interface CoinBalance {
   coins: number;
   gems: number;

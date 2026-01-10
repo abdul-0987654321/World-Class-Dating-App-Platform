@@ -3,6 +3,7 @@
  * Handles profile boost functionality
  */
 
+import { authTokenService } from './auth-token.service';
 export interface Boost {
   id: string;
   userId: string;

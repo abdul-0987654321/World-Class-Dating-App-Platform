@@ -3,6 +3,7 @@
  * Handles daily curated picks API interactions
  */
 
+import { authTokenService } from './auth-token.service';
 export interface CuratedPickProfile {
   userId: string;
   displayName: string;

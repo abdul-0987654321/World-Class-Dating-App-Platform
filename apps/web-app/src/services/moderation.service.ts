@@ -3,6 +3,7 @@
  * Handles content moderation and violation tracking
  */
 
+import { authTokenService } from './auth-token.service';
 // Types for Admin moderation queue
 export interface ModerationQueueItem {
   id: string;

@@ -3,6 +3,7 @@
  * Handles privacy settings and preferences
  */
 
+import { authTokenService } from './auth-token.service';
 export interface PrivacySettings {
   hideLastActive: boolean;
   hideDistance: boolean;

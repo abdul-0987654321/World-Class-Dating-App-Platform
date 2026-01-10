@@ -3,6 +3,7 @@
  * Handles daily limits and usage tracking
  */
 
+import { authTokenService } from './auth-token.service';
 export interface LimitInfo {
   used: number;
   limit: number;
