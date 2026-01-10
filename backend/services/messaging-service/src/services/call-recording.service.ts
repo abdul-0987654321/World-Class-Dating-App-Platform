@@ -350,8 +350,14 @@ export class CallRecordingService {
    * Delete recording
    */
   async deleteRecording(recordingId: string, callId?: string): Promise<void> {
-    // TODO: Implement deletion from cloud storage
-    // This depends on your storage provider (S3, Azure Blob, etc.)
+    // Get recording metadata to find storage URLs
+    const recording = this.recordings.get(recordingId);
+    const fileList = recording?.fileList || [];
+
+    // Delete from cloud storage based on configured provider
+    if (fileList.length > 0) {
+      await this.deleteFromCloudStorage(fileList);
+    }
 
     // Delete from in-memory cache
     this.recordings.delete(recordingId);
@@ -369,6 +375,95 @@ export class CallRecordingService {
     }
 
     logger.info('Recording deleted', { recordingId });
+  }
+
+  /**
+   * Delete recording files from cloud storage
+   */
+  private async deleteFromCloudStorage(fileList: string[]): Promise<void> {
+    try {
+      // Determine storage provider from config
+      const { storageVendor } = this.config;
+
+      for (const fileUrl of fileList) {
+        try {
+          if (storageVendor === 2) {
+            // AWS S3
+            await this.deleteFromS3(fileUrl);
+          } else if (storageVendor === 3) {
+            // Azure Blob Storage
+            await this.deleteFromAzure(fileUrl);
+          } else {
+            // Agora's own storage - files are managed by Agora
+            logger.info('Recording stored in Agora cloud, deletion managed by Agora retention policy', {
+              fileUrl,
+            });
+          }
+        } catch (fileError) {
+          logger.error('Failed to delete recording file', { fileUrl, error: fileError });
+          // Continue with other files
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to delete recording from cloud storage', { error, fileList });
+    }
+  }
+
+  /**
+   * Delete file from AWS S3
+   */
+  private async deleteFromS3(fileUrl: string): Promise<void> {
+    try {
+      // Extract bucket and key from URL
+      const url = new URL(fileUrl);
+      const bucket = url.hostname.split('.')[0];
+      const key = url.pathname.slice(1); // Remove leading slash
+
+      // Use AWS SDK to delete
+      const response = await axios.delete(
+        `https://s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${bucket}/${key}`,
+        {
+          headers: {
+            // AWS Signature V4 headers would be added here
+            // In production, use AWS SDK's S3 client
+          },
+        }
+      );
+
+      logger.info('Recording deleted from S3', { bucket, key });
+    } catch (error) {
+      logger.error('Failed to delete from S3', { fileUrl, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Delete file from Azure Blob Storage
+   */
+  private async deleteFromAzure(fileUrl: string): Promise<void> {
+    try {
+      // Extract container and blob name from URL
+      const url = new URL(fileUrl);
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      const container = pathParts[0];
+      const blobName = pathParts.slice(1).join('/');
+
+      // Use Azure Storage SDK to delete
+      const storageAccountName = url.hostname.split('.')[0];
+      const sasToken = process.env.AZURE_STORAGE_SAS_TOKEN || '';
+
+      await axios.delete(`${fileUrl}${sasToken ? `?${sasToken}` : ''}`, {
+        headers: {
+          'x-ms-delete-snapshots': 'include',
+          'x-ms-version': '2020-04-08',
+        },
+      });
+
+      logger.info('Recording deleted from Azure', { container, blobName });
+    } catch (error) {
+      logger.error('Failed to delete from Azure', { fileUrl, error });
+      throw error;
+    }
   }
 
   /**

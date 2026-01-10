@@ -38,6 +38,7 @@ import {
 import { validateBody, validateParams, validateQuery } from '../../dto/validation.middleware';
 import { DynamicPricingController } from '../controllers/dynamic-pricing.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireAdmin } from '@flamoral/shared/middleware/b2c-authorization';
 
 const router = Router();
 const dynamicPricingController = new DynamicPricingController();
@@ -253,7 +254,7 @@ router.post(
 router.post(
   '/admin/promotions',
   authenticate,
-  // TODO: Add admin role middleware
+  requireAdmin,
   validateBody(CreatePromotionDto),
   dynamicPricingController.createPromotion.bind(dynamicPricingController)
 );
@@ -265,7 +266,7 @@ router.post(
 router.put(
   '/admin/regional/:countryCode',
   authenticate,
-  // TODO: Add admin role middleware
+  requireAdmin,
   validateParams(UpdateRegionalPricingParamsDto),
   validateBody(UpdateRegionalPricingDto),
   dynamicPricingController.updateRegionalPricing.bind(dynamicPricingController)
@@ -278,7 +279,7 @@ router.put(
 router.post(
   '/admin/experiments',
   authenticate,
-  // TODO: Add admin role middleware
+  requireAdmin,
   validateBody(CreateExperimentDto),
   dynamicPricingController.createExperiment.bind(dynamicPricingController)
 );
@@ -290,7 +291,7 @@ router.post(
 router.post(
   '/admin/experiments/:experimentId/start',
   authenticate,
-  // TODO: Add admin role middleware
+  requireAdmin,
   validateParams(ExperimentIdParamDto),
   dynamicPricingController.startExperiment.bind(dynamicPricingController)
 );
@@ -302,7 +303,7 @@ router.post(
 router.post(
   '/admin/experiments/:experimentId/end',
   authenticate,
-  // TODO: Add admin role middleware
+  requireAdmin,
   validateParams(ExperimentIdParamDto),
   dynamicPricingController.endExperiment.bind(dynamicPricingController)
 );

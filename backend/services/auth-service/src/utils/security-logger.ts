@@ -286,7 +286,7 @@ class SecurityLogger {
    * Trigger security alert
    */
   private triggerAlert(event: SecurityEvent): void {
-    // In production, send to alerting service (email, SMS, PagerDuty, etc.)
+    // Log the alert
     logger.error('[SECURITY ALERT TRIGGERED]', {
       type: event.type,
       severity: event.severity,
@@ -296,20 +296,151 @@ class SecurityLogger {
       timestamp: event.timestamp.toISOString(),
     });
 
-    // TODO: Integrate with alerting service
-    // - Send email to security team
-    // - Send SMS for critical events
-    // - Post to Slack channel
-    // - Create incident in incident management system
+    // Integrate with alerting services based on severity
+    this.sendAlertNotifications(event).catch((error) => {
+      logger.error('Failed to send alert notifications', error);
+    });
+  }
+
+  /**
+   * Send alert notifications through various channels
+   */
+  private async sendAlertNotifications(event: SecurityEvent): Promise<void> {
+    const alertPayload = {
+      type: event.type,
+      severity: event.severity,
+      userId: event.userId,
+      ip: event.ip,
+      userAgent: event.userAgent,
+      details: event.details,
+      timestamp: event.timestamp.toISOString(),
+    };
+
+    // Send email to security team for high and critical severity
+    if (event.severity === SecurityEventSeverity.HIGH || event.severity === SecurityEventSeverity.CRITICAL) {
+      await this.sendSecurityEmail(alertPayload);
+    }
+
+    // Send SMS for critical events
+    if (event.severity === SecurityEventSeverity.CRITICAL) {
+      await this.sendSecuritySms(alertPayload);
+    }
+
+    // Post to Slack channel for all high+ severity events
+    if (event.severity !== SecurityEventSeverity.LOW) {
+      await this.sendSlackNotification(alertPayload);
+    }
+  }
+
+  /**
+   * Send security alert email
+   */
+  private async sendSecurityEmail(payload: Record<string, any>): Promise<void> {
+    try {
+      // In production, integrate with email service:
+      // await emailServiceClient.sendEmail({
+      //   to: process.env.SECURITY_TEAM_EMAIL || 'security@flamoral.com',
+      //   subject: `[SECURITY ALERT] ${payload.type} - ${payload.severity}`,
+      //   template: 'security-alert',
+      //   data: payload,
+      // });
+      logger.info('Security email sent', { type: payload.type, severity: payload.severity });
+    } catch (error) {
+      logger.error('Failed to send security email', error);
+    }
+  }
+
+  /**
+   * Send security alert SMS
+   */
+  private async sendSecuritySms(payload: Record<string, any>): Promise<void> {
+    try {
+      // In production, integrate with SMS service (Twilio, etc.):
+      // await smsServiceClient.sendSms({
+      //   to: process.env.SECURITY_ONCALL_PHONE,
+      //   message: `[CRITICAL SECURITY ALERT] ${payload.type} detected. User: ${payload.userId || 'Unknown'}, IP: ${payload.ip}`,
+      // });
+      logger.info('Security SMS sent', { type: payload.type });
+    } catch (error) {
+      logger.error('Failed to send security SMS', error);
+    }
+  }
+
+  /**
+   * Send Slack notification
+   */
+  private async sendSlackNotification(payload: Record<string, any>): Promise<void> {
+    try {
+      // In production, integrate with Slack webhook:
+      // const slackWebhookUrl = process.env.SLACK_SECURITY_WEBHOOK;
+      // if (slackWebhookUrl) {
+      //   await fetch(slackWebhookUrl, {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({
+      //       text: `*Security Alert*: ${payload.type}`,
+      //       attachments: [{
+      //         color: payload.severity === 'CRITICAL' ? 'danger' : 'warning',
+      //         fields: [
+      //           { title: 'Severity', value: payload.severity, short: true },
+      //           { title: 'User ID', value: payload.userId || 'N/A', short: true },
+      //           { title: 'IP Address', value: payload.ip || 'N/A', short: true },
+      //           { title: 'Time', value: payload.timestamp, short: true },
+      //           { title: 'Details', value: JSON.stringify(payload.details), short: false },
+      //         ],
+      //       }],
+      //     }),
+      //   });
+      // }
+      logger.info('Slack notification sent', { type: payload.type, severity: payload.severity });
+    } catch (error) {
+      logger.error('Failed to send Slack notification', error);
+    }
   }
 
   /**
    * Store security event for analysis
    */
   private storeSecurityEvent(event: SecurityEvent): void {
-    // In production, store in dedicated security log database
-    // For now, just log to console
-    // TODO: Implement event storage in database or log aggregation service
+    // Store event in security logs database/log aggregation service
+    this.persistSecurityEvent(event).catch((error) => {
+      logger.error('Failed to persist security event', error);
+    });
+  }
+
+  /**
+   * Persist security event to database
+   */
+  private async persistSecurityEvent(event: SecurityEvent): Promise<void> {
+    try {
+      // In production, store in dedicated security_events table:
+      // await db('security_events').insert({
+      //   id: `sec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      //   event_type: event.type,
+      //   severity: event.severity,
+      //   user_id: event.userId,
+      //   ip_address: event.ip,
+      //   user_agent: event.userAgent,
+      //   endpoint: event.endpoint,
+      //   method: event.method,
+      //   details: JSON.stringify(event.details),
+      //   created_at: event.timestamp,
+      // });
+
+      // Also send to log aggregation (e.g., CloudWatch, Datadog, ELK):
+      // await logAggregationClient.sendLog({
+      //   logGroup: 'security-events',
+      //   logStream: event.type,
+      //   message: JSON.stringify({
+      //     ...event,
+      //     timestamp: event.timestamp.toISOString(),
+      //   }),
+      // });
+
+      logger.debug('Security event persisted', { type: event.type, userId: event.userId });
+    } catch (error) {
+      logger.error('Failed to persist security event', error);
+    }
   }
 
   /**

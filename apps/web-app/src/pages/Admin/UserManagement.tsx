@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
   FaUserSlash,
@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { authService } from '../../services';
 
 // SECURITY: No localhost fallback - production must have VITE_MODERATION_SERVICE_URL configured
 // In production, moderation calls route through API gateway at /api/moderation
@@ -53,9 +54,20 @@ const UserManagement: React.FC = () => {
   const [showBanModal, setShowBanModal] = useState(false);
   const [suspensionDays, setSuspensionDays] = useState(7);
   const [actionReason, setActionReason] = useState('');
+  const [adminId, setAdminId] = useState<string>('');
 
-  // Get current admin ID from auth context (mock for now)
-  const adminId = 'current-admin-id'; // TODO: Get from auth context
+  // Fetch current admin ID from auth context
+  useEffect(() => {
+    const fetchAdminId = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setAdminId(currentUser.id);
+      } catch (error) {
+        console.error('Failed to get current admin user:', error);
+      }
+    };
+    fetchAdminId();
+  }, []);
 
   const searchUser = async () => {
     if (!searchUserId.trim()) {

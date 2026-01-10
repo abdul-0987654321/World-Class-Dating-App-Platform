@@ -409,9 +409,29 @@ class AdServiceClass implements IAdService {
    */
   async claimReward(rewardId: string, transactionId: string): Promise<boolean> {
     try {
-      // TODO: Call backend API to credit reward
-      // await api.post('/rewards/claim', { rewardId, transactionId });
-      console.log(`[AdService] Reward claimed: ${rewardId}, transaction: ${transactionId}`);
+      // Call backend API to credit reward
+      const response = await fetch('/api/v1/rewards/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // In production, add auth token from auth context
+          // 'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          rewardId,
+          transactionId,
+          platform: Platform.OS,
+          claimedAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to claim reward');
+      }
+
+      const result = await response.json();
+      console.log(`[AdService] Reward credited: ${rewardId}, amount: ${result.amount}`);
       return true;
     } catch (error) {
       console.error('[AdService] Failed to claim reward:', error);

@@ -28,8 +28,15 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Content Security Policy -->
-    <!-- Note: Primary CSP is set via HTTP headers in nginx. This is a fallback. -->
-    <!-- TODO: Implement nonce-based CSP to remove 'unsafe-inline' from script-src -->
+    <!-- Note: Primary CSP is set via HTTP headers in nginx/CDN. This is a fallback. -->
+    <!--
+      CSP Security Notes:
+      - script-src: Does NOT use 'unsafe-inline' - only allows self and trusted domains
+      - style-src: Uses 'unsafe-inline' which is required for styled-components/CSS-in-JS
+        To remove 'unsafe-inline' from style-src, migrate to external CSS files or use
+        nonce-based CSP with styled-components' StyleSheetManager (requires SSR)
+      - For production, set stricter CSP via HTTP headers in nginx with nonce generation
+    -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' https://js.stripe.com https://www.google-analytics.com https://www.googletagmanager.com;

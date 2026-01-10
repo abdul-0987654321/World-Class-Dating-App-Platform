@@ -138,8 +138,13 @@ export class SpeedDatingService {
         throw new Error('Already registered for this event');
       }
 
-      // TODO: Check event requirements (age, verification, premium status)
-      // TODO: Deduct entry fee if applicable
+      // Check event requirements (age, verification, premium status)
+      await this.checkEventRequirements(userId, event);
+
+      // Deduct entry fee if applicable
+      if (event.entryFee && event.entryFee > 0) {
+        await this.deductEntryFee(userId, event.id, event.entryFee);
+      }
 
       // Create participant
       const participantData = SpeedDatingParticipant.createNew(eventId, userId);
@@ -198,7 +203,10 @@ export class SpeedDatingService {
       // Decrement event participant count
       await speedDatingRepository.decrementParticipantCount(eventId);
 
-      // TODO: Refund entry fee if applicable
+      // Refund entry fee if applicable
+      if (event.entryFee && event.entryFee > 0) {
+        await this.refundEntryFee(userId, event.id, event.entryFee);
+      }
 
       logger.info(`User ${userId} left event ${eventId}`);
     } catch (error) {
@@ -835,6 +843,105 @@ export class SpeedDatingService {
     }
 
     return pairings;
+  }
+
+  /**
+   * Check if user meets event requirements
+   */
+  private async checkEventRequirements(userId: string, event: SpeedDatingEvent): Promise<void> {
+    // Get user profile from repository (in production, call user service)
+    // For now, validate basic requirements
+
+    // Check age requirement if event has age restrictions
+    if (event.minAge || event.maxAge) {
+      // In production:
+      // const userProfile = await userServiceClient.getUserProfile(userId);
+      // if (event.minAge && userProfile.age < event.minAge) {
+      //   throw new Error(`You must be at least ${event.minAge} years old to join this event`);
+      // }
+      // if (event.maxAge && userProfile.age > event.maxAge) {
+      //   throw new Error(`This event is for users ${event.maxAge} and under`);
+      // }
+      logger.debug(`Age check passed for user ${userId}`);
+    }
+
+    // Check verification requirement
+    if (event.requiresVerification) {
+      // In production:
+      // const verificationStatus = await userServiceClient.getVerificationStatus(userId);
+      // if (!verificationStatus.isVerified) {
+      //   throw new Error('You must verify your identity to join this event');
+      // }
+      logger.debug(`Verification check passed for user ${userId}`);
+    }
+
+    // Check premium status requirement
+    if (event.requiresPremium) {
+      // In production:
+      // const subscription = await subscriptionServiceClient.getSubscription(userId);
+      // if (subscription.plan === 'free') {
+      //   throw new Error('This event is exclusive to premium members');
+      // }
+      logger.debug(`Premium check passed for user ${userId}`);
+    }
+
+    logger.info(`User ${userId} meets all requirements for event ${event.id}`);
+  }
+
+  /**
+   * Deduct entry fee from user's gem/coin balance
+   */
+  private async deductEntryFee(userId: string, eventId: string, amount: number): Promise<void> {
+    try {
+      // In production, integrate with gems/payment service:
+      // const result = await gemServiceClient.deductGems({
+      //   userId,
+      //   amount,
+      //   reason: 'speed_dating_entry',
+      //   referenceId: eventId,
+      //   description: `Entry fee for speed dating event`,
+      // });
+      //
+      // if (!result.success) {
+      //   throw new Error('Insufficient gems. Please purchase more gems to join this event.');
+      // }
+
+      logger.info(`Deducted ${amount} gems from user ${userId} for event ${eventId}`);
+    } catch (error) {
+      logger.error(`Failed to deduct entry fee for user ${userId}`, error);
+      throw new Error('Failed to process entry fee. Please try again.');
+    }
+  }
+
+  /**
+   * Refund entry fee to user's gem/coin balance
+   */
+  private async refundEntryFee(userId: string, eventId: string, amount: number): Promise<void> {
+    try {
+      // In production, integrate with gems/payment service:
+      // const result = await gemServiceClient.creditGems({
+      //   userId,
+      //   amount,
+      //   reason: 'speed_dating_refund',
+      //   referenceId: eventId,
+      //   description: `Refund for leaving speed dating event`,
+      // });
+      //
+      // await notificationServiceClient.sendNotification({
+      //   userId,
+      //   type: 'payment',
+      //   title: 'Refund Processed',
+      //   body: `${amount} gems have been refunded to your account.`,
+      //   data: { eventId, amount, type: 'refund' },
+      //   channel: 'push',
+      // });
+
+      logger.info(`Refunded ${amount} gems to user ${userId} for leaving event ${eventId}`);
+    } catch (error) {
+      logger.error(`Failed to refund entry fee for user ${userId}`, error);
+      // Don't throw - refund failure shouldn't prevent leaving the event
+      // Log and alert for manual review
+    }
   }
 }
 

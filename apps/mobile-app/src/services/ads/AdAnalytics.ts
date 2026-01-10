@@ -250,18 +250,28 @@ class AdAnalyticsService {
 
       if (events.length === 0) return;
 
-      // TODO: Send to backend API
-      // const response = await fetch('/api/analytics/ads', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ events, platform: Platform.OS }),
-      // });
-      //
-      // if (response.ok) {
-      //   await AsyncStorage.removeItem(AD_ANALYTICS_STORAGE_KEY);
-      // }
+      // Send to backend API
+      const response = await fetch('/api/v1/analytics/ads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // In production, add auth token from auth context
+          // 'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          events,
+          platform: Platform.OS,
+          syncedAt: new Date().toISOString(),
+        }),
+      });
 
-      console.log('[AdAnalytics] Would sync', events.length, 'events to backend');
+      if (response.ok) {
+        // Clear synced events from local storage
+        await AsyncStorage.removeItem(AD_ANALYTICS_STORAGE_KEY);
+        console.log('[AdAnalytics] Successfully synced', events.length, 'events to backend');
+      } else {
+        console.warn('[AdAnalytics] Backend returned error, keeping events locally');
+      }
     } catch (error) {
       console.error('[AdAnalytics] Backend sync failed:', error);
     }

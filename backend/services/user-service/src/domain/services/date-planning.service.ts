@@ -357,7 +357,8 @@ export class DatePlanningService {
         updated_at: new Date(),
       });
 
-      // TODO: Send notification to match
+      // Send notification to match
+      await this.notifyMatchAboutDatePlan(datePlan.matchId, userId, planId, datePlan.title);
       logger.info(`Date plan ${planId} shared with match`);
     } catch (error: any) {
       logger.error('Error sharing date plan:', error);
@@ -703,5 +704,51 @@ export class DatePlanningService {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
+  }
+
+  /**
+   * Notify match about shared date plan
+   */
+  private async notifyMatchAboutDatePlan(
+    matchId: string,
+    senderId: string,
+    planId: string,
+    planTitle: string
+  ): Promise<void> {
+    try {
+      // Get the other user in the match
+      const match = await db('matches').where('id', matchId).first();
+      if (!match) return;
+
+      const recipientId = match.user1_id === senderId ? match.user2_id : match.user1_id;
+
+      // Get sender's name for the notification
+      const senderProfile = await db('profiles').where('user_id', senderId).first();
+      const senderName = senderProfile?.first_name || 'Your match';
+
+      const notificationServiceUrl =
+        process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003';
+
+      await fetch(`${notificationServiceUrl}/api/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: recipientId,
+          type: 'DATE_PLAN_SHARED',
+          title: `${senderName} shared a date plan!`,
+          body: `Check out "${planTitle}" - a special date plan just for you two.`,
+          data: {
+            matchId,
+            planId,
+            senderId,
+          },
+        }),
+      });
+
+      logger.info(`Date plan notification sent to ${recipientId}`);
+    } catch (error) {
+      logger.error('Failed to send date plan notification', { error, matchId, planId });
+      // Don't throw - the date plan was already shared successfully
+    }
   }
 }

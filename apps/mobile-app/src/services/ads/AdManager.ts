@@ -349,8 +349,26 @@ class AdManagerClass implements IAdManager {
       const trimmedEvents = allEvents.slice(-1000);
       await AsyncStorage.setItem(AD_EVENTS_STORAGE_KEY, JSON.stringify(trimmedEvents));
 
-      // TODO: Send to analytics backend
-      // await api.post('/analytics/ad-events', { events: eventsToSend });
+      // Send to analytics backend
+      try {
+        const response = await fetch('/api/v1/analytics/ad-events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            events: eventsToSend,
+            platform: 'mobile',
+            timestamp: Date.now(),
+          }),
+        });
+
+        if (response.ok) {
+          console.log(`[AdManager] Sent ${eventsToSend.length} events to analytics backend`);
+        }
+      } catch (apiError) {
+        console.warn('[AdManager] Failed to send events to backend, stored locally:', apiError);
+      }
     } catch (error) {
       console.error('[AdManager] Failed to flush events:', error);
       // Put events back in queue

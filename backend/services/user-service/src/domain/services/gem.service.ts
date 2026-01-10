@@ -244,7 +244,8 @@ export class GemService {
       return result;
     }
 
-    // TODO: Notify recipient via notification service
+    // Notify recipient via notification service
+    await this.notifyGiftRecipient(senderId, recipientId, giftType, message);
     logger.info(`User ${senderId} sent ${giftType} to ${recipientId}`);
 
     return {
@@ -281,7 +282,8 @@ export class GemService {
       expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     }
 
-    // TODO: Store active feature in database with expiration
+    // Store active feature with expiration
+    await this.storeActiveFeature(userId, featureType, expiresAt);
     logger.info(`User ${userId} activated ${featureType}`, { expiresAt });
 
     return {
@@ -620,6 +622,89 @@ export class GemService {
       cosmetic: 'profile',
     };
     return categoryMap[itemType] || 'matching';
+  }
+
+  /**
+   * Notify gift recipient via notification service
+   */
+  private async notifyGiftRecipient(
+    senderId: string,
+    recipientId: string,
+    giftType: string,
+    message?: string
+  ): Promise<void> {
+    try {
+      const notificationServiceUrl =
+        process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003';
+
+      await fetch(`${notificationServiceUrl}/api/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: recipientId,
+          type: 'GIFT_RECEIVED',
+          title: 'You received a gift!',
+          body: message || `Someone sent you a ${giftType.replace('GIFT_', '').toLowerCase()}!`,
+          data: {
+            senderId,
+            giftType,
+            message,
+          },
+        }),
+      });
+
+      logger.info(`Gift notification sent to ${recipientId} from ${senderId}`);
+    } catch (error) {
+      logger.error('Failed to send gift notification', { error, senderId, recipientId, giftType });
+      // Don't throw - gift was already processed successfully
+    }
+  }
+
+  /**
+   * Store active feature with expiration in database
+   */
+  private async storeActiveFeature(
+    userId: string,
+    featureType: keyof typeof GEM_PRICES,
+    expiresAt?: Date
+  ): Promise<void> {
+    try {
+      // Create a purchase record that tracks the active feature
+      await this.purchaseRepository.create({
+        userId,
+        itemId: featureType,
+        itemName: this.getItemDescription(featureType),
+        itemType: this.getFeatureCategory(featureType),
+        gemsCost: 0, // Already deducted
+        quantity: 1,
+        expiresAt,
+        metadata: {
+          featureType,
+          activatedAt: new Date().toISOString(),
+        },
+      });
+
+      logger.info(`Active feature stored for user ${userId}`, { featureType, expiresAt });
+    } catch (error) {
+      logger.error('Failed to store active feature', { error, userId, featureType });
+      // Don't throw - feature was already activated successfully
+    }
+  }
+
+  /**
+   * Get feature category from feature type
+   */
+  private getFeatureCategory(featureType: string): string {
+    if (featureType.includes('SPOTLIGHT') || featureType.includes('PRIORITY')) {
+      return 'boost';
+    }
+    if (featureType.includes('FRAME') || featureType.includes('BADGE')) {
+      return 'cosmetic';
+    }
+    if (featureType.includes('MESSAGE') || featureType.includes('ICEBREAKER')) {
+      return 'utility';
+    }
+    return 'utility';
   }
 }
 

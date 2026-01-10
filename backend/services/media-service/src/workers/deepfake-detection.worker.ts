@@ -187,19 +187,58 @@ async function notifyProfilePhotoIssue(
   action: string,
   result: DeepfakeDetectionResult
 ): Promise<void> {
-  // This would typically call the user service to notify about the issue
-  // For now, just log the notification
   logger.info(
     `Profile photo issue notification: user=${userId}, media=${mediaId}, action=${action}`
   );
 
-  // TODO: Implement actual notification to user service
-  // await userServiceClient.notifyProfilePhotoIssue({
-  //   userId,
-  //   mediaId,
-  //   reason: action === 'rejected' ? 'deepfake_detected' : 'requires_review',
-  //   details: result,
-  // });
+  try {
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
+    const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003';
+
+    // Notify user service about the profile photo issue
+    await fetch(`${userServiceUrl}/api/users/${userId}/profile-photo-issue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mediaId,
+        reason: action === 'rejected' ? 'deepfake_detected' : 'requires_review',
+        score: result.score,
+        indicators: result.indicators,
+        detectedAt: new Date().toISOString(),
+      }),
+    });
+
+    // Send notification to user about the issue
+    const notificationMessage =
+      action === 'rejected'
+        ? 'Your profile photo could not be verified and has been removed. Please upload a new photo.'
+        : 'Your profile photo is under review. We will notify you once the review is complete.';
+
+    await fetch(`${notificationServiceUrl}/api/notifications/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        type: 'PROFILE_PHOTO_ISSUE',
+        title: 'Profile Photo Update',
+        body: notificationMessage,
+        data: {
+          mediaId,
+          action,
+        },
+      }),
+    });
+
+    logger.info(`User notified about profile photo issue: user=${userId}, action=${action}`);
+  } catch (error) {
+    logger.error('Failed to notify user about profile photo issue', {
+      error,
+      userId,
+      mediaId,
+      action,
+    });
+    // Don't throw - the detection already succeeded
+  }
 }
 
 /**

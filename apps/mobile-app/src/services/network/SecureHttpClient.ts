@@ -361,25 +361,100 @@ class SecureHttpClient {
    * Report security event to monitoring service
    */
   private async reportSecurityEvent(type: SSLPinningErrorType, hostname: string, error: any) {
-    // TODO: Implement security event reporting to your backend
     // This should NOT use the pinned connection to avoid infinite loops
     if (!__DEV__) {
       try {
-        // Example: Send to separate security monitoring endpoint
-        // await fetch('https://security-monitoring.flamoral.com/events', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     type,
-        //     hostname,
-        //     error: error.message,
-        //     timestamp: new Date().toISOString(),
-        //     platform: Platform.OS,
-        //   }),
-        // });
+        // Use a separate, non-pinned endpoint for security reporting
+        const securityMonitoringUrl =
+          'https://security-monitoring.flamoral.com/api/v1/security-events';
+
+        const deviceInfo = await this.getDeviceInfo();
+
+        await fetch(securityMonitoringUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Security-Report': 'true',
+          },
+          body: JSON.stringify({
+            eventType: 'SSL_PINNING_ERROR',
+            severity: 'CRITICAL',
+            details: {
+              type,
+              hostname,
+              errorMessage: error?.message || 'Unknown error',
+              errorCode: error?.code,
+            },
+            device: deviceInfo,
+            timestamp: new Date().toISOString(),
+          }),
+        });
+
+        console.log('[Security] Event reported successfully');
       } catch (reportError) {
+        // Silently fail - we don't want reporting errors to affect the app
         console.error('Failed to report security event:', reportError);
+
+        // Store failed events locally for later retry
+        try {
+          const failedEvents = await AsyncStorage.getItem('failed_security_events');
+          const events = failedEvents ? JSON.parse(failedEvents) : [];
+          events.push({
+            type,
+            hostname,
+            error: error?.message,
+            timestamp: new Date().toISOString(),
+          });
+          // Keep only last 50 events
+          const trimmedEvents = events.slice(-50);
+          await AsyncStorage.setItem('failed_security_events', JSON.stringify(trimmedEvents));
+        } catch {
+          // Ignore storage errors
+        }
       }
+    }
+  }
+
+  /**
+   * Get device information for security reports
+   */
+  private async getDeviceInfo(): Promise<Record<string, any>> {
+    return {
+      platform: Platform.OS,
+      version: Platform.Version,
+      // In production, you might add more device info from react-native-device-info
+      timestamp: Date.now(),
+    };
+  }
+
+  /**
+   * Retry sending failed security events (call this on app startup)
+   */
+  async retryFailedSecurityEvents(): Promise<void> {
+    if (__DEV__) return;
+
+    try {
+      const failedEvents = await AsyncStorage.getItem('failed_security_events');
+      if (!failedEvents) return;
+
+      const events = JSON.parse(failedEvents);
+      if (events.length === 0) return;
+
+      const securityMonitoringUrl =
+        'https://security-monitoring.flamoral.com/api/v1/security-events/batch';
+
+      const response = await fetch(securityMonitoringUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events }),
+      });
+
+      if (response.ok) {
+        await AsyncStorage.removeItem('failed_security_events');
+        console.log('[Security] Retried failed events successfully');
+      }
+    } catch (error) {
+      console.error('Failed to retry security events:', error);
     }
   }
 

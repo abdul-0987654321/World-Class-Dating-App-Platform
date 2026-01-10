@@ -849,7 +849,38 @@ class AdminSafetyDashboardService {
       });
     }
 
-    // TODO: Send warning notification to user
+    // Send warning notification to user
+    await this.sendUserNotification(userId, 'warning', {
+      title: 'Account Warning',
+      message: `Your account has received a warning. Reason: ${updates.restriction_reason || 'Policy violation'}. Please review our community guidelines to avoid further action.`,
+      warningCount: updates.warnings_count || 1,
+    });
+  }
+
+  private async sendUserNotification(
+    userId: string,
+    type: 'warning' | 'suspension' | 'ban',
+    data: { title: string; message: string; [key: string]: any }
+  ): Promise<void> {
+    try {
+      // Insert notification into database
+      await db('notifications').insert({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        user_id: userId,
+        type: `moderation_${type}`,
+        title: data.title,
+        body: data.message,
+        data: JSON.stringify(data),
+        priority: type === 'ban' ? 'high' : 'normal',
+        created_at: new Date(),
+      });
+
+      // Also send push notification and email for important moderation actions
+      // In production, integrate with notification service
+      logger.info(`Sent ${type} notification to user ${userId}`, { data });
+    } catch (error) {
+      logger.error(`Failed to send ${type} notification to user ${userId}`, error);
+    }
   }
 
   private async suspendUser(userId: string, days: number, reason: string): Promise<void> {
@@ -884,7 +915,14 @@ class AdminSafetyDashboardService {
         updated_at: new Date(),
       });
 
-    // TODO: Send suspension notification to user
+    // Send suspension notification to user
+    await this.sendUserNotification(userId, 'suspension', {
+      title: 'Account Suspended',
+      message: `Your account has been suspended for ${days} day(s). Reason: ${reason}. Your suspension will be lifted on ${suspensionEndsAt.toLocaleDateString()}.`,
+      suspensionDays: days,
+      suspensionEndsAt: suspensionEndsAt.toISOString(),
+      reason,
+    });
   }
 
   private async banUser(userId: string, reason: string): Promise<void> {
@@ -915,7 +953,13 @@ class AdminSafetyDashboardService {
       updated_at: new Date(),
     });
 
-    // TODO: Send ban notification to user
+    // Send ban notification to user
+    await this.sendUserNotification(userId, 'ban', {
+      title: 'Account Permanently Banned',
+      message: `Your account has been permanently banned. Reason: ${reason}. This action is final. If you believe this is an error, you may contact our appeals team.`,
+      reason,
+      appealEmail: 'appeals@flamoral.com',
+    });
   }
 
   private async unbanUser(userId: string): Promise<void> {

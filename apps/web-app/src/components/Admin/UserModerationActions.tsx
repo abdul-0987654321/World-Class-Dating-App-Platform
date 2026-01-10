@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FaExclamationTriangle,
   FaUserSlash,
@@ -8,6 +8,7 @@ import {
   FaTimes,
 } from 'react-icons/fa';
 import { useModerationAction } from '../../hooks/useAdminUsers';
+import { authService } from '../../services';
 import type { AdminUser, ModerationAction } from '../../services/admin-user.service';
 
 interface UserModerationActionsProps {
@@ -27,8 +28,22 @@ export const UserModerationActions: React.FC<UserModerationActionsProps> = ({
 
   const [reason, setReason] = useState('');
   const [suspensionDays, setSuspensionDays] = useState(7);
+  const [currentAdminId, setCurrentAdminId] = useState<string>('');
 
   const moderationMutation = useModerationAction();
+
+  // Fetch current admin user ID from auth context
+  useEffect(() => {
+    const fetchAdminId = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setCurrentAdminId(currentUser.id);
+      } catch (error) {
+        console.error('Failed to get current admin user:', error);
+      }
+    };
+    fetchAdminId();
+  }, []);
 
   const handleAction = async (action: ModerationAction) => {
     await moderationMutation.mutateAsync({
@@ -82,7 +97,7 @@ export const UserModerationActions: React.FC<UserModerationActionsProps> = ({
       const action: ModerationAction = {
         type: actionType,
         reason: reason.trim(),
-        adminId: 'current-admin-id', // TODO: Get from auth context
+        adminId: currentAdminId,
         ...(showDurationField && { duration: suspensionDays }),
       };
 

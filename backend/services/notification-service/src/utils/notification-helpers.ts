@@ -44,7 +44,9 @@ export async function sendNotificationWithTemplate(params: SendNotificationParam
         scheduledFor: quietHoursCheck.scheduleFor,
       });
 
-      // TODO: Add to scheduled notifications queue
+      // Add to scheduled notifications queue
+      await addToScheduledQueue(params, quietHoursCheck.scheduleFor);
+
       return {
         success: true,
         scheduled: true,
@@ -276,6 +278,62 @@ export function shouldBypassQuietHours(type: NotificationType): boolean {
   ];
 
   return urgentTypes.includes(type);
+}
+
+/**
+ * Add notification to scheduled queue for later delivery
+ */
+async function addToScheduledQueue(
+  params: SendNotificationParams,
+  scheduledFor?: Date
+): Promise<void> {
+  try {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      logger.warn('Redis not configured, scheduled notification will be lost');
+      return;
+    }
+
+    const Redis = require('ioredis');
+    const redis = new Redis(redisUrl);
+
+    const scheduledNotification = {
+      id: `sched_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      ...params,
+      scheduledFor: scheduledFor?.toISOString() || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    // Add to sorted set with score as scheduled timestamp
+    const score = scheduledFor ? scheduledFor.getTime() : Date.now();
+    await redis.zadd(
+      'scheduled_notifications',
+      score,
+      JSON.stringify(scheduledNotification)
+    );
+
+    // Also store in a hash for easy retrieval by ID
+    await redis.hset(
+      'scheduled_notifications:data',
+      scheduledNotification.id,
+      JSON.stringify(scheduledNotification)
+    );
+
+    await redis.quit();
+
+    logger.info('Notification added to scheduled queue', {
+      id: scheduledNotification.id,
+      userId: params.userId,
+      type: params.type,
+      scheduledFor: scheduledFor?.toISOString(),
+    });
+  } catch (error) {
+    logger.error('Failed to add notification to scheduled queue', {
+      error,
+      params,
+    });
+    // Don't throw - we don't want to fail the entire operation if scheduling fails
+  }
 }
 
 export default {

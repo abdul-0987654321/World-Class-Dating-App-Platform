@@ -187,7 +187,39 @@ export class RecommendationService {
   async refreshRecommendations(userId: string): Promise<void> {
     try {
       logger.info(`Refreshing recommendations for user ${userId}`);
-      // TODO: Implement cache invalidation when caching is added
+
+      // Invalidate user's recommendation cache
+      const cacheKeys = [
+        `recommendations:${userId}`,
+        `top_matches:${userId}`,
+        `candidates:${userId}`,
+      ];
+
+      // Try Redis cache invalidation if available
+      const redisUrl = process.env.REDIS_URL;
+      if (redisUrl) {
+        try {
+          const Redis = require('ioredis');
+          const redis = new Redis(redisUrl);
+
+          await Promise.all(cacheKeys.map((key) => redis.del(key)));
+
+          // Also invalidate any pattern-based keys
+          const patternKeys = await redis.keys(`recommendations:${userId}:*`);
+          if (patternKeys.length > 0) {
+            await redis.del(...patternKeys);
+          }
+
+          await redis.quit();
+          logger.info(`Cache invalidated for user ${userId}`, { keysCleared: cacheKeys.length });
+        } catch (redisError) {
+          logger.warn('Redis cache invalidation failed, continuing without cache', {
+            error: redisError,
+          });
+        }
+      } else {
+        logger.info('No Redis configured, skipping cache invalidation');
+      }
     } catch (error) {
       logger.error('Failed to refresh recommendations', error);
       throw error;
