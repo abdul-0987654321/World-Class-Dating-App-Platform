@@ -5,6 +5,9 @@
 // Re-export discovery types
 export * from './discovery.types';
 
+// Re-export speed dating types
+export * from './speedDating.types';
+
 /**
  * User Types
  */

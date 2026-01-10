@@ -38,7 +38,7 @@ export {
   AI_ENDPOINTS,
   PAYMENT_ENDPOINTS,
   API_ENDPOINTS,
-} from '@flamoral/shared/constants';
+} from '@flamoral/constants';
 
 // Environment-specific configuration
 export const API_CONFIG = {
