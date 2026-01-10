@@ -852,8 +852,8 @@ class AdminSafetyDashboardService {
     // Send warning notification to user
     await this.sendUserNotification(userId, 'warning', {
       title: 'Account Warning',
-      message: `Your account has received a warning. Reason: ${updates.restriction_reason || 'Policy violation'}. Please review our community guidelines to avoid further action.`,
-      warningCount: updates.warnings_count || 1,
+      message: `Your account has received a warning. Reason: ${reason || 'Policy violation'}. Please review our community guidelines to avoid further action.`,
+      warningCount: updates.warnings_received,
     });
   }
 

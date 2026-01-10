@@ -37,8 +37,7 @@ import {
 } from '../../dto/dynamic-pricing.dto';
 import { validateBody, validateParams, validateQuery } from '../../dto/validation.middleware';
 import { DynamicPricingController } from '../controllers/dynamic-pricing.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { requireAdmin } from '@flamoral/shared/middleware/b2c-authorization';
+import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 const dynamicPricingController = new DynamicPricingController();

@@ -124,3 +124,48 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
 // Export alias for convenience
 export { authenticate as requireAuth };
+
+/**
+ * Admin Authorization Middleware
+ *
+ * Checks if the authenticated user has admin role.
+ * Must be used after authenticate middleware.
+ */
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+        message: 'You must be authenticated to access this resource',
+      });
+      return;
+    }
+
+    // Check for admin role in JWT claims
+    const userWithRole = req.user as AuthUser & { role?: string; roles?: string[] };
+    const isAdmin =
+      userWithRole.role === 'admin' ||
+      userWithRole.roles?.includes('admin') ||
+      userWithRole.roles?.includes('super_admin');
+
+    if (!isAdmin) {
+      logger.warn(`[PaymentAuth] Non-admin access attempt by user ${req.user.id}`);
+      res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'Admin access required',
+      });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    logger.error('[PaymentAuth] Admin authorization error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authorization failed',
+    });
+    return;
+  }
+};

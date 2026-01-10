@@ -142,8 +142,9 @@ export class SpeedDatingService {
       await this.checkEventRequirements(userId, event);
 
       // Deduct entry fee if applicable
-      if (event.entryFee && event.entryFee > 0) {
-        await this.deductEntryFee(userId, event.id, event.entryFee);
+      const entryFeeAmount = event.entryFee?.gems || event.entryFee?.coins || 0;
+      if (entryFeeAmount > 0) {
+        await this.deductEntryFee(userId, event.id, entryFeeAmount);
       }
 
       // Create participant
@@ -204,8 +205,9 @@ export class SpeedDatingService {
       await speedDatingRepository.decrementParticipantCount(eventId);
 
       // Refund entry fee if applicable
-      if (event.entryFee && event.entryFee > 0) {
-        await this.refundEntryFee(userId, event.id, event.entryFee);
+      const entryFeeAmount = event.entryFee?.gems || event.entryFee?.coins || 0;
+      if (entryFeeAmount > 0) {
+        await this.refundEntryFee(userId, event.id, entryFeeAmount);
       }
 
       logger.info(`User ${userId} left event ${eventId}`);
@@ -851,22 +853,23 @@ export class SpeedDatingService {
   private async checkEventRequirements(userId: string, event: SpeedDatingEvent): Promise<void> {
     // Get user profile from repository (in production, call user service)
     // For now, validate basic requirements
+    const requirements = event.requirements;
 
     // Check age requirement if event has age restrictions
-    if (event.minAge || event.maxAge) {
+    if (requirements?.minAge || requirements?.maxAge) {
       // In production:
       // const userProfile = await userServiceClient.getUserProfile(userId);
-      // if (event.minAge && userProfile.age < event.minAge) {
-      //   throw new Error(`You must be at least ${event.minAge} years old to join this event`);
+      // if (requirements.minAge && userProfile.age < requirements.minAge) {
+      //   throw new Error(`You must be at least ${requirements.minAge} years old to join this event`);
       // }
-      // if (event.maxAge && userProfile.age > event.maxAge) {
-      //   throw new Error(`This event is for users ${event.maxAge} and under`);
+      // if (requirements.maxAge && userProfile.age > requirements.maxAge) {
+      //   throw new Error(`This event is for users ${requirements.maxAge} and under`);
       // }
       logger.debug(`Age check passed for user ${userId}`);
     }
 
     // Check verification requirement
-    if (event.requiresVerification) {
+    if (requirements?.verified) {
       // In production:
       // const verificationStatus = await userServiceClient.getVerificationStatus(userId);
       // if (!verificationStatus.isVerified) {
@@ -876,7 +879,7 @@ export class SpeedDatingService {
     }
 
     // Check premium status requirement
-    if (event.requiresPremium) {
+    if (requirements?.premium) {
       // In production:
       // const subscription = await subscriptionServiceClient.getSubscription(userId);
       // if (subscription.plan === 'free') {
