@@ -34,6 +34,16 @@ import EventDetailsScreen from '@screens/Events/EventDetailsScreen';
 import VideoCallScreen from '@screens/VideoCall/VideoCallScreen';
 import CallHistoryScreen from '@screens/VideoCall/CallHistoryScreen';
 
+// Speed Dating
+import {
+  SpeedDatingScreen,
+  SpeedDatingLobbyScreen,
+  SpeedDatingSessionScreen,
+  SpeedDatingResultsScreen,
+  SpeedDatingHistoryScreen,
+} from '@screens/SpeedDating';
+import type { SpeedDatingParticipant } from '../types/speedDating.types';
+
 export type MainTabParamList = {
   Discovery: undefined;
   Matches: undefined;
@@ -58,6 +68,28 @@ export type AppStackParamList = {
   EventDetails: { eventId: string };
   VideoCall: { callId: string; matchId: string };
   CallHistory: undefined;
+  // Speed Dating
+  SpeedDating: undefined;
+  SpeedDatingLobby: {
+    eventId: string;
+    eventTitle: string;
+    roundDuration: number;
+  };
+  SpeedDatingSession: {
+    eventId: string;
+    eventTitle: string;
+    roundDuration: number;
+    participants: SpeedDatingParticipant[];
+  };
+  SpeedDatingResults: {
+    eventId: string;
+    eventTitle: string;
+    likes: string[];
+    matches: string[];
+    roundsCompleted: number;
+    totalRounds: number;
+  };
+  SpeedDatingHistory: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -185,6 +217,26 @@ const AppNavigator = () => {
         }}
       />
       <Stack.Screen name="CallHistory" component={CallHistoryScreen} />
+
+      {/* Speed Dating */}
+      <Stack.Screen name="SpeedDating" component={SpeedDatingScreen} />
+      <Stack.Screen name="SpeedDatingLobby" component={SpeedDatingLobbyScreen} />
+      <Stack.Screen
+        name="SpeedDatingSession"
+        component={SpeedDatingSessionScreen}
+        options={{
+          presentation: 'fullScreenModal',
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="SpeedDatingResults"
+        component={SpeedDatingResultsScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen name="SpeedDatingHistory" component={SpeedDatingHistoryScreen} />
     </Stack.Navigator>
   );
 };

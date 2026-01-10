@@ -1,12 +1,15 @@
+// Unified API Endpoints
+export * from "./endpoints";
+
 // API Configuration
 // Note: These are default values. Override them in your app's config
-export const API_BASE_URL = 'http://localhost:3000/api';
-export const WS_BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL = "http://localhost:3000/api";
+export const WS_BASE_URL = "http://localhost:3000";
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // App Configuration
-export const APP_NAME = 'Flamoral';
-export const APP_VERSION = '1.0.0';
+export const APP_NAME = "Flamoral";
+export const APP_VERSION = "1.0.0";
 export const MIN_AGE = 18;
 export const MAX_AGE = 99;
 
@@ -24,7 +27,7 @@ export const DEFAULT_DISTANCE_KM = 50;
 export const MIN_PHOTOS = 2;
 export const MAX_PHOTOS = 9;
 export const MAX_PHOTO_SIZE_MB = 10;
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 // Profile
 export const MIN_BIO_LENGTH = 10;
@@ -39,37 +42,37 @@ export const MESSAGES_PER_PAGE = 50;
 // Subscription Plans
 export const SUBSCRIPTION_PLANS = {
   FREE: {
-    name: 'Free',
+    name: "Free",
     price: 0,
     features: [
       `${FREE_DAILY_SWIPES} daily swipes`,
-      'Basic matching',
-      'Limited filters',
-      '1 super like per day',
+      "Basic matching",
+      "Limited filters",
+      "1 super like per day",
     ],
   },
   PREMIUM: {
-    name: 'Premium',
+    name: "Premium",
     price: 9.99,
     features: [
-      'Unlimited swipes',
-      'See who likes you',
-      'Advanced filters',
-      '5 super likes per day',
-      'Rewind swipes',
-      'Boost profile',
+      "Unlimited swipes",
+      "See who likes you",
+      "Advanced filters",
+      "5 super likes per day",
+      "Rewind swipes",
+      "Boost profile",
     ],
   },
   PREMIUM_PLUS: {
-    name: 'Premium+',
+    name: "Premium+",
     price: 19.99,
     features: [
-      'All Premium features',
-      'Priority likes',
-      'Free monthly boost',
-      'Read receipts',
-      'Ad-free experience',
-      'Passport (change location)',
+      "All Premium features",
+      "Priority likes",
+      "Free monthly boost",
+      "Read receipts",
+      "Ad-free experience",
+      "Passport (change location)",
     ],
   },
 };
@@ -91,13 +94,13 @@ export const COIN_COSTS = {
 // Moderation
 export const SUSPENSION_DURATIONS = [1, 3, 7, 14, 30]; // days
 export const REPORT_REASONS = [
-  'inappropriate-content',
-  'harassment',
-  'spam',
-  'fake-profile',
-  'underage',
-  'violence',
-  'other',
+  "inappropriate-content",
+  "harassment",
+  "spam",
+  "fake-profile",
+  "underage",
+  "violence",
+  "other",
 ];
 
 // Regex Patterns
@@ -107,34 +110,34 @@ export const PASSWORD_MIN_LENGTH = 8;
 
 // Error Messages
 export const ERROR_MESSAGES = {
-  INVALID_EMAIL: 'Please enter a valid email address',
+  INVALID_EMAIL: "Please enter a valid email address",
   INVALID_PASSWORD: `Password must be at least ${PASSWORD_MIN_LENGTH} characters`,
-  INVALID_PHONE: 'Please enter a valid phone number',
-  REQUIRED_FIELD: 'This field is required',
+  INVALID_PHONE: "Please enter a valid phone number",
+  REQUIRED_FIELD: "This field is required",
   AGE_RESTRICTION: `You must be at least ${MIN_AGE} years old`,
   MIN_PHOTOS: `Please upload at least ${MIN_PHOTOS} photos`,
   MAX_PHOTOS: `You can upload up to ${MAX_PHOTOS} photos`,
-  SWIPE_LIMIT: 'Daily swipe limit reached. Upgrade to Premium for unlimited swipes!',
+  SWIPE_LIMIT: "Daily swipe limit reached. Upgrade to Premium for unlimited swipes!",
 };
 
 // Success Messages
 export const SUCCESS_MESSAGES = {
-  PROFILE_UPDATED: 'Profile updated successfully',
-  PHOTO_UPLOADED: 'Photo uploaded successfully',
-  SETTINGS_SAVED: 'Settings saved successfully',
-  EMAIL_SENT: 'Email sent successfully',
-  VERIFICATION_SENT: 'Verification code sent',
+  PROFILE_UPDATED: "Profile updated successfully",
+  PHOTO_UPLOADED: "Photo uploaded successfully",
+  SETTINGS_SAVED: "Settings saved successfully",
+  EMAIL_SENT: "Email sent successfully",
+  VERIFICATION_SENT: "Verification code sent",
 };
 
 // Routes (for deep linking)
 export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  PROFILE: '/profile',
-  SETTINGS: '/settings',
-  DISCOVERY: '/discovery',
-  MATCHES: '/matches',
-  MESSAGES: '/messages',
-  SUBSCRIPTION: '/subscription',
+  HOME: "/",
+  LOGIN: "/login",
+  REGISTER: "/register",
+  PROFILE: "/profile",
+  SETTINGS: "/settings",
+  DISCOVERY: "/discovery",
+  MATCHES: "/matches",
+  MESSAGES: "/messages",
+  SUBSCRIPTION: "/subscription",
 };
