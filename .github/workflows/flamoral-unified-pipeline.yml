@@ -2002,20 +2002,27 @@ jobs:
           echo "Raw output:"
           echo "$BUILD_OUTPUT"
 
-          # Check if command succeeded
+          # Check if command succeeded (exit code 0 means success)
           if [ $BUILD_EXIT_CODE -ne 0 ]; then
             echo "::error::EAS Android build command failed with exit code $BUILD_EXIT_CODE"
             exit 1
           fi
 
-          # Validate JSON output
-          if ! echo "$BUILD_OUTPUT" | jq empty 2>/dev/null; then
-            echo "::error::Invalid JSON response from EAS build"
-            exit 1
-          fi
+          # Extract JSON from output (EAS includes text before JSON array)
+          # Look for the JSON array which starts with [
+          JSON_OUTPUT=$(echo "$BUILD_OUTPUT" | sed -n '/^\[$/,/^\]$/p')
 
-          # Extract build ID - EAS returns array for multiple builds
-          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type == "array" then .[0].id else .id end // empty')
+          if [ -z "$JSON_OUTPUT" ]; then
+            echo "Could not find JSON array in output, trying to extract from logs URL..."
+            # Try to extract build ID from the logs URL
+            BUILD_ID=$(echo "$BUILD_OUTPUT" | grep -oP 'builds/\K[0-9a-f-]+' | head -1)
+          else
+            echo "Extracted JSON:"
+            echo "$JSON_OUTPUT"
+
+            # Extract build ID from JSON
+            BUILD_ID=$(echo "$JSON_OUTPUT" | jq -r '.[0].id // empty')
+          fi
 
           if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
             echo "::error::Could not extract Android build ID from response"
@@ -2052,20 +2059,27 @@ jobs:
           echo "Raw output:"
           echo "$BUILD_OUTPUT"
 
-          # Check if command succeeded
+          # Check if command succeeded (exit code 0 means success)
           if [ $BUILD_EXIT_CODE -ne 0 ]; then
             echo "::error::EAS iOS build command failed with exit code $BUILD_EXIT_CODE"
             exit 1
           fi
 
-          # Validate JSON output
-          if ! echo "$BUILD_OUTPUT" | jq empty 2>/dev/null; then
-            echo "::error::Invalid JSON response from EAS build"
-            exit 1
-          fi
+          # Extract JSON from output (EAS includes text before JSON array)
+          # Look for the JSON array which starts with [
+          JSON_OUTPUT=$(echo "$BUILD_OUTPUT" | sed -n '/^\[$/,/^\]$/p')
 
-          # Extract build ID - EAS returns array for multiple builds
-          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type == "array" then .[0].id else .id end // empty')
+          if [ -z "$JSON_OUTPUT" ]; then
+            echo "Could not find JSON array in output, trying to extract from logs URL..."
+            # Try to extract build ID from the logs URL
+            BUILD_ID=$(echo "$BUILD_OUTPUT" | grep -oP 'builds/\K[0-9a-f-]+' | head -1)
+          else
+            echo "Extracted JSON:"
+            echo "$JSON_OUTPUT"
+
+            # Extract build ID from JSON
+            BUILD_ID=$(echo "$JSON_OUTPUT" | jq -r '.[0].id // empty')
+          fi
 
           if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
             echo "::error::Could not extract iOS build ID from response"
