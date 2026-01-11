@@ -1,0 +1,215 @@
+================================================================================
+FLAMORAL - APP REVIEW NOTES
+================================================================================
+Version: 1.0.0
+Last Updated: January 10, 2026
+================================================================================
+
+DEMO/TEST ACCOUNT CREDENTIALS
+================================================================================
+
+Account 1 (Standard User - Female Profile):
+  Email:    demo.reviewer1@flamoral.com
+  Password: Fl@m0r@lR3v!ew2026
+
+Account 2 (Standard User - Male Profile):
+  Email:    demo.reviewer2@flamoral.com
+  Password: Fl@m0r@lR3v!ew2026
+
+Account 3 (Premium Subscriber):
+  Email:    demo.premium@flamoral.com
+  Password: Fl@m0r@lR3v!ew2026
+
+Note: These accounts are pre-populated with profile data, photos, matches,
+and conversation history for testing purposes. All test accounts have been
+matched with each other for easy testing of messaging features.
+
+
+FEATURES REQUIRING SPECIAL SETUP
+================================================================================
+
+1. LOCATION SERVICES
+   - Location permission is required for the discovery/matching feature
+   - If denied, users can still browse but with limited functionality
+   - The app uses coarse location only (city-level)
+   - Test accounts have been configured with sample locations
+
+2. CAMERA ACCESS
+   - Required for: Profile photo capture, Video profile recording
+   - Required for: Photo verification process
+   - Required for: Video calling with matches
+   - If denied, users can still upload photos from gallery
+
+3. PUSH NOTIFICATIONS
+   - Used for: New matches, new messages, likes received
+   - Optional but recommended for best experience
+   - Users can configure notification preferences in Settings
+
+4. PHOTO VERIFICATION
+   - Users are prompted to verify their photos using a selfie
+   - AI compares selfie with profile photos for authenticity
+   - Test accounts are pre-verified
+
+5. IN-APP PURCHASES
+   - Subscription tiers: Premium, Gold, Platinum
+   - Consumables: Coins, Boosts, Super Likes
+   - Use sandbox/test accounts for purchase testing
+   - All IAP products are configured in App Store Connect / Play Console
+
+6. VIDEO CALLING
+   - Uses Agora SDK for real-time video
+   - Requires camera and microphone permissions
+   - Only available between matched users
+   - Test by matching two demo accounts and initiating call
+
+7. AGE VERIFICATION
+   - App requires users to be 18+ years old
+   - Date of birth is collected during registration
+   - Users under 18 are not permitted to create accounts
+
+
+TESTING INSTRUCTIONS
+================================================================================
+
+To test core functionality:
+
+1. Discovery/Swiping:
+   - Log in with demo.reviewer1@flamoral.com
+   - Navigate to Discovery tab
+   - Swipe right to like, left to pass
+   - Swipe up for Super Like (requires premium or coins)
+
+2. Matching:
+   - Log in with demo.reviewer1@flamoral.com
+   - Navigate to Matches tab
+   - View existing matches with demo.reviewer2@flamoral.com
+
+3. Messaging:
+   - Open any match from the Matches tab
+   - Send text messages, photos, GIFs, voice notes
+   - Messages are end-to-end encrypted
+
+4. Video Calling:
+   - Open a chat with a match
+   - Tap the video call icon
+   - Note: Requires two devices to fully test
+
+5. Premium Features:
+   - Log in with demo.premium@flamoral.com
+   - Access "Likes You" to see who liked your profile
+   - Access "Who Viewed Me" for profile visitors
+   - Use unlimited likes and Super Likes
+   - Use Rewind to undo last swipe
+
+6. Profile Management:
+   - Navigate to Profile tab
+   - Edit bio, photos, preferences
+   - Test photo verification flow
+
+7. Settings:
+   - Account settings, privacy controls
+   - Notification preferences
+   - Subscription management
+   - Delete account option
+
+
+AGE RATING JUSTIFICATION (17+ / Mature)
+================================================================================
+
+Flamoral is rated 17+ (Mature) for the following reasons:
+
+1. NATURE OF THE APP
+   - Dating application intended for adults seeking romantic connections
+   - Content includes discussion of relationships and dating topics
+   - Users may share personal photos and engage in romantic communication
+
+2. USER-GENERATED CONTENT
+   - Profile photos may include swimwear or similar (within guidelines)
+   - Chat content between matched users is private
+   - Community guidelines prohibit explicit content, but mature themes present
+
+3. CONTENT MODERATION
+   - AI-powered content moderation scans for inappropriate content
+   - 24/7 moderation team reviews reported content
+   - Strict community guidelines enforced
+   - Users can report and block inappropriate behavior
+
+4. SAFETY MEASURES IMPLEMENTED
+   - Age verification at signup (must be 18+)
+   - Photo verification to prevent catfishing
+   - In-app reporting and blocking
+   - Safety tips and guidelines provided
+   - No minors permitted on the platform
+
+5. INFREQUENT/MILD CONTENT CATEGORIES
+   - Sexual Content or Nudity: Infrequent/Mild
+   - Mature/Suggestive Themes: Infrequent/Mild
+   - Violence: None
+   - Profanity: Possible in user messages (filtered)
+   - Alcohol/Tobacco/Drug References: None promoted by app
+
+
+THIRD-PARTY SERVICES
+================================================================================
+
+1. Firebase (Google)
+   - Authentication: Email, phone, social login
+   - Cloud Firestore: Database
+   - Cloud Storage: Photo/video storage
+   - Cloud Messaging: Push notifications
+   - Analytics: Usage analytics (anonymized)
+   - Crashlytics: Crash reporting
+
+2. Agora
+   - Real-time video calling between matched users
+   - Voice calling functionality
+
+3. Stripe (via Apple/Google IAP)
+   - Payment processing handled by app stores
+   - No direct payment info stored in app
+
+4. Sentry
+   - Error monitoring and debugging
+
+All third-party services are properly configured with required API keys
+and comply with respective platform guidelines.
+
+
+PRIVACY & COMPLIANCE
+================================================================================
+
+- GDPR Compliant: Full compliance with EU data protection
+- CCPA Compliant: California Consumer Privacy Act compliance
+- COPPA Compliant: No users under 18 permitted
+- Age Gate: Implemented at registration
+- App Tracking Transparency (iOS): Prompt displayed, we do not track
+- Data Encryption: End-to-end encryption for messages
+- Data Deletion: Available in-app and via email request
+- Privacy Policy: https://flamoral.com/privacy
+- Terms of Service: https://flamoral.com/terms
+
+
+CONTACT INFORMATION
+================================================================================
+
+Support Email:     support@flamoral.com
+Privacy Email:     privacy@flamoral.com
+Developer Email:   dev@flamoral.com
+
+Support URL:       https://flamoral.com/support
+Documentation:     https://docs.flamoral.com
+
+
+KNOWN LIMITATIONS
+================================================================================
+
+1. Video calls require both participants to be online simultaneously
+2. Location services must be enabled for distance-based matching
+3. Push notifications require user permission
+4. Photo verification requires good lighting for accurate results
+5. Some premium features require active subscription
+
+
+================================================================================
+END OF REVIEW NOTES
+================================================================================

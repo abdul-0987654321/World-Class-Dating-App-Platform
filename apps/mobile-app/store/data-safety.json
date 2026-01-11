@@ -1,0 +1,249 @@
+{
+  "googlePlayDataSafety": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-01-10",
+    "dataCollection": {
+      "collectsData": true,
+      "dataTypes": {
+        "personalInfo": {
+          "name": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Account management"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "emailAddress": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Account management", "Communications"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "phoneNumber": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality", "Account management", "Fraud prevention"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "address": {
+            "collected": false
+          },
+          "userIds": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "dateOfBirth": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Age verification"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "gender": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Personalization"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "sexualOrientation": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality", "Personalization"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          }
+        },
+        "financialInfo": {
+          "purchaseHistory": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality", "Account management"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "paymentInfo": {
+            "collected": false,
+            "note": "Payments processed by Google Play, not stored by app"
+          }
+        },
+        "location": {
+          "approximateLocation": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality", "Location-based matching"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "preciseLocation": {
+            "collected": false,
+            "note": "Only approximate location is collected for matching purposes"
+          }
+        },
+        "messages": {
+          "inAppMessages": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true,
+            "endToEndEncrypted": true
+          }
+        },
+        "photosAndVideos": {
+          "photos": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Profile creation"],
+            "shared": true,
+            "sharedWith": ["Other users (profile photos only)"],
+            "encrypted": true,
+            "deletable": true
+          },
+          "videos": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality", "Profile creation", "Video calling"],
+            "shared": true,
+            "sharedWith": ["Other users (profile videos only)", "Matches (video calls)"],
+            "encrypted": true,
+            "deletable": true
+          }
+        },
+        "audioFiles": {
+          "voiceMessages": {
+            "collected": true,
+            "required": false,
+            "purpose": ["App functionality"],
+            "shared": true,
+            "sharedWith": ["Matches only"],
+            "encrypted": true,
+            "deletable": true
+          }
+        },
+        "appActivity": {
+          "appInteractions": {
+            "collected": true,
+            "required": false,
+            "purpose": ["Analytics", "Personalization"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          },
+          "inAppSearchHistory": {
+            "collected": true,
+            "required": false,
+            "purpose": ["Personalization"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          }
+        },
+        "deviceIdentifiers": {
+          "deviceId": {
+            "collected": true,
+            "required": true,
+            "purpose": ["App functionality", "Fraud prevention", "Security"],
+            "shared": false,
+            "encrypted": true,
+            "deletable": true
+          }
+        }
+      }
+    },
+    "dataSharing": {
+      "sharesData": true,
+      "sharingDetails": {
+        "profilePhotos": {
+          "sharedWith": "Other app users",
+          "purpose": "Core app functionality - matching and discovery",
+          "userControlled": true
+        },
+        "profileVideos": {
+          "sharedWith": "Other app users",
+          "purpose": "Core app functionality - profile display",
+          "userControlled": true
+        },
+        "messages": {
+          "sharedWith": "Matched users only",
+          "purpose": "Core app functionality - communication",
+          "userControlled": true,
+          "endToEndEncrypted": true
+        },
+        "displayName": {
+          "sharedWith": "Other app users",
+          "purpose": "Core app functionality - profile identification",
+          "userControlled": true
+        },
+        "approximateLocation": {
+          "sharedWith": "Other app users (distance only, not precise location)",
+          "purpose": "Core app functionality - location-based matching",
+          "userControlled": true
+        }
+      },
+      "noDataSoldNote": "Flamoral does not sell user data to third parties."
+    },
+    "securityPractices": {
+      "dataEncryption": {
+        "inTransit": true,
+        "atRest": true,
+        "endToEndForMessages": true,
+        "protocols": ["TLS 1.3", "AES-256"]
+      },
+      "dataRetention": {
+        "policy": "Data retained while account is active",
+        "deletionUponRequest": true,
+        "deletionTimeframe": "30 days",
+        "automatedDeletion": "Inactive accounts deleted after 2 years"
+      },
+      "accountDeletion": {
+        "available": true,
+        "method": "In-app settings or email request",
+        "dataFullyDeleted": true,
+        "timeframe": "Within 30 days of request"
+      },
+      "securityMeasures": [
+        "Regular security audits",
+        "Penetration testing",
+        "Bug bounty program",
+        "SOC 2 Type II compliance",
+        "GDPR compliance",
+        "CCPA compliance"
+      ],
+      "independentSecurityReview": {
+        "reviewed": true,
+        "reviewer": "Third-party security firm",
+        "frequency": "Annual"
+      }
+    },
+    "childrenData": {
+      "directedToChildren": false,
+      "collectsFromChildren": false,
+      "ageGate": true,
+      "minimumAge": 18,
+      "ageVerification": {
+        "method": "Date of birth verification",
+        "additional": "Photo ID verification available"
+      }
+    },
+    "familyPolicyCompliance": {
+      "applicable": false,
+      "reason": "App is for users 18+ only"
+    }
+  }
+}

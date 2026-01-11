@@ -1,0 +1,369 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-10",
+  "currency": "USD",
+  "subscriptions": {
+    "autoRenewable": [
+      {
+        "productId": "com.flamoral.premium.monthly",
+        "name": "Premium Monthly",
+        "tier": "Premium",
+        "type": "auto-renewable",
+        "duration": "1 month",
+        "price": 14.99,
+        "priceTier": "Tier 15",
+        "displayName": "Flamoral Premium",
+        "description": "Unlock premium features with unlimited likes, see who liked you, and more.",
+        "features": [
+          "Unlimited likes",
+          "See who liked you",
+          "5 Super Likes per day",
+          "1 Boost per month",
+          "Rewind last swipe",
+          "Advanced filters",
+          "Read receipts",
+          "Priority customer support"
+        ],
+        "localizations": {
+          "en-US": {
+            "displayName": "Flamoral Premium",
+            "description": "Unlock premium features with unlimited likes and more."
+          }
+        },
+        "appStoreProductId": "com.flamoral.premium.monthly",
+        "playStoreProductId": "premium_monthly"
+      },
+      {
+        "productId": "com.flamoral.premium.yearly",
+        "name": "Premium Yearly",
+        "tier": "Premium",
+        "type": "auto-renewable",
+        "duration": "1 year",
+        "price": 99.99,
+        "monthlyEquivalent": 8.33,
+        "savings": "44%",
+        "priceTier": "Tier 100",
+        "displayName": "Flamoral Premium (Annual)",
+        "description": "Save 44% with annual Premium subscription. Unlimited likes and all premium features.",
+        "features": [
+          "All Premium Monthly features",
+          "Best value - save 44%",
+          "Billed annually"
+        ],
+        "appStoreProductId": "com.flamoral.premium.yearly",
+        "playStoreProductId": "premium_yearly"
+      },
+      {
+        "productId": "com.flamoral.gold.monthly",
+        "name": "Gold Monthly",
+        "tier": "Gold",
+        "type": "auto-renewable",
+        "duration": "1 month",
+        "price": 24.99,
+        "priceTier": "Tier 25",
+        "displayName": "Flamoral Gold",
+        "description": "Maximize your matches with Gold features including unlimited Super Likes and Boosts.",
+        "features": [
+          "All Premium features",
+          "Unlimited Super Likes",
+          "5 Boosts per month",
+          "See who viewed your profile",
+          "Priority in discovery queue",
+          "Message before matching",
+          "Travel Mode (change location)",
+          "Incognito mode"
+        ],
+        "appStoreProductId": "com.flamoral.gold.monthly",
+        "playStoreProductId": "gold_monthly"
+      },
+      {
+        "productId": "com.flamoral.gold.yearly",
+        "name": "Gold Yearly",
+        "tier": "Gold",
+        "type": "auto-renewable",
+        "duration": "1 year",
+        "price": 179.99,
+        "monthlyEquivalent": 15.00,
+        "savings": "40%",
+        "priceTier": "Tier 180",
+        "displayName": "Flamoral Gold (Annual)",
+        "description": "Save 40% with annual Gold subscription. Ultimate matching experience.",
+        "features": [
+          "All Gold Monthly features",
+          "Save 40%",
+          "Billed annually"
+        ],
+        "appStoreProductId": "com.flamoral.gold.yearly",
+        "playStoreProductId": "gold_yearly"
+      },
+      {
+        "productId": "com.flamoral.platinum.monthly",
+        "name": "Platinum Monthly",
+        "tier": "Platinum",
+        "type": "auto-renewable",
+        "duration": "1 month",
+        "price": 39.99,
+        "priceTier": "Tier 40",
+        "displayName": "Flamoral Platinum",
+        "description": "The ultimate Flamoral experience with exclusive Platinum-only features.",
+        "features": [
+          "All Gold features",
+          "Unlimited Boosts",
+          "Priority likes (seen first)",
+          "Highlighted messages",
+          "Exclusive Platinum badge",
+          "Profile coaching tips",
+          "Advanced analytics",
+          "24/7 VIP support",
+          "Early access to new features"
+        ],
+        "appStoreProductId": "com.flamoral.platinum.monthly",
+        "playStoreProductId": "platinum_monthly"
+      },
+      {
+        "productId": "com.flamoral.platinum.yearly",
+        "name": "Platinum Yearly",
+        "tier": "Platinum",
+        "type": "auto-renewable",
+        "duration": "1 year",
+        "price": 299.99,
+        "monthlyEquivalent": 25.00,
+        "savings": "37%",
+        "priceTier": "Tier 300",
+        "displayName": "Flamoral Platinum (Annual)",
+        "description": "Save 37% with annual Platinum subscription. The ultimate dating experience.",
+        "features": [
+          "All Platinum Monthly features",
+          "Save 37%",
+          "Billed annually"
+        ],
+        "appStoreProductId": "com.flamoral.platinum.yearly",
+        "playStoreProductId": "platinum_yearly"
+      }
+    ],
+    "subscriptionGroups": [
+      {
+        "groupId": "flamoral_subscriptions",
+        "name": "Flamoral Subscriptions",
+        "products": [
+          "com.flamoral.premium.monthly",
+          "com.flamoral.premium.yearly",
+          "com.flamoral.gold.monthly",
+          "com.flamoral.gold.yearly",
+          "com.flamoral.platinum.monthly",
+          "com.flamoral.platinum.yearly"
+        ]
+      }
+    ],
+    "freeTrials": {
+      "premium": {
+        "duration": "7 days",
+        "availableFor": ["premium.monthly", "premium.yearly"],
+        "eligibility": "New subscribers only"
+      },
+      "gold": {
+        "duration": "3 days",
+        "availableFor": ["gold.monthly", "gold.yearly"],
+        "eligibility": "New subscribers only"
+      }
+    },
+    "introductoryOffers": {
+      "premium": {
+        "type": "pay-as-you-go",
+        "price": 4.99,
+        "duration": "1 month",
+        "eligibility": "New subscribers only"
+      }
+    }
+  },
+  "consumables": {
+    "coins": [
+      {
+        "productId": "com.flamoral.coins.100",
+        "name": "100 Coins",
+        "type": "consumable",
+        "quantity": 100,
+        "price": 4.99,
+        "priceTier": "Tier 5",
+        "displayName": "100 Flamoral Coins",
+        "description": "Purchase 100 Flamoral Coins for Super Likes, Boosts, and Gifts.",
+        "appStoreProductId": "com.flamoral.coins.100",
+        "playStoreProductId": "coins_100"
+      },
+      {
+        "productId": "com.flamoral.coins.300",
+        "name": "300 Coins",
+        "type": "consumable",
+        "quantity": 300,
+        "price": 12.99,
+        "bonus": 20,
+        "priceTier": "Tier 13",
+        "displayName": "300 Flamoral Coins (+20 Bonus)",
+        "description": "Purchase 300 Flamoral Coins + 20 bonus coins. Best value!",
+        "appStoreProductId": "com.flamoral.coins.300",
+        "playStoreProductId": "coins_300"
+      },
+      {
+        "productId": "com.flamoral.coins.500",
+        "name": "500 Coins",
+        "type": "consumable",
+        "quantity": 500,
+        "price": 19.99,
+        "bonus": 50,
+        "priceTier": "Tier 20",
+        "displayName": "500 Flamoral Coins (+50 Bonus)",
+        "description": "Purchase 500 Flamoral Coins + 50 bonus coins.",
+        "appStoreProductId": "com.flamoral.coins.500",
+        "playStoreProductId": "coins_500"
+      },
+      {
+        "productId": "com.flamoral.coins.1000",
+        "name": "1000 Coins",
+        "type": "consumable",
+        "quantity": 1000,
+        "price": 34.99,
+        "bonus": 150,
+        "priceTier": "Tier 35",
+        "displayName": "1000 Flamoral Coins (+150 Bonus)",
+        "description": "Purchase 1000 Flamoral Coins + 150 bonus coins. Best deal!",
+        "appStoreProductId": "com.flamoral.coins.1000",
+        "playStoreProductId": "coins_1000"
+      }
+    ],
+    "boosts": [
+      {
+        "productId": "com.flamoral.boost.1",
+        "name": "1 Boost",
+        "type": "consumable",
+        "quantity": 1,
+        "price": 5.99,
+        "priceTier": "Tier 6",
+        "displayName": "1 Profile Boost",
+        "description": "Boost your profile to the top of the queue for 30 minutes.",
+        "duration": "30 minutes",
+        "appStoreProductId": "com.flamoral.boost.1",
+        "playStoreProductId": "boost_1"
+      },
+      {
+        "productId": "com.flamoral.boost.5",
+        "name": "5 Boosts",
+        "type": "consumable",
+        "quantity": 5,
+        "price": 24.99,
+        "priceTier": "Tier 25",
+        "displayName": "5 Profile Boosts",
+        "description": "5 Profile Boosts. Save 16% compared to individual purchase.",
+        "duration": "30 minutes each",
+        "savings": "16%",
+        "appStoreProductId": "com.flamoral.boost.5",
+        "playStoreProductId": "boost_5"
+      },
+      {
+        "productId": "com.flamoral.boost.10",
+        "name": "10 Boosts",
+        "type": "consumable",
+        "quantity": 10,
+        "price": 44.99,
+        "priceTier": "Tier 45",
+        "displayName": "10 Profile Boosts",
+        "description": "10 Profile Boosts. Save 25% compared to individual purchase.",
+        "duration": "30 minutes each",
+        "savings": "25%",
+        "appStoreProductId": "com.flamoral.boost.10",
+        "playStoreProductId": "boost_10"
+      }
+    ],
+    "superLikes": [
+      {
+        "productId": "com.flamoral.superlike.5",
+        "name": "5 Super Likes",
+        "type": "consumable",
+        "quantity": 5,
+        "price": 7.99,
+        "priceTier": "Tier 8",
+        "displayName": "5 Super Likes",
+        "description": "Stand out with Super Likes. 3x more likely to get a match!",
+        "appStoreProductId": "com.flamoral.superlike.5",
+        "playStoreProductId": "superlike_5"
+      },
+      {
+        "productId": "com.flamoral.superlike.15",
+        "name": "15 Super Likes",
+        "type": "consumable",
+        "quantity": 15,
+        "price": 19.99,
+        "priceTier": "Tier 20",
+        "displayName": "15 Super Likes",
+        "description": "15 Super Likes. Save 17% compared to individual purchase.",
+        "savings": "17%",
+        "appStoreProductId": "com.flamoral.superlike.15",
+        "playStoreProductId": "superlike_15"
+      },
+      {
+        "productId": "com.flamoral.superlike.30",
+        "name": "30 Super Likes",
+        "type": "consumable",
+        "quantity": 30,
+        "price": 34.99,
+        "priceTier": "Tier 35",
+        "displayName": "30 Super Likes",
+        "description": "30 Super Likes. Save 27% compared to individual purchase.",
+        "savings": "27%",
+        "appStoreProductId": "com.flamoral.superlike.30",
+        "playStoreProductId": "superlike_30"
+      }
+    ]
+  },
+  "coinPricing": {
+    "superLike": {
+      "cost": 20,
+      "description": "1 Super Like"
+    },
+    "boost": {
+      "cost": 50,
+      "description": "30-minute profile boost"
+    },
+    "rewind": {
+      "cost": 10,
+      "description": "Undo last swipe"
+    },
+    "readReceipt": {
+      "cost": 5,
+      "description": "See if message was read"
+    },
+    "virtualGifts": {
+      "rose": { "cost": 25, "description": "Send a virtual rose" },
+      "heart": { "cost": 15, "description": "Send a virtual heart" },
+      "champagne": { "cost": 50, "description": "Send virtual champagne" },
+      "teddy": { "cost": 100, "description": "Send a virtual teddy bear" }
+    }
+  },
+  "platformNotes": {
+    "appStore": {
+      "subscriptionGroup": "21600001234",
+      "autoRenewableEnabled": true,
+      "familySharingEnabled": false,
+      "priceScheduleNote": "Prices exclude applicable taxes"
+    },
+    "playStore": {
+      "basePlanId": "flamoral-base",
+      "subscriptionProration": "IMMEDIATE_WITH_TIME_PRORATION",
+      "gracePeriod": "3 days",
+      "accountHold": "30 days"
+    }
+  },
+  "promotions": {
+    "newUserDiscount": {
+      "type": "introductory",
+      "discount": "50%",
+      "duration": "First month",
+      "applicableTo": ["premium.monthly"]
+    },
+    "annualSaleEvent": {
+      "type": "promotional",
+      "discount": "Additional 20%",
+      "window": "Seasonal",
+      "applicableTo": ["premium.yearly", "gold.yearly", "platinum.yearly"]
+    }
+  }
+}

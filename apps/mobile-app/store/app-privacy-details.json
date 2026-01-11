@@ -1,0 +1,251 @@
+{
+  "appStorePrivacy": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-01-10",
+    "privacyPolicyUrl": "https://flamoral.com/privacy",
+    "dataTypesCollected": {
+      "contactInfo": {
+        "name": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "emailAddress": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Product Personalization"]
+        },
+        "phoneNumber": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        }
+      },
+      "healthAndFitness": {
+        "collected": false
+      },
+      "financialInfo": {
+        "paymentInfo": {
+          "collected": false,
+          "note": "Payments processed through Apple, not stored by app"
+        },
+        "purchaseHistory": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        }
+      },
+      "location": {
+        "coarseLocation": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Product Personalization"]
+        },
+        "preciseLocation": {
+          "collected": false
+        }
+      },
+      "sensitiveInfo": {
+        "sexualOrientation": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Product Personalization"],
+          "note": "Optional, user-provided for matching preferences"
+        },
+        "religiousBeliefs": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"],
+          "note": "Optional, user-provided profile information"
+        },
+        "ethnicBackground": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"],
+          "note": "Optional, user-provided profile information"
+        }
+      },
+      "contacts": {
+        "collected": false
+      },
+      "userContent": {
+        "photos": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "videos": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "audioData": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"],
+          "note": "Voice messages in chat"
+        },
+        "customerSupport": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "otherUserContent": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"],
+          "note": "Profile bio, interests, prompts"
+        }
+      },
+      "browsingHistory": {
+        "collected": false
+      },
+      "searchHistory": {
+        "inAppSearch": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Product Personalization"]
+        }
+      },
+      "identifiers": {
+        "userId": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "deviceId": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Analytics"]
+        }
+      },
+      "purchases": {
+        "purchaseHistory": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        }
+      },
+      "usageData": {
+        "productInteraction": {
+          "collected": true,
+          "linkedToUser": true,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Analytics", "Product Personalization"]
+        },
+        "advertisingData": {
+          "collected": false
+        },
+        "otherUsageData": {
+          "collected": true,
+          "linkedToUser": false,
+          "usedForTracking": false,
+          "purposes": ["Analytics"]
+        }
+      },
+      "diagnostics": {
+        "crashData": {
+          "collected": true,
+          "linkedToUser": false,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "performanceData": {
+          "collected": true,
+          "linkedToUser": false,
+          "usedForTracking": false,
+          "purposes": ["App Functionality", "Analytics"]
+        },
+        "otherDiagnosticData": {
+          "collected": true,
+          "linkedToUser": false,
+          "usedForTracking": false,
+          "purposes": ["App Functionality"]
+        }
+      }
+    },
+    "dataLinkedToUser": {
+      "summary": [
+        "Contact Info (Name, Email, Phone)",
+        "User Content (Photos, Videos, Audio, Profile Content)",
+        "Sensitive Info (Sexual Orientation - optional)",
+        "Location (Coarse)",
+        "Identifiers (User ID, Device ID)",
+        "Purchases",
+        "Usage Data (Product Interaction)"
+      ]
+    },
+    "dataNotLinkedToUser": {
+      "summary": [
+        "Diagnostics (Crash Data, Performance Data)",
+        "Usage Data (Other Usage Data)"
+      ]
+    },
+    "dataUsedForTracking": {
+      "tracksUsers": false,
+      "appTrackingTransparency": {
+        "required": true,
+        "promptDisplayed": true,
+        "purpose": "We do not track users across apps. ATT prompt shown for compliance."
+      }
+    },
+    "thirdPartyDataSharing": {
+      "sharesWithThirdParties": false,
+      "advertisingNetworks": false,
+      "analyticsProviders": {
+        "shared": true,
+        "providers": ["Firebase Analytics"],
+        "dataTypes": ["Anonymized usage data", "Crash reports"],
+        "linkedToUser": false
+      },
+      "dataBrokers": false
+    },
+    "privacyChoices": {
+      "optOutOfDataCollection": true,
+      "deleteData": true,
+      "accessData": true,
+      "correctData": true,
+      "restrictProcessing": true,
+      "dataPortability": true,
+      "withdrawConsent": true
+    },
+    "dataDeletion": {
+      "available": true,
+      "methods": [
+        "In-app: Settings > Account > Delete Account",
+        "Email: privacy@flamoral.com",
+        "Web: https://flamoral.com/privacy/delete"
+      ],
+      "timeframe": "Within 30 days of request",
+      "whatIsDeleted": [
+        "Account information",
+        "Profile data",
+        "Photos and videos",
+        "Messages",
+        "Match history",
+        "Purchase history"
+      ],
+      "whatIsRetained": [
+        "Anonymized analytics data",
+        "Legal compliance records (as required by law)"
+      ]
+    }
+  }
+}

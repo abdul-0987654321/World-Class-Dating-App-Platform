@@ -6,6 +6,316 @@ The complete mobile application for Flamoral - Where Passion Meets Connection. B
 
 All features have been implemented and the app is production-ready.
 
+---
+
+## Store Submission Checklist
+
+### Pre-Submission Requirements
+
+#### General
+- [ ] App version and build number updated in `app.json`
+- [ ] Privacy policy published at https://flamoral.com/privacy
+- [ ] Terms of service published at https://flamoral.com/terms
+- [ ] Support email configured: support@flamoral.com
+- [ ] All environment variables set for production
+- [ ] App icons generated for all required sizes
+- [ ] Splash screen configured
+
+#### Apple App Store (iOS)
+- [ ] Apple Developer Program membership active
+- [ ] App ID created in App Store Connect
+- [ ] Certificates and provisioning profiles configured
+- [ ] Screenshots prepared for all required device sizes:
+  - [ ] iPhone 6.7" (1290x2796) - iPhone 14/15 Pro Max
+  - [ ] iPhone 6.5" (1284x2778) - iPhone 14 Plus, 13/12 Pro Max
+  - [ ] iPhone 5.5" (1242x2208) - iPhone 8/7/6s Plus
+- [ ] App Preview videos (optional)
+- [ ] App Store metadata completed (see `store/metadata.json`)
+- [ ] Privacy Nutrition Labels configured (see `store/app-privacy-details.json`)
+- [ ] Age Rating questionnaire completed (17+)
+- [ ] In-App Purchases configured in App Store Connect
+- [ ] Review notes provided (see `store/review-notes.txt`)
+- [ ] Demo account credentials ready for review team
+- [ ] Export Compliance information submitted
+- [ ] App Tracking Transparency implemented
+
+#### Google Play Store (Android)
+- [ ] Google Play Developer Console account active
+- [ ] App created in Play Console
+- [ ] Signing key configured (upload key + app signing by Google Play)
+- [ ] Screenshots prepared:
+  - [ ] Phone (1080x1920 to 1440x2560)
+  - [ ] Feature Graphic (1024x500)
+- [ ] Play Store listing completed (see `store/metadata.json`)
+- [ ] Data Safety section filled (see `store/data-safety.json`)
+- [ ] Content Rating questionnaire completed (Mature 17+)
+- [ ] Target API level compliance (API 34+)
+- [ ] In-App Products configured in Play Console
+- [ ] Test tracks configured (Internal, Closed, Open)
+- [ ] Play App Signing enrolled
+
+### Build & Submit
+
+#### iOS Submission
+```bash
+# 1. Install EAS CLI
+npm install -g eas-cli
+
+# 2. Login to Expo account
+eas login
+
+# 3. Configure EAS (first time only)
+eas build:configure
+
+# 4. Create production build
+eas build --platform ios --profile production
+
+# 5. Submit to App Store
+eas submit --platform ios
+```
+
+#### Android Submission
+```bash
+# 1. Create production build (AAB)
+eas build --platform android --profile production
+
+# 2. Submit to Play Store
+eas submit --platform android
+```
+
+---
+
+## Build Instructions with EAS
+
+### Prerequisites
+
+1. **Node.js** (v18 or later)
+2. **npm** or **yarn**
+3. **Expo CLI**: `npm install -g expo-cli`
+4. **EAS CLI**: `npm install -g eas-cli`
+5. **Expo Account**: Create at https://expo.dev
+6. **Apple Developer Account** (for iOS builds)
+7. **Google Play Developer Account** (for Android builds)
+
+### Initial Setup
+
+```bash
+# Clone and install dependencies
+cd apps/mobile-app
+npm install
+
+# Login to EAS
+eas login
+
+# Configure EAS for this project
+eas build:configure
+```
+
+### EAS Configuration
+
+Create or update `eas.json` in the project root:
+
+```json
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "your-apple-id@example.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./path-to-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
+```
+
+### Build Commands
+
+```bash
+# Development build (with dev client)
+eas build --profile development --platform ios
+eas build --profile development --platform android
+
+# Preview/Internal testing build
+eas build --profile preview --platform ios
+eas build --profile preview --platform android
+
+# Production build
+eas build --profile production --platform ios
+eas build --profile production --platform android
+
+# Build for both platforms
+eas build --profile production --platform all
+```
+
+### Submit Commands
+
+```bash
+# Submit iOS build to App Store Connect
+eas submit --platform ios --latest
+
+# Submit Android build to Play Console
+eas submit --platform android --latest
+
+# Submit specific build
+eas submit --platform ios --id BUILD_ID
+```
+
+---
+
+## Environment Setup
+
+### Required Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```bash
+# API Configuration
+API_URL=https://api.flamoral.com
+WEBSOCKET_URL=wss://ws.flamoral.com
+
+# Firebase Configuration
+FIREBASE_API_KEY=your_firebase_api_key
+FIREBASE_AUTH_DOMAIN=flamoral.firebaseapp.com
+FIREBASE_PROJECT_ID=flamoral
+FIREBASE_STORAGE_BUCKET=flamoral.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID=your_app_id
+
+# Agora (Video Calling)
+AGORA_APP_ID=your_agora_app_id
+
+# Sentry (Error Tracking)
+SENTRY_DSN=your_sentry_dsn
+
+# Analytics
+ANALYTICS_ENABLED=true
+
+# Feature Flags
+ENABLE_VIDEO_PROFILES=true
+ENABLE_AI_MATCHING=true
+```
+
+### iOS-Specific Setup
+
+1. **Install CocoaPods dependencies:**
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+
+2. **Configure signing in Xcode:**
+   - Open `ios/Flamoral.xcworkspace`
+   - Select the project in navigator
+   - Go to Signing & Capabilities
+   - Select your team and configure signing
+
+3. **Configure push notifications:**
+   - Enable Push Notifications capability
+   - Upload APNs key to Firebase Console
+
+### Android-Specific Setup
+
+1. **Configure signing:**
+   - Generate upload keystore (or use existing)
+   - Configure in `android/app/build.gradle`
+   - Store keystore securely
+
+2. **Configure Firebase:**
+   - Download `google-services.json` from Firebase Console
+   - Place in `android/app/google-services.json`
+
+3. **Configure push notifications:**
+   - Firebase Cloud Messaging is automatically configured
+
+### Development Environment
+
+```bash
+# Start Metro bundler
+npm start
+
+# Run on iOS simulator
+npm run ios
+
+# Run on Android emulator
+npm run android
+
+# Run on specific device
+npm run ios -- --device "iPhone 15 Pro"
+npm run android -- --deviceId DEVICE_ID
+
+# Clear caches and start fresh
+npm start -- --reset-cache
+```
+
+### Testing
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run E2E tests (Detox)
+npm run e2e:ios
+npm run e2e:android
+
+# Type checking
+npx tsc --noEmit
+
+# Lint code
+npm run lint
+```
+
+---
+
+## Store Assets Location
+
+All store submission assets are located in the `store/` directory:
+
+| File | Description |
+|------|-------------|
+| `store/metadata.json` | App Store and Play Store metadata |
+| `store/data-safety.json` | Google Play Data Safety declarations |
+| `store/app-privacy-details.json` | Apple App Privacy details |
+| `store/review-notes.txt` | Review team notes and test credentials |
+| `store/iap-products.json` | In-app purchase product definitions |
+
+Additional store preparation files:
+- `app-store/` - iOS App Store specific documentation
+- `play-store/` - Google Play Store specific documentation
+
+---
+
 ## Features Overview
 
 ### Core Features (100%)

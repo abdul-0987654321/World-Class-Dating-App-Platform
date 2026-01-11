@@ -1,0 +1,33 @@
+{
+  "workspace": {
+    "name": "Flamoral",
+    "owner": "user_383D9wTtcv0l1M0urLXTo6k2QLn"
+  },
+  "exports": {
+    "web": {
+      "outputPath": "apps/web-app/src/ui",
+      "framework": "react",
+      "typescript": true
+    },
+    "mobile": {
+      "screens": "apps/mobile-app/src/screens",
+      "components": "apps/mobile-app/src/components",
+      "framework": "react-native",
+      "typescript": true
+    }
+  },
+  "rules": {
+    "noSecrets": true,
+    "noBuildConfigs": true,
+    "noCIFiles": true,
+    "apiClientOnly": "packages/api-client/src"
+  },
+  "codeGeneration": {
+    "componentPrefix": "Flamoral",
+    "styleSystem": "styled-components",
+    "imports": {
+      "api": "@flamoral/api-client",
+      "ui": "@flamoral/ui-kit"
+    }
+  }
+}

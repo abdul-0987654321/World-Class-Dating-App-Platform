@@ -1,0 +1,6 @@
+# Vibecode cache and temporary files
+.vibecode/cache/
+.vibecode/temp/
+
+# Local configuration overrides
+.vibecode/*.local.json
