@@ -1912,6 +1912,18 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
 
+      - name: Initialize EAS Project
+        run: |
+          cd apps/mobile-app
+          # Check if project exists, if not create it
+          if ! npx eas project:info 2>/dev/null; then
+            echo "Creating new EAS project..."
+            npx eas init --id flamoral --non-interactive || true
+          fi
+          echo "EAS Project initialized"
+        env:
+          EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+
       - name: Determine build configuration
         id: build_config
         run: |
