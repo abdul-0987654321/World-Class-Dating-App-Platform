@@ -1917,22 +1917,28 @@ jobs:
 
           # First, try to get project info
           echo "Checking EAS project status..."
-          if eas project:info --json 2>/dev/null; then
+          PROJECT_INFO=$(eas project:info 2>&1) || true
+
+          if echo "$PROJECT_INFO" | grep -q "fullName"; then
             echo "EAS project already linked"
-            PROJECT_ID=$(eas project:info --json | jq -r '.id')
+            # Extract project ID from output line like "ID        7830bf9b-..."
+            PROJECT_ID=$(echo "$PROJECT_INFO" | grep "^ID" | awk '{print $2}')
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+            echo "Project ID extracted: $PROJECT_ID"
           else
             echo "Linking existing EAS project..."
             # Use --force to link existing project
             eas init --non-interactive --force
 
             # Verify the project was linked
-            if ! eas project:info --json; then
+            PROJECT_INFO=$(eas project:info 2>&1)
+            if ! echo "$PROJECT_INFO" | grep -q "fullName"; then
               echo "::error::Failed to link EAS project"
+              echo "Output: $PROJECT_INFO"
               exit 1
             fi
 
-            PROJECT_ID=$(eas project:info --json | jq -r '.id')
+            PROJECT_ID=$(echo "$PROJECT_INFO" | grep "^ID" | awk '{print $2}')
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
           fi
 
