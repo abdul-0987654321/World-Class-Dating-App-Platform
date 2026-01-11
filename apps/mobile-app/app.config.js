@@ -1,7 +1,22 @@
 /**
  * Expo configuration for Flamoral mobile app
  * Uses environment variables with EXPO_PUBLIC_ prefix for runtime configuration
+ *
+ * IMPORTANT: Set EXPO_PUBLIC_EAS_PROJECT_ID environment variable for builds to appear on Expo dashboard.
+ * Get your project ID from: https://expo.dev/accounts/flamoral/projects/flamoral
+ * Or run: eas init
  */
+
+// EAS Project ID - Required for builds to appear on Expo dashboard
+const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
+if (!EAS_PROJECT_ID) {
+  console.warn(
+    '\x1b[33mWARNING: EXPO_PUBLIC_EAS_PROJECT_ID is not set.\x1b[0m\n' +
+      'Builds will not appear on Expo dashboard.\n' +
+      'Get your project ID from: https://expo.dev/accounts/flamoral/projects/flamoral\n' +
+      'Or run: eas init'
+  );
+}
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
@@ -137,7 +152,7 @@ export default {
     enabled: true,
     checkAutomatically: 'ON_LOAD',
     fallbackToCacheTimeout: 0,
-    url: 'https://u.expo.dev/flamoral',
+    url: EAS_PROJECT_ID ? `https://u.expo.dev/${EAS_PROJECT_ID}` : undefined,
   },
   runtimeVersion: {
     policy: 'appVersion',
@@ -148,7 +163,7 @@ export default {
     stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
     wsUrl: process.env.EXPO_PUBLIC_WS_URL || 'wss://ws.flamoral.com',
     eas: {
-      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || '',
+      projectId: EAS_PROJECT_ID,
     },
   },
 };

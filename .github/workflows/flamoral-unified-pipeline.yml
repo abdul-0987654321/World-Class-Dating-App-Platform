@@ -1910,17 +1910,46 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
 
-      - name: Initialize EAS Project
+      - name: Initialize and Validate EAS Project
+        id: eas_init
         run: |
           cd apps/mobile-app
-          # Check if project exists, if not create it
-          if ! eas project:info 2>/dev/null; then
+
+          # First, try to get project info
+          echo "Checking EAS project status..."
+          if eas project:info --json 2>/dev/null; then
+            echo "EAS project already linked"
+            PROJECT_ID=$(eas project:info --json | jq -r '.id')
+            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+          else
             echo "Creating new EAS project..."
-            eas init --id flamoral --non-interactive || true
+            # Use eas init with the correct flags
+            eas init --non-interactive
+
+            # Verify the project was created
+            if ! eas project:info --json; then
+              echo "::error::Failed to initialize EAS project"
+              exit 1
+            fi
+
+            PROJECT_ID=$(eas project:info --json | jq -r '.id')
+            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
           fi
-          echo "EAS Project initialized"
+
+          # Display project info for debugging
+          echo "EAS Project ID: $PROJECT_ID"
+          eas whoami
+
+          # Verify eas.json exists
+          if [ ! -f eas.json ]; then
+            echo "::error::eas.json not found"
+            exit 1
+          fi
+
+          echo "EAS Project initialized and validated successfully"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_EAS_PROJECT_ID }}
 
       - name: Determine build configuration
         id: build_config
@@ -1949,65 +1978,187 @@ jobs:
         if: steps.build_config.outputs.platform == 'all' || steps.build_config.outputs.platform == 'android'
         run: |
           cd apps/mobile-app
+
+          echo "Starting Android build..."
           BUILD_OUTPUT=$(eas build \
             --platform android \
             --profile ${{ steps.build_config.outputs.profile }} \
             --non-interactive \
-            --json 2>&1) || true
+            --no-wait \
+            --json 2>&1)
 
-          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r '.[0].id // empty' 2>/dev/null || echo "")
-          if [ -n "$BUILD_ID" ]; then
-            echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-            echo "Android build started with ID: $BUILD_ID"
-          else
-            echo "::warning::Could not extract Android build ID"
-            echo "$BUILD_OUTPUT"
+          BUILD_EXIT_CODE=$?
+
+          # Check if command succeeded
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "::error::EAS Android build failed with exit code $BUILD_EXIT_CODE"
+            echo "Output: $BUILD_OUTPUT"
+            exit 1
           fi
+
+          # Validate JSON output
+          if ! echo "$BUILD_OUTPUT" | jq empty 2>/dev/null; then
+            echo "::error::Invalid JSON response from EAS build"
+            echo "Raw output: $BUILD_OUTPUT"
+            exit 1
+          fi
+
+          # Extract build ID - EAS returns array for multiple builds
+          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type == "array" then .[0].id else .id end // empty')
+
+          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
+            echo "::error::Could not extract Android build ID from response"
+            echo "Full response: $BUILD_OUTPUT"
+            exit 1
+          fi
+
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "Android build queued with ID: $BUILD_ID"
+          echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ steps.eas_init.outputs.project_id }}
 
       - name: Run EAS Build - iOS
         id: eas_build_ios
         if: steps.build_config.outputs.platform == 'all' || steps.build_config.outputs.platform == 'ios'
         run: |
           cd apps/mobile-app
+
+          echo "Starting iOS build..."
           BUILD_OUTPUT=$(eas build \
             --platform ios \
             --profile ${{ steps.build_config.outputs.profile }} \
             --non-interactive \
-            --json 2>&1) || true
+            --no-wait \
+            --json 2>&1)
 
-          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r '.[0].id // empty' 2>/dev/null || echo "")
-          if [ -n "$BUILD_ID" ]; then
-            echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-            echo "iOS build started with ID: $BUILD_ID"
-          else
-            echo "::warning::Could not extract iOS build ID"
-            echo "$BUILD_OUTPUT"
+          BUILD_EXIT_CODE=$?
+
+          # Check if command succeeded
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "::error::EAS iOS build failed with exit code $BUILD_EXIT_CODE"
+            echo "Output: $BUILD_OUTPUT"
+            exit 1
           fi
+
+          # Validate JSON output
+          if ! echo "$BUILD_OUTPUT" | jq empty 2>/dev/null; then
+            echo "::error::Invalid JSON response from EAS build"
+            echo "Raw output: $BUILD_OUTPUT"
+            exit 1
+          fi
+
+          # Extract build ID - EAS returns array for multiple builds
+          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type == "array" then .[0].id else .id end // empty')
+
+          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
+            echo "::error::Could not extract iOS build ID from response"
+            echo "Full response: $BUILD_OUTPUT"
+            exit 1
+          fi
+
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "iOS build queued with ID: $BUILD_ID"
+          echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ steps.eas_init.outputs.project_id }}
 
       - name: Wait for Android build completion
+        id: android_build_status
         if: steps.eas_build_android.outputs.build_id != ''
         run: |
           cd apps/mobile-app
-          echo "Waiting for Android build to complete..."
-          eas build:view ${{ steps.eas_build_android.outputs.build_id }} --json || true
+          BUILD_ID="${{ steps.eas_build_android.outputs.build_id }}"
+          echo "Waiting for Android build $BUILD_ID to complete..."
+
+          # Poll for build status
+          MAX_ATTEMPTS=120  # 60 minutes with 30s intervals
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            STATUS_OUTPUT=$(eas build:view "$BUILD_ID" --json 2>&1)
+            STATUS=$(echo "$STATUS_OUTPUT" | jq -r '.status // "unknown"')
+
+            echo "Build status: $STATUS (attempt $((ATTEMPT+1))/$MAX_ATTEMPTS)"
+
+            case "$STATUS" in
+              "finished")
+                echo "build_status=success" >> $GITHUB_OUTPUT
+                echo "Android build completed successfully!"
+                exit 0
+                ;;
+              "errored"|"canceled")
+                echo "build_status=failed" >> $GITHUB_OUTPUT
+                echo "::error::Android build failed with status: $STATUS"
+                exit 1
+                ;;
+              "in-queue"|"in-progress")
+                sleep 30
+                ATTEMPT=$((ATTEMPT+1))
+                ;;
+              *)
+                echo "Unknown status: $STATUS"
+                sleep 30
+                ATTEMPT=$((ATTEMPT+1))
+                ;;
+            esac
+          done
+
+          echo "::warning::Build timed out waiting for completion"
+          echo "build_status=timeout" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-        timeout-minutes: 60
+        timeout-minutes: 65
         continue-on-error: true
 
       - name: Wait for iOS build completion
+        id: ios_build_status
         if: steps.eas_build_ios.outputs.build_id != ''
         run: |
           cd apps/mobile-app
-          echo "Waiting for iOS build to complete..."
-          eas build:view ${{ steps.eas_build_ios.outputs.build_id }} --json || true
+          BUILD_ID="${{ steps.eas_build_ios.outputs.build_id }}"
+          echo "Waiting for iOS build $BUILD_ID to complete..."
+
+          # Poll for build status
+          MAX_ATTEMPTS=180  # 90 minutes with 30s intervals
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            STATUS_OUTPUT=$(eas build:view "$BUILD_ID" --json 2>&1)
+            STATUS=$(echo "$STATUS_OUTPUT" | jq -r '.status // "unknown"')
+
+            echo "Build status: $STATUS (attempt $((ATTEMPT+1))/$MAX_ATTEMPTS)"
+
+            case "$STATUS" in
+              "finished")
+                echo "build_status=success" >> $GITHUB_OUTPUT
+                echo "iOS build completed successfully!"
+                exit 0
+                ;;
+              "errored"|"canceled")
+                echo "build_status=failed" >> $GITHUB_OUTPUT
+                echo "::error::iOS build failed with status: $STATUS"
+                exit 1
+                ;;
+              "in-queue"|"in-progress")
+                sleep 30
+                ATTEMPT=$((ATTEMPT+1))
+                ;;
+              *)
+                echo "Unknown status: $STATUS"
+                sleep 30
+                ATTEMPT=$((ATTEMPT+1))
+                ;;
+            esac
+          done
+
+          echo "::warning::Build timed out waiting for completion"
+          echo "build_status=timeout" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-        timeout-minutes: 90
+        timeout-minutes: 95
         continue-on-error: true
 
       - name: Submit to Google Play Store
