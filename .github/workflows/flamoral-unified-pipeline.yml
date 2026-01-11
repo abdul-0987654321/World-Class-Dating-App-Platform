@@ -1906,7 +1906,7 @@ jobs:
       - name: Login to Expo
         run: |
           echo "Verifying Expo authentication..."
-          npx eas whoami
+          eas whoami
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
 
@@ -1914,9 +1914,9 @@ jobs:
         run: |
           cd apps/mobile-app
           # Check if project exists, if not create it
-          if ! npx eas project:info 2>/dev/null; then
+          if ! eas project:info 2>/dev/null; then
             echo "Creating new EAS project..."
-            npx eas init --id flamoral --non-interactive || true
+            eas init --id flamoral --non-interactive || true
           fi
           echo "EAS Project initialized"
         env:
@@ -1949,7 +1949,7 @@ jobs:
         if: steps.build_config.outputs.platform == 'all' || steps.build_config.outputs.platform == 'android'
         run: |
           cd apps/mobile-app
-          BUILD_OUTPUT=$(npx eas build \
+          BUILD_OUTPUT=$(eas build \
             --platform android \
             --profile ${{ steps.build_config.outputs.profile }} \
             --non-interactive \
@@ -1971,7 +1971,7 @@ jobs:
         if: steps.build_config.outputs.platform == 'all' || steps.build_config.outputs.platform == 'ios'
         run: |
           cd apps/mobile-app
-          BUILD_OUTPUT=$(npx eas build \
+          BUILD_OUTPUT=$(eas build \
             --platform ios \
             --profile ${{ steps.build_config.outputs.profile }} \
             --non-interactive \
@@ -1993,7 +1993,7 @@ jobs:
         run: |
           cd apps/mobile-app
           echo "Waiting for Android build to complete..."
-          npx eas build:view ${{ steps.eas_build_android.outputs.build_id }} --json || true
+          eas build:view ${{ steps.eas_build_android.outputs.build_id }} --json || true
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
         timeout-minutes: 60
@@ -2004,7 +2004,7 @@ jobs:
         run: |
           cd apps/mobile-app
           echo "Waiting for iOS build to complete..."
-          npx eas build:view ${{ steps.eas_build_ios.outputs.build_id }} --json || true
+          eas build:view ${{ steps.eas_build_ios.outputs.build_id }} --json || true
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
         timeout-minutes: 90
@@ -2018,7 +2018,7 @@ jobs:
         run: |
           cd apps/mobile-app
           echo "Submitting Android build to Google Play Store..."
-          npx eas submit \
+          eas submit \
             --platform android \
             --latest \
             --non-interactive || echo "::warning::Android submission failed"
@@ -2033,7 +2033,7 @@ jobs:
         run: |
           cd apps/mobile-app
           echo "Submitting iOS build to Apple App Store..."
-          npx eas submit \
+          eas submit \
             --platform ios \
             --latest \
             --non-interactive || echo "::warning::iOS submission failed"
