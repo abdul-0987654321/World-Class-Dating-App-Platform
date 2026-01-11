@@ -94,12 +94,10 @@ const DiscoveryScreen = () => {
   });
 
   const handleSwipeLeft = useCallback((profile: typeof MOCK_PROFILES[0]) => {
-    console.log('Passed on:', profile.name);
     setCurrentIndex((prev) => prev + 1);
   }, []);
 
   const handleSwipeRight = useCallback((profile: typeof MOCK_PROFILES[0]) => {
-    console.log('Liked:', profile.name);
 
     // Simulate 30% match rate
     if (Math.random() < 0.3) {
@@ -115,8 +113,6 @@ const DiscoveryScreen = () => {
   }, []);
 
   const handleSwipeUp = useCallback((profile: typeof MOCK_PROFILES[0]) => {
-    console.log('Super liked:', profile.name);
-
     // Simulate 50% match rate for super likes
     if (Math.random() < 0.5) {
       setMatchedProfile({
@@ -142,7 +138,7 @@ const DiscoveryScreen = () => {
       'Get up to 10x more profile views for 30 minutes!',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Boost Now', onPress: () => console.log('Boost activated') },
+        { text: 'Boost Now', onPress: () => {} },
       ]
     );
   }, []);

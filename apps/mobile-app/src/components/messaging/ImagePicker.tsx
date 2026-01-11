@@ -99,7 +99,6 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
   const handleImageResponse = useCallback((response: ImagePickerResponse) => {
     if (response.didCancel) {
-      console.log('User cancelled image picker');
       return;
     }
 

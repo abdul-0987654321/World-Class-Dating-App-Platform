@@ -82,17 +82,17 @@ const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       // In production, call API to create profile
       // await api.createProfile(profileData);
-      console.log('Profile data:', profileData);
-    } catch (error) {
-      console.error('Error creating profile:', error);
+    } catch {
+      // Silently handle profile creation errors
     }
   };
 
   const handleStartExploring = () => {
     // Navigate to main app
-    // In production, this would reset the navigation stack to the main app
-    // navigation.reset({ index: 0, routes: [{ name: 'MainApp' }] });
-    console.log('Starting to explore with profile:', profileData.name);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainApp' as never }],
+    });
   };
 
   return (

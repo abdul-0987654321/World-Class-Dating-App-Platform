@@ -142,7 +142,6 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                       className="px-3 py-1 text-sm text-pink-600 hover:bg-pink-50 rounded-lg transition"
                       onClick={() => {
                         // Navigate to user detail or open modal
-                        console.log('View match details:', match.matchedUser.id);
                       }}
                     >
                       View
@@ -215,7 +214,7 @@ export const UserMatchesView: React.FC<UserMatchesViewProps> = ({ userId }) => {
                       <button
                         className="px-3 py-1 text-sm text-pink-600 hover:bg-pink-50 rounded-lg transition"
                         onClick={() => {
-                          console.log('View conversation:', conversation.id);
+                          // TODO: Implement view conversation
                         }}
                       >
                         View Full Thread

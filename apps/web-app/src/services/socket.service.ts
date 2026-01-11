@@ -68,7 +68,6 @@ class SocketService {
       });
 
       this.socket.on('connect', () => {
-        console.log('Socket connected');
         this.reconnectAttempts = 0;
         resolve();
       });
@@ -81,8 +80,8 @@ class SocketService {
         }
       });
 
-      this.socket.on('disconnect', (reason) => {
-        console.log('Socket disconnected:', reason);
+      this.socket.on('disconnect', () => {
+        // Socket disconnected
       });
 
       // Message handlers
@@ -95,12 +94,12 @@ class SocketService {
         globalHandlers.forEach(handler => handler(message));
       });
 
-      this.socket.on('message_delivered', (data) => {
-        console.log('Message delivered:', data);
+      this.socket.on('message_delivered', () => {
+        // Message delivered
       });
 
-      this.socket.on('message_read', (data) => {
-        console.log('Message read:', data);
+      this.socket.on('message_read', () => {
+        // Message read
       });
 
       // Typing handlers
@@ -124,22 +123,18 @@ class SocketService {
 
       // Reward event handlers (real-time balance & streak updates)
       this.socket.on('coins:updated', (data) => {
-        console.log('Coins updated:', data);
         this.coinUpdateHandlers.forEach(handler => handler(data));
       });
 
       this.socket.on('streak:updated', (data) => {
-        console.log('Streak updated:', data);
         this.streakUpdateHandlers.forEach(handler => handler(data));
       });
 
       this.socket.on('reward:claimed', (data) => {
-        console.log('Reward claimed:', data);
         this.rewardClaimedHandlers.forEach(handler => handler(data));
       });
 
       this.socket.on('reward:milestone', (data) => {
-        console.log('Reward milestone:', data);
         this.rewardMilestoneHandlers.forEach(handler => handler(data));
       });
 

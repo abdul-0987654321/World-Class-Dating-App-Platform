@@ -386,17 +386,14 @@ export const RegionalSafetyFeatures: React.FC<RegionalSafetyFeaturesProps> = ({
 
   const handleShareDateDetails = () => {
     // Implement share date details modal
-    console.log('Share date details');
   };
 
   const handleSetCheckIn = () => {
     // Implement check-in reminder
-    console.log('Set check-in');
   };
 
   const handleAddEmergencyContact = () => {
     // Implement add contact modal
-    console.log('Add emergency contact');
   };
 
   const handleCallEmergency = (number: string) => {

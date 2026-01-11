@@ -94,10 +94,10 @@ const SpeedDatingSessionScreen: React.FC<Props> = ({ navigation, route }) => {
       });
     },
     onRoundChange: (round, partner) => {
-      console.log(`Round ${round}: Meeting ${partner.name}`);
+      // Round change handled by UI update
     },
     onMatchFound: (partnerId) => {
-      console.log(`Mutual match with ${partnerId}!`);
+      // Match notification is handled by the hook
     },
   });
 

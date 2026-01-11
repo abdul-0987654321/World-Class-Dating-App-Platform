@@ -77,7 +77,7 @@ const LikesYouScreen: React.FC = () => {
   const handleLikePress = (profile: LikeProfile) => {
     if (isPremium) {
       // Navigate to profile detail
-      console.log('View profile:', profile.id);
+      navigation.navigate('ProfileDetail' as never, { userId: profile.id } as never);
     } else {
       handleUpgrade();
     }

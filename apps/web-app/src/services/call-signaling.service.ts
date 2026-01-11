@@ -68,7 +68,6 @@ export class CallSignalingService extends EventEmitter {
       });
 
       this.socket.on('connect', () => {
-        console.log('Connected to signaling server');
         this.isConnected = true;
         this.reconnectAttempts = 0;
         this.emit('connected');
@@ -76,7 +75,6 @@ export class CallSignalingService extends EventEmitter {
       });
 
       this.socket.on('disconnect', (reason) => {
-        console.log('Disconnected from signaling server:', reason);
         this.isConnected = false;
         this.emit('disconnected', reason);
       });
@@ -103,43 +101,36 @@ export class CallSignalingService extends EventEmitter {
 
     // Incoming call
     this.socket.on('incoming-call', (data: CallSignal) => {
-      console.log('Incoming call:', data);
       this.emit('incoming-call', data);
     });
 
     // Call accepted
     this.socket.on('call-accepted', (data: CallAcceptSignal) => {
-      console.log('Call accepted:', data);
       this.emit('call-accepted', data);
     });
 
     // Call rejected
     this.socket.on('call-rejected', (data: { callId: string; reason: string }) => {
-      console.log('Call rejected:', data);
       this.emit('call-rejected', data);
     });
 
     // Call ended
     this.socket.on('call-ended', (data: CallEndSignal) => {
-      console.log('Call ended:', data);
       this.emit('call-ended', data);
     });
 
     // Call timeout
     this.socket.on('call-timeout', (data: { callId: string }) => {
-      console.log('Call timeout:', data);
       this.emit('call-timeout', data);
     });
 
     // User busy
     this.socket.on('user-busy', (data: { callId: string; userId: string }) => {
-      console.log('User busy:', data);
       this.emit('user-busy', data);
     });
 
     // User offline
     this.socket.on('user-offline', (data: { callId: string; userId: string }) => {
-      console.log('User offline:', data);
       this.emit('user-offline', data);
     });
 

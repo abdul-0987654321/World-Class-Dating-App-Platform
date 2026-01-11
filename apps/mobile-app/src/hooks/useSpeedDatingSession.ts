@@ -159,17 +159,14 @@ export const useSpeedDatingSession = (
 
       // Event listeners
       rtcEngine.addListener('UserJoined', (uid) => {
-        console.log('Partner joined:', uid);
         setRemoteUids(prev => [...prev, uid]);
       });
 
       rtcEngine.addListener('UserOffline', (uid) => {
-        console.log('Partner left:', uid);
         setRemoteUids(prev => prev.filter(id => id !== uid));
       });
 
       rtcEngine.addListener('JoinChannelSuccess', (channel, uid) => {
-        console.log('Joined channel:', channel, uid);
         setIsJoined(true);
       });
 

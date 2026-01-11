@@ -41,7 +41,6 @@ export const useEncryption = () => {
       const hasKeys = await SecureKeyStorage.hasKeys(user.id);
 
       if (hasKeys) {
-        console.log('Encryption keys already initialized');
         setStatus({
           isInitialized: true,
           isLoading: false,
@@ -51,7 +50,6 @@ export const useEncryption = () => {
       }
 
       // Generate new keys
-      console.log('Initializing encryption keys...');
       const keys = await EncryptionService.initializeUserKeys(user.id);
 
       // Upload public keys to server
@@ -70,8 +68,6 @@ export const useEncryption = () => {
           publicKey: key.publicKey,
         })),
       });
-
-      console.log('Encryption keys uploaded to server');
 
       setStatus({
         isInitialized: true,

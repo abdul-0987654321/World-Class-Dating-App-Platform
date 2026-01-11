@@ -102,8 +102,8 @@ const MessagesScreen: React.FC = () => {
     });
 
     const unsubscribeNewMatch = webSocketService.on('match:new', (data: any) => {
-      // Handle new match - could create a conversation or show notification
-      console.log('New match:', data);
+      // Handle new match - refresh conversations to include the new match
+      dispatch(fetchConversations());
     });
 
     // Cleanup

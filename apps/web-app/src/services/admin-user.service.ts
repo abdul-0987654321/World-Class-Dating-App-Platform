@@ -371,7 +371,6 @@ class AdminUserService {
   async performModerationAction(userId: string, action: ModerationAction): Promise<void> {
     if (this.isMock) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('Moderation action performed:', { userId, action });
       return;
     }
 
@@ -396,7 +395,6 @@ class AdminUserService {
   async deleteUser(userId: string): Promise<void> {
     if (this.isMock) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('User deleted:', userId);
       return;
     }
 
@@ -416,7 +414,6 @@ class AdminUserService {
   async resetPassword(userId: string): Promise<void> {
     if (this.isMock) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('Password reset for user:', userId);
       return;
     }
 

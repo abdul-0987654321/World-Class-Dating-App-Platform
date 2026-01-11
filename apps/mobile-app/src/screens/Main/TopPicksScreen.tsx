@@ -105,11 +105,10 @@ const TopPicksScreen = ({ navigation }: any) => {
   const handleLike = async (pick: TopPick) => {
     try {
       // await api.post('/swipes', { targetUserId: pick.userId, action: 'like' });
-      console.log('Liked:', pick.name);
       // Remove from list
       setTopPicks(picks => picks.filter(p => p.userId !== pick.userId));
-    } catch (error) {
-      console.error('Failed to like:', error);
+    } catch {
+      // Silently handle like errors
     }
   };
 

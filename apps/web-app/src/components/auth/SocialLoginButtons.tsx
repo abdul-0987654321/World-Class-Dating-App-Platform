@@ -105,7 +105,7 @@ const SocialLoginButtonsContent: React.FC<SocialLoginButtonsProps> = ({ onSucces
               }
             }
           } else {
-            console.log('Facebook login cancelled');
+            // Facebook login cancelled
           }
           setLoading(null);
         },

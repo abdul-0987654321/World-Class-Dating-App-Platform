@@ -334,11 +334,24 @@ class PolicyService {
   }
 
   /**
-   * Helper method to detect user's region (can be enhanced with geolocation)
+   * Helper method to detect user's region based on stored preference or browser language
    */
   getUserRegion(): string {
-    // TODO: Implement actual region detection based on IP or user settings
-    // For now, return default region
+    // Check localStorage for user preference
+    const savedRegion = localStorage.getItem('userRegion');
+    if (savedRegion) {
+      return savedRegion;
+    }
+
+    // Try to detect from browser language
+    const browserLang = navigator.language || navigator.languages?.[0] || 'en-US';
+    const regionFromLang = browserLang.split('-')[1]?.toUpperCase();
+
+    if (regionFromLang && regionFromLang.length === 2) {
+      return regionFromLang.toLowerCase();
+    }
+
+    // Default fallback
     return this.defaultRegion;
   }
 

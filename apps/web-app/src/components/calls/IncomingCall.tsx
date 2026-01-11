@@ -46,7 +46,6 @@ const IncomingCall: React.FC<IncomingCallProps> = ({
       audioRef.current.volume = 0.5;
       audioRef.current.play().catch(() => {
         // Autoplay may be blocked by browser
-        console.log('Ringtone autoplay blocked');
       });
     } catch (err) {
       console.error('Failed to load ringtone:', err);

@@ -136,7 +136,6 @@ export const UserManagementPage: React.FC = () => {
                     user={selectedUser}
                     onSave={() => {
                       // Optionally refresh user data
-                      console.log('User updated');
                     }}
                   />
                 )}
@@ -146,7 +145,6 @@ export const UserManagementPage: React.FC = () => {
                     user={selectedUser}
                     onActionComplete={() => {
                       // Optionally refresh user data
-                      console.log('Moderation action completed');
                     }}
                   />
                 )}
@@ -164,7 +162,6 @@ export const UserManagementPage: React.FC = () => {
                     user={selectedUser}
                     onUpdate={() => {
                       // Optionally refresh user data
-                      console.log('Subscription updated');
                     }}
                   />
                 )}

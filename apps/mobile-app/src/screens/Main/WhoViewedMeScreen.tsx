@@ -72,7 +72,7 @@ const WhoViewedMeScreen: React.FC = () => {
 
   const handleViewPress = (profile: ProfileView) => {
     if (isPremium) {
-      console.log('View profile:', profile.id);
+      navigation.navigate('ProfileDetail' as never, { userId: profile.id } as never);
     } else {
       handleUpgrade();
     }

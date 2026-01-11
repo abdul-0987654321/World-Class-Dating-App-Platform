@@ -486,13 +486,12 @@ export const DiscoveryFeaturePage: React.FC = () => {
 
   // Profile click handler for grid view
   const handleProfileClick = useCallback((profile: DiscoveryProfile) => {
-    console.log('Profile clicked:', profile);
+    // TODO: Implement profile detail view
   }, []);
 
   // Curated pick handlers
   const handlePickClick = useCallback((pick: CuratedPick) => {
     curatedPicksService.markViewed(pick.pickId);
-    console.log('Pick clicked:', pick);
   }, []);
 
   const handlePickLike = useCallback(async (userId: string, pickId: string) => {

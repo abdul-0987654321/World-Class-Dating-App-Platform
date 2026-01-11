@@ -71,7 +71,6 @@ export const CoinShop: React.FC = () => {
   };
 
   const handlePurchaseSuccess = (result: any) => {
-    console.log('Purchase successful:', result);
     setPurchaseSuccess(true);
     setShowCheckout(false);
     setSelectedProduct(null);

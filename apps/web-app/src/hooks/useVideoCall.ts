@@ -6,6 +6,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// Type declarations for mobile-specific and screen sharing APIs
+declare global {
+  interface MediaStreamTrack {
+    /** Mobile-specific method to switch between front and back cameras */
+    _switchCamera?: () => Promise<void>;
+  }
+}
+
 // Types
 export type CallStatus =
   | 'idle'
@@ -144,17 +152,14 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
 
     socket.on('connect', () => {
       setIsConnected(true);
-      console.log('WebRTC socket connected');
     });
 
     socket.on('disconnect', () => {
       setIsConnected(false);
-      console.log('WebRTC socket disconnected');
     });
 
     // Handle incoming call
     socket.on('call:incoming', (data: IncomingCall) => {
-      console.log('Incoming call:', data);
       setIncomingCall(data);
       webrtcConfigRef.current = data.webrtcConfig || { iceServers: DEFAULT_ICE_SERVERS };
 
@@ -184,8 +189,6 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
       calleeAvatar?: string;
       sdp: RTCSessionDescriptionInit;
     }) => {
-      console.log('Call answered:', data);
-
       try {
         if (peerConnectionRef.current) {
           await peerConnectionRef.current.setRemoteDescription(
@@ -217,20 +220,17 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
     });
 
     // Handle call rejected
-    socket.on('call:rejected', (data: { callId: string; reason: string }) => {
-      console.log('Call rejected:', data);
+    socket.on('call:rejected', () => {
       handleCallEnded('rejected', 0);
     });
 
     // Handle call ended
     socket.on('call:ended', (data: { callId: string; reason: string; duration?: number }) => {
-      console.log('Call ended:', data);
       handleCallEnded(data.reason, data.duration || 0);
     });
 
     // Handle call timeout
-    socket.on('call:timeout', (data: { callId: string }) => {
-      console.log('Call timeout:', data);
+    socket.on('call:timeout', () => {
       handleCallEnded('missed', 0);
     });
 
@@ -388,8 +388,6 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
 
     // Handle connection state changes
     pc.onconnectionstatechange = () => {
-      console.log('Connection state:', pc.connectionState);
-
       switch (pc.connectionState) {
         case 'connected':
           setCallState(prev => ({
@@ -414,7 +412,6 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
 
     // Handle remote tracks
     pc.ontrack = (event) => {
-      console.log('Remote track received:', event.track.kind);
       setRemoteStream(event.streams[0]);
     };
 
@@ -763,9 +760,7 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
     const videoTrack = localStream.getVideoTracks()[0];
     if (videoTrack) {
       try {
-        // @ts-ignore - Mobile specific API
         if (videoTrack._switchCamera) {
-          // @ts-ignore
           await videoTrack._switchCamera();
         }
       } catch (error) {
@@ -779,7 +774,6 @@ export function useVideoCall(options: UseVideoCallOptions): UseVideoCallReturn {
     if (!peerConnectionRef.current) return;
 
     try {
-      // @ts-ignore - Screen sharing API
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: false,

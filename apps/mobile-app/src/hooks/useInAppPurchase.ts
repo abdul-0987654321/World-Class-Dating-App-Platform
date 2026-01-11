@@ -64,7 +64,6 @@ export const useInAppPurchase = (): UseInAppPurchaseReturn => {
   };
 
   const handlePurchaseSuccess = useCallback((purchase: any) => {
-    console.log('Purchase successful:', purchase);
     setPurchasing(false);
   }, []);
 

@@ -160,7 +160,6 @@ export const SpeedDatingPage: React.FC = () => {
   };
 
   const handleSessionEnd = (matchedIds: string[]) => {
-    console.log('Session ended with matches:', matchedIds);
     // In a real app, send matchedIds to the server
     setActiveSession(null);
     setActiveTab('matches');

@@ -164,15 +164,11 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
 
   const handleSwipeLeft = useCallback(async (profile: DiscoveryProfile) => {
     lastSwipedProfileRef.current = profile;
-    console.log('Passed on:', profile.name);
 
     try {
-      const response = await discoveryService.swipeLeft(profile.id);
-      if (!response.success) {
-        console.error('Swipe left failed:', response.error);
-      }
-    } catch (error) {
-      console.error('Swipe left error:', error);
+      await discoveryService.swipeLeft(profile.id);
+    } catch {
+      // Silently handle swipe errors
     }
 
     setCurrentIndex((prev) => prev + 1);
@@ -180,7 +176,6 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
 
   const handleSwipeRight = useCallback(async (profile: DiscoveryProfile) => {
     lastSwipedProfileRef.current = profile;
-    console.log('Liked:', profile.name);
 
     try {
       const response = await discoveryService.swipeRight(profile.id);
@@ -190,11 +185,9 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
           setMatchedProfile(response.data.match);
           setShowMatch(true);
         }
-      } else {
-        console.error('Swipe right failed:', response.error);
       }
-    } catch (error) {
-      console.error('Swipe right error:', error);
+    } catch {
+      // Silently handle swipe errors
     }
 
     setCurrentIndex((prev) => prev + 1);
@@ -214,7 +207,6 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
     }
 
     lastSwipedProfileRef.current = profile;
-    console.log('Super liked:', profile.name);
 
     try {
       const response = await discoveryService.superLike(profile.id);
@@ -229,11 +221,9 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
           Alert.alert('Super Like Sent!', `${profile.name} will see that you super liked them!`);
         }
       } else {
-        console.error('Super like failed:', response.error);
         Alert.alert('Error', response.error?.message || 'Failed to send super like');
       }
-    } catch (error) {
-      console.error('Super like error:', error);
+    } catch {
       Alert.alert('Error', 'Failed to send super like. Please try again.');
     }
 
@@ -599,12 +589,20 @@ const DiscoveryScreenEnhanced = ({ navigation }: any) => {
             if (selectedProfile) handleSwipeLeft(selectedProfile);
           }}
           onReport={async () => {
+            const handleReport = async (reason: string) => {
+              try {
+                await discoveryService.reportUser(selectedProfile.userId, reason);
+                Alert.alert('Report Submitted', 'Thank you for helping keep our community safe.');
+              } catch {
+                Alert.alert('Error', 'Failed to submit report. Please try again.');
+              }
+            };
             Alert.alert('Report Profile', 'Why are you reporting this profile?', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Inappropriate Photos', onPress: () => console.log('Report: Photos') },
-              { text: 'Fake Profile', onPress: () => console.log('Report: Fake') },
-              { text: 'Harassment', onPress: () => console.log('Report: Harassment') },
-              { text: 'Other', onPress: () => console.log('Report: Other') },
+              { text: 'Inappropriate Photos', onPress: () => handleReport('inappropriate_photos') },
+              { text: 'Fake Profile', onPress: () => handleReport('fake_profile') },
+              { text: 'Harassment', onPress: () => handleReport('harassment') },
+              { text: 'Other', onPress: () => handleReport('other') },
             ]);
           }}
           onBlock={async () => {

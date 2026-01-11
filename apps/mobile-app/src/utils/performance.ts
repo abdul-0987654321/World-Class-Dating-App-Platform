@@ -173,12 +173,15 @@ export class PerformanceMonitor {
   static measure(name: string, startMark: string): number {
     const start = this.marks.get(startMark);
     if (!start) {
-      console.warn(`Start mark "${startMark}" not found`);
       return 0;
     }
 
     const duration = Date.now() - start;
-    console.log(`Performance [${name}]: ${duration}ms`);
+    // Performance metrics are collected but not logged in production
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(`Performance [${name}]: ${duration}ms`);
+    }
     return duration;
   }
 

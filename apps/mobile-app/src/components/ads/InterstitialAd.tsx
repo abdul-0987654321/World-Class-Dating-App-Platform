@@ -68,7 +68,6 @@ export function useInterstitialAd(): UseInterstitialAdReturn {
 
   const show = useCallback(async (): Promise<boolean> => {
     if (!canShow) {
-      console.log('[useInterstitialAd] Cannot show - not ready or capped');
       return false;
     }
 
@@ -131,7 +130,6 @@ export function useInterstitialTrigger({
 
   const attemptShow = useCallback(async () => {
     if (!canShow) {
-      console.log('[InterstitialTrigger] Cannot show ad');
       return;
     }
 

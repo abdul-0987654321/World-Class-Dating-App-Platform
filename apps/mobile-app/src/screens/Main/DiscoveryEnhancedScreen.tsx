@@ -157,16 +157,8 @@ const EnhancedDiscoveryScreen = () => {
     // Add to undo stack
     setUndoStack((prev) => [...prev, { profile, action: 'pass', index: currentIndex }]);
 
-    try {
-      // Track the pass
-      // await api.post('/swipes', { targetUserId: profile.id, action: 'pass' });
-      console.log('Passed on:', profile.name);
-
-      setCurrentIndex((prev) => prev + 1);
-      animateTransition();
-    } catch (error) {
-      console.error('Failed to record pass:', error);
-    }
+    setCurrentIndex((prev) => prev + 1);
+    animateTransition();
   }, [profiles, currentIndex]);
 
   const handleSwipeRight = useCallback(async () => {
@@ -176,24 +168,15 @@ const EnhancedDiscoveryScreen = () => {
     // Add to undo stack
     setUndoStack((prev) => [...prev, { profile, action: 'like', index: currentIndex }]);
 
-    try {
-      // Record like
-      // const response = await api.post('/swipes', { targetUserId: profile.id, action: 'like' });
-
-      console.log('Liked:', profile.name);
-
-      // Check for match
-      const matched = Math.random() > 0.7; // Simulate match
-      if (matched) {
-        setMatchedProfile(profile);
-        setShowMatch(true);
-      }
-
-      setCurrentIndex((prev) => prev + 1);
-      animateTransition();
-    } catch (error) {
-      console.error('Failed to record like:', error);
+    // Check for match
+    const matched = Math.random() > 0.7; // Simulate match
+    if (matched) {
+      setMatchedProfile(profile);
+      setShowMatch(true);
     }
+
+    setCurrentIndex((prev) => prev + 1);
+    animateTransition();
   }, [profiles, currentIndex]);
 
   const handleSuperLike = useCallback(() => {
@@ -214,8 +197,6 @@ const EnhancedDiscoveryScreen = () => {
       //   targetUserId: profile.id,
       //   message: superLikeMessage || undefined,
       // });
-
-      console.log('Super Liked:', profile.name, 'Message:', superLikeMessage);
 
       Alert.alert('Super Like Sent!', `${profile.name} will be notified.`);
 

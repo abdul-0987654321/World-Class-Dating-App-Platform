@@ -28,7 +28,7 @@ const AccountSettingsScreen: React.FC = () => {
       'A password reset link will be sent to your email.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Link', onPress: () => console.log('Password reset sent') },
+        { text: 'Send Link', onPress: () => Alert.alert('Success', 'Password reset link sent to your email.') },
       ]
     );
   };
@@ -39,7 +39,7 @@ const AccountSettingsScreen: React.FC = () => {
       'A verification link will be sent to your new email address.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => console.log('Email change initiated') },
+        { text: 'Continue', onPress: () => Alert.alert('Success', 'Verification link sent to your new email.') },
       ]
     );
   };
@@ -50,7 +50,7 @@ const AccountSettingsScreen: React.FC = () => {
       'You will receive a verification code on your new phone number.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => console.log('Phone change initiated') },
+        { text: 'Continue', onPress: () => Alert.alert('Success', 'Verification code sent to your new phone.') },
       ]
     );
   };

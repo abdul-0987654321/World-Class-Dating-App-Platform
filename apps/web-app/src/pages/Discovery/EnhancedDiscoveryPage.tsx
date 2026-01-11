@@ -166,10 +166,9 @@ export const EnhancedDiscoveryPage: React.FC = () => {
 
     try {
       // await api.post('/swipes', { targetUserId: profile.userId, action: 'pass' });
-      console.log('Passed on:', profile.name);
       nextProfile();
     } catch (error) {
-      console.error('Failed to pass:', error);
+      // Pass action failed
     }
   }, [profiles, currentIndex]);
 
@@ -212,7 +211,6 @@ export const EnhancedDiscoveryPage: React.FC = () => {
       //   message: superLikeMessage || undefined,
       // });
 
-      console.log('Super Liked:', profile.name);
       setShowSuperLikeModal(false);
       setSuperLikeMessage('');
       setSuperLikeQuota((prev) => ({ ...prev, remaining: prev.remaining - 1 }));

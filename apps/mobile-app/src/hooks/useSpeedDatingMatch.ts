@@ -349,8 +349,7 @@ export const useSpeedDatingMatch = (
           message,
         });
       } catch {
-        // Mock success in development
-        console.log('Mock sending message:', message, 'to match:', matchId);
+        // Mock success in development - silently continue
       }
 
       // Update local state

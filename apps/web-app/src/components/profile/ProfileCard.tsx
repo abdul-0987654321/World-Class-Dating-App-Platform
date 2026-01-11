@@ -81,7 +81,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
           {/* Photo */}
           <div className="absolute inset-0">
             <img
-              src={user.photos[currentPhotoIndex] || 'https://via.placeholder.com/600x800?text=No+Photo'}
+              src={user.photos[currentPhotoIndex] || '/assets/images/default-profile.svg'}
               alt={user.name}
               onError={() => setImageError(true)}
               className="w-full h-full object-cover"
@@ -239,7 +239,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
       >
         <div className="relative">
           <img
-            src={user.photos[0] || 'https://via.placeholder.com/80'}
+            src={user.photos[0] || '/assets/images/default-profile.svg'}
             alt={user.name}
             className="w-16 h-16 rounded-full object-cover"
           />
@@ -283,7 +283,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
     >
       <div className="relative aspect-[3/4]">
         <img
-          src={user.photos[0] || 'https://via.placeholder.com/400x600'}
+          src={user.photos[0] || '/assets/images/default-profile.svg'}
           alt={user.name}
           className="w-full h-full object-cover"
         />

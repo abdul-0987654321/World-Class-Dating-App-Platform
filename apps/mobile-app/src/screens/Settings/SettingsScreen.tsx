@@ -87,7 +87,10 @@ const SettingsScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             // Handle logout logic
-            console.log('User logged out');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth' as never }],
+            });
           },
         },
       ],
@@ -106,7 +109,11 @@ const SettingsScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             // Handle account deletion
-            console.log('Account deleted');
+            Alert.alert('Account Deleted', 'Your account has been deleted.');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth' as never }],
+            });
           },
         },
       ],

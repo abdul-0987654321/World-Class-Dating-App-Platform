@@ -184,7 +184,7 @@ const Dot = styled.div<{ active: boolean }>`
 export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, onSuperLike }) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const photos = profile.photos.length > 0 ? profile.photos : [{ url: 'https://via.placeholder.com/400x600?text=No+Photo', is_primary: true }];
+  const photos = profile.photos.length > 0 ? profile.photos : [{ url: '/assets/images/default-profile.svg', is_primary: true }];
   const currentPhoto = photos[currentPhotoIndex];
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {

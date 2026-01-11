@@ -125,8 +125,16 @@ const PremiumSubscriptionScreen: React.FC = () => {
       const availableSubscriptions = await InAppPurchaseService.getSubscriptionProducts();
       setSubscriptions(availableSubscriptions);
 
-      // Check current subscription status
-      // TODO: Implement with backend
+      // Check current subscription status from available purchases
+      const purchases = await InAppPurchaseService.getAvailablePurchases();
+      if (purchases.length > 0) {
+        const activeSubscription = purchases.find(p =>
+          Object.values(SUBSCRIPTION_SKUS).includes(p.productId)
+        );
+        if (activeSubscription) {
+          setCurrentSubscription(activeSubscription.productId);
+        }
+      }
     } catch (error) {
       console.error('Failed to initialize subscriptions:', error);
     } finally {

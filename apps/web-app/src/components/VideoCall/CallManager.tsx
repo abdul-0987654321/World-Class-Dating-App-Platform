@@ -4,13 +4,26 @@
  * Manages incoming call notifications and active call modals
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useVideoCallContext } from '../../contexts/VideoCallContext';
 import VideoCallModal from './VideoCallModal';
 import VoiceCallScreen from './VoiceCallScreen';
 import IncomingCallNotification from './IncomingCallNotification';
 
+// Interface for caching audio analyser resources per stream
+interface AudioAnalyserCache {
+  audioContext: AudioContext;
+  analyser: AnalyserNode;
+  source: MediaStreamAudioSourceNode;
+  dataArray: Uint8Array;
+  streamId: string;
+}
+
 const CallManager: React.FC = () => {
+  // Cache for audio analysers to avoid recreating on every call
+  const localAnalyserRef = useRef<AudioAnalyserCache | null>(null);
+  const remoteAnalyserRef = useRef<AudioAnalyserCache | null>(null);
+
   const {
     callState,
     incomingCall,
@@ -121,12 +134,70 @@ const CallManager: React.FC = () => {
     }
   }, [callState.status]);
 
-  // Calculate audio levels from streams (simplified - in production use AudioContext)
-  const getAudioLevel = useCallback((stream: MediaStream | null): number => {
+  // Helper to create or get cached audio analyser for a stream
+  const getOrCreateAnalyser = useCallback((
+    stream: MediaStream,
+    cacheRef: React.MutableRefObject<AudioAnalyserCache | null>
+  ): AudioAnalyserCache | null => {
+    // Check if we already have a valid analyser for this stream
+    const streamId = stream.id;
+    const cached = cacheRef.current;
+
+    if (cached && cached.streamId === streamId) {
+      // Verify the audio context is still usable
+      if (cached.audioContext.state !== 'closed') {
+        return cached;
+      }
+      // Context was closed, need to recreate
+      cacheRef.current = null;
+    }
+
+    // Clean up old analyser if stream changed
+    if (cached && cached.streamId !== streamId) {
+      try {
+        cached.source.disconnect();
+        if (cached.audioContext.state !== 'closed') {
+          cached.audioContext.close();
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      cacheRef.current = null;
+    }
+
+    // Create new analyser for this stream
+    try {
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const newCache: AudioAnalyserCache = {
+        audioContext,
+        analyser,
+        source,
+        dataArray,
+        streamId,
+      };
+
+      cacheRef.current = newCache;
+      return newCache;
+    } catch {
+      // Failed to create audio context or analyser
+      return null;
+    }
+  }, []);
+
+  // Calculate audio levels from streams using Web Audio API AnalyserNode
+  const getAudioLevel = useCallback((stream: MediaStream | null, isLocal: boolean = true): number => {
     if (!stream) return 0;
 
-    // In production, use Web Audio API's AnalyserNode for accurate levels
-    // This is a simplified version that returns a placeholder
+    // Check if stream has audio tracks
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) return 0;
 
@@ -134,10 +205,34 @@ const CallManager: React.FC = () => {
     const track = audioTracks[0];
     if (!track.enabled || track.muted) return 0;
 
-    // Return a random value between 0.1 and 0.5 to simulate audio activity
-    // In production, this should use AnalyserNode.getByteFrequencyData()
-    return Math.random() * 0.4 + 0.1;
-  }, []);
+    // Get or create the appropriate analyser
+    const cacheRef = isLocal ? localAnalyserRef : remoteAnalyserRef;
+    const analyserCache = getOrCreateAnalyser(stream, cacheRef);
+
+    if (!analyserCache) return 0;
+
+    // Resume audio context if suspended (required for some browsers)
+    if (analyserCache.audioContext.state === 'suspended') {
+      analyserCache.audioContext.resume();
+    }
+
+    // Get frequency data
+    analyserCache.analyser.getByteFrequencyData(analyserCache.dataArray);
+
+    // Calculate average level from frequency data
+    let sum = 0;
+    const dataArray = analyserCache.dataArray;
+    const length = dataArray.length;
+
+    for (let i = 0; i < length; i++) {
+      sum += dataArray[i];
+    }
+
+    const average = sum / length;
+
+    // Normalize to 0-1 range (byte data is 0-255)
+    return average / 255;
+  }, [getOrCreateAnalyser]);
 
   // Close modal when call ends naturally
   useEffect(() => {
@@ -150,6 +245,37 @@ const CallManager: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [callState.status, setShowCallModal]);
+
+  // Cleanup audio analysers when component unmounts or streams change
+  useEffect(() => {
+    return () => {
+      // Cleanup local analyser
+      if (localAnalyserRef.current) {
+        try {
+          localAnalyserRef.current.source.disconnect();
+          if (localAnalyserRef.current.audioContext.state !== 'closed') {
+            localAnalyserRef.current.audioContext.close();
+          }
+        } catch {
+          // Ignore cleanup errors
+        }
+        localAnalyserRef.current = null;
+      }
+
+      // Cleanup remote analyser
+      if (remoteAnalyserRef.current) {
+        try {
+          remoteAnalyserRef.current.source.disconnect();
+          if (remoteAnalyserRef.current.audioContext.state !== 'closed') {
+            remoteAnalyserRef.current.audioContext.close();
+          }
+        } catch {
+          // Ignore cleanup errors
+        }
+        remoteAnalyserRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -190,8 +316,8 @@ const CallManager: React.FC = () => {
               onToggleMute={handleToggleMute}
               onEndCall={handleEndCall}
               onSwitchToVideo={handleSwitchToVideo}
-              audioLevel={getAudioLevel(localStream)}
-              remoteAudioLevel={getAudioLevel(remoteStream)}
+              audioLevel={getAudioLevel(localStream, true)}
+              remoteAudioLevel={getAudioLevel(remoteStream, false)}
             />
           )}
         </>

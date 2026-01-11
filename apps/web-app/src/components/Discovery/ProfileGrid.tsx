@@ -404,7 +404,7 @@ export const ProfileGrid: React.FC<ProfileGridProps> = ({
         >
           <PhotoContainer>
             <ProfilePhoto
-              src={profile.photos[0]?.url || 'https://via.placeholder.com/400x600?text=No+Photo'}
+              src={profile.photos[0]?.url || '/assets/images/default-profile.svg'}
               alt={profile.first_name}
               loading="lazy"
             />

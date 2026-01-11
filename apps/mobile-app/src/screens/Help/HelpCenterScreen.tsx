@@ -144,8 +144,8 @@ const HelpCenterScreen: React.FC = () => {
   };
 
   const handleChatSupport = () => {
-    // Navigate to chat support
-    console.log('Open chat support');
+    // Navigate to chat support - functionality to be implemented
+    navigation.navigate('ChatSupport' as never);
   };
 
   return (

@@ -147,11 +147,9 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
 
   const handleAppStateChange = async (nextAppState: AppStateStatus) => {
     if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-      // App came to foreground
-      console.log('App came to foreground');
+      // App came to foreground - resume video if needed
     } else if (nextAppState.match(/inactive|background/)) {
       // App went to background - keep call active
-      console.log('App went to background - maintaining call');
     }
     appState.current = nextAppState;
   };

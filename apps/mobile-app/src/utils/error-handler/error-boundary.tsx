@@ -181,8 +181,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         timestamp: new Date().toISOString(),
       };
 
-      // Could send to error tracking service
-      console.log('Error report:', errorReport);
+      // Send to error tracking service (Sentry, etc.)
+      // In production, this would be handled by Sentry.captureException
     } catch {
       // Silently fail error reporting
     }

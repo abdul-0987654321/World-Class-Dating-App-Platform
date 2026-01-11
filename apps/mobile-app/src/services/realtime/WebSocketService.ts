@@ -7,6 +7,14 @@ import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../api/config';
 
+// Dev-only logging helper
+const devLog = (...args: any[]) => {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+};
+
 export interface MessageEvent {
   conversationId: string;
   message: {
@@ -51,7 +59,7 @@ class WebSocketService {
 
   async connect(): Promise<void> {
     if (this.socket?.connected) {
-      console.log('[WebSocket] Already connected');
+      devLog('[WebSocket] Already connected');
       return;
     }
 
@@ -63,7 +71,7 @@ class WebSocketService {
 
       const wsUrl = process.env.WEBSOCKET_URL || 'wss://ws.flamoral.com';
 
-      console.log('[WebSocket] Connecting to:', wsUrl);
+      devLog('[WebSocket] Connecting to:', wsUrl);
 
       this.socket = io(wsUrl, {
         auth: { token },
@@ -84,7 +92,7 @@ class WebSocketService {
 
   disconnect(): void {
     if (this.socket) {
-      console.log('[WebSocket] Disconnecting');
+      devLog('[WebSocket] Disconnecting');
       this.socket.disconnect();
       this.socket = null;
       this.listeners.clear();
@@ -99,13 +107,13 @@ class WebSocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('[WebSocket] Connected');
+      devLog('[WebSocket] Connected');
       this.reconnectAttempts = 0;
       this.emit('connection', { status: 'connected' });
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('[WebSocket] Disconnected:', reason);
+      devLog('[WebSocket] Disconnected:', reason);
       this.emit('connection', { status: 'disconnected', reason });
     });
 
@@ -120,46 +128,46 @@ class WebSocketService {
     });
 
     this.socket.on('reconnect', (attemptNumber) => {
-      console.log('[WebSocket] Reconnected after', attemptNumber, 'attempts');
+      devLog('[WebSocket] Reconnected after', attemptNumber, 'attempts');
       this.reconnectAttempts = 0;
     });
 
     // Message events
     this.socket.on('message:new', (data: MessageEvent) => {
-      console.log('[WebSocket] New message:', data);
+      devLog('[WebSocket] New message:', data);
       this.emit('message:new', data);
     });
 
     this.socket.on('message:delivered', (data: { messageId: string; conversationId: string }) => {
-      console.log('[WebSocket] Message delivered:', data);
+      devLog('[WebSocket] Message delivered:', data);
       this.emit('message:delivered', data);
     });
 
     this.socket.on('message:read', (data: ReadReceiptEvent) => {
-      console.log('[WebSocket] Messages read:', data);
+      devLog('[WebSocket] Messages read:', data);
       this.emit('message:read', data);
     });
 
     // Typing indicators
     this.socket.on('typing:start', (data: TypingEvent) => {
-      console.log('[WebSocket] User typing:', data);
+      devLog('[WebSocket] User typing:', data);
       this.emit('typing:start', data);
     });
 
     this.socket.on('typing:stop', (data: TypingEvent) => {
-      console.log('[WebSocket] User stopped typing:', data);
+      devLog('[WebSocket] User stopped typing:', data);
       this.emit('typing:stop', data);
     });
 
     // Presence events
     this.socket.on('presence:update', (data: PresenceEvent) => {
-      console.log('[WebSocket] Presence update:', data);
+      devLog('[WebSocket] Presence update:', data);
       this.emit('presence:update', data);
     });
 
     // Match events
     this.socket.on('match:new', (data: any) => {
-      console.log('[WebSocket] New match:', data);
+      devLog('[WebSocket] New match:', data);
       this.emit('match:new', data);
     });
   }
@@ -175,7 +183,7 @@ class WebSocketService {
       throw new Error('WebSocket not connected');
     }
 
-    console.log('[WebSocket] Sending message:', { conversationId, message });
+    devLog('[WebSocket] Sending message:', { conversationId, message });
     this.socket.emit('message:send', { conversationId, message });
   }
 
@@ -196,7 +204,7 @@ class WebSocketService {
       return;
     }
 
-    console.log('[WebSocket] Marking messages as read:', { conversationId, messageIds });
+    devLog('[WebSocket] Marking messages as read:', { conversationId, messageIds });
     this.socket.emit('message:read', { conversationId, messageIds });
   }
 
@@ -207,7 +215,7 @@ class WebSocketService {
       return;
     }
 
-    console.log('[WebSocket] Joining conversation:', conversationId);
+    devLog('[WebSocket] Joining conversation:', conversationId);
     this.socket.emit('conversation:join', { conversationId });
   }
 
@@ -218,7 +226,7 @@ class WebSocketService {
       return;
     }
 
-    console.log('[WebSocket] Leaving conversation:', conversationId);
+    devLog('[WebSocket] Leaving conversation:', conversationId);
     this.socket.emit('conversation:leave', { conversationId });
   }
 
@@ -229,7 +237,7 @@ class WebSocketService {
       return;
     }
 
-    console.log('[WebSocket] Updating presence:', status);
+    devLog('[WebSocket] Updating presence:', status);
     this.socket.emit('presence:update', { status });
   }
 

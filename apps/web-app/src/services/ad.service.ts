@@ -320,7 +320,6 @@ class AdService {
    */
   async recordClick(impressionId: string, adType: AdType): Promise<void> {
     if (this.isMock) {
-      console.log('[AdService] Click recorded:', impressionId);
       return;
     }
 

@@ -194,7 +194,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       };
 
       // Could send to error tracking service
-      console.log('Error report:', errorReport);
     } catch {
       // Silently fail error reporting
     }

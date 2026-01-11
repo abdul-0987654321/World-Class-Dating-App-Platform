@@ -125,17 +125,14 @@ export const useVideoCall = (config?: VideoCallConfig) => {
 
       // Event listeners
       rtcEngine.addListener('UserJoined', (uid, elapsed) => {
-        console.log('User joined:', uid);
         setRemoteUids((prev) => [...prev, uid]);
       });
 
       rtcEngine.addListener('UserOffline', (uid, reason) => {
-        console.log('User offline:', uid, reason);
         setRemoteUids((prev) => prev.filter((id) => id !== uid));
       });
 
       rtcEngine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
-        console.log('Join channel success:', channel, uid);
         setIsJoined(true);
 
         // Start duration timer
@@ -150,7 +147,7 @@ export const useVideoCall = (config?: VideoCallConfig) => {
       });
 
       rtcEngine.addListener('RemoteVideoStateChanged', (uid, state, reason, elapsed) => {
-        console.log('Remote video state changed:', uid, state, reason);
+        // Video state changed - no action needed
       });
 
       rtcEngine.addListener('NetworkQuality', (uid, txQuality, rxQuality) => {
