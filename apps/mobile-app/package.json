@@ -11,8 +11,6 @@
     "web": "expo start --web",
     "test": "jest",
     "lint": "eslint . ",
-    "clean": "cd ios && xcodebuild clean && cd ../android && ./gradlew clean",
-    "pod-install": "cd ios && pod install",
     "eas:build:dev": "eas build --profile development",
     "eas:build:dev:device": "eas build --profile development:device",
     "eas:build:preview": "eas build --profile preview",
@@ -65,18 +63,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",
-    "@babel/preset-env": "^7.23.5",
-    "@babel/runtime": "^7.23.5",
-    "@react-native/babel-preset": "^0.83.1",
-    "@react-native/eslint-config": "^0.83.1",
-    "@react-native/metro-config": "^0.83.1",
-    "@react-native/typescript-config": "^0.83.1",
     "@types/react": "^18.2.42",
     "@types/react-test-renderer": "^18.0.7",
-    "babel-jest": "^29.7.0",
     "eslint": "^8.54.0",
     "jest": "^29.7.0",
-    "metro-react-native-babel-preset": "^0.77.0",
+    "jest-expo": "~52.0.0",
     "react-test-renderer": "18.2.0",
     "typescript": "^5.3.3"
   },
@@ -84,7 +75,7 @@
     "node": ">=18"
   },
   "jest": {
-    "preset": "react-native",
+    "preset": "jest-expo",
     "passWithNoTests": true
   }
 }
