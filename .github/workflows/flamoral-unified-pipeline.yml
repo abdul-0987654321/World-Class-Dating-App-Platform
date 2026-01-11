@@ -1922,13 +1922,13 @@ jobs:
             PROJECT_ID=$(eas project:info --json | jq -r '.id')
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
           else
-            echo "Creating new EAS project..."
-            # Use eas init with the correct flags
-            eas init --non-interactive
+            echo "Linking existing EAS project..."
+            # Use --force to link existing project
+            eas init --non-interactive --force
 
-            # Verify the project was created
+            # Verify the project was linked
             if ! eas project:info --json; then
-              echo "::error::Failed to initialize EAS project"
+              echo "::error::Failed to link EAS project"
               exit 1
             fi
 
@@ -1946,7 +1946,7 @@ jobs:
             exit 1
           fi
 
-          echo "EAS Project initialized and validated successfully"
+          echo "EAS Project linked and validated successfully"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
           EXPO_PUBLIC_EAS_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_EAS_PROJECT_ID }}
