@@ -1,0 +1,12 @@
+# Ignore incomplete native directories
+# EAS will generate fresh native projects during build
+ios/
+android/
+
+# Build artifacts
+*.log
+*.tsbuildinfo
+
+# Development files
+.env.local
+.env.*.local
