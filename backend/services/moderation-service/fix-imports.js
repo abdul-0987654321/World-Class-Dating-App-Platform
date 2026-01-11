@@ -24,7 +24,7 @@ const replacements = [
     to: "import { createLogger } from '../utils/logger';"
   },
   {
-    file: 'src/services/azure-content-moderator.service.ts',
+    file: 'src/services/text-moderation.service.ts',
     from: "import { createLogger } from '@flamoral/shared';",
     to: "import { createLogger } from '../utils/logger';"
   },

@@ -39,7 +39,9 @@ async function bootstrap() {
 
   console.log(`Subscription Service running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Health check: http://localhost:${port}/health`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Health check: http://localhost:${port}/health`);
+  }
 }
 
 bootstrap().catch((error) => {

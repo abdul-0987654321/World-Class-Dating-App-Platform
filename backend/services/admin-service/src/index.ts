@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 3010;
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : (() => { throw new Error('CORS_ORIGIN environment variable is required in production'); })()),
     credentials: true,
   })
 );

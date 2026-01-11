@@ -1,53 +1,59 @@
-import { EmailClient, EmailMessage } from '@azure/communication-email';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 import { config } from '../../config';
 import logger from '../../utils/logger';
 
 class EmailService {
-  private emailClient: EmailClient;
+  private sesClient: SESClient;
   private senderAddress: string;
 
   constructor() {
-    const connectionString = config.email.azureConnectionString;
-    if (!connectionString) {
-      logger.warn(
-        'Azure Communication Services connection string not configured - emails will not be sent'
-      );
+    // Initialize AWS SES client
+    if (config.aws.accessKeyId && config.aws.secretAccessKey) {
+      this.sesClient = new SESClient({
+        region: config.aws.region,
+        credentials: {
+          accessKeyId: config.aws.accessKeyId,
+          secretAccessKey: config.aws.secretAccessKey,
+        },
+      });
+      logger.info('AWS SES client initialized with explicit credentials');
+    } else {
+      // Use default credentials (IAM role in production)
+      this.sesClient = new SESClient({
+        region: config.aws.region,
+      });
+      logger.info('AWS SES client initialized with default credentials');
     }
-    this.emailClient = connectionString ? new EmailClient(connectionString) : (null as any);
     this.senderAddress = config.email.from;
   }
 
   /**
-   * Send email using Azure Communication Services
+   * Send email using AWS SES
    */
   private async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    if (!this.emailClient) {
-      logger.warn('Email client not configured - skipping email send');
-      return;
-    }
-
-    const message: EmailMessage = {
-      senderAddress: this.senderAddress,
-      content: {
-        subject,
-        html,
+    const command = new SendEmailCommand({
+      Source: this.senderAddress,
+      Destination: {
+        ToAddresses: [to],
       },
-      recipients: {
-        to: [{ address: to }],
+      Message: {
+        Subject: {
+          Data: subject,
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: html,
+            Charset: 'UTF-8',
+          },
+        },
       },
-    };
+    });
 
     try {
-      const poller = await this.emailClient.beginSend(message);
-      const result = await poller.pollUntilDone();
-
-      if (result.status === 'Succeeded') {
-        logger.info(`Email sent successfully to ${to}`);
-      } else {
-        logger.error(`Email send failed with status: ${result.status}`);
-        throw new Error(`Email send failed: ${result.status}`);
-      }
+      const response = await this.sesClient.send(command);
+      logger.info(`Email sent successfully to ${to}`, { messageId: response.MessageId });
     } catch (error) {
       logger.error('Failed to send email', error);
       throw error;

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthToken } from '../auth';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_MESSAGING_SERVICE_URL || 'http://localhost:3003';
+const API_BASE_URL = process.env.EXPO_PUBLIC_MESSAGING_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3003' : (() => { throw new Error('EXPO_PUBLIC_MESSAGING_SERVICE_URL environment variable is required in production'); })());
 
 export interface KeyBundle {
   identityKey: {

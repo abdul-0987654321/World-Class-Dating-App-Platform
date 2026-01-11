@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from './useAuth';
 import axios from 'axios';
 
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+const API_URL = process.env.API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : (() => { throw new Error('API_URL environment variable is required in production'); })());
 
 interface GoogleTokenPayload {
   code?: string;

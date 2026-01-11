@@ -22,8 +22,9 @@ export default () => ({
   },
 
   // RabbitMQ Configuration
+  // SECURITY: No localhost fallbacks in production
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+    url: process.env.RABBITMQ_URL || (process.env.NODE_ENV === 'development' ? 'amqp://localhost:5672' : (() => { throw new Error('RABBITMQ_URL required in production'); })()),
     queuePrefix: process.env.RABBITMQ_QUEUE_PREFIX || 'flamoral_',
     exchanges: {
       matching: 'matching.events',
@@ -34,22 +35,22 @@ export default () => ({
     },
   },
 
-  // JWT Configuration
+  // JWT Configuration - SECURITY: No fallbacks in production
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-workflow-jwt-secret',
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'your-workflow-access-secret',
+    secret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'dev-workflow-jwt-secret-32chars!!' : (() => { throw new Error('JWT_SECRET required in production'); })()),
+    accessSecret: process.env.JWT_ACCESS_SECRET || (process.env.NODE_ENV === 'development' ? 'dev-workflow-access-secret-32ch!' : (() => { throw new Error('JWT_ACCESS_SECRET required in production'); })()),
   },
 
-  // Service URLs
+  // Service URLs - SECURITY: No localhost fallbacks in production
   services: {
-    notificationService: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
-    userService: process.env.USER_SERVICE_URL || 'http://localhost:3002',
-    matchingService: process.env.MATCHING_SERVICE_URL || 'http://localhost:3009',
-    paymentService: process.env.PAYMENT_SERVICE_URL || 'http://localhost:3006',
+    notificationService: process.env.NOTIFICATION_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3008' : (() => { throw new Error('NOTIFICATION_SERVICE_URL required in production'); })()),
+    userService: process.env.USER_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : (() => { throw new Error('USER_SERVICE_URL required in production'); })()),
+    matchingService: process.env.MATCHING_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3009' : (() => { throw new Error('MATCHING_SERVICE_URL required in production'); })()),
+    paymentService: process.env.PAYMENT_SERVICE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3006' : (() => { throw new Error('PAYMENT_SERVICE_URL required in production'); })()),
   },
 
-  // Internal Service Communication
-  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+  // Internal Service Communication - SECURITY: No fallback in production
+  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || (process.env.NODE_ENV === 'development' ? 'dev-internal-service-key-32chars!' : (() => { throw new Error('INTERNAL_SERVICE_KEY required in production'); })()),
 
   // Retry Configuration
   retry: {

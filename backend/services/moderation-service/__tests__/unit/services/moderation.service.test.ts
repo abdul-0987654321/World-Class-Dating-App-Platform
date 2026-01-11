@@ -3,7 +3,7 @@
  *
  * Tests critical safety paths for content moderation including:
  * - Image moderation with AWS Rekognition
- * - Text moderation with Azure Content Moderator
+ * - Text moderation with AWS Comprehend
  * - Violation handling and user penalties
  * - Risk score thresholds
  */
@@ -24,7 +24,7 @@ jest.mock('../../../src/services/aws-rekognition.service', () => ({
   },
 }));
 
-jest.mock('../../../src/services/azure-content-moderator.service', () => ({
+jest.mock('../../../src/services/text-moderation.service', () => ({
   default: {
     moderateText: jest.fn(),
   },
@@ -57,7 +57,7 @@ jest.mock('../../../src/utils/logger', () => ({
 }));
 
 import awsRekognitionService from '../../../src/services/aws-rekognition.service';
-import azureContentModeratorService from '../../../src/services/azure-content-moderator.service';
+import textModerationService from '../../../src/services/text-moderation.service';
 import { ModerationService } from '../../../src/services/moderation.service';
 
 describe('ModerationService', () => {
@@ -184,7 +184,7 @@ describe('ModerationService', () => {
         recommendations: [],
       };
 
-      (azureContentModeratorService.moderateText as jest.Mock).mockResolvedValue(mockResult);
+      (textModerationService.moderateText as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await moderationService.moderateText(mockTextRequest);
 
@@ -203,7 +203,7 @@ describe('ModerationService', () => {
         recommendations: ['Contains mild profanity'],
       };
 
-      (azureContentModeratorService.moderateText as jest.Mock).mockResolvedValue(mockResult);
+      (textModerationService.moderateText as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await moderationService.moderateText(mockTextRequest);
 
@@ -222,7 +222,7 @@ describe('ModerationService', () => {
         recommendations: ['Violates community guidelines'],
       };
 
-      (azureContentModeratorService.moderateText as jest.Mock).mockResolvedValue(mockResult);
+      (textModerationService.moderateText as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await moderationService.moderateText(mockTextRequest);
 
@@ -242,7 +242,7 @@ describe('ModerationService', () => {
         recommendations: ['Likely spam content'],
       };
 
-      (azureContentModeratorService.moderateText as jest.Mock).mockResolvedValue(mockResult);
+      (textModerationService.moderateText as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await moderationService.moderateText(mockTextRequest);
 
@@ -345,7 +345,7 @@ describe('ModerationService', () => {
         recommendations: [],
       };
 
-      (azureContentModeratorService.moderateText as jest.Mock).mockResolvedValue(mockResult);
+      (textModerationService.moderateText as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await moderationService.moderateText({
         userId: 'user-123',

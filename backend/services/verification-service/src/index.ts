@@ -80,9 +80,11 @@ async function bootstrap() {
   const port = process.env.PORT || 3018;
   await app.listen(port);
 
-  logger.log(`Verification Service running on: http://localhost:${port}`);
-  logger.log(`API Documentation: http://localhost:${port}/api/docs`);
-  logger.log(`Health endpoint: http://localhost:${port}/health`);
+  logger.log(`Verification Service running on port: ${port}`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.log(`API Documentation: http://localhost:${port}/api/docs`);
+    logger.log(`Health endpoint: http://localhost:${port}/health`);
+  }
 }
 
 bootstrap();

@@ -83,10 +83,16 @@ export const config = {
     url: process.env.REDIS_URL || 'redis://localhost:6379',
   },
 
-  // Email - Azure Communication Services
+  // Email - AWS SES
   email: {
-    azureConnectionString: process.env.AZURE_COMMUNICATION_CONNECTION_STRING || '',
-    from: process.env.EMAIL_FROM || 'DoNotReply@64af122c-9bbb-4259-8051-a5cf7f3111d4.azurecomm.net',
+    from: process.env.EMAIL_FROM || 'noreply@flamoral.com',
+  },
+
+  // AWS Configuration
+  aws: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
 
   // CORS
@@ -101,11 +107,6 @@ export const config = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
-  },
-
-  // Azure Key Vault (for production secrets)
-  azure: {
-    keyVaultUrl: process.env.AZURE_KEY_VAULT_URL || '',
   },
 
   // Internal service key for service-to-service communication

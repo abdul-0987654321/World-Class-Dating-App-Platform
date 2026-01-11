@@ -19,7 +19,7 @@ export default {
     name: process.env.SERVICE_NAME || 'user-service',
     port: parseInt(process.env.PORT || '3002', 10),
     env: process.env.NODE_ENV || 'development',
-    baseUrl: process.env.SERVICE_BASE_URL || 'http://localhost:3002',
+    baseUrl: process.env.SERVICE_BASE_URL || (isProduction ? (() => { throw new Error('SERVICE_BASE_URL is required in production'); })() : 'http://localhost:3002'),
   },
 
   database: (() => {
@@ -115,7 +115,7 @@ export default {
       workflowId: process.env.JUMIO_WORKFLOW_ID || '10011',
       callbackUrl:
         process.env.JUMIO_CALLBACK_URL ||
-        `${process.env.SERVICE_BASE_URL || 'http://localhost:3002'}/api/v1/verification/id/webhook/jumio`,
+        `${process.env.SERVICE_BASE_URL || (isProduction ? (() => { throw new Error('SERVICE_BASE_URL is required in production'); })() : 'http://localhost:3002')}/api/v1/verification/id/webhook/jumio`,
     },
 
     // Onfido Configuration (Fallback Provider)

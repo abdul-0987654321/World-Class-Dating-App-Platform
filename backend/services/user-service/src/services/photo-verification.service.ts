@@ -1,21 +1,36 @@
-import { ComputerVisionClient } from '@azure/cognitiveservices-computervision';
-import { CognitiveServicesCredentials } from '@azure/ms-rest-azure-js';
+import {
+  RekognitionClient,
+  CompareFacesCommand,
+  DetectFacesCommand,
+} from '@aws-sdk/client-rekognition';
 import { v4 as uuidv4 } from 'uuid';
 
 import db from '../database';
-import { uploadToAzureBlob, deleteFromAzureBlob } from '../utils/azure-storage';
+import { s3Storage } from '../infrastructure/storage/s3-storage.config';
 import logger from '../utils/logger';
 
 /**
  * Photo Verification Service
  * Handles selfie verification to ensure users are real people
+ * Uses AWS Rekognition for face detection and comparison
  */
 export class PhotoVerificationService {
-  private visionClient: ComputerVisionClient;
+  private rekognitionClient: RekognitionClient;
 
   constructor() {
-    const credentials = new CognitiveServicesCredentials(process.env.AZURE_CV_KEY);
-    this.visionClient = new ComputerVisionClient(credentials, process.env.AZURE_CV_ENDPOINT);
+    // Initialize AWS Rekognition client
+    const credentials =
+      process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+        ? {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          }
+        : undefined;
+
+    this.rekognitionClient = new RekognitionClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+      ...(credentials && { credentials }),
+    });
   }
 
   /**
@@ -63,20 +78,20 @@ export class PhotoVerificationService {
         };
       }
 
-      // Upload selfie to Azure Blob Storage
+      // Upload selfie to S3
       const selfieFileName = `verification/${userId}/${uuidv4()}.jpg`;
-      const selfieUrl = await uploadToAzureBlob(
-        selfieFile.buffer,
+      const selfieUrl = await s3Storage.uploadFile(
         selfieFileName,
+        selfieFile.buffer,
         selfieFile.mimetype
       );
 
       // Detect face in selfie
-      const selfieFaceAnalysis = await this.detectFace(selfieUrl);
+      const selfieFaceAnalysis = await this.detectFace(selfieFile.buffer);
 
       if (!selfieFaceAnalysis.success || !selfieFaceAnalysis.faceId) {
         // Delete uploaded selfie
-        await deleteFromAzureBlob(selfieFileName);
+        await s3Storage.deleteFile(selfieFileName);
 
         return {
           success: false,
@@ -90,7 +105,7 @@ export class PhotoVerificationService {
       let matchedPhotoUrl = '';
 
       for (const photo of profilePhotos) {
-        const comparison = await this.compareFaces(selfieFaceAnalysis.faceId, photo.url);
+        const comparison = await this.compareFaces(selfieFile.buffer, photo.url);
 
         if (comparison.success && comparison.isIdentical) {
           matchFound = true;
@@ -107,7 +122,7 @@ export class PhotoVerificationService {
 
       // Create verification record
       const verificationId = uuidv4();
-      const autoApproved = matchFound && maxSimilarity >= 0.7;
+      const autoApproved = matchFound && maxSimilarity >= 70;
 
       await db('photo_verifications').insert({
         id: verificationId,
@@ -161,49 +176,53 @@ export class PhotoVerificationService {
   }
 
   /**
-   * Detect face in image using Azure Computer Vision
-   * @param imageUrl - URL of image to analyze
+   * Detect face in image using AWS Rekognition
+   * @param imageBuffer - Buffer of image to analyze
    * @returns Face detection result
    */
-  private async detectFace(imageUrl: string): Promise<{
+  private async detectFace(imageBuffer: Buffer): Promise<{
     success: boolean;
     faceId?: string;
     faceAttributes?: any;
     error?: string;
   }> {
     try {
-      const result = await this.visionClient.analyzeImage(imageUrl, {
-        visualFeatures: ['Faces'],
+      const command = new DetectFacesCommand({
+        Image: {
+          Bytes: imageBuffer,
+        },
+        Attributes: ['ALL'],
       });
 
-      if (!result.faces || result.faces.length === 0) {
+      const result = await this.rekognitionClient.send(command);
+
+      if (!result.FaceDetails || result.FaceDetails.length === 0) {
         return {
           success: false,
           error: 'No face detected in the image',
         };
       }
 
-      if (result.faces.length > 1) {
+      if (result.FaceDetails.length > 1) {
         return {
           success: false,
           error: 'Multiple faces detected. Please take a selfie with only your face.',
         };
       }
 
-      // For actual face comparison, we'd use Azure Face API
-      // Here we're simulating with Computer Vision
-      const face = result.faces[0];
+      const face = result.FaceDetails[0];
 
       return {
         success: true,
         faceId: `face_${uuidv4()}`,
         faceAttributes: {
-          age: face.age,
-          gender: face.gender,
+          confidence: face.Confidence,
+          quality: face.Quality,
+          ageRange: face.AgeRange,
         },
       };
     } catch (error: any) {
-      logger.error('Face detection failed', { imageUrl, error: error.message });
+      logger.error('Face detection failed', { error: error.message });
 
       return {
         success: false,
@@ -213,13 +232,13 @@ export class PhotoVerificationService {
   }
 
   /**
-   * Compare two faces using Azure Face API
-   * @param selfieId - Face ID from selfie
+   * Compare two faces using AWS Rekognition
+   * @param selfieBuffer - Buffer of selfie image
    * @param profilePhotoUrl - Profile photo URL
    * @returns Comparison result
    */
   private async compareFaces(
-    selfieId: string,
+    selfieBuffer: Buffer,
     profilePhotoUrl: string
   ): Promise<{
     success: boolean;
@@ -228,28 +247,45 @@ export class PhotoVerificationService {
     error?: string;
   }> {
     try {
-      // In production, use Azure Face API's verify endpoint
-      // For now, we'll simulate with Computer Vision analysis
-
-      const profileFaceAnalysis = await this.detectFace(profilePhotoUrl);
-
-      if (!profileFaceAnalysis.success) {
+      // Fetch the profile photo from URL
+      const response = await fetch(profilePhotoUrl);
+      if (!response.ok) {
         return {
           success: false,
           isIdentical: false,
           confidence: 0,
-          error: 'Could not detect face in profile photo',
+          error: 'Could not fetch profile photo',
+        };
+      }
+      const profilePhotoBuffer = Buffer.from(await response.arrayBuffer());
+
+      const command = new CompareFacesCommand({
+        SourceImage: {
+          Bytes: selfieBuffer,
+        },
+        TargetImage: {
+          Bytes: profilePhotoBuffer,
+        },
+        SimilarityThreshold: 70,
+      });
+
+      const result = await this.rekognitionClient.send(command);
+
+      if (result.FaceMatches && result.FaceMatches.length > 0) {
+        const bestMatch = result.FaceMatches[0];
+        const similarity = bestMatch.Similarity || 0;
+
+        return {
+          success: true,
+          isIdentical: similarity >= 70,
+          confidence: similarity,
         };
       }
 
-      // Simulate face comparison
-      // In production, use: await faceClient.face.verifyFaceToFace(selfieId, profileFaceId)
-      const confidence = Math.random() * 0.4 + 0.6; // Simulate 0.6-1.0 range
-
       return {
         success: true,
-        isIdentical: confidence >= 0.7,
-        confidence: confidence,
+        isIdentical: false,
+        confidence: 0,
       };
     } catch (error: any) {
       logger.error('Face comparison failed', { error: error.message });

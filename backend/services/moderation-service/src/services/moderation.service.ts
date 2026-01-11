@@ -20,7 +20,7 @@ import {
 import { createLogger } from '../utils/logger';
 
 import awsRekognitionService from './aws-rekognition.service';
-import azureContentModeratorService from './azure-content-moderator.service';
+import textModerationService from './text-moderation.service';
 
 const logger = createLogger('moderation-service');
 
@@ -95,8 +95,8 @@ export class ModerationService {
     try {
       logger.info(`Moderating text for user ${request.userId}, content ${request.contentId}`);
 
-      // Call Azure Content Moderator
-      const textModerationResult = await azureContentModeratorService.moderateText(request.text);
+      // Call AWS Comprehend for text moderation
+      const textModerationResult = await textModerationService.moderateText(request.text);
 
       // Determine status and action
       const { status, action } = this.determineStatusAndAction(

@@ -42,7 +42,7 @@
     "nodemon": "^3.0.2",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=20.0.0"
