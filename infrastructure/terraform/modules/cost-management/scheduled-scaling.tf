@@ -9,12 +9,12 @@
 
 locals {
   # Default scheduled scaling windows (UTC times)
-  default_scale_down_schedule = "cron(0 2 * * ? *)"   # 2 AM UTC (off-peak)
-  default_scale_up_schedule   = "cron(0 12 * * ? *)"  # 12 PM UTC (peak)
+  default_scale_down_schedule = "cron(0 2 * * ? *)"  # 2 AM UTC (off-peak)
+  default_scale_up_schedule   = "cron(0 12 * * ? *)" # 12 PM UTC (peak)
 
   # Weekend schedule (optional further cost savings)
-  weekend_scale_down_schedule = "cron(0 0 ? * SAT *)"  # Saturday midnight
-  weekend_scale_up_schedule   = "cron(0 6 ? * MON *)"  # Monday 6 AM
+  weekend_scale_down_schedule = "cron(0 0 ? * SAT *)" # Saturday midnight
+  weekend_scale_up_schedule   = "cron(0 6 ? * MON *)" # Monday 6 AM
 }
 
 # ============================================================================
@@ -303,10 +303,10 @@ resource "aws_lambda_function" "scheduled_scaling" {
 
   environment {
     variables = {
-      ENVIRONMENT      = var.environment
-      PROJECT_NAME     = var.project_name
-      SNS_TOPIC_ARN    = aws_sns_topic.cost_anomaly_alerts.arn
-      ECS_CLUSTER_NAME = var.ecs_cluster_name
+      ENVIRONMENT       = var.environment
+      PROJECT_NAME      = var.project_name
+      SNS_TOPIC_ARN     = aws_sns_topic.cost_anomaly_alerts.arn
+      ECS_CLUSTER_NAME  = var.ecs_cluster_name
       AURORA_CLUSTER_ID = var.aurora_cluster_id
     }
   }

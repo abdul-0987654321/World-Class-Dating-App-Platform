@@ -43,24 +43,39 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 
 ## Microservices (27 Total)
 
+All services deployed on **AWS ECS Fargate** with ports 3000-3026.
+
 | Service | Port | Description |
 |---------|------|-------------|
-| API Gateway | 4000 | Entry point, routing |
-| Auth Service | 3001 | Authentication, JWT, OAuth |
-| User Service | 3002 | Profile management |
-| Matching Service | 3003 | Discovery, swipes, matches |
-| Messaging Service | 5000 | Real-time chat |
-| Payment Service | 3005 | Subscriptions, coins |
-| Analytics Service | 3007 | Usage analytics |
-| Notification Service | 3008 | Push, email, SMS |
-| Media Service | 3009 | Photo/video processing |
-| Admin Service | 3010 | Admin dashboard |
-| Moderation Service | 3012 | Content review |
-| **Gamification** | 3016 | Achievements, quests, streaks |
-| **Community** | 3017 | Communities, groups |
-| **Speed Dating** | 3018 | Live speed dating events |
-| Recommendation | 3021 | AI recommendations |
-| Verification | 3022 | Identity verification |
+| API Gateway | 3000 | Entry point, routing, rate limiting |
+| Auth Service | 3001 | Authentication, JWT, OAuth 2.0, MFA |
+| User Service | 3002 | User account management |
+| Profile Service | 3003 | Profile data, photos, preferences |
+| Matching Service | 3004 | Discovery, swipes, matches |
+| Messaging Service | 3005 | Real-time chat, WebSocket |
+| Notification Service | 3006 | Push, email, SMS notifications |
+| Payment Service | 3007 | Stripe integration, payments |
+| Subscription Service | 3008 | Premium tiers, billing |
+| Media Service | 3009 | Photo/video upload, processing |
+| Moderation Service | 3010 | AI content moderation |
+| Analytics Service | 3011 | Usage analytics, dashboards |
+| Recommendation Service | 3012 | AI-powered recommendations |
+| Search Service | 3013 | User discovery, filters |
+| Location Service | 3014 | Geolocation, proximity |
+| Verification Service | 3015 | Identity verification |
+| Report Service | 3016 | User reports, safety |
+| Admin Service | 3017 | Admin dashboard |
+| Webhook Service | 3018 | External integrations |
+| Scheduler Service | 3019 | Scheduled jobs, cron |
+| Worker Service | 3020 | Background processing |
+| Email Service | 3021 | Email delivery (SES) |
+| Realtime Service | 3022 | WebSocket connections |
+| Workflow Engine | 3023 | Business workflows |
+| Automation Service | 3024 | Automated actions |
+| Advertising Service | 3025 | Ad campaigns, targeting |
+| Partnership Service | 3026 | Partner integrations |
+
+See [PORT_MAPPING.md](docs/PORT_MAPPING.md) for complete details.
 
 ---
 
@@ -153,10 +168,12 @@ npm run dev:backend
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [API Documentation](docs/API_DOCUMENTATION.md)
-- [Operations](docs/OPERATIONS.md)
-- [AI Security](docs/ai-security/)
+- [Architecture](docs/ARCHITECTURE.md) - System design and AWS infrastructure
+- [Deployment](docs/DEPLOYMENT.md) - Terraform and ECS deployment guide
+- [Port Mapping](docs/PORT_MAPPING.md) - Complete service port assignments
+- [Operations](docs/OPERATIONS.md) - Runbooks and procedures
+- [API Documentation](docs/API.md) - API reference
+- [AI Security](docs/ai-security/) - AI kill switch and safety controls
 
 ---
 
@@ -170,6 +187,6 @@ MIT License - see [LICENSE](LICENSE)
 
 **Flamoral** | [flamoral.com](https://flamoral.com) | Built for Production
 
-*Version 2.0.0 | Last Updated: 2026-01-09 | AWS ECS Fargate*
+*Version 2.0.0 | Last Updated: 2026-01-10 | AWS ECS Fargate*
 
 </div>

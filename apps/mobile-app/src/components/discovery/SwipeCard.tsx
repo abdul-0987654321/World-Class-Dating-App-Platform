@@ -8,7 +8,12 @@ import {
   TouchableOpacity,
   Animated,
   PanResponder,
+  TextStyle,
+  ViewStyle,
+  ImageStyle,
 } from 'react-native';
+
+type StyleTypes = ViewStyle | TextStyle | ImageStyle;
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -363,6 +368,6 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
-} as any);
+});

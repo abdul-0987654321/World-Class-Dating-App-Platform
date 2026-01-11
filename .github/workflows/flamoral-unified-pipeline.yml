@@ -377,12 +377,64 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: TypeScript compilation check
+        run: yarn tsc --noEmit
+        # TypeScript errors will fail the build
+
       - name: Build all packages
         run: yarn build:all
 
       - name: Run linting
         run: yarn lint:all
-        continue-on-error: true
+        # Linting errors now fail the build (removed continue-on-error)
+
+      - name: Run unit tests
+        run: |
+          yarn test:unit --coverage --ci --reporters=default --reporters=jest-junit || yarn test --coverage --ci --reporters=default --reporters=jest-junit
+        env:
+          CI: true
+          JEST_JUNIT_OUTPUT_DIR: ./test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            test-results/
+            coverage/
+          retention-days: 14
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info,./coverage/clover.xml
+          flags: unittests
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Test coverage summary
+        if: always()
+        run: |
+          echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            LINES=$(jq -r '.total.lines.pct // "N/A"' coverage/coverage-summary.json)
+            BRANCHES=$(jq -r '.total.branches.pct // "N/A"' coverage/coverage-summary.json)
+            FUNCTIONS=$(jq -r '.total.functions.pct // "N/A"' coverage/coverage-summary.json)
+            STATEMENTS=$(jq -r '.total.statements.pct // "N/A"' coverage/coverage-summary.json)
+            echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Lines | ${LINES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Branches | ${BRANCHES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Functions | ${FUNCTIONS}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Statements | ${STATEMENTS}% |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Security audit
         run: npm audit --audit-level=critical 2>&1 | tee audit-report.txt || true
@@ -724,6 +776,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         continue-on-error: true
 
+      - name: Set up Docker Buildx
+        if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-asset-branding-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-asset-branding-
+            ${{ runner.os }}-buildx-
+
       - name: Build Docker image with semantic version
         if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
         id: docker_build
@@ -732,16 +798,25 @@ jobs:
           GIT_SHA: ${{ github.sha }}
         run: |
           FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/asset-branding"
-          docker build \
+          docker buildx build \
             --tag ${FULL_IMAGE}:${SEMVER} \
             --tag ${FULL_IMAGE}:${GIT_SHA} \
             --label "org.opencontainers.image.version=${SEMVER}" \
             --label "org.opencontainers.image.revision=${GIT_SHA}" \
             --build-arg BUILD_VERSION=${SEMVER} \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            --load \
             -f packages/asset-branding/Dockerfile \
             packages/asset-branding
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
           echo "local_tag=${FULL_IMAGE}:${SEMVER}" >> $GITHUB_OUTPUT
+
+      - name: Move Docker cache
+        if: steps.docker_build.outcome == 'success'
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache 2>/dev/null || true
 
       - name: Scan Docker image
         if: steps.docker_build.outcome == 'success'
@@ -872,6 +947,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         continue-on-error: true
 
+      - name: Set up Docker Buildx
+        if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.service }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.service }}-
+            ${{ runner.os }}-buildx-
+
       - name: Build Docker image
         if: steps.dockerfile.outputs.exists == 'true' && steps.ecr_login.outcome == 'success'
         id: docker_build
@@ -881,14 +970,23 @@ jobs:
           GIT_SHA: ${{ github.sha }}
         run: |
           FULL_IMAGE="${{ env.ECR_REGISTRY }}/${{ env.ECR_IMAGE_PREFIX }}/${SERVICE}"
-          docker build \
+          docker buildx build \
             --tag ${FULL_IMAGE}:${BUILD_VERSION} \
             --tag ${FULL_IMAGE}:${GIT_SHA} \
             --build-arg BUILD_VERSION=${BUILD_VERSION} \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            --load \
             -f backend/services/${SERVICE}/Dockerfile \
             .
           echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
           echo "local_tag=${FULL_IMAGE}:${BUILD_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Move Docker cache
+        if: steps.docker_build.outcome == 'success'
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache 2>/dev/null || true
 
       - name: Scan Docker image
         if: steps.docker_build.outcome == 'success'
@@ -1022,6 +1120,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         continue-on-error: true
 
+      - name: Set up Docker Buildx
+        if: steps.ecr_login.outcome == 'success'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        if: steps.ecr_login.outcome == 'success'
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-web-app-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-web-app-
+            ${{ runner.os }}-buildx-
+
       - name: Build and push frontend with immutable digest
         id: push_frontend
         if: steps.ecr_login.outcome == 'success'
@@ -1037,9 +1149,12 @@ jobs:
             echo "image_digest=${EXISTING_DIGEST}" >> $GITHUB_OUTPUT
             echo "image_uri=${FULL_IMAGE}@${EXISTING_DIGEST}" >> $GITHUB_OUTPUT
           else
-            docker build \
+            docker buildx build \
               --tag ${FULL_IMAGE}:${BUILD_VERSION} \
               --tag ${FULL_IMAGE}:${GIT_SHA} \
+              --cache-from type=local,src=/tmp/.buildx-cache \
+              --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+              --load \
               -f apps/web-app/Dockerfile \
               apps/web-app
             docker push ${FULL_IMAGE}:${BUILD_VERSION}
@@ -1048,6 +1163,12 @@ jobs:
             echo "image_digest=${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
             echo "image_uri=${FULL_IMAGE}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Move Docker cache
+        if: steps.push_frontend.outcome == 'success'
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache 2>/dev/null || true
 
   # ==========================================================================
   # SECTION 6: ECS FARGATE DEPLOYMENT (with task definition updates)

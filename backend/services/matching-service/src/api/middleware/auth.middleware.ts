@@ -4,12 +4,32 @@ import jwt from 'jsonwebtoken';
 
 const logger = createLogger('auth-middleware');
 
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    userId: string;
-    email: string;
-  };
+/**
+ * JWT Token Payload interface
+ */
+interface JwtTokenPayload {
+  userId?: string;
+  id?: string;
+  sub?: string;
+  email?: string;
+  isPremium?: boolean;
+  subscriptionTier?: string;
+}
+
+/**
+ * Authenticated user interface
+ */
+export interface AuthenticatedUser {
+  id: string;
+  userId: string;
+  email: string;
+  isPremium?: boolean;
+  subscriptionTier?: string;
+}
+
+export interface AuthRequest extends Request {
+  user?: AuthenticatedUser;
+  correlationId?: string;
 }
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
@@ -36,12 +56,14 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     const secret = process.env.JWT_ACCESS_SECRET || 'dev-secret-key';
 
     try {
-      const decoded = jwt.verify(token, secret) as any;
+      const decoded = jwt.verify(token, secret) as JwtTokenPayload;
 
       req.user = {
-        id: decoded.userId || decoded.id,
-        userId: decoded.userId || decoded.id,
-        email: decoded.email,
+        id: decoded.userId || decoded.id || decoded.sub || '',
+        userId: decoded.userId || decoded.id || decoded.sub || '',
+        email: decoded.email || '',
+        isPremium: decoded.isPremium,
+        subscriptionTier: decoded.subscriptionTier,
       };
 
       next();

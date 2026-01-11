@@ -297,16 +297,20 @@ export async function healthCheckRedisWithRetry(
 /**
  * Redis client configuration with retry options
  */
+export interface RedisSocketConfig {
+  host?: string;
+  port?: number;
+  connectTimeout?: number;
+  reconnectStrategy?: (retries: number) => number | Error;
+  [key: string]: unknown; // Allow additional socket options
+}
+
 export interface RedisClientConfig {
-  socket?: {
-    host: string;
-    port: number;
-    connectTimeout?: number;
-    reconnectStrategy?: (retries: number) => number | Error;
-  };
+  socket?: RedisSocketConfig;
   password?: string;
   database?: number;
   url?: string;
+  [key: string]: unknown; // Allow additional config options
 }
 
 /**
@@ -339,7 +343,7 @@ export function enhanceRedisConfig(config: RedisClientConfig): RedisClientConfig
       connectTimeout: config.socket?.connectTimeout || 10000,
       reconnectStrategy:
         config.socket?.reconnectStrategy || createReconnectStrategy(10, 1000, 30000),
-    } as any,
+    },
   };
 }
 

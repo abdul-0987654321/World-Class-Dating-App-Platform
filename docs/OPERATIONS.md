@@ -1,9 +1,10 @@
 # Flamoral Platform Operations Runbook
 
-**Version:** 1.0.0
-**Last Updated:** 2026-01-04
+**Version:** 1.1.0
+**Last Updated:** 2026-01-10
 **Owner:** Platform Operations Team
 **Classification:** Internal - Operations
+**Infrastructure:** AWS ECS Fargate (27 microservices)
 
 ---
 
@@ -51,7 +52,7 @@ Flamoral uses automated nightly deployments triggered at **9 PM UTC** via AWS Ev
 | Build | Build all microservices | ~8 min | Yes |
 | Test | Run integration tests | ~12 min | Yes |
 | Security Scan | Snyk + Trivy scanning | ~5 min | Yes |
-| Staging Deploy | Deploy to staging EKS | ~10 min | Yes |
+| Staging Deploy | Deploy to staging ECS | ~10 min | Yes |
 | Staging Tests | E2E smoke tests | ~15 min | Yes |
 | Production Approval | Manual gate (weekdays only) | Variable | No |
 | Production Deploy | Blue/green deployment | ~15 min | Yes |
@@ -94,8 +95,8 @@ aws events describe-rule --name flamoral-nightly-deployment --query 'State'
 #### Prerequisites
 
 - AWS CLI configured with appropriate IAM role
-- kubectl configured for the target EKS cluster
-- Access to the flamoral-deployments S3 bucket
+- Docker installed for image builds
+- Access to ECR repositories
 - Membership in the `platform-engineers` IAM group
 
 #### Step-by-Step Manual Deployment
@@ -103,73 +104,80 @@ aws events describe-rule --name flamoral-nightly-deployment --query 'State'
 ```bash
 # 1. Set environment variables
 export AWS_REGION=us-east-1
-export CLUSTER_NAME=flamoral-production
-export NAMESPACE=flamoral-prod
+export CLUSTER_NAME=flamoral-prod-ecs
+export AWS_ACCOUNT_ID=992382449461
 export DEPLOYMENT_VERSION=$(date +%Y%m%d-%H%M%S)
 
-# 2. Authenticate with EKS
-aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
+# 2. Authenticate with ECR
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin \
+  ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-# 3. Verify cluster connectivity
-kubectl cluster-info
-kubectl get nodes
+# 3. Verify ECS cluster status
+aws ecs describe-clusters --clusters $CLUSTER_NAME
 
-# 4. Pull latest manifests
-aws s3 cp s3://flamoral-deployments/manifests/latest/ ./manifests/ --recursive
+# 4. List current services
+aws ecs list-services --cluster $CLUSTER_NAME
 
-# 5. Validate manifests
-kubectl apply --dry-run=client -f ./manifests/
+# 5. Get current task definitions (for rollback reference)
+aws ecs list-task-definitions --family-prefix flamoral-prod > backup-$DEPLOYMENT_VERSION.json
 
-# 6. Create deployment snapshot
-kubectl get all -n $NAMESPACE -o yaml > backup-$DEPLOYMENT_VERSION.yaml
+# 6. Build and push updated images
+SERVICE_NAME="auth-service"
+IMAGE_TAG=$(git rev-parse --short HEAD)
+ECR_REPO="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/flamoral/${SERVICE_NAME}"
 
-# 7. Apply configuration changes first
-kubectl apply -f ./manifests/configmaps/ -n $NAMESPACE
-kubectl apply -f ./manifests/secrets/ -n $NAMESPACE
+docker build -t ${ECR_REPO}:${IMAGE_TAG} ./backend/services/${SERVICE_NAME}
+docker push ${ECR_REPO}:${IMAGE_TAG}
 
-# 8. Deploy services in order
-kubectl apply -f ./manifests/user-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/messaging-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/matching-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/notification-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/payment-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/analytics-service/ -n $NAMESPACE
-kubectl apply -f ./manifests/advertising-service/ -n $NAMESPACE
+# 7. Update ECS service with new image
+aws ecs update-service \
+  --cluster $CLUSTER_NAME \
+  --service ${SERVICE_NAME} \
+  --force-new-deployment
 
-# 9. Monitor rollout status
-kubectl rollout status deployment/user-service -n $NAMESPACE --timeout=300s
-kubectl rollout status deployment/messaging-service -n $NAMESPACE --timeout=300s
-kubectl rollout status deployment/matching-service -n $NAMESPACE --timeout=300s
+# 8. Wait for service to stabilize
+aws ecs wait services-stable \
+  --cluster $CLUSTER_NAME \
+  --services ${SERVICE_NAME}
 
-# 10. Verify pod health
-kubectl get pods -n $NAMESPACE -o wide
-kubectl top pods -n $NAMESPACE
+# 9. Verify deployment
+aws ecs describe-services \
+  --cluster $CLUSTER_NAME \
+  --services ${SERVICE_NAME} \
+  --query 'services[0].deployments'
 ```
 
 #### Post-Deployment Verification
 
 ```bash
-# Check all deployments are running
-kubectl get deployments -n $NAMESPACE
+# Check all ECS services are running
+aws ecs list-services --cluster $CLUSTER_NAME --query 'serviceArns[]' --output table
 
-# Verify service endpoints
-kubectl get endpoints -n $NAMESPACE
+# Verify service task counts
+aws ecs describe-services \
+  --cluster $CLUSTER_NAME \
+  --services auth-service user-service matching-service \
+  --query 'services[*].[serviceName, runningCount, desiredCount]' \
+  --output table
 
-# Check recent events for errors
-kubectl get events -n $NAMESPACE --sort-by='.lastTimestamp' | tail -20
+# Check target group health
+aws elbv2 describe-target-health \
+  --target-group-arn $(terraform output -raw target_group_arns | jq -r '.["auth-service"]')
 
 # Run smoke tests
 curl -s https://api.flamoral.com/health | jq .
-curl -s https://api.flamoral.com/api/v1/status | jq .
+curl -s https://api.flamoral.com/api/auth/health | jq .
 
 # Verify metrics are flowing
 aws cloudwatch get-metric-statistics \
-  --namespace Flamoral/Production \
-  --metric-name RequestCount \
+  --namespace AWS/ECS \
+  --metric-name CPUUtilization \
+  --dimensions Name=ClusterName,Value=$CLUSTER_NAME \
   --start-time $(date -u -d '5 minutes ago' +%Y-%m-%dT%H:%M:%SZ) \
   --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --period 60 \
-  --statistics Sum
+  --statistics Average
 ```
 
 ### 1.3 Rollback Procedures
@@ -177,17 +185,27 @@ aws cloudwatch get-metric-statistics \
 #### Automated Rollback (Preferred)
 
 ```bash
-# Rollback a specific deployment to previous revision
-kubectl rollout undo deployment/user-service -n flamoral-prod
+# Rollback to previous task definition
+CLUSTER_NAME="flamoral-prod-ecs"
+SERVICE_NAME="user-service"
 
-# Rollback to a specific revision
-kubectl rollout undo deployment/user-service -n flamoral-prod --to-revision=3
+# Get previous task definition
+PREVIOUS_TASK_DEF=$(aws ecs describe-services \
+  --cluster $CLUSTER_NAME \
+  --services $SERVICE_NAME \
+  --query 'services[0].deployments[1].taskDefinition' \
+  --output text)
 
-# Check rollout history
-kubectl rollout history deployment/user-service -n flamoral-prod
+# Update service to use previous task definition
+aws ecs update-service \
+  --cluster $CLUSTER_NAME \
+  --service $SERVICE_NAME \
+  --task-definition $PREVIOUS_TASK_DEF
 
-# Verify rollback status
-kubectl rollout status deployment/user-service -n flamoral-prod
+# Wait for rollback to complete
+aws ecs wait services-stable \
+  --cluster $CLUSTER_NAME \
+  --services $SERVICE_NAME
 ```
 
 #### Full Service Rollback
@@ -196,7 +214,7 @@ kubectl rollout status deployment/user-service -n flamoral-prod
 #!/bin/bash
 # rollback-all-services.sh
 
-NAMESPACE="flamoral-prod"
+CLUSTER_NAME="flamoral-prod-ecs"
 SERVICES=(
   "user-service"
   "messaging-service"
@@ -211,8 +229,27 @@ echo "Starting full rollback at $(date)"
 
 for service in "${SERVICES[@]}"; do
   echo "Rolling back $service..."
-  kubectl rollout undo deployment/$service -n $NAMESPACE
-  kubectl rollout status deployment/$service -n $NAMESPACE --timeout=180s
+
+  # Get previous task definition
+  PREVIOUS_TASK_DEF=$(aws ecs describe-services \
+    --cluster $CLUSTER_NAME \
+    --services $service \
+    --query 'services[0].deployments[1].taskDefinition' \
+    --output text)
+
+  if [ "$PREVIOUS_TASK_DEF" == "None" ]; then
+    echo "WARNING: No previous deployment found for $service, skipping"
+    continue
+  fi
+
+  aws ecs update-service \
+    --cluster $CLUSTER_NAME \
+    --service $service \
+    --task-definition $PREVIOUS_TASK_DEF
+
+  aws ecs wait services-stable \
+    --cluster $CLUSTER_NAME \
+    --services $service
 
   if [ $? -ne 0 ]; then
     echo "ERROR: Rollback failed for $service"
@@ -228,20 +265,32 @@ echo "Full rollback completed at $(date)"
 When rollback involves database migrations:
 
 ```bash
-# 1. Identify the migration that needs reverting
-kubectl exec -it deployment/user-service -n flamoral-prod -- \
-  npx typeorm migration:show
+# 1. Get a running task for the service
+TASK_ARN=$(aws ecs list-tasks \
+  --cluster flamoral-prod-ecs \
+  --service-name user-service \
+  --query 'taskArns[0]' \
+  --output text)
 
-# 2. Revert the last migration
-kubectl exec -it deployment/user-service -n flamoral-prod -- \
-  npx typeorm migration:revert
+# 2. Execute migration revert in the running container
+aws ecs execute-command \
+  --cluster flamoral-prod-ecs \
+  --task $TASK_ARN \
+  --container user-service \
+  --interactive \
+  --command "npx typeorm migration:revert"
 
-# 3. Verify migration state
-kubectl exec -it deployment/user-service -n flamoral-prod -- \
-  npx typeorm migration:show
+# 3. After migration revert, rollback the deployment
+PREVIOUS_TASK_DEF=$(aws ecs describe-services \
+  --cluster flamoral-prod-ecs \
+  --services user-service \
+  --query 'services[0].deployments[1].taskDefinition' \
+  --output text)
 
-# 4. Then rollback the deployment
-kubectl rollout undo deployment/user-service -n flamoral-prod
+aws ecs update-service \
+  --cluster flamoral-prod-ecs \
+  --service user-service \
+  --task-definition $PREVIOUS_TASK_DEF
 ```
 
 #### Emergency Rollback via CodePipeline
@@ -284,7 +333,7 @@ aws codepipeline start-pipeline-execution \
      └────────┬────────┘         └─────────┬────────┘
               │                             │
      ┌────────▼────────┐         ┌─────────▼────────┐
-     │   EKS Service   │         │   EKS Service    │
+     │   ECS Service   │         │   ECS Service    │
      │   (blue)        │         │   (green)        │
      └─────────────────┘         └──────────────────┘
 ```
@@ -292,12 +341,22 @@ aws codepipeline start-pipeline-execution \
 #### Blue/Green Deployment Steps
 
 ```bash
-# 1. Deploy to green environment
-export GREEN_NAMESPACE="flamoral-prod-green"
-kubectl apply -f ./manifests/ -n $GREEN_NAMESPACE
+# 1. Create green ECS services (with different target groups)
+export CLUSTER_NAME="flamoral-prod-ecs"
+export GREEN_SUFFIX="-green"
 
-# 2. Wait for green deployment to be ready
-kubectl wait --for=condition=available deployment --all -n $GREEN_NAMESPACE --timeout=600s
+# Deploy services to green target groups
+for service in auth-service user-service matching-service; do
+  aws ecs update-service \
+    --cluster $CLUSTER_NAME \
+    --service ${service}${GREEN_SUFFIX} \
+    --force-new-deployment
+done
+
+# 2. Wait for green services to be healthy
+aws ecs wait services-stable \
+  --cluster $CLUSTER_NAME \
+  --services auth-service-green user-service-green matching-service-green
 
 # 3. Run smoke tests against green
 GREEN_URL="https://green.api.flamoral.com"
@@ -392,10 +451,11 @@ curl -s https://api.flamoral.com/health | jq '.deploymentColor'
 |-----------|-----|---------|
 | Executive Overview | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Executive` | High-level KPIs |
 | API Performance | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-API-Performance` | Latency, throughput, errors |
-| Infrastructure | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Infrastructure` | EKS, RDS, ElastiCache |
+| Infrastructure | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Infrastructure` | ECS Fargate, RDS, ElastiCache |
 | Security | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Security` | GuardDuty, WAF, failed logins |
 | Business Metrics | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Business` | Signups, matches, revenue |
 | Database | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=Flamoral-Database` | RDS Aurora metrics |
+| Container Insights | `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#container-insights:` | ECS service and task metrics |
 
 ### 2.2 Key Metrics to Monitor
 
@@ -414,11 +474,11 @@ curl -s https://api.flamoral.com/health | jq '.deploymentColor'
 
 | Metric | Namespace | Warning | Critical | Description |
 |--------|-----------|---------|----------|-------------|
-| CPU Utilization | AWS/EKS | > 70% | > 85% | Node CPU usage |
-| Memory Utilization | AWS/EKS | > 75% | > 90% | Node memory usage |
-| Pod Restart Count | Flamoral/EKS | > 3/hour | > 10/hour | Container restarts |
-| Node Count | AWS/EKS | < 5 | < 3 | Active worker nodes |
-| PVC Usage | Flamoral/EKS | > 80% | > 90% | Persistent volume capacity |
+| CPU Utilization | AWS/ECS | > 70% | > 85% | Task CPU usage |
+| Memory Utilization | AWS/ECS | > 75% | > 90% | Task memory usage |
+| Task Count | AWS/ECS | < desired | 0 | Running task count |
+| Service Health | AWS/ECS | < 100% | < 50% | Healthy task percentage |
+| Target Response Time | AWS/ApplicationELB | > 500ms | > 1000ms | ALB target latency |
 
 #### Database Metrics
 
@@ -1070,132 +1130,104 @@ aws rds describe-db-clusters \
 
 ## 5. Scaling Operations
 
-### 5.1 EKS Node Group Scaling
+### 5.1 ECS Service Scaling
 
-#### Current Node Group Configuration
+#### Current Service Configuration
 
-| Node Group | Instance Type | Min | Max | Desired | Purpose |
-|------------|---------------|-----|-----|---------|---------|
-| general | m6i.xlarge | 3 | 20 | 5 | General workloads |
-| compute | c6i.2xlarge | 2 | 15 | 3 | CPU-intensive services |
-| memory | r6i.xlarge | 2 | 10 | 3 | Memory-intensive services |
+| Service | CPU | Memory | Min Tasks | Max Tasks | Purpose |
+|---------|-----|--------|-----------|-----------|---------|
+| api-gateway | 256 | 512 MB | 2 | 20 | Request routing |
+| auth-service | 256 | 512 MB | 2 | 10 | Authentication |
+| matching-service | 512 | 1024 MB | 2 | 15 | AI matching |
+| messaging-service | 256 | 512 MB | 2 | 20 | Real-time chat |
+| media-service | 512 | 1024 MB | 2 | 10 | Media processing |
 
-#### Manual Node Scaling
+#### Manual Service Scaling
 
 ```bash
-# Scale node group
-aws eks update-nodegroup-config \
-  --cluster-name flamoral-production \
-  --nodegroup-name general \
-  --scaling-config minSize=3,maxSize=25,desiredSize=10
+# Scale ECS service
+aws ecs update-service \
+  --cluster flamoral-prod-ecs \
+  --service auth-service \
+  --desired-count 10
 
 # Monitor scaling progress
-aws eks describe-nodegroup \
-  --cluster-name flamoral-production \
-  --nodegroup-name general \
-  --query 'nodegroup.[status,scalingConfig,health]'
+aws ecs describe-services \
+  --cluster flamoral-prod-ecs \
+  --services auth-service \
+  --query 'services[0].[runningCount,desiredCount,pendingCount]'
 
-# Verify nodes are ready
-kubectl get nodes -l eks.amazonaws.com/nodegroup=general
+# Wait for scaling to complete
+aws ecs wait services-stable \
+  --cluster flamoral-prod-ecs \
+  --services auth-service
 ```
 
-#### Cluster Autoscaler Configuration
-
-```yaml
-# cluster-autoscaler-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cluster-autoscaler-config
-  namespace: kube-system
-data:
-  config: |
-    {
-      "cluster-name": "flamoral-production",
-      "scale-down-enabled": true,
-      "scale-down-delay-after-add": "10m",
-      "scale-down-unneeded-time": "10m",
-      "scale-down-utilization-threshold": "0.5",
-      "skip-nodes-with-local-storage": false,
-      "skip-nodes-with-system-pods": true,
-      "balance-similar-node-groups": true,
-      "expander": "least-waste"
-    }
-```
-
-### 5.2 HPA Configuration
-
-#### Horizontal Pod Autoscaler Settings
-
-```yaml
-# user-service-hpa.yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: user-service-hpa
-  namespace: flamoral-prod
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: user-service
-  minReplicas: 3
-  maxReplicas: 50
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
-  - type: Pods
-    pods:
-      metric:
-        name: http_requests_per_second
-      target:
-        type: AverageValue
-        averageValue: "1000"
-  behavior:
-    scaleUp:
-      stabilizationWindowSeconds: 60
-      policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 60
-      - type: Pods
-        value: 4
-        periodSeconds: 60
-      selectPolicy: Max
-    scaleDown:
-      stabilizationWindowSeconds: 300
-      policies:
-      - type: Percent
-        value: 25
-        periodSeconds: 60
-      selectPolicy: Min
-```
-
-#### HPA Management Commands
+#### Application Auto Scaling Configuration
 
 ```bash
-# View HPA status
-kubectl get hpa -n flamoral-prod
+# Register scalable target
+aws application-autoscaling register-scalable-target \
+  --service-namespace ecs \
+  --resource-id service/flamoral-prod-ecs/auth-service \
+  --scalable-dimension ecs:service:DesiredCount \
+  --min-capacity 2 \
+  --max-capacity 20
 
-# Describe HPA for details
-kubectl describe hpa user-service-hpa -n flamoral-prod
+# Create scaling policy (target tracking)
+aws application-autoscaling put-scaling-policy \
+  --service-namespace ecs \
+  --resource-id service/flamoral-prod-ecs/auth-service \
+  --scalable-dimension ecs:service:DesiredCount \
+  --policy-name auth-service-cpu-scaling \
+  --policy-type TargetTrackingScaling \
+  --target-tracking-scaling-policy-configuration '{
+    "TargetValue": 70.0,
+    "PredefinedMetricSpecification": {
+      "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+    },
+    "ScaleOutCooldown": 60,
+    "ScaleInCooldown": 300
+  }'
+```
 
-# Manually override HPA temporarily (emergency)
-kubectl scale deployment user-service -n flamoral-prod --replicas=20
+### 5.2 Auto Scaling Policies
 
-# Reset to HPA control
-kubectl annotate deployment user-service -n flamoral-prod \
-  kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+#### Current Auto Scaling Policies
+
+| Service | Metric | Target | Scale Out | Scale In |
+|---------|--------|--------|-----------|----------|
+| api-gateway | CPU | 70% | 60s cooldown | 300s cooldown |
+| matching-service | CPU | 70% | 60s cooldown | 300s cooldown |
+| messaging-service | CPU | 60% | 60s cooldown | 300s cooldown |
+| media-service | CPU | 70% | 60s cooldown | 300s cooldown |
+
+#### Auto Scaling Management Commands
+
+```bash
+# List scaling policies
+aws application-autoscaling describe-scaling-policies \
+  --service-namespace ecs \
+  --resource-id service/flamoral-prod-ecs/auth-service
+
+# View scaling activities
+aws application-autoscaling describe-scaling-activities \
+  --service-namespace ecs \
+  --resource-id service/flamoral-prod-ecs/auth-service \
+  --max-results 10
+
+# Manually override auto scaling temporarily (emergency)
+aws ecs update-service \
+  --cluster flamoral-prod-ecs \
+  --service auth-service \
+  --desired-count 20
+
+# Suspend auto scaling (for maintenance)
+aws application-autoscaling register-scalable-target \
+  --service-namespace ecs \
+  --resource-id service/flamoral-prod-ecs/auth-service \
+  --scalable-dimension ecs:service:DesiredCount \
+  --suspended-state '{"DynamicScalingInSuspended":true,"DynamicScalingOutSuspended":true}'
 ```
 
 ### 5.3 Cache Warming Procedures
@@ -1503,7 +1535,7 @@ echo "Evidence collected in $OUTPUT_DIR"
      └────────┬────────┘          │          └─────────┬────────┘
               │                    │                    │
      ┌────────▼────────┐          │          ┌─────────▼────────┐
-     │   EKS Cluster   │          │          │   EKS Cluster    │
+     │   ECS Cluster   │          │          │   ECS Cluster    │
      │   ALB + Services│◄─────────┼─────────►│   ALB + Services │
      └────────┬────────┘          │          └─────────┬────────┘
               │                    │                    │
@@ -1780,17 +1812,35 @@ echo "Initial containment complete. Proceed with investigation."
 ### 8.3 Useful Commands Quick Reference
 
 ```bash
-# EKS cluster access
-aws eks update-kubeconfig --name flamoral-production --region us-east-1
+# ECS cluster info
+aws ecs describe-clusters --clusters flamoral-prod-ecs
 
-# View all pods with issues
-kubectl get pods -n flamoral-prod --field-selector=status.phase!=Running
+# List all ECS services
+aws ecs list-services --cluster flamoral-prod-ecs
 
-# Get recent events
-kubectl get events -n flamoral-prod --sort-by='.lastTimestamp' | tail -30
+# View service details
+aws ecs describe-services \
+  --cluster flamoral-prod-ecs \
+  --services auth-service user-service matching-service
 
-# Check HPA status
-kubectl get hpa -n flamoral-prod
+# List running tasks
+aws ecs list-tasks --cluster flamoral-prod-ecs --service-name auth-service
+
+# Get task logs
+aws logs get-log-events \
+  --log-group-name /ecs/flamoral-prod/auth-service \
+  --log-stream-name ecs/auth-service/TASK_ID
+
+# Execute command in running container
+aws ecs execute-command \
+  --cluster flamoral-prod-ecs \
+  --task TASK_ARN \
+  --container auth-service \
+  --interactive \
+  --command "/bin/sh"
+
+# Check ALB health
+aws elbv2 describe-target-health --target-group-arn $TG_ARN
 
 # Database connection test
 psql -h flamoral-prod.cluster-xxxxx.us-east-1.rds.amazonaws.com -U admin -d flamoral -c "SELECT 1"
@@ -1798,14 +1848,14 @@ psql -h flamoral-prod.cluster-xxxxx.us-east-1.rds.amazonaws.com -U admin -d flam
 # Redis connection test
 redis-cli -h flamoral-prod.xxxxx.cache.amazonaws.com PING
 
-# Check ALB health
-aws elbv2 describe-target-health --target-group-arn $TG_ARN
-
 # View CloudWatch alarms in ALARM state
 aws cloudwatch describe-alarms --state-value ALARM
 
 # Get GuardDuty high-severity findings
 aws guardduty list-findings --detector-id $DETECTOR_ID --finding-criteria '{"Criterion":{"severity":{"Gte":7}}}'
+
+# ECR image list
+aws ecr describe-images --repository-name flamoral/auth-service --query 'imageDetails | sort_by(@, &imagePushedAt) | [-5:]'
 ```
 
 ### 8.4 Glossary
@@ -1814,8 +1864,9 @@ aws guardduty list-findings --detector-id $DETECTOR_ID --finding-criteria '{"Cri
 |------|------------|
 | ALB | Application Load Balancer |
 | AZ | Availability Zone |
-| EKS | Elastic Kubernetes Service |
-| HPA | Horizontal Pod Autoscaler |
+| ECR | Elastic Container Registry |
+| ECS | Elastic Container Service |
+| Fargate | Serverless compute for containers |
 | MTTR | Mean Time To Recovery |
 | PITR | Point-In-Time Recovery |
 | RPO | Recovery Point Objective |
@@ -1827,9 +1878,11 @@ aws guardduty list-findings --detector-id $DETECTOR_ID --finding-criteria '{"Cri
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-04 | Platform Team | Initial release |
+| 1.1.0 | 2026-01-10 | Platform Team | Updated for ECS Fargate (replaced EKS/Kubernetes) |
 
 ---
 
 **Document Classification:** Internal - Operations
+**Infrastructure:** AWS ECS Fargate (27 microservices, ports 3000-3026)
 **Review Frequency:** Quarterly
-**Next Review Date:** 2026-04-04
+**Next Review Date:** 2026-04-10

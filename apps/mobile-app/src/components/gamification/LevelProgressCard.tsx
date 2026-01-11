@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
 interface Props {
   currentLevel: number;
   currentLevelXp: number;
@@ -19,12 +21,12 @@ export const LevelProgressCard: React.FC<Props> = ({
   levelProgressPercentage,
   onPress,
 }) => {
-  const getLevelIcon = (level: number): string => {
+  const getLevelIcon = (level: number): IoniconsName => {
     if (level < 10) return 'star';
     if (level < 20) return 'trending-up';
-    if (level < 30) return 'award';
+    if (level < 30) return 'ribbon';
     if (level < 40) return 'trophy';
-    return 'crown';
+    return 'diamond';
   };
 
   const getLevelColor = (level: number): string => {
@@ -53,7 +55,7 @@ export const LevelProgressCard: React.FC<Props> = ({
       <View style={styles.header}>
         <View style={[styles.levelBadge, { backgroundColor: getLevelColor(currentLevel) + '20' }]}>
           <Ionicons
-            name={getLevelIcon(currentLevel) as any}
+            name={getLevelIcon(currentLevel)}
             size={32}
             color={getLevelColor(currentLevel)}
           />

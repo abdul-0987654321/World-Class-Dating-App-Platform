@@ -96,13 +96,14 @@ resource "aws_security_group" "alb" {
     description = "HTTP from allowed sources"
   }
 
-  # Allow all outbound to ECS tasks
+  # SECURITY HARDENED: ALB egress restricted to VPC only (ECS tasks)
+  # ALB only needs to communicate with backend ECS tasks within the VPC
   egress {
     from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+    description = "Allow outbound to ECS tasks within VPC only - SECURITY HARDENED"
   }
 
   tags = merge(local.common_tags, {

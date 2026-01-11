@@ -12,13 +12,23 @@ export interface ApiResponse<T> {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: Record<string, unknown>;
   };
   meta?: {
     page?: number;
     limit?: number;
     total?: number;
   };
+}
+
+/**
+ * React Native FormData requires this blob-like object format
+ * for file uploads, which differs from the standard Web Blob type
+ */
+interface ReactNativeFileBlob {
+  uri: string;
+  type: string;
+  name: string;
 }
 
 export interface RequestOptions {
@@ -163,11 +173,13 @@ class HttpClient {
       const token = await this.getAuthToken();
       const formData = new FormData();
 
-      formData.append('file', {
+      // React Native requires this format for file uploads
+      const fileBlob: ReactNativeFileBlob = {
         uri: file.uri,
         type: file.type,
         name: file.name,
-      } as any);
+      };
+      formData.append('file', fileBlob as unknown as Blob);
 
       if (additionalData) {
         Object.entries(additionalData).forEach(([key, value]) => {

@@ -77,12 +77,12 @@ USER nodejs
 
 # Environment
 ENV NODE_ENV=production
-ENV PORT=3011
+ENV PORT=3014
 
-EXPOSE 3011
+EXPOSE 3014
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3011/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3014/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 CMD ["node", "dist/index.js"]

@@ -4,8 +4,9 @@ import {
   MatchingErrorCode,
   ValidationErrorCode,
 } from '@flamoral/backend-shared';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 
+import { AuthRequest } from '../middleware/auth.middleware';
 import swipeService from '../../domain/services/swipe.service';
 import { SwipeAction } from '../../types';
 
@@ -16,9 +17,15 @@ export class SwipeController {
    * Process a swipe action
    * POST /api/swipes
    */
-  async swipe(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async swipe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { userId } = (req as any).user; // From auth middleware
+      const userId = req.user?.userId; // From auth middleware
+      if (!userId) {
+        throw new ApiError({
+          code: ValidationErrorCode.FIELD_REQUIRED,
+          message: 'User authentication required',
+        });
+      }
       const { targetUserId, action } = req.body;
 
       // Validate action
@@ -66,9 +73,15 @@ export class SwipeController {
    * Get users who liked me
    * GET /api/swipes/likes
    */
-  async getWhoLikedMe(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getWhoLikedMe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        throw new ApiError({
+          code: ValidationErrorCode.FIELD_REQUIRED,
+          message: 'User authentication required',
+        });
+      }
 
       const userIds = await swipeService.getUsersWhoLikedMe(userId);
 
@@ -88,9 +101,15 @@ export class SwipeController {
    * Get swipe statistics
    * GET /api/swipes/stats
    */
-  async getStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getStats(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        throw new ApiError({
+          code: ValidationErrorCode.FIELD_REQUIRED,
+          message: 'User authentication required',
+        });
+      }
 
       const stats = await swipeService.getSwipeStats(userId);
 
@@ -107,9 +126,15 @@ export class SwipeController {
    * Undo last swipe (premium feature)
    * POST /api/swipes/undo
    */
-  async undoSwipe(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async undoSwipe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        throw new ApiError({
+          code: ValidationErrorCode.FIELD_REQUIRED,
+          message: 'User authentication required',
+        });
+      }
 
       const success = await swipeService.undoLastSwipe(userId);
 

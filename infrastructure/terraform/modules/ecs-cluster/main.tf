@@ -2,6 +2,28 @@
 # ECS Fargate Cluster Module
 # Serverless container orchestration - replaces EKS
 # Cost-optimized with Fargate Spot support
+#
+# SECURITY EGRESS DOCUMENTATION:
+# This module implements restricted egress rules per service type:
+#
+# ECS Tasks Security Group Egress:
+# - HTTPS (443) to 0.0.0.0/0: External API calls (Stripe, Firebase, AWS APIs)
+# - HTTP (80) to 0.0.0.0/0: External API redirects and some services
+# - PostgreSQL (5432) to VPC CIDR: RDS database access
+# - Redis (6379) to VPC CIDR: ElastiCache access
+# - DNS (53 TCP/UDP) to VPC CIDR: Route53 Resolver for internal DNS
+#
+# Services requiring external HTTPS egress:
+# - payment-service: Stripe API
+# - notification-service: Firebase/APNs push notifications
+# - email-service: SES (via VPC endpoint preferred)
+# - All services: AWS API calls (CloudWatch, Secrets Manager, etc.)
+#
+# Services requiring only VPC egress:
+# - All database connections (PostgreSQL 5432)
+# - All cache connections (Redis 6379)
+# - Service-to-service communication (via service discovery)
+#
 ################################################################################
 
 terraform {
@@ -349,21 +371,13 @@ resource "aws_iam_role_policy" "ecs_task_default" {
 
 ################################################################################
 # Security Group for ECS Tasks
+# SECURITY HARDENED: Egress restricted to necessary destinations only
 ################################################################################
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "${local.name_prefix}-ecs-tasks"
   description = "Security group for ECS Fargate tasks"
   vpc_id      = var.vpc_id
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-ecs-tasks-sg"
@@ -372,6 +386,71 @@ resource "aws_security_group" "ecs_tasks" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+# SECURITY: HTTPS egress to internet for external API calls (Stripe, Firebase, etc.)
+resource "aws_security_group_rule" "ecs_tasks_egress_https" {
+  type              = "egress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "HTTPS to internet for external APIs (Stripe, Firebase, AWS services)"
+}
+
+# SECURITY: HTTP egress to internet (for redirects and some APIs)
+resource "aws_security_group_rule" "ecs_tasks_egress_http" {
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "HTTP to internet for external APIs and redirects"
+}
+
+# SECURITY: PostgreSQL egress to VPC only (for RDS)
+resource "aws_security_group_rule" "ecs_tasks_egress_postgres" {
+  type              = "egress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "PostgreSQL to VPC only (RDS)"
+}
+
+# SECURITY: Redis egress to VPC only (for ElastiCache)
+resource "aws_security_group_rule" "ecs_tasks_egress_redis" {
+  type              = "egress"
+  from_port         = 6379
+  to_port           = 6379
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "Redis to VPC only (ElastiCache)"
+}
+
+# SECURITY: DNS egress to VPC only (for Route53 Resolver)
+resource "aws_security_group_rule" "ecs_tasks_egress_dns_tcp" {
+  type              = "egress"
+  from_port         = 53
+  to_port           = 53
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "DNS TCP to VPC only"
+}
+
+resource "aws_security_group_rule" "ecs_tasks_egress_dns_udp" {
+  type              = "egress"
+  from_port         = 53
+  to_port           = 53
+  protocol          = "udp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = aws_security_group.ecs_tasks.id
+  description       = "DNS UDP to VPC only"
 }
 
 # Note: ALB ingress rule should be created in the environment config

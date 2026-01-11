@@ -51,7 +51,7 @@ variable "image_tag" {
   type        = string
   # SECURITY: No default - forces explicit image tag specification
   # Use git commit SHA (e.g., 'abc123def') or digest (e.g., 'sha256:...')
-  
+
   validation {
     condition     = var.image_tag != "latest"
     error_message = "SECURITY VIOLATION: 'latest' tag is not allowed. Use immutable tags (git SHA or image digest) for container traceability and rollback capability."
@@ -363,7 +363,7 @@ variable "readonly_root_filesystem" {
 variable "container_capabilities" {
   description = "SECURITY: Linux capabilities to add to the container. By default, all capabilities are dropped (least privilege). Only add capabilities that are absolutely required."
   type        = list(string)
-  default     = []  # Empty = no additional capabilities beyond what's strictly needed
+  default     = [] # Empty = no additional capabilities beyond what's strictly needed
 }
 
 variable "container_user" {

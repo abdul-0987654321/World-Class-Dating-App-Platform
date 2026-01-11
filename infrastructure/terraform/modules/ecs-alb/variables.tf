@@ -33,6 +33,11 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
+variable "vpc_cidr" {
+  description = "VPC CIDR block for restricting egress traffic"
+  type        = string
+}
+
 ################################################################################
 # ALB Configuration
 ################################################################################

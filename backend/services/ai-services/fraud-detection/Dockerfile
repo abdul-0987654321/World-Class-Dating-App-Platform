@@ -17,6 +17,15 @@ COPY backend/services/ai-services/fraud-detection/models.py .
 COPY backend/services/ai-services/fraud-detection/fraud_detector.py .
 COPY backend/services/ai-services/fraud-detection/services ./services
 
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 appuser
+
+# Set ownership
+RUN chown -R appuser:nodejs /app
+
+# Switch to non-root user
+USER appuser
+
 # Expose port
 EXPOSE 8001
 

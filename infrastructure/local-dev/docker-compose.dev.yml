@@ -3,16 +3,23 @@ version: '3.8'
 # LOCAL DEVELOPMENT ONLY
 # This Docker Compose file is for local development environments only.
 # DO NOT use this for production, staging, or any cloud deployment.
-# Production infrastructure uses AWS services (EKS, Aurora PostgreSQL, ElastiCache, etc.) via Terraform.
+# Production infrastructure uses AWS services (ECS, Aurora PostgreSQL, ElastiCache, etc.) via Terraform.
 #
-# Service Port Mapping (per README.md):
-# - API Gateway: 4000        - Auth Service: 3001
-# - User Service: 3002       - Matching Service: 3003
-# - Messaging Service: 5000  - Payment Service: 3005
-# - Analytics Service: 3007  - Notification Service: 3008
-# - Media Service: 3009      - Admin Service: 3010
-# - Advertising Service: 3011 - Moderation Service: 3012
-# - Automation Service: 3013 - Partnership Service: 3014
+# Service Port Mapping (aligned with Terraform ECS configs):
+# - API Gateway: 3000        - Auth Service: 3001
+# - User Service: 3002       - Profile Service: 3003
+# - Matching Service: 3004   - Messaging Service: 3005
+# - Notification Service: 3006 - Payment Service: 3007
+# - Subscription Service: 3008 - Media Service: 3009
+# - Moderation Service: 3010 - Analytics Service: 3011
+# - Recommendation Service: 3012 - Search Service: 3013
+# - Location Service: 3014   - Verification Service: 3015
+# - Report Service: 3016     - Admin Service: 3017
+# - Webhook Service: 3018    - Scheduler Service: 3019
+# - Worker Service: 3020     - Email Service: 3021
+# - Realtime Service: 3022   - Workflow Engine: 3023
+# - Automation Service: 3024 - Advertising Service: 3025
+# - Partnership Service: 3026
 
 services:
   # ==================== Infrastructure ====================

@@ -340,12 +340,13 @@ export function normalizeError(error: unknown): ApiErrorResponse {
   // Axios error
   if (isAxiosError(error)) {
     if (error.response) {
+      const responseData = error.response.data as Record<string, unknown> | undefined;
       return {
         statusCode: error.response.status,
-        message: error.response.data?.message || error.message,
-        errorCode: error.response.data?.errorCode || error.response.data?.code,
+        message: (responseData?.message as string) || error.message,
+        errorCode: (responseData?.errorCode as string) || (responseData?.code as string),
         correlationId: error.response.headers?.['x-correlation-id'],
-        details: error.response.data?.details,
+        details: responseData?.details as ValidationErrorDetail[] | undefined,
         retryAfter: parseRetryAfter(error.response.headers?.['retry-after']),
       };
     }
@@ -428,18 +429,28 @@ function isApiErrorResponse(error: unknown): error is ApiErrorResponse {
 }
 
 /**
- * Type guard for Axios error
+ * Axios error response structure
  */
-function isAxiosError(error: unknown): error is {
-  response?: { status: number; data?: any; headers?: Record<string, string> };
+interface AxiosErrorLike {
+  response?: {
+    status: number;
+    data?: Record<string, unknown>;
+    headers?: Record<string, string>;
+  };
   code?: string;
   message: string;
-} {
+  isAxiosError?: boolean;
+}
+
+/**
+ * Type guard for Axios error
+ */
+function isAxiosError(error: unknown): error is AxiosErrorLike {
   return (
     typeof error === 'object' &&
     error !== null &&
     'isAxiosError' in error &&
-    (error as any).isAxiosError === true
+    (error as AxiosErrorLike).isAxiosError === true
   );
 }
 

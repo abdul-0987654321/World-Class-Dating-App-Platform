@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 import axios from 'axios';
 
 interface DailyReward {
@@ -84,7 +86,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ visible, onClose, onRewardC
     }
   };
 
-  const getRewardIcon = (type: string): string => {
+  const getRewardIcon = (type: string): IoniconsName => {
     switch (type) {
       case 'coins':
         return 'cash';
@@ -93,7 +95,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ visible, onClose, onRewardC
       case 'boosts':
         return 'rocket';
       case 'premium_trial':
-        return 'crown';
+        return 'ribbon';
       default:
         return 'gift';
     }
@@ -180,7 +182,7 @@ export const DailyRewardsModal: React.FC<Props> = ({ visible, onClose, onRewardC
                       ]}
                     >
                       <Ionicons
-                        name={getRewardIcon(reward.rewardType) as any}
+                        name={getRewardIcon(reward.rewardType)}
                         size={32}
                         color={getRewardColor(reward.rewardType)}
                       />

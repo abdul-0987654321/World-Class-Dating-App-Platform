@@ -16,6 +16,22 @@ import type {
   CallEventMap,
 } from './types';
 
+/**
+ * Extended MediaStreamTrack interface for mobile-specific APIs
+ * React Native and some mobile browsers expose _switchCamera method
+ */
+interface MobileMediaStreamTrack extends MediaStreamTrack {
+  _switchCamera?: () => Promise<void>;
+}
+
+/**
+ * Extended MediaDevices interface for getDisplayMedia
+ * This is a standard API but not always included in TypeScript lib
+ */
+interface ExtendedMediaDevices extends MediaDevices {
+  getDisplayMedia(constraints?: MediaStreamConstraints): Promise<MediaStream>;
+}
+
 const DEFAULT_CONFIG: Partial<VideoCallConfig> = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -238,17 +254,16 @@ export class VideoCallClient extends EventEmitter {
 
   /**
    * Switch camera (mobile)
+   * Uses mobile-specific _switchCamera API when available
    */
   async switchCamera(): Promise<void> {
     if (!this.localStream) return;
 
-    const videoTrack = this.localStream.getVideoTracks()[0];
+    const videoTrack = this.localStream.getVideoTracks()[0] as MobileMediaStreamTrack | undefined;
     if (!videoTrack) return;
 
     try {
-      // @ts-ignore - Mobile specific API
       if (videoTrack._switchCamera) {
-        // @ts-ignore
         await videoTrack._switchCamera();
       }
     } catch (error) {
@@ -258,13 +273,14 @@ export class VideoCallClient extends EventEmitter {
 
   /**
    * Start screen sharing
+   * Uses getDisplayMedia API for screen capture
    */
   async startScreenShare(): Promise<void> {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices) return;
 
     try {
-      // @ts-ignore - Screen sharing API
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+      const mediaDevices = navigator.mediaDevices as ExtendedMediaDevices;
+      const screenStream = await mediaDevices.getDisplayMedia({
         video: true,
         audio: false,
       });

@@ -82,6 +82,10 @@ export interface Match {
   extendedAt?: Date;
   expired?: boolean;
   firstMessageSent?: boolean;
+  // Women-first messaging fields
+  requiresWomenFirst?: boolean;
+  womanUserId?: string;
+  conversationInitiated?: boolean;
 }
 
 export interface MatchScore {

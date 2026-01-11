@@ -59,6 +59,19 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Create health endpoint
 RUN echo "OK" > /usr/share/nginx/html/health
 
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 appuser
+
+# Set ownership of nginx directories for non-root user
+RUN chown -R appuser:nodejs /usr/share/nginx/html && \
+    chown -R appuser:nodejs /var/cache/nginx && \
+    chown -R appuser:nodejs /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R appuser:nodejs /var/run/nginx.pid
+
+# Switch to non-root user
+USER appuser
+
 # Expose port
 EXPOSE 80
 

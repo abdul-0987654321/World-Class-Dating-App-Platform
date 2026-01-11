@@ -1,9 +1,10 @@
 import { createLogger } from '@flamoral/backend-shared';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
+import { AuthRequest } from '../middleware/auth.middleware';
 import matchRepository from '../../domain/repositories/match.repository';
 import matchService from '../../domain/services/match.service';
-import { MatchStatus } from '../../types';
+import { MatchStatus, Match } from '../../types';
 
 const logger = createLogger('match-controller');
 
@@ -12,9 +13,13 @@ export class MatchController {
    * Get all matches for current user
    * GET /api/matches
    */
-  async getMatches(req: Request, res: Response): Promise<void> {
+  async getMatches(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { status } = req.query;
 
       const matches = await matchRepository.findByUserId(userId, status as MatchStatus | undefined);
@@ -39,9 +44,13 @@ export class MatchController {
    * Get specific match by ID
    * GET /api/matches/:matchId
    */
-  async getMatch(req: Request, res: Response): Promise<void> {
+  async getMatch(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { matchId } = req.params;
 
       const match = await matchRepository.findById(matchId);
@@ -86,9 +95,13 @@ export class MatchController {
    * Unmatch with a user
    * DELETE /api/matches/:matchId
    */
-  async unmatch(req: Request, res: Response): Promise<void> {
+  async unmatch(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { matchId } = req.params;
 
       const match = await matchRepository.findById(matchId);
@@ -129,9 +142,13 @@ export class MatchController {
    * Get recent matches
    * GET /api/matches/recent
    */
-  async getRecentMatches(req: Request, res: Response): Promise<void> {
+  async getRecentMatches(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { limit } = req.query;
 
       const matches = await matchRepository.getRecentMatches(
@@ -159,9 +176,13 @@ export class MatchController {
    * Get match count
    * GET /api/matches/count
    */
-  async getMatchCount(req: Request, res: Response): Promise<void> {
+  async getMatchCount(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = (req as any).user;
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
 
       const count = await matchRepository.countByUserId(userId, MatchStatus.MATCHED);
 
@@ -182,9 +203,14 @@ export class MatchController {
    * Extend match expiration (Premium feature)
    * POST /api/matches/:matchId/extend
    */
-  async extendMatch(req: Request, res: Response): Promise<void> {
+  async extendMatch(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId, isPremium } = (req as any).user;
+      const userId = req.user?.userId;
+      const isPremium = req.user?.isPremium;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { matchId } = req.params;
 
       const extendedMatch = await matchService.extendMatch(matchId, userId, isPremium);
@@ -233,9 +259,14 @@ export class MatchController {
    * Rematch with expired match (Premium feature)
    * POST /api/matches/:targetUserId/rematch
    */
-  async rematch(req: Request, res: Response): Promise<void> {
+  async rematch(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId, isPremium } = (req as any).user;
+      const userId = req.user?.userId;
+      const isPremium = req.user?.isPremium;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Authentication required' });
+        return;
+      }
       const { targetUserId } = req.params;
 
       const match = await matchService.rematch(userId, targetUserId, isPremium);
@@ -275,7 +306,7 @@ export class MatchController {
   /**
    * Helper method to determine messaging permissions for a match
    */
-  private getMessagingPermissions(match: any, userId: string) {
+  private getMessagingPermissions(match: Match, userId: string) {
     const { requiresWomenFirst, womanUserId, conversationInitiated } = match;
 
     // If women-first rule doesn't apply, everyone can message

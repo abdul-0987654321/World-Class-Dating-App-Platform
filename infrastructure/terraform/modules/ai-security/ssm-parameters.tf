@@ -36,9 +36,9 @@ resource "aws_ssm_parameter" "ai_service_enabled" {
   tier        = "Standard"
 
   tags = merge(local.common_tags, {
-    Name       = "${var.project_name}-${var.environment}-ai-${each.key}-enabled"
-    AIService  = each.key
-    Purpose    = "kill-switch"
+    Name      = "${var.project_name}-${var.environment}-ai-${each.key}-enabled"
+    AIService = each.key
+    Purpose   = "kill-switch"
   })
 
   lifecycle {
@@ -57,16 +57,16 @@ resource "aws_ssm_parameter" "ai_service_disabled_reason" {
   name        = "/${var.project_name}/${var.environment}/ai/${each.key}/disabled_reason"
   description = "Reason for AI disable on ${each.key} service (JSON format)"
   type        = "String"
-  value       = jsonencode({
+  value = jsonencode({
     reason    = "Initial state"
     timestamp = timestamp()
   })
-  tier        = "Standard"
+  tier = "Standard"
 
   tags = merge(local.common_tags, {
-    Name       = "${var.project_name}-${var.environment}-ai-${each.key}-disabled-reason"
-    AIService  = each.key
-    Purpose    = "kill-switch-audit"
+    Name      = "${var.project_name}-${var.environment}-ai-${each.key}-disabled-reason"
+    AIService = each.key
+    Purpose   = "kill-switch-audit"
   })
 
   lifecycle {
@@ -85,7 +85,7 @@ resource "aws_ssm_parameter" "circuit_breaker_config" {
   name        = "/${var.project_name}/${var.environment}/ai/${each.key}/circuit-breaker/config"
   description = "Circuit breaker configuration for ${each.key} AI service"
   type        = "String"
-  value       = jsonencode({
+  value = jsonencode({
     failure_threshold      = var.circuit_breaker_failure_threshold
     failure_rate_threshold = var.circuit_breaker_failure_rate_threshold
     reset_timeout_ms       = var.circuit_breaker_reset_timeout_ms
@@ -93,12 +93,12 @@ resource "aws_ssm_parameter" "circuit_breaker_config" {
     sliding_window_size    = var.circuit_breaker_sliding_window_size
     request_timeout_ms     = var.circuit_breaker_request_timeout_ms
   })
-  tier        = "Standard"
+  tier = "Standard"
 
   tags = merge(local.common_tags, {
-    Name       = "${var.project_name}-${var.environment}-ai-${each.key}-circuit-breaker-config"
-    AIService  = each.key
-    Purpose    = "circuit-breaker"
+    Name      = "${var.project_name}-${var.environment}-ai-${each.key}-circuit-breaker-config"
+    AIService = each.key
+    Purpose   = "circuit-breaker"
   })
 }
 
@@ -143,9 +143,9 @@ resource "aws_cloudwatch_metric_alarm" "ai_service_disabled" {
   ok_actions    = var.alarm_sns_topic_arn != "" ? [var.alarm_sns_topic_arn] : []
 
   tags = merge(local.common_tags, {
-    Name       = "${var.project_name}-${var.environment}-ai-${each.key}-disabled-alarm"
-    AIService  = each.key
-    Purpose    = "monitoring"
+    Name      = "${var.project_name}-${var.environment}-ai-${each.key}-disabled-alarm"
+    AIService = each.key
+    Purpose   = "monitoring"
   })
 }
 
@@ -176,9 +176,9 @@ resource "aws_cloudwatch_metric_alarm" "circuit_breaker_open" {
   ok_actions    = var.alarm_sns_topic_arn != "" ? [var.alarm_sns_topic_arn] : []
 
   tags = merge(local.common_tags, {
-    Name       = "${var.project_name}-${var.environment}-circuit-breaker-${each.key}-open-alarm"
-    AIService  = each.key
-    Purpose    = "monitoring"
+    Name      = "${var.project_name}-${var.environment}-circuit-breaker-${each.key}-open-alarm"
+    AIService = each.key
+    Purpose   = "monitoring"
   })
 }
 

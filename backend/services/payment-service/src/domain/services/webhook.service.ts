@@ -8,6 +8,10 @@ import {
   SubscriptionMetadata,
   CoinPackage,
   BoostProduct,
+  StripeSubscriptionWithPeriod,
+  StripeInvoiceWithSubscription,
+  UserSubscription,
+  TransactionRecord,
 } from '../../types/stripe-events.types';
 import logger from '../../utils/logger';
 
@@ -82,8 +86,8 @@ export class WebhookService {
       stripe_customer_id: subscription.customer as string,
       status: subscription.status,
       billing_cycle: this.getBillingCycle(subscription),
-      current_period_start: new Date(((subscription as any).current_period_start || 0) * 1000),
-      current_period_end: new Date(((subscription as any).current_period_end || 0) * 1000),
+      current_period_start: new Date(((subscription as StripeSubscriptionWithPeriod).current_period_start || 0) * 1000),
+      current_period_end: new Date(((subscription as StripeSubscriptionWithPeriod).current_period_end || 0) * 1000),
       trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
       trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
       metadata: JSON.stringify(subscription.metadata),
@@ -127,8 +131,8 @@ export class WebhookService {
         plan_id: planId,
         status: subscription.status,
         billing_cycle: this.getBillingCycle(subscription),
-        current_period_start: new Date((subscription as any).current_period_start * 1000),
-        current_period_end: new Date((subscription as any).current_period_end * 1000),
+        current_period_start: new Date((subscription as StripeSubscriptionWithPeriod).current_period_start * 1000),
+        current_period_end: new Date((subscription as StripeSubscriptionWithPeriod).current_period_end * 1000),
         cancel_at_period_end: subscription.cancel_at_period_end,
         canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
         cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null,
@@ -166,7 +170,7 @@ export class WebhookService {
     }
 
     const planName = await this.getPlanName(existingSub.plan_id);
-    const periodEnd = new Date((subscription as any).current_period_end * 1000);
+    const periodEnd = new Date((subscription as StripeSubscriptionWithPeriod).current_period_end * 1000);
 
     await db('user_subscriptions').where({ stripe_subscription_id: subscription.id }).update({
       status: 'canceled',
@@ -241,8 +245,8 @@ export class WebhookService {
         plan_id: planId,
         status: subscription.status,
         billing_cycle: this.getBillingCycle(subscription),
-        current_period_start: new Date((subscription as any).current_period_start * 1000),
-        current_period_end: new Date((subscription as any).current_period_end * 1000),
+        current_period_start: new Date((subscription as StripeSubscriptionWithPeriod).current_period_start * 1000),
+        current_period_end: new Date((subscription as StripeSubscriptionWithPeriod).current_period_end * 1000),
         updated_at: new Date(),
       });
 
@@ -288,7 +292,8 @@ export class WebhookService {
       return;
     }
 
-    const subscriptionId = await this.getSubscriptionIdFromStripe((invoice as any).subscription as string);
+    const invoice$ = invoice as StripeInvoiceWithSubscription;
+    const subscriptionId = await this.getSubscriptionIdFromStripe(invoice$.subscription as string);
 
     const amount = (invoice.amount_paid || 0) / 100;
     const description = invoice.lines.data[0]?.description || 'Subscription';
@@ -297,7 +302,7 @@ export class WebhookService {
       user_id: userId,
       subscription_id: subscriptionId,
       stripe_invoice_id: invoice.id,
-      stripe_payment_intent_id: (invoice as any).payment_intent as string,
+      stripe_payment_intent_id: invoice$.payment_intent as string,
       type: 'subscription',
       status: 'succeeded',
       amount,
@@ -312,7 +317,7 @@ export class WebhookService {
 
       if (subscription) {
         const planName = await this.getPlanName(subscription.plan_id);
-        const nextBillingDate = new Date((subscription as any).current_period_end);
+        const nextBillingDate = new Date((subscription as UserSubscription).current_period_end as Date);
 
         // Notify user about successful renewal
         await notificationServiceClient.notifySubscriptionRenewed(
@@ -351,14 +356,15 @@ export class WebhookService {
     });
 
     // Update subscription status to past_due
-    if ((invoice as any).subscription) {
+    const failedInvoice = invoice as StripeInvoiceWithSubscription;
+    if (failedInvoice.subscription) {
       await db('user_subscriptions')
-        .where({ stripe_subscription_id: (invoice as any).subscription as string })
+        .where({ stripe_subscription_id: failedInvoice.subscription as string })
         .update({ status: 'past_due', updated_at: new Date() });
 
       // Get subscription for grace period handling
       const subscription = await db('user_subscriptions')
-        .where({ stripe_subscription_id: (invoice as any).subscription as string })
+        .where({ stripe_subscription_id: failedInvoice.subscription as string })
         .first();
 
       if (subscription) {
@@ -1138,7 +1144,7 @@ export class WebhookService {
    * Process refund logic - revoke features, deduct coins, etc.
    */
   private async processRefundLogic(
-    transaction: any,
+    transaction: TransactionRecord,
     refundAmount: number,
     isPartialRefund: boolean
   ): Promise<void> {
@@ -1180,7 +1186,7 @@ export class WebhookService {
    */
   private async handleCoinPurchaseRefund(
     userId: string,
-    transaction: any,
+    transaction: TransactionRecord,
     refundAmount: number,
     isPartialRefund: boolean
   ): Promise<void> {
@@ -1228,7 +1234,7 @@ export class WebhookService {
    */
   private async handleBoostPurchaseRefund(
     userId: string,
-    transaction: any,
+    transaction: TransactionRecord,
     refundAmount: number,
     isPartialRefund: boolean
   ): Promise<void> {
@@ -1245,7 +1251,7 @@ export class WebhookService {
    */
   private async handleSubscriptionRefund(
     userId: string,
-    transaction: any,
+    transaction: TransactionRecord,
     refundAmount: number,
     isPartialRefund: boolean
   ): Promise<void> {
@@ -1302,10 +1308,10 @@ export class WebhookService {
   /**
    * Handle grace period for failed subscription payments
    */
-  async handlePaymentGracePeriod(subscription: any): Promise<void> {
+  async handlePaymentGracePeriod(subscription: UserSubscription): Promise<void> {
     const GRACE_PERIOD_DAYS = 3; // 3 days grace period
     const now = new Date();
-    const gracePeriodEnd = new Date((subscription as any).current_period_end);
+    const gracePeriodEnd = new Date(subscription.current_period_end as Date);
     gracePeriodEnd.setDate(gracePeriodEnd.getDate() + GRACE_PERIOD_DAYS);
 
     if (now <= gracePeriodEnd) {

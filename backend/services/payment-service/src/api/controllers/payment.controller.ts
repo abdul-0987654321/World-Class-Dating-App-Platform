@@ -2,7 +2,15 @@ import { Request, Response } from 'express';
 
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '../../config/stripe-products';
 import { PaymentService } from '../../domain/services/payment.service';
+import { AuthenticatedUser } from '../../types/stripe-events.types';
 import logger from '../../utils/logger';
+
+/**
+ * Extended Request interface with authenticated user
+ */
+interface AuthenticatedRequest extends Request {
+  user?: AuthenticatedUser;
+}
 
 export class PaymentController {
   private paymentService: PaymentService;
@@ -46,9 +54,9 @@ export class PaymentController {
     }
   }
 
-  async purchaseSubscription(req: Request, res: Response): Promise<Response> {
+  async purchaseSubscription(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = req.user?.userId;
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -262,9 +270,9 @@ export class PaymentController {
    * GET /subscriptions/me - Get current user's subscription
    * Returns the user's active subscription status and entitlements
    */
-  async getMySubscription(req: Request, res: Response): Promise<Response> {
+  async getMySubscription(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
-      const userId = (req as any).user?.id;
+      const userId = req.user?.id;
 
       if (!userId) {
         return res.status(401).json({

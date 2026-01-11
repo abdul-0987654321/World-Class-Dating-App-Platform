@@ -90,33 +90,33 @@ locals {
 
   # Service configurations for ECS
   service_configs = {
-    "api-gateway"          = { port = 3000, priority = 1, path = "/api/*", cpu = 256, memory = 512 }
-    "auth-service"         = { port = 3001, priority = 10, path = "/api/auth/*", cpu = 256, memory = 512 }
-    "user-service"         = { port = 3002, priority = 11, path = "/api/users/*", cpu = 256, memory = 512 }
-    "profile-service"      = { port = 3003, priority = 12, path = "/api/profiles/*", cpu = 256, memory = 512 }
-    "matching-service"     = { port = 3004, priority = 13, path = "/api/matching/*", cpu = 512, memory = 1024 }
-    "messaging-service"    = { port = 3005, priority = 14, path = "/api/messages/*", cpu = 256, memory = 512 }
-    "notification-service" = { port = 3006, priority = 15, path = "/api/notifications/*", cpu = 256, memory = 512 }
-    "payment-service"      = { port = 3007, priority = 16, path = "/api/payments/*", cpu = 256, memory = 512 }
-    "subscription-service" = { port = 3008, priority = 17, path = "/api/subscriptions/*", cpu = 256, memory = 512 }
-    "media-service"        = { port = 3009, priority = 18, path = "/api/media/*", cpu = 512, memory = 1024 }
-    "moderation-service"   = { port = 3010, priority = 19, path = "/api/moderation/*", cpu = 512, memory = 1024 }
-    "analytics-service"    = { port = 3011, priority = 20, path = "/api/analytics/*", cpu = 256, memory = 512 }
+    "api-gateway"            = { port = 3000, priority = 1, path = "/api/*", cpu = 256, memory = 512 }
+    "auth-service"           = { port = 3001, priority = 10, path = "/api/auth/*", cpu = 256, memory = 512 }
+    "user-service"           = { port = 3002, priority = 11, path = "/api/users/*", cpu = 256, memory = 512 }
+    "profile-service"        = { port = 3003, priority = 12, path = "/api/profiles/*", cpu = 256, memory = 512 }
+    "matching-service"       = { port = 3004, priority = 13, path = "/api/matching/*", cpu = 512, memory = 1024 }
+    "messaging-service"      = { port = 3005, priority = 14, path = "/api/messages/*", cpu = 256, memory = 512 }
+    "notification-service"   = { port = 3006, priority = 15, path = "/api/notifications/*", cpu = 256, memory = 512 }
+    "payment-service"        = { port = 3007, priority = 16, path = "/api/payments/*", cpu = 256, memory = 512 }
+    "subscription-service"   = { port = 3008, priority = 17, path = "/api/subscriptions/*", cpu = 256, memory = 512 }
+    "media-service"          = { port = 3009, priority = 18, path = "/api/media/*", cpu = 512, memory = 1024 }
+    "moderation-service"     = { port = 3010, priority = 19, path = "/api/moderation/*", cpu = 512, memory = 1024 }
+    "analytics-service"      = { port = 3011, priority = 20, path = "/api/analytics/*", cpu = 256, memory = 512 }
     "recommendation-service" = { port = 3012, priority = 21, path = "/api/recommendations/*", cpu = 512, memory = 1024 }
-    "search-service"       = { port = 3013, priority = 22, path = "/api/search/*", cpu = 256, memory = 512 }
-    "location-service"     = { port = 3014, priority = 23, path = "/api/location/*", cpu = 256, memory = 512 }
-    "verification-service" = { port = 3015, priority = 24, path = "/api/verification/*", cpu = 256, memory = 512 }
-    "report-service"       = { port = 3016, priority = 25, path = "/api/reports/*", cpu = 256, memory = 512 }
-    "admin-service"        = { port = 3017, priority = 26, path = "/api/admin/*", cpu = 256, memory = 512 }
-    "webhook-service"      = { port = 3018, priority = 27, path = "/api/webhooks/*", cpu = 256, memory = 512 }
-    "scheduler-service"    = { port = 3019, priority = 28, path = "/api/scheduler/*", cpu = 256, memory = 512 }
-    "worker-service"       = { port = 3020, priority = 29, path = null, cpu = 256, memory = 512 }
-    "email-service"        = { port = 3021, priority = 30, path = "/api/email/*", cpu = 256, memory = 512 }
-    "realtime-service"     = { port = 3022, priority = 31, path = "/api/realtime/*", cpu = 256, memory = 512 }
-    "workflow-engine"      = { port = 3023, priority = 32, path = "/api/workflows/*", cpu = 256, memory = 512 }
-    "automation-service"   = { port = 3024, priority = 33, path = "/api/automation/*", cpu = 256, memory = 512 }
-    "advertising-service"  = { port = 3025, priority = 34, path = "/api/advertising/*", cpu = 256, memory = 512 }
-    "partnership-service"  = { port = 3026, priority = 35, path = "/api/partnerships/*", cpu = 256, memory = 512 }
+    "search-service"         = { port = 3013, priority = 22, path = "/api/search/*", cpu = 256, memory = 512 }
+    "location-service"       = { port = 3014, priority = 23, path = "/api/location/*", cpu = 256, memory = 512 }
+    "verification-service"   = { port = 3015, priority = 24, path = "/api/verification/*", cpu = 256, memory = 512 }
+    "report-service"         = { port = 3016, priority = 25, path = "/api/reports/*", cpu = 256, memory = 512 }
+    "admin-service"          = { port = 3017, priority = 26, path = "/api/admin/*", cpu = 256, memory = 512 }
+    "webhook-service"        = { port = 3018, priority = 27, path = "/api/webhooks/*", cpu = 256, memory = 512 }
+    "scheduler-service"      = { port = 3019, priority = 28, path = "/api/scheduler/*", cpu = 256, memory = 512 }
+    "worker-service"         = { port = 3020, priority = 29, path = null, cpu = 256, memory = 512 }
+    "email-service"          = { port = 3021, priority = 30, path = "/api/email/*", cpu = 256, memory = 512 }
+    "realtime-service"       = { port = 3022, priority = 31, path = "/api/realtime/*", cpu = 256, memory = 512 }
+    "workflow-engine"        = { port = 3023, priority = 32, path = "/api/workflows/*", cpu = 256, memory = 512 }
+    "automation-service"     = { port = 3024, priority = 33, path = "/api/automation/*", cpu = 256, memory = 512 }
+    "advertising-service"    = { port = 3025, priority = 34, path = "/api/advertising/*", cpu = 256, memory = 512 }
+    "partnership-service"    = { port = 3026, priority = 35, path = "/api/partnerships/*", cpu = 256, memory = 512 }
   }
 
   # S3 bucket configurations
@@ -198,6 +198,7 @@ module "ecs_cluster" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
+  vpc_cidr     = module.networking.vpc_cidr
 
   # Container Insights disabled for dev (cost optimization)
   enable_container_insights = false
@@ -242,20 +243,21 @@ module "ecs_alb" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
+  vpc_cidr     = module.networking.vpc_cidr
   subnet_ids   = module.networking.public_subnet_ids
 
   internal                   = false
-  enable_deletion_protection = false # Allow deletion in dev
+  enable_deletion_protection = false # Allow deletion in staging
 
-  # HTTPS disabled for dev (no certificate)
+  # HTTPS enabled for staging
   enable_https    = true
   certificate_arn = var.acm_certificate_arn
 
   # Define services with path-based routing
   services = {
     for name, config in local.service_configs : name => {
-      port     = config.port
-      priority = config.priority
+      port          = config.port
+      priority      = config.priority
       path_patterns = config.path != null ? [config.path] : null
       host_headers  = null
       health_check = {
@@ -351,8 +353,8 @@ module "ecs_iam" {
       enable_bedrock = true
     }
     "search-service" = {
-      secrets           = ["${var.project_name}/${var.environment}/database"]
-      ssm_parameters    = ["/${var.project_name}/${var.environment}/*"]
+      secrets            = ["${var.project_name}/${var.environment}/database"]
+      ssm_parameters     = ["/${var.project_name}/${var.environment}/*"]
       opensearch_domains = ["${var.project_name}-${var.environment}"]
     }
     "location-service" = {
@@ -449,8 +451,8 @@ module "rds" {
   deletion_protection     = false # Allow deletion in dev
   skip_final_snapshot     = true
 
-  # Use ECS security group instead of EKS node security group
-  eks_security_group_id = module.ecs_cluster.security_group_id
+  # Use ECS security group
+  ecs_security_group_id = module.ecs_cluster.security_group_id
   kms_key_arn           = module.ecs_cluster.kms_key_arn
 
   # Cost Optimization: Disable alarms for dev
@@ -486,7 +488,7 @@ module "elasticache" {
   kms_key_arn                = module.ecs_cluster.kms_key_arn
 
   # Use ECS security group
-  eks_security_group_id = module.ecs_cluster.security_group_id
+  ecs_security_group_id = module.ecs_cluster.security_group_id
 
   # Cost Optimization: Disable alarms for dev
   create_cloudwatch_alarms = false

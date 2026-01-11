@@ -21,16 +21,16 @@ resource "aws_security_group" "rds" {
   }
 }
 
-resource "aws_security_group_rule" "rds_ingress_eks" {
-  count = var.create_eks_security_group_rule ? 1 : 0
+resource "aws_security_group_rule" "rds_ingress_ecs" {
+  count = var.create_ecs_security_group_rule ? 1 : 0
 
   type                     = "ingress"
   from_port                = var.port
   to_port                  = var.port
   protocol                 = "tcp"
-  source_security_group_id = var.eks_security_group_id
+  source_security_group_id = var.ecs_security_group_id
   security_group_id        = aws_security_group.rds.id
-  description              = "Allow PostgreSQL access from EKS nodes"
+  description              = "Allow PostgreSQL access from ECS tasks"
 }
 
 resource "aws_security_group_rule" "rds_ingress_cidr" {

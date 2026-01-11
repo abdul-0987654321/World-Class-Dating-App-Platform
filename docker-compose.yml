@@ -4,14 +4,21 @@
 # Production-like local environment with all services
 # Usage: docker-compose up -d
 #
-# Service Port Mapping (per README.md):
-# - API Gateway: 4000        - Auth Service: 3001
-# - User Service: 3002       - Matching Service: 3003
-# - Messaging Service: 5000  - Payment Service: 3005
-# - Analytics Service: 3007  - Notification Service: 3008
-# - Media Service: 3009      - Admin Service: 3010
-# - Advertising Service: 3011 - Moderation Service: 3012
-# - Automation Service: 3013 - Partnership Service: 3014
+# Service Port Mapping (aligned with Terraform ECS configs):
+# - API Gateway: 3000        - Auth Service: 3001
+# - User Service: 3002       - Profile Service: 3003
+# - Matching Service: 3004   - Messaging Service: 3005
+# - Notification Service: 3006 - Payment Service: 3007
+# - Subscription Service: 3008 - Media Service: 3009
+# - Moderation Service: 3010 - Analytics Service: 3011
+# - Recommendation Service: 3012 - Search Service: 3013
+# - Location Service: 3014   - Verification Service: 3015
+# - Report Service: 3016     - Admin Service: 3017
+# - Webhook Service: 3018    - Scheduler Service: 3019
+# - Worker Service: 3020     - Email Service: 3021
+# - Realtime Service: 3022   - Workflow Engine: 3023
+# - Automation Service: 3024 - Advertising Service: 3025
+# - Partnership Service: 3026
 # =============================================================================
 
 version: "3.9"
@@ -166,17 +173,17 @@ services:
   # Backend Microservices (Port Mapping per README.md)
   # ===========================================================================
 
-  # API Gateway - Port 4000
+  # API Gateway - Port 3000
   api-gateway:
     <<: *backend-common
     container_name: flamoral-api-gateway
     working_dir: /app/backend/services/api-gateway
     command: npm run dev
     ports:
-      - "4000:4000"
+      - "3000:3000"
     environment:
       - NODE_ENV=development
-      - PORT=4000
+      - PORT=3000
       - SERVICE_NAME=api-gateway
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -185,23 +192,36 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - AUTH_SERVICE_URL=http://auth-service:3001
       - USER_SERVICE_URL=http://user-service:3002
-      - MATCHING_SERVICE_URL=http://matching-service:3003
-      - MESSAGING_SERVICE_URL=http://messaging-service:5000
-      - PAYMENT_SERVICE_URL=http://payment-service:3005
-      - ANALYTICS_SERVICE_URL=http://analytics-service:3007
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
+      - PROFILE_SERVICE_URL=http://profile-service:3003
+      - MATCHING_SERVICE_URL=http://matching-service:3004
+      - MESSAGING_SERVICE_URL=http://messaging-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - PAYMENT_SERVICE_URL=http://payment-service:3007
+      - SUBSCRIPTION_SERVICE_URL=http://subscription-service:3008
       - MEDIA_SERVICE_URL=http://media-service:3009
-      - ADMIN_SERVICE_URL=http://admin-service:3010
-      - ADVERTISING_SERVICE_URL=http://advertising-service:3011
-      - MODERATION_SERVICE_URL=http://moderation-service:3012
-      - AUTOMATION_SERVICE_URL=http://automation-service:3013
-      - PARTNERSHIP_SERVICE_URL=http://partnership-service:3014
+      - MODERATION_SERVICE_URL=http://moderation-service:3010
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3011
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:3012
+      - SEARCH_SERVICE_URL=http://search-service:3013
+      - LOCATION_SERVICE_URL=http://location-service:3014
+      - VERIFICATION_SERVICE_URL=http://verification-service:3015
+      - REPORT_SERVICE_URL=http://report-service:3016
+      - ADMIN_SERVICE_URL=http://admin-service:3017
+      - WEBHOOK_SERVICE_URL=http://webhook-service:3018
+      - SCHEDULER_SERVICE_URL=http://scheduler-service:3019
+      - WORKER_SERVICE_URL=http://worker-service:3020
+      - EMAIL_SERVICE_URL=http://email-service:3021
+      - REALTIME_SERVICE_URL=http://realtime-service:3022
+      - WORKFLOW_SERVICE_URL=http://workflow-engine:3023
+      - AUTOMATION_SERVICE_URL=http://automation-service:3024
+      - ADVERTISING_SERVICE_URL=http://advertising-service:3025
+      - PARTNERSHIP_SERVICE_URL=http://partnership-service:3026
     volumes:
       - ./backend:/app/backend
       - api-gateway-modules:/app/backend/services/api-gateway/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -278,10 +298,10 @@ services:
     working_dir: /app/backend/services/matching-service
     command: npm run dev
     ports:
-      - "3003:3003"
+      - "3004:3004"
     environment:
       - NODE_ENV=development
-      - PORT=3003
+      - PORT=3004
       - SERVICE_NAME=matching-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -293,7 +313,7 @@ services:
       - matching-service-modules:/app/backend/services/matching-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -309,10 +329,10 @@ services:
     working_dir: /app/backend/services/messaging-service
     command: npm run dev
     ports:
-      - "5000:5000"
+      - "3005:3005"
     environment:
       - NODE_ENV=development
-      - PORT=5000
+      - PORT=3005
       - SERVICE_NAME=messaging-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -324,7 +344,7 @@ services:
       - messaging-service-modules:/app/backend/services/messaging-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -340,10 +360,10 @@ services:
     working_dir: /app/backend/services/payment-service
     command: npm run dev
     ports:
-      - "3005:3005"
+      - "3007:3007"
     environment:
       - NODE_ENV=development
-      - PORT=3005
+      - PORT=3007
       - SERVICE_NAME=payment-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -355,7 +375,7 @@ services:
       - payment-service-modules:/app/backend/services/payment-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3007/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -371,10 +391,10 @@ services:
     working_dir: /app/backend/services/notification-service
     command: npm run dev
     ports:
-      - "3008:3008"
+      - "3006:3006"
     environment:
       - NODE_ENV=development
-      - PORT=3008
+      - PORT=3006
       - SERVICE_NAME=notification-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -386,7 +406,7 @@ services:
       - notification-service-modules:/app/backend/services/notification-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3008/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -402,10 +422,10 @@ services:
     working_dir: /app/backend/services/analytics-service
     command: npm run dev
     ports:
-      - "3007:3007"
+      - "3011:3011"
     environment:
       - NODE_ENV=development
-      - PORT=3007
+      - PORT=3011
       - SERVICE_NAME=analytics-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -417,7 +437,7 @@ services:
       - analytics-service-modules:/app/backend/services/analytics-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3007/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3011/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -433,10 +453,10 @@ services:
     working_dir: /app/backend/services/advertising-service
     command: npm run dev
     ports:
-      - "3011:3011"
+      - "3025:3025"
     environment:
       - NODE_ENV=development
-      - PORT=3011
+      - PORT=3025
       - SERVICE_NAME=advertising-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -448,7 +468,7 @@ services:
       - advertising-service-modules:/app/backend/services/advertising-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3011/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3025/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -485,17 +505,17 @@ services:
       start_period: 60s
     <<: *resource-limits
 
-  # Admin Service - Port 3010
+  # Admin Service - Port 3017
   admin-service:
     <<: *backend-common
     container_name: flamoral-admin-service
     working_dir: /app/backend/services/admin-service
     command: npm run dev
     ports:
-      - "3010:3010"
+      - "3017:3017"
     environment:
       - NODE_ENV=development
-      - PORT=3010
+      - PORT=3017
       - SERVICE_NAME=admin-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -507,24 +527,24 @@ services:
       - admin-service-modules:/app/backend/services/admin-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3017/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     <<: *resource-limits
 
-  # Moderation Service - Port 3012
+  # Moderation Service - Port 3010
   moderation-service:
     <<: *backend-common
     container_name: flamoral-moderation-service
     working_dir: /app/backend/services/moderation-service
     command: npm run dev
     ports:
-      - "3012:3012"
+      - "3010:3010"
     environment:
       - NODE_ENV=development
-      - PORT=3012
+      - PORT=3010
       - SERVICE_NAME=moderation-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -536,24 +556,24 @@ services:
       - moderation-service-modules:/app/backend/services/moderation-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3012/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     <<: *resource-limits
 
-  # Automation Service - Port 3013
+  # Automation Service - Port 3024
   automation-service:
     <<: *backend-common
     container_name: flamoral-automation-service
     working_dir: /app/backend/services/automation-service
     command: npm run dev
     ports:
-      - "3013:3013"
+      - "3024:3024"
     environment:
       - NODE_ENV=development
-      - PORT=3013
+      - PORT=3024
       - SERVICE_NAME=automation-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -565,24 +585,24 @@ services:
       - automation-service-modules:/app/backend/services/automation-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3013/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3024/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     <<: *resource-limits
 
-  # Partnership Service - Port 3014
+  # Partnership Service - Port 3026
   partnership-service:
     <<: *backend-common
     container_name: flamoral-partnership-service
     working_dir: /app/backend/services/partnership-service
     command: npm run dev
     ports:
-      - "3014:3014"
+      - "3026:3026"
     environment:
       - NODE_ENV=development
-      - PORT=3014
+      - PORT=3026
       - SERVICE_NAME=partnership-service
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
@@ -594,7 +614,7 @@ services:
       - partnership-service-modules:/app/backend/services/partnership-service/node_modules
       - shared-modules:/app/backend/shared/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3014/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3026/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -128,6 +128,14 @@ function getErrorCode(error: Error): string {
 }
 
 /**
+ * Error with optional HTTP status code property
+ */
+interface ErrorWithStatusCode extends Error {
+  statusCode?: number;
+  status?: number;
+}
+
+/**
  * Extract HTTP status code from error
  */
 function getStatusCode(error: Error): number {
@@ -136,14 +144,16 @@ function getStatusCode(error: Error): number {
     return error.httpStatus;
   }
 
+  const errorWithStatus = error as ErrorWithStatusCode;
+
   // Check for statusCode property (common pattern)
-  if ('statusCode' in error && typeof (error as any).statusCode === 'number') {
-    return (error as any).statusCode;
+  if ('statusCode' in error && typeof errorWithStatus.statusCode === 'number') {
+    return errorWithStatus.statusCode;
   }
 
   // Check for status property
-  if ('status' in error && typeof (error as any).status === 'number') {
-    return (error as any).status;
+  if ('status' in error && typeof errorWithStatus.status === 'number') {
+    return errorWithStatus.status;
   }
 
   // Infer from error code

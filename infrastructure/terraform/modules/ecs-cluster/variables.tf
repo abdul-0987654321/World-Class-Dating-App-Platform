@@ -99,3 +99,8 @@ variable "enable_service_discovery" {
 
 # Note: ALB security group rule should be created in environment config
 # to avoid circular dependency between ECS cluster and ALB modules
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block for restricting egress traffic"
+  type        = string
+}

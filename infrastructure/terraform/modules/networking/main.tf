@@ -22,7 +22,7 @@ locals {
   vpc_id = var.use_existing_vpc ? var.existing_vpc_id : aws_vpc.main[0].id
 
   # Use existing subnets or created ones
-  public_subnet_ids = var.use_existing_vpc ? var.existing_public_subnet_ids : aws_subnet.public[*].id
+  public_subnet_ids  = var.use_existing_vpc ? var.existing_public_subnet_ids : aws_subnet.public[*].id
   private_subnet_ids = var.use_existing_vpc ? var.existing_private_subnet_ids : aws_subnet.private[*].id
   database_subnet_ids = var.use_existing_vpc ? (
     length(var.existing_database_subnet_ids) > 0 ? var.existing_database_subnet_ids : var.existing_private_subnet_ids
@@ -355,12 +355,14 @@ resource "aws_security_group" "vpc_endpoints" {
     cidr_blocks = [var.vpc_cidr]
   }
 
+  # SECURITY HARDENED: VPC endpoints only need to communicate within VPC
+  # They are private endpoints - no internet access needed
   egress {
-    description = "All outbound"
+    description = "Outbound to VPC only - SECURITY HARDENED"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   tags = merge(var.tags, {

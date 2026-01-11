@@ -1,8 +1,8 @@
 # Flamoral Platform - System Architecture
 
-**Version:** 2.0.0
-**Last Updated:** 2026-01-03
-**Infrastructure:** AWS-Only (Terraform-Managed)
+**Version:** 2.1.0
+**Last Updated:** 2026-01-10
+**Infrastructure:** AWS ECS Fargate (Terraform-Managed)
 
 ---
 
@@ -23,11 +23,11 @@
 
 ## Executive Summary
 
-Flamoral is a production-grade microservices-based dating platform deployed exclusively on AWS infrastructure. The platform comprises 14+ backend services, web and mobile frontends, with full observability, CI/CD automation, and compliance controls.
+Flamoral is a production-grade microservices-based dating platform deployed exclusively on AWS infrastructure using **ECS Fargate** for serverless container orchestration. The platform comprises 27 backend services, web and mobile frontends, with full observability, CI/CD automation, and compliance controls.
 
 **Key Metrics:**
-- 14+ microservices
-- 200+ API endpoints
+- 27 microservices (ports 3000-3026)
+- 300+ API endpoints
 - 99.9% uptime SLA target
 - Sub-100ms API response times
 - Millions of concurrent users supported
@@ -35,9 +35,10 @@ Flamoral is a production-grade microservices-based dating platform deployed excl
 **Technology Stack:**
 - **Backend:** Node.js/TypeScript, Python 3.11
 - **Frontend:** React 18, React Native 0.73
-- **Databases:** Aurora PostgreSQL 15, ElastiCache Redis 7, DocumentDB
-- **Infrastructure:** AWS EKS, Terraform, Helm, Docker
+- **Databases:** Aurora PostgreSQL 15 (Serverless v2), ElastiCache Redis 7
+- **Infrastructure:** AWS ECS Fargate, Terraform, Docker
 - **CI/CD:** GitHub Actions, AWS CodePipeline
+- **Container Registry:** Amazon ECR (with image scanning)
 
 ---
 
@@ -78,27 +79,42 @@ Flamoral is a production-grade microservices-based dating platform deployed excl
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-|                              AMAZON EKS CLUSTER                                    |
-|  Namespace: flamoral-prod                                                          |
+|                              AMAZON ECS FARGATE CLUSTER                            |
+|  Cluster: flamoral-prod | Service Discovery: flamoral.local                       |
 |                                                                                    |
 |  +-------------+  +-------------+  +-------------+  +-------------+               |
-|  | API Gateway |  | Auth Service|  | User Service|  | Matching    |               |
-|  | Port: 4000  |  | Port: 3001  |  | Port: 3002  |  | Port: 3003  |               |
-|  +-------------+  +-------------+  +-------------+  +-------------+               |
-|                                                                                    |
-|  +-------------+  +-------------+  +-------------+  +-------------+               |
-|  | Messaging   |  | Payment     |  | Notification|  | Media       |               |
-|  | Port: 5000  |  | Port: 3005  |  | Port: 3008  |  | Port: 3009  |               |
+|  | API Gateway |  | Auth Service|  | User Service|  | Profile     |               |
+|  | Port: 3000  |  | Port: 3001  |  | Port: 3002  |  | Port: 3003  |               |
 |  +-------------+  +-------------+  +-------------+  +-------------+               |
 |                                                                                    |
 |  +-------------+  +-------------+  +-------------+  +-------------+               |
-|  | Admin       |  | Advertising |  | Moderation  |  | Analytics   |               |
-|  | Port: 3010  |  | Port: 3011  |  | Port: 3012  |  | Port: 3007  |               |
+|  | Matching    |  | Messaging   |  | Notification|  | Payment     |               |
+|  | Port: 3004  |  | Port: 3005  |  | Port: 3006  |  | Port: 3007  |               |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|                                                                                    |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|  | Subscription|  | Media       |  | Moderation  |  | Analytics   |               |
+|  | Port: 3008  |  | Port: 3009  |  | Port: 3010  |  | Port: 3011  |               |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|                                                                                    |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|  | Recommend   |  | Search      |  | Location    |  | Verification|               |
+|  | Port: 3012  |  | Port: 3013  |  | Port: 3014  |  | Port: 3015  |               |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|                                                                                    |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|  | Report      |  | Admin       |  | Webhook     |  | Scheduler   |               |
+|  | Port: 3016  |  | Port: 3017  |  | Port: 3018  |  | Port: 3019  |               |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|                                                                                    |
+|  +-------------+  +-------------+  +-------------+  +-------------+               |
+|  | Worker      |  | Email       |  | Realtime    |  | Workflow    |               |
+|  | Port: 3020  |  | Port: 3021  |  | Port: 3022  |  | Port: 3023  |               |
 |  +-------------+  +-------------+  +-------------+  +-------------+               |
 |                                                                                    |
 |  +-------------+  +-------------+  +-------------+                                |
-|  | Automation  |  | Partnership |  | AI Services |                                |
-|  | Port: 3013  |  | Port: 3014  |  | (Python)    |                                |
+|  | Automation  |  | Advertising |  | Partnership |                                |
+|  | Port: 3024  |  | Port: 3025  |  | Port: 3026  |                                |
 |  +-------------+  +-------------+  +-------------+                                |
 +-----------------------------------------------------------------------------------+
                                          |
@@ -230,24 +246,37 @@ User Request
 
 ## Microservices Architecture
 
-### Service Inventory
+### Service Inventory (27 Microservices)
 
 | Service | Port | Technology | Database | Queue | Purpose |
 |---------|------|------------|----------|-------|---------|
-| API Gateway | 4000 | NestJS | - | - | Request routing, auth |
-| Auth Service | 3001 | Express | PostgreSQL | - | Authentication |
-| User Service | 3002 | Express | PostgreSQL | SQS | User management |
-| Matching Service | 3003 | Express + Bull | PostgreSQL, Redis | SQS | Discovery, matching |
-| Messaging Service | 5000 | Express + Socket.io | PostgreSQL, DocumentDB | SQS | Real-time chat |
-| Payment Service | 3005 | Express | PostgreSQL | SQS | Payments |
-| Notification Service | 3008 | Express | PostgreSQL | SQS | Notifications |
+| API Gateway | 3000 | NestJS | - | - | Request routing, rate limiting |
+| Auth Service | 3001 | Express | PostgreSQL | - | Authentication, JWT, OAuth |
+| User Service | 3002 | Express | PostgreSQL | SQS | User account management |
+| Profile Service | 3003 | Express | PostgreSQL, S3 | SQS | Profile data, photos |
+| Matching Service | 3004 | Express + Bull | PostgreSQL, Redis | SQS | Discovery, matching |
+| Messaging Service | 3005 | Express + Socket.io | PostgreSQL, Redis | SQS | Real-time chat |
+| Notification Service | 3006 | Express | PostgreSQL | SQS | Push, email, SMS |
+| Payment Service | 3007 | Express | PostgreSQL | SQS | Stripe payments |
+| Subscription Service | 3008 | Express | PostgreSQL | SQS | Premium billing |
 | Media Service | 3009 | Express + Sharp | PostgreSQL, S3 | SQS | Media processing |
-| Admin Service | 3010 | Express | PostgreSQL | - | Administration |
-| Advertising Service | 3011 | Express | PostgreSQL | SQS | Ad management |
-| Moderation Service | 3012 | Express | PostgreSQL | SQS | Content moderation |
-| Analytics Service | 3007 | Express | PostgreSQL, ES | SQS | Analytics |
-| Automation Service | 3013 | NestJS + Bull | PostgreSQL, Redis | SQS | Automation |
-| Partnership Service | 3014 | Express | PostgreSQL | - | Partnerships |
+| Moderation Service | 3010 | Express | PostgreSQL | SQS | AI content moderation |
+| Analytics Service | 3011 | Express | PostgreSQL | SQS | Usage analytics |
+| Recommendation Service | 3012 | Express + ML | PostgreSQL, Redis | SQS | AI recommendations |
+| Search Service | 3013 | Express | PostgreSQL | SQS | User discovery |
+| Location Service | 3014 | Express | PostgreSQL, Redis | SQS | Geolocation |
+| Verification Service | 3015 | Express | PostgreSQL, S3 | SQS | Identity verification |
+| Report Service | 3016 | Express | PostgreSQL | SQS | User reports |
+| Admin Service | 3017 | Express | PostgreSQL | - | Administration |
+| Webhook Service | 3018 | Express | PostgreSQL | SQS | External integrations |
+| Scheduler Service | 3019 | Express | PostgreSQL, Redis | SQS | Scheduled jobs |
+| Worker Service | 3020 | Express | PostgreSQL, Redis | SQS | Background processing |
+| Email Service | 3021 | Express | PostgreSQL | SQS | Email delivery (SES) |
+| Realtime Service | 3022 | Express + Socket.io | Redis | - | WebSocket connections |
+| Workflow Engine | 3023 | Express | PostgreSQL, Redis | SQS | Business workflows |
+| Automation Service | 3024 | NestJS + Bull | PostgreSQL, Redis | SQS | Automated actions |
+| Advertising Service | 3025 | Express | PostgreSQL | SQS | Ad campaigns |
+| Partnership Service | 3026 | Express | PostgreSQL | - | Partner integrations |
 
 ### Service Dependencies
 
@@ -338,9 +367,10 @@ User A              WebSocket Gateway         Messaging Service         Document
 
 | Service | Resource | Purpose |
 |---------|----------|---------|
-| **Amazon EKS** | `flamoral-{env}-eks` | Kubernetes cluster management |
-| **EC2 (via EKS)** | Node groups | Container hosting |
-| **Amazon ECR** | `flamoral-{service}` | Docker image registry |
+| **Amazon ECS Fargate** | `flamoral-{env}-ecs` | Serverless container orchestration |
+| **AWS Fargate** | Task definitions | Serverless compute for containers |
+| **Amazon ECR** | `flamoral-{service}` | Docker image registry (27 repos) |
+| **AWS Cloud Map** | `flamoral.local` | Service discovery namespace |
 
 ### Database Services
 
@@ -362,7 +392,7 @@ User A              WebSocket Gateway         Messaging Service         Document
 | **Amazon S3** | `flamoral-{env}-media` | User photos, videos |
 | | `flamoral-{env}-backups` | Database backups |
 | | `flamoral-{env}-logs` | Application logs |
-| **AWS KMS** | `flamoral-{env}-eks-kms` | Encryption keys |
+| **AWS KMS** | `flamoral-{env}-ecs-kms` | Encryption keys |
 
 ### Networking & Content Delivery
 
@@ -433,21 +463,26 @@ infrastructure/terraform/
 |       +-- outputs.tf
 +-- modules/
     +-- networking/        # VPC, subnets, NAT, endpoints
-    +-- eks/               # EKS cluster, node groups
-    +-- rds/               # Aurora PostgreSQL
+    +-- ecs-cluster/       # ECS Fargate cluster
+    +-- ecs-alb/           # Application Load Balancer
+    +-- ecs-iam/           # ECS task roles and policies
+    +-- ecs-service/       # ECS service definitions
+    +-- rds/               # Aurora PostgreSQL Serverless v2
     +-- elasticache/       # Redis cluster
     +-- s3/                # S3 buckets
     +-- cognito/           # User pools
-    +-- ecr/               # Container registry
+    +-- ecr/               # Container registry (27 repos)
     +-- secrets/           # Secrets Manager
     +-- messaging/         # SQS, SNS
-    +-- monitoring/        # CloudWatch, X-Ray
+    +-- monitoring/        # CloudWatch, Container Insights
     +-- route53/           # DNS
     +-- acm/               # Certificates
     +-- cloudfront/        # CDN, WAF
     +-- ses/               # Email
     +-- budgets/           # Cost alerts
-    +-- cicd/              # CodePipeline
+    +-- cicd/              # GitHub Actions, CodePipeline
+    +-- ai-security/       # AI kill switch, SSM parameters
+    +-- cost-management/   # Savings Plans, scheduled scaling
 ```
 
 ### Module Descriptions
@@ -455,21 +490,26 @@ infrastructure/terraform/
 | Module | Resources Created | Key Variables |
 |--------|-------------------|---------------|
 | **networking** | VPC, subnets (public/private/db), NAT Gateway, VPC endpoints, flow logs | `vpc_cidr`, `availability_zones` |
-| **eks** | EKS cluster, managed node groups, OIDC provider, add-ons | `cluster_version`, `node_groups` |
-| **rds** | Aurora cluster, instances, parameter groups, security groups | `engine_version`, `serverless_min/max_capacity` |
+| **ecs-cluster** | ECS cluster, Fargate capacity providers, service discovery namespace, KMS key | `enable_container_insights`, `enable_fargate_spot` |
+| **ecs-alb** | Application Load Balancer, target groups, listener rules, security groups | `services`, `enable_https` |
+| **ecs-iam** | Task execution roles, task roles per service, IAM policies | `service_permissions` |
+| **ecs-service** | ECS services, task definitions, auto-scaling | `cpu`, `memory`, `desired_count` |
+| **rds** | Aurora Serverless v2 cluster, parameter groups, security groups | `serverless_min/max_capacity` |
 | **elasticache** | Redis replication group, subnet group, security group | `node_type`, `num_cache_clusters` |
 | **s3** | S3 buckets, encryption, lifecycle rules, policies | `buckets`, `versioning_enabled` |
 | **cognito** | User pool, identity pool, clients | `mfa_configuration`, `password_policy` |
-| **ecr** | ECR repositories, lifecycle policies | `repositories`, `scan_on_push` |
-| **secrets** | Secrets Manager secrets, IAM roles | `secrets`, `rotation_days` |
+| **ecr** | ECR repositories (27), lifecycle policies, image scanning | `repositories`, `scan_on_push` |
+| **secrets** | Secrets Manager secrets, rotation configuration | `secrets`, `rotation_days` |
 | **messaging** | SQS queues, SNS topics, subscriptions, DLQ | `queues`, `topics` |
-| **monitoring** | CloudWatch log groups, dashboards, alarms | `log_retention_days`, `alarm_actions` |
+| **monitoring** | CloudWatch log groups, Container Insights, dashboards, alarms | `log_retention_days`, `alarm_actions` |
 | **route53** | Hosted zones, DNS records, health checks | `domain_name`, `create_www_record` |
 | **acm** | SSL certificates, DNS validation | `domain_name`, `subject_alternative_names` |
 | **cloudfront** | Distributions, origin access, WAF rules | `domain_names`, `price_class` |
 | **ses** | Domain identity, DKIM, DMARC | `domain`, `mail_from_subdomain` |
 | **budgets** | Budget alerts, cost thresholds | `monthly_budget_amount` |
-| **cicd** | CodePipeline, CodeBuild, EventBridge | `github_repository`, `enable_nightly_build` |
+| **cicd** | GitHub Actions OIDC, CodePipeline, EventBridge | `github_repository`, `enable_nightly_build` |
+| **ai-security** | SSM parameters for AI kill switches, circuit breakers | `services`, `default_enabled` |
+| **cost-management** | Scheduled scaling, Savings Plans recommendations | `scaling_schedules` |
 
 ---
 
@@ -581,12 +621,12 @@ Client              CloudFront           API Gateway          Auth Service      
 
 | Component | Min | Max | Scale Metric |
 |-----------|-----|-----|--------------|
-| EKS Nodes (System) | 2 | 4 | CPU 70% |
-| EKS Nodes (App) | 0 | 10 | CPU 70% |
-| EKS Nodes (Spot) | 0 | 10 | CPU 70% |
-| API Gateway Pods | 3 | 20 | CPU 70% |
-| Messaging Pods | 3 | 20 | CPU 60% |
-| Aurora (Serverless) | 0.5 ACU | 16 ACU | Load |
+| ECS Fargate Tasks (API Gateway) | 2 | 20 | CPU 70% |
+| ECS Fargate Tasks (Matching) | 2 | 15 | CPU 70% |
+| ECS Fargate Tasks (Messaging) | 2 | 20 | CPU 60% |
+| ECS Fargate Tasks (Other Services) | 1 | 10 | CPU 70% |
+| Aurora Serverless v2 | 2 ACU | 16 ACU | Load |
+| ElastiCache Redis | 2 nodes | 2 nodes | Manual |
 
 ### Performance Targets
 
@@ -647,5 +687,7 @@ Primary: us-east-1                    DR: us-west-2
 
 ---
 
-*Document maintained by the Platform Engineering team.*
+*Document Version: 2.1.0 | Last Updated: 2026-01-10*
+*Infrastructure: AWS ECS Fargate (27 microservices, ports 3000-3026)*
+*Maintained by the Platform Engineering team.*
 *For questions, contact: platform@flamoral.com*

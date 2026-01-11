@@ -18,13 +18,14 @@ variable "aws_region" {
 }
 
 variable "vpc_id" {
-variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
   description = "ID of the VPC"
-variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
   type        = string
-variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
 }
-variable "vpc_cidr" {  description = "VPC CIDR block for security group egress rules"  type        = string}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block for security group egress rules"
+  type        = string
+}
 
 variable "db_subnet_group_name" {
   description = "Name of the DB subnet group"
@@ -242,14 +243,14 @@ variable "kms_key_arn" {
   type        = string
 }
 
-variable "eks_security_group_id" {
-  description = "Security group ID of EKS nodes"
+variable "ecs_security_group_id" {
+  description = "Security group ID of ECS tasks"
   type        = string
   default     = null
 }
 
-variable "create_eks_security_group_rule" {
-  description = "Create security group rule for EKS access (set to false on initial deployment)"
+variable "create_ecs_security_group_rule" {
+  description = "Create security group rule for ECS access (set to false on initial deployment)"
   type        = bool
   default     = false
 }

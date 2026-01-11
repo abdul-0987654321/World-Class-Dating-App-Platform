@@ -11,6 +11,18 @@ import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 
 /**
+ * JWT Token Payload interface
+ */
+interface JwtTokenPayload {
+  userId?: string;
+  id?: string;
+  sub?: string;
+  email?: string;
+  role?: 'user' | 'admin' | 'moderator' | 'support';
+  isAdmin?: boolean;
+}
+
+/**
  * Get JWT secret with validation
  */
 const getJwtSecret = (): string => {
@@ -77,13 +89,13 @@ export const authMiddleware = async (
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     try {
-      const decoded = jwt.verify(token, getJwtSecret()) as any;
+      const decoded = jwt.verify(token, getJwtSecret()) as JwtTokenPayload;
 
       // Attach user to request
       req.user = {
-        id: decoded.userId || decoded.id || decoded.sub,
-        userId: decoded.userId || decoded.id || decoded.sub,
-        email: decoded.email,
+        id: decoded.userId || decoded.id || decoded.sub || '',
+        userId: decoded.userId || decoded.id || decoded.sub || '',
+        email: decoded.email || '',
         role: decoded.role,
         isAdmin: decoded.role === 'admin' || decoded.isAdmin === true,
       };
@@ -245,11 +257,11 @@ export const optionalAuth = async (
       const token = authHeader.substring(7);
 
       try {
-        const decoded = jwt.verify(token, getJwtSecret()) as any;
+        const decoded = jwt.verify(token, getJwtSecret()) as JwtTokenPayload;
         req.user = {
-          id: decoded.userId || decoded.id || decoded.sub,
-          userId: decoded.userId || decoded.id || decoded.sub,
-          email: decoded.email,
+          id: decoded.userId || decoded.id || decoded.sub || '',
+          userId: decoded.userId || decoded.id || decoded.sub || '',
+          email: decoded.email || '',
           role: decoded.role,
           isAdmin: decoded.role === 'admin' || decoded.isAdmin === true,
         };
@@ -261,8 +273,9 @@ export const optionalAuth = async (
     }
 
     next();
-  } catch (error: any) {
-    logger.error('Optional authentication error', { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Optional authentication error', { error: errorMessage });
     next(); // Continue even if there's an error
   }
 };

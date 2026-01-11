@@ -188,23 +188,23 @@ variable "alarm_period" {
 variable "alarm_thresholds" {
   description = "Thresholds for various alarms"
   type = object({
-    cpu_utilization_high      = optional(number, 90)
-    cpu_utilization_warning   = optional(number, 70)
-    connection_count_high     = optional(number, 500)
-    connection_count_warning  = optional(number, 400)
-    volume_bytes_used_high    = optional(number, 107374182400) # 100 GB
-    freeable_memory_low       = optional(number, 536870912)    # 512 MB
-    free_local_storage_low    = optional(number, 5368709120)   # 5 GB
-    replica_lag_high          = optional(number, 100)
-    replica_lag_warning       = optional(number, 50)
-    binlog_replica_lag_high   = optional(number, 300)
-    deadlocks_threshold       = optional(number, 1)
-    read_latency_high         = optional(number, 0.02)
-    write_latency_high        = optional(number, 0.1)
-    disk_queue_depth_high     = optional(number, 64)
-    serverless_capacity_high  = optional(number, 90)
-    serverless_max_capacity   = optional(number, 16)
-    acu_utilization_high      = optional(number, 90)
+    cpu_utilization_high     = optional(number, 90)
+    cpu_utilization_warning  = optional(number, 70)
+    connection_count_high    = optional(number, 500)
+    connection_count_warning = optional(number, 400)
+    volume_bytes_used_high   = optional(number, 107374182400) # 100 GB
+    freeable_memory_low      = optional(number, 536870912)    # 512 MB
+    free_local_storage_low   = optional(number, 5368709120)   # 5 GB
+    replica_lag_high         = optional(number, 100)
+    replica_lag_warning      = optional(number, 50)
+    binlog_replica_lag_high  = optional(number, 300)
+    deadlocks_threshold      = optional(number, 1)
+    read_latency_high        = optional(number, 0.02)
+    write_latency_high       = optional(number, 0.1)
+    disk_queue_depth_high    = optional(number, 64)
+    serverless_capacity_high = optional(number, 90)
+    serverless_max_capacity  = optional(number, 16)
+    acu_utilization_high     = optional(number, 90)
   })
   default = {}
 }

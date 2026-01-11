@@ -81,16 +81,16 @@ resource "aws_security_group" "redis" {
   }
 }
 
-resource "aws_security_group_rule" "redis_ingress_eks" {
-  count = var.create_eks_security_group_rule ? 1 : 0
+resource "aws_security_group_rule" "redis_ingress_ecs" {
+  count = var.create_ecs_security_group_rule ? 1 : 0
 
   type                     = "ingress"
   from_port                = var.port
   to_port                  = var.port
   protocol                 = "tcp"
-  source_security_group_id = var.eks_security_group_id
+  source_security_group_id = var.ecs_security_group_id
   security_group_id        = aws_security_group.redis.id
-  description              = "Allow Redis access from EKS nodes"
+  description              = "Allow Redis access from ECS tasks"
 }
 
 resource "aws_security_group_rule" "redis_ingress_cidr" {

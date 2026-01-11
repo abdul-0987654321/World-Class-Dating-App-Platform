@@ -162,7 +162,56 @@ export interface UserSubscription {
   cancel_at_period_end: boolean;
   trial_start?: Date;
   trial_end?: Date;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   created_at: Date;
   updated_at: Date;
+}
+
+/**
+ * JWT Token Payload interface for authentication
+ */
+export interface JwtTokenPayload {
+  userId?: string;
+  id?: string;
+  sub?: string;
+  email?: string;
+  isAdmin?: boolean;
+  isAdvertiser?: boolean;
+  roles?: string[];
+  tier?: string;
+  role?: 'user' | 'admin' | 'moderator' | 'support';
+  iat?: number;
+  exp?: number;
+}
+
+/**
+ * Extended Express Request with authenticated user
+ */
+export interface AuthenticatedUser {
+  id: string;
+  userId: string;
+  email?: string;
+  isAdmin?: boolean;
+  isAdvertiser?: boolean;
+  roles?: string[];
+  tier?: string;
+  subscriptionTier?: string;
+  isPremium?: boolean;
+}
+
+/**
+ * Stripe subscription with typed period properties
+ * Use this when accessing current_period_start/end from Stripe subscriptions
+ */
+export interface StripeSubscriptionWithPeriod extends Stripe.Subscription {
+  current_period_start: number;
+  current_period_end: number;
+}
+
+/**
+ * Stripe invoice with subscription reference
+ */
+export interface StripeInvoiceWithSubscription extends Stripe.Invoice {
+  subscription?: string | Stripe.Subscription | null;
+  payment_intent?: string | Stripe.PaymentIntent | null;
 }

@@ -10,6 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
 interface GamificationData {
   experience: {
     currentLevel: number;
@@ -253,7 +255,7 @@ export const GamificationDashboard: React.FC = () => {
                     { backgroundColor: badge.iconColor + '20' },
                   ]}
                 >
-                  <Ionicons name={badge.iconName as any} size={32} color={badge.iconColor} />
+                  <Ionicons name={badge.iconName as IoniconsName} size={32} color={badge.iconColor} />
                 </View>
                 <Text style={styles.badgeName}>{badge.name}</Text>
               </View>

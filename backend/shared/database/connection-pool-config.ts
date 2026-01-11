@@ -283,37 +283,51 @@ export async function gracefulShutdown(knex: Knex, timeoutMs: number = 5000): Pr
 }
 
 /**
+ * Valid environment type
+ */
+type Environment = 'development' | 'test' | 'staging' | 'production';
+
+/**
+ * Helper to validate and normalize environment string
+ */
+function validateEnvironment(env: string): Environment {
+  const validEnvs: Environment[] = ['development', 'test', 'staging', 'production'];
+  const normalizedEnv = env.toLowerCase() as Environment;
+  return validEnvs.includes(normalizedEnv) ? normalizedEnv : 'development';
+}
+
+/**
  * Export default configurations for each service type
  */
 export const ConnectionPoolPresets = {
   // User Service - High traffic
   userService: (env: string) =>
-    getOptimizedKnexConfig(env as any, 'high-traffic', process.env.DB_NAME || 'flamoral_users'),
+    getOptimizedKnexConfig(validateEnvironment(env), 'high-traffic', process.env.DB_NAME || 'flamoral_users'),
 
   // Matching Service - High traffic
   matchingService: (env: string) =>
-    getOptimizedKnexConfig(env as any, 'high-traffic', process.env.DB_NAME || 'flamoral_matching'),
+    getOptimizedKnexConfig(validateEnvironment(env), 'high-traffic', process.env.DB_NAME || 'flamoral_matching'),
 
   // Payment Service - Medium traffic
   paymentService: (env: string) =>
     getOptimizedKnexConfig(
-      env as any,
+      validateEnvironment(env),
       'medium-traffic',
       process.env.DB_NAME || 'flamoral_payments'
     ),
 
   // Media Service - Medium traffic
   mediaService: (env: string) =>
-    getOptimizedKnexConfig(env as any, 'medium-traffic', process.env.DB_NAME || 'flamoral_media'),
+    getOptimizedKnexConfig(validateEnvironment(env), 'medium-traffic', process.env.DB_NAME || 'flamoral_media'),
 
   // Analytics Service - Low traffic
   analyticsService: (env: string) =>
-    getOptimizedKnexConfig(env as any, 'low-traffic', process.env.DB_NAME || 'flamoral_analytics'),
+    getOptimizedKnexConfig(validateEnvironment(env), 'low-traffic', process.env.DB_NAME || 'flamoral_analytics'),
 
   // Notification Service - Medium traffic
   notificationService: (env: string) =>
     getOptimizedKnexConfig(
-      env as any,
+      validateEnvironment(env),
       'medium-traffic',
       process.env.DB_NAME || 'flamoral_notifications'
     ),

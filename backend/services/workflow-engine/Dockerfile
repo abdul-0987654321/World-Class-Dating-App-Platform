@@ -81,12 +81,12 @@ USER nodejs
 
 # Environment
 ENV NODE_ENV=production
-ENV PORT=3011
+ENV PORT=3023
 
-EXPOSE 3011
+EXPOSE 3023
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3011/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3023/health || exit 1
 
 CMD ["node", "dist/main.js"]

@@ -6,6 +6,19 @@ import jwt from 'jsonwebtoken';
 import logger from '../../utils/logger';
 
 /**
+ * JWT Token Payload interface
+ */
+interface JwtTokenPayload {
+  userId?: string;
+  id?: string;
+  sub?: string;
+  email?: string;
+  isAdmin?: boolean;
+  isAdvertiser?: boolean;
+  roles?: string[];
+}
+
+/**
  * Extended Request interface with authenticated user data
  */
 export interface AuthenticatedRequest extends Request {
@@ -56,12 +69,12 @@ export const authenticateJWT = (
     }
 
     try {
-      const decoded = jwt.verify(token, secret) as any;
+      const decoded = jwt.verify(token, secret) as JwtTokenPayload;
 
       req.user = {
-        id: decoded.userId || decoded.id || decoded.sub,
-        userId: decoded.userId || decoded.id || decoded.sub,
-        email: decoded.email,
+        id: decoded.userId || decoded.id || decoded.sub || '',
+        userId: decoded.userId || decoded.id || decoded.sub || '',
+        email: decoded.email || '',
         isAdmin: decoded.isAdmin || decoded.roles?.includes('admin') || false,
         isAdvertiser: decoded.isAdvertiser || decoded.roles?.includes('advertiser') || false,
         roles: decoded.roles || [],
@@ -116,12 +129,12 @@ export const optionalAuth = (
     }
 
     try {
-      const decoded = jwt.verify(token, secret) as any;
+      const decoded = jwt.verify(token, secret) as JwtTokenPayload;
 
       req.user = {
-        id: decoded.userId || decoded.id || decoded.sub,
-        userId: decoded.userId || decoded.id || decoded.sub,
-        email: decoded.email,
+        id: decoded.userId || decoded.id || decoded.sub || '',
+        userId: decoded.userId || decoded.id || decoded.sub || '',
+        email: decoded.email || '',
         isAdmin: decoded.isAdmin || decoded.roles?.includes('admin') || false,
         isAdvertiser: decoded.isAdvertiser || decoded.roles?.includes('advertiser') || false,
         roles: decoded.roles || [],

@@ -3,6 +3,10 @@ import Stripe from 'stripe';
 
 import { NotificationServiceClient } from '../../infrastructure/clients/notification-service.client';
 import { UserServiceClient } from '../../infrastructure/clients/user-service.client';
+import {
+  StripeSubscriptionWithPeriod,
+  StripeInvoiceWithSubscription,
+} from '../../types/stripe-events.types';
 
 const logger = createLogger('payment-service');
 
@@ -451,7 +455,7 @@ export class PaymentService {
         tier,
         tierName: tierDisplayNames[tier] || 'Free',
         subscriptionId: subscription.id,
-        currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
+        currentPeriodEnd: new Date(((subscription as StripeSubscriptionWithPeriod).current_period_end || 0) * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         entitlements,
       };
@@ -657,7 +661,7 @@ export class PaymentService {
         tier: this.userServiceClient.mapTierName(tier || 'free'),
         stripeSubscriptionId: subscription.id,
         status,
-        currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
+        currentPeriodEnd: new Date(((subscription as StripeSubscriptionWithPeriod).current_period_end || 0) * 1000),
       });
 
       // Get tier display name
@@ -721,11 +725,12 @@ export class PaymentService {
     logger.info('Invoice payment succeeded:', invoice.id);
 
     try {
-      if (!(invoice as any).subscription) {
+      const typedInvoice = invoice as StripeInvoiceWithSubscription;
+      if (!typedInvoice.subscription) {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve((invoice as any).subscription as string);
+      const subscription = await this.stripe.subscriptions.retrieve(typedInvoice.subscription as string);
 
       const userId = subscription.metadata.userId;
 
@@ -750,11 +755,12 @@ export class PaymentService {
     logger.info('Invoice payment failed:', invoice.id);
 
     try {
-      if (!(invoice as any).subscription) {
+      const typedInvoice = invoice as StripeInvoiceWithSubscription;
+      if (!typedInvoice.subscription) {
         return;
       }
 
-      const subscription = await this.stripe.subscriptions.retrieve((invoice as any).subscription as string);
+      const subscription = await this.stripe.subscriptions.retrieve(typedInvoice.subscription as string);
 
       const userId = subscription.metadata.userId;
 

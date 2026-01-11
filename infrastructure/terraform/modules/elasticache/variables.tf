@@ -13,22 +13,11 @@ variable "environment" {
 }
 
 variable "vpc_id" {
-nvariable "vpc_cidr" {
-  description = "VPC CIDR block for security group egress rules"
-  type        = string
-}
   description = "ID of the VPC"
-nvariable "vpc_cidr" {
-  description = "VPC CIDR block for security group egress rules"
   type        = string
 }
-  type        = string
-nvariable "vpc_cidr" {
-  description = "VPC CIDR block for security group egress rules"
-  type        = string
-}
-}
-nvariable "vpc_cidr" {
+
+variable "vpc_cidr" {
   description = "VPC CIDR block for security group egress rules"
   type        = string
 }
@@ -198,14 +187,14 @@ variable "maintenance_window" {
 # Security
 ################################################################################
 
-variable "eks_security_group_id" {
-  description = "Security group ID of EKS nodes"
+variable "ecs_security_group_id" {
+  description = "Security group ID of ECS tasks"
   type        = string
   default     = null
 }
 
-variable "create_eks_security_group_rule" {
-  description = "Create security group rule for EKS access (set to false on initial deployment)"
+variable "create_ecs_security_group_rule" {
+  description = "Create security group rule for ECS access (set to false on initial deployment)"
   type        = bool
   default     = false
 }
