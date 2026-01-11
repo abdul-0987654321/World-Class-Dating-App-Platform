@@ -12,7 +12,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![AWS](https://img.shields.io/badge/AWS-ECS_Fargate-FF9900.svg)](https://aws.amazon.com/)
 
-[Website](https://flamoral.com) | [API Docs](docs/API_DOCUMENTATION.md) | [Architecture](docs/ARCHITECTURE.md) | [AI Security](docs/ai-security/)
+[Website](https://flamoral.com) | [API Docs](docs/API.md) | [Architecture](docs/ARCHITECTURE.md) | [AI Security](docs/ai-security/)
 
 </div>
 
@@ -51,6 +51,7 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 | Matching Service | 3003 | Discovery, swipes, matches |
 | Messaging Service | 5000 | Real-time chat |
 | Payment Service | 3005 | Subscriptions, coins |
+| Analytics Service | 3007 | Usage analytics |
 | Notification Service | 3008 | Push, email, SMS |
 | Media Service | 3009 | Photo/video processing |
 | Admin Service | 3010 | Admin dashboard |

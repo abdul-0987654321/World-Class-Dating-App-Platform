@@ -10,6 +10,8 @@ The backend provides three types of servers running on different ports:
 - **GraphQL** (Port 4000): GraphQL API for flexible data queries
 - **WebSocket** (Port 5000): Real-time communication for chat and notifications
 
+> **Note:** Port 4000 is the API Gateway (main entry point for external clients). Ports 3000-3022 are internal service ports used for inter-service communication.
+
 ## Structure
 
 ```

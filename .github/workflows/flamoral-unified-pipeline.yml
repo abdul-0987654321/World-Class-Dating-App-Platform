@@ -264,7 +264,7 @@ jobs:
       - name: Run CodeQL Analysis
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript, typescript
+          languages: javascript-typescript
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
@@ -276,7 +276,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -326,7 +326,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run Snyk security scan
-        uses: snyk/actions/node@master
+        uses: snyk/actions/node@0.4.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -522,7 +522,7 @@ jobs:
           soft_fail: true
 
       - name: Run Trivy IaC scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'config'
           scan-ref: 'infrastructure/terraform'
@@ -745,7 +745,7 @@ jobs:
 
       - name: Scan Docker image
         if: steps.docker_build.outcome == 'success'
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.docker_build.outputs.local_tag }}
           format: 'sarif'
@@ -892,7 +892,7 @@ jobs:
 
       - name: Scan Docker image
         if: steps.docker_build.outcome == 'success'
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.docker_build.outputs.local_tag }}
           format: 'sarif'
@@ -980,7 +980,7 @@ jobs:
               DIGESTS_JSON=$(echo "$DIGESTS_JSON" | jq --arg s "$SERVICE" --arg u "$IMAGE_URI" '. + {($s): $u}')
             fi
           done
-          echo "digests_json=$(echo $DIGESTS_JSON | jq -c .)" >> $GITHUB_OUTPUT
+          echo "digests_json=$(echo "$DIGESTS_JSON" | jq -c .)" >> $GITHUB_OUTPUT
 
   build-frontend:
     name: Build Frontend
