@@ -10,7 +10,7 @@ export const Colors = {
   primaryLight: '#ff5a94',
 
   // Secondary
-  secondary: '#ff8ab0',
+  secondary: '#ffb8d1',
   secondaryDark: '#d91a5c',
   secondaryLight: '#ffb8d1',
 
@@ -29,9 +29,9 @@ export const Colors = {
 
   // Semantic — Master Prompt Specification
   success: '#00d9a5',        // Emerald Green
-  warning: '#FF9500',
-  error: '#FF3B30',
-  info: '#007AFF',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
 
   // Background — Midnight Blue base
   background: '#1a1a2e',     // Midnight Blue
@@ -94,13 +94,13 @@ export const Typography = {
 export const Spacing = {
   xs: 4,
   sm: 8,
-  md: 12,
+  md: 16,
   base: 16,
-  lg: 20,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 40,
-  '4xl': 48,
+  lg: 24,
+  xl: 32,
+  '2xl': 40,
+  '3xl': 48,
+  '4xl': 56,
   '5xl': 64,
 };
 

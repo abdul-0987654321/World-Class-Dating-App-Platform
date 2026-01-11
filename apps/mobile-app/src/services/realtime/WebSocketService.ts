@@ -48,6 +48,39 @@ export interface PresenceEvent {
   lastSeen?: string;
 }
 
+export interface CoinsUpdatedEvent {
+  userId: string;
+  balance: number;
+  change: number;
+  reason: string;
+}
+
+export interface StreakUpdatedEvent {
+  userId: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastCheckIn: string;
+}
+
+export interface RewardClaimedEvent {
+  userId: string;
+  rewardId: string;
+  rewardType: string;
+  value: number;
+  claimedAt: string;
+}
+
+export interface RewardMilestoneEvent {
+  userId: string;
+  milestoneId: string;
+  milestoneName: string;
+  reward: {
+    type: string;
+    value: number;
+  };
+  achievedAt: string;
+}
+
 type EventCallback<T> = (data: T) => void;
 
 class WebSocketService {
@@ -170,6 +203,27 @@ class WebSocketService {
       devLog('[WebSocket] New match:', data);
       this.emit('match:new', data);
     });
+
+    // Reward/Gamification events
+    this.socket.on('coins:updated', (data: CoinsUpdatedEvent) => {
+      devLog('[WebSocket] Coins updated:', data);
+      this.emit('coins:updated', data);
+    });
+
+    this.socket.on('streak:updated', (data: StreakUpdatedEvent) => {
+      devLog('[WebSocket] Streak updated:', data);
+      this.emit('streak:updated', data);
+    });
+
+    this.socket.on('reward:claimed', (data: RewardClaimedEvent) => {
+      devLog('[WebSocket] Reward claimed:', data);
+      this.emit('reward:claimed', data);
+    });
+
+    this.socket.on('reward:milestone', (data: RewardMilestoneEvent) => {
+      devLog('[WebSocket] Reward milestone:', data);
+      this.emit('reward:milestone', data);
+    });
   }
 
   // Send message
@@ -239,6 +293,39 @@ class WebSocketService {
 
     devLog('[WebSocket] Updating presence:', status);
     this.socket.emit('presence:update', { status });
+  }
+
+  // Subscribe to reward events
+  subscribeToRewards(): void {
+    if (!this.socket?.connected) {
+      console.warn('[WebSocket] Cannot subscribe to rewards - not connected');
+      return;
+    }
+
+    devLog('[WebSocket] Subscribing to rewards');
+    this.socket.emit('reward:subscribe');
+  }
+
+  // Unsubscribe from reward events
+  unsubscribeFromRewards(): void {
+    if (!this.socket?.connected) {
+      console.warn('[WebSocket] Cannot unsubscribe from rewards - not connected');
+      return;
+    }
+
+    devLog('[WebSocket] Unsubscribing from rewards');
+    this.socket.emit('reward:unsubscribe');
+  }
+
+  // Claim a reward
+  claimReward(rewardId: string): void {
+    if (!this.socket?.connected) {
+      console.warn('[WebSocket] Cannot claim reward - not connected');
+      return;
+    }
+
+    devLog('[WebSocket] Claiming reward:', rewardId);
+    this.socket.emit('reward:claim', { rewardId });
   }
 
   // Event subscription

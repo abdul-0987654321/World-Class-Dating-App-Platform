@@ -85,7 +85,7 @@ class SocketService {
       });
 
       // Message handlers
-      this.socket.on('new_message', (message) => {
+      this.socket.on('message:new', (message) => {
         const handlers = this.messageHandlers.get(message.conversationId) || [];
         handlers.forEach(handler => handler(message));
 
@@ -94,11 +94,11 @@ class SocketService {
         globalHandlers.forEach(handler => handler(message));
       });
 
-      this.socket.on('message_delivered', () => {
+      this.socket.on('message:delivered', () => {
         // Message delivered
       });
 
-      this.socket.on('message_read', () => {
+      this.socket.on('message:read', () => {
         // Message read
       });
 
@@ -108,16 +108,16 @@ class SocketService {
       });
 
       // Online status handlers
-      this.socket.on('user_online', (data) => {
+      this.socket.on('presence:online', (data) => {
         this.onlineStatusHandlers.forEach(handler => handler({ ...data, isOnline: true }));
       });
 
-      this.socket.on('user_offline', (data) => {
+      this.socket.on('presence:offline', (data) => {
         this.onlineStatusHandlers.forEach(handler => handler({ ...data, isOnline: false }));
       });
 
       // Match handlers
-      this.socket.on('new_match', (match) => {
+      this.socket.on('match:new', (match) => {
         this.matchHandlers.forEach(handler => handler(match));
       });
 
@@ -167,21 +167,21 @@ class SocketService {
   // Join a conversation room
   joinConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      this.socket.emit('join_conversation', { conversationId });
+      this.socket.emit('conversation:join', { conversationId });
     }
   }
 
   // Leave a conversation room
   leaveConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      this.socket.emit('leave_conversation', { conversationId });
+      this.socket.emit('conversation:leave', { conversationId });
     }
   }
 
   // Send a message
   sendMessage(conversationId: string, content: string, type: string = 'text'): void {
     if (this.socket?.connected) {
-      this.socket.emit('send_message', {
+      this.socket.emit('message:send', {
         conversationId,
         content,
         type,
@@ -200,7 +200,7 @@ class SocketService {
   // Mark messages as read
   markAsRead(conversationId: string, messageIds: string[]): void {
     if (this.socket?.connected) {
-      this.socket.emit('mark_read', { conversationId, messageIds });
+      this.socket.emit('message:markRead', { conversationId, messageIds });
     }
   }
 

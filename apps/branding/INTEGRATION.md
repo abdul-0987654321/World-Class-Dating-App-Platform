@@ -28,7 +28,7 @@ import { colors, gradients, spacing, typography } from '@branding/ui-kit/tokens'
 import { FlamoralButton, ProfileCard } from '@branding/ui-kit/web';
 
 // React Native Components
-import { FButton, ProfileCard } from '@branding/ui-kit/rn';
+import { Button, ProfileCard } from '@branding/ui-kit/rn';
 
 // Icons
 import { FlameHeart, CrownPremium, VerifiedBadge } from '@branding/icons/react';
@@ -55,7 +55,7 @@ apps/branding/
 │   │   └── Card.css                # Card styles
 │   └── rn/
 │       ├── gradients.ts            # RN gradient configs
-│       ├── FButton.tsx             # RN button component
+│       ├── Button.tsx              # RN button component
 │       └── ProfileCard.tsx         # RN profile card
 │
 ├── gradients/
@@ -239,19 +239,19 @@ import '@branding/ui-kit/web/Card.css';
 ### React Native Buttons
 
 ```tsx
-import { FButton, PrimaryButton } from '@branding/ui-kit/rn/FButton';
+import { Button, PrimaryButton } from '@branding/ui-kit/rn/Button';
 
-<FButton variant="primary" size="lg" fullWidth onPress={handlePress}>
+<Button variant="primary" size="lg" fullWidth onPress={handlePress}>
   Continue
-</FButton>
+</Button>
 
-<FButton
+<Button
   variant="secondary"
   loading={isLoading}
   leftIcon={<CrownPremium size={18} color="#D9A657" />}
 >
   Upgrade to Premium
-</FButton>
+</Button>
 ```
 
 ### React Native Profile Card

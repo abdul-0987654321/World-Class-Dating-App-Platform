@@ -33,12 +33,12 @@ const LinearGradient: React.FC<{
 // Types
 // ============================================
 
-export type FButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
-export type FButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface FButtonProps extends Omit<TouchableOpacityProps, 'style'> {
-  variant?: FButtonVariant;
-  size?: FButtonSize;
+export interface ButtonProps extends Omit<TouchableOpacityProps, 'style'> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   fullWidth?: boolean;
   loading?: boolean;
   leftIcon?: React.ReactNode;
@@ -91,7 +91,7 @@ const sizeConfig = {
 // Component
 // ============================================
 
-export const FButton: React.FC<FButtonProps> = ({
+export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
@@ -228,16 +228,16 @@ export const FButton: React.FC<FButtonProps> = ({
 // Convenience Components
 // ============================================
 
-export const PrimaryButton: React.FC<Omit<FButtonProps, 'variant'>> = (props) => (
-  <FButton variant="primary" {...props} />
+export const PrimaryButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="primary" {...props} />
 );
 
-export const SecondaryButton: React.FC<Omit<FButtonProps, 'variant'>> = (props) => (
-  <FButton variant="secondary" {...props} />
+export const SecondaryButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="secondary" {...props} />
 );
 
-export const GhostButton: React.FC<Omit<FButtonProps, 'variant'>> = (props) => (
-  <FButton variant="ghost" {...props} />
+export const GhostButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="ghost" {...props} />
 );
 
 // ============================================
@@ -265,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FButton;
+export default Button;
