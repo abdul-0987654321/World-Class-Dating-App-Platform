@@ -154,9 +154,8 @@ export default {
     fallbackToCacheTimeout: 0,
     url: EAS_PROJECT_ID ? `https://u.expo.dev/${EAS_PROJECT_ID}` : undefined,
   },
-  runtimeVersion: {
-    policy: 'appVersion',
-  },
+  // For bare workflow, runtime version must be a string, not a policy
+  runtimeVersion: '1.0.0',
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.flamoral.com',
     authIssuer: process.env.EXPO_PUBLIC_AUTH_ISSUER || 'https://auth.flamoral.com',
