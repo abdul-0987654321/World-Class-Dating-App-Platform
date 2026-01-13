@@ -72,8 +72,8 @@ npm test -- upload.service.test.ts
 
 Mocks are used to isolate tests from external dependencies:
 
-- `azure-storage.mock.ts` - Azure Blob Storage operations
-- `content-moderation.mock.ts` - Azure Computer Vision API
+- `s3-storage.mock.ts` - AWS S3 storage operations
+- `content-moderation.mock.ts` - AWS Rekognition API
 - `image-processing.mock.ts` - Sharp image processing
 
 ## Test Data Helpers

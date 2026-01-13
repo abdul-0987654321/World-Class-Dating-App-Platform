@@ -8,9 +8,9 @@ import logger from '../../utils/logger';
 /**
  * Extended Request interface with authenticated user
  */
-interface AuthenticatedRequest extends Request {
+type AuthenticatedRequest = Request & {
   user?: AuthenticatedUser;
-}
+};
 
 export class PaymentController {
   private paymentService: PaymentService;
@@ -311,6 +311,6 @@ export class PaymentController {
       });
     }
   }
-}
+};
 
 export default new PaymentController();

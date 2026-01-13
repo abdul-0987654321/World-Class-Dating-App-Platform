@@ -1,10 +1,9 @@
-import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
 
 import { conversationRepository } from '../domain/repositories/conversation.repository';
 import { messageRepository } from '../domain/repositories/message.repository';
 import { realtimeHttpClient } from '../infrastructure/clients/realtime-http.client';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
+import { postgresClient } from '../infrastructure/database/postgres-client';
 import { Message } from '../types';
 import { PinnedMessage } from '../types/enhanced-types';
 import { createLogger } from '../utils/logger';
@@ -132,25 +131,40 @@ export class PinnedMessagesService {
    */
   async getPinnedMessages(conversationId: string): Promise<PinnedMessage[]> {
     try {
-      const container = cosmosClient.getMessagesContainer();
+      const rows = await postgresClient
+        .messages()
+        .where('conversation_id', conversationId)
+        .andWhere('is_pinned', true)
+        .orderBy('pinned_at', 'desc')
+        .select('*');
 
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.isPinned = true
-                ORDER BY c.pinnedAt DESC`,
-        parameters: [{ name: '@conversationId', value: conversationId }],
-      };
+      return rows.map((row: any) => {
+        const message: Message = {
+          id: row.id,
+          conversationId: row.conversation_id,
+          senderId: row.sender_id,
+          receiverId: row.receiver_id,
+          content: row.content,
+          type: row.type,
+          status: row.status,
+          sentAt: new Date(row.sent_at),
+          deliveredAt: row.delivered_at ? new Date(row.delivered_at) : undefined,
+          readAt: row.read_at ? new Date(row.read_at) : undefined,
+          isPinned: row.is_pinned,
+          pinnedAt: row.pinned_at ? new Date(row.pinned_at) : undefined,
+          pinnedBy: row.pinned_by,
+          deletedFor: row.deleted_for,
+          metadata: row.metadata,
+        };
 
-      const { resources: messages } = await container.items.query<Message>(querySpec).fetchAll();
-
-      return messages.map((msg) => ({
-        messageId: msg.id,
-        conversationId: msg.conversationId,
-        pinnedBy: msg.pinnedBy,
-        pinnedAt: msg.pinnedAt,
-        message: msg,
-      }));
+        return {
+          messageId: message.id,
+          conversationId: message.conversationId,
+          pinnedBy: message.pinnedBy,
+          pinnedAt: message.pinnedAt,
+          message,
+        };
+      });
     } catch (error: any) {
       logger.error('Failed to get pinned messages:', error);
       throw error;

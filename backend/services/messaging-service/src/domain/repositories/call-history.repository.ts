@@ -1,6 +1,4 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { CallSession } from '../../services/video-call.service';
 import { createLogger } from '../../utils/logger';
 
@@ -21,15 +19,6 @@ export interface CallStatistics {
 }
 
 export class CallHistoryRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getCallHistoryContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Save call to history
    */
@@ -43,10 +32,10 @@ export class CallHistoryRepository {
 
       logger.info(`Saving call to history: ${callSession.callId}`);
 
-      const { resource } = await this.container.items.create(document);
+      const [result] = await postgresClient.callHistory().insert(document).returning('*');
 
       logger.info(`Call saved to history: ${callSession.callId}`);
-      return resource as CallHistoryDocument;
+      return result as CallHistoryDocument;
     } catch (error: any) {
       logger.error(`Failed to save call ${callSession.callId}:`, error);
       throw new Error(`Failed to save call: ${error.message}`);
@@ -56,14 +45,11 @@ export class CallHistoryRepository {
   /**
    * Find call by ID
    */
-  async findById(callId: string, callerId: string): Promise<CallHistoryDocument | null> {
+  async findById(callId: string, _callerId?: string): Promise<CallHistoryDocument | null> {
     try {
-      const { resource } = await this.container.item(callId, callerId).read<CallHistoryDocument>();
-      return resource || null;
+      const result = await postgresClient.callHistory().where('id', callId).first();
+      return result || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find call ${callId}:`, error);
       throw error;
     }
@@ -79,47 +65,19 @@ export class CallHistoryRepository {
     offset: number = 0
   ): Promise<CallHistoryDocument[]> {
     try {
-      let query: string;
-      let parameters: { name: string; value: any }[];
+      let query = postgresClient.callHistory();
 
       if (type === 'outgoing') {
-        query = `SELECT * FROM c
-                 WHERE c.callerId = @userId
-                 ORDER BY c.startTime DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.where('caller_id', userId);
       } else if (type === 'incoming') {
-        query = `SELECT * FROM c
-                 WHERE c.calleeId = @userId
-                 ORDER BY c.startTime DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.where('callee_id', userId);
       } else {
-        query = `SELECT * FROM c
-                 WHERE c.callerId = @userId OR c.calleeId = @userId
-                 ORDER BY c.startTime DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.where('caller_id', userId).orWhere('callee_id', userId);
       }
 
-      const querySpec = { query, parameters };
-      const { resources } = await this.container.items
-        .query<CallHistoryDocument>(querySpec)
-        .fetchAll();
+      const results = await query.orderBy('start_time', 'desc').limit(limit).offset(offset);
 
-      return resources;
+      return results as CallHistoryDocument[];
     } catch (error: any) {
       logger.error('Failed to get call history:', error);
       throw error;
@@ -135,23 +93,18 @@ export class CallHistoryRepository {
     limit: number = 50
   ): Promise<CallHistoryDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE ((c.callerId = @userId1 AND c.calleeId = @userId2)
-                   OR (c.callerId = @userId2 AND c.calleeId = @userId1))
-                ORDER BY c.startTime DESC
-                OFFSET 0 LIMIT @limit`,
-        parameters: [
-          { name: '@userId1', value: userId1 },
-          { name: '@userId2', value: userId2 },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .callHistory()
+        .where(function () {
+          this.where('caller_id', userId1).andWhere('callee_id', userId2);
+        })
+        .orWhere(function () {
+          this.where('caller_id', userId2).andWhere('callee_id', userId1);
+        })
+        .orderBy('start_time', 'desc')
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<CallHistoryDocument>(querySpec)
-        .fetchAll();
-      return resources;
+      return results as CallHistoryDocument[];
     } catch (error: any) {
       logger.error('Failed to get calls between users:', error);
       throw error;
@@ -163,46 +116,43 @@ export class CallHistoryRepository {
    */
   async getStatisticsForUser(userId: string): Promise<CallStatistics> {
     try {
-      // Total calls and duration
-      const totalQuery = {
-        query: `SELECT VALUE {
-                  totalCalls: COUNT(1),
-                  totalDuration: SUM(c.duration),
-                  completedCalls: SUM(c.status = 'ended' ? 1 : 0),
-                  missedCalls: SUM(c.status = 'missed' ? 1 : 0),
-                  rejectedCalls: SUM(c.status = 'rejected' ? 1 : 0)
-                }
-                FROM c
-                WHERE c.callerId = @userId OR c.calleeId = @userId`,
-        parameters: [{ name: '@userId', value: userId }],
+      const result = await postgresClient
+        .callHistory()
+        .where('caller_id', userId)
+        .orWhere('callee_id', userId)
+        .select(
+          postgresClient.callHistory().client.raw('COUNT(*) as total_calls'),
+          postgresClient.callHistory().client.raw('COALESCE(SUM(duration), 0) as total_duration'),
+          postgresClient
+            .callHistory()
+            .client.raw("COALESCE(SUM(CASE WHEN status = 'ended' THEN 1 ELSE 0 END), 0) as completed_calls"),
+          postgresClient
+            .callHistory()
+            .client.raw("COALESCE(SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END), 0) as missed_calls"),
+          postgresClient
+            .callHistory()
+            .client.raw("COALESCE(SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END), 0) as rejected_calls")
+        )
+        .first();
+
+      const stats = result || {
+        total_calls: 0,
+        total_duration: 0,
+        completed_calls: 0,
+        missed_calls: 0,
+        rejected_calls: 0,
       };
 
-      const { resources } = await this.container.items
-        .query<{
-          totalCalls: number;
-          totalDuration: number;
-          completedCalls: number;
-          missedCalls: number;
-          rejectedCalls: number;
-        }>(totalQuery)
-        .fetchAll();
-
-      const stats = resources[0] || {
-        totalCalls: 0,
-        totalDuration: 0,
-        completedCalls: 0,
-        missedCalls: 0,
-        rejectedCalls: 0,
-      };
+      const totalCalls = Number(stats.total_calls) || 0;
+      const totalDuration = Number(stats.total_duration) || 0;
 
       return {
-        totalCalls: stats.totalCalls || 0,
-        totalDuration: stats.totalDuration || 0,
-        avgDuration:
-          stats.totalCalls > 0 ? Math.round((stats.totalDuration || 0) / stats.totalCalls) : 0,
-        completedCalls: stats.completedCalls || 0,
-        missedCalls: stats.missedCalls || 0,
-        rejectedCalls: stats.rejectedCalls || 0,
+        totalCalls,
+        totalDuration,
+        avgDuration: totalCalls > 0 ? Math.round(totalDuration / totalCalls) : 0,
+        completedCalls: Number(stats.completed_calls) || 0,
+        missedCalls: Number(stats.missed_calls) || 0,
+        rejectedCalls: Number(stats.rejected_calls) || 0,
       };
     } catch (error: any) {
       logger.error('Failed to get call statistics:', error);
@@ -215,18 +165,16 @@ export class CallHistoryRepository {
    */
   async getRecentCallsCount(userId: string, since: Date): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT VALUE COUNT(1) FROM c
-                WHERE (c.callerId = @userId OR c.calleeId = @userId)
-                AND c.startTime >= @since`,
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@since', value: since.getTime() },
-        ],
-      };
+      const result = await postgresClient
+        .callHistory()
+        .where(function () {
+          this.where('caller_id', userId).orWhere('callee_id', userId);
+        })
+        .andWhere('start_time', '>=', since.getTime())
+        .count('* as count')
+        .first();
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return Number(result?.count) || 0;
     } catch (error: any) {
       logger.error('Failed to get recent calls count:', error);
       throw error;
@@ -238,25 +186,10 @@ export class CallHistoryRepository {
    */
   async deleteOldCalls(olderThan: Date): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT c.id, c.callerId FROM c
-                WHERE c.startTime < @olderThan`,
-        parameters: [{ name: '@olderThan', value: olderThan.getTime() }],
-      };
-
-      const { resources } = await this.container.items
-        .query<{ id: string; callerId: string }>(querySpec)
-        .fetchAll();
-
-      let deleted = 0;
-      for (const call of resources) {
-        try {
-          await this.container.item(call.id, call.callerId).delete();
-          deleted++;
-        } catch (error) {
-          logger.error(`Failed to delete call ${call.id}:`, error);
-        }
-      }
+      const deleted = await postgresClient
+        .callHistory()
+        .where('start_time', '<', olderThan.getTime())
+        .delete();
 
       logger.info(`Deleted ${deleted} old calls`);
       return deleted;

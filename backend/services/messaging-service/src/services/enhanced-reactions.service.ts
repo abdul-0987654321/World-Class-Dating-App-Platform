@@ -1,16 +1,14 @@
-import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
 
 import { messageRepository } from '../domain/repositories/message.repository';
 import { realtimeHttpClient } from '../infrastructure/clients/realtime-http.client';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
+import { postgresClient } from '../infrastructure/database/postgres-client';
 import { MessageReaction, ReactionSummary } from '../types/enhanced-types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('enhanced-reactions-service');
 
 export class EnhancedReactionsService {
-  private _container: Container | null = null;
   private readonly ALLOWED_EMOJIS = [
     '❤️',
     '😂',
@@ -33,13 +31,6 @@ export class EnhancedReactionsService {
     '💪',
     '👏',
   ];
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getReactionsContainer();
-    }
-    return this._container;
-  }
 
   /**
    * Add or update reaction to message
@@ -90,7 +81,14 @@ export class EnhancedReactionsService {
         createdAt: new Date(),
       };
 
-      await this.container.items.create(reaction);
+      await postgresClient.reactions().insert({
+        id: reaction.id,
+        message_id: reaction.messageId,
+        conversation_id: reaction.conversationId,
+        user_id: reaction.userId,
+        emoji: reaction.emoji,
+        created_at: reaction.createdAt,
+      });
 
       logger.info('Reaction added', { messageId, userId, emoji });
 
@@ -120,7 +118,7 @@ export class EnhancedReactionsService {
         throw new Error('Reaction not found');
       }
 
-      await this.container.item(reaction.id, conversationId).delete();
+      await postgresClient.reactions().where('id', reaction.id).delete();
 
       logger.info('Reaction removed', { messageId, userId });
 
@@ -155,7 +153,7 @@ export class EnhancedReactionsService {
         if (!grouped.has(reaction.emoji)) {
           grouped.set(reaction.emoji, []);
         }
-        grouped.get(reaction.emoji).push(reaction.userId);
+        grouped.get(reaction.emoji)!.push(reaction.userId);
       }
 
       // Build summary
@@ -196,27 +194,29 @@ export class EnhancedReactionsService {
       const summaryMap = new Map<string, ReactionSummary>();
 
       // Fetch all reactions for these messages in bulk
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.messageId IN (${messageIds.map((_, i) => `@msgId${i}`).join(',')})`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          ...messageIds.map((id, i) => ({ name: `@msgId${i}`, value: id })),
-        ],
-      };
+      const reactions = await postgresClient
+        .reactions()
+        .whereIn('message_id', messageIds)
+        .andWhere('conversation_id', conversationId)
+        .select('*');
 
-      const { resources: reactions } = await this.container.items
-        .query<MessageReaction>(querySpec)
-        .fetchAll();
+      // Map database rows to MessageReaction objects
+      const mappedReactions: MessageReaction[] = reactions.map((row: any) => ({
+        id: row.id,
+        messageId: row.message_id,
+        conversationId: row.conversation_id,
+        userId: row.user_id,
+        emoji: row.emoji,
+        createdAt: new Date(row.created_at),
+      }));
 
       // Group by message ID
       const messageReactionsMap = new Map<string, MessageReaction[]>();
-      for (const reaction of reactions) {
+      for (const reaction of mappedReactions) {
         if (!messageReactionsMap.has(reaction.messageId)) {
           messageReactionsMap.set(reaction.messageId, []);
         }
-        messageReactionsMap.get(reaction.messageId).push(reaction);
+        messageReactionsMap.get(reaction.messageId)!.push(reaction);
       }
 
       // Build summary for each message
@@ -228,7 +228,7 @@ export class EnhancedReactionsService {
           if (!grouped.has(reaction.emoji)) {
             grouped.set(reaction.emoji, []);
           }
-          grouped.get(reaction.emoji).push(reaction.userId);
+          grouped.get(reaction.emoji)!.push(reaction.userId);
         }
 
         const summary: ReactionSummary = {
@@ -267,21 +267,25 @@ export class EnhancedReactionsService {
     userId: string
   ): Promise<MessageReaction | null> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.messageId = @messageId
-                AND c.conversationId = @conversationId
-                AND c.userId = @userId`,
-        parameters: [
-          { name: '@messageId', value: messageId },
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-        ],
+      const row = await postgresClient
+        .reactions()
+        .where('message_id', messageId)
+        .andWhere('conversation_id', conversationId)
+        .andWhere('user_id', userId)
+        .first();
+
+      if (!row) {
+        return null;
+      }
+
+      return {
+        id: row.id,
+        messageId: row.message_id,
+        conversationId: row.conversation_id,
+        userId: row.user_id,
+        emoji: row.emoji,
+        createdAt: new Date(row.created_at),
       };
-
-      const { resources } = await this.container.items.query<MessageReaction>(querySpec).fetchAll();
-
-      return resources[0] || null;
     } catch (error: any) {
       logger.error('Failed to get user reaction:', error);
       throw error;
@@ -296,20 +300,21 @@ export class EnhancedReactionsService {
     conversationId: string
   ): Promise<MessageReaction[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.messageId = @messageId
-                AND c.conversationId = @conversationId
-                ORDER BY c.createdAt ASC`,
-        parameters: [
-          { name: '@messageId', value: messageId },
-          { name: '@conversationId', value: conversationId },
-        ],
-      };
+      const rows = await postgresClient
+        .reactions()
+        .where('message_id', messageId)
+        .andWhere('conversation_id', conversationId)
+        .orderBy('created_at', 'asc')
+        .select('*');
 
-      const { resources } = await this.container.items.query<MessageReaction>(querySpec).fetchAll();
-
-      return resources;
+      return rows.map((row: any) => ({
+        id: row.id,
+        messageId: row.message_id,
+        conversationId: row.conversation_id,
+        userId: row.user_id,
+        emoji: row.emoji,
+        createdAt: new Date(row.created_at),
+      }));
     } catch (error: any) {
       logger.error('Failed to get message reactions:', error);
       throw error;
@@ -325,18 +330,25 @@ export class EnhancedReactionsService {
     emoji: string
   ): Promise<MessageReaction> {
     try {
-      const { resource: existing } = await this.container
-        .item(reactionId, conversationId)
-        .read<MessageReaction>();
+      const rows = await postgresClient
+        .reactions()
+        .where('id', reactionId)
+        .update({ emoji })
+        .returning('*');
 
-      if (!existing) {
+      if (!rows || rows.length === 0) {
         throw new Error('Reaction not found');
       }
 
-      const updated = { ...existing, emoji };
-      const { resource } = await this.container.item(reactionId, conversationId).replace(updated);
-
-      return resource as MessageReaction;
+      const row = rows[0];
+      return {
+        id: row.id,
+        messageId: row.message_id,
+        conversationId: row.conversation_id,
+        userId: row.user_id,
+        emoji: row.emoji,
+        createdAt: new Date(row.created_at),
+      };
     } catch (error: any) {
       logger.error('Failed to update reaction:', error);
       throw error;
@@ -348,14 +360,13 @@ export class EnhancedReactionsService {
    */
   async deleteMessageReactions(messageId: string, conversationId: string): Promise<void> {
     try {
-      const reactions = await this.getMessageReactions(messageId, conversationId);
+      const deletedCount = await postgresClient
+        .reactions()
+        .where('message_id', messageId)
+        .andWhere('conversation_id', conversationId)
+        .delete();
 
-      const deletePromises = reactions.map((reaction) =>
-        this.container.item(reaction.id, conversationId).delete()
-      );
-
-      await Promise.all(deletePromises);
-      logger.info(`Deleted ${reactions.length} reactions for message ${messageId}`);
+      logger.info(`Deleted ${deletedCount} reactions for message ${messageId}`);
     } catch (error: any) {
       logger.error('Failed to delete message reactions:', error);
       throw error;

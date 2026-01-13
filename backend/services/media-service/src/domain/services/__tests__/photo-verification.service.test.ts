@@ -1,9 +1,17 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import photoVerificationService from '../photo-verification.service';
-import * as faceapi from '@azure/cognitiveservices-face';
 
-// Mock Azure Face API
-jest.mock('@azure/cognitiveservices-face');
+// Mock AWS Rekognition
+const mockRekognitionClient = {
+  send: jest.fn(),
+};
+
+jest.mock('@aws-sdk/client-rekognition', () => ({
+  RekognitionClient: jest.fn(() => mockRekognitionClient),
+  DetectFacesCommand: jest.fn((params) => ({ ...params, _command: 'DetectFaces' })),
+  CompareFacesCommand: jest.fn((params) => ({ ...params, _command: 'CompareFaces' })),
+  DetectModerationLabelsCommand: jest.fn((params) => ({ ...params, _command: 'DetectModerationLabels' })),
+}));
 
 // Mock database
 const mockDb = {
@@ -32,22 +40,9 @@ const mockDb = {
 };
 
 describe('PhotoVerificationService', () => {
-  let mockFaceClient: any;
-
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-
-    // Create mock Face API client
-    mockFaceClient = {
-      face: {
-        detectWithUrl: jest.fn(),
-        verifyFaceToFace: jest.fn(),
-      },
-    };
-
-    // Mock the Face API client constructor
-    (faceapi.FaceClient as any).mockImplementation(() => mockFaceClient);
   });
 
   afterEach(() => {
@@ -56,24 +51,30 @@ describe('PhotoVerificationService', () => {
 
   describe('verifyPhoto - Basic Verification', () => {
     it('should verify photo with single face successfully', async () => {
-      // Mock face detection response
-      const mockFaceResponse = [
-        {
-          faceId: 'test-face-id-123',
-          faceAttributes: {
-            blur: { blurLevel: 'low', value: 0.1 },
-            exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-            noise: { noiseLevel: 'low', value: 0.1 },
-            occlusion: {
-              foreheadOccluded: false,
-              eyeOccluded: false,
-              mouthOccluded: false,
+      // Mock AWS Rekognition DetectFaces response
+      const mockDetectFacesResponse = {
+        FaceDetails: [
+          {
+            BoundingBox: { Width: 0.3, Height: 0.4, Left: 0.3, Top: 0.2 },
+            Confidence: 99.5,
+            Quality: {
+              Brightness: 75.0,
+              Sharpness: 85.0,
             },
+            Pose: {
+              Roll: 2.0,
+              Yaw: -5.0,
+              Pitch: 3.0,
+            },
+            Landmarks: [
+              { Type: 'eyeLeft', X: 0.4, Y: 0.35 },
+              { Type: 'eyeRight', X: 0.6, Y: 0.35 },
+            ],
           },
-        },
-      ];
+        ],
+      };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue(mockFaceResponse);
+      mockRekognitionClient.send.mockResolvedValue(mockDetectFacesResponse);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyPhoto(
@@ -85,11 +86,11 @@ describe('PhotoVerificationService', () => {
       expect(result.details.faceDetected).toBe(true);
       expect(result.details.faceCount).toBe(1);
       expect(result.details.qualityScore).toBeGreaterThan(0.5);
-      expect(mockFaceClient.face.detectWithUrl).toHaveBeenCalledTimes(1);
+      expect(mockRekognitionClient.send).toHaveBeenCalledTimes(1);
     });
 
     it('should reject photo with no face detected', async () => {
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([]);
+      mockRekognitionClient.send.mockResolvedValue({ FaceDetails: [] });
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyPhoto(
@@ -104,12 +105,14 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should reject photo with multiple faces', async () => {
-      const mockMultipleFaces = [
-        { faceId: 'face-1', faceAttributes: {} },
-        { faceId: 'face-2', faceAttributes: {} },
-      ];
+      const mockMultipleFaces = {
+        FaceDetails: [
+          { BoundingBox: {}, Confidence: 99.0, Quality: { Brightness: 70, Sharpness: 80 } },
+          { BoundingBox: {}, Confidence: 98.0, Quality: { Brightness: 70, Sharpness: 80 } },
+        ],
+      };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue(mockMultipleFaces);
+      mockRekognitionClient.send.mockResolvedValue(mockMultipleFaces);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyPhoto(
@@ -123,23 +126,25 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should reject photo with low quality score', async () => {
-      const mockBlurryFace = [
-        {
-          faceId: 'face-123',
-          faceAttributes: {
-            blur: { blurLevel: 'high', value: 0.9 },
-            exposure: { exposureLevel: 'underExposure', value: 0.2 },
-            noise: { noiseLevel: 'high', value: 0.8 },
-            occlusion: {
-              foreheadOccluded: true,
-              eyeOccluded: true,
-              mouthOccluded: false,
+      const mockLowQualityFace = {
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+            Quality: {
+              Brightness: 20.0, // Low brightness
+              Sharpness: 15.0, // Low sharpness (blurry)
+            },
+            Pose: {
+              Roll: 25.0, // Tilted head
+              Yaw: -40.0, // Looking away
+              Pitch: 20.0,
             },
           },
-        },
-      ];
+        ],
+      };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue(mockBlurryFace);
+      mockRekognitionClient.send.mockResolvedValue(mockLowQualityFace);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyPhoto(
@@ -152,41 +157,47 @@ describe('PhotoVerificationService', () => {
       expect(result.failureReason).toContain('quality');
     });
 
-    it('should handle Azure API errors gracefully', async () => {
-      mockFaceClient.face.detectWithUrl.mockRejectedValue(
-        new Error('Azure API rate limit exceeded')
+    it('should handle AWS API errors gracefully', async () => {
+      mockRekognitionClient.send.mockRejectedValue(
+        new Error('AWS Rekognition rate limit exceeded')
       );
 
       await expect(
         photoVerificationService.verifyPhoto('media-123', 'https://example.com/photo.jpg')
-      ).rejects.toThrow('Azure API rate limit exceeded');
+      ).rejects.toThrow('AWS Rekognition rate limit exceeded');
     });
   });
 
   describe('verifyProfilePhoto - Face Matching', () => {
     it('should verify profile photo with face matching', async () => {
-      const mockFace = {
-        faceId: 'new-face-id',
-        faceAttributes: {
-          blur: { blurLevel: 'low', value: 0.1 },
-          exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-          noise: { noiseLevel: 'low', value: 0.1 },
-          occlusion: {
-            foreheadOccluded: false,
-            eyeOccluded: false,
-            mouthOccluded: false,
+      const mockDetectFace = {
+        FaceDetails: [
+          {
+            BoundingBox: { Width: 0.3, Height: 0.4, Left: 0.3, Top: 0.2 },
+            Confidence: 99.5,
+            Quality: { Brightness: 75.0, Sharpness: 85.0 },
+            Pose: { Roll: 2.0, Yaw: -5.0, Pitch: 3.0 },
           },
-        },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl
-        .mockResolvedValueOnce([mockFace]) // New photo
-        .mockResolvedValueOnce([{ faceId: 'ref-face-id' }]); // Reference photo
+      const mockCompareFaces = {
+        FaceMatches: [
+          {
+            Similarity: 95.0,
+            Face: {
+              BoundingBox: {},
+              Confidence: 99.0,
+            },
+          },
+        ],
+        UnmatchedFaces: [],
+      };
 
-      mockFaceClient.face.verifyFaceToFace.mockResolvedValue({
-        isIdentical: true,
-        confidence: 0.85,
-      });
+      mockRekognitionClient.send
+        .mockResolvedValueOnce(mockDetectFace) // New photo detection
+        .mockResolvedValueOnce(mockDetectFace) // Reference photo detection
+        .mockResolvedValueOnce(mockCompareFaces); // Face comparison
 
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
@@ -197,22 +208,34 @@ describe('PhotoVerificationService', () => {
       );
 
       expect(result.verified).toBe(true);
-      expect(result.details.matchScore).toBe(0.85);
-      expect(mockFaceClient.face.verifyFaceToFace).toHaveBeenCalledWith(
-        'new-face-id',
-        'ref-face-id'
-      );
+      expect(result.details.matchScore).toBe(0.95);
     });
 
     it('should reject photo that does not match reference', async () => {
-      mockFaceClient.face.detectWithUrl
-        .mockResolvedValueOnce([{ faceId: 'new-face', faceAttributes: {} }])
-        .mockResolvedValueOnce([{ faceId: 'ref-face', faceAttributes: {} }]);
+      const mockDetectFace = {
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+            Quality: { Brightness: 70, Sharpness: 80 },
+          },
+        ],
+      };
 
-      mockFaceClient.face.verifyFaceToFace.mockResolvedValue({
-        isIdentical: false,
-        confidence: 0.3,
-      });
+      const mockCompareFaces = {
+        FaceMatches: [],
+        UnmatchedFaces: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+          },
+        ],
+      };
+
+      mockRekognitionClient.send
+        .mockResolvedValueOnce(mockDetectFace)
+        .mockResolvedValueOnce(mockDetectFace)
+        .mockResolvedValueOnce(mockCompareFaces);
 
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
@@ -223,22 +246,23 @@ describe('PhotoVerificationService', () => {
       );
 
       expect(result.verified).toBe(false);
-      expect(result.details.matchScore).toBe(0.3);
+      expect(result.details.matchScore).toBeLessThan(0.7);
       expect(result.failureReason).toContain('does not match');
     });
 
     it('should work without reference photo', async () => {
-      const mockFace = {
-        faceId: 'face-123',
-        faceAttributes: {
-          blur: { blurLevel: 'low', value: 0.1 },
-          exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-          noise: { noiseLevel: 'low', value: 0.1 },
-          occlusion: { foreheadOccluded: false, eyeOccluded: false, mouthOccluded: false },
-        },
+      const mockDetectFace = {
+        FaceDetails: [
+          {
+            BoundingBox: { Width: 0.3, Height: 0.4, Left: 0.3, Top: 0.2 },
+            Confidence: 99.5,
+            Quality: { Brightness: 75.0, Sharpness: 85.0 },
+            Pose: { Roll: 2.0, Yaw: -5.0, Pitch: 3.0 },
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockFace]);
+      mockRekognitionClient.send.mockResolvedValue(mockDetectFace);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyProfilePhoto(
@@ -254,16 +278,28 @@ describe('PhotoVerificationService', () => {
   describe('verifyLiveness - Screenshot Detection', () => {
     it('should pass liveness check for real photo', async () => {
       const mockRealPhoto = {
-        faceId: 'face-123',
-        faceAttributes: {
-          blur: { blurLevel: 'low', value: 0.2 },
-          noise: { noiseLevel: 'medium', value: 0.3 },
-          headPose: { pitch: 5, roll: -2, yaw: 3 },
-          emotion: { happiness: 0.7, neutral: 0.2, surprise: 0.1 },
-        },
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.5,
+            Quality: {
+              Brightness: 65.0, // Natural variation
+              Sharpness: 70.0, // Some natural blur
+            },
+            Pose: {
+              Roll: 5.0,
+              Yaw: -8.0,
+              Pitch: 3.0,
+            },
+            Emotions: [
+              { Type: 'HAPPY', Confidence: 70.0 },
+              { Type: 'CALM', Confidence: 20.0 },
+            ],
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockRealPhoto]);
+      mockRekognitionClient.send.mockResolvedValue(mockRealPhoto);
 
       const result = await photoVerificationService.verifyLiveness(
         'https://example.com/real-photo.jpg'
@@ -275,16 +311,27 @@ describe('PhotoVerificationService', () => {
 
     it('should fail liveness check for screenshot', async () => {
       const mockScreenshot = {
-        faceId: 'face-123',
-        faceAttributes: {
-          blur: { blurLevel: 'low', value: 0.0 }, // Too perfect
-          noise: { noiseLevel: 'low', value: 0.0 }, // No noise
-          headPose: { pitch: 0, roll: 0, yaw: 0 }, // Perfectly flat
-          emotion: { neutral: 1.0 }, // No emotion
-        },
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.9,
+            Quality: {
+              Brightness: 100.0, // Too perfect/uniform
+              Sharpness: 100.0, // No natural blur
+            },
+            Pose: {
+              Roll: 0.0, // Perfectly flat
+              Yaw: 0.0,
+              Pitch: 0.0,
+            },
+            Emotions: [
+              { Type: 'CALM', Confidence: 100.0 },
+            ],
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockScreenshot]);
+      mockRekognitionClient.send.mockResolvedValue(mockScreenshot);
 
       const result = await photoVerificationService.verifyLiveness(
         'https://example.com/screenshot.jpg'
@@ -296,7 +343,7 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should handle no face in liveness check', async () => {
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([]);
+      mockRekognitionClient.send.mockResolvedValue({ FaceDetails: [] });
 
       await expect(
         photoVerificationService.verifyLiveness('https://example.com/no-face.jpg')
@@ -319,15 +366,17 @@ describe('PhotoVerificationService', () => {
         { id: 'media-1', url: 'https://example.com/existing.jpg' },
       ]);
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([
-        { faceId: 'existing-face-id' },
-      ]);
+      const mockCompareFaces = {
+        FaceMatches: [
+          {
+            Similarity: 95.0,
+            Face: { BoundingBox: {}, Confidence: 99.0 },
+          },
+        ],
+        UnmatchedFaces: [],
+      };
 
-      mockFaceClient.face.verifyFaceToFace.mockResolvedValue({
-        isIdentical: true,
-        confidence: 0.95,
-      });
-
+      mockRekognitionClient.send.mockResolvedValue(mockCompareFaces);
       mockDb.duplicateProfileFlags.create.mockResolvedValue({ id: 'flag-123' });
 
       const result = await photoVerificationService.detectDuplicateProfile(
@@ -376,28 +425,33 @@ describe('PhotoVerificationService', () => {
 
   describe('comprehensiveVerification', () => {
     it('should perform complete verification with all checks', async () => {
-      const mockFace = {
-        faceId: 'new-face-id',
-        faceAttributes: {
-          blur: { blurLevel: 'low', value: 0.1 },
-          exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-          noise: { noiseLevel: 'medium', value: 0.2 },
-          occlusion: { foreheadOccluded: false, eyeOccluded: false, mouthOccluded: false },
-          headPose: { pitch: 5, roll: -2, yaw: 3 },
-          emotion: { happiness: 0.6, neutral: 0.3 },
-        },
+      const mockDetectFace = {
+        FaceDetails: [
+          {
+            BoundingBox: { Width: 0.3, Height: 0.4, Left: 0.3, Top: 0.2 },
+            Confidence: 99.5,
+            Quality: { Brightness: 75.0, Sharpness: 85.0 },
+            Pose: { Roll: 5.0, Yaw: -5.0, Pitch: 3.0 },
+            Emotions: [
+              { Type: 'HAPPY', Confidence: 60.0 },
+              { Type: 'CALM', Confidence: 30.0 },
+            ],
+          },
+        ],
       };
 
-      // Mock face detection
-      mockFaceClient.face.detectWithUrl
-        .mockResolvedValueOnce([mockFace]) // New photo
-        .mockResolvedValueOnce([{ faceId: 'ref-face-id' }]); // Reference
+      const mockCompareFaces = {
+        FaceMatches: [
+          { Similarity: 88.0, Face: { BoundingBox: {}, Confidence: 99.0 } },
+        ],
+        UnmatchedFaces: [],
+      };
 
-      // Mock face matching
-      mockFaceClient.face.verifyFaceToFace.mockResolvedValue({
-        isIdentical: true,
-        confidence: 0.88,
-      });
+      // Mock face detection for new and reference photos
+      mockRekognitionClient.send
+        .mockResolvedValueOnce(mockDetectFace) // New photo
+        .mockResolvedValueOnce(mockDetectFace) // Reference photo
+        .mockResolvedValueOnce(mockCompareFaces); // Comparison
 
       // Mock duplicate check
       mockDb.photoVerifications.findMany.mockResolvedValue([]);
@@ -422,17 +476,25 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should fail comprehensive verification if any check fails', async () => {
-      const mockFace = {
-        faceId: 'face-id',
-        faceAttributes: {
-          blur: { blurLevel: 'high', value: 0.8 }, // Bad quality
-          exposure: { exposureLevel: 'underExposure', value: 0.2 },
-          noise: { noiseLevel: 'high', value: 0.7 },
-          occlusion: { foreheadOccluded: true, eyeOccluded: false, mouthOccluded: false },
-        },
+      const mockLowQualityFace = {
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+            Quality: {
+              Brightness: 20.0, // Low brightness
+              Sharpness: 15.0, // Blurry
+            },
+            Pose: {
+              Roll: 30.0, // Tilted
+              Yaw: -45.0, // Looking away
+              Pitch: 25.0,
+            },
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockFace]);
+      mockRekognitionClient.send.mockResolvedValue(mockLowQualityFace);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.comprehensiveVerification(
@@ -511,15 +573,10 @@ describe('PhotoVerificationService', () => {
 
   describe('Quality Score Calculation', () => {
     it('should calculate high quality score for good photo', () => {
-      const attributes = {
-        blur: { blurLevel: 'low', value: 0.1 },
-        exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-        noise: { noiseLevel: 'low', value: 0.1 },
-        occlusion: {
-          foreheadOccluded: false,
-          eyeOccluded: false,
-          mouthOccluded: false,
-        },
+      // AWS Rekognition quality attributes
+      const quality = {
+        Brightness: 75.0, // Good lighting
+        Sharpness: 85.0, // Sharp image
       };
 
       // This would test the private calculateQualityScore method
@@ -529,15 +586,9 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should calculate low quality score for poor photo', () => {
-      const attributes = {
-        blur: { blurLevel: 'high', value: 0.9 },
-        exposure: { exposureLevel: 'overExposure', value: 0.9 },
-        noise: { noiseLevel: 'high', value: 0.8 },
-        occlusion: {
-          foreheadOccluded: true,
-          eyeOccluded: true,
-          mouthOccluded: true,
-        },
+      const quality = {
+        Brightness: 20.0, // Under-exposed
+        Sharpness: 15.0, // Blurry
       };
 
       // Expected low score
@@ -548,7 +599,7 @@ describe('PhotoVerificationService', () => {
 
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
-      mockFaceClient.face.detectWithUrl.mockRejectedValue(
+      mockRekognitionClient.send.mockRejectedValue(
         new Error('Network timeout')
       );
 
@@ -558,7 +609,7 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should handle invalid image URLs', async () => {
-      mockFaceClient.face.detectWithUrl.mockRejectedValue(
+      mockRekognitionClient.send.mockRejectedValue(
         new Error('Invalid image URL')
       );
 
@@ -567,30 +618,38 @@ describe('PhotoVerificationService', () => {
       ).rejects.toThrow('Invalid image URL');
     });
 
-    it('should handle Azure API quota exceeded', async () => {
-      mockFaceClient.face.detectWithUrl.mockRejectedValue(
-        new Error('Quota exceeded')
+    it('should handle AWS API quota exceeded', async () => {
+      mockRekognitionClient.send.mockRejectedValue(
+        new Error('ProvisionedThroughputExceededException: Rate exceeded')
       );
 
       await expect(
         photoVerificationService.verifyPhoto('media-123', 'https://example.com/photo.jpg')
-      ).rejects.toThrow('Quota exceeded');
+      ).rejects.toThrow('Rate exceeded');
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle photo with exactly threshold quality', async () => {
-      const mockFace = {
-        faceId: 'face-123',
-        faceAttributes: {
-          blur: { blurLevel: 'medium', value: 0.5 },
-          exposure: { exposureLevel: 'goodExposure', value: 0.5 },
-          noise: { noiseLevel: 'medium', value: 0.5 },
-          occlusion: { foreheadOccluded: false, eyeOccluded: false, mouthOccluded: false },
-        },
+      const mockThresholdFace = {
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+            Quality: {
+              Brightness: 50.0, // Exactly at threshold
+              Sharpness: 50.0,
+            },
+            Pose: {
+              Roll: 0.0,
+              Yaw: 0.0,
+              Pitch: 0.0,
+            },
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockFace]);
+      mockRekognitionClient.send.mockResolvedValue(mockThresholdFace);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       const result = await photoVerificationService.verifyPhoto(
@@ -603,12 +662,17 @@ describe('PhotoVerificationService', () => {
     });
 
     it('should handle missing face attributes gracefully', async () => {
-      const mockFace = {
-        faceId: 'face-123',
-        faceAttributes: {}, // No attributes
+      const mockFaceNoAttributes = {
+        FaceDetails: [
+          {
+            BoundingBox: {},
+            Confidence: 99.0,
+            // Missing Quality and Pose attributes
+          },
+        ],
       };
 
-      mockFaceClient.face.detectWithUrl.mockResolvedValue([mockFace]);
+      mockRekognitionClient.send.mockResolvedValue(mockFaceNoAttributes);
       mockDb.photoVerifications.create.mockResolvedValue({ id: 'verification-123' });
 
       // Should not crash, but handle missing attributes

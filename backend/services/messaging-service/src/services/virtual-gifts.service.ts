@@ -294,7 +294,7 @@ class VirtualGiftsService {
         giftCategory: gift.category,
       };
 
-      // Store transaction in Cosmos DB
+      // Store transaction in PostgreSQL
       await giftTransactionRepository.create(transactionDoc);
       logger.info(`Gift transaction stored: ${transactionId}`);
 

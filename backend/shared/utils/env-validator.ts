@@ -280,30 +280,29 @@ export const commonValidations = {
     defaultValue: 6379,
   } as EnvVarConfig,
 
-  azureStorageAccount: {
-    name: 'AZURE_STORAGE_ACCOUNT_NAME',
+  awsRegion: {
+    name: 'AWS_REGION',
     required: true,
-    description: 'Azure Storage account name for media uploads',
+    description: 'AWS region for services',
+    defaultValue: 'us-east-1',
   } as EnvVarConfig,
 
-  azureStorageKey: {
-    name: 'AZURE_STORAGE_ACCOUNT_KEY',
+  awsS3Bucket: {
+    name: 'AWS_S3_BUCKET_MEDIA',
     required: true,
-    description: 'Azure Storage account key',
-    sensitive: true,
+    description: 'AWS S3 bucket name for media uploads',
   } as EnvVarConfig,
 
-  cosmosEndpoint: {
-    name: 'COSMOS_ENDPOINT',
+  postgresHost: {
+    name: 'POSTGRES_HOST',
     required: true,
-    description: 'Azure Cosmos DB endpoint URL',
-    validate: (value: string) => value.startsWith('https://'),
+    description: 'PostgreSQL database host',
   } as EnvVarConfig,
 
-  cosmosKey: {
-    name: 'COSMOS_KEY',
+  postgresPassword: {
+    name: 'POSTGRES_PASSWORD',
     required: true,
-    description: 'Azure Cosmos DB access key',
+    description: 'PostgreSQL database password',
     sensitive: true,
   } as EnvVarConfig,
 };

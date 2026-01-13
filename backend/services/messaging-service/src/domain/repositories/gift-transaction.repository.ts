@@ -1,13 +1,11 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { GiftTransaction } from '../../services/virtual-gifts.service';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('gift-transaction-repository');
 
 export interface GiftTransactionDocument extends GiftTransaction {
-  recipientId: string; // Partition key (alias for receiverId)
+  recipientId: string;
   giftName: string;
   giftEmoji: string;
   giftCategory: 'basic' | 'premium' | 'luxury';
@@ -23,15 +21,6 @@ export interface GiftStatistics {
 }
 
 export class GiftTransactionRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getGiftTransactionsContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Create a new gift transaction
    */
@@ -39,10 +28,10 @@ export class GiftTransactionRepository {
     try {
       logger.info(`Creating gift transaction: ${transaction.id}`);
 
-      const { resource } = await this.container.items.create(transaction);
+      const [result] = await postgresClient.giftTransactions().insert(transaction).returning('*');
 
       logger.info(`Gift transaction created: ${transaction.id}`);
-      return resource as GiftTransactionDocument;
+      return result as GiftTransactionDocument;
     } catch (error: any) {
       logger.error(`Failed to create gift transaction ${transaction.id}:`, error);
       throw new Error(`Failed to create gift transaction: ${error.message}`);
@@ -54,17 +43,12 @@ export class GiftTransactionRepository {
    */
   async findById(
     transactionId: string,
-    recipientId: string
+    _recipientId?: string
   ): Promise<GiftTransactionDocument | null> {
     try {
-      const { resource } = await this.container
-        .item(transactionId, recipientId)
-        .read<GiftTransactionDocument>();
-      return resource || null;
+      const result = await postgresClient.giftTransactions().where('id', transactionId).first();
+      return result || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find gift transaction ${transactionId}:`, error);
       throw error;
     }
@@ -75,22 +59,25 @@ export class GiftTransactionRepository {
    */
   async updateStatus(
     transactionId: string,
-    recipientId: string,
+    _recipientId: string,
     status: GiftTransaction['status']
   ): Promise<GiftTransactionDocument> {
     try {
       logger.info(`Updating gift transaction status: ${transactionId} -> ${status}`);
 
-      const existing = await this.findById(transactionId, recipientId);
+      const existing = await this.findById(transactionId);
       if (!existing) {
         throw new Error(`Gift transaction ${transactionId} not found`);
       }
 
-      const updated = { ...existing, status };
-      const { resource } = await this.container.item(transactionId, recipientId).replace(updated);
+      const [result] = await postgresClient
+        .giftTransactions()
+        .where('id', transactionId)
+        .update({ status })
+        .returning('*');
 
       logger.info(`Gift transaction status updated: ${transactionId}`);
-      return resource as GiftTransactionDocument;
+      return result as GiftTransactionDocument;
     } catch (error: any) {
       logger.error(`Failed to update gift transaction ${transactionId}:`, error);
       throw error;
@@ -107,51 +94,21 @@ export class GiftTransactionRepository {
     offset: number = 0
   ): Promise<GiftTransactionDocument[]> {
     try {
-      let query: string;
-      let parameters: { name: string; value: any }[];
+      let query = postgresClient.giftTransactions().where('status', 'completed');
 
       if (type === 'sent') {
-        query = `SELECT * FROM c
-                 WHERE c.senderId = @userId
-                 AND c.status = 'completed'
-                 ORDER BY c.createdAt DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.andWhere('sender_id', userId);
       } else if (type === 'received') {
-        query = `SELECT * FROM c
-                 WHERE c.recipientId = @userId
-                 AND c.status = 'completed'
-                 ORDER BY c.createdAt DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.andWhere('recipient_id', userId);
       } else {
-        // All - union of sent and received
-        query = `SELECT * FROM c
-                 WHERE (c.senderId = @userId OR c.recipientId = @userId)
-                 AND c.status = 'completed'
-                 ORDER BY c.createdAt DESC
-                 OFFSET @offset LIMIT @limit`;
-        parameters = [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ];
+        query = query.andWhere(function () {
+          this.where('sender_id', userId).orWhere('recipient_id', userId);
+        });
       }
 
-      const querySpec = { query, parameters };
-      const { resources } = await this.container.items
-        .query<GiftTransactionDocument>(querySpec)
-        .fetchAll();
+      const results = await query.orderBy('created_at', 'desc').limit(limit).offset(offset);
 
-      return resources;
+      return results as GiftTransactionDocument[];
     } catch (error: any) {
       logger.error('Failed to get gift history:', error);
       throw error;
@@ -164,80 +121,68 @@ export class GiftTransactionRepository {
   async getGiftStatistics(userId: string): Promise<GiftStatistics> {
     try {
       // Query for sent gifts count and total spent
-      const sentQuery = {
-        query: `SELECT VALUE {
-                  totalSent: COUNT(1),
-                  coinsSpent: SUM(c.price)
-                }
-                FROM c
-                WHERE c.senderId = @userId
-                AND c.status = 'completed'`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const sentResult = await postgresClient
+        .giftTransactions()
+        .where('sender_id', userId)
+        .andWhere('status', 'completed')
+        .select(
+          postgresClient.giftTransactions().client.raw('COUNT(*) as total_sent'),
+          postgresClient.giftTransactions().client.raw('COALESCE(SUM(price), 0) as coins_spent')
+        )
+        .first();
 
-      const { resources: sentResults } = await this.container.items
-        .query<{ totalSent: number; coinsSpent: number }>(sentQuery)
-        .fetchAll();
-
-      const sentStats = sentResults[0] || { totalSent: 0, coinsSpent: 0 };
+      const sentStats = sentResult || { total_sent: 0, coins_spent: 0 };
 
       // Query for received gifts count and total earned (70% of gift price)
-      const receivedQuery = {
-        query: `SELECT VALUE {
-                  totalReceived: COUNT(1),
-                  coinsEarned: SUM(c.price * 0.7)
-                }
-                FROM c
-                WHERE c.recipientId = @userId
-                AND c.status = 'completed'`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const receivedResult = await postgresClient
+        .giftTransactions()
+        .where('recipient_id', userId)
+        .andWhere('status', 'completed')
+        .select(
+          postgresClient.giftTransactions().client.raw('COUNT(*) as total_received'),
+          postgresClient.giftTransactions().client.raw('COALESCE(SUM(price * 0.7), 0) as coins_earned')
+        )
+        .first();
 
-      const { resources: receivedResults } = await this.container.items
-        .query<{ totalReceived: number; coinsEarned: number }>(receivedQuery)
-        .fetchAll();
-
-      const receivedStats = receivedResults[0] || { totalReceived: 0, coinsEarned: 0 };
+      const receivedStats = receivedResult || { total_received: 0, coins_earned: 0 };
 
       // Query for popular gifts sent
-      const popularSentQuery = {
-        query: `SELECT c.giftId, c.giftName, COUNT(1) as count
-                FROM c
-                WHERE c.senderId = @userId
-                AND c.status = 'completed'
-                GROUP BY c.giftId, c.giftName
-                ORDER BY COUNT(1) DESC
-                OFFSET 0 LIMIT 5`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
-
-      const { resources: popularSent } = await this.container.items
-        .query<{ giftId: string; giftName: string; count: number }>(popularSentQuery)
-        .fetchAll();
+      const popularSent = await postgresClient
+        .giftTransactions()
+        .where('sender_id', userId)
+        .andWhere('status', 'completed')
+        .select('gift_id as giftId', 'gift_name as giftName')
+        .count('* as count')
+        .groupBy('gift_id', 'gift_name')
+        .orderBy('count', 'desc')
+        .limit(5);
 
       // Query for popular gifts received
-      const popularReceivedQuery = {
-        query: `SELECT c.giftId, c.giftName, COUNT(1) as count
-                FROM c
-                WHERE c.recipientId = @userId
-                AND c.status = 'completed'
-                GROUP BY c.giftId, c.giftName
-                ORDER BY COUNT(1) DESC
-                OFFSET 0 LIMIT 5`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
-
-      const { resources: popularReceived } = await this.container.items
-        .query<{ giftId: string; giftName: string; count: number }>(popularReceivedQuery)
-        .fetchAll();
+      const popularReceived = await postgresClient
+        .giftTransactions()
+        .where('recipient_id', userId)
+        .andWhere('status', 'completed')
+        .select('gift_id as giftId', 'gift_name as giftName')
+        .count('* as count')
+        .groupBy('gift_id', 'gift_name')
+        .orderBy('count', 'desc')
+        .limit(5);
 
       return {
-        totalSent: sentStats.totalSent || 0,
-        totalReceived: receivedStats.totalReceived || 0,
-        coinsSpent: sentStats.coinsSpent || 0,
-        coinsEarned: Math.floor(receivedStats.coinsEarned || 0),
-        popularGiftsSent: popularSent,
-        popularGiftsReceived: popularReceived,
+        totalSent: Number(sentStats.total_sent) || 0,
+        totalReceived: Number(receivedStats.total_received) || 0,
+        coinsSpent: Number(sentStats.coins_spent) || 0,
+        coinsEarned: Math.floor(Number(receivedStats.coins_earned) || 0),
+        popularGiftsSent: popularSent.map((r: any) => ({
+          giftId: r.giftId,
+          giftName: r.giftName,
+          count: Number(r.count),
+        })),
+        popularGiftsReceived: popularReceived.map((r: any) => ({
+          giftId: r.giftId,
+          giftName: r.giftName,
+          count: Number(r.count),
+        })),
       };
     } catch (error: any) {
       logger.error('Failed to get gift statistics:', error);
@@ -253,23 +198,14 @@ export class GiftTransactionRepository {
     limit: number = 50
   ): Promise<GiftTransactionDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.status = 'completed'
-                ORDER BY c.createdAt DESC
-                OFFSET 0 LIMIT @limit`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .giftTransactions()
+        .where('conversation_id', conversationId)
+        .andWhere('status', 'completed')
+        .orderBy('created_at', 'desc')
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<GiftTransactionDocument>(querySpec)
-        .fetchAll();
-
-      return resources;
+      return results as GiftTransactionDocument[];
     } catch (error: any) {
       logger.error('Failed to get gifts by conversation:', error);
       throw error;
@@ -281,16 +217,15 @@ export class GiftTransactionRepository {
    */
   async getGiftCount(userId: string, type: 'sent' | 'received'): Promise<number> {
     try {
-      const field = type === 'sent' ? 'senderId' : 'recipientId';
-      const querySpec = {
-        query: `SELECT VALUE COUNT(1) FROM c
-                WHERE c.${field} = @userId
-                AND c.status = 'completed'`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const field = type === 'sent' ? 'sender_id' : 'recipient_id';
+      const result = await postgresClient
+        .giftTransactions()
+        .where(field, userId)
+        .andWhere('status', 'completed')
+        .count('* as count')
+        .first();
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return Number(result?.count) || 0;
     } catch (error: any) {
       logger.error('Failed to get gift count:', error);
       throw error;

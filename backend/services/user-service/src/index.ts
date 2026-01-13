@@ -61,8 +61,6 @@ const validator = createValidator('user-service', [
   commonValidations.dbPort,
   commonValidations.dbPassword,
   commonValidations.redisHost,
-  commonValidations.azureStorageAccount,
-  commonValidations.azureStorageKey,
   {
     name: 'TOTP_ENCRYPTION_MASTER_KEY',
     required: true,
@@ -279,13 +277,13 @@ httpServer.listen(PORT, async () => {
   logger.info(`API endpoints available at http://localhost:${PORT}/api/v1`);
   logger.info(`WebSocket server initialized for real-time messaging`);
 
-  // Initialize upload service (Azure Blob Storage)
+  // Initialize upload service (AWS S3)
   try {
     await uploadService.initialize();
     logger.info('Upload service initialized successfully');
   } catch (error) {
     logger.warn('Upload service initialization failed - photo uploads may not work');
-    logger.warn('Make sure Azure Storage credentials are configured in .env');
+    logger.warn('Make sure AWS credentials are configured in .env');
   }
 });
 

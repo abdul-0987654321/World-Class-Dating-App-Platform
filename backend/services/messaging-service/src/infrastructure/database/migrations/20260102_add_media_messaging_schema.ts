@@ -7,11 +7,10 @@
  * 3. GIF message metadata
  * 4. Typing indicators (handled in Redis, not DB)
  *
- * For Cosmos DB, this is primarily documentation of the schema structure
- * as Cosmos DB is schemaless. The schema is enforced at the application level.
+ * For PostgreSQL, this creates the necessary schema extensions.
  */
 
-import { Container, Database } from '@azure/cosmos';
+import { Knex } from 'knex';
 
 import { createLogger } from '../../../utils/logger';
 
@@ -121,7 +120,7 @@ export interface MediaMessageSchema {
 }
 
 /**
- * Typing Indicator Schema (stored in Redis, not Cosmos DB)
+ * Typing Indicator Schema (stored in Redis, not PostgreSQL)
  *
  * Key pattern: typing:{conversationId}:{userId}
  * TTL: 10 seconds (auto-expires if not refreshed)
@@ -138,24 +137,45 @@ export interface MediaMessageSchema {
 /**
  * Migration function to ensure proper indexes for media messages
  */
-export async function up(database: Database): Promise<void> {
+export async function up(knex: Knex): Promise<void> {
   try {
     logger.info('Running media messaging schema migration...');
 
-    const messagesContainer = database.container('Messages');
+    // Check if messages table exists and add necessary columns/indexes
+    const hasMessagesTable = await knex.schema.hasTable('messages');
 
-    // Log the schema documentation (Cosmos DB is schemaless)
-    logger.info('Media messaging schema documentation applied');
-    logger.info('Supported message types: text, image, video, audio, voice, file, gif, gift');
+    if (hasMessagesTable) {
+      // Add indexes for efficient querying if they don't exist
+      // Index: (conversationId, sentAt DESC) - For message history pagination
+      await knex.schema.alterTable('messages', (table) => {
+        // These columns should already exist, but ensure indexes are created
+      });
 
-    // Note: In Cosmos DB, indexes are defined in the container configuration
-    // The following composite indexes should be configured in Azure Portal or via ARM templates:
-    //
-    // Composite Indexes for efficient querying:
-    // 1. (conversationId ASC, sentAt DESC) - For message history pagination
-    // 2. (conversationId ASC, type ASC, sentAt DESC) - For media gallery queries
-    // 3. (receiverId ASC, status ASC, sentAt DESC) - For unread message queries
-    // 4. (conversationId ASC, isPinned ASC) - For pinned messages
+      // Create composite indexes using raw SQL for better control
+      await knex.raw(`
+        CREATE INDEX IF NOT EXISTS idx_messages_conversation_sent
+        ON messages (conversation_id, sent_at DESC)
+      `);
+
+      await knex.raw(`
+        CREATE INDEX IF NOT EXISTS idx_messages_conversation_type_sent
+        ON messages (conversation_id, type, sent_at DESC)
+      `);
+
+      await knex.raw(`
+        CREATE INDEX IF NOT EXISTS idx_messages_receiver_status_sent
+        ON messages (receiver_id, status, sent_at DESC)
+      `);
+
+      await knex.raw(`
+        CREATE INDEX IF NOT EXISTS idx_messages_conversation_pinned
+        ON messages (conversation_id, is_pinned) WHERE is_pinned = true
+      `);
+
+      logger.info('Media messaging indexes created successfully');
+    } else {
+      logger.warn('Messages table does not exist - indexes will be created when table is created');
+    }
 
     logger.info('Media messaging schema migration completed successfully');
   } catch (error: any) {
@@ -165,13 +185,22 @@ export async function up(database: Database): Promise<void> {
 }
 
 /**
- * Rollback function (for documentation purposes)
+ * Rollback function
  */
-export async function down(database: Database): Promise<void> {
+export async function down(knex: Knex): Promise<void> {
   logger.info('Rollback: Media messaging schema migration');
-  // Cosmos DB is schemaless - no structural rollback needed
-  // Messages with media metadata will continue to exist
-  logger.info('Rollback completed (no structural changes in schemaless DB)');
+
+  try {
+    // Drop indexes
+    await knex.raw('DROP INDEX IF EXISTS idx_messages_conversation_sent');
+    await knex.raw('DROP INDEX IF EXISTS idx_messages_conversation_type_sent');
+    await knex.raw('DROP INDEX IF EXISTS idx_messages_receiver_status_sent');
+    await knex.raw('DROP INDEX IF EXISTS idx_messages_conversation_pinned');
+
+    logger.info('Rollback completed - indexes dropped');
+  } catch (error: any) {
+    logger.warn('Rollback warning:', error.message);
+  }
 }
 
 export default { up, down };

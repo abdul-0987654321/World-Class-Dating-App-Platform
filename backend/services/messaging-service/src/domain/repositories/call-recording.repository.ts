@@ -1,6 +1,4 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { RecordingSession } from '../../services/call-recording.service';
 import { createLogger } from '../../utils/logger';
 
@@ -38,15 +36,6 @@ export interface CallRecordingMetadata {
 }
 
 export class CallRecordingRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getCallRecordingsContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Save recording metadata to database
    */
@@ -83,10 +72,10 @@ export class CallRecordingRepository {
 
       logger.info(`Saving recording metadata: ${recording.recordingId}`);
 
-      const { resource } = await this.container.items.create(document);
+      const [result] = await postgresClient.callRecordings().insert(document).returning('*');
 
       logger.info(`Recording metadata saved: ${recording.recordingId}`);
-      return resource as CallRecordingDocument;
+      return result as CallRecordingDocument;
     } catch (error: any) {
       logger.error(`Failed to save recording ${recording.recordingId}:`, error);
       throw new Error(`Failed to save recording: ${error.message}`);
@@ -96,16 +85,11 @@ export class CallRecordingRepository {
   /**
    * Find recording by ID
    */
-  async findById(recordingId: string, callId: string): Promise<CallRecordingDocument | null> {
+  async findById(recordingId: string, _callId?: string): Promise<CallRecordingDocument | null> {
     try {
-      const { resource } = await this.container
-        .item(recordingId, callId)
-        .read<CallRecordingDocument>();
-      return resource || null;
+      const result = await postgresClient.callRecordings().where('id', recordingId).first();
+      return result || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find recording ${recordingId}:`, error);
       throw error;
     }
@@ -116,27 +100,28 @@ export class CallRecordingRepository {
    */
   async update(
     recordingId: string,
-    callId: string,
+    _callId: string,
     updates: Partial<CallRecordingDocument>
   ): Promise<CallRecordingDocument> {
     try {
       logger.info(`Updating recording: ${recordingId}`);
 
-      const existing = await this.findById(recordingId, callId);
+      const existing = await this.findById(recordingId);
       if (!existing) {
         throw new Error(`Recording ${recordingId} not found`);
       }
 
-      const updated = {
-        ...existing,
-        ...updates,
-        updatedAt: new Date(),
-      };
-
-      const { resource } = await this.container.item(recordingId, callId).replace(updated);
+      const [result] = await postgresClient
+        .callRecordings()
+        .where('id', recordingId)
+        .update({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .returning('*');
 
       logger.info(`Recording updated: ${recordingId}`);
-      return resource as CallRecordingDocument;
+      return result as CallRecordingDocument;
     } catch (error: any) {
       logger.error(`Failed to update recording ${recordingId}:`, error);
       throw error;
@@ -148,15 +133,12 @@ export class CallRecordingRepository {
    */
   async getRecordingsByCallId(callId: string): Promise<CallRecordingDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c WHERE c.callId = @callId ORDER BY c.startTime DESC`,
-        parameters: [{ name: '@callId', value: callId }],
-      };
+      const results = await postgresClient
+        .callRecordings()
+        .where('call_id', callId)
+        .orderBy('start_time', 'desc');
 
-      const { resources } = await this.container.items
-        .query<CallRecordingDocument>(querySpec)
-        .fetchAll();
-      return resources;
+      return results as CallRecordingDocument[];
     } catch (error: any) {
       logger.error('Failed to get recordings by call ID:', error);
       throw error;
@@ -172,22 +154,14 @@ export class CallRecordingRepository {
     offset: number = 0
   ): Promise<CallRecordingDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.userId = @userId
-                ORDER BY c.startTime DESC
-                OFFSET @offset LIMIT @limit`,
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .callRecordings()
+        .where('user_id', userId)
+        .orderBy('start_time', 'desc')
+        .limit(limit)
+        .offset(offset);
 
-      const { resources } = await this.container.items
-        .query<CallRecordingDocument>(querySpec)
-        .fetchAll();
-      return resources;
+      return results as CallRecordingDocument[];
     } catch (error: any) {
       logger.error('Failed to get recordings by user ID:', error);
       throw error;
@@ -202,21 +176,13 @@ export class CallRecordingRepository {
     limit: number = 100
   ): Promise<CallRecordingDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.status = @status
-                ORDER BY c.startTime DESC
-                OFFSET 0 LIMIT @limit`,
-        parameters: [
-          { name: '@status', value: status },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .callRecordings()
+        .where('status', status)
+        .orderBy('start_time', 'desc')
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<CallRecordingDocument>(querySpec)
-        .fetchAll();
-      return resources;
+      return results as CallRecordingDocument[];
     } catch (error: any) {
       logger.error('Failed to get recordings by status:', error);
       throw error;
@@ -226,10 +192,10 @@ export class CallRecordingRepository {
   /**
    * Delete recording metadata
    */
-  async delete(recordingId: string, callId: string): Promise<void> {
+  async delete(recordingId: string, _callId?: string): Promise<void> {
     try {
       logger.info(`Deleting recording metadata: ${recordingId}`);
-      await this.container.item(recordingId, callId).delete();
+      await postgresClient.callRecordings().where('id', recordingId).delete();
       logger.info(`Recording metadata deleted: ${recordingId}`);
     } catch (error: any) {
       logger.error(`Failed to delete recording ${recordingId}:`, error);
@@ -242,15 +208,14 @@ export class CallRecordingRepository {
    */
   async getTotalDurationForUser(userId: string): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT VALUE SUM(c.duration) FROM c
-                WHERE c.userId = @userId
-                AND c.status = 'stopped'`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const result = await postgresClient
+        .callRecordings()
+        .where('user_id', userId)
+        .andWhere('status', 'stopped')
+        .sum('duration as total')
+        .first();
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return Number(result?.total) || 0;
     } catch (error: any) {
       logger.error('Failed to get total duration:', error);
       throw error;
@@ -262,13 +227,13 @@ export class CallRecordingRepository {
    */
   async getRecordingCountForUser(userId: string): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT VALUE COUNT(1) FROM c WHERE c.userId = @userId`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const result = await postgresClient
+        .callRecordings()
+        .where('user_id', userId)
+        .count('* as count')
+        .first();
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return Number(result?.count) || 0;
     } catch (error: any) {
       logger.error('Failed to get recording count:', error);
       throw error;
@@ -280,24 +245,10 @@ export class CallRecordingRepository {
    */
   async deleteOldRecordings(olderThan: Date): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT c.id, c.callId FROM c WHERE c.startTime < @olderThan`,
-        parameters: [{ name: '@olderThan', value: olderThan.getTime() }],
-      };
-
-      const { resources } = await this.container.items
-        .query<{ id: string; callId: string }>(querySpec)
-        .fetchAll();
-
-      let deleted = 0;
-      for (const recording of resources) {
-        try {
-          await this.container.item(recording.id, recording.callId).delete();
-          deleted++;
-        } catch (error) {
-          logger.error(`Failed to delete recording ${recording.id}:`, error);
-        }
-      }
+      const deleted = await postgresClient
+        .callRecordings()
+        .where('start_time', '<', olderThan.getTime())
+        .delete();
 
       logger.info(`Deleted ${deleted} old recording metadata entries`);
       return deleted;

@@ -185,15 +185,15 @@ async function verifyAIServices(): Promise<VerificationResult[]> {
     name: 'AI Icebreaker API',
   });
 
-  // Check OpenAI/AI configuration
-  const aiConfigured = !!(process.env.OPENAI_API_KEY || process.env.AZURE_OPENAI_ENDPOINT);
+  // Check OpenAI/AI configuration (OpenAI API or AWS Bedrock)
+  const aiConfigured = !!(process.env.OPENAI_API_KEY || process.env.AWS_REGION);
 
   results.push({
     name: 'AI Provider Configuration',
     status: aiConfigured ? 'PASS' : 'WARN',
     message: aiConfigured
       ? 'AI provider configured'
-      : 'No AI provider API key found (OPENAI_API_KEY or AZURE_OPENAI_ENDPOINT)',
+      : 'No AI provider found (OPENAI_API_KEY or AWS Bedrock via AWS_REGION)',
   });
 
   // Rate limits check
@@ -230,15 +230,15 @@ async function verifySafetyServices(): Promise<VerificationResult[]> {
     name: 'Content Moderation',
   });
 
-  // Check Azure CV for image moderation
-  const cvConfigured = !!(process.env.AZURE_CV_ENDPOINT && process.env.AZURE_CV_API_KEY);
+  // Check AWS Rekognition for image moderation
+  const rekognitionConfigured = !!process.env.AWS_REGION;
 
   results.push({
     name: 'Image Moderation API',
-    status: cvConfigured ? 'PASS' : 'WARN',
-    message: cvConfigured
-      ? 'Azure Computer Vision configured'
-      : 'Missing AZURE_CV_ENDPOINT or AZURE_CV_API_KEY',
+    status: rekognitionConfigured ? 'PASS' : 'WARN',
+    message: rekognitionConfigured
+      ? 'AWS Rekognition configured'
+      : 'Missing AWS_REGION for Rekognition',
   });
 
   // Check block/report capability (in user service)

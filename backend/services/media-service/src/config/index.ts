@@ -6,25 +6,11 @@ export const config = {
   port: parseInt(process.env.PORT || '3004', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  // AWS S3 Storage
+  // AWS Configuration
   aws: {
     region: process.env.AWS_REGION || 'us-east-1',
     s3Bucket: process.env.AWS_S3_BUCKET_MEDIA || 'flamoral-media',
     cdnUrl: process.env.AWS_CDN_URL || '',
-  },
-
-  // Azure Storage (deprecated - kept for migration compatibility)
-  azure: {
-    storageAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || '',
-    storageAccountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY || '',
-    containerName: process.env.AZURE_CONTAINER_NAME || 'media',
-    cdnUrl: process.env.AZURE_CDN_URL || '',
-  },
-
-  // Azure Computer Vision
-  computerVision: {
-    endpoint: process.env.AZURE_CV_ENDPOINT || '',
-    apiKey: process.env.AZURE_CV_API_KEY || '',
   },
 
   // Upload limits
@@ -61,7 +47,7 @@ export const config = {
     audioBitrate: '128k',
     frameRate: 30,
     resolution: { width: 1280, height: 720 }, // 720p
-    compressionPreset: 'medium' as const, // ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+    compressionPreset: 'medium' as const,
   },
 
   // Redis for Bull queue
@@ -71,7 +57,7 @@ export const config = {
     password: process.env.REDIS_PASSWORD,
   },
 
-  // Content moderation thresholds
+  // Content moderation thresholds (AWS Rekognition)
   moderation: {
     adultContentThreshold: 0.7,
     racyContentThreshold: 0.6,

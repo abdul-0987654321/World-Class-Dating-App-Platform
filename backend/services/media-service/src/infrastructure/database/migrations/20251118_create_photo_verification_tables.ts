@@ -19,8 +19,8 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('face_detected');
     table.integer('face_count');
     table.decimal('quality_score', 5, 4);
-    table.string('face_id'); // Azure Face API face ID
-    table.json('face_attributes'); // Store full face attributes from Azure
+    table.string('face_id'); // AWS Rekognition face ID
+    table.json('face_attributes'); // Store full face attributes from AWS Rekognition
 
     // Face matching results (if reference photo provided)
     table.decimal('match_score', 5, 4);

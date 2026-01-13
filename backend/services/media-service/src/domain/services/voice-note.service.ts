@@ -1,7 +1,7 @@
 import { createLogger } from '@flamoral/backend-shared';
 import { v4 as uuidv4 } from 'uuid';
 
-import azureStorageService from '../../infrastructure/storage/azure-storage.service';
+import { storageService } from '../../infrastructure/storage/s3-storage.service';
 import { UploadedFile, ModerationStatus } from '../../types';
 import voiceNoteRepository from '../repositories/voice-note.repository';
 
@@ -59,11 +59,11 @@ export class VoiceNoteService {
       // Step 2: Process voice note (compress, normalize, trim, generate waveform)
       const processed = await audioProcessingService.processVoiceNote(file.buffer);
 
-      // Step 3: Upload compressed audio to Azure Storage
+      // Step 3: Upload compressed audio to S3
       const voiceNoteId = uuidv4();
       const fileName = `${voiceNoteId}-${file.originalname.replace(/\.[^/.]+$/, '')}.mp3`;
 
-      const audioUrl = await azureStorageService.uploadBlob(
+      const audioUrl = await storageService.uploadBlob(
         processed.compressed,
         `voice-notes/${userId}/${context}/${fileName}`,
         'audio/mpeg'
@@ -128,8 +128,8 @@ export class VoiceNoteService {
     try {
       logger.info(`Deleting voice note: ${voiceNoteId}`);
 
-      // Delete from Azure Storage
-      await azureStorageService.deleteBlob(url);
+      // Delete from S3
+      await storageService.deleteBlob(url);
 
       // Delete from database
       await voiceNoteRepository.delete(voiceNoteId);
@@ -246,7 +246,7 @@ export class VoiceNoteService {
       logger.info(`Generating waveform for audio URL: ${audioUrl}`);
 
       // Download audio from URL
-      const audioBuffer = await azureStorageService.downloadBlob(audioUrl);
+      const audioBuffer = await storageService.downloadBlob(audioUrl);
 
       // Generate waveform
       const waveform = await audioProcessingService.generateWaveform(audioBuffer);

@@ -15,7 +15,7 @@ export interface RecordingConfig {
   agoraAppId: string;
   agoraCustomerId: string;
   agoraCustomerCertificate: string;
-  storageVendor: number; // 1 for Agora, 2 for AWS S3, 3 for Azure Blob
+  storageVendor: number; // 1 for Agora, 2 for AWS S3
   storageRegion: number;
   storageBucket: string;
   storageAccessKey?: string;
@@ -390,9 +390,6 @@ export class CallRecordingService {
           if (storageVendor === 2) {
             // AWS S3
             await this.deleteFromS3(fileUrl);
-          } else if (storageVendor === 3) {
-            // Azure Blob Storage
-            await this.deleteFromAzure(fileUrl);
           } else {
             // Agora's own storage - files are managed by Agora
             logger.info('Recording stored in Agora cloud, deletion managed by Agora retention policy', {
@@ -420,7 +417,7 @@ export class CallRecordingService {
       const key = url.pathname.slice(1); // Remove leading slash
 
       // Use AWS SDK to delete
-      const response = await axios.delete(
+      await axios.delete(
         `https://s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${bucket}/${key}`,
         {
           headers: {
@@ -433,35 +430,6 @@ export class CallRecordingService {
       logger.info('Recording deleted from S3', { bucket, key });
     } catch (error) {
       logger.error('Failed to delete from S3', { fileUrl, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Delete file from Azure Blob Storage
-   */
-  private async deleteFromAzure(fileUrl: string): Promise<void> {
-    try {
-      // Extract container and blob name from URL
-      const url = new URL(fileUrl);
-      const pathParts = url.pathname.split('/').filter(Boolean);
-      const container = pathParts[0];
-      const blobName = pathParts.slice(1).join('/');
-
-      // Use Azure Storage SDK to delete
-      const storageAccountName = url.hostname.split('.')[0];
-      const sasToken = process.env.AZURE_STORAGE_SAS_TOKEN || '';
-
-      await axios.delete(`${fileUrl}${sasToken ? `?${sasToken}` : ''}`, {
-        headers: {
-          'x-ms-delete-snapshots': 'include',
-          'x-ms-version': '2020-04-08',
-        },
-      });
-
-      logger.info('Recording deleted from Azure', { container, blobName });
-    } catch (error) {
-      logger.error('Failed to delete from Azure', { fileUrl, error });
       throw error;
     }
   }

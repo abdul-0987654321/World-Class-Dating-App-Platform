@@ -1,6 +1,4 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('chat-export-repository');
@@ -16,11 +14,11 @@ export type ExportStatus = 'pending' | 'processing' | 'completed' | 'failed' | '
 export type ExportFormat = 'json' | 'txt' | 'pdf';
 
 /**
- * Chat export document stored in Cosmos DB
+ * Chat export document stored in PostgreSQL
  */
 export interface ChatExportDocument {
   id: string;
-  userId: string; // Partition key
+  userId: string;
   conversationId: string;
   format: ExportFormat;
   status: ExportStatus;
@@ -78,15 +76,6 @@ export interface GlobalExportStatistics {
 }
 
 export class ChatExportRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getChatExportsContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Create a new export record
    */
@@ -94,10 +83,10 @@ export class ChatExportRepository {
     try {
       logger.info(`Creating export record: ${exportDoc.id}`);
 
-      const { resource } = await this.container.items.create(exportDoc);
+      const [result] = await postgresClient.chatExports().insert(exportDoc).returning('*');
 
       logger.info(`Export record created: ${exportDoc.id}`);
-      return resource as ChatExportDocument;
+      return result as ChatExportDocument;
     } catch (error: any) {
       logger.error(`Failed to create export record ${exportDoc.id}:`, error);
       throw new Error(`Failed to create export record: ${error.message}`);
@@ -109,34 +98,25 @@ export class ChatExportRepository {
    */
   async findById(exportId: string, userId: string): Promise<ChatExportDocument | null> {
     try {
-      const { resource } = await this.container.item(exportId, userId).read<ChatExportDocument>();
-      return resource || null;
+      const result = await postgresClient
+        .chatExports()
+        .where('id', exportId)
+        .andWhere('user_id', userId)
+        .first();
+      return result || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find export ${exportId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Find export by ID across all users (cross-partition query)
-   * Use sparingly as it's more expensive
+   * Find export by ID across all users
    */
   async findByIdCrossPartition(exportId: string): Promise<ChatExportDocument | null> {
     try {
-      const querySpec = {
-        query: 'SELECT * FROM c WHERE c.id = @exportId',
-        parameters: [{ name: '@exportId', value: exportId }],
-      };
-
-      // Note: In Cosmos DB SDK v4, cross-partition queries are enabled by default
-      const { resources } = await this.container.items
-        .query<ChatExportDocument>(querySpec)
-        .fetchAll();
-
-      return resources[0] || null;
+      const result = await postgresClient.chatExports().where('id', exportId).first();
+      return result || null;
     } catch (error: any) {
       logger.error(`Failed to find export ${exportId}:`, error);
       throw error;
@@ -159,11 +139,15 @@ export class ChatExportRepository {
         throw new Error(`Export ${exportId} not found`);
       }
 
-      const updated = { ...existing, ...updates };
-      const { resource } = await this.container.item(exportId, userId).replace(updated);
+      const [result] = await postgresClient
+        .chatExports()
+        .where('id', exportId)
+        .andWhere('user_id', userId)
+        .update(updates)
+        .returning('*');
 
       logger.info(`Export record updated: ${exportId}`);
-      return resource as ChatExportDocument;
+      return result as ChatExportDocument;
     } catch (error: any) {
       logger.error(`Failed to update export ${exportId}:`, error);
       throw error;
@@ -197,7 +181,7 @@ export class ChatExportRepository {
   async delete(exportId: string, userId: string): Promise<void> {
     try {
       logger.info(`Deleting export record: ${exportId}`);
-      await this.container.item(exportId, userId).delete();
+      await postgresClient.chatExports().where('id', exportId).andWhere('user_id', userId).delete();
       logger.info(`Export record deleted: ${exportId}`);
     } catch (error: any) {
       logger.error(`Failed to delete export ${exportId}:`, error);
@@ -214,23 +198,14 @@ export class ChatExportRepository {
     offset: number = 0
   ): Promise<ChatExportDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.userId = @userId
-                ORDER BY c.createdAt DESC
-                OFFSET @offset LIMIT @limit`,
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .orderBy('created_at', 'desc')
+        .limit(limit)
+        .offset(offset);
 
-      const { resources } = await this.container.items
-        .query<ChatExportDocument>(querySpec)
-        .fetchAll();
-
-      return resources;
+      return results as ChatExportDocument[];
     } catch (error: any) {
       logger.error('Failed to get exports by user:', error);
       throw error;
@@ -246,24 +221,14 @@ export class ChatExportRepository {
     limit: number = 20
   ): Promise<ChatExportDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.userId = @userId
-                AND c.conversationId = @conversationId
-                ORDER BY c.createdAt DESC
-                OFFSET 0 LIMIT @limit`,
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@conversationId', value: conversationId },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .andWhere('conversation_id', conversationId)
+        .orderBy('created_at', 'desc')
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<ChatExportDocument>(querySpec)
-        .fetchAll();
-
-      return resources;
+      return results as ChatExportDocument[];
     } catch (error: any) {
       logger.error('Failed to get exports by conversation:', error);
       throw error;
@@ -272,27 +237,17 @@ export class ChatExportRepository {
 
   /**
    * Get expired exports that need cleanup
-   * Note: This is a cross-partition query (enabled by default in SDK v4)
    */
   async getExpiredExports(limit: number = 100): Promise<ChatExportDocument[]> {
     try {
       const now = new Date().toISOString();
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.status = 'completed'
-                AND c.expiresAt < @now
-                OFFSET 0 LIMIT @limit`,
-        parameters: [
-          { name: '@now', value: now },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const results = await postgresClient
+        .chatExports()
+        .where('status', 'completed')
+        .andWhere('expires_at', '<', now)
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<ChatExportDocument>(querySpec)
-        .fetchAll();
-
-      return resources;
+      return results as ChatExportDocument[];
     } catch (error: any) {
       logger.error('Failed to get expired exports:', error);
       throw error;
@@ -320,120 +275,87 @@ export class ChatExportRepository {
    */
   async getExportStatistics(userId: string): Promise<ExportStatistics> {
     try {
-      // Get total exports and storage
-      const totalsQuery = {
-        query: `SELECT VALUE {
-                  totalExports: COUNT(1),
-                  storageUsed: SUM(c.fileSize)
-                }
-                FROM c
-                WHERE c.userId = @userId`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      // Get totals
+      const totalsResult = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .select(
+          postgresClient.chatExports().client.raw('COUNT(*) as total_exports'),
+          postgresClient.chatExports().client.raw('COALESCE(SUM(file_size), 0) as storage_used')
+        )
+        .first();
 
-      const { resources: totalsResults } = await this.container.items
-        .query<{ totalExports: number; storageUsed: number }>(totalsQuery)
-        .fetchAll();
-
-      const totals = totalsResults[0] || { totalExports: 0, storageUsed: 0 };
+      const totals = totalsResult || { total_exports: 0, storage_used: 0 };
 
       // Get exports this month
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const monthQuery = {
-        query: `SELECT VALUE COUNT(1)
-                FROM c
-                WHERE c.userId = @userId
-                AND c.createdAt >= @startOfMonth`,
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@startOfMonth', value: startOfMonth.toISOString() },
-        ],
-      };
+      const monthResult = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .andWhere('created_at', '>=', startOfMonth.toISOString())
+        .count('* as count')
+        .first();
 
-      const { resources: monthResults } = await this.container.items
-        .query<number>(monthQuery)
-        .fetchAll();
-
-      const exportsThisMonth = monthResults[0] || 0;
+      const exportsThisMonth = Number(monthResult?.count) || 0;
 
       // Get exports by format
-      const formatQuery = {
-        query: `SELECT c.format, COUNT(1) as count
-                FROM c
-                WHERE c.userId = @userId
-                GROUP BY c.format`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
-
-      const { resources: formatResults } = await this.container.items
-        .query<{ format: ExportFormat; count: number }>(formatQuery)
-        .fetchAll();
+      const formatResults = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .select('format')
+        .count('* as count')
+        .groupBy('format');
 
       const exportsByFormat = { json: 0, txt: 0, pdf: 0 };
       for (const result of formatResults) {
         if (result.format in exportsByFormat) {
-          exportsByFormat[result.format] = result.count;
+          exportsByFormat[result.format as ExportFormat] = Number(result.count);
         }
       }
 
       // Get exports by status
-      const statusQuery = {
-        query: `SELECT c.status, COUNT(1) as count
-                FROM c
-                WHERE c.userId = @userId
-                GROUP BY c.status`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
-
-      const { resources: statusResults } = await this.container.items
-        .query<{ status: ExportStatus; count: number }>(statusQuery)
-        .fetchAll();
+      const statusResults = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .select('status')
+        .count('* as count')
+        .groupBy('status');
 
       const exportsByStatus = { pending: 0, processing: 0, completed: 0, failed: 0, expired: 0 };
       for (const result of statusResults) {
         if (result.status in exportsByStatus) {
-          exportsByStatus[result.status] = result.count;
+          exportsByStatus[result.status as ExportStatus] = Number(result.count);
         }
       }
 
-      // Get average file size (only completed exports with fileSize)
-      const avgQuery = {
-        query: `SELECT VALUE AVG(c.fileSize)
-                FROM c
-                WHERE c.userId = @userId
-                AND c.status = 'completed'
-                AND IS_NUMBER(c.fileSize)`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      // Get average file size
+      const avgResult = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .andWhere('status', 'completed')
+        .whereNotNull('file_size')
+        .avg('file_size as avg')
+        .first();
 
-      const { resources: avgResults } = await this.container.items
-        .query<number>(avgQuery)
-        .fetchAll();
-
-      const averageFileSize = Math.round(avgResults[0] || 0);
+      const averageFileSize = Math.round(Number(avgResult?.avg) || 0);
 
       // Get last export date
-      const lastExportQuery = {
-        query: `SELECT TOP 1 c.createdAt
-                FROM c
-                WHERE c.userId = @userId
-                ORDER BY c.createdAt DESC`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const lastExportResult = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .orderBy('created_at', 'desc')
+        .select('created_at')
+        .first();
 
-      const { resources: lastExportResults } = await this.container.items
-        .query<{ createdAt: string }>(lastExportQuery)
-        .fetchAll();
-
-      const lastExportDate = lastExportResults[0]?.createdAt;
+      const lastExportDate = lastExportResult?.created_at;
 
       return {
-        totalExports: totals.totalExports || 0,
+        totalExports: Number(totals.total_exports) || 0,
         exportsThisMonth,
-        storageUsed: totals.storageUsed || 0,
+        storageUsed: Number(totals.storage_used) || 0,
         exportsByFormat,
         exportsByStatus,
         averageFileSize,
@@ -447,7 +369,6 @@ export class ChatExportRepository {
 
   /**
    * Get global export statistics (for admin/monitoring)
-   * Note: Uses cross-partition queries (enabled by default in SDK v4)
    */
   async getGlobalExportStatistics(): Promise<GlobalExportStatistics> {
     try {
@@ -464,100 +385,74 @@ export class ChatExportRepository {
       startOfMonth.setHours(0, 0, 0, 0);
 
       // Total exports and storage
-      const totalsQuery = {
-        query: `SELECT VALUE {
-                  totalExports: COUNT(1),
-                  totalStorageUsed: SUM(c.fileSize)
-                }
-                FROM c`,
-        parameters: [],
-      };
+      const totalsResult = await postgresClient
+        .chatExports()
+        .select(
+          postgresClient.chatExports().client.raw('COUNT(*) as total_exports'),
+          postgresClient.chatExports().client.raw('COALESCE(SUM(file_size), 0) as total_storage_used')
+        )
+        .first();
 
-      const { resources: totalsResults } = await this.container.items
-        .query<{ totalExports: number; totalStorageUsed: number }>(totalsQuery)
-        .fetchAll();
+      const totals = totalsResult || { total_exports: 0, total_storage_used: 0 };
 
-      const totals = totalsResults[0] || { totalExports: 0, totalStorageUsed: 0 };
+      // Exports today
+      const todayResult = await postgresClient
+        .chatExports()
+        .where('created_at', '>=', startOfDay.toISOString())
+        .count('* as count')
+        .first();
 
-      // Due to Cosmos DB limitations with conditional counts, we'll do separate queries
-      const todayQuery = {
-        query: `SELECT VALUE COUNT(1)
-                FROM c
-                WHERE c.createdAt >= @startOfDay`,
-        parameters: [{ name: '@startOfDay', value: startOfDay.toISOString() }],
-      };
+      // Exports this week
+      const weekResult = await postgresClient
+        .chatExports()
+        .where('created_at', '>=', startOfWeek.toISOString())
+        .count('* as count')
+        .first();
 
-      const weekQuery = {
-        query: `SELECT VALUE COUNT(1)
-                FROM c
-                WHERE c.createdAt >= @startOfWeek`,
-        parameters: [{ name: '@startOfWeek', value: startOfWeek.toISOString() }],
-      };
-
-      const monthQuery = {
-        query: `SELECT VALUE COUNT(1)
-                FROM c
-                WHERE c.createdAt >= @startOfMonth`,
-        parameters: [{ name: '@startOfMonth', value: startOfMonth.toISOString() }],
-      };
-
-      const [todayResults, weekResults, monthResults] = await Promise.all([
-        this.container.items.query<number>(todayQuery).fetchAll(),
-        this.container.items.query<number>(weekQuery).fetchAll(),
-        this.container.items.query<number>(monthQuery).fetchAll(),
-      ]);
+      // Exports this month
+      const monthResult = await postgresClient
+        .chatExports()
+        .where('created_at', '>=', startOfMonth.toISOString())
+        .count('* as count')
+        .first();
 
       // Exports by format
-      const formatQuery = {
-        query: `SELECT c.format, COUNT(1) as count
-                FROM c
-                GROUP BY c.format`,
-        parameters: [],
-      };
-
-      const { resources: formatResults } = await this.container.items
-        .query<{ format: ExportFormat; count: number }>(formatQuery)
-        .fetchAll();
+      const formatResults = await postgresClient
+        .chatExports()
+        .select('format')
+        .count('* as count')
+        .groupBy('format');
 
       const exportsByFormat = { json: 0, txt: 0, pdf: 0 };
       for (const result of formatResults) {
         if (result.format in exportsByFormat) {
-          exportsByFormat[result.format] = result.count;
+          exportsByFormat[result.format as ExportFormat] = Number(result.count);
         }
       }
 
       // Average file size
-      const avgQuery = {
-        query: `SELECT VALUE AVG(c.fileSize)
-                FROM c
-                WHERE c.status = 'completed'
-                AND IS_NUMBER(c.fileSize)`,
-        parameters: [],
-      };
+      const avgResult = await postgresClient
+        .chatExports()
+        .where('status', 'completed')
+        .whereNotNull('file_size')
+        .avg('file_size as avg')
+        .first();
 
-      const { resources: avgResults } = await this.container.items
-        .query<number>(avgQuery)
-        .fetchAll();
-
-      // Unique users count - use a simpler approach for Cosmos DB
-      const uniqueUsersQuery = {
-        query: `SELECT DISTINCT VALUE c.userId FROM c`,
-        parameters: [],
-      };
-
-      const { resources: uniqueUsersResults } = await this.container.items
-        .query<string>(uniqueUsersQuery)
-        .fetchAll();
+      // Unique users count
+      const uniqueUsersResult = await postgresClient
+        .chatExports()
+        .countDistinct('user_id as count')
+        .first();
 
       return {
-        totalExports: totals.totalExports || 0,
-        exportsToday: todayResults.resources[0] || 0,
-        exportsThisWeek: weekResults.resources[0] || 0,
-        exportsThisMonth: monthResults.resources[0] || 0,
-        totalStorageUsed: totals.totalStorageUsed || 0,
+        totalExports: Number(totals.total_exports) || 0,
+        exportsToday: Number(todayResult?.count) || 0,
+        exportsThisWeek: Number(weekResult?.count) || 0,
+        exportsThisMonth: Number(monthResult?.count) || 0,
+        totalStorageUsed: Number(totals.total_storage_used) || 0,
         exportsByFormat,
-        averageFileSize: Math.round(avgResults[0] || 0),
-        uniqueUsers: uniqueUsersResults.length,
+        averageFileSize: Math.round(Number(avgResult?.avg) || 0),
+        uniqueUsers: Number(uniqueUsersResult?.count) || 0,
       };
     } catch (error: any) {
       logger.error('Failed to get global export statistics:', error);
@@ -567,22 +462,15 @@ export class ChatExportRepository {
 
   /**
    * Get recent exports (for admin monitoring)
-   * Note: This is a cross-partition query (enabled by default in SDK v4)
    */
   async getRecentExports(limit: number = 50): Promise<ChatExportDocument[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                ORDER BY c.createdAt DESC
-                OFFSET 0 LIMIT @limit`,
-        parameters: [{ name: '@limit', value: limit }],
-      };
+      const results = await postgresClient
+        .chatExports()
+        .orderBy('created_at', 'desc')
+        .limit(limit);
 
-      const { resources } = await this.container.items
-        .query<ChatExportDocument>(querySpec)
-        .fetchAll();
-
-      return resources;
+      return results as ChatExportDocument[];
     } catch (error: any) {
       logger.error('Failed to get recent exports:', error);
       throw error;
@@ -594,16 +482,16 @@ export class ChatExportRepository {
    */
   async countActiveExports(userId: string): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT VALUE COUNT(1)
-                FROM c
-                WHERE c.userId = @userId
-                AND (c.status = 'pending' OR c.status = 'processing')`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const result = await postgresClient
+        .chatExports()
+        .where('user_id', userId)
+        .andWhere(function () {
+          this.where('status', 'pending').orWhere('status', 'processing');
+        })
+        .count('* as count')
+        .first();
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return Number(result?.count) || 0;
     } catch (error: any) {
       logger.error('Failed to count active exports:', error);
       throw error;

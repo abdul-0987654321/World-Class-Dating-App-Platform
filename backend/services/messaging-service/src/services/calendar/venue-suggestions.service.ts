@@ -3,12 +3,11 @@
  * Provides venue recommendations for dates using Google Places API
  */
 
-import { Container } from '@azure/cosmos';
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 import { calendarConfig } from '../../config/calendar.config';
-import cosmosClient from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import {
   VenueSuggestion,
   VenueCategory,
@@ -56,26 +55,18 @@ const DATE_FRIENDLY_TYPES = [
  * Venue Suggestions Service
  */
 export class VenueSuggestionsService {
-  private bookmarksContainer: Container | null = null;
   private initialized = false;
 
   /**
-   * Initialize containers
+   * Initialize database connection
    */
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
     try {
-      const database = cosmosClient['database'];
-      if (!database) {
-        throw new Error('Cosmos DB not initialized');
+      if (!postgresClient.isInitialized()) {
+        await postgresClient.initialize();
       }
-
-      const { container } = await database.containers.createIfNotExists({
-        id: 'VenueBookmarks',
-        partitionKey: '/userId',
-      });
-      this.bookmarksContainer = container;
 
       this.initialized = true;
       logger.info('VenueSuggestionsService initialized');
@@ -213,7 +204,7 @@ export class VenueSuggestionsService {
         result.opening_hours.weekday_text.forEach((text: string) => {
           const [day, hours] = text.split(': ');
           if (day && hours) {
-            details.openingHours[day] = hours;
+            details.openingHours![day] = hours;
           }
         });
       }
@@ -478,12 +469,12 @@ export class VenueSuggestionsService {
 
     // Filter by rating
     if (params.minRating) {
-      filtered = filtered.filter((v) => (v.rating || 0) >= params.minRating);
+      filtered = filtered.filter((v) => (v.rating || 0) >= params.minRating!);
     }
 
     // Filter by price
     if (params.maxPriceLevel) {
-      filtered = filtered.filter((v) => (v.priceLevel || 0) <= params.maxPriceLevel);
+      filtered = filtered.filter((v) => (v.priceLevel || 0) <= params.maxPriceLevel!);
     }
 
     // Apply limit
@@ -506,8 +497,19 @@ export class VenueSuggestionsService {
     await this.ensureInitialized();
 
     const now = new Date();
+    const bookmarkId = uuidv4();
+
+    await postgresClient.venueBookmarks().insert({
+      id: bookmarkId,
+      user_id: userId,
+      venue: JSON.stringify(venue),
+      category: venue.category,
+      notes,
+      created_at: now,
+    });
+
     const bookmark: VenueBookmark = {
-      id: uuidv4(),
+      id: bookmarkId,
       userId,
       venue,
       category: venue.category,
@@ -515,7 +517,6 @@ export class VenueSuggestionsService {
       createdAt: now,
     };
 
-    await this.bookmarksContainer.items.create(bookmark);
     logger.info(`Created bookmark ${bookmark.id} for user ${userId}`);
 
     return bookmark;
@@ -527,13 +528,15 @@ export class VenueSuggestionsService {
   async removeBookmark(userId: string, bookmarkId: string): Promise<void> {
     await this.ensureInitialized();
 
-    try {
-      await this.bookmarksContainer.item(bookmarkId, userId).delete();
-      logger.info(`Deleted bookmark ${bookmarkId}`);
-    } catch (error) {
-      logger.warn('Failed to delete bookmark:', error);
+    const deleted = await postgresClient.venueBookmarks()
+      .where({ id: bookmarkId, user_id: userId })
+      .delete();
+
+    if (deleted === 0) {
       throw new Error('Bookmark not found');
     }
+
+    logger.info(`Deleted bookmark ${bookmarkId}`);
   }
 
   /**
@@ -545,32 +548,40 @@ export class VenueSuggestionsService {
   ): Promise<VenueBookmark[]> {
     await this.ensureInitialized();
 
-    let query = 'SELECT * FROM c WHERE c.userId = @userId';
-    const parameters: { name: string; value: any }[] = [{ name: '@userId', value: userId }];
+    let query = postgresClient.venueBookmarks()
+      .where({ user_id: userId });
 
     if (options?.category) {
-      query += ' AND c.category = @category';
-      parameters.push({ name: '@category', value: options.category });
+      query = query.andWhere({ category: options.category });
     }
 
-    query += ' ORDER BY c.createdAt DESC';
+    query = query.orderBy('created_at', 'desc');
 
     if (options?.offset) {
-      query += ` OFFSET ${options.offset}`;
+      query = query.offset(options.offset);
     }
 
     if (options?.limit) {
-      query += ` LIMIT ${options.limit}`;
+      query = query.limit(options.limit);
     }
 
-    const { resources } = await this.bookmarksContainer.items
-      .query({
-        query,
-        parameters,
-      })
-      .fetchAll();
+    const rows = await query;
 
-    return resources;
+    return rows.map((row: any) => this.mapRowToBookmark(row));
+  }
+
+  /**
+   * Map database row to VenueBookmark object
+   */
+  private mapRowToBookmark(row: any): VenueBookmark {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      venue: typeof row.venue === 'string' ? JSON.parse(row.venue) : row.venue,
+      category: row.category,
+      notes: row.notes,
+      createdAt: new Date(row.created_at),
+    };
   }
 
   /**
@@ -579,16 +590,14 @@ export class VenueSuggestionsService {
   async isBookmarked(userId: string, venueId: string): Promise<boolean> {
     await this.ensureInitialized();
 
-    const query = {
-      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.userId = @userId AND c.venue.id = @venueId',
-      parameters: [
-        { name: '@userId', value: userId },
-        { name: '@venueId', value: venueId },
-      ],
-    };
+    // Since venue is stored as JSONB, we need to search within the JSON
+    const result = await postgresClient.venueBookmarks()
+      .where({ user_id: userId })
+      .whereRaw("venue->>'id' = ?", [venueId])
+      .count('* as count')
+      .first();
 
-    const { resources } = await this.bookmarksContainer.items.query(query).fetchAll();
-    return (resources[0] || 0) > 0;
+    return (parseInt(result?.count as string, 10) || 0) > 0;
   }
 }
 

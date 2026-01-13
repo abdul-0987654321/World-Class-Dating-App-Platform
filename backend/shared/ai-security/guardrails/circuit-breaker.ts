@@ -20,6 +20,8 @@
 
 import { CloudWatchClient, PutMetricDataCommand } from '@aws-sdk/client-cloudwatch';
 
+import type { AIServiceName } from './kill-switch';
+
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export interface CircuitBreakerConfig {
@@ -509,7 +511,7 @@ export async function withAIProtection<T>(
   }
 ): Promise<T> {
   // Import kill switch dynamically to avoid circular dependency
-  const { getKillSwitch, AI_ENABLED_SERVICES, AIServiceName } = await import('./kill-switch');
+  const { getKillSwitch, AI_ENABLED_SERVICES } = await import('./kill-switch');
 
   // Check if this is a valid AI service for kill switch
   const isKillSwitchService = AI_ENABLED_SERVICES.includes(serviceName as any);

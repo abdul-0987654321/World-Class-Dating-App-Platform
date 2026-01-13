@@ -44,7 +44,7 @@ const upload = multer({
  *       **Process:**
  *       1. Upload selfie
  *       2. Detect face in selfie
- *       3. Compare with profile photos using Azure Computer Vision
+ *       3. Compare with profile photos using AWS Rekognition
  *       4. Auto-approve if similarity >= 70%
  *       5. Otherwise, manual review by moderation team
  *     requestBody:

@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('position').notNullable().defaultTo(0); // Order of photos (0 = primary)
     table.boolean('is_primary').defaultTo(false);
     table.boolean('is_verified').defaultTo(false); // For photo verification feature
-    table.string('storage_key', 255); // Key for cloud storage (Azure Blob, S3, etc.)
+    table.string('storage_key', 255); // Key for cloud storage (AWS S3)
     table.timestamps(true, true);
 
     // Indexes

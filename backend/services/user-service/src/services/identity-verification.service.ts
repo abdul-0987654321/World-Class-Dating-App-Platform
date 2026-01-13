@@ -526,10 +526,10 @@ export class IdentityVerificationService {
         .update({ processing_status: 'processing' });
 
       // In a real implementation, this would:
-      // 1. Call Azure Cognitive Services or similar for document/face analysis
-      // 2. Call liveness detection API for liveness checks
-      // 3. Run OCR for document text extraction
-      // 4. Perform face matching between selfie and ID photo
+      // 1. Call AWS Rekognition for document/face analysis
+      // 2. Call AWS Rekognition Face Liveness for liveness checks
+      // 3. Run AWS Textract for document text extraction
+      // 4. Perform face matching between selfie and ID photo using AWS Rekognition CompareFaces
 
       // For now, simulate processing with a random confidence score
       const confidence = 0.7 + Math.random() * 0.25; // 0.70 to 0.95

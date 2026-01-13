@@ -1,17 +1,18 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Readable, PassThrough } from 'stream';
 
-import axios from 'axios';
 import ffmpeg from 'fluent-ffmpeg';
-import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 
 import config from '../config';
 import { VoiceMessageMetadata } from '../types/enhanced-types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('voice-message-service');
+
+// TODO: Implement AWS Transcribe for voice transcription
+// import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
+// import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 export class VoiceMessageService {
   private readonly MAX_DURATION: number;
@@ -24,7 +25,6 @@ export class VoiceMessageService {
     'audio/ogg',
   ];
   private readonly TARGET_BITRATE: number;
-  private speechConfig: sdk.SpeechConfig | null = null;
 
   constructor() {
     const voiceConfig = config.mediaProcessing.voice;
@@ -32,30 +32,9 @@ export class VoiceMessageService {
     this.MAX_FILE_SIZE = voiceConfig.maxFileSize;
     this.TARGET_BITRATE = voiceConfig.targetBitrate;
 
-    // Initialize Azure Speech SDK if configured
-    this.initializeSpeechConfig();
-  }
-
-  /**
-   * Initialize Azure Speech Service configuration
-   */
-  private initializeSpeechConfig(): void {
-    try {
-      const speechConfig = config.azureSpeech;
-      if (speechConfig?.subscriptionKey && speechConfig?.region) {
-        this.speechConfig = sdk.SpeechConfig.fromSubscription(
-          speechConfig.subscriptionKey,
-          speechConfig.region
-        );
-        // Set default language
-        this.speechConfig.speechRecognitionLanguage = speechConfig.language || 'en-US';
-        logger.info('Azure Speech Service initialized', { region: speechConfig.region });
-      } else {
-        logger.warn('Azure Speech Service not configured - transcription will be disabled');
-      }
-    } catch (error: any) {
-      logger.error('Failed to initialize Azure Speech Service:', error);
-    }
+    // TODO: Initialize AWS Transcribe client when implementing transcription
+    // this.initializeAWSTranscribe();
+    logger.info('VoiceMessageService initialized (transcription disabled - TODO: implement AWS Transcribe)');
   }
 
   /**
@@ -306,104 +285,33 @@ export class VoiceMessageService {
   }
 
   /**
-   * Transcribe voice message to text using Azure Speech Service
+   * Transcribe voice message to text
+   * TODO: Implement using AWS Transcribe
+   *
+   * Implementation outline:
+   * 1. Upload audio to S3 bucket
+   * 2. Start transcription job using AWS Transcribe
+   * 3. Poll for job completion
+   * 4. Retrieve and return transcript
+   *
+   * Example AWS Transcribe usage:
+   * const transcribeClient = new TranscribeClient({ region: 'us-east-1' });
+   * const command = new StartTranscriptionJobCommand({
+   *   TranscriptionJobName: `job_${Date.now()}`,
+   *   LanguageCode: 'en-US',
+   *   MediaFormat: 'wav',
+   *   Media: { MediaFileUri: s3Uri },
+   *   OutputBucketName: outputBucket,
+   * });
+   * await transcribeClient.send(command);
    */
   async transcribeVoiceMessage(
     audioBuffer: Buffer,
     mimeType: string = 'audio/wav'
   ): Promise<string | null> {
-    if (!this.speechConfig) {
-      logger.debug('Azure Speech Service not configured - skipping transcription');
-      return null;
-    }
-
-    const extension = this.getExtensionFromMimeType(mimeType);
-    const tempPath = path.join(os.tmpdir(), `transcribe_${Date.now()}${extension}`);
-    const wavPath = path.join(os.tmpdir(), `transcribe_${Date.now()}.wav`);
-
-    try {
-      // Write buffer to temp file
-      await fs.promises.writeFile(tempPath, audioBuffer);
-
-      // Convert to WAV format for Azure Speech SDK (required format)
-      await this.convertToWav(tempPath, wavPath);
-
-      // Create audio config from WAV file
-      const audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(wavPath));
-
-      // Create speech recognizer
-      const recognizer = new sdk.SpeechRecognizer(this.speechConfig, audioConfig);
-
-      return new Promise<string | null>((resolve, reject) => {
-        let transcription = '';
-
-        recognizer.recognized = (
-          _sender: sdk.Recognizer,
-          event: sdk.SpeechRecognitionEventArgs
-        ) => {
-          if (event.result.reason === sdk.ResultReason.RecognizedSpeech) {
-            transcription += event.result.text + ' ';
-          }
-        };
-
-        recognizer.recognizeOnceAsync(
-          (result: sdk.SpeechRecognitionResult) => {
-            recognizer.close();
-
-            if (result.reason === sdk.ResultReason.RecognizedSpeech) {
-              logger.debug('Voice message transcribed successfully', {
-                textLength: result.text.length,
-              });
-              resolve(result.text.trim() || null);
-            } else if (result.reason === sdk.ResultReason.NoMatch) {
-              logger.debug('No speech could be recognized');
-              resolve(null);
-            } else {
-              logger.warn('Speech recognition cancelled or failed', {
-                reason: result.reason,
-              });
-              resolve(null);
-            }
-          },
-          (error: string) => {
-            recognizer.close();
-            logger.error('Speech recognition error:', error);
-            resolve(null);
-          }
-        );
-      });
-    } catch (error: any) {
-      logger.error('Failed to transcribe voice message:', error);
-      return null;
-    } finally {
-      // Cleanup temp files
-      try {
-        await fs.promises.unlink(tempPath);
-        await fs.promises.unlink(wavPath);
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
-  }
-
-  /**
-   * Convert audio file to WAV format for Azure Speech SDK
-   */
-  private async convertToWav(inputPath: string, outputPath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      ffmpeg(inputPath)
-        .audioCodec('pcm_s16le')
-        .audioFrequency(16000)
-        .audioChannels(1)
-        .format('wav')
-        .on('end', () => {
-          resolve();
-        })
-        .on('error', (err: Error) => {
-          reject(err);
-        })
-        .save(outputPath);
-    });
+    // TODO: Implement AWS Transcribe integration
+    logger.debug('Voice transcription not implemented - TODO: integrate AWS Transcribe');
+    return null;
   }
 
   /**

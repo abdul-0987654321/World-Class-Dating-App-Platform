@@ -20,7 +20,7 @@ import {
 } from '../infrastructure/queue/job-types';
 import { QueueName } from '../infrastructure/queue/queue-config';
 import queueManager from '../infrastructure/queue/queue-manager';
-import azureStorageService from '../infrastructure/storage/azure-storage.service';
+import { storageService } from '../infrastructure/storage/s3-storage.service';
 import { ModerationStatus } from '../types';
 
 const logger = createLogger('deepfake-detection-worker');
@@ -123,7 +123,7 @@ export const processDeepfakeDetectionJob = async (
     if (action === 'rejected') {
       const media = await mediaRepository.findById(mediaId);
       if (media) {
-        await azureStorageService.deleteImageVersions(media.urls);
+        await storageService.deleteImageVersions(media.urls);
         await mediaRepository.delete(mediaId);
         logger.info(`Rejected deepfake media deleted: ${mediaId}`);
       }

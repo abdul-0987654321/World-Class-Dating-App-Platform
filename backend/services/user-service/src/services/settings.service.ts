@@ -453,7 +453,7 @@ export class SettingsService {
 
       // In production, this would:
       // 1. Generate a secure download link
-      // 2. Upload JSON to Azure Blob with expiry
+      // 2. Upload JSON to AWS S3 with expiry
       // 3. Send email with download link
       // 4. Schedule deletion after 7 days
 
@@ -521,7 +521,7 @@ export class SettingsService {
 
       // Note: In production, you would also:
       // 1. Cancel active subscriptions
-      // 2. Delete from Azure Blob Storage
+      // 2. Delete from AWS S3
       // 3. Remove from Redis cache
       // 4. Send confirmation email
       // 5. Schedule hard delete after 30 days

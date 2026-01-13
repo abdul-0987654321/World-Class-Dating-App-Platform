@@ -1,21 +1,10 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { Message, MessageStatus } from '../../types';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('message-repository');
 
 export class MessageRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getMessagesContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Create a new message
    */
@@ -23,10 +12,10 @@ export class MessageRepository {
     try {
       logger.info(`Creating message: ${message.id}`);
 
-      const { resource } = await this.container.items.create(message);
+      const [created] = await postgresClient.messages().insert(message).returning('*');
 
       logger.info(`Message created: ${message.id}`);
-      return resource as Message;
+      return created as Message;
     } catch (error: any) {
       logger.error(`Failed to create message ${message.id}:`, error);
       throw new Error(`Failed to create message: ${error.message}`);
@@ -36,14 +25,11 @@ export class MessageRepository {
   /**
    * Find message by ID
    */
-  async findById(messageId: string, conversationId: string): Promise<Message | null> {
+  async findById(messageId: string, _conversationId?: string): Promise<Message | null> {
     try {
-      const { resource } = await this.container.item(messageId, conversationId).read<Message>();
-      return resource || null;
+      const message = await postgresClient.messages().where('id', messageId).first();
+      return message || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find message ${messageId}:`, error);
       throw error;
     }
@@ -54,22 +40,24 @@ export class MessageRepository {
    */
   async update(
     messageId: string,
-    conversationId: string,
+    _conversationId: string,
     updates: Partial<Message>
   ): Promise<Message> {
     try {
       logger.info(`Updating message: ${messageId}`);
 
-      const existing = await this.findById(messageId, conversationId);
-      if (!existing) {
+      const [updated] = await postgresClient
+        .messages()
+        .where('id', messageId)
+        .update(updates)
+        .returning('*');
+
+      if (!updated) {
         throw new Error(`Message ${messageId} not found`);
       }
 
-      const updated = { ...existing, ...updates };
-      const { resource } = await this.container.item(messageId, conversationId).replace(updated);
-
       logger.info(`Message updated: ${messageId}`);
-      return resource as Message;
+      return updated as Message;
     } catch (error: any) {
       logger.error(`Failed to update message ${messageId}:`, error);
       throw error;
@@ -83,24 +71,8 @@ export class MessageRepository {
     try {
       logger.info(`Updating ${messageIds.length} messages`);
 
-      // Note: Cosmos DB doesn't have bulk update like SQL
-      // We need to update each individually
-      const updatePromises = messageIds.map(async (messageId) => {
-        // First, we need to query to get the partition key (conversationId)
-        const querySpec = {
-          query: 'SELECT * FROM c WHERE c.id = @messageId',
-          parameters: [{ name: '@messageId', value: messageId }],
-        };
+      await postgresClient.messages().whereIn('id', messageIds).update(updates);
 
-        const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-
-        if (resources.length > 0) {
-          const message = resources[0];
-          await this.update(message.id, message.conversationId, updates);
-        }
-      });
-
-      await Promise.all(updatePromises);
       logger.info(`Updated ${messageIds.length} messages`);
     } catch (error: any) {
       logger.error('Failed to update multiple messages:', error);
@@ -119,33 +91,17 @@ export class MessageRepository {
     try {
       logger.info(`Marking conversation ${conversationId} as read for user ${userId}`);
 
-      // Query all unread messages in the conversation where receiverId is userId
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.receiverId = @userId
-                AND c.status != @readStatus`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@readStatus', value: MessageStatus.READ },
-        ],
-      };
-
-      const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-
-      logger.info(`Found ${resources.length} unread messages to mark as read`);
-
-      // Update each message
-      const updatePromises = resources.map((message) =>
-        this.update(message.id, conversationId, {
+      const result = await postgresClient
+        .messages()
+        .where('conversation_id', conversationId)
+        .where('receiver_id', userId)
+        .whereNot('status', MessageStatus.READ)
+        .update({
           status: MessageStatus.READ,
-          readAt,
-        })
-      );
+          read_at: readAt,
+        });
 
-      await Promise.all(updatePromises);
-      logger.info(`Marked ${resources.length} messages as read in conversation ${conversationId}`);
+      logger.info(`Marked ${result} messages as read in conversation ${conversationId}`);
     } catch (error: any) {
       logger.error('Failed to mark conversation as read:', error);
       throw error;
@@ -155,10 +111,10 @@ export class MessageRepository {
   /**
    * Delete message
    */
-  async delete(messageId: string, conversationId: string): Promise<void> {
+  async delete(messageId: string, _conversationId?: string): Promise<void> {
     try {
       logger.info(`Deleting message: ${messageId}`);
-      await this.container.item(messageId, conversationId).delete();
+      await postgresClient.messages().where('id', messageId).delete();
       logger.info(`Message deleted: ${messageId}`);
     } catch (error: any) {
       logger.error(`Failed to delete message ${messageId}:`, error);
@@ -169,11 +125,11 @@ export class MessageRepository {
   /**
    * Mark message as deleted for a specific user (soft delete)
    */
-  async markAsDeleted(messageId: string, conversationId: string, userId: string): Promise<void> {
+  async markAsDeleted(messageId: string, _conversationId: string, userId: string): Promise<void> {
     try {
       logger.info(`Marking message ${messageId} as deleted for user ${userId}`);
 
-      const message = await this.findById(messageId, conversationId);
+      const message = await this.findById(messageId);
       if (!message) {
         throw new Error(`Message ${messageId} not found`);
       }
@@ -184,7 +140,8 @@ export class MessageRepository {
         deletedFor.push(userId);
       }
 
-      await this.update(messageId, conversationId, { deletedFor });
+      await postgresClient.messages().where('id', messageId).update({ deleted_for: deletedFor });
+
       logger.info(`Message marked as deleted for user ${userId}`);
     } catch (error: any) {
       logger.error('Failed to mark message as deleted:', error);
@@ -201,20 +158,14 @@ export class MessageRepository {
     offset: number = 0
   ): Promise<Message[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                ORDER BY c.sentAt DESC
-                OFFSET @offset LIMIT @limit`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@offset', value: offset },
-          { name: '@limit', value: limit },
-        ],
-      };
+      const messages = await postgresClient
+        .messages()
+        .where('conversation_id', conversationId)
+        .orderBy('sent_at', 'desc')
+        .limit(limit)
+        .offset(offset);
 
-      const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-      return resources;
+      return messages as Message[];
     } catch (error: any) {
       logger.error('Failed to get messages by conversation:', error);
       throw error;
@@ -226,20 +177,13 @@ export class MessageRepository {
    */
   async getUnreadMessages(conversationId: string, userId: string): Promise<Message[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.receiverId = @userId
-                AND c.status != @readStatus`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@readStatus', value: MessageStatus.READ },
-        ],
-      };
+      const messages = await postgresClient
+        .messages()
+        .where('conversation_id', conversationId)
+        .where('receiver_id', userId)
+        .whereNot('status', MessageStatus.READ);
 
-      const { resources } = await this.container.items.query<Message>(querySpec).fetchAll();
-      return resources;
+      return messages as Message[];
     } catch (error: any) {
       logger.error('Failed to get unread messages:', error);
       throw error;
@@ -251,20 +195,14 @@ export class MessageRepository {
    */
   async getUnreadCount(conversationId: string, userId: string): Promise<number> {
     try {
-      const querySpec = {
-        query: `SELECT VALUE COUNT(1) FROM c
-                WHERE c.conversationId = @conversationId
-                AND c.receiverId = @userId
-                AND c.status != @readStatus`,
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@readStatus', value: MessageStatus.READ },
-        ],
-      };
+      const [result] = await postgresClient
+        .messages()
+        .where('conversation_id', conversationId)
+        .where('receiver_id', userId)
+        .whereNot('status', MessageStatus.READ)
+        .count('* as count');
 
-      const { resources } = await this.container.items.query<number>(querySpec).fetchAll();
-      return resources[0] || 0;
+      return parseInt(result.count as string, 10) || 0;
     } catch (error: any) {
       logger.error('Failed to get unread count:', error);
       throw error;

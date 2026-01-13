@@ -4,7 +4,7 @@
 
 import { UploadService } from '../../../src/domain/services/upload.service';
 import { UploadedFile, ModerationStatus } from '../../../src/types';
-import '../../mocks/azure-storage.mock';
+import '../../mocks/s3-storage.mock';
 import '../../mocks/content-moderation.mock';
 import '../../mocks/image-processing.mock';
 
@@ -55,10 +55,10 @@ describe('UploadService', () => {
         mimeType: 'image/jpeg',
         size: 500000,
         urls: {
-          thumbnail: 'https://test-cdn.azureedge.net/thumbnail.jpg',
-          standard: 'https://test-cdn.azureedge.net/standard.jpg',
-          hd: 'https://test-cdn.azureedge.net/hd.jpg',
-          original: 'https://test-cdn.azureedge.net/original.jpg',
+          thumbnail: 'https://test-cdn.cloudfront.net/thumbnail.jpg',
+          standard: 'https://test-cdn.cloudfront.net/standard.jpg',
+          hd: 'https://test-cdn.cloudfront.net/hd.jpg',
+          original: 'https://test-cdn.cloudfront.net/original.jpg',
         },
         dimensions: { width: 1920, height: 1080 },
         isProfilePhoto: false,
@@ -121,10 +121,10 @@ describe('UploadService', () => {
     it('should successfully delete a photo', async () => {
       const mediaId = 'media-123';
       const urls = {
-        thumbnail: 'https://test-cdn.azureedge.net/thumbnail.jpg',
-        standard: 'https://test-cdn.azureedge.net/standard.jpg',
-        hd: 'https://test-cdn.azureedge.net/hd.jpg',
-        original: 'https://test-cdn.azureedge.net/original.jpg',
+        thumbnail: 'https://test-cdn.cloudfront.net/thumbnail.jpg',
+        standard: 'https://test-cdn.cloudfront.net/standard.jpg',
+        hd: 'https://test-cdn.cloudfront.net/hd.jpg',
+        original: 'https://test-cdn.cloudfront.net/original.jpg',
       };
 
       mockMediaRepository.delete.mockResolvedValue(true);
@@ -138,16 +138,16 @@ describe('UploadService', () => {
     it('should handle deletion failure', async () => {
       const mediaId = 'media-123';
       const urls = {
-        thumbnail: 'https://test-cdn.azureedge.net/thumbnail.jpg',
-        standard: 'https://test-cdn.azureedge.net/standard.jpg',
-        hd: 'https://test-cdn.azureedge.net/hd.jpg',
-        original: 'https://test-cdn.azureedge.net/original.jpg',
+        thumbnail: 'https://test-cdn.cloudfront.net/thumbnail.jpg',
+        standard: 'https://test-cdn.cloudfront.net/standard.jpg',
+        hd: 'https://test-cdn.cloudfront.net/hd.jpg',
+        original: 'https://test-cdn.cloudfront.net/original.jpg',
       };
 
-      // Mock Azure Storage deletion failure
-      const azureStorageService = require('../../../src/infrastructure/storage/azure-storage.service').default;
-      const originalDelete = azureStorageService.deleteImageVersions;
-      azureStorageService.deleteImageVersions = jest.fn().mockResolvedValue(false);
+      // Mock S3 Storage deletion failure
+      const s3StorageService = require('../../../src/infrastructure/storage/s3-storage.service').default;
+      const originalDelete = s3StorageService.deleteImageVersions;
+      s3StorageService.deleteImageVersions = jest.fn().mockResolvedValue(false);
 
       const result = await uploadService.deletePhoto(mediaId, urls);
 
@@ -155,7 +155,7 @@ describe('UploadService', () => {
       expect(mockMediaRepository.delete).not.toHaveBeenCalled();
 
       // Restore original
-      azureStorageService.deleteImageVersions = originalDelete;
+      s3StorageService.deleteImageVersions = originalDelete;
     });
   });
 
@@ -245,7 +245,7 @@ describe('UploadService', () => {
 
   describe('verifyPhotoRequirements', () => {
     it('should verify photo with face present', async () => {
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       const result = await uploadService.verifyPhotoRequirements(imageUrl);
 
@@ -254,7 +254,7 @@ describe('UploadService', () => {
     });
 
     it('should reject photo without face', async () => {
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       const contentModerationService = require('../../../src/domain/services/content-moderation.service').default;
       const originalVerify = contentModerationService.verifyFacePresence;

@@ -6,7 +6,7 @@ import imageProcessingService from '../domain/services/image-processing.service'
 import { ImageProcessingJobData, JobResult } from '../infrastructure/queue/job-types';
 import { QueueName } from '../infrastructure/queue/queue-config';
 import queueManager from '../infrastructure/queue/queue-manager';
-import azureStorageService from '../infrastructure/storage/azure-storage.service';
+import { storageService } from '../infrastructure/storage/s3-storage.service';
 import { MediaMetadata, ModerationStatus } from '../types';
 
 const logger = createLogger('image-processing-worker');
@@ -15,7 +15,7 @@ const logger = createLogger('image-processing-worker');
  * Process image upload job
  * - Validate image
  * - Process and resize
- * - Upload to Azure Storage
+ * - Upload to S3 Storage
  * - Save metadata to database
  * - Trigger content moderation
  */
@@ -53,8 +53,8 @@ export const processImageJob = async (
 
     await job.progress(50);
 
-    // Step 4: Upload all versions to Azure Storage
-    const urls = await azureStorageService.uploadImageVersions(
+    // Step 4: Upload all versions to S3 Storage
+    const urls = await storageService.uploadImageVersions(
       processedImages,
       fileName,
       mimeType,

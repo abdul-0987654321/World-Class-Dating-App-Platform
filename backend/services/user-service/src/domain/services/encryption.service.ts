@@ -44,13 +44,13 @@ export class EncryptionService {
 
   constructor() {
     // Master key for encrypting private keys at rest
-    // SECURITY: In production, this MUST come from Azure Key Vault / AWS KMS
+    // SECURITY: In production, this MUST come from AWS KMS
     const masterKeyHex = process.env.ENCRYPTION_MASTER_KEY;
 
     if (!masterKeyHex) {
       if (process.env.NODE_ENV === 'production') {
         throw new Error(
-          'CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use Azure Key Vault or AWS KMS.'
+          'CRITICAL: ENCRYPTION_MASTER_KEY is required in production. Use AWS KMS.'
         );
       }
       // Development only: generate a consistent dev key (NOT random, so messages persist across restarts)

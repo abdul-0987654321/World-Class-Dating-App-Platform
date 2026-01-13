@@ -471,7 +471,7 @@ export class ChatExportService {
 
   /**
    * Upload export file to storage
-   * Supports Azure Blob Storage, S3, or local file storage
+   * Supports AWS S3 or local file storage
    */
   private async uploadExport(
     data: string | Buffer,
@@ -480,26 +480,6 @@ export class ChatExportService {
   ): Promise<string> {
     const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'utf-8');
     const filename = `exports/${exportId}.${format}`;
-
-    // Try Azure Blob Storage first
-    const azureConnectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-    const azureContainerName = process.env.AZURE_STORAGE_CONTAINER || 'chat-exports';
-
-    if (azureConnectionString) {
-      try {
-        return await this.uploadToAzureBlob(
-          buffer,
-          filename,
-          azureContainerName,
-          azureConnectionString
-        );
-      } catch (error: any) {
-        logger.warn(
-          'Azure Blob Storage upload failed, falling back to local storage:',
-          error.message
-        );
-      }
-    }
 
     // Try S3 if configured
     const s3Bucket = process.env.AWS_S3_BUCKET;
@@ -515,41 +495,6 @@ export class ChatExportService {
 
     // Fall back to local storage (for development)
     return await this.uploadToLocalStorage(buffer, filename);
-  }
-
-  /**
-   * Upload to Azure Blob Storage
-   */
-  private async uploadToAzureBlob(
-    buffer: Buffer,
-    filename: string,
-    containerName: string,
-    connectionString: string
-  ): Promise<string> {
-    // Dynamic import to avoid requiring the package if not used
-    try {
-      const { BlobServiceClient } = await import('@azure/storage-blob');
-      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-      const containerClient = blobServiceClient.getContainerClient(containerName);
-
-      // Ensure container exists
-      await containerClient.createIfNotExists({ access: 'blob' });
-
-      const blockBlobClient = containerClient.getBlockBlobClient(filename);
-      await blockBlobClient.uploadData(buffer, {
-        blobHTTPHeaders: {
-          blobContentType: this.getMimeType(filename),
-        },
-      });
-
-      logger.info('Uploaded to Azure Blob Storage', { filename });
-      return blockBlobClient.url;
-    } catch (error: any) {
-      if (error.code === 'MODULE_NOT_FOUND') {
-        throw new Error('Azure Storage SDK not installed');
-      }
-      throw error;
-    }
   }
 
   /**
@@ -625,41 +570,13 @@ export class ChatExportService {
     if (!url) return;
 
     try {
-      if (url.includes('blob.core.windows.net')) {
-        await this.deleteFromAzureBlob(url);
-      } else if (url.includes('s3.')) {
+      if (url.includes('s3.')) {
         await this.deleteFromS3(url);
       } else if (url.startsWith('file://') || url.includes('/tmp/')) {
         await this.deleteFromLocalStorage(url);
       }
     } catch (error: any) {
       logger.warn('Failed to delete export file:', error.message);
-    }
-  }
-
-  private async deleteFromAzureBlob(url: string): Promise<void> {
-    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-    if (!connectionString) return;
-
-    try {
-      const { BlobServiceClient } = await import('@azure/storage-blob');
-      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-
-      // Parse URL to get container and blob name
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      if (pathParts.length < 2) return;
-
-      const containerName = pathParts[0];
-      const blobName = pathParts.slice(1).join('/');
-
-      const containerClient = blobServiceClient.getContainerClient(containerName);
-      const blobClient = containerClient.getBlobClient(blobName);
-      await blobClient.deleteIfExists();
-
-      logger.info('Deleted from Azure Blob Storage', { url });
-    } catch (error: any) {
-      logger.warn('Failed to delete from Azure:', error.message);
     }
   }
 

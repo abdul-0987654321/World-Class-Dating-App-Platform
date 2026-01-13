@@ -101,7 +101,7 @@ class GDPRExportService {
       // Create archive
       const archivePath = await this.createArchive(request.userId, exportPath);
 
-      // Upload to storage (S3, Azure Blob, etc.)
+      // Upload to storage (AWS S3)
       const downloadUrl = await this.uploadToStorage(archivePath);
 
       // Update request with download URL
@@ -340,7 +340,7 @@ Export generated: ${new Date().toISOString()}
    * Upload to storage
    */
   private async uploadToStorage(archivePath: string): Promise<string> {
-    // In production, upload to S3, Azure Blob, or similar
+    // In production, upload to AWS S3
     // For now, return local path
     return `file://${archivePath}`;
   }

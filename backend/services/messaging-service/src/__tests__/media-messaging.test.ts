@@ -11,7 +11,7 @@
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 // Mock the dependencies
-jest.mock('../infrastructure/database/cosmos-client');
+jest.mock('../infrastructure/database/postgres-client');
 jest.mock('../infrastructure/cache/redis');
 jest.mock('../infrastructure/clients/realtime-http.client');
 

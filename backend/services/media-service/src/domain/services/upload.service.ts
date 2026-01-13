@@ -1,7 +1,7 @@
 import { createLogger } from '@flamoral/backend-shared';
 import { v4 as uuidv4 } from 'uuid';
 
-import azureStorageService from '../../infrastructure/storage/azure-storage.service';
+import { storageService } from '../../infrastructure/storage/s3-storage.service';
 import { MediaMetadata, ModerationStatus, UploadedFile } from '../../types';
 import { queueDeepfakeDetection } from '../../workers/deepfake-detection.worker';
 import mediaRepository from '../repositories/media.repository';
@@ -43,8 +43,8 @@ export class UploadService {
       // Step 3: Process image (create all versions)
       const processedImages = await imageProcessingService.processImage(file.buffer);
 
-      // Step 4: Upload all versions to Azure Storage
-      const urls = await azureStorageService.uploadImageVersions(
+      // Step 4: Upload all versions to S3 Storage
+      const urls = await storageService.uploadImageVersions(
         processedImages,
         file.originalname,
         file.mimetype,
@@ -160,8 +160,8 @@ export class UploadService {
     try {
       logger.info(`Deleting photo: ${mediaId}`);
 
-      // Delete all versions from Azure Storage
-      const deleted = await azureStorageService.deleteImageVersions(urls);
+      // Delete all versions from S3 Storage
+      const deleted = await storageService.deleteImageVersions(urls);
 
       if (deleted) {
         // Delete from database

@@ -11,7 +11,7 @@ import { Server } from 'socket.io';
 
 import apiRoutes from './api/routes';
 import internalRoutes from './api/routes/internal.routes';
-import cosmosClient from './infrastructure/database/cosmos-client';
+import { postgresClient } from './infrastructure/database/postgres-client';
 import { SocketManager } from './socket/socket-manager';
 import { createLogger } from './utils/logger';
 
@@ -31,8 +31,6 @@ const validator = createValidator('messaging-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3004),
   commonValidations.jwtAccessSecret,
-  commonValidations.cosmosEndpoint,
-  commonValidations.cosmosKey,
   {
     name: 'ENCRYPTION_KEY',
     required: true,
@@ -177,8 +175,8 @@ app.get('/ready', (req: Request, res: Response) => {
     });
   }
 
-  // Check if Cosmos DB is still connected (only when NOT in degraded mode)
-  if (!cosmosClient.isInitialized()) {
+  // Check if PostgreSQL is still connected (only when NOT in degraded mode)
+  if (!postgresClient.isInitialized()) {
     return res.status(503).json({
       status: 'not_ready',
       service: 'messaging-service',
@@ -249,47 +247,47 @@ async function startServer() {
       });
     });
 
-    // Now initialize Cosmos DB connection with retry logic
-    logger.info('Initializing Cosmos DB connection...');
-    const maxRetries = 3; // Reduced retries since each attempt can take ~2 min
-    const retryDelayMs = 2000; // Shorter delay between retries
+    // Now initialize PostgreSQL connection with retry logic
+    logger.info('Initializing PostgreSQL connection...');
+    const maxRetries = 3;
+    const retryDelayMs = 2000;
     const connectionTimeoutMs = 10000; // 10 second timeout per attempt
     const allowDegradedMode = process.env.ALLOW_DEGRADED_MODE === 'true';
 
     // If degraded mode is allowed, set isReady immediately so readiness probe passes
-    // Database features will be limited until Cosmos DB connects
+    // Database features will be limited until PostgreSQL connects
     if (allowDegradedMode) {
       isDegradedMode = true;
       isReady = true;
       logger.info(
-        'Service ready in DEGRADED MODE - Cosmos DB connection will be attempted in background'
+        'Service ready in DEGRADED MODE - PostgreSQL connection will be attempted in background'
       );
     }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Add timeout wrapper to prevent long-running connection attempts
-        const initPromise = cosmosClient.initialize();
+        const initPromise = postgresClient.initialize();
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Connection timeout')), connectionTimeoutMs)
         );
         await Promise.race([initPromise, timeoutPromise]);
-        logger.info('Cosmos DB connection established');
+        logger.info('PostgreSQL connection established');
         isDegradedMode = false; // Exit degraded mode on successful connection
         break;
       } catch (error: any) {
         if (attempt === maxRetries) {
-          logger.error(`Failed to initialize Cosmos DB after ${maxRetries} attempts:`, error);
+          logger.error(`Failed to initialize PostgreSQL after ${maxRetries} attempts:`, error);
           if (allowDegradedMode) {
             logger.warn('Continuing in DEGRADED MODE - messaging features will be limited');
             // isDegradedMode already true from above
-            // Don't throw - continue without Cosmos DB
+            // Don't throw - continue without PostgreSQL
           } else {
             throw error;
           }
         } else {
           logger.warn(
-            `Cosmos DB initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`
+            `PostgreSQL initialization attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelayMs}ms...`
           );
           await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         }
@@ -348,7 +346,7 @@ async function gracefulShutdown(signal: string) {
     });
 
     // Close database connection
-    await cosmosClient.close();
+    await postgresClient.close();
     logger.info('Database connections closed');
 
     clearTimeout(forceExitTimer);

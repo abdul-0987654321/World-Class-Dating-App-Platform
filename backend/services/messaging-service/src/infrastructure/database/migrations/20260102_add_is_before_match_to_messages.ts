@@ -6,13 +6,10 @@
  * - This field indicates if a message was sent before users matched
  * - Frontend can style these messages differently (e.g., "Sent before you matched")
  *
- * Schema Change (Cosmos DB - NoSQL):
- * - Messages container: Add optional isBeforeMatch (boolean) field
- * - Default: undefined/false
+ * Schema Change (PostgreSQL):
+ * - messages table: Add optional is_before_match (boolean) column
+ * - Default: false
  * - True only when message is sent before mutual match by premium user
- *
- * Note: Cosmos DB is schemaless, so no actual migration is needed.
- * This file documents the schema change for the Messages container.
  *
  * Affected Services:
  * - messaging-service: Creates messages with isBeforeMatch flag
@@ -32,14 +29,9 @@
 import { Knex } from 'knex';
 
 /**
- * For Cosmos DB, no actual migration is needed.
- * This migration is for documentation purposes only.
- *
- * If using PostgreSQL for message storage (future consideration),
- * the migration would look like:
+ * Add is_before_match column to messages table
  */
 export async function up(knex: Knex): Promise<void> {
-  // Check if using PostgreSQL/relational DB
   const hasMessagesTable = await knex.schema.hasTable('messages');
 
   if (hasMessagesTable) {
@@ -52,12 +44,10 @@ export async function up(knex: Knex): Promise<void> {
     });
   }
 
-  // For Cosmos DB: No action needed, field is added on document creation
-  console.log('[Migration] isBeforeMatch field documented for Messages container');
+  console.log('[Migration] Added is_before_match column to messages table');
 }
 
 export async function down(knex: Knex): Promise<void> {
-  // Check if using PostgreSQL/relational DB
   const hasMessagesTable = await knex.schema.hasTable('messages');
 
   if (hasMessagesTable) {
@@ -67,6 +57,5 @@ export async function down(knex: Knex): Promise<void> {
     });
   }
 
-  // For Cosmos DB: Field remains on existing documents (schemaless)
-  console.log('[Migration] isBeforeMatch field documentation removed');
+  console.log('[Migration] Removed is_before_match column from messages table');
 }

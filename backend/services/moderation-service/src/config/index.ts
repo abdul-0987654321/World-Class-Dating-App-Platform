@@ -19,7 +19,7 @@ export const config = {
     ssl: process.env.DB_SSL === 'true',
   },
 
-  // AWS Rekognition Configuration
+  // AWS Configuration
   aws: {
     region: process.env.AWS_REGION || 'us-east-1',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
@@ -28,13 +28,10 @@ export const config = {
       minConfidence: parseFloat(process.env.AWS_REKOGNITION_MIN_CONFIDENCE || '80'),
       maxLabels: parseInt(process.env.AWS_REKOGNITION_MAX_LABELS || '10'),
     },
-  },
-
-  // Azure Content Moderator Configuration
-  azure: {
-    contentModerator: {
-      endpoint: process.env.AZURE_CONTENT_MODERATOR_ENDPOINT || '',
-      apiKey: process.env.AZURE_CONTENT_MODERATOR_KEY || '',
+    comprehend: {
+      // AWS Comprehend for text moderation (sentiment analysis and toxicity detection)
+      minConfidence: parseFloat(process.env.AWS_COMPREHEND_MIN_CONFIDENCE || '0.7'),
+      languageCode: process.env.AWS_COMPREHEND_LANGUAGE_CODE || 'en',
     },
   },
 

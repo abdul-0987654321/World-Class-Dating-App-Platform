@@ -146,10 +146,24 @@ export function addBreadcrumb(message: string, data?: Record<string, any>): void
 }
 
 /**
- * Start a new transaction for performance monitoring
+ * Start a new span for performance monitoring
+ * Uses the new Sentry v8+ API that replaces transactions
  */
-export function startTransaction(name: string, op: string): Sentry.Transaction {
-  return Sentry.startTransaction({
+export function startSpan<T>(name: string, op: string, callback: () => T): T {
+  return Sentry.startSpan(
+    {
+      name,
+      op,
+    },
+    callback
+  );
+}
+
+/**
+ * Start an inactive span for manual control
+ */
+export function startInactiveSpan(name: string, op: string): Sentry.Span | undefined {
+  return Sentry.startInactiveSpan({
     name,
     op,
   });

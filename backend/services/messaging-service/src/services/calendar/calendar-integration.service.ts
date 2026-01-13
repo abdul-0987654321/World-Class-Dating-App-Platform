@@ -3,11 +3,10 @@
  * Core service for calendar connections, date proposals, and scheduling
  */
 
-import { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
 
 import { calendarConfig } from '../../config/calendar.config';
-import cosmosClient from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import {
   CalendarProvider,
   CalendarConnection,
@@ -36,41 +35,18 @@ const logger = createLogger('calendar-integration-service');
  * Handles calendar connections, availability, date proposals, and scheduling
  */
 export class CalendarIntegrationService {
-  private connectionsContainer: Container | null = null;
-  private proposalsContainer: Container | null = null;
-  private scheduledDatesContainer: Container | null = null;
   private initialized = false;
 
   /**
-   * Initialize containers
+   * Initialize database connection
    */
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
     try {
-      const database = cosmosClient['database'];
-      if (!database) {
-        throw new Error('Cosmos DB not initialized');
+      if (!postgresClient.isInitialized()) {
+        await postgresClient.initialize();
       }
-
-      // Get or create containers
-      const { container: connectionsContainer } = await database.containers.createIfNotExists({
-        id: 'CalendarConnections',
-        partitionKey: '/userId',
-      });
-      this.connectionsContainer = connectionsContainer;
-
-      const { container: proposalsContainer } = await database.containers.createIfNotExists({
-        id: 'DateProposals',
-        partitionKey: '/conversationId',
-      });
-      this.proposalsContainer = proposalsContainer;
-
-      const { container: scheduledDatesContainer } = await database.containers.createIfNotExists({
-        id: 'ScheduledDates',
-        partitionKey: '/participantIds',
-      });
-      this.scheduledDatesContainer = scheduledDatesContainer;
 
       this.initialized = true;
       logger.info('CalendarIntegrationService initialized');
@@ -152,8 +128,35 @@ export class CalendarIntegrationService {
       const existingConnection = await this.getConnection(userId, provider);
       const now = new Date();
 
-      const connection: CalendarConnection = {
+      const connectionData = {
         id: existingConnection?.id || uuidv4(),
+        user_id: userId,
+        provider,
+        email,
+        tokens: JSON.stringify(tokens),
+        calendar_id: calendarId,
+        is_active: true,
+        share_availability: true,
+        sync_enabled: true,
+        last_sync_at: now,
+        updated_at: now,
+      };
+
+      if (existingConnection) {
+        // Update existing connection
+        await postgresClient.calendarConnections()
+          .where({ id: existingConnection.id })
+          .update(connectionData);
+      } else {
+        // Insert new connection
+        await postgresClient.calendarConnections().insert({
+          ...connectionData,
+          created_at: now,
+        });
+      }
+
+      const connection: CalendarConnection = {
+        id: connectionData.id,
         userId,
         provider,
         email,
@@ -166,9 +169,6 @@ export class CalendarIntegrationService {
         createdAt: existingConnection?.createdAt || now,
         updatedAt: now,
       };
-
-      // Save connection
-      await this.connectionsContainer.items.upsert(connection);
 
       logger.info(`Successfully connected ${provider} calendar for user ${userId}`);
 
@@ -212,7 +212,9 @@ export class CalendarIntegrationService {
       }
 
       // Delete connection
-      await this.connectionsContainer.item(connection.id, userId).delete();
+      await postgresClient.calendarConnections()
+        .where({ id: connection.id, user_id: userId })
+        .delete();
 
       logger.info(`Successfully disconnected ${provider} calendar for user ${userId}`);
     } catch (error) {
@@ -231,16 +233,13 @@ export class CalendarIntegrationService {
     await this.ensureInitialized();
 
     try {
-      const query = {
-        query: 'SELECT * FROM c WHERE c.userId = @userId AND c.provider = @provider',
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@provider', value: provider },
-        ],
-      };
+      const row = await postgresClient.calendarConnections()
+        .where({ user_id: userId, provider })
+        .first();
 
-      const { resources } = await this.connectionsContainer.items.query(query).fetchAll();
-      return resources[0] || null;
+      if (!row) return null;
+
+      return this.mapRowToConnection(row);
     } catch (error) {
       logger.error('Failed to get calendar connection:', error);
       return null;
@@ -254,17 +253,35 @@ export class CalendarIntegrationService {
     await this.ensureInitialized();
 
     try {
-      const query = {
-        query: 'SELECT * FROM c WHERE c.userId = @userId ORDER BY c.createdAt DESC',
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const rows = await postgresClient.calendarConnections()
+        .where({ user_id: userId })
+        .orderBy('created_at', 'desc');
 
-      const { resources } = await this.connectionsContainer.items.query(query).fetchAll();
-      return resources;
+      return rows.map((row: any) => this.mapRowToConnection(row));
     } catch (error) {
       logger.error('Failed to get calendar connections:', error);
       return [];
     }
+  }
+
+  /**
+   * Map database row to CalendarConnection object
+   */
+  private mapRowToConnection(row: any): CalendarConnection {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      provider: row.provider,
+      email: row.email,
+      tokens: typeof row.tokens === 'string' ? JSON.parse(row.tokens) : row.tokens,
+      calendarId: row.calendar_id,
+      isActive: row.is_active,
+      shareAvailability: row.share_availability,
+      syncEnabled: row.sync_enabled,
+      lastSyncAt: row.last_sync_at ? new Date(row.last_sync_at) : undefined,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    };
   }
 
   /**
@@ -302,7 +319,13 @@ export class CalendarIntegrationService {
       // Update connection with new tokens
       connection.tokens = newTokens;
       connection.updatedAt = now;
-      await this.connectionsContainer.items.upsert(connection);
+
+      await postgresClient.calendarConnections()
+        .where({ id: connection.id })
+        .update({
+          tokens: JSON.stringify(newTokens),
+          updated_at: now,
+        });
 
       return newTokens.accessToken;
     } catch (error) {
@@ -480,8 +503,26 @@ export class CalendarIntegrationService {
       now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000
     );
 
+    const proposalId = uuidv4();
+
+    await postgresClient.dateProposals().insert({
+      id: proposalId,
+      conversation_id: conversationId,
+      proposer_id: proposerId,
+      recipient_id: recipientId,
+      proposed_datetime: request.proposedDatetime,
+      timezone: request.timezone || 'UTC',
+      duration: request.duration || calendarConfig.proposals.defaultDuration,
+      venue: request.venue ? JSON.stringify(request.venue) : null,
+      notes: request.notes,
+      status: DateProposalStatus.PENDING,
+      expires_at: expiresAt,
+      created_at: now,
+      updated_at: now,
+    });
+
     const proposal: DateProposal = {
-      id: uuidv4(),
+      id: proposalId,
       conversationId,
       proposerId,
       recipientId,
@@ -495,8 +536,6 @@ export class CalendarIntegrationService {
       createdAt: now,
       updatedAt: now,
     };
-
-    await this.proposalsContainer.items.create(proposal);
 
     logger.info(`Created date proposal ${proposal.id}`);
 
@@ -531,18 +570,38 @@ export class CalendarIntegrationService {
     const now = new Date();
 
     // Update proposal status
-    proposal.status = DateProposalStatus.ACCEPTED;
-    proposal.respondedAt = now;
-    proposal.updatedAt = now;
-    await this.proposalsContainer.items.upsert(proposal);
+    await postgresClient.dateProposals()
+      .where({ id: proposalId })
+      .update({
+        status: DateProposalStatus.ACCEPTED,
+        responded_at: now,
+        updated_at: now,
+      });
 
     // Create scheduled date
-    const participantIds = [proposal.proposerId, proposal.recipientId].sort().join(',');
+    const scheduledDateId = uuidv4();
+    const participantIds = [proposal.proposerId, proposal.recipientId];
+
+    await postgresClient.scheduledDates().insert({
+      id: scheduledDateId,
+      conversation_id: proposal.conversationId,
+      proposal_id: proposal.id,
+      participant_ids: participantIds,
+      scheduled_at: proposal.proposedDatetime,
+      timezone: proposal.timezone,
+      duration: proposal.duration,
+      venue: proposal.venue ? JSON.stringify(proposal.venue) : null,
+      notes: proposal.notes,
+      status: ScheduledDateStatus.CONFIRMED,
+      created_at: now,
+      updated_at: now,
+    });
+
     const scheduledDate: ScheduledDate = {
-      id: uuidv4(),
+      id: scheduledDateId,
       conversationId: proposal.conversationId,
       proposalId: proposal.id,
-      participantIds: [proposal.proposerId, proposal.recipientId],
+      participantIds,
       scheduledAt: proposal.proposedDatetime,
       timezone: proposal.timezone,
       duration: proposal.duration,
@@ -552,11 +611,6 @@ export class CalendarIntegrationService {
       createdAt: now,
       updatedAt: now,
     };
-
-    await this.scheduledDatesContainer.items.create({
-      ...scheduledDate,
-      participantIds: participantIds, // Store as string for partition key
-    });
 
     logger.info(`Created scheduled date ${scheduledDate.id}`);
 
@@ -585,11 +639,18 @@ export class CalendarIntegrationService {
     }
 
     const now = new Date();
+
+    await postgresClient.dateProposals()
+      .where({ id: proposalId })
+      .update({
+        status: DateProposalStatus.DECLINED,
+        responded_at: now,
+        updated_at: now,
+      });
+
     proposal.status = DateProposalStatus.DECLINED;
     proposal.respondedAt = now;
     proposal.updatedAt = now;
-
-    await this.proposalsContainer.items.upsert(proposal);
 
     logger.info(`Declined date proposal ${proposalId}`);
 
@@ -622,21 +683,49 @@ export class CalendarIntegrationService {
     }
 
     const now = new Date();
-
-    // Update original proposal status
-    originalProposal.status = DateProposalStatus.COUNTERED;
-    originalProposal.respondedAt = now;
-    originalProposal.updatedAt = now;
-
-    // Create counter proposal
     const expiresAt = new Date(
       now.getTime() + calendarConfig.proposals.expirationHours * 60 * 60 * 1000
     );
+
+    // Create counter proposal
+    const counterProposalId = uuidv4();
+
+    await postgresClient.dateProposals().insert({
+      id: counterProposalId,
+      conversation_id: originalProposal.conversationId,
+      proposer_id: recipientId, // Now the recipient is proposing
+      recipient_id: originalProposal.proposerId, // Original proposer receives the counter
+      proposed_datetime: counterRequest.newDatetime,
+      timezone: counterRequest.timezone || originalProposal.timezone,
+      duration: counterRequest.duration || originalProposal.duration,
+      venue: counterRequest.venue
+        ? JSON.stringify(counterRequest.venue)
+        : originalProposal.venue
+          ? JSON.stringify(originalProposal.venue)
+          : null,
+      notes: counterRequest.notes,
+      status: DateProposalStatus.PENDING,
+      original_proposal_id: originalProposal.id,
+      expires_at: expiresAt,
+      created_at: now,
+      updated_at: now,
+    });
+
+    // Update original proposal status
+    await postgresClient.dateProposals()
+      .where({ id: proposalId })
+      .update({
+        status: DateProposalStatus.COUNTERED,
+        responded_at: now,
+        updated_at: now,
+        counter_proposal_id: counterProposalId,
+      });
+
     const counterProposal: DateProposal = {
-      id: uuidv4(),
+      id: counterProposalId,
       conversationId: originalProposal.conversationId,
-      proposerId: recipientId, // Now the recipient is proposing
-      recipientId: originalProposal.proposerId, // Original proposer receives the counter
+      proposerId: recipientId,
+      recipientId: originalProposal.proposerId,
       proposedDatetime: counterRequest.newDatetime,
       timezone: counterRequest.timezone || originalProposal.timezone,
       duration: counterRequest.duration || originalProposal.duration,
@@ -648,13 +737,6 @@ export class CalendarIntegrationService {
       createdAt: now,
       updatedAt: now,
     };
-
-    // Link counter proposal to original
-    originalProposal.counterProposalId = counterProposal.id;
-
-    // Save both
-    await this.proposalsContainer.items.upsert(originalProposal);
-    await this.proposalsContainer.items.create(counterProposal);
 
     logger.info(`Created counter proposal ${counterProposal.id}`);
 
@@ -681,10 +763,16 @@ export class CalendarIntegrationService {
     }
 
     const now = new Date();
+
+    await postgresClient.dateProposals()
+      .where({ id: proposalId })
+      .update({
+        status: DateProposalStatus.CANCELLED,
+        updated_at: now,
+      });
+
     proposal.status = DateProposalStatus.CANCELLED;
     proposal.updatedAt = now;
-
-    await this.proposalsContainer.items.upsert(proposal);
 
     return proposal;
   }
@@ -694,13 +782,13 @@ export class CalendarIntegrationService {
    */
   private async getProposalById(proposalId: string): Promise<DateProposal | null> {
     try {
-      const query = {
-        query: 'SELECT * FROM c WHERE c.id = @id',
-        parameters: [{ name: '@id', value: proposalId }],
-      };
+      const row = await postgresClient.dateProposals()
+        .where({ id: proposalId })
+        .first();
 
-      const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
-      return resources[0] || null;
+      if (!row) return null;
+
+      return this.mapRowToProposal(row);
     } catch (error) {
       logger.error('Failed to get proposal:', error);
       return null;
@@ -708,19 +796,40 @@ export class CalendarIntegrationService {
   }
 
   /**
+   * Map database row to DateProposal object
+   */
+  private mapRowToProposal(row: any): DateProposal {
+    return {
+      id: row.id,
+      conversationId: row.conversation_id,
+      proposerId: row.proposer_id,
+      recipientId: row.recipient_id,
+      proposedDatetime: new Date(row.proposed_datetime),
+      timezone: row.timezone,
+      duration: row.duration,
+      venue: row.venue ? (typeof row.venue === 'string' ? JSON.parse(row.venue) : row.venue) : undefined,
+      notes: row.notes,
+      status: row.status,
+      originalProposalId: row.original_proposal_id,
+      counterProposalId: row.counter_proposal_id,
+      expiresAt: new Date(row.expires_at),
+      respondedAt: row.responded_at ? new Date(row.responded_at) : undefined,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    };
+  }
+
+  /**
    * Get pending proposals for a conversation
    */
   private async getPendingProposals(conversationId: string): Promise<DateProposal[]> {
-    const query = {
-      query: 'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.status = @status',
-      parameters: [
-        { name: '@conversationId', value: conversationId },
-        { name: '@status', value: DateProposalStatus.PENDING },
-      ],
-    };
+    const rows = await postgresClient.dateProposals()
+      .where({
+        conversation_id: conversationId,
+        status: DateProposalStatus.PENDING,
+      });
 
-    const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
-    return resources;
+    return rows.map((row: any) => this.mapRowToProposal(row));
   }
 
   /**
@@ -729,13 +838,11 @@ export class CalendarIntegrationService {
   async getProposals(conversationId: string): Promise<DateProposal[]> {
     await this.ensureInitialized();
 
-    const query = {
-      query: 'SELECT * FROM c WHERE c.conversationId = @conversationId ORDER BY c.createdAt DESC',
-      parameters: [{ name: '@conversationId', value: conversationId }],
-    };
+    const rows = await postgresClient.dateProposals()
+      .where({ conversation_id: conversationId })
+      .orderBy('created_at', 'desc');
 
-    const { resources } = await this.proposalsContainer.items.query(query).fetchAll();
-    return resources;
+    return rows.map((row: any) => this.mapRowToProposal(row));
   }
 
   // ============================================================================
@@ -749,17 +856,43 @@ export class CalendarIntegrationService {
     await this.ensureInitialized();
 
     try {
-      const query = {
-        query: 'SELECT * FROM c WHERE c.id = @id',
-        parameters: [{ name: '@id', value: scheduledDateId }],
-      };
+      const row = await postgresClient.scheduledDates()
+        .where({ id: scheduledDateId })
+        .first();
 
-      const { resources } = await this.scheduledDatesContainer.items.query(query).fetchAll();
-      return resources[0] || null;
+      if (!row) return null;
+
+      return this.mapRowToScheduledDate(row);
     } catch (error) {
       logger.error('Failed to get scheduled date:', error);
       return null;
     }
+  }
+
+  /**
+   * Map database row to ScheduledDate object
+   */
+  private mapRowToScheduledDate(row: any): ScheduledDate {
+    return {
+      id: row.id,
+      conversationId: row.conversation_id,
+      proposalId: row.proposal_id,
+      participantIds: row.participant_ids,
+      scheduledAt: new Date(row.scheduled_at),
+      timezone: row.timezone,
+      duration: row.duration,
+      venue: row.venue ? (typeof row.venue === 'string' ? JSON.parse(row.venue) : row.venue) : undefined,
+      notes: row.notes,
+      status: row.status,
+      cancelledBy: row.cancelled_by,
+      cancellationReason: row.cancellation_reason,
+      calendarEventIds: row.calendar_event_ids
+        ? (typeof row.calendar_event_ids === 'string' ? JSON.parse(row.calendar_event_ids) : row.calendar_event_ids)
+        : undefined,
+      reminderIds: row.reminder_ids,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    };
   }
 
   /**
@@ -769,25 +902,15 @@ export class CalendarIntegrationService {
     await this.ensureInitialized();
 
     const now = new Date();
-    const query = {
-      query: `
-        SELECT * FROM c
-        WHERE ARRAY_CONTAINS(c.participantIds, @userId)
-          AND c.scheduledAt > @now
-          AND c.status = @status
-        ORDER BY c.scheduledAt ASC
-        OFFSET 0 LIMIT @limit
-      `,
-      parameters: [
-        { name: '@userId', value: userId },
-        { name: '@now', value: now.toISOString() },
-        { name: '@status', value: ScheduledDateStatus.CONFIRMED },
-        { name: '@limit', value: limit },
-      ],
-    };
 
-    const { resources } = await this.scheduledDatesContainer.items.query(query).fetchAll();
-    return resources;
+    const rows = await postgresClient.scheduledDates()
+      .whereRaw('? = ANY(participant_ids)', [userId])
+      .where('scheduled_at', '>', now)
+      .where('status', ScheduledDateStatus.CONFIRMED)
+      .orderBy('scheduled_at', 'asc')
+      .limit(limit);
+
+    return rows.map((row: any) => this.mapRowToScheduledDate(row));
   }
 
   /**
@@ -814,16 +937,20 @@ export class CalendarIntegrationService {
     }
 
     const now = new Date();
+
+    await postgresClient.scheduledDates()
+      .where({ id: scheduledDateId })
+      .update({
+        status: ScheduledDateStatus.CANCELLED,
+        cancelled_by: userId,
+        cancellation_reason: reason,
+        updated_at: now,
+      });
+
     scheduledDate.status = ScheduledDateStatus.CANCELLED;
     scheduledDate.cancelledBy = userId;
     scheduledDate.cancellationReason = reason;
     scheduledDate.updatedAt = now;
-
-    const participantIds = scheduledDate.participantIds.sort().join(',');
-    await this.scheduledDatesContainer.items.upsert({
-      ...scheduledDate,
-      participantIds: participantIds,
-    });
 
     // Delete calendar events if synced
     await this.deleteCalendarEvents(scheduledDate);
@@ -844,14 +971,17 @@ export class CalendarIntegrationService {
       throw new Error('Scheduled date not found');
     }
 
-    scheduledDate.status = ScheduledDateStatus.COMPLETED;
-    scheduledDate.updatedAt = new Date();
+    const now = new Date();
 
-    const participantIds = scheduledDate.participantIds.sort().join(',');
-    await this.scheduledDatesContainer.items.upsert({
-      ...scheduledDate,
-      participantIds: participantIds,
-    });
+    await postgresClient.scheduledDates()
+      .where({ id: scheduledDateId })
+      .update({
+        status: ScheduledDateStatus.COMPLETED,
+        updated_at: now,
+      });
+
+    scheduledDate.status = ScheduledDateStatus.COMPLETED;
+    scheduledDate.updatedAt = now;
 
     return scheduledDate;
   }
@@ -964,11 +1094,11 @@ export class CalendarIntegrationService {
 
     // Update scheduled date with event IDs
     if (scheduledDate.calendarEventIds) {
-      const participantIds = scheduledDate.participantIds.sort().join(',');
-      await this.scheduledDatesContainer.items.upsert({
-        ...scheduledDate,
-        participantIds: participantIds,
-      });
+      await postgresClient.scheduledDates()
+        .where({ id: scheduledDate.id })
+        .update({
+          calendar_event_ids: JSON.stringify(scheduledDate.calendarEventIds),
+        });
     }
 
     // Return first successful result or last error
@@ -1037,10 +1167,17 @@ export class CalendarIntegrationService {
       throw new Error('Calendar connection not found');
     }
 
-    connection.shareAvailability = shareAvailability;
-    connection.updatedAt = new Date();
+    const now = new Date();
 
-    await this.connectionsContainer.items.upsert(connection);
+    await postgresClient.calendarConnections()
+      .where({ id: connection.id })
+      .update({
+        share_availability: shareAvailability,
+        updated_at: now,
+      });
+
+    connection.shareAvailability = shareAvailability;
+    connection.updatedAt = now;
 
     return connection;
   }

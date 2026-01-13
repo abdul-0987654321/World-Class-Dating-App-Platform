@@ -1,7 +1,5 @@
-import { Container } from '@azure/cosmos';
-
 import { conversationRepository } from '../domain/repositories/conversation.repository';
-import { cosmosClient } from '../infrastructure/database/cosmos-client';
+import { postgresClient } from '../infrastructure/database/postgres-client';
 import { Message, MessageType } from '../types';
 import { MessageSearchQuery, MessageSearchResult } from '../types/enhanced-types';
 import { createLogger } from '../utils/logger';
@@ -9,15 +7,6 @@ import { createLogger } from '../utils/logger';
 const logger = createLogger('message-search-service');
 
 export class MessageSearchService {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getMessagesContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Search messages across conversations or within a specific conversation
    */
@@ -34,14 +23,12 @@ export class MessageSearchService {
         offset = 0,
       } = searchQuery;
 
-      // Build dynamic query
-      let queryText = `SELECT * FROM c WHERE 1=1`;
-      const parameters: any[] = [];
+      // Start building the query
+      let dbQuery = postgresClient.messages();
 
       // If no specific conversation, search across all user's conversations
       if (conversationId) {
-        queryText += ` AND c.conversationId = @conversationId`;
-        parameters.push({ name: '@conversationId', value: conversationId });
+        dbQuery = dbQuery.where('conversation_id', conversationId);
       } else {
         // Get all conversations for the user
         const conversations = await conversationRepository.findByUserId(userId);
@@ -51,55 +38,61 @@ export class MessageSearchService {
           return [];
         }
 
-        queryText += ` AND c.conversationId IN (${conversationIds.map((_, i) => `@convId${i}`).join(',')})`;
-        conversationIds.forEach((id, i) => {
-          parameters.push({ name: `@convId${i}`, value: id });
-        });
+        dbQuery = dbQuery.whereIn('conversation_id', conversationIds);
       }
 
       // Filter by user participation (exclude messages deleted for this user)
-      queryText += ` AND (NOT IS_DEFINED(c.deletedFor) OR NOT ARRAY_CONTAINS(c.deletedFor, @userId))`;
-      parameters.push({ name: '@userId', value: userId });
+      dbQuery = dbQuery.where(function () {
+        this.whereNull('deleted_for').orWhereNot(
+          postgresClient.db.raw('? = ANY(deleted_for)', [userId])
+        );
+      });
 
-      // Search query - using CONTAINS for text search
+      // Search query - using ILIKE for text search
       if (query && query.trim()) {
-        queryText += ` AND CONTAINS(LOWER(c.content), LOWER(@query))`;
-        parameters.push({ name: '@query', value: query.trim() });
+        dbQuery = dbQuery.whereRaw('LOWER(content) LIKE LOWER(?)', [`%${query.trim()}%`]);
       }
 
       // Filter by message type
       if (type) {
-        queryText += ` AND c.type = @type`;
-        parameters.push({ name: '@type', value: type });
+        dbQuery = dbQuery.where('type', type);
       }
 
       // Date range filter
       if (startDate) {
-        queryText += ` AND c.sentAt >= @startDate`;
-        parameters.push({ name: '@startDate', value: startDate });
+        dbQuery = dbQuery.where('sent_at', '>=', startDate);
       }
 
       if (endDate) {
-        queryText += ` AND c.sentAt <= @endDate`;
-        parameters.push({ name: '@endDate', value: endDate });
+        dbQuery = dbQuery.where('sent_at', '<=', endDate);
       }
 
       // Order by relevance (most recent first for now)
-      queryText += ` ORDER BY c.sentAt DESC`;
+      dbQuery = dbQuery.orderBy('sent_at', 'desc');
 
       // Pagination
-      queryText += ` OFFSET @offset LIMIT @limit`;
-      parameters.push({ name: '@offset', value: offset });
-      parameters.push({ name: '@limit', value: limit });
+      dbQuery = dbQuery.offset(offset).limit(limit);
 
-      const querySpec = {
-        query: queryText,
-        parameters,
-      };
+      const rows = await dbQuery.select('*');
 
-      const { resources: messages } = await this.container.items
-        .query<Message>(querySpec)
-        .fetchAll();
+      // Map database rows to Message objects
+      const messages: Message[] = rows.map((row: any) => ({
+        id: row.id,
+        conversationId: row.conversation_id,
+        senderId: row.sender_id,
+        receiverId: row.receiver_id,
+        content: row.content,
+        type: row.type,
+        status: row.status,
+        sentAt: new Date(row.sent_at),
+        deliveredAt: row.delivered_at ? new Date(row.delivered_at) : undefined,
+        readAt: row.read_at ? new Date(row.read_at) : undefined,
+        isPinned: row.is_pinned,
+        pinnedAt: row.pinned_at ? new Date(row.pinned_at) : undefined,
+        pinnedBy: row.pinned_by,
+        deletedFor: row.deleted_for,
+        metadata: row.metadata,
+      }));
 
       // Convert to search results with highlighted content
       const results: MessageSearchResult[] = messages.map((message) => {
@@ -230,7 +223,7 @@ export class MessageSearchService {
   /**
    * Calculate match score for search relevance
    */
-  private calculateMatchScore(message: Message, query: string): number {
+  private calculateMatchScore(message: Message, query: string | undefined): number {
     if (!query || !query.trim()) {
       return 1; // Default score when no query
     }
@@ -279,7 +272,7 @@ export class MessageSearchService {
   /**
    * Highlight search term in content
    */
-  private highlightSearchTerm(content: string, query: string): string {
+  private highlightSearchTerm(content: string, query: string | undefined): string {
     if (!query || !query.trim()) {
       return content;
     }

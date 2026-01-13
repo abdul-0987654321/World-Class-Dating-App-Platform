@@ -341,7 +341,7 @@ export class PhotoSharingService {
     confidence?: number;
   }> {
     try {
-      // In production, integrate with Azure Content Moderator or similar service
+      // In production, integrate with AWS Rekognition or similar content moderation service
       // For now, auto-approve all images
       return { approved: true };
     } catch (error: any) {

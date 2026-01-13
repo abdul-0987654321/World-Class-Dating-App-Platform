@@ -15,7 +15,6 @@ dotenv.config();
 
 // Validate environment variables at startup
 // Note: AWS credentials are optional - will use IAM role if available
-// Azure Content Moderator is optional - text moderation will use alternative if not configured
 const validator = createValidator('moderation-service', [
   commonValidations.nodeEnv,
   commonValidations.port(3012),
@@ -24,31 +23,20 @@ const validator = createValidator('moderation-service', [
     name: 'AWS_ACCESS_KEY_ID',
     required: false,
     description:
-      'AWS access key ID for Rekognition image moderation (optional - uses IAM role if not set)',
+      'AWS access key ID for Rekognition/Comprehend moderation (optional - uses IAM role if not set)',
     sensitive: true,
   },
   {
     name: 'AWS_SECRET_ACCESS_KEY',
     required: false,
-    description: 'AWS secret access key for Rekognition (optional - uses IAM role if not set)',
+    description: 'AWS secret access key (optional - uses IAM role if not set)',
     sensitive: true,
   },
   {
     name: 'AWS_REGION',
     required: false,
-    description: 'AWS region for Rekognition service',
+    description: 'AWS region for Rekognition and Comprehend services',
     defaultValue: 'us-east-1',
-  },
-  {
-    name: 'AZURE_CONTENT_MODERATOR_ENDPOINT',
-    required: false,
-    description: 'Azure Content Moderator endpoint URL for text moderation (optional)',
-  },
-  {
-    name: 'AZURE_CONTENT_MODERATOR_KEY',
-    required: false,
-    description: 'Azure Content Moderator API key (optional)',
-    sensitive: true,
   },
 ]);
 validator.validateOrThrow();
@@ -75,25 +63,22 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', async (req: Request, res: Response) => {
   const checks = {
     awsRekognition: false,
-    azureContentModerator: false,
+    awsComprehend: false,
   };
 
   try {
-    // Check if AWS credentials are configured
+    // Check if AWS credentials are configured (or IAM role available)
+    // In production with IAM roles, credentials may not be explicitly set
     if (config.aws.accessKeyId && config.aws.secretAccessKey) {
       checks.awsRekognition = true;
+      checks.awsComprehend = true;
+    } else if (process.env.AWS_REGION) {
+      // IAM role may be available
+      checks.awsRekognition = true;
+      checks.awsComprehend = true;
     }
   } catch (e) {
-    logger.error('AWS Rekognition health check failed', e);
-  }
-
-  try {
-    // Check if Azure Content Moderator is configured
-    if (config.azure.contentModerator.endpoint && config.azure.contentModerator.apiKey) {
-      checks.azureContentModerator = true;
-    }
-  } catch (e) {
-    logger.error('Azure Content Moderator health check failed', e);
+    logger.error('AWS health check failed', e);
   }
 
   // In degraded mode, service is still healthy but with limited functionality
@@ -118,7 +103,7 @@ app.get('/', (req: Request, res: Response) => {
     status: 'running',
     features: [
       'AI-powered image moderation (AWS Rekognition)',
-      'Text content moderation (Azure Content Moderator)',
+      'Text content moderation (AWS Comprehend)',
       'Auto-flag/reject inappropriate content',
       'User violation tracking',
       'Auto-suspension/ban system',
@@ -154,10 +139,11 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
 app.listen(PORT, () => {
   logger.info(`Moderation Service running on port ${PORT}`);
   logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info('AWS Rekognition: ' + (config.aws.accessKeyId ? 'Configured' : 'Not configured'));
   logger.info(
-    'Azure Content Moderator: ' +
-      (config.azure.contentModerator.apiKey ? 'Configured' : 'Not configured')
+    'AWS Services: ' +
+      (config.aws.accessKeyId || process.env.AWS_REGION
+        ? 'Configured (Rekognition + Comprehend)'
+        : 'Not configured')
   );
 });
 

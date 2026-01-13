@@ -43,7 +43,7 @@ export class PhotoController {
         });
       }
 
-      // Upload to Azure and process image
+      // Upload to S3 and process image
       const uploadResult = await uploadService.uploadPhoto(file, userId);
 
       // Save photo to database

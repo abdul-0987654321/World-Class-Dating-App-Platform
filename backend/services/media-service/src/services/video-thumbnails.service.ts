@@ -248,7 +248,7 @@ class VideoThumbnailsService {
     folder: string,
     identifier: string
   ): Promise<string> {
-    // In production, upload to S3, Azure Blob, or similar
+    // In production, upload to AWS S3
     const url = `https://cdn.example.com/${folder}/${identifier}/${path.basename(filePath)}`;
 
     logger.debug('File uploaded to storage', { filePath, url });

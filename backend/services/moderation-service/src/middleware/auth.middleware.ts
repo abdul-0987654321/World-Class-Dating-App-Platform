@@ -77,7 +77,7 @@ function determineRole(payload: JwtPayload): 'user' | 'moderator' | 'admin' {
   if (payload.role === 'admin') return 'admin';
   if (payload.role === 'moderator') return 'moderator';
 
-  // Check roles array (e.g., from Azure AD B2C groups)
+  // Check roles array (e.g., from identity provider groups)
   if (payload.roles) {
     if (payload.roles.includes('admin') || payload.roles.includes('Admin')) return 'admin';
     if (payload.roles.includes('moderator') || payload.roles.includes('Moderator'))

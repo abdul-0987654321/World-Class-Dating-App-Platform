@@ -75,12 +75,6 @@ export default {
     fromName: process.env.FROM_NAME || 'Flamoral',
   },
 
-  azure: {
-    storageAccount: process.env.AZURE_STORAGE_ACCOUNT_NAME,
-    storageKey: process.env.AZURE_STORAGE_ACCOUNT_KEY,
-    blobContainer: process.env.AZURE_BLOB_CONTAINER_NAME || 'profile-photos',
-  },
-
   cors: {
     origins: (
       process.env.CORS_ORIGINS ||

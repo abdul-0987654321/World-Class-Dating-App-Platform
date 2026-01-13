@@ -638,15 +638,18 @@ jobs:
         continue-on-error: true
 
   # ==========================================================================
-  # SECTION 4: TERRAFORM DEPLOYMENT (ECS Fargate only)
+  # SECTION 4: TERRAFORM DEPLOYMENT (AWS ECS Fargate only - NO AZURE)
+  # ==========================================================================
+  # Terraform Plan: Dev and Staging environments only
+  # Terraform Apply: Production environment only (requires approval gate)
   # ==========================================================================
 
-  terraform-dev-validation:
-    name: '[TF] Dev Validation'
+  terraform-dev-plan:
+    name: '[TF] Dev Plan'
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.modified, 'infrastructure/terraform/')) ||
-      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["terraform-plan", "terraform-apply", "terraform-auto-fix"]'), github.event.inputs.action))
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'terraform-plan' && github.event.inputs.environment == 'dev')
     environment: dev-validation
     outputs:
       validation_passed: ${{ steps.validate.outputs.passed }}
@@ -671,12 +674,13 @@ jobs:
         run: terraform -chdir=infrastructure/terraform fmt -check -recursive
         continue-on-error: true
 
-      - name: Terraform Init (AWS provider only - no kubernetes/helm)
+      - name: Terraform Init (AWS provider only)
         run: |
           terraform -chdir=infrastructure/terraform/environments/dev init -backend=false
+          # Verify no forbidden providers (Azure, Kubernetes, Helm)
           if [ -d "infrastructure/terraform/environments/dev/.terraform/providers" ]; then
-            if find infrastructure/terraform/environments/dev/.terraform/providers -name "*kubernetes*" -o -name "*helm*" 2>/dev/null | grep -q .; then
-              echo "::error::Kubernetes or Helm providers initialized - not allowed!"
+            if find infrastructure/terraform/environments/dev/.terraform/providers -name "*azure*" -o -name "*kubernetes*" -o -name "*helm*" 2>/dev/null | grep -q .; then
+              echo "::error::Forbidden providers detected (Azure/Kubernetes/Helm) - AWS only!"
               exit 1
             fi
           fi
@@ -698,10 +702,11 @@ jobs:
           tflint --recursive
         continue-on-error: true
 
-      - name: Create plan (verify no EKS/K8s resources)
+      - name: Create plan (verify AWS-only resources)
         id: plan
         run: |
           terraform -chdir=infrastructure/terraform/environments/dev plan -out=tfplan -no-color 2>&1 | tee plan.txt
+          # Block any EKS/Kubernetes/Helm resources
           if grep -E "aws_eks_|kubernetes_|helm_" plan.txt; then
             echo "::error::Plan contains EKS/Kubernetes/Helm resources - not allowed!"
             exit 1
@@ -715,12 +720,103 @@ jobs:
           name: terraform-plan-dev
           path: infrastructure/terraform/environments/dev/tfplan
 
+      - name: Plan Summary
+        run: |
+          echo "## Terraform Dev Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: dev" >> $GITHUB_STEP_SUMMARY
+          echo "Provider: AWS only (Azure forbidden)" >> $GITHUB_STEP_SUMMARY
+          echo "Plan checksum: ${{ steps.plan.outputs.checksum }}" >> $GITHUB_STEP_SUMMARY
+
+  terraform-staging-plan:
+    name: '[TF] Staging Plan'
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.modified, 'infrastructure/terraform/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'terraform-plan' && github.event.inputs.environment == 'staging')
+    environment: staging-validation
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.passed }}
+      plan_checksum: ${{ steps.plan.outputs.checksum }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform -chdir=infrastructure/terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init (AWS provider only)
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/staging init -backend=false
+          # Verify no forbidden providers (Azure, Kubernetes, Helm)
+          if [ -d "infrastructure/terraform/environments/staging/.terraform/providers" ]; then
+            if find infrastructure/terraform/environments/staging/.terraform/providers -name "*azure*" -o -name "*kubernetes*" -o -name "*helm*" 2>/dev/null | grep -q .; then
+              echo "::error::Forbidden providers detected (Azure/Kubernetes/Helm) - AWS only!"
+              exit 1
+            fi
+          fi
+          echo "Terraform initialized with AWS provider only."
+
+      - name: Terraform Validate
+        id: validate
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/staging validate
+          echo "passed=true" >> $GITHUB_OUTPUT
+
+      - name: Run TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: TFLint Check
+        run: |
+          cd infrastructure/terraform
+          tflint --init
+          tflint --recursive
+        continue-on-error: true
+
+      - name: Create plan (verify AWS-only resources)
+        id: plan
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/staging plan -out=tfplan -no-color 2>&1 | tee plan.txt
+          # Block any EKS/Kubernetes/Helm resources
+          if grep -E "aws_eks_|kubernetes_|helm_" plan.txt; then
+            echo "::error::Plan contains EKS/Kubernetes/Helm resources - not allowed!"
+            exit 1
+          fi
+          CHECKSUM=$(sha256sum infrastructure/terraform/environments/staging/tfplan | cut -d' ' -f1)
+          echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-staging
+          path: infrastructure/terraform/environments/staging/tfplan
+
+      - name: Plan Summary
+        run: |
+          echo "## Terraform Staging Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: staging" >> $GITHUB_STEP_SUMMARY
+          echo "Provider: AWS only (Azure forbidden)" >> $GITHUB_STEP_SUMMARY
+          echo "Plan checksum: ${{ steps.plan.outputs.checksum }}" >> $GITHUB_STEP_SUMMARY
+
   terraform-production-gate:
     name: '[TF] Production Gate'
     runs-on: ubuntu-latest
-    needs: terraform-dev-validation
+    needs: [terraform-dev-plan, terraform-staging-plan]
     if: |
-      needs.terraform-dev-validation.outputs.validation_passed == 'true' &&
+      always() &&
+      (needs.terraform-dev-plan.outputs.validation_passed == 'true' || needs.terraform-staging-plan.outputs.validation_passed == 'true') &&
       (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'terraform-apply' && github.event.inputs.environment == 'production')
     environment: production-gate
     outputs:
@@ -733,9 +829,9 @@ jobs:
           echo "authorized=true" >> $GITHUB_OUTPUT
 
   terraform-production-apply:
-    name: '[TF] Production Apply'
+    name: '[TF] Production Apply (AWS Only)'
     runs-on: ubuntu-latest
-    needs: [terraform-dev-validation, terraform-production-gate]
+    needs: terraform-production-gate
     if: needs.terraform-production-gate.outputs.authorized == 'true'
     environment: production
     steps:
@@ -753,17 +849,33 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform -chdir=infrastructure/terraform/environments/prod init
+      - name: Terraform Init (AWS provider only)
+        run: |
+          terraform -chdir=infrastructure/terraform/environments/prod init
+          # Verify no forbidden providers
+          if [ -d "infrastructure/terraform/environments/prod/.terraform/providers" ]; then
+            if find infrastructure/terraform/environments/prod/.terraform/providers -name "*azure*" 2>/dev/null | grep -q .; then
+              echo "::error::Azure providers detected - AWS only!"
+              exit 1
+            fi
+          fi
 
-      - name: Terraform Apply (ECS Fargate only)
+      - name: Terraform Apply (AWS ECS Fargate only)
         run: |
           terraform -chdir=infrastructure/terraform/environments/prod plan -no-color 2>&1 | tee pre-apply-plan.txt
-          if grep -E "aws_eks_|kubernetes_|helm_" pre-apply-plan.txt; then
-            echo "::error::Plan contains EKS/Kubernetes/Helm - aborting!"
+          # Block any Azure/EKS/Kubernetes/Helm resources
+          if grep -E "azurerm_|azuread_|aws_eks_|kubernetes_|helm_" pre-apply-plan.txt; then
+            echo "::error::Plan contains forbidden resources (Azure/EKS/Kubernetes/Helm) - aborting!"
             exit 1
           fi
           terraform -chdir=infrastructure/terraform/environments/prod apply -auto-approve
+
+      - name: Apply Summary
+        run: |
+          echo "## Terraform Production Apply Complete" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: production" >> $GITHUB_STEP_SUMMARY
+          echo "Provider: AWS only" >> $GITHUB_STEP_SUMMARY
+          echo "Status: Applied successfully" >> $GITHUB_STEP_SUMMARY
 
   # ==========================================================================
   # SECTION 5: DOCKER BUILD (ECR with immutable digests)

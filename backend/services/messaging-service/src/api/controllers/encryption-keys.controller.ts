@@ -1,7 +1,6 @@
-import { Container } from '@azure/cosmos';
 import { Response } from 'express';
 
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import encryptionService from '../../services/encryption.service';
 import { createLogger } from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
@@ -57,15 +56,6 @@ interface SessionKey {
 }
 
 export class EncryptionKeysController {
-  private _keysContainer: Container | null = null;
-
-  private get keysContainer(): Container {
-    if (!this._keysContainer) {
-      this._keysContainer = cosmosClient.getMessagesContainer();
-    }
-    return this._keysContainer;
-  }
-
   /**
    * POST /api/keys/upload
    * Upload user's pre-keys bundle
@@ -92,20 +82,13 @@ export class EncryptionKeysController {
       }
 
       // Check if user already has keys
-      const existingKeysQuery = {
-        query: 'SELECT * FROM c WHERE c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'key_bundle' },
-        ],
-      };
-
-      const { resources: existingKeys } = await this.keysContainer.items
-        .query<StoredKeyBundle>(existingKeysQuery)
-        .fetchAll();
+      const existingKeys = await postgresClient
+        .encryptionKeyBundles()
+        .where('user_id', userId)
+        .first();
 
       const keyBundle: StoredKeyBundle = {
-        id: existingKeys.length > 0 ? existingKeys[0].id : `keys_${userId}`,
+        id: existingKeys ? existingKeys.id : `keys_${userId}`,
         userId,
         identityKey: {
           publicKey: identityKey.publicKey,
@@ -123,16 +106,32 @@ export class EncryptionKeysController {
           publicKey: key.publicKey,
           privateKey: key.privateKey || '',
         })),
-        createdAt: existingKeys.length > 0 ? existingKeys[0].createdAt : new Date(),
+        createdAt: existingKeys ? new Date(existingKeys.created_at) : new Date(),
         updatedAt: new Date(),
       };
 
       // Store key bundle
-      if (existingKeys.length > 0) {
-        await this.keysContainer.item(keyBundle.id, userId).replace(keyBundle);
+      if (existingKeys) {
+        await postgresClient
+          .encryptionKeyBundles()
+          .where('id', keyBundle.id)
+          .update({
+            identity_key: JSON.stringify(keyBundle.identityKey),
+            signed_pre_key: JSON.stringify(keyBundle.signedPreKey),
+            one_time_pre_keys: JSON.stringify(keyBundle.oneTimePreKeys),
+            updated_at: keyBundle.updatedAt,
+          });
         logger.info(`Updated key bundle for user ${userId}`);
       } else {
-        await this.keysContainer.items.create({ ...keyBundle, type: 'key_bundle' });
+        await postgresClient.encryptionKeyBundles().insert({
+          id: keyBundle.id,
+          user_id: keyBundle.userId,
+          identity_key: JSON.stringify(keyBundle.identityKey),
+          signed_pre_key: JSON.stringify(keyBundle.signedPreKey),
+          one_time_pre_keys: JSON.stringify(keyBundle.oneTimePreKeys),
+          created_at: keyBundle.createdAt,
+          updated_at: keyBundle.updatedAt,
+        });
         logger.info(`Created key bundle for user ${userId}`);
       }
 
@@ -164,26 +163,24 @@ export class EncryptionKeysController {
       const { userId } = req.params;
 
       // Find user's key bundle
-      const querySpec = {
-        query: 'SELECT * FROM c WHERE c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'key_bundle' },
-        ],
-      };
+      const row = await postgresClient.encryptionKeyBundles().where('user_id', userId).first();
 
-      const { resources } = await this.keysContainer.items
-        .query<StoredKeyBundle>(querySpec)
-        .fetchAll();
-
-      if (resources.length === 0) {
+      if (!row) {
         return res.status(404).json({
           success: false,
           error: 'User keys not found. User may need to initialize encryption keys.',
         });
       }
 
-      const keyBundle = resources[0];
+      const keyBundle: StoredKeyBundle = {
+        id: row.id,
+        userId: row.user_id,
+        identityKey: typeof row.identity_key === 'string' ? JSON.parse(row.identity_key) : row.identity_key,
+        signedPreKey: typeof row.signed_pre_key === 'string' ? JSON.parse(row.signed_pre_key) : row.signed_pre_key,
+        oneTimePreKeys: typeof row.one_time_pre_keys === 'string' ? JSON.parse(row.one_time_pre_keys) : row.one_time_pre_keys,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      };
 
       // Claim one one-time pre-key (mark as used)
       let claimedOneTimePreKey: { keyId: number; publicKey: string } | undefined;
@@ -201,7 +198,13 @@ export class EncryptionKeysController {
         keyBundle.updatedAt = new Date();
 
         // Update bundle
-        await this.keysContainer.item(keyBundle.id, userId).replace(keyBundle);
+        await postgresClient
+          .encryptionKeyBundles()
+          .where('id', keyBundle.id)
+          .update({
+            one_time_pre_keys: JSON.stringify(keyBundle.oneTimePreKeys),
+            updated_at: keyBundle.updatedAt,
+          });
 
         logger.info(`User ${currentUserId} claimed one-time pre-key from user ${userId}`);
       }
@@ -248,26 +251,24 @@ export class EncryptionKeysController {
       }
 
       // Find user's key bundle
-      const querySpec = {
-        query: 'SELECT * FROM c WHERE c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'key_bundle' },
-        ],
-      };
+      const row = await postgresClient.encryptionKeyBundles().where('user_id', userId).first();
 
-      const { resources } = await this.keysContainer.items
-        .query<StoredKeyBundle>(querySpec)
-        .fetchAll();
-
-      if (resources.length === 0) {
+      if (!row) {
         return res.status(404).json({
           success: false,
           error: 'User keys not found',
         });
       }
 
-      const keyBundle = resources[0];
+      const keyBundle: StoredKeyBundle = {
+        id: row.id,
+        userId: row.user_id,
+        identityKey: typeof row.identity_key === 'string' ? JSON.parse(row.identity_key) : row.identity_key,
+        signedPreKey: typeof row.signed_pre_key === 'string' ? JSON.parse(row.signed_pre_key) : row.signed_pre_key,
+        oneTimePreKeys: typeof row.one_time_pre_keys === 'string' ? JSON.parse(row.one_time_pre_keys) : row.one_time_pre_keys,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      };
 
       // Claim requested number of one-time pre-keys
       const claimedKeys = keyBundle.oneTimePreKeys.slice(
@@ -287,7 +288,13 @@ export class EncryptionKeysController {
       keyBundle.updatedAt = new Date();
 
       // Update bundle
-      await this.keysContainer.item(keyBundle.id, userId).replace(keyBundle);
+      await postgresClient
+        .encryptionKeyBundles()
+        .where('id', keyBundle.id)
+        .update({
+          one_time_pre_keys: JSON.stringify(keyBundle.oneTimePreKeys),
+          updated_at: keyBundle.updatedAt,
+        });
 
       logger.info(
         `User ${currentUserId} claimed ${claimedKeys.length} one-time pre-keys from user ${userId}`
@@ -380,7 +387,16 @@ export class EncryptionKeysController {
         lastUsedAt: new Date(),
       };
 
-      await this.keysContainer.items.create({ ...sessionKey, type: 'session_key' });
+      await postgresClient.sessionKeys().insert({
+        id: sessionKey.id,
+        conversation_id: sessionKey.conversationId,
+        user_id: sessionKey.userId,
+        root_key: sessionKey.rootKey,
+        chain_key: sessionKey.chainKey,
+        message_number: sessionKey.messageNumber,
+        created_at: sessionKey.createdAt,
+        last_used_at: sessionKey.lastUsedAt,
+      });
 
       logger.info(`Created session key for conversation ${conversationId}, user ${userId}`);
 
@@ -409,28 +425,33 @@ export class EncryptionKeysController {
       const userId = req.user.userId;
       const { conversationId } = req.params;
 
-      const querySpec = {
-        query:
-          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'session_key' },
-        ],
-      };
+      const row = await postgresClient
+        .sessionKeys()
+        .where('conversation_id', conversationId)
+        .andWhere('user_id', userId)
+        .first();
 
-      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
-
-      if (resources.length === 0) {
+      if (!row) {
         return res.status(404).json({
           success: false,
           error: 'Session key not found',
         });
       }
 
+      const sessionKey: SessionKey = {
+        id: row.id,
+        conversationId: row.conversation_id,
+        userId: row.user_id,
+        rootKey: row.root_key,
+        chainKey: row.chain_key,
+        messageNumber: row.message_number,
+        createdAt: new Date(row.created_at),
+        lastUsedAt: new Date(row.last_used_at),
+      };
+
       return res.status(200).json({
         success: true,
-        data: resources[0],
+        data: sessionKey,
       });
     } catch (error: any) {
       logger.error('Failed to get session key:', error);
@@ -458,31 +479,27 @@ export class EncryptionKeysController {
         });
       }
 
-      const querySpec = {
-        query:
-          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'session_key' },
-        ],
-      };
+      const row = await postgresClient
+        .sessionKeys()
+        .where('conversation_id', conversationId)
+        .andWhere('user_id', userId)
+        .first();
 
-      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
-
-      if (resources.length === 0) {
+      if (!row) {
         return res.status(404).json({
           success: false,
           error: 'Session key not found',
         });
       }
 
-      const sessionKey = resources[0];
-      sessionKey.chainKey = chainKey;
-      sessionKey.messageNumber = messageNumber;
-      sessionKey.lastUsedAt = new Date();
-
-      await this.keysContainer.item(sessionKey.id, conversationId).replace(sessionKey);
+      await postgresClient
+        .sessionKeys()
+        .where('id', row.id)
+        .update({
+          chain_key: chainKey,
+          message_number: messageNumber,
+          last_used_at: new Date(),
+        });
 
       logger.info(`Updated session key for conversation ${conversationId}, user ${userId}`);
 
@@ -508,23 +525,13 @@ export class EncryptionKeysController {
       const userId = req.user.userId;
       const { conversationId } = req.params;
 
-      const querySpec = {
-        query:
-          'SELECT * FROM c WHERE c.conversationId = @conversationId AND c.userId = @userId AND c.type = @type',
-        parameters: [
-          { name: '@conversationId', value: conversationId },
-          { name: '@userId', value: userId },
-          { name: '@type', value: 'session_key' },
-        ],
-      };
+      await postgresClient
+        .sessionKeys()
+        .where('conversation_id', conversationId)
+        .andWhere('user_id', userId)
+        .delete();
 
-      const { resources } = await this.keysContainer.items.query<SessionKey>(querySpec).fetchAll();
-
-      if (resources.length > 0) {
-        const sessionKey = resources[0];
-        await this.keysContainer.item(sessionKey.id, conversationId).delete();
-        logger.info(`Deleted session key for conversation ${conversationId}, user ${userId}`);
-      }
+      logger.info(`Deleted session key for conversation ${conversationId}, user ${userId}`);
 
       return res.status(200).json({
         success: true,

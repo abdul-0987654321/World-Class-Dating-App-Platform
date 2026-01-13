@@ -1,9 +1,9 @@
 /**
- * Encryption Schema Definitions for Cosmos DB
+ * Encryption Schema Definitions for PostgreSQL
  *
  * This file defines the schema structures for encryption-related data
- * stored in Cosmos DB. Since Cosmos DB is NoSQL, these are TypeScript
- * interfaces rather than SQL migrations.
+ * stored in PostgreSQL. These TypeScript interfaces define the data
+ * structure for encryption keys and sessions.
  */
 
 export interface EncryptionKeyBundle {
@@ -31,12 +31,6 @@ export interface EncryptionKeyBundle {
   }>;
   createdAt: Date;
   updatedAt: Date;
-  // Cosmos DB specific
-  _rid?: string;
-  _self?: string;
-  _etag?: string;
-  _attachments?: string;
-  _ts?: number;
 }
 
 export interface SessionKey {
@@ -55,12 +49,6 @@ export interface SessionKey {
   createdAt: Date;
   lastUsedAt: Date;
   expiresAt?: Date;
-  // Cosmos DB specific
-  _rid?: string;
-  _self?: string;
-  _etag?: string;
-  _attachments?: string;
-  _ts?: number;
 }
 
 export interface OneTimePreKey {
@@ -74,76 +62,19 @@ export interface OneTimePreKey {
   usedAt?: Date;
   usedBy?: string; // User ID who claimed this key
   createdAt: Date;
-  // Cosmos DB specific
-  _rid?: string;
-  _self?: string;
-  _etag?: string;
-  _attachments?: string;
-  _ts?: number;
 }
 
 /**
- * Initialize encryption-related containers in Cosmos DB
+ * Table names for encryption-related data in PostgreSQL
  */
-export const ENCRYPTION_CONTAINERS = {
-  KEY_BUNDLES: 'EncryptionKeys',
-  SESSION_KEYS: 'SessionKeys',
-  ONE_TIME_PREKEYS: 'OneTimePreKeys',
+export const ENCRYPTION_TABLES = {
+  KEY_BUNDLES: 'encryption_keys',
+  SESSION_KEYS: 'session_keys',
+  ONE_TIME_PREKEYS: 'one_time_prekeys',
 } as const;
 
 /**
- * Indexing policies for encryption containers
- */
-export const ENCRYPTION_INDEXING_POLICIES = {
-  keyBundles: {
-    automatic: true,
-    indexingMode: 'consistent' as const,
-    includedPaths: [
-      { path: '/userId/?' },
-      { path: '/type/?' },
-      { path: '/createdAt/?' },
-      { path: '/updatedAt/?' },
-    ],
-    excludedPaths: [
-      { path: '/identityKey/*' },
-      { path: '/signedPreKey/privateKey/?' },
-      { path: '/oneTimePreKeys/*/privateKey/?' },
-      { path: '/"_etag"/?' },
-    ],
-  },
-  sessionKeys: {
-    automatic: true,
-    indexingMode: 'consistent' as const,
-    includedPaths: [
-      { path: '/conversationId/?' },
-      { path: '/userId/?' },
-      { path: '/type/?' },
-      { path: '/createdAt/?' },
-      { path: '/lastUsedAt/?' },
-    ],
-    excludedPaths: [
-      { path: '/rootKey/?' },
-      { path: '/chainKey/?' },
-      { path: '/ratchetState/*' },
-      { path: '/"_etag"/?' },
-    ],
-  },
-  oneTimePreKeys: {
-    automatic: true,
-    indexingMode: 'consistent' as const,
-    includedPaths: [
-      { path: '/userId/?' },
-      { path: '/keyId/?' },
-      { path: '/type/?' },
-      { path: '/isUsed/?' },
-      { path: '/createdAt/?' },
-    ],
-    excludedPaths: [{ path: '/privateKey/?' }, { path: '/"_etag"/?' }],
-  },
-};
-
-/**
- * TTL (Time-to-Live) settings for automatic cleanup
+ * TTL (Time-to-Live) settings for automatic cleanup (used by scheduled jobs)
  */
 export const ENCRYPTION_TTL_SETTINGS = {
   // Session keys expire after 30 days of inactivity

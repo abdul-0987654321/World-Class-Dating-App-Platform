@@ -1,7 +1,7 @@
 import { createLogger } from '@flamoral/backend-shared';
 import { v4 as uuidv4 } from 'uuid';
 
-import azureStorageService from '../../infrastructure/storage/azure-storage.service';
+import { storageService } from '../../infrastructure/storage/s3-storage.service';
 import { VideoMetadata, ModerationStatus, UploadedFile } from '../../types';
 import videoRepository from '../repositories/video.repository';
 
@@ -33,18 +33,18 @@ export class VideoUploadService {
         throw new Error('Video processing incomplete');
       }
 
-      // Step 2: Upload compressed video to Azure Storage
+      // Step 2: Upload compressed video to S3
       const videoId = uuidv4();
       const videoFileName = `${videoId}-${file.originalname}`;
 
-      const compressedVideoUrl = await azureStorageService.uploadBlob(
+      const compressedVideoUrl = await storageService.uploadBlob(
         processed.compressed,
         `videos/${userId}/${videoFileName}`,
         file.mimetype
       );
 
       // Step 3: Upload original video (optional, for backup)
-      const originalVideoUrl = await azureStorageService.uploadBlob(
+      const originalVideoUrl = await storageService.uploadBlob(
         file.buffer,
         `videos/${userId}/original-${videoFileName}`,
         file.mimetype
@@ -53,7 +53,7 @@ export class VideoUploadService {
       // Step 4: Upload thumbnails
       const thumbnailUrls: string[] = [];
       for (let i = 0; i < processed.thumbnails.length; i++) {
-        const thumbnailUrl = await azureStorageService.uploadBlob(
+        const thumbnailUrl = await storageService.uploadBlob(
           processed.thumbnails[i],
           `videos/${userId}/thumbnails/${videoId}-thumb-${i}.jpg`,
           'image/jpeg'
@@ -150,14 +150,14 @@ export class VideoUploadService {
       logger.info(`Deleting video: ${videoId}`);
 
       // Delete compressed video
-      await azureStorageService.deleteBlob(urls.compressed);
+      await storageService.deleteBlob(urls.compressed);
 
       // Delete original video
-      await azureStorageService.deleteBlob(urls.original);
+      await storageService.deleteBlob(urls.original);
 
       // Delete all thumbnails
       for (const thumbnailUrl of urls.thumbnails) {
-        await azureStorageService.deleteBlob(thumbnailUrl);
+        await storageService.deleteBlob(thumbnailUrl);
       }
 
       // Delete from database

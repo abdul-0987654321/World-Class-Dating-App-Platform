@@ -1,4 +1,10 @@
-import axios from 'axios';
+import {
+  RekognitionClient,
+  DetectFacesCommand,
+  CompareFacesCommand,
+  DetectFacesCommandOutput,
+  CompareFacesCommandOutput,
+} from '@aws-sdk/client-rekognition';
 
 import db from '../../infrastructure/database/connection';
 import logger from '../../utils/logger';
@@ -22,12 +28,25 @@ export interface PhotoVerificationResult {
 /**
  * Photo Verification Service
  * Implements selfie verification with pose detection and face matching
- * Includes graceful degradation when Azure Face API is unavailable
+ * Uses AWS Rekognition for face detection and comparison
+ * Includes graceful degradation when AWS Rekognition is unavailable
  */
 export class PhotoVerificationService {
   private readonly VERIFICATION_THRESHOLD = 0.85; // 85% confidence threshold
   private readonly FACE_MATCH_THRESHOLD = 0.9; // 90% face match threshold
-  private readonly AZURE_API_TIMEOUT = 10000; // 10 second timeout for Azure API calls
+  private readonly AWS_API_TIMEOUT = 10000; // 10 second timeout for AWS API calls
+  private rekognitionClient: RekognitionClient | null = null;
+
+  constructor() {
+    // Initialize AWS Rekognition client if AWS_REGION is configured
+    if (process.env.AWS_REGION) {
+      this.rekognitionClient = new RekognitionClient({
+        region: process.env.AWS_REGION,
+        // AWS SDK will automatically use AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+        // from environment variables, or IAM role credentials in production
+      });
+    }
+  }
 
   /**
    * Request photo verification
@@ -140,7 +159,7 @@ export class PhotoVerificationService {
   }
 
   /**
-   * Verify photo using AI/ML with graceful degradation
+   * Verify photo using AWS Rekognition with graceful degradation
    */
   private async verifyPhoto(
     userId: string,
@@ -251,7 +270,20 @@ export class PhotoVerificationService {
   }
 
   /**
+   * Fetch image from URL and return as bytes for AWS Rekognition
+   */
+  private async fetchImageBytes(photoUrl: string): Promise<Uint8Array> {
+    const response = await fetch(photoUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+  }
+
+  /**
    * Detect liveness (anti-spoofing) with graceful degradation
+   * Uses AWS Rekognition DetectFaces for quality checks
    */
   private async detectLiveness(
     userId: string,
@@ -259,36 +291,36 @@ export class PhotoVerificationService {
     verificationId?: string
   ): Promise<{ live: boolean; confidence: number; requiresManualReview?: boolean }> {
     try {
-      if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
+      if (this.rekognitionClient && process.env.AWS_REGION) {
         try {
-          // Use Azure Face API for liveness detection
-          const response = await axios.post(
-            `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
-            {
-              url: photoUrl,
+          // Fetch image bytes from URL
+          const imageBytes = await this.fetchImageBytes(photoUrl);
+
+          // Use AWS Rekognition DetectFaces for liveness indicators
+          const command = new DetectFacesCommand({
+            Image: {
+              Bytes: imageBytes,
             },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
-              },
-              params: {
-                returnFaceAttributes: 'blur,exposure,noise',
-                detectionModel: 'detection_03',
-              },
-              timeout: this.AZURE_API_TIMEOUT,
-            }
-          );
+            Attributes: ['ALL'], // Get all face attributes for quality assessment
+          });
 
-          if (response.data && response.data.length > 0) {
-            const face = response.data[0];
-            const attributes = face.faceAttributes;
+          const response: DetectFacesCommandOutput = await this.rekognitionClient.send(command);
 
-            // Check for photo quality indicators
+          if (response.FaceDetails && response.FaceDetails.length > 0) {
+            const face = response.FaceDetails[0];
+            const quality = face.Quality;
+
+            // Check for photo quality indicators (liveness proxy)
+            // High quality images with good sharpness and brightness are more likely real
+            const sharpness = quality?.Sharpness || 0;
+            const brightness = quality?.Brightness || 0;
+
+            // Liveness indicators: good quality, not too dark/bright, sharp
             const isLive =
-              attributes.blur.blurLevel === 'low' &&
-              attributes.exposure.exposureLevel === 'goodExposure' &&
-              attributes.noise.noiseLevel === 'low';
+              sharpness > 50 &&
+              brightness > 30 &&
+              brightness < 90 &&
+              (face.Confidence || 0) > 90;
 
             return {
               live: isLive,
@@ -300,13 +332,13 @@ export class PhotoVerificationService {
             live: false,
             confidence: 0.0,
           };
-        } catch (azureError: any) {
-          // Azure Face API failed - log and queue for manual review
+        } catch (awsError: any) {
+          // AWS Rekognition failed - log and queue for manual review
           logger.error(
-            'Azure Face API unavailable for liveness detection, queueing for manual review',
+            'AWS Rekognition unavailable for liveness detection, queueing for manual review',
             {
               userId,
-              error: azureError.message,
+              error: awsError.message,
               verificationId,
             }
           );
@@ -314,7 +346,7 @@ export class PhotoVerificationService {
           await this.queueForManualReview(
             userId,
             photoUrl,
-            'azure_api_unavailable_liveness',
+            'aws_rekognition_unavailable_liveness',
             verificationId
           );
 
@@ -326,13 +358,18 @@ export class PhotoVerificationService {
         }
       }
 
-      // Azure Face API not configured - queue for manual review
-      logger.warn('Azure Face API credentials not configured, queueing for manual review', {
+      // AWS Rekognition not configured - queue for manual review
+      logger.warn('AWS Rekognition not configured, queueing for manual review', {
         userId,
         verificationId,
       });
 
-      await this.queueForManualReview(userId, photoUrl, 'azure_api_not_configured', verificationId);
+      await this.queueForManualReview(
+        userId,
+        photoUrl,
+        'aws_rekognition_not_configured',
+        verificationId
+      );
 
       return {
         live: false,
@@ -357,6 +394,7 @@ export class PhotoVerificationService {
 
   /**
    * Verify pose matches requested pose with graceful degradation
+   * Uses AWS Rekognition DetectFaces for pose analysis
    */
   private async verifyPose(
     userId: string,
@@ -365,49 +403,46 @@ export class PhotoVerificationService {
     verificationId?: string
   ): Promise<{ matched: boolean; confidence: number; requiresManualReview?: boolean }> {
     try {
-      if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
+      if (this.rekognitionClient && process.env.AWS_REGION) {
         try {
-          const response = await axios.post(
-            `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
-            {
-              url: photoUrl,
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
-              },
-              params: {
-                returnFaceAttributes: 'headPose,smile',
-                detectionModel: 'detection_03',
-              },
-              timeout: this.AZURE_API_TIMEOUT,
-            }
-          );
+          // Fetch image bytes from URL
+          const imageBytes = await this.fetchImageBytes(photoUrl);
 
-          if (response.data && response.data.length > 0) {
-            const face = response.data[0];
-            const headPose = face.faceAttributes.headPose;
-            const smile = face.faceAttributes.smile;
+          const command = new DetectFacesCommand({
+            Image: {
+              Bytes: imageBytes,
+            },
+            Attributes: ['ALL'], // Get all face attributes including pose and emotions
+          });
+
+          const response: DetectFacesCommandOutput = await this.rekognitionClient.send(command);
+
+          if (response.FaceDetails && response.FaceDetails.length > 0) {
+            const face = response.FaceDetails[0];
+            const pose = face.Pose;
+            const smile = face.Smile;
+            const emotions = face.Emotions || [];
 
             // Verify pose based on requested pose
             let matched = false;
 
             switch (requestedPose) {
               case 'smile':
-                matched = smile > 0.5;
+                matched = (smile?.Value || false) && (smile?.Confidence || 0) > 70;
                 break;
               case 'neutral':
-                matched = smile < 0.3;
+                // Check if CALM is the dominant emotion (neutral expression)
+                const calmEmotion = emotions.find((e) => e.Type === 'CALM');
+                matched = (calmEmotion?.Confidence || 0) > 50;
                 break;
               case 'look_left':
-                matched = headPose.yaw < -15;
+                matched = (pose?.Yaw || 0) < -15;
                 break;
               case 'look_right':
-                matched = headPose.yaw > 15;
+                matched = (pose?.Yaw || 0) > 15;
                 break;
               case 'look_up':
-                matched = headPose.pitch > 10;
+                matched = (pose?.Pitch || 0) > 10;
                 break;
               case 'thumbs_up':
                 // Hand gesture detection requires additional ML model
@@ -427,13 +462,13 @@ export class PhotoVerificationService {
             matched: false,
             confidence: 0.0,
           };
-        } catch (azureError: any) {
-          // Azure Face API failed - log and queue for manual review
+        } catch (awsError: any) {
+          // AWS Rekognition failed - log and queue for manual review
           logger.error(
-            'Azure Face API unavailable for pose verification, queueing for manual review',
+            'AWS Rekognition unavailable for pose verification, queueing for manual review',
             {
               userId,
-              error: azureError.message,
+              error: awsError.message,
               verificationId,
             }
           );
@@ -441,7 +476,7 @@ export class PhotoVerificationService {
           await this.queueForManualReview(
             userId,
             photoUrl,
-            'azure_api_unavailable_pose',
+            'aws_rekognition_unavailable_pose',
             verificationId
           );
 
@@ -453,9 +488,9 @@ export class PhotoVerificationService {
         }
       }
 
-      // Azure Face API not configured - queue for manual review
+      // AWS Rekognition not configured - queue for manual review
       logger.warn(
-        'Azure Face API credentials not configured for pose verification, queueing for manual review',
+        'AWS Rekognition not configured for pose verification, queueing for manual review',
         {
           userId,
           verificationId,
@@ -465,7 +500,7 @@ export class PhotoVerificationService {
       await this.queueForManualReview(
         userId,
         photoUrl,
-        'azure_api_not_configured_pose',
+        'aws_rekognition_not_configured_pose',
         verificationId
       );
 
@@ -492,6 +527,7 @@ export class PhotoVerificationService {
 
   /**
    * Match verification photo with profile photos with graceful degradation
+   * Uses AWS Rekognition CompareFaces
    */
   private async matchWithProfilePhotos(
     userId: string,
@@ -517,8 +553,8 @@ export class PhotoVerificationService {
         };
       }
 
-      // Use Azure Face API for face matching
-      if (process.env.AZURE_FACE_API_KEY && process.env.AZURE_FACE_API_ENDPOINT) {
+      // Use AWS Rekognition for face matching
+      if (this.rekognitionClient && process.env.AWS_REGION) {
         try {
           let maxSimilarity = 0;
 
@@ -533,18 +569,18 @@ export class PhotoVerificationService {
             matched,
             confidence: maxSimilarity,
           };
-        } catch (azureError: any) {
-          // Azure Face API failed - log and queue for manual review
-          logger.error('Azure Face API unavailable for face matching, queueing for manual review', {
+        } catch (awsError: any) {
+          // AWS Rekognition failed - log and queue for manual review
+          logger.error('AWS Rekognition unavailable for face matching, queueing for manual review', {
             userId,
-            error: azureError.message,
+            error: awsError.message,
             verificationId,
           });
 
           await this.queueForManualReview(
             userId,
             verificationPhotoUrl,
-            'azure_api_unavailable_face_match',
+            'aws_rekognition_unavailable_face_match',
             verificationId
           );
 
@@ -556,9 +592,9 @@ export class PhotoVerificationService {
         }
       }
 
-      // Azure Face API not configured - queue for manual review
+      // AWS Rekognition not configured - queue for manual review
       logger.warn(
-        'Azure Face API credentials not configured for face matching, queueing for manual review',
+        'AWS Rekognition not configured for face matching, queueing for manual review',
         {
           userId,
           verificationId,
@@ -568,7 +604,7 @@ export class PhotoVerificationService {
       await this.queueForManualReview(
         userId,
         verificationPhotoUrl,
-        'azure_api_not_configured_face_match',
+        'aws_rekognition_not_configured_face_match',
         verificationId
       );
 
@@ -599,55 +635,40 @@ export class PhotoVerificationService {
   }
 
   /**
-   * Compare two faces for similarity
+   * Compare two faces for similarity using AWS Rekognition CompareFaces
    */
   private async compareFaces(photo1Url: string, photo2Url: string): Promise<number> {
     try {
-      if (!process.env.AZURE_FACE_API_KEY || !process.env.AZURE_FACE_API_ENDPOINT) {
-        throw new Error('Azure Face API credentials not configured');
+      if (!this.rekognitionClient || !process.env.AWS_REGION) {
+        throw new Error('AWS Rekognition not configured');
       }
 
-      // Detect face in both photos
-      const detectFace = async (url: string) => {
-        const response = await axios.post(
-          `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/detect`,
-          { url },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
-            },
-            timeout: this.AZURE_API_TIMEOUT,
-          }
-        );
+      // Fetch both images as bytes
+      const [sourceBytes, targetBytes] = await Promise.all([
+        this.fetchImageBytes(photo1Url),
+        this.fetchImageBytes(photo2Url),
+      ]);
 
-        return response.data[0]?.faceId;
-      };
-
-      const face1Id = await detectFace(photo1Url);
-      const face2Id = await detectFace(photo2Url);
-
-      if (!face1Id || !face2Id) {
-        return 0.0;
-      }
-
-      // Verify faces
-      const response = await axios.post(
-        `${process.env.AZURE_FACE_API_ENDPOINT}/face/v1.0/verify`,
-        {
-          faceId1: face1Id,
-          faceId2: face2Id,
+      // Use AWS Rekognition CompareFaces
+      const command = new CompareFacesCommand({
+        SourceImage: {
+          Bytes: sourceBytes,
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': process.env.AZURE_FACE_API_KEY,
-          },
-          timeout: this.AZURE_API_TIMEOUT,
-        }
-      );
+        TargetImage: {
+          Bytes: targetBytes,
+        },
+        SimilarityThreshold: 0, // Get all matches with any similarity
+      });
 
-      return response.data.confidence || 0.0;
+      const response: CompareFacesCommandOutput = await this.rekognitionClient.send(command);
+
+      if (response.FaceMatches && response.FaceMatches.length > 0) {
+        // Return the highest similarity score (normalized to 0-1 range)
+        const highestSimilarity = response.FaceMatches[0].Similarity || 0;
+        return highestSimilarity / 100; // AWS returns 0-100, we use 0-1
+      }
+
+      return 0.0;
     } catch (error) {
       logger.error('Error comparing faces:', error);
       throw error; // Re-throw to trigger manual review in caller

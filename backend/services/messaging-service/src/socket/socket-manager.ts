@@ -98,7 +98,7 @@ export class SocketManager {
           replyTo: data.replyTo,
         };
 
-        // Save message to database (Cosmos DB)
+        // Save message to database (PostgreSQL)
         await messageRepository.create(message);
         logger.info(`Message saved to database: ${message.id}`);
 

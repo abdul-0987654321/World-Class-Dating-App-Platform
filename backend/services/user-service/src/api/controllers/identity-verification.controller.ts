@@ -119,7 +119,7 @@ export class IdentityVerificationController {
       }
 
       // In a real implementation, you would:
-      // 1. Upload the file to cloud storage (Azure Blob, S3, etc.)
+      // 1. Upload the file to cloud storage (AWS S3)
       // 2. Calculate file hash for integrity verification
       // 3. Return the URL and hash
 

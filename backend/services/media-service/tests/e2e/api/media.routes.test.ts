@@ -6,7 +6,7 @@ import request from 'supertest';
 import express, { Application } from 'express';
 import mediaRoutes from '../../../src/api/routes/media.routes';
 import { ModerationStatus } from '../../../src/types';
-import '../../mocks/azure-storage.mock';
+import '../../mocks/s3-storage.mock';
 import '../../mocks/content-moderation.mock';
 import '../../mocks/image-processing.mock';
 

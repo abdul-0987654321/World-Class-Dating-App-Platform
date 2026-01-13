@@ -73,7 +73,7 @@ export interface ImageModerationResult {
   recommendations: string[];
 }
 
-// Text Moderation Result from Azure Content Moderator
+// Text Moderation Result from AWS Comprehend
 export interface TextModerationResult {
   profanityScore: number;
   sexuallyScore: number;
@@ -242,25 +242,31 @@ export interface RekognitionModerationLabel {
   ParentName?: string;
 }
 
-// Azure Content Moderator Types
-export interface AzureTextModerationResponse {
-  Classification: {
-    Category1: { Score: number };
-    Category2: { Score: number };
-    Category3: { Score: number };
-    ReviewRecommended: boolean;
+// AWS Comprehend Types
+export interface ComprehendSentimentResponse {
+  Sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | 'MIXED';
+  SentimentScore: {
+    Positive: number;
+    Negative: number;
+    Neutral: number;
+    Mixed: number;
   };
-  Language: string;
-  Terms: Array<{
+}
+
+export interface ComprehendToxicityLabel {
+  Name: string;
+  Score: number;
+}
+
+export interface ComprehendToxicityResponse {
+  ResultList: Array<{
     Index: number;
-    OriginalIndex: number;
-    ListId: number;
-    Term: string;
-  }> | null;
-  Status: {
-    Code: number;
-    Description: string;
-    Exception: string | null;
-  };
-  TrackingId: string;
+    Labels: ComprehendToxicityLabel[];
+    Toxicity: number;
+  }>;
+  ErrorList: Array<{
+    Index: number;
+    ErrorCode: string;
+    ErrorMessage: string;
+  }>;
 }

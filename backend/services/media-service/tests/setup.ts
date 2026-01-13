@@ -7,12 +7,10 @@
 process.env.NODE_ENV = 'test';
 process.env.PORT = '3004';
 process.env.JWT_ACCESS_SECRET = 'test-secret-key';
-process.env.AZURE_STORAGE_ACCOUNT_NAME = 'teststorage';
-process.env.AZURE_STORAGE_ACCOUNT_KEY = 'test-key';
-process.env.AZURE_CONTAINER_NAME = 'test-container';
-process.env.AZURE_CDN_URL = 'https://test-cdn.azureedge.net';
-process.env.AZURE_CV_ENDPOINT = 'https://test.api.cognitive.microsoft.com/';
-process.env.AZURE_CV_API_KEY = 'test-cv-key';
+process.env.AWS_S3_BUCKET_MEDIA = 'test-media-bucket';
+process.env.AWS_S3_REGION = 'us-east-1';
+process.env.AWS_CLOUDFRONT_URL = 'https://test-cdn.cloudfront.net';
+process.env.AWS_REKOGNITION_REGION = 'us-east-1';
 process.env.DB_HOST = 'localhost';
 process.env.DB_PORT = '5432';
 process.env.DB_NAME = 'media_service_test';

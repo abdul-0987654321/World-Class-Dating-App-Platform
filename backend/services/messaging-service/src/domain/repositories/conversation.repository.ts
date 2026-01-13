@@ -1,6 +1,4 @@
-import { Container } from '@azure/cosmos';
-
-import { cosmosClient } from '../../infrastructure/database/cosmos-client';
+import { postgresClient } from '../../infrastructure/database/postgres-client';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('conversation-repository');
@@ -22,15 +20,6 @@ export interface Conversation {
 }
 
 export class ConversationRepository {
-  private _container: Container | null = null;
-
-  private get container(): Container {
-    if (!this._container) {
-      this._container = cosmosClient.getConversationsContainer();
-    }
-    return this._container;
-  }
-
   /**
    * Create a new conversation
    */
@@ -38,10 +27,10 @@ export class ConversationRepository {
     try {
       logger.info(`Creating conversation: ${conversation.id}`);
 
-      const { resource } = await this.container.items.create(conversation);
+      const [created] = await postgresClient.conversations().insert(conversation).returning('*');
 
       logger.info(`Conversation created: ${conversation.id}`);
-      return resource as Conversation;
+      return created as Conversation;
     } catch (error: any) {
       logger.error(`Failed to create conversation ${conversation.id}:`, error);
       throw new Error(`Failed to create conversation: ${error.message}`);
@@ -53,14 +42,12 @@ export class ConversationRepository {
    */
   async findById(conversationId: string): Promise<Conversation | null> {
     try {
-      const { resource } = await this.container
-        .item(conversationId, conversationId)
-        .read<Conversation>();
-      return resource || null;
+      const conversation = await postgresClient
+        .conversations()
+        .where('id', conversationId)
+        .first();
+      return conversation || null;
     } catch (error: any) {
-      if (error.code === 404) {
-        return null;
-      }
       logger.error(`Failed to find conversation ${conversationId}:`, error);
       throw error;
     }
@@ -71,18 +58,17 @@ export class ConversationRepository {
    */
   async findByParticipants(user1Id: string, user2Id: string): Promise<Conversation | null> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c 
-                WHERE (c.participant1Id = @user1Id AND c.participant2Id = @user2Id) 
-                   OR (c.participant1Id = @user2Id AND c.participant2Id = @user1Id)`,
-        parameters: [
-          { name: '@user1Id', value: user1Id },
-          { name: '@user2Id', value: user2Id },
-        ],
-      };
+      const conversation = await postgresClient
+        .conversations()
+        .where(function () {
+          this.where('participant1_id', user1Id).andWhere('participant2_id', user2Id);
+        })
+        .orWhere(function () {
+          this.where('participant1_id', user2Id).andWhere('participant2_id', user1Id);
+        })
+        .first();
 
-      const { resources } = await this.container.items.query<Conversation>(querySpec).fetchAll();
-      return resources.length > 0 ? resources[0] : null;
+      return conversation || null;
     } catch (error: any) {
       logger.error('Failed to find conversation by participants:', error);
       throw error;
@@ -94,15 +80,13 @@ export class ConversationRepository {
    */
   async findByUserId(userId: string): Promise<Conversation[]> {
     try {
-      const querySpec = {
-        query: `SELECT * FROM c 
-                WHERE c.participant1Id = @userId OR c.participant2Id = @userId 
-                ORDER BY c.lastMessageAt DESC`,
-        parameters: [{ name: '@userId', value: userId }],
-      };
+      const conversations = await postgresClient
+        .conversations()
+        .where('participant1_id', userId)
+        .orWhere('participant2_id', userId)
+        .orderBy('last_message_at', 'desc');
 
-      const { resources } = await this.container.items.query<Conversation>(querySpec).fetchAll();
-      return resources;
+      return conversations as Conversation[];
     } catch (error: any) {
       logger.error('Failed to find conversations by user:', error);
       throw error;
@@ -116,18 +100,18 @@ export class ConversationRepository {
     try {
       logger.info(`Updating conversation: ${conversationId}`);
 
-      const existing = await this.findById(conversationId);
-      if (!existing) {
+      const [updated] = await postgresClient
+        .conversations()
+        .where('id', conversationId)
+        .update(updates)
+        .returning('*');
+
+      if (!updated) {
         throw new Error(`Conversation ${conversationId} not found`);
       }
 
-      const updated = { ...existing, ...updates };
-      const { resource } = await this.container
-        .item(conversationId, conversationId)
-        .replace(updated);
-
       logger.info(`Conversation updated: ${conversationId}`);
-      return resource as Conversation;
+      return updated as Conversation;
     } catch (error: any) {
       logger.error(`Failed to update conversation ${conversationId}:`, error);
       throw error;
@@ -229,7 +213,7 @@ export class ConversationRepository {
   async delete(conversationId: string): Promise<void> {
     try {
       logger.info(`Deleting conversation: ${conversationId}`);
-      await this.container.item(conversationId, conversationId).delete();
+      await postgresClient.conversations().where('id', conversationId).delete();
       logger.info(`Conversation deleted: ${conversationId}`);
     } catch (error: any) {
       logger.error(`Failed to delete conversation ${conversationId}:`, error);

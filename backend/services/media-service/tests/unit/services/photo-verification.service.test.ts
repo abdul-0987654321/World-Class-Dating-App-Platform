@@ -36,7 +36,7 @@ describe('PhotoVerificationService', () => {
   describe('verifyPhoto', () => {
     it('should verify photo with face detected', async () => {
       const mediaId = 'media-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       mockMediaRepository.update.mockResolvedValue({ id: mediaId, isVerified: true });
 
@@ -50,7 +50,7 @@ describe('PhotoVerificationService', () => {
 
     it('should reject photo without face', async () => {
       const mediaId = 'media-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       const contentModerationService = require('../../../src/domain/services/content-moderation.service').default;
       contentModerationService.verifyFacePresence.mockResolvedValueOnce(false);
@@ -68,7 +68,7 @@ describe('PhotoVerificationService', () => {
   describe('verifyProfilePhoto', () => {
     it('should verify profile photo without reference', async () => {
       const mediaId = 'media-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       mockMediaRepository.update.mockResolvedValue({ id: mediaId, isVerified: true });
 
@@ -80,8 +80,8 @@ describe('PhotoVerificationService', () => {
 
     it('should verify profile photo with reference', async () => {
       const mediaId = 'media-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
-      const referenceUrl = 'https://test-cdn.azureedge.net/reference.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
+      const referenceUrl = 'https://test-cdn.cloudfront.net/reference.jpg';
 
       mockMediaRepository.update.mockResolvedValue({ id: mediaId, isVerified: true });
 
@@ -97,7 +97,7 @@ describe('PhotoVerificationService', () => {
 
     it('should reject profile photo without face', async () => {
       const mediaId = 'media-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       const contentModerationService = require('../../../src/domain/services/content-moderation.service').default;
       contentModerationService.verifyFacePresence.mockResolvedValueOnce(false);
@@ -113,7 +113,7 @@ describe('PhotoVerificationService', () => {
     it('should queue verification job', async () => {
       const mediaId = 'media-123';
       const userId = 'user-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       mockQueueManager.addPhotoVerificationJob.mockResolvedValue({ id: 'job-123' });
 
@@ -133,8 +133,8 @@ describe('PhotoVerificationService', () => {
     it('should queue verification job with reference photo', async () => {
       const mediaId = 'media-123';
       const userId = 'user-123';
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
-      const referenceUrl = 'https://test-cdn.azureedge.net/reference.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
+      const referenceUrl = 'https://test-cdn.cloudfront.net/reference.jpg';
 
       mockQueueManager.addPhotoVerificationJob.mockResolvedValue({ id: 'job-123' });
 
@@ -219,7 +219,7 @@ describe('PhotoVerificationService', () => {
 
   describe('verifyLiveness', () => {
     it('should return liveness detection result', async () => {
-      const imageUrl = 'https://test-cdn.azureedge.net/test.jpg';
+      const imageUrl = 'https://test-cdn.cloudfront.net/test.jpg';
 
       const result = await photoVerificationService.verifyLiveness(imageUrl);
 
