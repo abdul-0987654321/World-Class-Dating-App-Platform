@@ -8,8 +8,10 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import type { RootState } from '@store/store';
 
 interface ProfileView {
   id: string;
@@ -64,7 +66,8 @@ const mockViews: ProfileView[] = [
 const WhoViewedMeScreen: React.FC = () => {
   const navigation = useNavigation();
   const [views] = useState<ProfileView[]>(mockViews);
-  const [isPremium] = useState(false);
+  const currentTier = useSelector((state: RootState) => state.subscription?.currentTier ?? 'free');
+  const isPremium = currentTier !== 'free';
 
   const handleUpgrade = () => {
     navigation.navigate('Subscription' as never);

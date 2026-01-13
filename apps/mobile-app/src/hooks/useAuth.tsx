@@ -21,10 +21,8 @@ const getToken = async (): Promise<string | null> => {
 };
 
 const apiClient = createApiClient({
-  getToken: () => {
-    let token: string | null = null;
-    AsyncStorage.getItem('accessToken').then(t => token = t);
-    return token;
+  getToken: async (): Promise<string | null> => {
+    return await AsyncStorage.getItem('accessToken');
   }
 });
 

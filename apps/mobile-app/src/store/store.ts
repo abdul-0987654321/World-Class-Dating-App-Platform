@@ -3,16 +3,17 @@ import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 
-// Import reducers (we'll create these)
+// Import reducers
 import authReducer from './slices/authSlice';
 import profileReducer from './slices/profileSlice';
 import matchingReducer from './slices/matchingSlice';
 import messagingReducer from './slices/messagingSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth'], // Only persist auth
+  whitelist: ['auth', 'subscription'], // Persist auth and subscription
 };
 
 const rootReducer = combineReducers({
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   profile: profileReducer,
   matching: matchingReducer,
   messaging: messagingReducer,
+  subscription: subscriptionReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

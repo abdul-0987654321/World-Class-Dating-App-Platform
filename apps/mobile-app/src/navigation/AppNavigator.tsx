@@ -42,6 +42,29 @@ import {
   SpeedDatingResultsScreen,
   SpeedDatingHistoryScreen,
 } from '@screens/SpeedDating';
+
+// Gamification Screens
+import GamificationScreen from '@screens/Gamification/GamificationScreen';
+import AchievementsScreen from '@screens/Gamification/AchievementsScreen';
+import StreaksScreen from '@screens/Gamification/StreaksScreen';
+import QuestsScreen from '@screens/Gamification/QuestsScreen';
+import LeaderboardScreen from '@screens/Gamification/LeaderboardScreen';
+
+// Communities Screens
+import CommunitiesScreen from '@screens/Communities/CommunitiesScreen';
+import CommunityDetailScreen from '@screens/Communities/CommunityDetailScreen';
+import CommunityEventsScreen from '@screens/Communities/CommunityEventsScreen';
+import CommunityMembersScreen from '@screens/Communities/CommunityMembersScreen';
+import CommunitySettingsScreen from '@screens/Communities/CommunitySettingsScreen';
+import CreateCommunityScreen from '@screens/Communities/CreateCommunityScreen';
+
+// Safety Screens
+import SafetyCenterScreen from '@screens/Safety/SafetyCenterScreen';
+import BlockReportScreen from '@screens/Safety/BlockReportScreen';
+
+// Profile Screens
+import EditProfileScreen from '@screens/Profile/EditProfileScreen';
+
 import type { SpeedDatingParticipant } from '../types/speedDating.types';
 
 export type MainTabParamList = {
@@ -90,6 +113,24 @@ export type AppStackParamList = {
     totalRounds: number;
   };
   SpeedDatingHistory: undefined;
+  // Gamification
+  Gamification: undefined;
+  Achievements: undefined;
+  Streaks: undefined;
+  Quests: undefined;
+  Leaderboard: undefined;
+  // Communities
+  Communities: undefined;
+  CommunityDetail: { communityId: string };
+  CommunityEvents: { communityId: string };
+  CommunityMembers: { communityId: string };
+  CommunitySettings: { communityId: string };
+  CreateCommunity: undefined;
+  // Safety
+  SafetyCenter: undefined;
+  BlockReport: { userId: string; userName?: string };
+  // Profile
+  EditProfile: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -237,6 +278,28 @@ const AppNavigator = () => {
         }}
       />
       <Stack.Screen name="SpeedDatingHistory" component={SpeedDatingHistoryScreen} />
+
+      {/* Gamification */}
+      <Stack.Screen name="Gamification" component={GamificationScreen} />
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="Streaks" component={StreaksScreen} />
+      <Stack.Screen name="Quests" component={QuestsScreen} />
+      <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+
+      {/* Communities */}
+      <Stack.Screen name="Communities" component={CommunitiesScreen} />
+      <Stack.Screen name="CommunityDetail" component={CommunityDetailScreen} />
+      <Stack.Screen name="CommunityEvents" component={CommunityEventsScreen} />
+      <Stack.Screen name="CommunityMembers" component={CommunityMembersScreen} />
+      <Stack.Screen name="CommunitySettings" component={CommunitySettingsScreen} />
+      <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} />
+
+      {/* Safety */}
+      <Stack.Screen name="SafetyCenter" component={SafetyCenterScreen} />
+      <Stack.Screen name="BlockReport" component={BlockReportScreen} />
+
+      {/* Profile */}
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 };

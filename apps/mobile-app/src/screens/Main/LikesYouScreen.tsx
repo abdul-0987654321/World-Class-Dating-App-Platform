@@ -9,8 +9,10 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import type { RootState } from '@store/store';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -68,7 +70,8 @@ const mockLikes: LikeProfile[] = [
 const LikesYouScreen: React.FC = () => {
   const navigation = useNavigation();
   const [likes] = useState<LikeProfile[]>(mockLikes);
-  const [isPremium] = useState(false);
+  const currentTier = useSelector((state: RootState) => state.subscription?.currentTier ?? 'free');
+  const isPremium = currentTier !== 'free';
 
   const handleUpgrade = () => {
     navigation.navigate('Subscription' as never);

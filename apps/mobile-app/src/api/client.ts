@@ -137,6 +137,45 @@ export class AuthApi {
   }
 }
 
+export interface OnboardingProfileData {
+  name: string;
+  birthday: string;
+  gender: string;
+  interestedIn: string[];
+  photos: string[];
+  interests: string[];
+  prompts: { question: string; answer: string }[];
+  location?: { latitude: number; longitude: number };
+  lifestyle?: Record<string, string>;
+  relationshipGoals?: string;
+}
+
+export class ProfileApi {
+  constructor(private client: ApiClient) {}
+
+  async createProfile(data: OnboardingProfileData): Promise<User> {
+    return this.client.post<User>('/profiles', data);
+  }
+
+  async updateProfile(data: Partial<OnboardingProfileData>): Promise<User> {
+    return this.client.patch<User>('/profiles/me', data);
+  }
+
+  async getProfile(): Promise<User> {
+    return this.client.get<User>('/profiles/me');
+  }
+
+  async uploadPhoto(photo: FormData): Promise<{ url: string }> {
+    return this.client.post<{ url: string }>('/profiles/photos', photo, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  async deletePhoto(photoUrl: string): Promise<void> {
+    return this.client.delete<void>('/profiles/photos', { data: { url: photoUrl } });
+  }
+}
+
 export function createApiClient(config: ApiClientConfig): ApiClient {
   return new ApiClient(config);
 }

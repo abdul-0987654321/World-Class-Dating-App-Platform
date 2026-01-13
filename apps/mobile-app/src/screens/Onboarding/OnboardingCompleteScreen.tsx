@@ -3,7 +3,7 @@
  * Final step of onboarding - show success and start using the app
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,10 +12,14 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingStackParamList } from './OnboardingNavigator';
+import { createApiClient, ProfileApi } from '../../api/client';
 
 type OnboardingCompleteScreenNavigationProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingComplete'>;
 type OnboardingCompleteScreenRouteProp = RouteProp<OnboardingStackParamList, 'OnboardingComplete'>;
@@ -29,6 +33,8 @@ const { width } = Dimensions.get('window');
 
 const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
   const { profileData } = route.params;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -74,16 +80,40 @@ const OnboardingCompleteScreen: React.FC<Props> = ({ navigation, route }) => {
       ])
     ).start();
 
-    // In production, submit profile data to backend
+    // Submit profile data to backend
     submitProfile();
   }, []);
 
   const submitProfile = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
-      // In production, call API to create profile
-      // await api.createProfile(profileData);
-    } catch {
-      // Silently handle profile creation errors
+      const apiClient = createApiClient({
+        getToken: async () => AsyncStorage.getItem('accessToken'),
+      });
+      const profileApi = new ProfileApi(apiClient);
+
+      await profileApi.createProfile({
+        name: profileData.name,
+        birthday: profileData.birthday,
+        gender: profileData.gender,
+        interestedIn: profileData.interestedIn || [],
+        photos: profileData.photos || [],
+        interests: profileData.interests || [],
+        prompts: profileData.prompts || [],
+        location: profileData.location,
+        lifestyle: profileData.lifestyle,
+        relationshipGoals: profileData.relationshipGoals,
+      });
+
+      console.log('Profile created successfully');
+    } catch (error: any) {
+      console.error('Failed to create profile:', error);
+      setSubmitError(error?.message || 'Failed to create profile');
+      // Don't block the user - they can still proceed
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
