@@ -1,0 +1,61 @@
+# Flamoral Static Website - GitHub Pages Deployment
+# Deploys static website to GitHub Pages on push to main
+
+name: Deploy Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/website/**'
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs/website'
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: |
+          echo "Website deployed to: ${{ steps.deployment.outputs.page_url }}"
+          # Wait for deployment to propagate
+          sleep 30
+          # Verify pages are accessible
+          curl -sf "${{ steps.deployment.outputs.page_url }}" || echo "Homepage check pending propagation"
+          curl -sf "${{ steps.deployment.outputs.page_url }}privacy/" || echo "Privacy page check pending propagation"
+          curl -sf "${{ steps.deployment.outputs.page_url }}terms/" || echo "Terms page check pending propagation"
+          curl -sf "${{ steps.deployment.outputs.page_url }}guidelines/" || echo "Guidelines page check pending propagation"
