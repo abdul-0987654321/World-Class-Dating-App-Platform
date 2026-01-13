@@ -1,6 +1,14 @@
 /**
  * Subscription Redux Slice
  * Manages subscription and purchase state
+ *
+ * 6-Tier Subscription Model (matching web app and backend):
+ * - free: Basic access
+ * - basic: Entry-level paid tier
+ * - plus: Enhanced features
+ * - premium: Full feature access
+ * - premium_plus: Power user tier
+ * - elite: VIP tier
  */
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
@@ -8,7 +16,7 @@ import { Product, Subscription } from 'react-native-iap';
 import { InAppPurchaseService } from '@services/iap/InAppPurchaseService';
 import axios from 'axios';
 
-export type SubscriptionTier = 'free' | 'premium' | 'platinum';
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
 
 interface SubscriptionState {
   currentTier: SubscriptionTier;
@@ -138,7 +146,9 @@ export const useRewind = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as { subscription: SubscriptionState };
 
-    if (state.subscription.rewindsBalance <= 0 && state.subscription.currentTier !== 'platinum') {
+    // Premium+ and Elite tiers have unlimited rewinds
+    const unlimitedRewindTiers: SubscriptionTier[] = ['premium_plus', 'elite'];
+    if (state.subscription.rewindsBalance <= 0 && !unlimitedRewindTiers.includes(state.subscription.currentTier)) {
       return rejectWithValue('No Rewinds available');
     }
 
@@ -267,7 +277,9 @@ const subscriptionSlice = createSlice({
 
       // Use Rewind
       .addCase(useRewind.fulfilled, (state) => {
-        if (state.currentTier !== 'platinum' && state.rewindsBalance > 0) {
+        // Premium+ and Elite have unlimited rewinds, others decrement balance
+        const unlimitedRewindTiers: SubscriptionTier[] = ['premium_plus', 'elite'];
+        if (!unlimitedRewindTiers.includes(state.currentTier) && state.rewindsBalance > 0) {
           state.rewindsBalance--;
         }
       })

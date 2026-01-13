@@ -1,6 +1,14 @@
 /**
  * Subscription Plans Screen
  * Shows available subscription tiers with pricing and features
+ *
+ * 6-Tier Subscription Model (matching web app and backend):
+ * - free: Basic access
+ * - basic: Entry-level paid tier ($9.99/month)
+ * - plus: Enhanced features ($14.99/month)
+ * - premium: Full feature access ($19.99/month)
+ * - premium_plus: Power user tier ($29.99/month)
+ * - elite: VIP tier ($49.99/month)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -33,64 +41,94 @@ interface Plan {
 
 const PLANS: Plan[] = [
   {
-    id: 'gold',
-    name: 'Gold',
-    tier: 'GOLD',
-    monthlyPrice: 14.99,
-    yearlyPrice: 143.88, // 20% discount
+    id: 'basic',
+    name: 'Basic',
+    tier: 'basic',
+    monthlyPrice: 9.99,
+    yearlyPrice: 95.88, // 20% discount
     currency: 'USD',
-    gradient: ['#FFD700', '#FFA500'],
+    gradient: ['#10B981', '#059669'],
+    icon: 'checkmark-circle',
+    features: [
+      'Unlimited swipes',
+      '5 Super Likes/day',
+      'See who likes you',
+      'Rewind last swipe',
+      'No ads',
+    ],
+  },
+  {
+    id: 'plus',
+    name: 'Plus',
+    tier: 'plus',
+    monthlyPrice: 14.99,
+    yearlyPrice: 143.88,
+    currency: 'USD',
+    gradient: ['#3B82F6', '#2563EB'],
     icon: 'star',
     features: [
-      'Unlimited likes',
-      'See who likes you',
+      'Everything in Basic',
+      '10 Super Likes/day',
+      'Incognito mode',
+      'Priority likes',
+      'Read receipts',
+      '1 free boost/month',
+    ],
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    tier: 'premium',
+    monthlyPrice: 19.99,
+    yearlyPrice: 191.88,
+    currency: 'USD',
+    gradient: ['#8B5CF6', '#7C3AED'],
+    icon: 'ribbon',
+    popular: true,
+    features: [
+      'Everything in Plus',
+      'Unlimited Super Likes',
+      'Passport - swipe anywhere',
+      'Profile controls',
       'Advanced filters',
-      '5 Super Likes/day',
-      '1 Boost/week',
-      'Rewind last swipe',
+      '2 free boosts/month',
+    ],
+  },
+  {
+    id: 'premium_plus',
+    name: 'Premium+',
+    tier: 'premium_plus',
+    monthlyPrice: 29.99,
+    yearlyPrice: 287.88,
+    currency: 'USD',
+    gradient: ['#EC4899', '#DB2777'],
+    icon: 'heart',
+    features: [
+      'Everything in Premium',
+      'Message before matching',
+      '1 weekly boost',
+      'Unlimited rewinds',
+      'See profile viewers',
       'Priority support',
     ],
   },
   {
-    id: 'platinum',
-    name: 'Platinum',
-    tier: 'PLATINUM',
-    monthlyPrice: 24.99,
-    yearlyPrice: 239.88,
+    id: 'elite',
+    name: 'Elite',
+    tier: 'elite',
+    monthlyPrice: 49.99,
+    yearlyPrice: 479.88,
     currency: 'USD',
-    gradient: ['#9333EA', '#6366F1'],
-    icon: 'ribbon',
-    popular: true,
-    features: [
-      'Everything in Gold',
-      'Message before matching',
-      'Priority in Discovery',
-      '10 Super Likes/day',
-      '3 Boosts/week',
-      'See read receipts',
-      'Hide ads',
-      'Incognito mode',
-    ],
-  },
-  {
-    id: 'diamond',
-    name: 'Diamond',
-    tier: 'DIAMOND',
-    monthlyPrice: 39.99,
-    yearlyPrice: 383.88,
-    currency: 'USD',
-    gradient: ['#06B6D4', '#3B82F6'],
+    gradient: ['#F59E0B', '#D97706'],
     icon: 'diamond',
     features: [
-      'Everything in Platinum',
-      'Exclusive events access',
-      'Verified badge',
-      'Unlimited Super Likes',
-      'Unlimited Boosts',
-      'Profile highlights',
-      'AI matchmaking insights',
-      'Personal concierge',
-      'Video call priority',
+      'Everything in Premium+',
+      'VIP badge on profile',
+      '3 weekly boosts',
+      'Exclusive Elite matches',
+      'Dedicated account manager',
+      '24/7 priority support',
+      'Early access to new features',
     ],
   },
 ];

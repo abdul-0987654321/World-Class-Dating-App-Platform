@@ -115,6 +115,21 @@ Emergency AI shutdown per service via SSM Parameter Store.
 
 ---
 
+## Subscription Tiers (6-Tier Model)
+
+Consistent across Web, iOS, and Android platforms:
+
+| Tier | Price/Month | Key Features |
+|------|-------------|--------------|
+| **Free** | $0 | 50 daily swipes, basic matching |
+| **Basic** | $9.99 | Unlimited swipes, see who likes you |
+| **Plus** | $14.99 | Incognito mode, read receipts |
+| **Premium** | $19.99 | Passport, unlimited super likes |
+| **Premium+** | $29.99 | Message before matching |
+| **Elite** | $49.99 | VIP badge, dedicated support |
+
+---
+
 ## Infrastructure
 
 ### Single VPC Architecture
@@ -187,6 +202,35 @@ MIT License - see [LICENSE](LICENSE)
 
 **Flamoral** | [flamoral.com](https://flamoral.com) | Built for Production
 
-*Version 2.0.0 | Last Updated: 2026-01-10 | AWS ECS Fargate*
+*Version 2.0.0 | Last Updated: 2026-01-13 | AWS ECS Fargate*
 
 </div>
+
+---
+
+## Recent Updates (2026-01-13)
+
+### Pipeline & Infrastructure Fixes
+- ✅ Fixed CI/CD deploy script to use AWS ECS Fargate (removed Kubernetes references)
+- ✅ Added `"type": "module"` to package.json for ESLint v9 flat config compatibility
+- ✅ Updated deployment commands to use AWS ECS CLI
+
+### Payment Security Fixes
+- ✅ **CRITICAL**: Removed mock subscription upgrade bypass in web app
+- ✅ Subscription upgrades and cancellations now require API authentication
+- ✅ No localStorage manipulation for payment status
+
+### Subscription Tier Consistency
+- ✅ Unified 6-tier model (free, basic, plus, premium, premium_plus, elite) across:
+  - Mobile app Redux slice
+  - Mobile subscription plans screen
+  - Web app subscription service
+  - Backend payment service
+- ✅ Removed legacy 3-tier (gold/platinum/diamond) references
+
+### Brand Consistency
+- ✅ Unified color system across all platforms:
+  - Primary: Electric Pink (#ff2d75)
+  - Accent: Emerald Green (#00d9a5)
+  - Background: Midnight Blue (#1a1a2e)
+- ✅ Updated branding tokens to match web/mobile themes

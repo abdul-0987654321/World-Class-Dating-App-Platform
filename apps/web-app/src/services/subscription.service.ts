@@ -227,16 +227,9 @@ class SubscriptionService {
   }
 
   async upgradePlan(tier: SubscriptionTier, billingCycle: BillingCycle = 'monthly'): Promise<Subscription> {
-    // In mock mode, simulate upgrade
+    // SECURITY: Always require API for subscription upgrades - no mock mode for payments
     if (!import.meta.env.VITE_API_URL) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const storedUser = localStorage.getItem('currentUser');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        user.premium_tier = tier.toLowerCase();
-        localStorage.setItem('currentUser', JSON.stringify(user));
-      }
-      return getMockSubscription();
+      throw new Error('Payment service unavailable. Please try again later.');
     }
 
     const response = await fetch(`${this.baseUrl}/upgrade`, {
@@ -256,9 +249,9 @@ class SubscriptionService {
   }
 
   async cancelSubscription(): Promise<void> {
+    // SECURITY: Always require API for subscription cancellation
     if (!import.meta.env.VITE_API_URL) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return;
+      throw new Error('Payment service unavailable. Please try again later.');
     }
 
     const response = await fetch(`${this.baseUrl}/cancel`, {

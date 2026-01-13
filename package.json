@@ -2,6 +2,7 @@
   "name": "flamoral-monorepo",
   "version": "2.0.0",
   "private": true,
+  "type": "module",
   "description": "Flamoral - Where Passion Meets Connection (Web & Mobile Dating Platform)",
   "workspaces": [
     "packages/*",

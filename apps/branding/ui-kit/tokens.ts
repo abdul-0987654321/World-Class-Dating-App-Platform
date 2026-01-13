@@ -1,7 +1,12 @@
 /**
  * Flamoral Design Tokens
  * Complete design system tokens for web and mobile
- * Version 1.0
+ * Version 2.0 - Updated to Electric Pink + Midnight Blue theme
+ *
+ * Master Prompt Specification:
+ * - Primary: Electric Pink (#ff2d75)
+ * - Accent: Emerald Green (#00d9a5)
+ * - Background: Midnight Blue (#1a1a2e)
  */
 
 // ============================================
@@ -9,116 +14,122 @@
 // ============================================
 
 export const colors = {
-  // Primary Colors
+  // Primary Colors — Master Prompt Specification (Electric Pink Theme)
   primary: {
-    flameRed: '#D62839',
-    emberOrange: '#FF6E35',
-    velvetWine: '#7A1020',
-    richCharcoal: '#1A1A1A',
-    emberGold: '#D9A657',
+    electricPink: '#ff2d75',      // Primary brand color
+    electricPinkDark: '#d91a5c',
+    electricPinkLight: '#ff5a94',
+    midnightBlue: '#1a1a2e',      // Primary background
+    emeraldGreen: '#00d9a5',      // Success/accent
   },
 
   // Secondary Colors
   secondary: {
-    blushCoral: '#E45C5C',
-    copper: '#C77A45',
-    smokeGrey: '#C4C4C4',
-    softIvory: '#FFF6EE',
+    violet: '#7B61FF',
+    cyan: '#2ED4FF',
+    blushPink: '#ffb8d1',
+    gold: '#F59E0B',
   },
 
   // Semantic Colors
   semantic: {
-    success: '#2ECC71',
-    warning: '#F39C12',
-    error: '#E74C3C',
-    info: '#3498DB',
+    success: '#00d9a5',   // Emerald Green
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
 
   // Neutral Palette
   neutral: {
     white: '#FFFFFF',
     black: '#000000',
-    grey50: '#FAFAFA',
-    grey100: '#F5F5F5',
-    grey200: '#EEEEEE',
-    grey300: '#E0E0E0',
-    grey400: '#BDBDBD',
-    grey500: '#9E9E9E',
-    grey600: '#757575',
-    grey700: '#616161',
-    grey800: '#424242',
-    grey900: '#212121',
+    grey50: '#F2F2F7',
+    grey100: '#E5E5EA',
+    grey200: '#D1D1D6',
+    grey300: '#C7C7CC',
+    grey400: '#AEAEB2',
+    grey500: '#8E8E93',
+    grey600: '#636366',
+    grey700: '#48484A',
+    grey800: '#3A3A3C',
+    grey900: '#1C1C1E',
   },
 
   // Theme-specific
   light: {
-    background: '#FFF6EE',
-    surface: '#FFFFFF',
+    background: '#FFFFFF',
+    surface: '#F2F2F7',
     surfaceElevated: '#FFFFFF',
-    textPrimary: '#1A1A1A',
-    textSecondary: '#666666',
-    textTertiary: '#999999',
-    border: '#E0E0E0',
-    divider: '#EEEEEE',
+    textPrimary: '#1a1a2e',
+    textSecondary: '#636366',
+    textTertiary: '#8E8E93',
+    border: '#D1D1D6',
+    divider: '#E5E5EA',
   },
 
   dark: {
-    background: '#1A1A1A',
-    surface: '#2A2A2A',
-    surfaceElevated: '#3A3A3A',
-    textPrimary: '#FFF6EE',
-    textSecondary: '#AAAAAA',
-    textTertiary: '#777777',
-    border: '#4A4A4A',
-    divider: '#3A3A3A',
+    background: '#1a1a2e',        // Midnight Blue
+    surface: '#232342',
+    surfaceElevated: '#2d2d44',   // Deep Charcoal
+    textPrimary: '#FFFFFF',
+    textSecondary: '#B5B8C5',
+    textTertiary: '#8A8D9F',
+    border: 'rgba(255, 255, 255, 0.12)',
+    divider: 'rgba(255, 255, 255, 0.08)',
   },
 } as const;
 
 // ============================================
-// GRADIENT TOKENS
+// GRADIENT TOKENS — Master Prompt Specification
 // ============================================
 
 export const gradients = {
+  // Primary gradient - Electric Pink
   flamoralPrimary: {
-    colors: ['#D62839', '#FF6E35'],
+    colors: ['#ff2d75', '#ff5a94'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
-    css: 'linear-gradient(135deg, #D62839 0%, #FF6E35 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #ff5a94 100%)',
   },
 
-  velvetNight: {
-    colors: ['#7A1020', '#1A1A1A'],
+  // Aurora/Romance gradient - Multi-color signature
+  flamoralRomance: {
+    colors: ['#ff2d75', '#7B61FF', '#2ED4FF'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
-    css: 'linear-gradient(135deg, #7A1020 0%, #1A1A1A 100%)',
+    css: 'linear-gradient(135deg, #ff2d75 0%, #7B61FF 50%, #2ED4FF 100%)',
   },
 
-  blushEmber: {
-    colors: ['#E45C5C', '#D9A657'],
+  // Dark background gradient
+  midnightDeep: {
+    colors: ['#1a1a2e', '#232342'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
-    css: 'linear-gradient(135deg, #E45C5C 0%, #D9A657 100%)',
+    css: 'linear-gradient(180deg, #1a1a2e 0%, #232342 100%)',
   },
 
+  // Success gradient
+  emeraldGlow: {
+    colors: ['#00d9a5', '#00b890'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+    css: 'linear-gradient(135deg, #00d9a5 0%, #00b890 100%)',
+  },
+
+  // Gold/Premium gradient
   goldGlow: {
-    colors: ['#D9A657', '#C77A45'],
+    colors: ['#F59E0B', '#D97706'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
-    css: 'linear-gradient(135deg, #D9A657 0%, #C77A45 100%)',
+    css: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
   },
 
+  // Premium dark gradient
   premiumDark: {
-    colors: ['#2A2A2A', '#1A1A1A'],
+    colors: ['#2d2d44', '#1a1a2e'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
-    css: 'linear-gradient(145deg, #2A2A2A 0%, #1A1A1A 100%)',
-  },
-
-  sunsetFlame: {
-    colors: ['#FF6E35', '#D62839', '#7A1020'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-    css: 'linear-gradient(135deg, #FF6E35 0%, #D62839 50%, #7A1020 100%)',
+    css: 'linear-gradient(145deg, #2d2d44 0%, #1a1a2e 100%)',
   },
 } as const;
 

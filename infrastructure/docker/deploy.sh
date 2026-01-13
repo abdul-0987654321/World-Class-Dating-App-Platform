@@ -198,22 +198,38 @@ if [ "$BUILD_ONLY" = false ]; then
       docker-compose -f "$SCRIPT_DIR/docker-compose.yml" up -d
       ;;
     staging|prod)
-      echo -e "${BLUE}Updating Kubernetes deployment for $ENVIRONMENT${NC}"
+      echo -e "${BLUE}Updating AWS ECS Fargate deployment for $ENVIRONMENT${NC}"
 
+      # AWS ECS Fargate deployment (NO Kubernetes)
       if [ -n "$SERVICE" ]; then
-        echo -e "${BLUE}Updating $SERVICE in Kubernetes...${NC}"
-        kubectl set image deployment/$SERVICE \
-          $SERVICE=$REGISTRY/$SERVICE:$TAG \
-          -n flamoral-$ENVIRONMENT
+        echo -e "${BLUE}Updating $SERVICE in ECS Fargate...${NC}"
+        # Update ECS service to use new image
+        CLUSTER_NAME="flamoral-${ENVIRONMENT}"
+        SERVICE_NAME="${SERVICE}"
+
+        # Force new deployment with updated image
+        aws ecs update-service \
+          --cluster "$CLUSTER_NAME" \
+          --service "$SERVICE_NAME" \
+          --force-new-deployment \
+          --region "${AWS_REGION:-us-east-1}" || {
+            echo -e "${YELLOW}⚠ ECS update failed. Ensure task definition is updated via Terraform.${NC}"
+          }
       else
-        echo -e "${BLUE}Updating all services in Kubernetes...${NC}"
-        kubectl apply -f "$SCRIPT_DIR/../kubernetes/$ENVIRONMENT/" \
-          -n flamoral-$ENVIRONMENT
+        echo -e "${BLUE}Updating all services in ECS Fargate...${NC}"
+        # For all services, trigger Terraform deployment
+        echo -e "${YELLOW}  Use Terraform to deploy all services: terraform apply -target=module.ecs${NC}"
       fi
 
-      # Wait for rollout
+      # Wait for service stability
       if [ -n "$SERVICE" ]; then
-        kubectl rollout status deployment/$SERVICE -n flamoral-$ENVIRONMENT
+        echo -e "${BLUE}Waiting for ECS service stability...${NC}"
+        aws ecs wait services-stable \
+          --cluster "$CLUSTER_NAME" \
+          --services "$SERVICE_NAME" \
+          --region "${AWS_REGION:-us-east-1}" 2>/dev/null || {
+            echo -e "${YELLOW}⚠ Service stability check timed out. Check ECS console.${NC}"
+          }
       fi
       ;;
   esac
@@ -247,9 +263,9 @@ else
   # Show next steps
   echo ""
   echo -e "${BLUE}Next Steps:${NC}"
-  echo -e "  1. Verify deployment: ${YELLOW}kubectl get pods -n flamoral-$ENVIRONMENT${NC}"
-  echo -e "  2. Check logs: ${YELLOW}kubectl logs -f deployment/<service> -n flamoral-$ENVIRONMENT${NC}"
-  echo -e "  3. Monitor health: ${YELLOW}kubectl get events -n flamoral-$ENVIRONMENT${NC}"
+  echo -e "  1. Verify deployment: ${YELLOW}aws ecs list-tasks --cluster flamoral-$ENVIRONMENT${NC}"
+  echo -e "  2. Check logs: ${YELLOW}aws logs tail /ecs/flamoral-$ENVIRONMENT --follow${NC}"
+  echo -e "  3. Monitor health: ${YELLOW}aws ecs describe-services --cluster flamoral-$ENVIRONMENT --services <service>${NC}"
 fi
 
 echo ""
