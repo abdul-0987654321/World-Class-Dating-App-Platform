@@ -69,8 +69,8 @@ variable "availability_zones" {
 # Modules
 # ============================================================================
 
-module "network" {
-  source = "../../modules/network"
+module "networking" {
+  source = "../../modules/networking"
 
   project            = "flamoral"
   environment        = var.environment
@@ -85,18 +85,27 @@ module "secrets" {
   environment = var.environment
 }
 
-module "database" {
-  source = "../../modules/database"
+module "rds" {
+  source = "../../modules/rds"
 
-  project            = "flamoral"
-  environment        = var.environment
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.private_subnet_ids
-  database_security_group_id = module.network.database_security_group_id
+  project_name         = "flamoral"
+  environment          = var.environment
+  aws_region           = var.aws_region
+  vpc_id               = module.networking.vpc_id
+  vpc_cidr             = var.vpc_cidr
+  db_subnet_group_name = module.networking.db_subnet_group_name
 
-  db_username = "flamoral_admin"
+  master_username      = "flamoral_admin"
+  kms_key_arn          = null
 
-  depends_on = [module.network]
+  # Production settings
+  engine_mode          = "aurora"
+  instance_class       = "db.r6g.large"
+  instance_count       = 2
+  deletion_protection  = true
+  skip_final_snapshot  = false
+
+  depends_on = [module.networking]
 }
 
 module "cache" {
@@ -104,11 +113,10 @@ module "cache" {
 
   project            = "flamoral"
   environment        = var.environment
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.private_subnet_ids
-  redis_security_group_id = module.network.redis_security_group_id
+  vpc_id             = module.networking.vpc_id
+  private_subnet_ids = module.networking.private_subnet_ids
 
-  depends_on = [module.network]
+  depends_on = [module.networking]
 }
 
 module "ecs" {
@@ -117,39 +125,37 @@ module "ecs" {
   project            = "flamoral"
   environment        = var.environment
   aws_region         = var.aws_region
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.public_subnet_ids
-  private_subnet_ids = module.network.private_subnet_ids
-  alb_security_group_id    = module.network.alb_security_group_id
-  ecs_security_group_id    = module.network.ecs_tasks_security_group_id
+  vpc_id             = module.networking.vpc_id
+  public_subnet_ids  = module.networking.public_subnet_ids
+  private_subnet_ids = module.networking.private_subnet_ids
 
   database_url_secret_arn = module.secrets.database_url_secret_arn
   redis_url_secret_arn    = module.secrets.redis_url_secret_arn
   jwt_secret_arn          = module.secrets.jwt_secret_arn
   stripe_secret_arn       = module.secrets.stripe_secret_arn
 
-  depends_on = [module.network, module.database, module.cache, module.secrets]
+  depends_on = [module.networking, module.rds, module.cache, module.secrets]
 }
 
 module "cdn" {
   source = "../../modules/cdn"
 
-  project     = "flamoral"
-  environment = var.environment
-  domain_name = var.domain_name
+  project      = "flamoral"
+  environment  = var.environment
+  domain_name  = var.domain_name
   alb_dns_name = module.ecs.alb_dns_name
 }
 
 module "monitoring" {
   source = "../../modules/monitoring"
 
-  project        = "flamoral"
-  environment    = var.environment
-  cluster_name   = module.ecs.cluster_name
-  alb_arn_suffix = module.ecs.alb_arn_suffix
-  db_cluster_id  = module.database.cluster_id
+  project          = "flamoral"
+  environment      = var.environment
+  cluster_name     = module.ecs.cluster_name
+  alb_arn_suffix   = module.ecs.alb_arn_suffix
+  db_cluster_id    = module.rds.aurora_cluster_id
   redis_cluster_id = module.cache.cluster_id
-  alert_emails   = ["alerts@flamoral.com"]
+  alert_emails     = ["alerts@flamoral.com"]
 }
 
 # ============================================================================
@@ -158,7 +164,7 @@ module "monitoring" {
 
 output "vpc_id" {
   description = "VPC ID"
-  value       = module.network.vpc_id
+  value       = module.networking.vpc_id
 }
 
 output "alb_dns_name" {
@@ -173,7 +179,7 @@ output "cloudfront_domain" {
 
 output "database_endpoint" {
   description = "Database endpoint"
-  value       = module.database.cluster_endpoint
+  value       = module.rds.endpoint
   sensitive   = true
 }
 

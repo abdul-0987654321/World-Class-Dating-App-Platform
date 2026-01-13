@@ -25,7 +25,8 @@
       "@hooks/*": ["src/hooks/*"],
       "@services/*": ["src/services/*"],
       "@store/*": ["src/store/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@api/*": ["src/api/*"]
     },
     "typeRoots": ["./src/types", "./node_modules/@types"]
   },
@@ -34,13 +35,6 @@
     "node_modules",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "src/App.tsx",
-    "src/screens/**",
-    "src/navigation/**",
-    "src/components/**",
-    "src/services/**",
-    "src/hooks/**",
-    "src/utils/**",
-    "src/store/**"
+    "**/*.e2e.ts"
   ]
 }

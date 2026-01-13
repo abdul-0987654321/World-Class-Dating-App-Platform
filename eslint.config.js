@@ -12,6 +12,8 @@ export default [
       '**/*.test.ts',
       '**/*.spec.ts',
       '**/*.e2e.ts',
+      '**/packages/asset-branding/**',
+      '**/*.mjs',
     ],
   },
 ];
