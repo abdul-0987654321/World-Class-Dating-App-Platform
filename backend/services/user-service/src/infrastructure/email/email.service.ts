@@ -13,36 +13,56 @@ export interface EmailTemplate {
 export class EmailService {
   private smtpTransporter: any;
   private useSMTP: boolean;
+  private isConfigured: boolean;
 
   constructor() {
-    // Check if we should use SMTP (Mailhog for local development)
-    this.useSMTP = process.env.NODE_ENV === 'development' && !process.env.SENDGRID_API_KEY;
+    // Check if we should use SMTP (Mailhog for local dev or configured SMTP server)
+    const hasSMTPConfig = process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost';
+    const hasDevSMTP = process.env.NODE_ENV === 'development';
+    this.useSMTP = hasSMTPConfig || (hasDevSMTP && !process.env.SENDGRID_API_KEY);
+    this.isConfigured = false;
 
     if (this.useSMTP) {
-      // Configure SMTP for local development with Mailhog
+      // Configure SMTP
       this.smtpTransporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'localhost',
         port: parseInt(process.env.SMTP_PORT || '1025', 10),
-        ignoreTLS: true,
-        secure: false,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: process.env.SMTP_USER ? {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        } : undefined,
+        ignoreTLS: process.env.NODE_ENV === 'development' && !process.env.SMTP_USER,
       });
-      logger.info('Using SMTP (Mailhog) for email sending in development mode');
+      this.isConfigured = true;
+      logger.info(`Email service configured: SMTP (${process.env.SMTP_HOST || 'localhost'}:${process.env.SMTP_PORT || '1025'})`);
     } else {
       // Configure SendGrid for production
       const apiKey = process.env.SENDGRID_API_KEY;
       if (apiKey) {
         sgMail.setApiKey(apiKey);
-        logger.info('Using SendGrid for email sending');
+        this.isConfigured = true;
+        logger.info('Email service configured: SendGrid');
       } else {
-        logger.warn('SendGrid API key not configured. Email sending will be disabled.');
+        logger.error('EMAIL SERVICE NOT CONFIGURED: Set SENDGRID_API_KEY or SMTP_HOST/SMTP_PORT environment variables. Verification emails will NOT be sent!');
       }
     }
   }
 
+  isEmailServiceConfigured(): boolean {
+    return this.isConfigured;
+  }
+
   async sendEmail(template: EmailTemplate): Promise<void> {
+    // Check if email service is configured
+    if (!this.isConfigured) {
+      logger.error(`Email NOT sent (service not configured): ${template.subject} to ${template.to}`);
+      throw new Error('Email service not configured. Please set SENDGRID_API_KEY or SMTP environment variables.');
+    }
+
     try {
       if (this.useSMTP) {
-        // Send via SMTP (Mailhog)
+        // Send via SMTP
         await this.smtpTransporter.sendMail({
           from: `${process.env.FROM_NAME || 'Flamoral'} <${process.env.FROM_EMAIL || 'noreply@flamoral.com'}>`,
           to: template.to,
@@ -51,7 +71,7 @@ export class EmailService {
           text: template.text || '',
         });
         logger.info(`Email sent via SMTP to ${template.to}: ${template.subject}`);
-      } else if (process.env.SENDGRID_API_KEY) {
+      } else {
         // Send via SendGrid
         const msg = {
           to: template.to,
@@ -66,14 +86,10 @@ export class EmailService {
 
         await sgMail.send(msg);
         logger.info(`Email sent via SendGrid to ${template.to}: ${template.subject}`);
-      } else {
-        logger.warn(
-          `Email not sent (no email service configured): ${template.subject} to ${template.to}`
-        );
       }
     } catch (error: any) {
       logger.error('Email sending failed:', error);
-      throw new Error('Failed to send email');
+      throw new Error(`Failed to send email: ${error.message || 'Unknown error'}`);
     }
   }
 
