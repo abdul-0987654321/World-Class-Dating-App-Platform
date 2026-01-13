@@ -64,14 +64,24 @@ aws s3api put-bucket-encryption \
     }]
   }'
 
-# Create DynamoDB table for state locking
+# Create DynamoDB table for state locking (staging/prod)
 aws dynamodb create-table \
   --table-name terraform-state-lock \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
   --region us-east-1
+
+# Create DynamoDB table for state locking (dev - uses project-prefixed name)
+aws dynamodb create-table \
+  --table-name flamoral-terraform-locks \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region us-east-1
 ```
+
+> **Note**: The dev environment uses a project-prefixed DynamoDB lock table name (`flamoral-terraform-locks`) for isolation, while staging and prod share the standard `terraform-state-lock` table. This is intentional to allow dev environments to be fully independent.
 
 ## Usage
 

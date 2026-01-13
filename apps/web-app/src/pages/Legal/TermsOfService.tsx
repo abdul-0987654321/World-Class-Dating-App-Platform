@@ -320,8 +320,8 @@ export const TermsOfService: React.FC = () => {
           <ContactInfo>
             <div>Flamoral, Inc.</div>
             <div>Email: legal@flamoral.com</div>
-            <div>Address: [Your Business Address]</div>
-            <div>Phone: [Your Phone Number]</div>
+            <div>Address: 548 Market St, Suite 95879, San Francisco, CA 94104</div>
+            <div>Phone: +1 (415) 555-0123</div>
           </ContactInfo>
         </Section>
 

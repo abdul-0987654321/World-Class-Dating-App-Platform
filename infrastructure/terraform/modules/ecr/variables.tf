@@ -14,7 +14,7 @@ variable "default_kms_key_arn" {
 }
 
 variable "eks_node_role_arns" {
-  description = "List of EKS node role ARNs for pull access"
+  description = "List of IAM role ARNs for ECR pull access. Despite the legacy name, this is used for ECS task execution roles. Kept for backward compatibility."
   type        = list(string)
   default     = null
 }
@@ -49,7 +49,7 @@ variable "repositories" {
 
     # Repository policy
     attach_policy              = optional(bool, true)
-    allow_eks_pull             = optional(bool, true)
+    allow_eks_pull             = optional(bool, true) # Legacy name - enables pull access for ECS task roles via eks_node_role_arns
     allow_lambda_access        = optional(bool, false)
     pull_access_principal_arns = optional(list(string), [])
     push_access_principal_arns = optional(list(string), [])

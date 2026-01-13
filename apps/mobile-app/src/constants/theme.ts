@@ -5,14 +5,14 @@
 
 export const Colors = {
   // Primary — Electric Pink
-  primary: '#ff2d75',
-  primaryDark: '#d91a5c',
-  primaryLight: '#ff5a94',
+  primary: '#EC4899',
+  primaryDark: '#BE185D',
+  primaryLight: '#F472B6',
 
   // Secondary
-  secondary: '#ffb8d1',
-  secondaryDark: '#d91a5c',
-  secondaryLight: '#ffb8d1',
+  secondary: '#3B82F6',
+  secondaryDark: '#BE185D',
+  secondaryLight: '#3B82F6',
 
   // Neutrals
   black: '#000000',
@@ -28,7 +28,7 @@ export const Colors = {
   gray900: '#3A3A3C',
 
   // Semantic — Master Prompt Specification
-  success: '#00d9a5',        // Emerald Green
+  success: '#22C55E',        // Emerald Green
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
@@ -40,10 +40,10 @@ export const Colors = {
 
   // Gradients — Master Prompt Specification
   gradient: {
-    primary: ['#ff2d75', '#ff5a94'],  // Electric Pink
+    primary: ['#EC4899', '#F472B6'],  // Electric Pink
     secondary: ['#667EEA', '#764BA2'],
     gold: ['#F7971E', '#FFD200'],
-    romance: ['#ff2d75', '#7B61FF', '#2ED4FF'], // Aurora gradient
+    romance: ['#EC4899', '#7B61FF', '#2ED4FF'], // Aurora gradient
   },
 
   // Transparent

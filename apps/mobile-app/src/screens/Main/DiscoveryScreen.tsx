@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,124 +11,95 @@ import {
   Alert,
 } from 'react-native';
 import { SwipeCard } from '../../components/discovery/SwipeCard';
+import { discoveryService } from '../../services/api/discovery.service';
+import {
+  DiscoveryProfile,
+  DiscoveryFilters,
+} from '../../types/discovery.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Mock profile data
-const MOCK_PROFILES = [
-  {
-    id: '1',
-    name: 'Emma',
-    age: 26,
-    bio: 'Coffee lover, adventure seeker, and dog mom. Looking for someone to explore the city with!',
-    photos: ['https://randomuser.me/api/portraits/women/1.jpg'],
-    distance: 3,
-    occupation: 'Marketing Manager',
-    verified: true,
-    interests: ['Travel', 'Coffee', 'Hiking', 'Dogs'],
-  },
-  {
-    id: '2',
-    name: 'Sophia',
-    age: 24,
-    bio: 'Yoga instructor by day, foodie by night. Lets find the best tacos in town!',
-    photos: ['https://randomuser.me/api/portraits/women/2.jpg'],
-    distance: 5,
-    occupation: 'Yoga Instructor',
-    verified: true,
-    interests: ['Yoga', 'Food', 'Wellness', 'Music'],
-  },
-  {
-    id: '3',
-    name: 'Olivia',
-    age: 28,
-    bio: 'Bookworm and wine enthusiast. Looking for deep conversations and cozy dates.',
-    photos: ['https://randomuser.me/api/portraits/women/3.jpg'],
-    distance: 2,
-    occupation: 'Writer',
-    verified: false,
-    interests: ['Books', 'Wine', 'Art', 'Movies'],
-  },
-  {
-    id: '4',
-    name: 'Ava',
-    age: 25,
-    bio: 'Fitness enthusiast and beach lover. Life is too short for boring dates!',
-    photos: ['https://randomuser.me/api/portraits/women/4.jpg'],
-    distance: 8,
-    occupation: 'Personal Trainer',
-    verified: true,
-    interests: ['Fitness', 'Beach', 'Travel', 'Cooking'],
-  },
-  {
-    id: '5',
-    name: 'Isabella',
-    age: 27,
-    bio: 'Tech geek with a passion for photography. Always looking for the perfect shot.',
-    photos: ['https://randomuser.me/api/portraits/women/5.jpg'],
-    distance: 4,
-    occupation: 'Software Engineer',
-    verified: true,
-    interests: ['Photography', 'Technology', 'Gaming', 'Travel'],
-  },
-];
 
-interface Match {
+interface MatchModalData {
   id: string;
   name: string;
   photo: string;
 }
 
 const DiscoveryScreen = () => {
-  const [profiles, setProfiles] = useState(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<DiscoveryProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(true);
   const [showMatch, setShowMatch] = useState(false);
-  const [matchedProfile, setMatchedProfile] = useState<Match | null>(null);
+  const [matchedProfile, setMatchedProfile] = useState<MatchModalData | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    minAge: 18,
-    maxAge: 50,
-    maxDistance: 50,
-    showVerifiedOnly: false,
+  const [filters, setFilters] = useState<Partial<DiscoveryFilters>>({
+    ageMin: 18,
+    ageMax: 50,
+    distanceMax: 50,
+    verifiedOnly: false,
   });
 
-  const handleSwipeLeft = useCallback((profile: typeof MOCK_PROFILES[0]) => {
+  const handleSwipeLeft = useCallback(async (profile: DiscoveryProfile) => {
     setCurrentIndex((prev) => prev + 1);
-  }, []);
-
-  const handleSwipeRight = useCallback((profile: typeof MOCK_PROFILES[0]) => {
-
-    // Simulate 30% match rate
-    if (Math.random() < 0.3) {
-      setMatchedProfile({
-        id: profile.id,
-        name: profile.name,
-        photo: profile.photos[0],
-      });
-      setShowMatch(true);
+    try {
+      await discoveryService.swipeLeft(profile.id);
+    } catch (err) {
+      console.error("Failed to record pass:", err);
     }
-
-    setCurrentIndex((prev) => prev + 1);
   }, []);
 
-  const handleSwipeUp = useCallback((profile: typeof MOCK_PROFILES[0]) => {
-    // Simulate 50% match rate for super likes
-    if (Math.random() < 0.5) {
-      setMatchedProfile({
-        id: profile.id,
-        name: profile.name,
-        photo: profile.photos[0],
-      });
-      setShowMatch(true);
+  const handleSwipeRight = useCallback(async (profile: DiscoveryProfile) => {
+    setCurrentIndex((prev) => prev + 1);
+    try {
+      const response = await discoveryService.swipeRight(profile.id);
+      if (response.success && response.data?.isMatch && response.data.match) {
+        const match = response.data.match;
+        setMatchedProfile({
+          id: match.matchedUserId,
+          name: match.matchedProfile.name,
+          photo: match.matchedProfile.photo,
+        });
+        setShowMatch(true);
+      }
+    } catch (err) {
+      console.error("Failed to record like:", err);
     }
-
-    setCurrentIndex((prev) => prev + 1);
   }, []);
 
-  const handleRewind = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+  const handleSwipeUp = useCallback(async (profile: DiscoveryProfile) => {
+    setCurrentIndex((prev) => prev + 1);
+    try {
+      const response = await discoveryService.superLike(profile.id);
+      if (response.success && response.data?.isMatch && response.data.match) {
+        const match = response.data.match;
+        setMatchedProfile({
+          id: match.matchedUserId,
+          name: match.matchedProfile.name,
+          photo: match.matchedProfile.photo,
+        });
+        setShowMatch(true);
+      }
+    } catch (err) {
+      Alert.alert("Super Like Failed", "Unable to send super like. Please try again.");
+    }
+  }, []);
+
+  const handleRewind = useCallback(async () => {
+    if (currentIndex === 0) return;
+    try {
+      const response = await discoveryService.rewind();
+      if (response.success && response.data?.success) {
+        setCurrentIndex((prev) => prev - 1);
+      } else {
+        Alert.alert("Rewind Unavailable", "You cannot rewind at this time.");
+      }
+    } catch (err) {
+      Alert.alert("Rewind Failed", "Unable to rewind. Please try again.");
     }
   }, [currentIndex]);
 
@@ -143,26 +114,7 @@ const DiscoveryScreen = () => {
     );
   }, []);
 
-  const loadMoreProfiles = useCallback(async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Shuffle and add more mock profiles
-    const moreProfiles = MOCK_PROFILES.map((p) => ({
-      ...p,
-      id: `${p.id}-${Date.now()}`,
-    }));
-    setProfiles((prev) => [...prev, ...moreProfiles]);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    // Load more when running low on profiles
-    if (currentIndex >= profiles.length - 2 && !isLoading) {
-      loadMoreProfiles();
-    }
-  }, [currentIndex, profiles.length, isLoading, loadMoreProfiles]);
+const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {    if (!isInitialLoad && (isLoadingMore || !hasMore)) return;    if (isInitialLoad) {      setIsLoading(true);      setError(null);    } else {      setIsLoadingMore(true);    }    try {      const response = await discoveryService.getProfiles(filters, isInitialLoad ? undefined : nextCursor, 20);      if (response.success && response.data) {        const newProfiles = response.data.profiles;        if (isInitialLoad) {          setProfiles(newProfiles);          setCurrentIndex(0);        } else {          setProfiles((prev) => [...prev, ...newProfiles]);        }        setNextCursor(response.data.nextCursor);        setHasMore(response.data.hasMore);      } else {        setError(response.error?.message || 'Failed to load profiles');        if (isInitialLoad) setProfiles([]);      }    } catch (err) {      setError(err instanceof Error ? err.message : 'An unexpected error occurred');      if (isInitialLoad) setProfiles([]);    } finally {      setIsLoading(false);      setIsLoadingMore(false);    }  }, [filters, nextCursor, hasMore, isLoadingMore]);  const handleRefresh = useCallback(() => {    setNextCursor(undefined);    setHasMore(true);    setError(null);    fetchProfiles(true);  }, [fetchProfiles]);  const applyFilters = useCallback(() => {    setShowFilters(false);    setNextCursor(undefined);    setHasMore(true);    setError(null);    fetchProfiles(true);  }, [fetchProfiles]);  useEffect(() => {    fetchProfiles(true);  }, []);  useEffect(() => {    const remainingProfiles = profiles.length - currentIndex;    if (remainingProfiles <= 3 && !isLoading && !isLoadingMore && hasMore && !error) {      fetchProfiles(false);    }  }, [currentIndex, profiles.length, isLoading, isLoadingMore, hasMore, error, fetchProfiles]);
 
   const currentProfile = profiles[currentIndex];
 
@@ -222,7 +174,7 @@ const DiscoveryScreen = () => {
             </Text>
             <TouchableOpacity
               style={styles.refreshButton}
-              onPress={loadMoreProfiles}
+              onPress={handleRefresh}
             >
               <Text style={styles.refreshButtonText}>Refresh</Text>
             </TouchableOpacity>
@@ -305,21 +257,21 @@ const DiscoveryScreen = () => {
           <View style={styles.filtersModalContent}>
             <View style={styles.filtersHeader}>
               <Text style={styles.filtersTitle}>Filters</Text>
-              <TouchableOpacity onPress={() => setShowFilters(false)}>
-                <Text style={styles.filtersDone}>Done</Text>
+              <TouchableOpacity onPress={applyFilters}>
+                <Text style={styles.filtersDone}>Apply</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.filterOption}>
               <Text style={styles.filterLabel}>Age Range</Text>
               <Text style={styles.filterValue}>
-                {filters.minAge} - {filters.maxAge}
+                {filters.ageMin} - {filters.ageMax}
               </Text>
             </View>
 
             <View style={styles.filterOption}>
               <Text style={styles.filterLabel}>Maximum Distance</Text>
-              <Text style={styles.filterValue}>{filters.maxDistance} km</Text>
+              <Text style={styles.filterValue}>{filters.distanceMax} km</Text>
             </View>
 
             <View style={styles.filterOption}>
@@ -327,7 +279,7 @@ const DiscoveryScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.toggleButton,
-                  filters.showVerifiedOnly && styles.toggleButtonActive,
+                  filters.verifiedOnly && styles.toggleButtonActive,
                 ]}
                 onPress={() =>
                   setFilters((prev) => ({
@@ -339,10 +291,10 @@ const DiscoveryScreen = () => {
                 <Text
                   style={[
                     styles.toggleText,
-                    filters.showVerifiedOnly && styles.toggleTextActive,
+                    filters.verifiedOnly && styles.toggleTextActive,
                   ]}
                 >
-                  {filters.showVerifiedOnly ? 'ON' : 'OFF'}
+                  {filters.verifiedOnly ? 'ON' : 'OFF'}
                 </Text>
               </TouchableOpacity>
             </View>

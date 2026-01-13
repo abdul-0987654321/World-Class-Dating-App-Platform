@@ -23,7 +23,8 @@
     "eas:submit:android": "eas submit --platform android",
     "eas:update": "eas update",
     "eas:update:preview": "eas update --channel preview",
-    "eas:update:production": "eas update --channel production"
+    "eas:update:production": "eas update --channel production",
+    "generate:icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "expo": "~52.0.0",
@@ -50,6 +51,7 @@
     "react-native-callkeep": "^4.3.12",
     "react-native-fast-image": "^8.6.3",
     "react-native-gesture-handler": "^2.14.0",
+    "react-native-iap": "^12.0.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-permissions": "^5.4.4",
     "react-native-reanimated": "^4.2.1",

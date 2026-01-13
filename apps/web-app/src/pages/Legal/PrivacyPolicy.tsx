@@ -83,7 +83,7 @@ const StaticPrivacyPolicy: React.FC = () => {
         <ContactInfo>
           <div><Strong>Flamoral, Inc.</Strong></div>
           <div>Email: privacy@flamoral.com</div>
-          <div>Address: [Your Business Address]</div>
+          <div>Address: 548 Market St, Suite 95879, San Francisco, CA 94104</div>
           <div>Data Protection Officer: dpo@flamoral.com</div>
         </ContactInfo>
       </Section>

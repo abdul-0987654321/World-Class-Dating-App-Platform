@@ -1,6 +1,6 @@
 ################################################################################
 # CI/CD Module - AWS CodePipeline and CodeBuild
-# Builds Docker images and deploys to EKS
+# Builds Docker images and deploys to ECS Fargate
 ################################################################################
 
 terraform {
@@ -206,7 +206,7 @@ resource "aws_codebuild_project" "services" {
 
     environment_variable {
       name  = "IMAGE_TAG"
-      value = "$" # Use git commit SHA for immutable tags - NEVER use latest
+      value = "CODEBUILD_RESOLVED_SOURCE_VERSION" # Use git commit SHA for immutable tags - NEVER use latest
     }
 
     environment_variable {

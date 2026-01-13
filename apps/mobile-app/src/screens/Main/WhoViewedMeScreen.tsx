@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,68 +6,72 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import type { RootState } from '@store/store';
-
-interface ProfileView {
-  id: string;
-  name: string;
-  age: number;
-  photo: string;
-  distance: number;
-  viewedAt: string;
-  isBlurred: boolean;
-}
-
-// Mock data
-const mockViews: ProfileView[] = [
-  {
-    id: '1',
-    name: 'Jessica',
-    age: 27,
-    photo: 'https://picsum.photos/400/400?random=10',
-    distance: 4,
-    viewedAt: '2 hours ago',
-    isBlurred: true,
-  },
-  {
-    id: '2',
-    name: 'Michelle',
-    age: 25,
-    photo: 'https://picsum.photos/400/400?random=11',
-    distance: 6,
-    viewedAt: '5 hours ago',
-    isBlurred: true,
-  },
-  {
-    id: '3',
-    name: 'Lauren',
-    age: 29,
-    photo: 'https://picsum.photos/400/400?random=12',
-    distance: 3,
-    viewedAt: '1 day ago',
-    isBlurred: true,
-  },
-  {
-    id: '4',
-    name: 'Amanda',
-    age: 26,
-    photo: 'https://picsum.photos/400/400?random=13',
-    distance: 8,
-    viewedAt: '2 days ago',
-    isBlurred: true,
-  },
-];
+import { discoveryService, ProfileView } from '../../services/api/discovery.service';
 
 const WhoViewedMeScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [views] = useState<ProfileView[]>(mockViews);
-  const currentTier = useSelector((state: RootState) => state.subscription?.currentTier ?? 'free');
-  const isPremium = currentTier !== 'free';
+  const [views, setViews] = useState<ProfileView[]>([]);
+  const [isPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const fetchProfileViews = useCallback(async (pageNum: number = 1, refresh: boolean = false) => {
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else if (pageNum === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+
+      const response = await discoveryService.getWhoViewedMe(pageNum, 20);
+
+      if (response.success && response.data) {
+        const newViews = response.data.views;
+        if (pageNum === 1 || refresh) {
+          setViews(newViews);
+        } else {
+          setViews(prev => [...prev, ...newViews]);
+        }
+        setHasMore(response.data.hasMore);
+        setPage(pageNum);
+      } else {
+        setError(response.error?.message || 'Failed to load profile views');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+      setIsLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProfileViews(1);
+  }, [fetchProfileViews]);
+
+  const handleRefresh = useCallback(() => {
+    fetchProfileViews(1, true);
+  }, [fetchProfileViews]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore && !isLoading) {
+      fetchProfileViews(page + 1);
+    }
+  }, [isLoadingMore, hasMore, isLoading, page, fetchProfileViews]);
 
   const handleUpgrade = () => {
     navigation.navigate('Subscription' as never);
@@ -75,10 +79,14 @@ const WhoViewedMeScreen: React.FC = () => {
 
   const handleViewPress = (profile: ProfileView) => {
     if (isPremium) {
-      navigation.navigate('ProfileDetail' as never, { userId: profile.id } as never);
+      navigation.navigate('ProfileDetail' as never, { userId: profile.userId } as never);
     } else {
       handleUpgrade();
     }
+  };
+
+  const handleRetry = () => {
+    fetchProfileViews(1);
   };
 
   const renderViewItem = ({ item }: { item: ProfileView }) => {
@@ -176,6 +184,38 @@ const WhoViewedMeScreen: React.FC = () => {
     </View>
   );
 
+  const renderError = () => (
+    <View style={styles.errorContainer}>
+      <Icon name="alert-circle-outline" size={80} color="#FF6B6B" />
+      <Text style={styles.errorTitle}>Something went wrong</Text>
+      <Text style={styles.errorSubtitle}>{error}</Text>
+      <TouchableOpacity
+        style={styles.retryButton}
+        onPress={handleRetry}
+        accessibilityRole="button"
+        accessibilityLabel="Retry loading"
+      >
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#FF6B6B" />
+      </View>
+    );
+  };
+
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#FF6B6B" />
+      <Text style={styles.loadingText}>Loading profile views...</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -191,15 +231,32 @@ const WhoViewedMeScreen: React.FC = () => {
         <View style={styles.placeholder} />
       </View>
 
-      <FlatList
-        data={views}
-        renderItem={renderViewItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        renderLoading()
+      ) : error && views.length === 0 ? (
+        renderError()
+      ) : (
+        <FlatList
+          data={views}
+          renderItem={renderViewItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#FF6B6B"
+              colors={['#FF6B6B']}
+            />
+          }
+        />
+      )}
     </View>
   );
 };
@@ -295,6 +352,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+    flexGrow: 1,
   },
   viewItem: {
     flexDirection: 'row',
@@ -365,6 +423,50 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+    marginTop: 16,
+  },
+  errorSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 24,
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });
 

@@ -141,7 +141,7 @@ export const RefundPolicy: React.FC = () => {
           <ContactInfo>
             <Strong>Contact our Billing Team:</Strong>
             <div>Email: billing@flamoral.com</div>
-            <div>Subject: Refund Request - [Your Account Email]</div>
+            <div>Subject: Refund Request - (include your account email)</div>
             <div>Response time: Within 3-5 business days</div>
           </ContactInfo>
         </Section>

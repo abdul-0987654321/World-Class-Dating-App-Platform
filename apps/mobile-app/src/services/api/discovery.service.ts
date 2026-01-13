@@ -18,6 +18,23 @@ import {
   DiscoveryPreferences,
 } from '../../types/discovery.types';
 
+export interface ProfileView {
+  id: string;
+  userId: string;
+  name: string;
+  age: number;
+  photo: string;
+  distance: number;
+  viewedAt: string;
+  isBlurred: boolean;
+}
+
+export interface ProfileViewsResponse {
+  views: ProfileView[];
+  total: number;
+  hasMore: boolean;
+}
+
 class DiscoveryService {
   private readonly baseUrl = '/api/v1/discovery';
 
@@ -234,6 +251,19 @@ class DiscoveryService {
     limit: number = 20
   ): Promise<ApiResponse<{ profiles: DiscoveryProfile[]; total: number }>> {
     return httpClient.get(`${this.baseUrl}/likes-you?page=${page}&limit=${limit}`);
+  }
+
+  /**
+   * Get who viewed your profile (requires premium)
+   * GET /api/v1/discovery/profile-views
+   */
+  async getWhoViewedMe(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<ApiResponse<ProfileViewsResponse>> {
+    return httpClient.get<ProfileViewsResponse>(
+      `${this.baseUrl}/profile-views?page=${page}&limit=${limit}`
+    );
   }
 }
 

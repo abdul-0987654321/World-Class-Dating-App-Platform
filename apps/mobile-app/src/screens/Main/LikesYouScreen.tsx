@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import type { RootState } from '@store/store';
+import { useAuth } from '../../hooks/useAuth';
+import { discoveryService } from '../../services';
+import { DiscoveryProfile } from '../../types/discovery.types';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -24,54 +27,82 @@ interface LikeProfile {
   photos: string[];
   distance: number;
   isBlurred: boolean;
-  isPremium: boolean;
 }
-
-// Mock data - replace with actual API data
-const mockLikes: LikeProfile[] = [
-  {
-    id: '1',
-    name: 'Sarah',
-    age: 28,
-    photos: ['https://picsum.photos/400/600?random=1'],
-    distance: 5,
-    isBlurred: true,
-    isPremium: false,
-  },
-  {
-    id: '2',
-    name: 'Emma',
-    age: 26,
-    photos: ['https://picsum.photos/400/600?random=2'],
-    distance: 3,
-    isBlurred: true,
-    isPremium: false,
-  },
-  {
-    id: '3',
-    name: 'Olivia',
-    age: 29,
-    photos: ['https://picsum.photos/400/600?random=3'],
-    distance: 7,
-    isBlurred: true,
-    isPremium: false,
-  },
-  {
-    id: '4',
-    name: 'Ava',
-    age: 27,
-    photos: ['https://picsum.photos/400/600?random=4'],
-    distance: 4,
-    isBlurred: true,
-    isPremium: false,
-  },
-];
 
 const LikesYouScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [likes] = useState<LikeProfile[]>(mockLikes);
-  const currentTier = useSelector((state: RootState) => state.subscription?.currentTier ?? 'free');
-  const isPremium = currentTier !== 'free';
+  const { user } = useAuth();
+  const isPremium = user?.isPremium ?? false;
+
+  const [likes, setLikes] = useState<LikeProfile[]>([]);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const mapDiscoveryProfileToLikeProfile = (profile: DiscoveryProfile): LikeProfile => ({
+    id: profile.id,
+    name: profile.name,
+    age: profile.age,
+    photos: profile.photos.map(p => p.url),
+    distance: profile.distance ?? 0,
+    isBlurred: !isPremium,
+  });
+
+  const fetchLikes = useCallback(async (pageNum: number = 1, refresh: boolean = false) => {
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else if (pageNum === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+
+      const response = await discoveryService.getWhoLikedYou(pageNum, 20);
+
+      if (response.success && response.data) {
+        const mappedProfiles = response.data.profiles.map(mapDiscoveryProfileToLikeProfile);
+
+        if (pageNum === 1 || refresh) {
+          setLikes(mappedProfiles);
+        } else {
+          setLikes(prev => [...prev, ...mappedProfiles]);
+        }
+
+        setTotalLikes(response.data.total);
+        setHasMore(mappedProfiles.length === 20);
+        setPage(pageNum);
+      } else {
+        throw new Error(response.error?.message || 'Failed to load likes');
+      }
+    } catch (err: any) {
+      console.error('Error fetching likes:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+      setIsLoadingMore(false);
+    }
+  }, [isPremium]);
+
+  useEffect(() => {
+    fetchLikes(1);
+  }, [fetchLikes]);
+
+  const handleRefresh = useCallback(() => {
+    fetchLikes(1, true);
+  }, [fetchLikes]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore && !isLoading) {
+      fetchLikes(page + 1);
+    }
+  }, [fetchLikes, page, isLoadingMore, hasMore, isLoading]);
 
   const handleUpgrade = () => {
     navigation.navigate('Subscription' as never);
@@ -79,11 +110,14 @@ const LikesYouScreen: React.FC = () => {
 
   const handleLikePress = (profile: LikeProfile) => {
     if (isPremium) {
-      // Navigate to profile detail
       navigation.navigate('ProfileDetail' as never, { userId: profile.id } as never);
     } else {
       handleUpgrade();
     }
+  };
+
+  const handleRetry = () => {
+    fetchLikes(1);
   };
 
   const renderLikeCard = ({ item }: { item: LikeProfile }) => {
@@ -98,9 +132,9 @@ const LikesYouScreen: React.FC = () => {
         <Image
           source={{ uri: item.photos[0] }}
           style={styles.cardImage}
-          blurRadius={item.isBlurred && !isPremium ? 20 : 0}
+          blurRadius={item.isBlurred ? 20 : 0}
         />
-        {item.isBlurred && !isPremium && (
+        {item.isBlurred && (
           <View style={styles.blurOverlay}>
             <Icon name="eye-off" size={32} color="#FFFFFF" />
           </View>
@@ -125,9 +159,9 @@ const LikesYouScreen: React.FC = () => {
     <View style={styles.headerContainer}>
       <View style={styles.statsContainer}>
         <Icon name="heart" size={40} color="#FF6B6B" />
-        <Text style={styles.statsNumber}>{likes.length}</Text>
+        <Text style={styles.statsNumber}>{totalLikes}</Text>
         <Text style={styles.statsLabel}>
-          {likes.length === 1 ? 'Person likes you' : 'People like you'}
+          {totalLikes === 1 ? 'Person likes you' : 'People like you'}
         </Text>
       </View>
 
@@ -170,6 +204,38 @@ const LikesYouScreen: React.FC = () => {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#FF6B6B" />
+      </View>
+    );
+  };
+
+  const renderError = () => (
+    <View style={styles.errorContainer}>
+      <Icon name="alert-circle-outline" size={64} color="#FF6B6B" />
+      <Text style={styles.errorTitle}>Oops!</Text>
+      <Text style={styles.errorMessage}>{error}</Text>
+      <TouchableOpacity
+        style={styles.retryButton}
+        onPress={handleRetry}
+        accessibilityRole="button"
+        accessibilityLabel="Retry loading likes"
+      >
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#FF6B6B" />
+      <Text style={styles.loadingText}>Loading your likes...</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -185,17 +251,34 @@ const LikesYouScreen: React.FC = () => {
         <View style={styles.placeholder} />
       </View>
 
-      <FlatList
-        data={likes}
-        renderItem={renderLikeCard}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        renderLoading()
+      ) : error ? (
+        renderError()
+      ) : (
+        <FlatList
+          data={likes}
+          renderItem={renderLikeCard}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#FF6B6B']}
+              tintColor="#FF6B6B"
+            />
+          }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+        />
+      )}
     </View>
   );
 };
@@ -275,6 +358,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+    flexGrow: 1,
   },
   row: {
     paddingHorizontal: 16,
@@ -336,6 +420,50 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginTop: 8,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+    marginTop: 16,
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 24,
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });
 

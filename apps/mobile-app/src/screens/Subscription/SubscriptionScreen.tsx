@@ -14,11 +14,17 @@ import {
   Alert,
   RefreshControl,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { paymentService, Product, SubscriptionStatus } from '../../services/payments/PaymentService';
+// Legal URLs - Required for App Store/Play Store compliance
+const LEGAL_URLS = {
+  TERMS_OF_SERVICE: 'https://flamoral.com/terms',
+  PRIVACY_POLICY: 'https://flamoral.com/privacy',
+};
 
 interface Plan {
   productId: string;
@@ -389,11 +395,11 @@ export const SubscriptionScreen: React.FC = () => {
             Subscriptions auto-renew unless canceled at least 24 hours before the end of the current period.
           </Text>
           <View style={styles.legalLinks}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => Linking.openURL(LEGAL_URLS.TERMS_OF_SERVICE)}>
               <Text style={styles.legalLink}>Terms of Service</Text>
             </TouchableOpacity>
             <Text style={styles.legalDivider}>•</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => Linking.openURL(LEGAL_URLS.PRIVACY_POLICY)}>
               <Text style={styles.legalLink}>Privacy Policy</Text>
             </TouchableOpacity>
           </View>

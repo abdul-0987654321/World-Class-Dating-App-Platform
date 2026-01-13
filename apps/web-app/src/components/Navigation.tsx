@@ -117,8 +117,8 @@ export const Navigation: React.FC = () => {
               onClick={() => navigate(item.path)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 isActive(item.path)
-                  ? 'bg-[#FF2E93]/20 text-[#FF2E93] font-medium'
-                  : 'text-white/70 hover:bg-white/5 hover:text-[#FF2E93]'
+                  ? 'bg-[#EC4899]/20 text-[#EC4899] font-medium'
+                  : 'text-white/70 hover:bg-white/5 hover:text-[#EC4899]'
               }`}
             >
               {getIcon(item.icon)}
@@ -132,8 +132,8 @@ export const Navigation: React.FC = () => {
               onClick={() => setShowMoreMenu(!showMoreMenu)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 moreNavItems.some(item => isActive(item.path))
-                  ? 'bg-[#FF2E93]/20 text-[#FF2E93] font-medium'
-                  : 'text-white/70 hover:bg-white/5 hover:text-[#FF2E93]'
+                  ? 'bg-[#EC4899]/20 text-[#EC4899] font-medium'
+                  : 'text-white/70 hover:bg-white/5 hover:text-[#EC4899]'
               }`}
             >
               {getIcon('more')}
@@ -157,11 +157,11 @@ export const Navigation: React.FC = () => {
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
                         isActive(item.path)
-                          ? 'bg-[#FF2E93]/20 text-[#FF2E93]'
+                          ? 'bg-[#EC4899]/20 text-[#EC4899]'
                           : 'text-white/80 hover:bg-white/5'
                       }`}
                     >
-                      <span className={isActive(item.path) ? 'text-[#FF2E93]' : item.color}>
+                      <span className={isActive(item.path) ? 'text-[#EC4899]' : item.color}>
                         {getIcon(item.icon)}
                       </span>
                       <span>{item.label}</span>

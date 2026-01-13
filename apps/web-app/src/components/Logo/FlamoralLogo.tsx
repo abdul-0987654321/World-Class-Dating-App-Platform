@@ -28,8 +28,8 @@ const sparkle = keyframes`
 `;
 
 const glowPulse = keyframes`
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(230, 57, 70, 0.4)); }
-  50% { filter: drop-shadow(0 0 16px rgba(230, 57, 70, 0.6)); }
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.4)); }
+  50% { filter: drop-shadow(0 0 16px rgba(236, 72, 153, 0.6)); }
 `;
 
 const LogoContainer = styled.div<{ $variant: string; $size: string }>`
@@ -81,13 +81,13 @@ const Sparkle = styled.div<{ $delay: number; $top: string; $left: string }>`
   position: absolute;
   width: 3px;
   height: 3px;
-  background: #FFB4B4;
+  background: #EC4899;
   border-radius: 50%;
   animation: ${sparkle} 2s ease-in-out infinite;
   animation-delay: ${props => props.$delay}s;
   top: ${props => props.$top};
   left: ${props => props.$left};
-  box-shadow: 0 0 4px #FFB4B4;
+  box-shadow: 0 0 4px #EC4899;
   pointer-events: none;
 `;
 
@@ -106,15 +106,15 @@ const Wordmark = styled.span<{ $size: string; $lightMode: boolean }>`
     }
   }};
   background: ${props => props.$lightMode
-    ? 'linear-gradient(135deg, #C1121F 0%, #E63946 50%, #FF6B6B 100%)'
-    : 'linear-gradient(135deg, #FFB4B4 0%, #FF6B6B 50%, #E63946 100%)'};
+    ? 'linear-gradient(135deg, #3B82F6 0%, #EC4899 50%, #EC4899 100%)'
+    : 'linear-gradient(135deg, #EC4899 0%, #EC4899 50%, #EC4899 100%)'};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   position: relative;
 
   &::after {
-    content: 'Flamoral';
+    content: 'FLAMORAL';
     position: absolute;
     left: 0;
     top: 0;
@@ -131,7 +131,7 @@ const Tagline = styled.span<{ $lightMode: boolean }>`
   font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: ${props => props.$lightMode ? '#E63946' : '#FFB4B4'};
+  color: ${props => props.$lightMode ? '#EC4899' : '#EC4899'};
   opacity: 0.8;
 `;
 
@@ -139,13 +139,13 @@ const LogoIcon: React.FC<{ lightMode?: boolean }> = ({ lightMode }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="flameGradient" x1="50%" y1="100%" x2="50%" y2="0%">
-        <stop offset="0%" stopColor={lightMode ? "#C1121F" : "#E63946"} />
-        <stop offset="50%" stopColor="#FF6B6B" />
-        <stop offset="100%" stopColor="#FFB4B4" />
+        <stop offset="0%" stopColor={lightMode ? "#3B82F6" : "#EC4899"} />
+        <stop offset="50%" stopColor="#EC4899" />
+        <stop offset="100%" stopColor="#EC4899" />
       </linearGradient>
       <linearGradient id="petalGradient" x1="50%" y1="100%" x2="50%" y2="0%">
-        <stop offset="0%" stopColor="#C1121F" />
-        <stop offset="100%" stopColor="#E63946" />
+        <stop offset="0%" stopColor="#3B82F6" />
+        <stop offset="100%" stopColor="#EC4899" />
       </linearGradient>
     </defs>
 
@@ -183,9 +183,9 @@ const LogoIcon: React.FC<{ lightMode?: boolean }> = ({ lightMode }) => (
 
     {/* Center flower detail */}
     <circle cx="50" cy="72" r="4" fill="#FFF5F5" opacity="0.9" />
-    <circle cx="46" cy="68" r="2" fill="#FFB4B4" opacity="0.7" />
-    <circle cx="54" cy="68" r="2" fill="#FFB4B4" opacity="0.7" />
-    <circle cx="50" cy="64" r="2" fill="#FFB4B4" opacity="0.7" />
+    <circle cx="46" cy="68" r="2" fill="#EC4899" opacity="0.7" />
+    <circle cx="54" cy="68" r="2" fill="#EC4899" opacity="0.7" />
+    <circle cx="50" cy="64" r="2" fill="#EC4899" opacity="0.7" />
   </svg>
 );
 
@@ -193,9 +193,9 @@ const MonogramIcon: React.FC<{ lightMode?: boolean }> = ({ lightMode }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="monoGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor={lightMode ? "#C1121F" : "#E63946"} />
-        <stop offset="50%" stopColor="#FF6B6B" />
-        <stop offset="100%" stopColor="#FFB4B4" />
+        <stop offset="0%" stopColor={lightMode ? "#3B82F6" : "#EC4899"} />
+        <stop offset="50%" stopColor="#EC4899" />
+        <stop offset="100%" stopColor="#EC4899" />
       </linearGradient>
     </defs>
     {/* Stylized F with flame/floral elements */}
@@ -210,7 +210,7 @@ const MonogramIcon: React.FC<{ lightMode?: boolean }> = ({ lightMode }) => (
       className="flame-outer"
     />
     {/* Small petal accent */}
-    <circle cx="70" cy="35" r="5" fill="#FFB4B4" opacity="0.7" />
+    <circle cx="70" cy="35" r="5" fill="#EC4899" opacity="0.7" />
   </svg>
 );
 
@@ -258,8 +258,8 @@ export const FlamoralLogo: React.FC<FlamoralLogoProps> = ({
         )}
         <LogoIcon lightMode={lightMode} />
       </IconWrapper>
-      <Wordmark $size={size} $lightMode={lightMode}>Flamoral</Wordmark>
-      {showTagline && <Tagline $lightMode={lightMode}>Where Hearts Bloom</Tagline>}
+      <Wordmark $size={size} $lightMode={lightMode}>FLAMORAL</Wordmark>
+      {showTagline && <Tagline $lightMode={lightMode}>IGNITE YOUR CONNECTION</Tagline>}
     </LogoContainer>
   );
 };

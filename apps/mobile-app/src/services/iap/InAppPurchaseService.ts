@@ -14,6 +14,7 @@ import {
   requestSubscription,
   finishTransaction,
   acknowledgePurchaseAndroid,
+  getAvailablePurchases,
   Product,
   Subscription,
   Purchase,
@@ -282,37 +283,57 @@ class InAppPurchaseServiceClass extends EventEmitter {
   }
 
   /**
+   * Get available purchases (previously purchased items)
+   */
+  async getAvailablePurchases(): Promise<Purchase[]> {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      const purchases = await getAvailablePurchases();
+      console.log('Available purchases:', purchases);
+      return purchases;
+    } catch (error) {
+      console.error('Error getting available purchases:', error);
+      return [];
+    }
+  }
+
+  /**
    * Restore purchases (mainly for iOS)
    */
-  async restorePurchases(): Promise<void> {
+  async restorePurchases(): Promise<Purchase[]> {
     try {
-      // Note: react-native-iap v12+ has different restore implementation
-      // You may need to use getAvailablePurchases() instead
-      Alert.alert(
-        'Restore Purchases',
-        'This feature will restore your previous purchases. Continue?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Restore',
-            onPress: async () => {
-              try {
-                // Implement restore logic based on your needs
-                Alert.alert('Success', 'Purchases have been restored');
-              } catch (error) {
-                console.error('Error restoring purchases:', error);
-                Alert.alert('Error', 'Failed to restore purchases');
-              }
-            },
-          },
-        ]
-      );
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      const availablePurchases = await getAvailablePurchases();
+      console.log('Restoring purchases:', availablePurchases);
+
+      if (availablePurchases.length === 0) {
+        Alert.alert('No Purchases', 'No previous purchases found to restore.');
+        return [];
+      }
+
+      // Process each restored purchase
+      for (const purchase of availablePurchases) {
+        try {
+          // Verify each restored purchase with backend
+          await this.verifyPurchaseWithBackend(purchase);
+          this.emit('purchaseRestored', purchase);
+        } catch (error) {
+          console.error('Error verifying restored purchase:', error);
+        }
+      }
+
+      Alert.alert('Success', `${availablePurchases.length} purchase(s) have been restored.`);
+      return availablePurchases;
     } catch (error) {
       console.error('Error restoring purchases:', error);
-      Alert.alert('Error', 'Failed to restore purchases');
+      Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+      return [];
     }
   }
 

@@ -2,6 +2,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Helper to require configuration in production
+function requireInProduction(name: string, devDefault: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (isProduction) {
+    throw new Error(`${name} environment variable is required in production`);
+  }
+  return devDefault;
+}
+
 export const config = {
   service: {
     name: process.env.SERVICE_NAME || 'automation-service',
@@ -9,22 +21,22 @@ export const config = {
     port: parseInt(process.env.PORT || '3013', 10),
   },
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || '',
+    accessSecret: requireInProduction('JWT_ACCESS_SECRET', 'dev-jwt-secret-not-for-production'),
   },
   database: {
-    host: process.env.DB_HOST || 'localhost',
+    host: requireInProduction('DB_HOST', 'localhost'),
     port: parseInt(process.env.DB_PORT || '5432', 10),
     database: process.env.DB_NAME || 'flamoral_automation',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    ssl: process.env.DB_SSL === 'true',
+    password: requireInProduction('DB_PASSWORD', ''),
+    ssl: isProduction ? true : process.env.DB_SSL === 'true',
     pool: {
       min: parseInt(process.env.DB_POOL_MIN || '2', 10),
       max: parseInt(process.env.DB_POOL_MAX || '10', 10),
     },
   },
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
+    host: requireInProduction('REDIS_HOST', 'localhost'),
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || undefined,
     db: parseInt(process.env.REDIS_DB || '7', 10),
@@ -33,14 +45,17 @@ export const config = {
     // Security: Validate AMQPS in production, fail-safe to secure default
     url: (() => {
       const url = process.env.RABBITMQ_URL;
-      const isProduction = process.env.NODE_ENV === 'production';
 
       if (isProduction && url && !url.startsWith('amqps://')) {
         throw new Error('RABBITMQ_URL must use amqps:// (TLS) in production');
       }
 
+      if (isProduction && !url) {
+        throw new Error('RABBITMQ_URL environment variable is required in production');
+      }
+
       // Default to localhost only in development
-      return url || (isProduction ? '' : 'amqp://localhost:5672');
+      return url || 'amqp://localhost:5672';
     })(),
     exchange: process.env.RABBITMQ_EXCHANGE || 'flamoral_events',
     queues: {
@@ -50,18 +65,25 @@ export const config = {
     },
   },
   services: {
-    messaging: process.env.MESSAGING_SERVICE_URL || 'http://localhost:3003',
-    notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008',
-    user: process.env.USER_SERVICE_URL || 'http://localhost:3001',
-    matching: process.env.MATCHING_SERVICE_URL || 'http://localhost:3002',
-    ai: process.env.AI_SERVICE_URL || 'http://localhost:3009',
-    analytics: process.env.ANALYTICS_SERVICE_URL || 'http://localhost:3007',
+    messaging: requireInProduction('MESSAGING_SERVICE_URL', 'http://localhost:3003'),
+    notification: requireInProduction('NOTIFICATION_SERVICE_URL', 'http://localhost:3008'),
+    user: requireInProduction('USER_SERVICE_URL', 'http://localhost:3001'),
+    matching: requireInProduction('MATCHING_SERVICE_URL', 'http://localhost:3002'),
+    ai: requireInProduction('AI_SERVICE_URL', 'http://localhost:3009'),
+    analytics: requireInProduction('ANALYTICS_SERVICE_URL', 'http://localhost:3007'),
   },
   serviceAuth: {
-    apiKey: process.env.SERVICE_API_KEY || '',
+    apiKey: requireInProduction('SERVICE_API_KEY', ''),
   },
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origins: (() => {
+      const origins = process.env.CORS_ORIGINS?.split(',');
+      if (origins) return origins;
+      if (isProduction) {
+        throw new Error('CORS_ORIGINS environment variable is required in production');
+      }
+      return ['http://localhost:3000'];
+    })(),
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
