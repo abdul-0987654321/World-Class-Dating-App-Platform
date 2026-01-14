@@ -37,6 +37,7 @@ import TierShowcase from './pages/TierShowcase';
 import { PrivacyPolicy } from './pages/Legal/PrivacyPolicy';
 import { TermsOfService } from './pages/Legal/TermsOfService';
 import { CommunityGuidelines, CookiePolicy, SafetyGuidelines, RefundPolicy } from './pages/Legal';
+import { SupportPage } from './pages/Legal/SupportPage';
 
 // Admin Pages
 import {
@@ -125,6 +126,7 @@ const App: React.FC = () => {
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/support" element={<SupportPage />} />
 
         {/* Unauthorized page for admin access denied */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
