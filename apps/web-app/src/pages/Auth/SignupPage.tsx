@@ -247,9 +247,9 @@ export const SignupPage: React.FC = () => {
           {/* Logo */}
           <div className="text-center mb-6 sm:mb-8">
             <Link to="/" className="inline-flex items-center justify-center mb-3">
-              <FlamoralLogo variant="horizontal" size="lg" />
+              <FlamoralLogo variant="primary" size="lg" showTagline={true} />
             </Link>
-            <p className="text-gray-500 text-sm sm:text-base">
+            <p className="text-gray-500 text-sm sm:text-base mt-4">
               {tierParam ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}` : 'Create your account'}
             </p>
           </div>
