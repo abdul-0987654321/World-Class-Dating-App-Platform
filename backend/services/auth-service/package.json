@@ -15,6 +15,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.679.0",
     "@flamoral/backend-shared": "file:../../shared",
     "@nestjs/common": "^10.3.0",
     "class-transformer": "^0.5.1",
