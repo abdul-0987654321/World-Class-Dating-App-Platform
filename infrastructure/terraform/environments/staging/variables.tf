@@ -45,7 +45,13 @@ variable "vpc_cidr" {
 variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
-  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  default     = ["us-east-1a", "us-east-1b"]  # Only 2 AZs for staging
+}
+
+variable "domain_name" {
+  description = "Domain name"
+  type        = string
+  default     = "flamoral.com"
 }
 
 variable "allowed_cidr_blocks" {
