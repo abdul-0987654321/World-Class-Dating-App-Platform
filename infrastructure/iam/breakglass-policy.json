@@ -1,0 +1,76 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BreakGlassECS",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:*"
+      ],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:992382449461:cluster/flamoral-prod-cluster",
+        "arn:aws:ecs:us-east-1:992382449461:service/flamoral-prod-cluster/*",
+        "arn:aws:ecs:us-east-1:992382449461:task/flamoral-prod-cluster/*",
+        "arn:aws:ecs:us-east-1:992382449461:task-definition/*",
+        "arn:aws:ecs:us-east-1:992382449461:container-instance/flamoral-prod-cluster/*"
+      ]
+    },
+    {
+      "Sid": "BreakGlassCloudFront",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:*"
+      ],
+      "Resource": "arn:aws:cloudfront::992382449461:distribution/ERHOTC1HYWUD9"
+    },
+    {
+      "Sid": "BreakGlassALB",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:*"
+      ],
+      "Resource": [
+        "arn:aws:elasticloadbalancing:us-east-1:992382449461:loadbalancer/app/flamoral-prod-alb/*",
+        "arn:aws:elasticloadbalancing:us-east-1:992382449461:targetgroup/flamoral-prod-*/*",
+        "arn:aws:elasticloadbalancing:us-east-1:992382449461:listener/app/flamoral-prod-alb/*"
+      ]
+    },
+    {
+      "Sid": "BreakGlassECR",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:*"
+      ],
+      "Resource": "arn:aws:ecr:us-east-1:992382449461:repository/flamoral/*"
+    },
+    {
+      "Sid": "BreakGlassSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:*"
+      ],
+      "Resource": "arn:aws:secretsmanager:us-east-1:992382449461:secret:flamoral/prod/*"
+    },
+    {
+      "Sid": "BreakGlassLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:*"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:992382449461:log-group:/ecs/flamoral-prod-*"
+    },
+    {
+      "Sid": "GlobalReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecs:DescribeClusters",
+        "ecs:ListClusters",
+        "ecs:ListServices",
+        "cloudwatch:*",
+        "sns:Publish"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

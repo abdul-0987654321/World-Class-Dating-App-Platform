@@ -235,74 +235,85 @@ export const SignupPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col justify-center items-center p-4 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%)' }}
+      className="min-h-screen w-full flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%)' }}
     >
-      {/* Animated background gradient orbs */}
+      {/* Animated background gradient orbs - positioned relative to viewport center */}
       <div
-        className="absolute top-20 left-10 w-72 h-72 rounded-full filter blur-3xl opacity-20 animate-pulse pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%)' }}
+        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] lg:w-[600px] lg:h-[600px] rounded-full filter blur-[120px] opacity-30 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, transparent 70%)' }}
       />
       <div
-        className="absolute bottom-20 right-10 w-96 h-96 rounded-full filter blur-3xl opacity-15 animate-pulse pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)', animationDelay: '2s' }}
+        className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[350px] h-[350px] lg:w-[500px] lg:h-[500px] rounded-full filter blur-[100px] opacity-25 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, transparent 70%)' }}
       />
 
-      {/* Main content container */}
-      <div className="relative w-full max-w-md">
-        {/* Glass-morphism card */}
+      {/* Main content container - responsive max-width */}
+      <div className="relative w-full max-w-md sm:max-w-lg lg:max-w-xl">
+        {/* Glass-morphism card - premium dark theme */}
         <div
-          className="rounded-3xl p-8 border border-gray-200 shadow-xl"
+          className="rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/10 shadow-2xl"
           style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
+            background: 'rgba(26, 26, 46, 0.85)',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
           }}
         >
           {/* Logo */}
-          <div className="text-center mb-6">
-            <Link to="/" className="inline-flex items-center justify-center mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <Link to="/" className="inline-flex items-center justify-center mb-3">
               <FlamoralLogo variant="horizontal" size="lg" />
             </Link>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-400 text-sm sm:text-base">
               {tierParam ? `Join Flamoral ${tierParam.charAt(0).toUpperCase() + tierParam.slice(1)}` : 'Create your account'}
             </p>
           </div>
 
-          {/* Progress indicator - 3 steps */}
-          <div className="flex items-center justify-center mb-6">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-              step >= 1 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+          {/* Progress indicator - 3 steps - enhanced sizing and contrast */}
+          <div className="flex items-center justify-center mb-6 sm:mb-8 px-4 sm:px-8 lg:px-12">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              step >= 1
+                ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30'
+                : 'bg-gray-800 text-gray-500 border border-gray-700'
             }`}>
               1
             </div>
-            <div className={`w-12 h-1 transition-all ${step >= 2 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-200'}`} />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-              step >= 2 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+            <div className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+              step >= 2 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-800'
+            }`} />
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              step >= 2
+                ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30'
+                : 'bg-gray-800 text-gray-500 border border-gray-700'
             }`}>
               2
             </div>
-            <div className={`w-12 h-1 transition-all ${step >= 3 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-200'}`} />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-              step >= 3 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+            <div className={`flex-1 h-1 sm:h-1.5 mx-2 sm:mx-3 rounded-full transition-all duration-300 ${
+              step >= 3 ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-800'
+            }`} />
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 ${
+              step >= 3
+                ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30'
+                : 'bg-gray-800 text-gray-500 border border-gray-700'
             }`}>
               3
             </div>
           </div>
 
           {errors.general && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm mb-4">
               {errors.general}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             {step === 1 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h2>
+              <div className="space-y-4 sm:space-y-5">
+                <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">Basic Information</h2>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       First Name *
                     </label>
                     <input
@@ -310,17 +321,17 @@ export const SignupPage: React.FC = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                        errors.firstName ? 'border-red-500' : 'border-gray-200'
+                      className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition ${
+                        errors.firstName ? 'border-red-500' : 'border-gray-700'
                       }`}
                       placeholder="First name"
                     />
                     {errors.firstName && (
-                      <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                      <p className="text-red-400 text-xs mt-1">{errors.firstName}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Last Name
                     </label>
                     <input
@@ -328,14 +339,14 @@ export const SignupPage: React.FC = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition"
+                      className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition"
                       placeholder="Last name"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Email *
                   </label>
                   <input
@@ -343,18 +354,18 @@ export const SignupPage: React.FC = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.email ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition ${
+                      errors.email ? 'border-red-500' : 'border-gray-700'
                     }`}
                     placeholder="your@email.com"
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                    <p className="text-red-400 text-xs mt-1">{errors.email}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Password *
                   </label>
                   <div className="relative">
@@ -363,15 +374,15 @@ export const SignupPage: React.FC = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition pr-10 ${
-                        errors.password ? 'border-red-500' : 'border-gray-200'
+                      className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition pr-10 ${
+                        errors.password ? 'border-red-500' : 'border-gray-700'
                       }`}
                       placeholder="Create a strong password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,15 +399,15 @@ export const SignupPage: React.FC = () => {
                   {formData.password && (
                     <div className="mt-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${passwordStrength.color} transition-all`}
                             style={{ width: `${(passwordStrength.strength / 3) * 100}%` }}
                           />
                         </div>
                         <span className={`text-xs font-medium ${
-                          passwordStrength.strength === 1 ? 'text-red-500' :
-                          passwordStrength.strength === 2 ? 'text-yellow-500' : 'text-green-500'
+                          passwordStrength.strength === 1 ? 'text-red-400' :
+                          passwordStrength.strength === 2 ? 'text-yellow-400' : 'text-green-400'
                         }`}>
                           {passwordStrength.label}
                         </span>
@@ -404,12 +415,12 @@ export const SignupPage: React.FC = () => {
                     </div>
                   )}
                   {errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                    <p className="text-red-400 text-xs mt-1">{errors.password}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Confirm Password *
                   </label>
                   <input
@@ -417,20 +428,20 @@ export const SignupPage: React.FC = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-700'
                     }`}
                     placeholder="Confirm your password"
                   />
                   {errors.confirmPassword && (
-                    <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                    <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
 
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 mt-4"
+                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3.5 sm:py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02] transition-all duration-300 mt-6"
                 >
                   Continue
                 </button>
@@ -438,11 +449,11 @@ export const SignupPage: React.FC = () => {
             )}
 
             {step === 2 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">About You</h2>
+              <div className="space-y-4 sm:space-y-5">
+                <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">About You</h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Date of Birth *
                   </label>
                   <input
@@ -451,37 +462,37 @@ export const SignupPage: React.FC = () => {
                     value={formData.dateOfBirth}
                     onChange={handleChange}
                     max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition ${
+                      errors.dateOfBirth ? 'border-red-500' : 'border-gray-700'
                     }`}
                   />
                   {errors.dateOfBirth && (
-                    <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+                    <p className="text-red-400 text-xs mt-1">{errors.dateOfBirth}</p>
                   )}
                   <p className="text-gray-500 text-xs mt-1">You must be at least 18 years old</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Gender *
                   </label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition ${
-                      errors.gender ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl bg-gray-800/50 border text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition ${
+                      errors.gender ? 'border-red-500' : 'border-gray-700'
                     }`}
                   >
-                    <option value="">Select your gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non_binary">Non-binary</option>
-                    <option value="other">Other</option>
-                    <option value="prefer_not_to_say">Prefer not to say</option>
+                    <option value="" className="bg-gray-800">Select your gender</option>
+                    <option value="male" className="bg-gray-800">Male</option>
+                    <option value="female" className="bg-gray-800">Female</option>
+                    <option value="non_binary" className="bg-gray-800">Non-binary</option>
+                    <option value="other" className="bg-gray-800">Other</option>
+                    <option value="prefer_not_to_say" className="bg-gray-800">Prefer not to say</option>
                   </select>
                   {errors.gender && (
-                    <p className="text-red-500 text-xs mt-1">{errors.gender}</p>
+                    <p className="text-red-400 text-xs mt-1">{errors.gender}</p>
                   )}
                 </div>
 
@@ -492,35 +503,35 @@ export const SignupPage: React.FC = () => {
                     id="agreeToTerms"
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
-                    className="mt-1 w-4 h-4 rounded bg-gray-50 border-gray-300 text-pink-500 focus:ring-pink-500/50"
+                    className="mt-1 w-4 h-4 rounded bg-gray-800 border-gray-600 text-pink-500 focus:ring-pink-500/50"
                   />
-                  <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
+                  <label htmlFor="agreeToTerms" className="text-sm text-gray-400">
                     I agree to the{' '}
-                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-600 hover:underline">
+                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300 hover:underline">
                       Terms of Service
                     </a>{' '}
                     and{' '}
-                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-600 hover:underline">
+                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300 hover:underline">
                       Privacy Policy
                     </a>
                   </label>
                 </div>
                 {errors.agreeToTerms && (
-                  <p className="text-red-500 text-xs">{errors.agreeToTerms}</p>
+                  <p className="text-red-400 text-xs">{errors.agreeToTerms}</p>
                 )}
 
-                <div className="flex gap-3 mt-6">
+                <div className="flex gap-3 sm:gap-4 mt-8">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                    className="flex-1 px-4 py-3 sm:py-3.5 border border-gray-600 text-gray-300 rounded-xl font-semibold hover:bg-gray-800/50 hover:border-gray-500 transition"
                   >
                     Back
                   </button>
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                    className="flex-[1.5] bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 sm:py-3.5 rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02] transition-all duration-300"
                   >
                     Continue
                   </button>
@@ -529,61 +540,117 @@ export const SignupPage: React.FC = () => {
             )}
 
             {step === 3 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">Upload Your Photos</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Add at least {MIN_PHOTOS_REQUIRED} photos to help others get to know you better
-                </p>
+              <div className="space-y-5 sm:space-y-6">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">Upload Your Photos</h2>
+                  {/* Enhanced instruction with better visibility */}
+                  <div className="flex items-center gap-2 bg-pink-500/10 border border-pink-500/20 rounded-lg px-3 py-2">
+                    <svg className="w-5 h-5 text-pink-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-pink-300 font-medium">
+                      Add at least {MIN_PHOTOS_REQUIRED} photos to continue
+                    </p>
+                  </div>
+                </div>
 
-                {/* Photo Grid */}
-                <div className="grid grid-cols-3 gap-3">
-                  {[0, 1, 2, 3, 4, 5].map((index) => (
-                    <div
-                      key={index}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 border-dashed transition-all ${
-                        index < MIN_PHOTOS_REQUIRED && !photos[index]
-                          ? 'border-pink-400 bg-pink-50'
-                          : 'border-gray-300 bg-gray-50'
-                      }`}
-                    >
-                      {photos[index] ? (
-                        <>
-                          <img
-                            src={photos[index].url}
-                            alt={`Photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
+                {/* Required Photos Section */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Required Photos</p>
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                    {[0, 1, 2].map((index) => (
+                      <div
+                        key={index}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                          photos[index]
+                            ? 'border-pink-500/50 bg-gray-800'
+                            : 'border-dashed border-pink-500/50 bg-pink-500/5 hover:bg-pink-500/10'
+                        }`}
+                      >
+                        {photos[index] ? (
+                          <>
+                            <img
+                              src={photos[index].url}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePhoto(index)}
+                              className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg transition"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                            {index === 0 && (
+                              <span className="absolute bottom-2 left-2 text-xs bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2.5 py-1 rounded-full font-medium shadow-lg">
+                                Main
+                              </span>
+                            )}
+                          </>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => handleRemovePhoto(index)}
-                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full h-full flex flex-col items-center justify-center text-pink-400 hover:text-pink-300 transition"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
+                            <span className="text-xs font-medium">Required</span>
                           </button>
-                          {index === 0 && (
-                            <span className="absolute bottom-1 left-1 text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">
-                              Main
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 transition"
-                        >
-                          <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          <span className="text-xs">
-                            {index < MIN_PHOTOS_REQUIRED ? 'Required' : 'Optional'}
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optional Photos Section */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Optional Photos</p>
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                    {[3, 4, 5].map((index) => (
+                      <div
+                        key={index}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                          photos[index]
+                            ? 'border-gray-600 bg-gray-800'
+                            : 'border-dashed border-gray-700 bg-gray-800/30 hover:bg-gray-800/50'
+                        }`}
+                      >
+                        {photos[index] ? (
+                          <>
+                            <img
+                              src={photos[index].url}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePhoto(index)}
+                              className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg transition"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full h-full flex flex-col items-center justify-center text-gray-500 hover:text-gray-400 transition"
+                          >
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span className="text-xs">Optional</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <input
@@ -596,42 +663,43 @@ export const SignupPage: React.FC = () => {
                 />
 
                 {/* Photo count indicator */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className={`font-medium ${photos.length >= MIN_PHOTOS_REQUIRED ? 'text-green-600' : 'text-pink-600'}`}>
+                <div className="flex items-center justify-between text-sm bg-gray-800/50 rounded-lg px-4 py-3">
+                  <span className={`font-medium ${photos.length >= MIN_PHOTOS_REQUIRED ? 'text-green-400' : 'text-pink-400'}`}>
                     {photos.length} / {MIN_PHOTOS_REQUIRED} required photos
                   </span>
                   {photos.length >= MIN_PHOTOS_REQUIRED && (
-                    <span className="flex items-center gap-1 text-green-600">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <span className="flex items-center gap-1.5 text-green-400 font-medium">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      Ready!
+                      Ready to continue!
                     </span>
                   )}
                 </div>
 
                 {errors.photos && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                  <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
                     {errors.photos}
                   </div>
                 )}
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 leading-relaxed">
                   Tips: Use clear, recent photos. Show your face in your main photo. Avoid group photos for your first picture.
                 </p>
 
-                <div className="flex gap-3 mt-6">
+                {/* Buttons with proper spacing and visual weight */}
+                <div className="flex gap-3 sm:gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                    className="flex-1 px-4 py-3.5 sm:py-4 border border-gray-600 text-gray-300 rounded-xl font-semibold hover:bg-gray-800/50 hover:border-gray-500 transition"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-[1.5] bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3.5 sm:py-4 rounded-xl font-bold text-base hover:shadow-xl hover:shadow-pink-500/30 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -648,10 +716,10 @@ export const SignupPage: React.FC = () => {
             )}
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 sm:mt-8 text-center">
             <p className="text-sm text-gray-500">
               Already have an account?{' '}
-              <Link to="/login" className="text-pink-500 hover:text-pink-600 font-medium">
+              <Link to="/login" className="text-pink-400 hover:text-pink-300 font-medium transition">
                 Sign in
               </Link>
             </p>
@@ -659,7 +727,10 @@ export const SignupPage: React.FC = () => {
         </div>
       </div>
 
-      <AIAvatarSystem initialContext="welcome" />
+      {/* AI Avatar positioned to not overlap main content */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+        <AIAvatarSystem initialContext="welcome" />
+      </div>
     </div>
   );
 };
