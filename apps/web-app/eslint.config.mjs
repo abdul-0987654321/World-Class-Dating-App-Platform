@@ -7,7 +7,7 @@ import tsParser from '@typescript-eslint/parser';
 export default [
   js.configs.recommended,
   {
-    ignores: ['dist/**', 'node_modules/**', 'build/**', '**/*.cjs'],
+    ignores: ['dist/**', 'node_modules/**', 'build/**', '**/*.cjs', 'cypress/**'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],

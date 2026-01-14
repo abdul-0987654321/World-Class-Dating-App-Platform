@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "migrate": "knex migrate:latest --knexfile src/infrastructure/database/knexfile.ts",

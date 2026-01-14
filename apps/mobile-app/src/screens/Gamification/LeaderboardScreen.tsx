@@ -51,7 +51,7 @@ const LeaderboardScreen: React.FC = () => {
   useEffect(() => {
     const loadLeaderboard = async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
-      let data = getMockLeaderboard();
+      const data = getMockLeaderboard();
       if (leaderboardType === 'streak') data.sort((a, b) => b.streak - a.streak).forEach((e, i) => e.rank = i + 1);
       else if (leaderboardType === 'achievements') data.sort((a, b) => b.achievements - a.achievements).forEach((e, i) => e.rank = i + 1);
       setLeaderboard(data);

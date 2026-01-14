@@ -289,13 +289,14 @@ export function handleErrorByStatus(error: ProcessedError): void {
       // Don't show an alert, let the form display the errors
       break;
 
-    case 429:
+    case 429: {
       // Show cooldown message with retry timer
       const retryMessage = retryAfter
         ? `${userMessage} Try again in ${retryAfter} seconds.`
         : userMessage;
       globalConfig.showAlert?.(retryMessage, 'warning');
       break;
+    }
 
     case 500:
       // Show friendly error with retry option

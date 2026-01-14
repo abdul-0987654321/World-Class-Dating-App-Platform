@@ -128,12 +128,8 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
       // API call to verify code
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // For demo purposes, accept code "123456"
-      if (code === '123456' || true) {
-        setStep('reset');
-      } else {
-        Alert.alert('Error', 'Invalid verification code. Please try again.');
-      }
+      // For demo purposes, always accept any code
+      setStep('reset');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to verify code');
     } finally {

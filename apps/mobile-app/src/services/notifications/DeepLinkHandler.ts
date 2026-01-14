@@ -67,7 +67,7 @@ export class DeepLinkHandler {
   private parseDeepLink(url: string): { screen: string; params?: any } | null {
     try {
       // Remove scheme and prefix
-      let path = url
+      const path = url
         .replace(`${this.config.scheme}://`, '')
         .replace(this.config.prefix, '')
         .replace(/^\//, '');
