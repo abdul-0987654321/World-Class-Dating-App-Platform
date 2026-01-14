@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Navigation } from '../../components/Navigation';
 
 export const PaymentSuccessPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +29,9 @@ export const PaymentSuccessPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+      <Navigation />
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-64px)]">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
         {/* Success Icon */}
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
@@ -103,6 +106,7 @@ export const PaymentSuccessPage: React.FC = () => {
             Contact Support
           </button>
         </p>
+      </div>
       </div>
     </div>
   );

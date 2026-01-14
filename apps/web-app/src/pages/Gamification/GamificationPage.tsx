@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authTokenService } from '../../services/auth-token.service';
+import Navigation from '../../components/Navigation';
 
 interface Streak {
   currentStreak: number;
@@ -167,22 +168,7 @@ export const GamificationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-page)' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Flamoral
-          </h1>
-          <nav className="flex items-center gap-4">
-            <button onClick={() => navigate('/discover')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Discover</button>
-            <button onClick={() => navigate('/matches')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Matches</button>
-            <button onClick={() => navigate('/messages')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Messages</button>
-            <button onClick={() => navigate('/communities')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Communities</button>
-            <button onClick={() => navigate('/rewards')} style={{ color: 'var(--accent-pink)' }} className="font-medium">Rewards</button>
-            <button onClick={() => navigate('/profile')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Profile</button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Wallet Banner - Uses coin/gem colors from design tokens */}

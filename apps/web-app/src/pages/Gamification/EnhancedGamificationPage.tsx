@@ -5,6 +5,7 @@ import { AchievementBadgeCard, AchievementBadge } from '../../components/gamific
 import { StreakDisplay, StreakData } from '../../components/gamification/StreakDisplay';
 import { CoinWallet, CoinBalance, CoinTransaction } from '../../components/gamification/CoinWallet';
 import { authTokenService } from '../../services/auth-token.service';
+import Navigation from '../../components/Navigation';
 
 interface GamificationDashboard {
   dailyRewards: {
@@ -326,21 +327,7 @@ export const EnhancedGamificationPage: React.FC = () => {
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Flamoral
-          </h1>
-          <nav className="flex items-center gap-4">
-            <button onClick={() => navigate('/discover')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Discover</button>
-            <button onClick={() => navigate('/matches')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Matches</button>
-            <button onClick={() => navigate('/messages')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Messages</button>
-            <button style={{ color: 'var(--accent-pink)' }} className="font-medium">Rewards</button>
-            <button onClick={() => navigate('/profile')} style={{ color: 'var(--text-secondary)' }} className="hover:opacity-80">Profile</button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Level & XP Bar */}

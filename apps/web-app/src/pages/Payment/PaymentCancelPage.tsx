@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Navigation } from '../../components/Navigation';
 
 export const PaymentCancelPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100">
+      <Navigation />
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-64px)]">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
         {/* Cancel Icon */}
         <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -50,6 +53,7 @@ export const PaymentCancelPage: React.FC = () => {
             Contact Support
           </button>
         </p>
+      </div>
       </div>
     </div>
   );

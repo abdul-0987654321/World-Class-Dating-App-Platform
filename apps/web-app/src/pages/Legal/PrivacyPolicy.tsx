@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { Navigation } from '../../components/Navigation';
 
 export const PrivacyPolicy: React.FC = () => {
   useEffect(() => {
@@ -10,6 +11,7 @@ export const PrivacyPolicy: React.FC = () => {
   // Always render static content immediately - no blocking API calls
   return (
     <Container>
+      <Navigation />
       <BackLink to="/">← Back to Flamoral</BackLink>
       <Content>
         <StaticPrivacyPolicy />

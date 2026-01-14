@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authTokenService } from '../../services/auth-token.service';
+import Navigation from '../../components/Navigation';
 
 interface Community {
   id: string;
@@ -166,23 +167,9 @@ export const CommunitiesPage: React.FC = () => {
   }
 
   return (
+    <>
+    <Navigation />
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            Flamoral
-          </h1>
-          <nav className="flex items-center gap-4">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-pink-500">Discover</button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-pink-500">Matches</button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-pink-500">Messages</button>
-            <button onClick={() => navigate('/communities')} className="text-pink-500 font-medium">Communities</button>
-            <button onClick={() => navigate('/rewards')} className="text-gray-600 hover:text-pink-500">Rewards</button>
-            <button onClick={() => navigate('/profile')} className="text-gray-600 hover:text-pink-500">Profile</button>
-          </nav>
-        </div>
-      </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* Page Title */}
@@ -421,6 +408,7 @@ export const CommunitiesPage: React.FC = () => {
         </div>
       </main>
     </div>
+    </>
   );
 };
 

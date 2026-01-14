@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { messagingService, Conversation as ServiceConversation, Message as ServiceMessage } from '../../services';
 import FlamoralBackground from '../../components/theme/FlamoralBackground';
+import Navigation from '../../components/Navigation';
 
 interface Conversation {
   id: string;
@@ -136,31 +137,7 @@ export const MessagesPage: React.FC = () => {
   return (
     <FlamoralBackground>
       <div className="min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="bg-fm-surface/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-fm-pink to-fm-blue bg-clip-text text-transparent">
-              Flamoral
-            </h1>
-            <nav className="flex items-center gap-6">
-              <button onClick={() => navigate('/discover')} className="text-fm-text-secondary hover:text-fm-pink transition">
-                Discover
-              </button>
-              <button onClick={() => navigate('/matches')} className="text-fm-text-secondary hover:text-fm-pink transition">
-                Matches
-              </button>
-              <button onClick={() => navigate('/messages')} className="text-fm-pink font-medium">
-                Messages
-              </button>
-              <button onClick={() => navigate('/profile')} className="text-fm-text-secondary hover:text-fm-pink transition">
-                Profile
-              </button>
-              <button onClick={() => navigate('/safety')} className="text-fm-text-secondary hover:text-fm-pink transition">
-                Safety
-              </button>
-            </nav>
-          </div>
-        </header>
+        <Navigation />
 
         {/* Main Content */}
         <div className="flex-1 flex max-w-6xl mx-auto w-full">

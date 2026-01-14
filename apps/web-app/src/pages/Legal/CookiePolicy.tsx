@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { Navigation } from '../../components/Navigation';
 
 export const CookiePolicy: React.FC = () => {
   useEffect(() => {
@@ -9,6 +10,7 @@ export const CookiePolicy: React.FC = () => {
 
   return (
     <Container>
+      <Navigation />
       <BackLink to="/">← Back to Flamoral</BackLink>
       <Content>
         <Header>

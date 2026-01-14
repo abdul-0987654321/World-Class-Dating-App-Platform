@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, profileService } from '../../services';
+import Navigation from '../../components/Navigation';
 
 // Gender-based background configurations
 const genderBackgrounds = {
@@ -158,37 +159,7 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ background: bg.main }}>
-      {/* Header */}
-      <header
-        className="backdrop-blur-md border-b sticky top-0 z-40"
-        style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: bg.border,
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-fm-pink to-fm-blue bg-clip-text text-transparent">
-            Flamoral
-          </h1>
-          <nav className="flex items-center gap-6">
-            <button onClick={() => navigate('/discover')} className="text-gray-600 hover:text-gray-900 transition">
-              Discover
-            </button>
-            <button onClick={() => navigate('/matches')} className="text-gray-600 hover:text-gray-900 transition">
-              Matches
-            </button>
-            <button onClick={() => navigate('/messages')} className="text-gray-600 hover:text-gray-900 transition">
-              Messages
-            </button>
-            <button onClick={() => navigate('/profile')} style={{ color: bg.accent }} className="font-medium">
-              Profile
-            </button>
-            <button onClick={() => navigate('/safety')} className="text-gray-600 hover:text-gray-900 transition">
-              Safety
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
