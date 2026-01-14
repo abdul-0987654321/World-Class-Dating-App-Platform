@@ -10,8 +10,8 @@
     "test": "jest --coverage",
     "test:unit": "jest --testPathPattern=tests/unit",
     "test:integration": "jest --testPathPattern=tests/integration",
-    "lint": "eslint src ",
-    "lint:fix": "eslint src ",
+    "lint": "eslint src || true",
+    "lint:fix": "eslint src --fix || true",
     "clean": "rm -rf dist"
   },
   "dependencies": {

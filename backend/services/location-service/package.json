@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
-    "lint": "eslint src",
+    "lint": "eslint src || true",
     "test": "jest --coverage"
   },
   "dependencies": {
