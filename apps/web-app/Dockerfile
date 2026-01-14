@@ -72,8 +72,8 @@ RUN chown -R appuser:nodejs /usr/share/nginx/html && \
 # Switch to non-root user
 USER appuser
 
-# Expose port
-EXPOSE 80
+# Expose port (non-privileged for ECS Fargate)
+EXPOSE 8080
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
