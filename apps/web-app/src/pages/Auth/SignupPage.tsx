@@ -181,7 +181,9 @@ export const SignupPage: React.FC = () => {
       });
 
       // Verify registration was successful
-      if (response && response.token) {
+      // Note: With httpOnly cookie authentication, tokens are NOT in the response body
+      // We check for the user object to confirm successful registration
+      if (response && response.user) {
         // Store gender for profile background color
         localStorage.setItem('userGender', formData.gender);
 
@@ -193,7 +195,7 @@ export const SignupPage: React.FC = () => {
           window.location.href = '/discover';
         }
       } else {
-        throw new Error('Registration failed - no token received');
+        throw new Error('Registration failed - no user data received');
       }
     } catch (err: any) {
       setErrors({ general: err.message || 'Registration failed. Please try again.' });

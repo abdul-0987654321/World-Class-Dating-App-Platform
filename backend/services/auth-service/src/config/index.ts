@@ -88,6 +88,25 @@ export const config = {
     from: process.env.EMAIL_FROM || 'noreply@flamoral.com',
   },
 
+  // Security - Email Verification
+  // SECURITY: Email verification is REQUIRED by default in production
+  // Only disable in development/testing with explicit opt-out
+  requireEmailVerification: (() => {
+    const envValue = process.env.REQUIRE_EMAIL_VERIFICATION;
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // In production, default to true unless explicitly disabled
+    if (isProduction) {
+      if (envValue === 'false') {
+        console.warn('WARNING: Email verification is disabled in production. This is a security risk.');
+      }
+      return envValue !== 'false'; // Default true in production
+    }
+
+    // In development/test, default to false but allow enabling
+    return envValue === 'true';
+  })(),
+
   // AWS Configuration
   aws: {
     region: process.env.AWS_REGION || 'us-east-1',
