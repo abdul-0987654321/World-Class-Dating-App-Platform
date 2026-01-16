@@ -3,8 +3,31 @@
  * Allows users to search and select GIFs from Giphy/Tenor
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import debounce from 'lodash/debounce';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+
+// Custom debounce hook to avoid lodash dependency
+function useDebounce<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): T {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
+  return useMemo(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const debouncedFn = ((...args: Parameters<T>) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        callbackRef.current(...args);
+      }, delay);
+    }) as T;
+
+    return debouncedFn;
+  }, [delay]);
+}
 
 interface Gif {
   id: string;
@@ -102,11 +125,8 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose, isOpen 
     }));
   };
 
-  // Debounced search
-  const debouncedSearch = useCallback(
-    debounce((query: string) => searchGifs(query), 300),
-    []
-  );
+  // Debounced search using custom hook
+  const debouncedSearch = useDebounce((query: string) => searchGifs(query), 300);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
