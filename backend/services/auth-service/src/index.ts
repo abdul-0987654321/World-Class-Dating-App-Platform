@@ -1,4 +1,5 @@
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response, NextFunction } from 'express';
@@ -47,6 +48,9 @@ app.use(
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Cookie parsing (required for httpOnly cookie-based auth)
+app.use(cookieParser());
 
 // Health check endpoint - MUST be before rate limiting for K8s probes
 app.get('/health', async (req: Request, res: Response) => {

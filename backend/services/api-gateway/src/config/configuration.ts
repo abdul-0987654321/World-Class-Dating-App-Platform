@@ -75,12 +75,13 @@ export default () => ({
         })()
       : 'dev-internal-service-key-32chars!'),
 
-  // Redis Configuration
+  // Redis Configuration - SECURITY: No localhost fallbacks in production
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    host: process.env.REDIS_HOST || (process.env.NODE_ENV === 'development' ? 'localhost' : (() => { throw new Error('REDIS_HOST required in production'); })()),
+    port: parseInt(process.env.REDIS_PORT, 10) || (process.env.NODE_ENV === 'development' ? 6379 : (() => { throw new Error('REDIS_PORT required in production'); })()),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB, 10) || 0,
+    url: process.env.REDIS_URL,
   },
 
   // Rate limiting

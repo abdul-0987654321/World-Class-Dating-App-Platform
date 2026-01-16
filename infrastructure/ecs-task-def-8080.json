@@ -1,0 +1,40 @@
+{
+  "family": "flamoral-prod-web-app",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::992382449461:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "web-app",
+      "image": "992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:4aef53b170c5bde1c17832f7792352e8de6b8b0d",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "NODE_ENV", "value": "production"},
+        {"name": "PORT", "value": "8080"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/flamoral-prod-web-app",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "web-app"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

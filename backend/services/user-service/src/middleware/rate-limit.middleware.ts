@@ -11,8 +11,12 @@ const initRedis = async () => {
   if (!redisClient) {
     try {
       const redis = require('redis');
+      const redisHost = process.env.REDIS_HOST || 'localhost';
+      const redisPort = process.env.REDIS_PORT || '6379';
+      const redisPassword = process.env.REDIS_PASSWORD;
+      const redisUrl = process.env.REDIS_URL || `redis://${redisPassword ? `:${redisPassword}@` : ''}${redisHost}:${redisPort}`;
       redisClient = redis.createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        url: redisUrl,
       });
 
       redisClient.on('error', (err: Error) => {

@@ -1,0 +1,44 @@
+{
+  "family": "flamoral-prod-web-app",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::992382449461:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "web-app",
+      "image": "992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/web-app:1764135b1b29271518b7a8a569a6eaa5b8029793",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "NODE_ENV", "value": "production"},
+        {"name": "PORT", "value": "3000"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/flamoral-prod-web-app",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "web-app"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ],
+  "tags": [
+    {"key": "Environment", "value": "prod"},
+    {"key": "Project", "value": "Flamoral"}
+  ]
+}

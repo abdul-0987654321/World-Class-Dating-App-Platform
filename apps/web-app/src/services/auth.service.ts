@@ -45,9 +45,9 @@ export interface SessionResponse {
 
 export interface LoginResponse {
   user: User;
-  token: string;
-  accessToken?: string; // Backend returns accessToken
-  refreshToken?: string;
+  token?: string; // Deprecated: tokens now in httpOnly cookies
+  accessToken?: string; // Deprecated: tokens now in httpOnly cookies
+  refreshToken?: string; // Deprecated: tokens now in httpOnly cookies
 }
 
 export interface RegisterData {
@@ -70,19 +70,19 @@ class AuthService {
       return mockApi.login(email, password);
     }
 
-    // Backend returns { success: true, data: { user, accessToken, refreshToken } }
-    const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
+    // Backend returns { success: true, data: { user } }
+    // Tokens are now set in httpOnly cookies by the backend (not in response body)
+    const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
       '/api/v1/auth/login',
       { email, password },
       { skipAuth: true, skipCsrf: true }
     );
 
-    // Transform to LoginResponse format
+    // Create LoginResponse with user data only
+    // Tokens are in httpOnly cookies, not accessible to JavaScript (XSS protection)
     const loginResponse: LoginResponse = {
       user: response.data.user,
-      token: response.data.accessToken,
-      accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken,
+      // Note: tokens are no longer in the response - they're in httpOnly cookies
     };
 
     this.saveSession(loginResponse);
@@ -124,19 +124,19 @@ class AuthService {
       },
     };
 
-    // Backend returns { success: true, data: { user, accessToken, refreshToken } }
-    const response = await apiClient.post<{ success: boolean; data: { user: User; accessToken: string; refreshToken: string } }>(
+    // Backend returns { success: true, data: { user } }
+    // Tokens are now set in httpOnly cookies by the backend (not in response body)
+    const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
       '/api/v1/auth/register',
       backendData,
       { skipAuth: true, skipCsrf: true }
     );
 
-    // Transform to LoginResponse format
+    // Create LoginResponse with user data only
+    // Tokens are in httpOnly cookies, not accessible to JavaScript (XSS protection)
     const loginResponse: LoginResponse = {
       user: response.data.user,
-      token: response.data.accessToken,
-      accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken,
+      // Note: tokens are no longer in the response - they're in httpOnly cookies
     };
 
     this.saveSession(loginResponse);
@@ -319,20 +319,31 @@ class AuthService {
     return entitlements.features.includes(feature) || entitlements.features.includes('all');
   }
 
-  async refreshToken(): Promise<LoginResponse> {
-    const refreshToken = authTokenService.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
+  async refreshToken(): Promise<void> {
+    // In production, refresh token is in httpOnly cookie and sent automatically
+    // The backend will set new tokens in httpOnly cookies
+    const isMock = !import.meta.env.VITE_API_URL;
+
+    if (isMock) {
+      // Mock mode: use the old flow for development compatibility
+      const refreshToken = authTokenService.getRefreshToken();
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      // Mock doesn't need actual refresh - just keep existing state
+      return;
     }
 
-    const response = await apiClient.post<LoginResponse>(
+    // Production: call refresh endpoint, cookies are sent/set automatically
+    await apiClient.post<{ success: boolean; message: string }>(
       '/api/v1/auth/refresh-token',
-      { refreshToken },
+      {}, // No body needed - refresh token is in httpOnly cookie
       { skipAuth: true, skipCsrf: true }
     );
 
-    this.saveSession(response);
-    return response;
+    // Tokens are refreshed in httpOnly cookies by the backend
+    // Update authentication state
+    authTokenService.setAuthenticated(true);
   }
 
   async forgotPassword(email: string): Promise<void> {
@@ -384,10 +395,20 @@ class AuthService {
   }
 
   private saveSession(response: LoginResponse): void {
-    authTokenService.setTokens(response.token, response.refreshToken);
-    sessionStorage.setItem('currentUser', JSON.stringify(response.user));
-    if (response.refreshToken) {
+    // In production, tokens are in httpOnly cookies set by the backend
+    // We only store the user data and update auth state
+    const isMock = !import.meta.env.VITE_API_URL;
+
+    if (isMock && response.token) {
+      // Mock mode: store tokens in sessionStorage for development
+      authTokenService.setTokens(response.token, response.refreshToken);
+    } else {
+      // Production: just mark as authenticated (tokens are in httpOnly cookies)
+      authTokenService.setAuthenticated(true);
     }
+
+    // Store user data for UI purposes
+    sessionStorage.setItem('currentUser', JSON.stringify(response.user));
   }
 
   private clearSession(): void {

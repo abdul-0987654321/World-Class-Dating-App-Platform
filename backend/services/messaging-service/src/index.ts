@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 
 import apiRoutes from './api/routes';
+import { authenticate, AuthRequest } from './api/middleware/auth.middleware';
 import internalRoutes from './api/routes/internal.routes';
 import { postgresClient } from './infrastructure/database/postgres-client';
 import { SocketManager } from './socket/socket-manager';

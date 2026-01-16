@@ -1,3 +1,4 @@
+import { config } from '../../config';
 import redisCache from '../../infrastructure/cache/redis';
 import emailService from '../../infrastructure/email/email.service';
 import { hashPassword, comparePassword } from '../../utils/encryption';
@@ -141,10 +142,9 @@ class AuthService {
       throw new Error('Account is deactivated');
     }
 
-    // Email verification check - configurable via environment variable
-    // Set REQUIRE_EMAIL_VERIFICATION=true in production when email service is configured
-    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
-    if (requireEmailVerification && !user.is_email_verified) {
+    // Email verification check - REQUIRED by default in production
+    // Uses centralized config which defaults to true in production, false in development
+    if (config.requireEmailVerification && !user.is_email_verified) {
       // Allow resending verification email
       this.sendVerificationEmail(user).catch((error) =>
         logger.warn('Failed to resend verification email', error)

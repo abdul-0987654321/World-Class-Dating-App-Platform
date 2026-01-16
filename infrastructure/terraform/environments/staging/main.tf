@@ -47,8 +47,8 @@ module "networking" {
 module "secrets" {
   source = "../../modules/secrets"
 
-  project     = "flamoral"
-  environment = var.environment
+  project_name = "flamoral"
+  environment  = var.environment
 }
 
 module "rds" {
@@ -92,6 +92,7 @@ module "ecs" {
   environment        = var.environment
   aws_region         = var.aws_region
   vpc_id             = module.networking.vpc_id
+  vpc_cidr           = var.vpc_cidr
   public_subnet_ids  = module.networking.public_subnet_ids
   private_subnet_ids = module.networking.private_subnet_ids
 

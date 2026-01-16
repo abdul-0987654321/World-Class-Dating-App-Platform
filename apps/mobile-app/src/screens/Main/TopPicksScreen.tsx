@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   Dimensions,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -116,6 +117,14 @@ const TopPicksScreen = ({ navigation }: any) => {
     navigation.navigate('SuperLikeModal', { profile: pick });
   };
 
+  const handleShowInfo = () => {
+    Alert.alert(
+      'About Top Picks',
+      'Top Picks are premium matches curated daily just for you based on your preferences, activity, and compatibility scores.\n\n• Refreshes every 24 hours\n• Higher compatibility scores\n• Verified profiles prioritized\n• Based on your interests and preferences',
+      [{ text: 'Got it', style: 'default' }]
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -143,7 +152,7 @@ const TopPicksScreen = ({ navigation }: any) => {
           <Text style={styles.headerTitle}>Top Picks</Text>
         </View>
 
-        <TouchableOpacity onPress={() => {}}>
+        <TouchableOpacity onPress={handleShowInfo}>
           <Icon name="information-outline" size={28} color="#333" />
         </TouchableOpacity>
       </View>

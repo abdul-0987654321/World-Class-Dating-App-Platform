@@ -83,20 +83,37 @@ export class CsrfMiddleware implements NestMiddleware, OnModuleInit, OnModuleDes
 
   private async initRedis(): Promise<void> {
     try {
-      this.redis = new Redis({
-        host: this.configService.get<string>('redis.host') || 'localhost',
-        port: this.configService.get<number>('redis.port') || 6379,
-        password: this.configService.get<string>('redis.password'),
-        db: this.configService.get<number>('redis.db') || 0,
-        retryStrategy: (times: number) => {
-          if (times > 3) {
-            this.logger.warn('Redis connection failed, CSRF will use cookie-only validation');
-            return null;
-          }
-          return Math.min(times * 100, 3000);
-        },
-        lazyConnect: true,
-      });
+      // Initialize Redis using environment variables via ConfigService
+      // Note: Fallbacks are now handled in configuration.ts with production validation
+      const redisUrl = this.configService.get<string>('redis.url');
+
+      if (redisUrl) {
+        this.redis = new Redis(redisUrl, {
+          retryStrategy: (times: number) => {
+            if (times > 3) {
+              this.logger.warn('Redis connection failed, CSRF will use cookie-only validation');
+              return null;
+            }
+            return Math.min(times * 100, 3000);
+          },
+          lazyConnect: true,
+        });
+      } else {
+        this.redis = new Redis({
+          host: this.configService.get<string>('redis.host'),
+          port: this.configService.get<number>('redis.port'),
+          password: this.configService.get<string>('redis.password'),
+          db: this.configService.get<number>('redis.db') || 0,
+          retryStrategy: (times: number) => {
+            if (times > 3) {
+              this.logger.warn('Redis connection failed, CSRF will use cookie-only validation');
+              return null;
+            }
+            return Math.min(times * 100, 3000);
+          },
+          lazyConnect: true,
+        });
+      }
 
       this.redis.on('error', (error) => {
         this.logger.error('Redis connection error in CSRF middleware:', error.message);

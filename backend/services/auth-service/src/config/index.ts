@@ -78,10 +78,34 @@ export const config = {
     };
   })(),
 
-  // Redis
-  redis: {
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-  },
+  // Redis - Support both REDIS_URL and individual variables
+  redis: (() => {
+    // If REDIS_URL is provided, use it directly
+    if (process.env.REDIS_URL) {
+      return {
+        url: process.env.REDIS_URL,
+        host: undefined,
+        port: undefined,
+        password: undefined,
+      };
+    }
+
+    // Otherwise, construct URL from individual variables
+    const host = process.env.REDIS_HOST || 'localhost';
+    const port = parseInt(process.env.REDIS_PORT || '6379', 10);
+    const password = process.env.REDIS_PASSWORD;
+
+    // Build Redis URL from components
+    const auth = password ? `:${encodeURIComponent(password)}@` : '';
+    const url = `redis://${auth}${host}:${port}`;
+
+    return {
+      url,
+      host,
+      port,
+      password,
+    };
+  })(),
 
   // Email - AWS SES
   email: {

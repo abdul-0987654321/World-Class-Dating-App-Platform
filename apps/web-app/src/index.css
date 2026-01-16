@@ -1,12 +1,14 @@
 /* Tailwind CSS v4 - Load with v3 config compatibility */
+/* NOTE: All @import statements must come first (CSS spec requirement) */
 @import "tailwindcss";
+@import "./styles/design-system.css";
+
 @config "../tailwind.config.js";
 
 /* ============================================================================
    FLAMORAL UNIFIED DESIGN SYSTEM
    Single source of truth for all design tokens
    ============================================================================ */
-@import "./styles/design-system.css";
 
 :root {
   /* Legacy aliases for backwards compatibility - map to new tokens */

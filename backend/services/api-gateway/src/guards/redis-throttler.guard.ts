@@ -11,13 +11,20 @@ export class RedisThrottlerGuard implements CanActivate {
   private readonly ttl: number;
 
   constructor(private readonly configService: ConfigService) {
-    // Initialize Redis connection
-    this.redis = new Redis({
-      host: this.configService.get<string>('redis.host') || 'localhost',
-      port: this.configService.get<number>('redis.port') || 6379,
-      password: this.configService.get<string>('redis.password'),
-      db: this.configService.get<number>('redis.db') || 0,
-    });
+    // Initialize Redis connection using environment variables via ConfigService
+    // Note: Fallbacks are now handled in configuration.ts with production validation
+    const redisUrl = this.configService.get<string>('redis.url');
+
+    if (redisUrl) {
+      this.redis = new Redis(redisUrl);
+    } else {
+      this.redis = new Redis({
+        host: this.configService.get<string>('redis.host'),
+        port: this.configService.get<number>('redis.port'),
+        password: this.configService.get<string>('redis.password'),
+        db: this.configService.get<number>('redis.db') || 0,
+      });
+    }
 
     this.limit = this.configService.get<number>('THROTTLE_LIMIT') || 100;
     this.ttl = this.configService.get<number>('THROTTLE_TTL') || 60000;

@@ -40,6 +40,7 @@ const generateCorrelationId = (): string => {
  * JWT authentication middleware
  * Validates access tokens, checks user status (banned check), and attaches user info to request
  * SECURITY: Includes banned user check - returns 403 if user is banned
+ * SECURITY: Reads tokens from httpOnly cookies first (XSS protection), falls back to Authorization header
  */
 export const authenticate = async (
   req: AuthRequest,
@@ -51,17 +52,27 @@ export const authenticate = async (
     req.correlationId = (req.headers['x-correlation-id'] as string) || generateCorrelationId();
     res.setHeader('X-Correlation-ID', req.correlationId);
 
-    const authHeader = req.headers.authorization;
+    // SECURITY: Check httpOnly cookie first (preferred, XSS-safe), then fall back to Authorization header
+    let token: string | undefined;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Try to get token from httpOnly cookie first
+    if (req.cookies?.access_token) {
+      token = req.cookies.access_token;
+    } else {
+      // Fallback to Authorization header for backwards compatibility and mobile apps
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         error: 'No token provided',
         correlationId: req.correlationId,
       });
     }
-
-    const token = authHeader.substring(7);
 
     // Check if token is blacklisted
     const isBlacklisted = await redisCache.isTokenBlacklisted(token);

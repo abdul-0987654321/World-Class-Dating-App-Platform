@@ -22,9 +22,17 @@ export const validationSchema = Joi.object({
   MODERATION_SERVICE_URL: Joi.string().uri().default('http://localhost:3008'),
   AI_SERVICE_URL: Joi.string().uri().default('http://localhost:8000'),
 
-  // Redis
-  REDIS_HOST: Joi.string().default('localhost'),
-  REDIS_PORT: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)).default(6379),
+  // Redis - SECURITY: No defaults for host/port in production (enforced in configuration.ts)
+  REDIS_HOST: Joi.string().when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: Joi.string().default('localhost'),
+  }),
+  REDIS_PORT: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)).when('NODE_ENV', {
+    is: 'production',
+    then: Joi.required(),
+    otherwise: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)).default(6379),
+  }),
   REDIS_PASSWORD: Joi.string().optional().allow(''),
   REDIS_DB: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)).default(0),
   REDIS_URL: Joi.string().optional().allow(''),

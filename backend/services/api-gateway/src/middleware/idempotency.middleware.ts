@@ -56,9 +56,31 @@ export class IdempotencyMiddleware implements NestMiddleware {
   }
 
   private initRedis(): void {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    // Use environment variables - no hardcoded localhost fallback in production
+    // REDIS_URL takes precedence, otherwise build URL from REDIS_HOST and REDIS_PORT
+    const redisUrl = process.env.REDIS_URL;
+    const redisHost = process.env.REDIS_HOST;
+    const redisPort = process.env.REDIS_PORT || '6379';
+    const redisPassword = process.env.REDIS_PASSWORD;
+
+    // In production, require explicit Redis configuration
+    if (process.env.NODE_ENV === 'production' && !redisUrl && !redisHost) {
+      logger.error('REDIS_URL or REDIS_HOST required in production for idempotency middleware');
+      return;
+    }
+
+    // Build connection URL: prefer REDIS_URL, then construct from host/port, finally localhost only in development
+    const connectionUrl = redisUrl ||
+      (redisHost ? `redis://${redisPassword ? `:${redisPassword}@` : ''}${redisHost}:${redisPort}` : null) ||
+      (process.env.NODE_ENV === 'development' ? 'redis://localhost:6379' : null);
+
+    if (!connectionUrl) {
+      logger.warn('No Redis configuration available for idempotency middleware');
+      return;
+    }
+
     try {
-      this.redis = new Redis(redisUrl, {
+      this.redis = new Redis(connectionUrl, {
         maxRetriesPerRequest: 3,
         retryStrategy: (times: number) => {
           if (times > 3) return null;

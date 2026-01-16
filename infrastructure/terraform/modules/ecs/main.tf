@@ -23,10 +23,11 @@ module "ecs_cluster" {
 module "alb" {
   source = "../ecs-alb"
 
-  project_name      = var.project
-  environment       = var.environment
-  vpc_id            = var.vpc_id
-  public_subnet_ids = var.public_subnet_ids
+  project_name = var.project
+  environment  = var.environment
+  vpc_id       = var.vpc_id
+  subnet_ids   = var.public_subnet_ids
+  vpc_cidr     = var.vpc_cidr
 
   enable_https    = false  # Certificate should be configured separately
   certificate_arn = null
@@ -34,16 +35,30 @@ module "alb" {
   # Define default services for target groups
   services = {
     api-gateway = {
-      port              = 3000
-      health_check_path = "/health"
-      priority          = 100
-      path_pattern      = "/api/*"
+      port     = 3000
+      priority = 100
+      path_patterns = ["/api/*"]
+      health_check = {
+        path                = "/health"
+        matcher             = "200"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+      }
     }
     user-service = {
-      port              = 3002
-      health_check_path = "/health"
-      priority          = 200
-      path_pattern      = "/api/users/*"
+      port     = 3002
+      priority = 200
+      path_patterns = ["/api/users/*"]
+      health_check = {
+        path                = "/health"
+        matcher             = "200"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+      }
     }
   }
 

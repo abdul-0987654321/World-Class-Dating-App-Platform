@@ -1,23 +1,84 @@
-import { Request, Response } from 'express';
+import { Request, Response, CookieOptions } from 'express';
 
 import authService from '../../domain/services/auth.service';
 import twoFactorService from '../../domain/services/two-factor.service';
 import logger from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 
+// Cookie configuration for secure token storage
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+
+const ACCESS_TOKEN_COOKIE_OPTIONS: CookieOptions = {
+  httpOnly: true,
+  secure: isProduction, // HTTPS only in production
+  sameSite: 'strict',
+  maxAge: 15 * 60 * 1000, // 15 minutes (matches JWT expiry)
+  path: '/',
+  domain: cookieDomain,
+};
+
+const REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
+  httpOnly: true,
+  secure: isProduction, // HTTPS only in production
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (matches refresh token expiry)
+  path: '/api/v1/auth', // Only sent to auth endpoints
+  domain: cookieDomain,
+};
+
 class AuthController {
+  /**
+   * Set authentication cookies on response
+   * @param res Express Response object
+   * @param accessToken Access token to set
+   * @param refreshToken Refresh token to set
+   */
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
+    res.cookie('access_token', accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+    res.cookie('refresh_token', refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+  }
+
+  /**
+   * Clear authentication cookies on response
+   * @param res Express Response object
+   */
+  private clearAuthCookies(res: Response): void {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      path: '/',
+      domain: cookieDomain,
+    });
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      path: '/api/v1/auth',
+      domain: cookieDomain,
+    });
+  }
   /**
    * POST /api/auth/register
    * Register a new user
+   * Sets httpOnly cookies for access and refresh tokens
    */
   async register(req: Request, res: Response): Promise<Response> {
     try {
       const result = await authService.register(req.body);
 
+      // Set httpOnly cookies for tokens (XSS protection)
+      this.setAuthCookies(res, result.accessToken, result.refreshToken);
+
+      // Return user data without exposing tokens in response body
       return res.status(201).json({
         success: true,
         message: 'Registration successful. Please verify your email.',
-        data: result,
+        data: {
+          user: result.user,
+          // Tokens are now in httpOnly cookies, not exposed to JavaScript
+        },
       });
     } catch (error) {
       logger.error('Registration failed', error);
@@ -31,6 +92,7 @@ class AuthController {
   /**
    * POST /api/auth/login
    * Login user with enhanced security
+   * Sets httpOnly cookies for access and refresh tokens
    */
   async login(req: Request, res: Response): Promise<Response> {
     try {
@@ -48,10 +110,17 @@ class AuthController {
         deviceData,
       });
 
+      // Set httpOnly cookies for tokens (XSS protection)
+      this.setAuthCookies(res, result.accessToken, result.refreshToken);
+
+      // Return user data without exposing tokens in response body
       return res.status(200).json({
         success: true,
         message: 'Login successful',
-        data: result,
+        data: {
+          user: result.user,
+          // Tokens are now in httpOnly cookies, not exposed to JavaScript
+        },
       });
     } catch (error) {
       logger.error('Login failed', error);
@@ -78,13 +147,19 @@ class AuthController {
   /**
    * POST /api/auth/logout
    * Logout user
+   * Clears httpOnly authentication cookies
    */
   async logout(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const userId = req.user.userId;
-      const token = req.headers.authorization?.substring(7) || '';
+      // Get token from cookie first, fallback to Authorization header for backwards compatibility
+      const token = req.cookies?.access_token || req.headers.authorization?.substring(7) || '';
+      const refreshToken = req.cookies?.refresh_token;
 
-      await authService.logout(userId, token);
+      await authService.logout(userId, token, refreshToken);
+
+      // Clear httpOnly cookies
+      this.clearAuthCookies(res);
 
       return res.status(200).json({
         success: true,
@@ -92,6 +167,8 @@ class AuthController {
       });
     } catch (error) {
       logger.error('Logout failed', error);
+      // Still clear cookies even on error
+      this.clearAuthCookies(res);
       return res.status(500).json({
         success: false,
         error: 'Logout failed',
@@ -102,10 +179,12 @@ class AuthController {
   /**
    * POST /api/auth/refresh-token
    * Refresh access token
+   * Reads refresh token from httpOnly cookie and sets new tokens in cookies
    */
   async refreshToken(req: Request, res: Response): Promise<Response> {
     try {
-      const { refreshToken } = req.body;
+      // Get refresh token from httpOnly cookie first, fallback to body for backwards compatibility
+      const refreshToken = req.cookies?.refresh_token || req.body.refreshToken;
 
       if (!refreshToken) {
         return res.status(400).json({
@@ -116,13 +195,18 @@ class AuthController {
 
       const tokens = await authService.refreshToken(refreshToken);
 
+      // Set new httpOnly cookies with rotated tokens
+      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+
       return res.status(200).json({
         success: true,
         message: 'Token refreshed successfully',
-        data: tokens,
+        // Tokens are now in httpOnly cookies, not exposed to JavaScript
       });
     } catch (error) {
       logger.error('Token refresh failed', error);
+      // Clear cookies on refresh failure (token may be compromised)
+      this.clearAuthCookies(res);
       return res.status(401).json({
         success: false,
         error: error.message || 'Invalid refresh token',

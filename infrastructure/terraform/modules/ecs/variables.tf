@@ -23,6 +23,12 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "vpc_cidr" {
+  description = "VPC CIDR block for restricting traffic"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 variable "public_subnet_ids" {
   description = "List of public subnet IDs for ALB"
   type        = list(string)

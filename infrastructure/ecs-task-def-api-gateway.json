@@ -1,0 +1,41 @@
+{
+  "family": "flamoral-prod-api-gateway",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::992382449461:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "api-gateway",
+      "image": "992382449461.dkr.ecr.us-east-1.amazonaws.com/flamoral/api-gateway:31c7892aec29706f878fe2210266e6782f6ea0b7",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 4000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "NODE_ENV", "value": "production"},
+        {"name": "PORT", "value": "4000"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/flamoral-prod-api-gateway",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "api-gateway",
+          "awslogs-create-group": "true"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -q --spider http://localhost:4000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,15 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Linking,
+  ActivityIndicator,
+  Share,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useAuth, TokenStorage, ACCESS_TOKEN_KEY } from '@hooks/useAuth';
 
 type SettingsNavigationProp = StackNavigationProp<any>;
 
@@ -73,8 +78,16 @@ const SettingItem: React.FC<SettingItemProps> = ({
   );
 };
 
+// Legal URLs
+const LEGAL_URLS = {
+  TERMS_OF_SERVICE: 'https://flamoral.com/terms-of-service',
+  PRIVACY_POLICY: 'https://flamoral.com/privacy-policy',
+};
+
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsNavigationProp>();
+  const { logout } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -85,12 +98,22 @@ const SettingsScreen: React.FC = () => {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => {
-            // Handle logout logic
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Auth' as never }],
-            });
+          onPress: async () => {
+            try {
+              await logout();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Auth' as never }],
+              });
+            } catch (error) {
+              console.error('Logout error:', error);
+              // Still navigate to auth on error - clear local state
+              await TokenStorage.clear();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Auth' as never }],
+              });
+            }
           },
         },
       ],
@@ -101,24 +124,115 @@ const SettingsScreen: React.FC = () => {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
+      'Are you sure you want to delete your account? This action cannot be undone. All your data, matches, and messages will be permanently deleted.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // Handle account deletion
-            Alert.alert('Account Deleted', 'Your account has been deleted.');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Auth' as never }],
-            });
+          onPress: async () => {
+            try {
+              setIsDeleting(true);
+
+              // Get token for authenticated API call
+              const token = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
+
+              // Call account deletion API
+              const response = await fetch('https://api.flamoral.com/auth/account', {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to delete account');
+              }
+
+              // Clear all local storage
+              await TokenStorage.clear();
+
+              Alert.alert(
+                'Account Deleted',
+                'Your account has been permanently deleted.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Auth' as never }],
+                      });
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error('Delete account error:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete account. Please try again or contact support.'
+              );
+            } finally {
+              setIsDeleting(false);
+            }
           },
         },
       ],
       { cancelable: true }
     );
+  };
+
+  const handleOpenTerms = () => {
+    Linking.openURL(LEGAL_URLS.TERMS_OF_SERVICE).catch((err) => {
+      console.error('Failed to open Terms of Service:', err);
+      Alert.alert('Error', 'Could not open Terms of Service');
+    });
+  };
+
+  const handleOpenPrivacy = () => {
+    Linking.openURL(LEGAL_URLS.PRIVACY_POLICY).catch((err) => {
+      console.error('Failed to open Privacy Policy:', err);
+      Alert.alert('Error', 'Could not open Privacy Policy');
+    });
+  };
+
+  const handleLocation = () => {
+    navigation.navigate('LocationSettings' as never);
+  };
+
+  const handleDiscoveryPreferences = () => {
+    navigation.navigate('DiscoveryPreferences' as never);
+  };
+
+  const handlePaymentMethods = () => {
+    // Navigate to subscription which handles payments
+    navigation.navigate('Subscription' as never);
+  };
+
+  const handleShareApp = async () => {
+    try {
+      await Share.share({
+        message: Platform.OS === 'ios'
+          ? 'Check out Flamoral - Find meaningful connections! https://apps.apple.com/app/flamoral/id123456789'
+          : 'Check out Flamoral - Find meaningful connections! https://play.google.com/store/apps/details?id=com.flamoral.app',
+        title: 'Share Flamoral',
+      });
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
+  };
+
+  const handleRateApp = () => {
+    const appStoreUrl = Platform.OS === 'ios'
+      ? 'https://apps.apple.com/app/flamoral/id123456789?action=write-review'
+      : 'https://play.google.com/store/apps/details?id=com.flamoral.app';
+
+    Linking.openURL(appStoreUrl).catch((err) => {
+      console.error('Failed to open app store:', err);
+      Alert.alert('Error', 'Could not open app store');
+    });
   };
 
   return (
@@ -171,13 +285,13 @@ const SettingsScreen: React.FC = () => {
             icon="location-outline"
             title="Location"
             subtitle="Change your location"
-            onPress={() => {}}
+            onPress={handleLocation}
           />
           <SettingItem
             icon="filter-outline"
             title="Discovery Preferences"
             subtitle="Age range, distance, and more"
-            onPress={() => {}}
+            onPress={handleDiscoveryPreferences}
           />
         </View>
       </View>
@@ -195,7 +309,7 @@ const SettingsScreen: React.FC = () => {
             icon="card-outline"
             title="Payment Methods"
             subtitle="Manage payment information"
-            onPress={() => {}}
+            onPress={handlePaymentMethods}
           />
         </View>
       </View>
@@ -218,12 +332,12 @@ const SettingsScreen: React.FC = () => {
           <SettingItem
             icon="document-text-outline"
             title="Terms of Service"
-            onPress={() => {}}
+            onPress={handleOpenTerms}
           />
           <SettingItem
             icon="lock-closed-outline"
             title="Privacy Policy"
-            onPress={() => {}}
+            onPress={handleOpenPrivacy}
           />
         </View>
       </View>
@@ -240,12 +354,12 @@ const SettingsScreen: React.FC = () => {
           <SettingItem
             icon="share-social-outline"
             title="Share Flamoral"
-            onPress={() => {}}
+            onPress={handleShareApp}
           />
           <SettingItem
             icon="star-half-outline"
             title="Rate Us"
-            onPress={() => {}}
+            onPress={handleRateApp}
           />
         </View>
       </View>

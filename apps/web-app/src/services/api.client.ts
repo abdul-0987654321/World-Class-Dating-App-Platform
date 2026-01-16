@@ -1,7 +1,14 @@
 /**
  * API Client
  * Central API client for Flamoral web application
- * Includes CSRF protection support
+ *
+ * SECURITY FEATURES:
+ * - httpOnly cookie-based authentication (XSS protection)
+ * - CSRF protection via double-submit cookie pattern
+ * - Automatic credential inclusion for cross-origin requests
+ *
+ * NOTE: Authentication tokens are stored in httpOnly cookies (set by backend),
+ * not accessible to JavaScript. This protects against XSS token theft.
  */
 
 import { authTokenService } from './auth-token.service';
@@ -132,11 +139,17 @@ class ApiClient {
 
   /**
    * Get Authorization header using AuthTokenService
-   * This abstraction allows easy migration to httpOnly cookies
+   *
+   * SECURITY NOTE: In production, authentication uses httpOnly cookies instead of
+   * Authorization headers. The browser automatically sends cookies with requests
+   * when credentials: 'include' is set. This method only returns headers in mock mode.
+   *
+   * @deprecated In production, httpOnly cookies are used instead of Authorization header
    */
   private getAuthHeader(): Record<string, string> {
+    // In production, auth is via httpOnly cookies sent automatically
+    // This only returns a header in mock mode for development compatibility
     return authTokenService.getAuthorizationHeader();
-    
   }
 
   /**
