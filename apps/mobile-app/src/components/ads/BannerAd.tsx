@@ -198,6 +198,7 @@ export const BannerAdComponent: React.FC<BannerAdProps> = ({
         </View>
       )}
 
+      {/* @ts-expect-error GoogleBannerAd has JSX element type incompatibility with React 18 types */}
       <GoogleBannerAd
         unitId={adUnitId}
         size={adSize}

@@ -125,6 +125,7 @@ const IncomingCallOverlay: React.FC<IncomingCallOverlayProps> = ({
         },
       ]}
     >
+      {/* @ts-expect-error BlurView has JSX element type incompatibility with React 18 types */}
       <BlurView intensity={90} tint="dark" style={styles.blur}>
         <View style={styles.content}>
           {/* Animated rings behind avatar */}

@@ -275,6 +275,7 @@ jobs:
       - name: Verify EAS Authentication
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+        working-directory: apps/mobile-app
         run: |
           echo "Verifying EAS authentication..."
           eas whoami
@@ -284,8 +285,8 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
           EXPO_PUBLIC_EAS_PROJECT_ID: ${{ env.EAS_PROJECT_ID }}
+        working-directory: apps/mobile-app
         run: |
-          cd apps/mobile-app
           echo "Starting iOS preview build..."
           echo "EAS Project ID: ${{ env.EAS_PROJECT_ID }}"
           eas build --platform ios --profile preview --non-interactive --no-wait
@@ -319,12 +320,21 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Verify EAS Authentication
+        env:
+          EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+        working-directory: apps/mobile-app
+        run: |
+          echo "Verifying EAS authentication..."
+          eas whoami
+          echo "EAS Project ID: ${{ env.EAS_PROJECT_ID }}"
+
       - name: Run EAS Build (Android)
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
           EXPO_PUBLIC_EAS_PROJECT_ID: ${{ env.EAS_PROJECT_ID }}
+        working-directory: apps/mobile-app
         run: |
-          cd apps/mobile-app
           echo "Starting Android preview build..."
           echo "EAS Project ID: ${{ env.EAS_PROJECT_ID }}"
           eas build --platform android --profile preview --non-interactive --no-wait

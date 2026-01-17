@@ -12,8 +12,10 @@ import { AuthProvider } from '@hooks/useAuth';
 
 const App = () => {
   return (
+    // @ts-expect-error GestureHandlerRootView has JSX element type incompatibility with React 18 types
     <GestureHandlerRootView style={styles.container}>
       <Provider store={store}>
+        {/* @ts-expect-error PersistGate has JSX element type incompatibility with React 18 types */}
         <PersistGate loading={null} persistor={persistor}>
           <SafeAreaProvider>
             <AuthProvider>

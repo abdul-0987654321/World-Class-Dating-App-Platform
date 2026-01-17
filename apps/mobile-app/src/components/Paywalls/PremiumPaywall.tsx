@@ -64,6 +64,7 @@ export const PremiumPaywall: React.FC<PremiumPaywallProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        {/* @ts-expect-error BlurView has JSX element type incompatibility with React 18 types */}
         <BlurView intensity={20} style={styles.blurView}>
           <View style={styles.container}>
             {/* Close Button */}

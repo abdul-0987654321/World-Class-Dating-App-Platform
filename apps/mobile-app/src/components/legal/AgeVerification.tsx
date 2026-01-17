@@ -91,6 +91,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({
             )}
 
             {(Platform.OS === 'ios' || showPicker) && (
+              // @ts-expect-error DateTimePicker has JSX element type incompatibility with React 18 types
               <DateTimePicker
                 value={birthdate}
                 mode="date"

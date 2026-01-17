@@ -187,6 +187,7 @@ export const SwipeCardEnhanced: React.FC<SwipeCardEnhancedProps> = ({
   };
 
   return (
+    // @ts-expect-error PanGestureHandler has JSX element type incompatibility with React 18 types
     <PanGestureHandler onGestureEvent={gestureHandler}>
       <Animated.View style={[styles.card, cardAnimatedStyle]}>
         {/* Swipe Labels */}
