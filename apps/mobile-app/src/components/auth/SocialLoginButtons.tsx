@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import { useSocialAuth } from '@hooks/useSocialAuth';
+
+// Get Google client IDs from app config
+const GOOGLE_WEB_CLIENT_ID = Constants.expoConfig?.extra?.googleWebClientId || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '';
+const GOOGLE_IOS_CLIENT_ID = Constants.expoConfig?.extra?.googleIosClientId || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
 interface SocialLoginButtonsProps {
   onSuccess?: (isNewUser: boolean, needsProfileSetup: boolean) => void;
@@ -24,8 +29,8 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
     try {
       // Configure Google Sign In
       await GoogleSignin.configure({
-        webClientId: process.env.GOOGLE_WEB_CLIENT_ID || '',
-        iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        iosClientId: GOOGLE_IOS_CLIENT_ID,
         offlineAccess: true,
       });
 

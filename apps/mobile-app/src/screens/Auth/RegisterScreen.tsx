@@ -23,6 +23,7 @@ const RegisterScreen = ({ navigation }: Props) => {
     lastName: '',
     dateOfBirth: '',
     gender: 'male' as 'male' | 'female' | 'non-binary' | 'other',
+    interestedIn: ['everyone'] as ('men' | 'women' | 'everyone')[],
   });
   const [loading, setLoading] = useState(false);
 

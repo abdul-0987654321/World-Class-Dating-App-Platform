@@ -146,20 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteAccount = async () => {
     try {
-      const token = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
-
-      const response = await fetch('https://api.flamoral.com/api/v1/auth/account', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete account');
-      }
-
+      await apiClient.delete('/api/v1/auth/account');
       await TokenStorage.clear();
       setUserState(null);
       setIsAuthenticated(false);

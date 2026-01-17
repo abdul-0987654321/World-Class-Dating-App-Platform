@@ -8,15 +8,8 @@
  */
 
 // EAS Project ID - Required for builds to appear on Expo dashboard
-const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
-if (!EAS_PROJECT_ID) {
-  console.warn(
-    '\x1b[33mWARNING: EXPO_PUBLIC_EAS_PROJECT_ID is not set.\x1b[0m\n' +
-      'Builds will not appear on Expo dashboard.\n' +
-      'Get your project ID from: https://expo.dev/accounts/flamoral/projects/flamoral\n' +
-      'Or run: eas init'
-  );
-}
+// Falls back to hardcoded project ID if environment variable is not set
+const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID || '5c414d70-8a31-40aa-b669-fbdad07dee70';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
@@ -162,6 +155,10 @@ export default {
     authIssuer: process.env.EXPO_PUBLIC_AUTH_ISSUER || 'https://auth.flamoral.com',
     stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
     wsUrl: process.env.EXPO_PUBLIC_WS_URL || 'wss://ws.flamoral.com',
+    // Google Sign-In credentials
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
+    googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
     eas: {
       projectId: EAS_PROJECT_ID,
     },

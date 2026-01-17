@@ -38,10 +38,12 @@
         "APP_VARIANT": "preview"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "credentialsSource": "remote"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "withoutCredentials": true
       }
     },
     "preview:testflight": {
