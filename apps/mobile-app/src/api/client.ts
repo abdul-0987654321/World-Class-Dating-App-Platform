@@ -109,31 +109,47 @@ export class AuthApi {
   constructor(private client: ApiClient) {}
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return this.client.post<LoginResponse>('/auth/login', credentials);
+    return this.client.post<LoginResponse>('/api/v1/auth/login', credentials);
   }
 
   async register(data: RegisterRequest): Promise<RegisterResponse> {
-    return this.client.post<RegisterResponse>('/auth/register', data);
+    // Transform to backend format with snake_case and consents
+    const backendData = {
+      email: data.email,
+      password: data.password,
+      first_name: data.firstName,
+      last_name: data.lastName || '',
+      date_of_birth: data.dateOfBirth,
+      gender: data.gender,
+      interested_in: data.interestedIn,
+      phone_number: data.phoneNumber,
+      consents: {
+        terms_accepted: data.consents?.terms ?? true,
+        privacy_accepted: data.consents?.privacy ?? true,
+        marketing_emails: data.consents?.marketing ?? false,
+      },
+    };
+    return this.client.post<RegisterResponse>('/api/v1/auth/register', backendData);
   }
 
   async refreshToken(data: RefreshTokenRequest): Promise<RefreshTokenResponse> {
-    return this.client.post<RefreshTokenResponse>('/auth/refresh', data);
+    return this.client.post<RefreshTokenResponse>('/api/v1/auth/refresh-token', data);
   }
 
   async logout(): Promise<void> {
-    return this.client.post<void>('/auth/logout');
+    return this.client.post<void>('/api/v1/auth/logout');
   }
 
   async getCurrentUser(): Promise<User> {
-    return this.client.get<User>('/auth/me');
+    return this.client.get<User>('/api/v1/auth/me');
   }
 
   async forgotPassword(email: string): Promise<void> {
-    return this.client.post<void>('/auth/forgot-password', { email });
+    return this.client.post<void>('/api/v1/auth/forgot-password', { email });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    return this.client.post<void>('/auth/reset-password', { token, newPassword });
+    return this.client.post<void>('/api/v1/auth/reset-password', { token, newPassword });
   }
 }
 
@@ -154,25 +170,25 @@ export class ProfileApi {
   constructor(private client: ApiClient) {}
 
   async createProfile(data: OnboardingProfileData): Promise<User> {
-    return this.client.post<User>('/profiles', data);
+    return this.client.post<User>('/api/v1/profiles', data);
   }
 
   async updateProfile(data: Partial<OnboardingProfileData>): Promise<User> {
-    return this.client.patch<User>('/profiles/me', data);
+    return this.client.patch<User>('/api/v1/profiles/me', data);
   }
 
   async getProfile(): Promise<User> {
-    return this.client.get<User>('/profiles/me');
+    return this.client.get<User>('/api/v1/profiles/me');
   }
 
   async uploadPhoto(photo: FormData): Promise<{ url: string }> {
-    return this.client.post<{ url: string }>('/profiles/photos', photo, {
+    return this.client.post<{ url: string }>('/api/v1/profiles/photos', photo, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   }
 
   async deletePhoto(photoUrl: string): Promise<void> {
-    return this.client.delete<void>('/profiles/photos', { data: { url: photoUrl } });
+    return this.client.delete<void>('/api/v1/profiles/photos', { data: { url: photoUrl } });
   }
 }
 

@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = await TokenStorage.getItem(ACCESS_TOKEN_KEY);
 
-      const response = await fetch('https://api.flamoral.com/auth/account', {
+      const response = await fetch('https://api.flamoral.com/api/v1/auth/account', {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

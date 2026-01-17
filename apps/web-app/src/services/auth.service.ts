@@ -103,6 +103,12 @@ export interface LoginResponse {
   refreshToken?: string; // Deprecated: tokens now in httpOnly cookies
 }
 
+export interface ConsentData {
+  terms: boolean;
+  privacy: boolean;
+  marketing?: boolean;
+}
+
 export interface RegisterData {
   email: string;
   password: string;
@@ -110,6 +116,7 @@ export interface RegisterData {
   lastName?: string;
   dateOfBirth: string;
   gender: string;
+  consents?: ConsentData;
 }
 
 class AuthService {
@@ -175,9 +182,9 @@ class AuthService {
       date_of_birth: data.dateOfBirth,
       gender: data.gender,
       consents: {
-        terms_accepted: true,
-        privacy_accepted: true,
-        marketing_emails: false,
+        terms_accepted: data.consents?.terms ?? true,
+        privacy_accepted: data.consents?.privacy ?? true,
+        marketing_emails: data.consents?.marketing ?? false,
       },
     };
 

@@ -94,6 +94,12 @@ export interface LoginResponse {
   refreshToken: string;
 }
 
+export interface ConsentData {
+  terms: boolean;
+  privacy: boolean;
+  marketing?: boolean;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -103,6 +109,7 @@ export interface RegisterRequest {
   gender: 'male' | 'female' | 'non-binary' | 'other';
   interestedIn: ('men' | 'women' | 'everyone')[];
   phoneNumber?: string;
+  consents?: ConsentData;
 }
 
 export interface RegisterResponse {

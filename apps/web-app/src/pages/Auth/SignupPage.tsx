@@ -76,8 +76,8 @@ export const SignupPage: React.FC = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(formData.password)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -178,6 +178,11 @@ export const SignupPage: React.FC = () => {
         lastName: formData.lastName || undefined,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
+        consents: {
+          terms: formData.agreeToTerms,
+          privacy: formData.agreeToTerms,
+          marketing: false,
+        },
       });
 
       // Verify registration was successful
