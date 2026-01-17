@@ -39,12 +39,18 @@ class RedisCache {
   /**
    * Store a refresh token for a user with token family tracking
    * Used for refresh token rotation with reuse detection
+   *
+   * SECURITY: Implements proper token rotation:
+   * - Current token is stored in refresh_token:{userId}
+   * - Used tokens are tracked in refresh_token_used:{tokenId}
+   * - When a token is rotated, the OLD tokenId is marked as used
    */
   async setRefreshToken(
     userId: string,
     token: string,
     expiresInSeconds: number,
-    tokenId?: string
+    tokenId?: string,
+    oldTokenId?: string
   ): Promise<void> {
     if (!this.client || !this.isConnected) return;
 
@@ -52,9 +58,15 @@ class RedisCache {
       // Store the refresh token
       await this.client.setEx(`refresh_token:${userId}`, expiresInSeconds, token);
 
-      // If tokenId is provided, store it in the token family for rotation detection
+      // If tokenId is provided, store it as the current valid token
       if (tokenId) {
-        await this.client.setEx(`refresh_token_family:${tokenId}`, expiresInSeconds, userId);
+        await this.client.setEx(`refresh_token_current:${userId}`, expiresInSeconds, tokenId);
+      }
+
+      // If an old token is being rotated, mark it as used for reuse detection
+      if (oldTokenId) {
+        // Mark old token as used - keep it for the same duration to detect reuse attempts
+        await this.client.setEx(`refresh_token_used:${oldTokenId}`, expiresInSeconds, userId);
       }
     } catch (error) {
       logger.error('Failed to store refresh token', error);
@@ -78,14 +90,18 @@ class RedisCache {
 
   /**
    * Check if a refresh token has been used before (rotation reuse detection)
+   *
+   * SECURITY: Detects refresh token reuse attacks where an attacker tries to
+   * use a previously rotated token. This indicates possible token theft.
    */
   async isRefreshTokenReused(tokenId: string): Promise<boolean> {
     if (!this.client || !this.isConnected) return false;
 
     try {
-      const userId = await this.client.get(`refresh_token_family:${tokenId}`);
-      // If token ID exists in family but is different from current, it's been reused
-      return userId !== null;
+      // Check if this token ID was already used (rotated out)
+      const usedBy = await this.client.get(`refresh_token_used:${tokenId}`);
+      // If token exists in used tokens list, it's a reuse attempt
+      return usedBy !== null;
     } catch (error) {
       logger.error('Failed to check token reuse', error);
       return false;
@@ -94,6 +110,9 @@ class RedisCache {
 
   /**
    * Invalidate all refresh tokens for a user (on security breach detection)
+   *
+   * SECURITY: Called when token reuse is detected or on password change.
+   * Removes all token-related keys for the user.
    */
   async invalidateAllUserTokens(userId: string): Promise<void> {
     if (!this.client || !this.isConnected) return;
@@ -102,11 +121,15 @@ class RedisCache {
       // Remove the current refresh token
       await this.client.del(`refresh_token:${userId}`);
 
-      // Find and remove all tokens in the family
-      const pattern = `refresh_token_family:*`;
-      const keys = await this.client.keys(pattern);
+      // Remove the current token ID tracking
+      await this.client.del(`refresh_token_current:${userId}`);
 
-      for (const key of keys) {
+      // Find and remove all used tokens for this user
+      // SECURITY: We need to clean up used token entries to prevent memory leaks
+      const usedPattern = `refresh_token_used:*`;
+      const usedKeys = await this.client.keys(usedPattern);
+
+      for (const key of usedKeys) {
         const storedUserId = await this.client.get(key);
         if (storedUserId === userId) {
           await this.client.del(key);

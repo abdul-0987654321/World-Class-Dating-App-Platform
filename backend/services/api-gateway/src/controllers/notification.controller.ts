@@ -39,7 +39,7 @@ export class NotificationController {
     if (offset) queryString.append('offset', offset);
     if (unread) queryString.append('unread', unread);
 
-    const path = `/api/notifications${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/notifications${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('notificationService', path, {
       Authorization: authorization,
     });
@@ -54,7 +54,7 @@ export class NotificationController {
     @Headers('authorization') authorization: string,
     @Param('notificationId') notificationId: string
   ) {
-    return this.proxyService.get('notificationService', `/api/notifications/${notificationId}`, {
+    return this.proxyService.get('notificationService', `/api/v1/notifications/${notificationId}`, {
       Authorization: authorization,
     });
   }
@@ -70,7 +70,7 @@ export class NotificationController {
   ) {
     return this.proxyService.put(
       'notificationService',
-      `/api/notifications/${notificationId}/read`,
+      `/api/v1/notifications/${notificationId}/read`,
       {},
       {
         Authorization: authorization,
@@ -86,7 +86,7 @@ export class NotificationController {
   async markAllAsRead(@Headers('authorization') authorization: string) {
     return this.proxyService.put(
       'notificationService',
-      '/api/notifications/read-all',
+      '/api/v1/notifications/read-all',
       {},
       {
         Authorization: authorization,
@@ -103,7 +103,7 @@ export class NotificationController {
     @Headers('authorization') authorization: string,
     @Param('notificationId') notificationId: string
   ) {
-    return this.proxyService.delete('notificationService', `/api/notifications/${notificationId}`, {
+    return this.proxyService.delete('notificationService', `/api/v1/notifications/${notificationId}`, {
       Authorization: authorization,
     });
   }
@@ -114,7 +114,7 @@ export class NotificationController {
   @Delete()
   @ApiOperation({ summary: 'Clear all notifications' })
   async clearAll(@Headers('authorization') authorization: string) {
-    return this.proxyService.delete('notificationService', '/api/notifications', {
+    return this.proxyService.delete('notificationService', '/api/v1/notifications', {
       Authorization: authorization,
     });
   }
@@ -125,7 +125,7 @@ export class NotificationController {
   @Get('unread/count')
   @ApiOperation({ summary: 'Get unread notification count' })
   async getUnreadCount(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/notifications/unread/count', {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/unread/count', {
       Authorization: authorization,
     });
   }
@@ -138,7 +138,7 @@ export class NotificationController {
   @Get('settings')
   @ApiOperation({ summary: 'Get notification settings' })
   async getSettings(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/notifications/settings', {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/settings', {
       Authorization: authorization,
     });
   }
@@ -149,7 +149,7 @@ export class NotificationController {
   @Put('settings')
   @ApiOperation({ summary: 'Update notification settings' })
   async updateSettings(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('notificationService', '/api/notifications/settings', body, {
+    return this.proxyService.put('notificationService', '/api/v1/notifications/settings', body, {
       Authorization: authorization,
     });
   }
@@ -163,7 +163,7 @@ export class NotificationController {
   @ApiOperation({ summary: 'Register push notification token' })
   @HttpCode(HttpStatus.CREATED)
   async registerPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('notificationService', '/api/notifications/push/register', body, {
+    return this.proxyService.post('notificationService', '/api/v1/notifications/push/register', body, {
       Authorization: authorization,
     });
   }
@@ -174,7 +174,7 @@ export class NotificationController {
   @Delete('push/register')
   @ApiOperation({ summary: 'Unregister push notification token' })
   async unregisterPushToken(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.delete('notificationService', '/api/notifications/push/register', {
+    return this.proxyService.delete('notificationService', '/api/v1/notifications/push/register', {
       Authorization: authorization,
     });
   }
@@ -188,7 +188,7 @@ export class NotificationController {
   async testPushNotification(@Headers('authorization') authorization: string) {
     return this.proxyService.post(
       'notificationService',
-      '/api/notifications/push/test',
+      '/api/v1/notifications/push/test',
       {},
       {
         Authorization: authorization,
@@ -204,7 +204,7 @@ export class NotificationController {
   @Get('email/preferences')
   @ApiOperation({ summary: 'Get email notification preferences' })
   async getEmailPreferences(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('notificationService', '/api/notifications/email/preferences', {
+    return this.proxyService.get('notificationService', '/api/v1/notifications/email/preferences', {
       Authorization: authorization,
     });
   }
@@ -217,7 +217,7 @@ export class NotificationController {
   async updateEmailPreferences(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
     return this.proxyService.put(
       'notificationService',
-      '/api/notifications/email/preferences',
+      '/api/v1/notifications/email/preferences',
       body,
       {
         Authorization: authorization,

@@ -58,6 +58,8 @@ export class CoinService {
 
   /**
    * Purchase coins (via Stripe payment)
+   * Uses transaction to ensure atomicity between balance update and transaction record
+   * Also includes idempotency check via stripePaymentId
    */
   async purchaseCoins(
     userId: string,
@@ -70,33 +72,34 @@ export class CoinService {
       throw new Error('Invalid or inactive product');
     }
 
+    // Check if this payment was already processed (idempotency via stripePaymentId)
+    const existingTransaction = await this.coinTransactionRepository.findByReferenceId(
+      stripePaymentId,
+      REFERENCE_TYPES.STRIPE_PAYMENT
+    );
+    if (existingTransaction) {
+      // Return existing result for idempotency
+      const coin = await this.coinRepository.findByUserId(userId);
+      return { coin: coin!, transaction: existingTransaction };
+    }
+
     const totalCoins = product.coinAmount + product.bonusCoins;
 
-    // Add coins to user's balance
-    const coin = await this.coinRepository.addCoins(userId, totalCoins, true);
-
-    // Create transaction record
-    const transaction = await this.coinTransactionRepository.create({
+    // Use atomic transaction to ensure balance and transaction record are consistent
+    const result = await this.coinRepository.purchaseCoinsWithTransaction(
       userId,
-      type: TRANSACTION_TYPES.PURCHASE,
-      amount: totalCoins,
-      balanceAfter: coin.balance,
-      reason: formatTransactionReason(
-        TRANSACTION_TYPES.PURCHASE,
-        REFERENCE_TYPES.STRIPE_PAYMENT,
-        product.name
-      ),
-      referenceId: stripePaymentId,
-      referenceType: REFERENCE_TYPES.STRIPE_PAYMENT,
-      metadata: {
+      totalCoins,
+      stripePaymentId,
+      {
         productSku: product.sku,
         coinAmount: product.coinAmount,
         bonusCoins: product.bonusCoins,
         priceUsd: product.priceUsd,
-      },
-    });
+        productName: product.name,
+      }
+    );
 
-    return { coin, transaction };
+    return result;
   }
 
   /**

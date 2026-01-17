@@ -2,10 +2,16 @@ import 'reflect-metadata';
 import { createLogger } from '@flamoral/backend-shared';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import { v4 as uuidv4 } from 'uuid';
 
 import verificationRoutes from './api/routes/verification.routes';
+import {
+  errorHandler,
+  notFoundHandler,
+  initializeErrorHandlers,
+} from './middleware/error-handler.middleware';
 
 // Load environment variables
 dotenv.config();
@@ -13,9 +19,20 @@ dotenv.config();
 // Initialize logger
 const logger = createLogger('api-gateway');
 
+// Initialize global error handlers
+initializeErrorHandlers();
+
 // Create Express app
 const app: Application = express();
 const PORT = process.env.PORT || 4000;
+
+// Correlation ID middleware - add to every request
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
+  (req as any).correlationId = correlationId;
+  res.setHeader('X-Correlation-ID', correlationId);
+  next();
+});
 
 // Middleware
 app.use(helmet());
@@ -118,6 +135,12 @@ app.get('/api/v1', (req: Request, res: Response) => {
 
 // Verification routes for deployment validation
 app.use('/api/v1/verify', verificationRoutes);
+
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
+
+// Global error handler - must be last middleware
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {

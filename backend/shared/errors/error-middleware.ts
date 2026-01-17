@@ -144,3 +144,67 @@ export function notFoundHandler(req: Request, _res: Response, next: NextFunction
  * Export default middleware for convenience
  */
 export const errorMiddleware = createErrorMiddleware();
+
+/**
+ * Standard error response format for all Flamoral services
+ */
+export interface StandardErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    correlationId: string;
+    timestamp: string;
+    details?: unknown;
+  };
+}
+
+/**
+ * Create a standardized error response object
+ * Use this when manually formatting error responses
+ */
+export function createErrorResponse(
+  code: string,
+  message: string,
+  correlationId: string,
+  details?: unknown
+): StandardErrorResponse {
+  return {
+    success: false,
+    error: {
+      code,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+      ...(details && { details }),
+    },
+  };
+}
+
+/**
+ * Get or generate correlation ID from request
+ */
+export function getCorrelationId(req: Request): string {
+  return (req.headers['x-correlation-id'] as string) ?? (req as any).correlationId ?? uuidv4();
+}
+
+/**
+ * Send standardized error response with proper headers
+ */
+export function sendErrorResponse(
+  res: Response,
+  statusCode: number,
+  code: string,
+  message: string,
+  correlationId: string,
+  details?: unknown,
+  retryAfter?: number
+): void {
+  res.setHeader('X-Correlation-ID', correlationId);
+
+  if (retryAfter) {
+    res.setHeader('Retry-After', retryAfter);
+  }
+
+  res.status(statusCode).json(createErrorResponse(code, message, correlationId, details));
+}

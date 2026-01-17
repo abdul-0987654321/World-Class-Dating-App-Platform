@@ -42,3 +42,33 @@ export {
   type ApiErrorResponse,
   type ApiErrorOptions,
 } from './api-error';
+
+// App Error class and factory functions
+export {
+  AppError,
+  isAppError,
+  validationError,
+  authenticationError,
+  forbiddenError,
+  notFoundError,
+  conflictError,
+  rateLimitError,
+  internalError,
+  serviceUnavailableError,
+  type ErrorResponseObject,
+  type ErrorLogObject,
+} from './app-error';
+
+// Express middleware for error handling
+export {
+  createErrorMiddleware,
+  correlationIdMiddleware,
+  asyncHandler,
+  notFoundHandler,
+  errorMiddleware,
+  createErrorResponse,
+  getCorrelationId,
+  sendErrorResponse,
+  type ErrorMiddlewareOptions,
+  type StandardErrorResponse,
+} from './error-middleware';

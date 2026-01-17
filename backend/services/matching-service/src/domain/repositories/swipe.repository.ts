@@ -39,6 +39,29 @@ export class SwipeRepository {
   }
 
   /**
+   * Create a new swipe record within a transaction
+   * Used for atomic swipe + match creation
+   */
+  async createWithTransaction(
+    trx: Knex.Transaction,
+    swipe: {
+      userId: string;
+      targetUserId: string;
+      action: SwipeAction;
+    }
+  ): Promise<Swipe> {
+    const [created] = await trx('swipes')
+      .insert({
+        user_id: swipe.userId,
+        target_user_id: swipe.targetUserId,
+        action: swipe.action,
+      })
+      .returning('*');
+
+    return this.mapToSwipe(created);
+  }
+
+  /**
    * Check if user has already swiped on target
    */
   async hasUserSwiped(userId: string, targetUserId: string): Promise<boolean> {
@@ -104,6 +127,36 @@ export class SwipeRepository {
       logger.error('Failed to check mutual like', error);
       throw error;
     }
+  }
+
+  /**
+   * Check if there's a mutual like within a transaction
+   * Used for atomic match creation
+   */
+  async checkMutualLikeWithTransaction(
+    trx: Knex.Transaction,
+    user1Id: string,
+    user2Id: string
+  ): Promise<boolean> {
+    const user1Swipe = await trx('swipes')
+      .where({
+        user_id: user1Id,
+        target_user_id: user2Id,
+      })
+      .whereIn('action', ['like', 'super_like'])
+      .first();
+
+    if (!user1Swipe) return false;
+
+    const user2Swipe = await trx('swipes')
+      .where({
+        user_id: user2Id,
+        target_user_id: user1Id,
+      })
+      .whereIn('action', ['like', 'super_like'])
+      .first();
+
+    return !!user2Swipe;
   }
 
   /**
@@ -245,6 +298,21 @@ export class SwipeRepository {
   }
 
   /**
+   * Get the most recent swipe for a user within a transaction
+   */
+  async getLastSwipeWithTransaction(
+    trx: Knex.Transaction,
+    userId: string
+  ): Promise<Swipe | null> {
+    const swipe = await trx('swipes')
+      .where({ user_id: userId })
+      .orderBy('created_at', 'desc')
+      .first();
+
+    return swipe ? this.mapToSwipe(swipe) : null;
+  }
+
+  /**
    * Delete a swipe by ID
    */
   async deleteById(swipeId: string): Promise<boolean> {
@@ -256,6 +324,17 @@ export class SwipeRepository {
       logger.error('Failed to delete swipe', error);
       throw error;
     }
+  }
+
+  /**
+   * Delete a swipe by ID within a transaction
+   */
+  async deleteByIdWithTransaction(
+    trx: Knex.Transaction,
+    swipeId: string
+  ): Promise<boolean> {
+    const deleted = await trx('swipes').where({ id: swipeId }).delete();
+    return deleted > 0;
   }
 
   /**

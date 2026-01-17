@@ -51,6 +51,35 @@ export class SwipeHistoryRepository {
   }
 
   /**
+   * Create a new swipe history record within a transaction
+   */
+  async createWithTransaction(
+    trx: Knex.Transaction,
+    data: {
+      userId: string;
+      targetUserId: string;
+      action: SwipeAction;
+      originalSwipeId?: string;
+      resultedInMatch?: boolean;
+      matchId?: string;
+    }
+  ): Promise<SwipeHistory> {
+    const [created] = await trx('swipe_history')
+      .insert({
+        user_id: data.userId,
+        target_user_id: data.targetUserId,
+        action: data.action,
+        original_swipe_id: data.originalSwipeId || null,
+        resulted_in_match: data.resultedInMatch || false,
+        match_id: data.matchId || null,
+        rewound: false,
+      })
+      .returning('*');
+
+    return this.mapToSwipeHistory(created);
+  }
+
+  /**
    * Get swipe history by ID
    */
   async findById(id: string): Promise<SwipeHistory | null> {
@@ -165,6 +194,31 @@ export class SwipeHistoryRepository {
       logger.error('Failed to update swipe history with match info', error);
       throw error;
     }
+  }
+
+  /**
+   * Update swipe history with match info within a transaction
+   */
+  async updateWithMatchInfoWithTransaction(
+    trx: Knex.Transaction,
+    userId: string,
+    targetUserId: string,
+    matchId: string
+  ): Promise<boolean> {
+    const updated = await trx('swipe_history')
+      .where({
+        user_id: userId,
+        target_user_id: targetUserId,
+        rewound: false,
+      })
+      .orderBy('created_at', 'desc')
+      .limit(1)
+      .update({
+        resulted_in_match: true,
+        match_id: matchId,
+      });
+
+    return updated > 0;
   }
 
   /**

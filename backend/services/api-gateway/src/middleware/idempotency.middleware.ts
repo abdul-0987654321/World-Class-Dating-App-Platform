@@ -29,15 +29,34 @@ const IDEMPOTENCY_KEY_HEADER = 'idempotency-key';
 // Methods that support idempotency
 const IDEMPOTENT_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
-// Endpoints that REQUIRE idempotency key
+// Endpoints that REQUIRE idempotency key for data consistency
+// All write operations that modify balance, create matches, or process payments
 const REQUIRED_IDEMPOTENCY_ENDPOINTS = [
+  // Payment endpoints
   '/api/v1/payments/create-intent',
   '/api/v1/payments/subscription/create',
   '/api/v1/payments/refund',
   '/api/v1/payments/methods/add',
   '/api/v1/subscriptions',
+  // Coin/currency endpoints
   '/api/v1/coins/purchase',
+  '/api/v1/coins/spend',
+  '/api/v1/coins/daily-reward',
+  // Gem endpoints
+  '/api/v1/gems/purchase',
+  '/api/v1/gems/spend',
+  '/api/v1/gems/gift',
+  // Boost endpoints
   '/api/v1/boosts/purchase',
+  '/api/v1/boosts/activate',
+  // Swipe/match endpoints (prevents duplicate swipes)
+  '/api/v1/swipes',
+  '/api/v1/swipes/undo',
+  // Message send (prevents duplicate messages)
+  '/api/v1/messages',
+  // Subscription management
+  '/api/v1/subscriptions/cancel',
+  '/api/v1/subscriptions/upgrade',
 ];
 
 interface CachedResponse {

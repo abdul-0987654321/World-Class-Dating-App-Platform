@@ -12,6 +12,7 @@ import { SecurityController } from './controllers/security.controller';
 import { ComprehensiveRateLimitGuard } from './guards/comprehensive-rate-limit.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RedisThrottlerGuard } from './guards/redis-throttler.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { HealthModule } from './health/health.module';
 import { AdvancedRateLimiterMiddleware } from './middleware/advanced-rate-limiter.middleware';
 import { CsrfMiddleware } from './middleware/csrf.middleware';
@@ -88,6 +89,11 @@ import { WebsocketModule } from './websocket/websocket.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    // Global RBAC enforcement - checks roles after JWT authentication
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
 
     // Idempotency middleware

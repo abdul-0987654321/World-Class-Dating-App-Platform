@@ -4,10 +4,11 @@ import { createServer } from 'http';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 
 import apiRoutes from './api/routes';
 import { authenticate, AuthRequest } from './api/middleware/auth.middleware';
@@ -143,8 +144,16 @@ app.use(
     maxAge: 86400, // 24 hours - cache preflight
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' })); // Allow larger payloads for media messages
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
+// Correlation ID middleware - add to every request for distributed tracing
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
+  (req as any).correlationId = correlationId;
+  res.setHeader('X-Correlation-ID', correlationId);
+  next();
+});
 
 // Liveness probe endpoint - returns 200 if the process is alive
 // This should be lightweight and always succeed unless the process is in a bad state
@@ -245,14 +254,91 @@ app.get('/api/v1/users/:userId/status', async (req: Request, res: Response) => {
     const status = await socketManager.getOnlineStatus(userId);
 
     res.json({
-      userId,
-      online: socketManager.isUserOnline(userId),
-      status,
+      success: true,
+      data: {
+        userId,
+        online: socketManager.isUserOnline(userId),
+        status,
+      },
     });
   } catch (error: any) {
-    logger.error('Failed to get user status:', error);
-    res.status(500).json({ error: 'Failed to get user status' });
+    const correlationId = (req as any).correlationId || uuidv4();
+    logger.error('Failed to get user status:', { error: error.message, correlationId });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to get user status',
+        correlationId,
+        timestamp: new Date().toISOString(),
+      },
+    });
   }
+});
+
+// 404 handler - returns standardized error response
+app.use((req: Request, res: Response) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  res.setHeader('X-Correlation-ID', correlationId);
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'RESOURCE_NOT_FOUND',
+      message: `Cannot ${req.method} ${req.path}`,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// Global error handler - returns standardized error response
+app.use((err: Error & { status?: number; statusCode?: number; code?: string }, req: Request, res: Response, _next: NextFunction) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  const statusCode = err.status || err.statusCode || 500;
+
+  // Determine error code
+  let errorCode = err.code || 'INTERNAL_ERROR';
+  if (!err.code) {
+    if (statusCode === 400) errorCode = 'VALIDATION_FAILED';
+    else if (statusCode === 401) errorCode = 'AUTH_TOKEN_INVALID';
+    else if (statusCode === 403) errorCode = 'PERM_DENIED';
+    else if (statusCode === 404) errorCode = 'RESOURCE_NOT_FOUND';
+    else if (statusCode === 429) errorCode = 'RATE_LIMIT_EXCEEDED';
+  }
+
+  // Log server errors with full details
+  if (statusCode >= 500) {
+    logger.error('Server error:', {
+      error: err.message,
+      stack: err.stack,
+      correlationId,
+      path: req.path,
+      method: req.method,
+    });
+  } else {
+    logger.warn('Client error:', {
+      error: err.message,
+      correlationId,
+      path: req.path,
+      method: req.method,
+    });
+  }
+
+  // Sanitize message for production
+  const message = isProduction && statusCode >= 500
+    ? 'An unexpected error occurred. Please try again.'
+    : err.message || 'Internal server error';
+
+  res.setHeader('X-Correlation-ID', correlationId);
+  res.status(statusCode).json({
+    success: false,
+    error: {
+      code: errorCode,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
+  });
 });
 
 // Initialize and start server

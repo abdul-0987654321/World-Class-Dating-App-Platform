@@ -64,7 +64,7 @@ export class MatchingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/discovery/recommendations${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/discovery/recommendations${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('matchingService', path, {
       Authorization: authorization,
     });
@@ -77,7 +77,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Search for profiles with filters' })
   @HttpCode(HttpStatus.OK)
   async searchProfiles(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('matchingService', '/api/discovery/search', body, {
+    return this.proxyService.post('matchingService', '/api/v1/discovery/search', body, {
       Authorization: authorization,
     });
   }
@@ -154,7 +154,7 @@ export class MatchingController {
       try {
         const usageStats = await this.proxyService.get(
           'matchingService',
-          '/api/super-likes/usage/today',
+          '/api/v1/super-likes/usage/today',
           {
             Authorization: authorization,
           }
@@ -201,7 +201,7 @@ export class MatchingController {
     try {
       const result = await this.proxyService.post(
         'matchingService',
-        '/api/super-likes',
+        '/api/v1/super-likes',
         { targetUserId: body.target_user_id },
         { Authorization: authorization }
       );
@@ -212,7 +212,7 @@ export class MatchingController {
         try {
           const usageAfter = await this.proxyService.get(
             'matchingService',
-            '/api/super-likes/usage/today',
+            '/api/v1/super-likes/usage/today',
             {
               Authorization: authorization,
             }
@@ -266,7 +266,7 @@ export class MatchingController {
     if (radius) queryString.append('radius', radius);
     if (limit) queryString.append('limit', limit);
 
-    const path = `/api/discovery/nearby${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/discovery/nearby${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('matchingService', path, {
       Authorization: authorization,
     });
@@ -281,7 +281,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Like a profile' })
   @HttpCode(HttpStatus.CREATED)
   async likeProfile(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('matchingService', '/api/likes', body, {
+    return this.proxyService.post('matchingService', '/api/v1/likes', body, {
       Authorization: authorization,
     });
   }
@@ -300,7 +300,7 @@ export class MatchingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/likes/received${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/likes/received${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('matchingService', path, {
       Authorization: authorization,
     });
@@ -320,7 +320,7 @@ export class MatchingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/likes/sent${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/likes/sent${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('matchingService', path, {
       Authorization: authorization,
     });
@@ -333,7 +333,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Pass on a profile' })
   @HttpCode(HttpStatus.CREATED)
   async passProfile(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('matchingService', '/api/passes', body, {
+    return this.proxyService.post('matchingService', '/api/v1/passes', body, {
       Authorization: authorization,
     });
   }
@@ -347,7 +347,7 @@ export class MatchingController {
   async undoAction(@Headers('authorization') authorization: string) {
     return this.proxyService.post(
       'matchingService',
-      '/api/actions/undo',
+      '/api/v1/actions/undo',
       {},
       {
         Authorization: authorization,
@@ -371,7 +371,7 @@ export class MatchingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/matches${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/matches${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('matchingService', path, {
       Authorization: authorization,
     });
@@ -386,7 +386,7 @@ export class MatchingController {
     @Headers('authorization') authorization: string,
     @Param('matchId') matchId: string
   ) {
-    return this.proxyService.get('matchingService', `/api/matches/${matchId}`, {
+    return this.proxyService.get('matchingService', `/api/v1/matches/${matchId}`, {
       Authorization: authorization,
     });
   }
@@ -400,7 +400,7 @@ export class MatchingController {
     @Headers('authorization') authorization: string,
     @Param('matchId') matchId: string
   ) {
-    return this.proxyService.delete('matchingService', `/api/matches/${matchId}`, {
+    return this.proxyService.delete('matchingService', `/api/v1/matches/${matchId}`, {
       Authorization: authorization,
     });
   }
@@ -411,7 +411,7 @@ export class MatchingController {
   @Get('matches/count')
   @ApiOperation({ summary: 'Get total match count' })
   async getMatchCount(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('matchingService', '/api/matches/count', {
+    return this.proxyService.get('matchingService', '/api/v1/matches/count', {
       Authorization: authorization,
     });
   }
@@ -425,7 +425,7 @@ export class MatchingController {
   @ApiOperation({ summary: 'Super like a profile' })
   @HttpCode(HttpStatus.CREATED)
   async superLike(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('matchingService', '/api/super-likes', body, {
+    return this.proxyService.post('matchingService', '/api/v1/super-likes', body, {
       Authorization: authorization,
     });
   }
@@ -436,7 +436,7 @@ export class MatchingController {
   @Get('super-likes/remaining')
   @ApiOperation({ summary: 'Get remaining super likes count' })
   async getRemainingSuperLikes(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('matchingService', '/api/super-likes/remaining', {
+    return this.proxyService.get('matchingService', '/api/v1/super-likes/remaining', {
       Authorization: authorization,
     });
   }
@@ -452,7 +452,7 @@ export class MatchingController {
   async activateBoost(@Headers('authorization') authorization: string) {
     return this.proxyService.post(
       'matchingService',
-      '/api/boost',
+      '/api/v1/boost',
       {},
       {
         Authorization: authorization,
@@ -466,7 +466,7 @@ export class MatchingController {
   @Get('boost/status')
   @ApiOperation({ summary: 'Get current boost status' })
   async getBoostStatus(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('matchingService', '/api/boost/status', {
+    return this.proxyService.get('matchingService', '/api/v1/boost/status', {
       Authorization: authorization,
     });
   }
@@ -482,7 +482,7 @@ export class MatchingController {
     @Headers('authorization') authorization: string,
     @Param('matchId') matchId: string
   ) {
-    return this.proxyService.get('matchingService', `/api/matches/${matchId}/compatibility`, {
+    return this.proxyService.get('matchingService', `/api/v1/matches/${matchId}/compatibility`, {
       Authorization: authorization,
     });
   }

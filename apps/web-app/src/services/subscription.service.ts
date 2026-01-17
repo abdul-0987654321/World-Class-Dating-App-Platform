@@ -3,18 +3,50 @@
  * Handles subscription-related API calls
  *
  * 6-Tier Subscription Model:
- * - FREE: Basic access
- * - BASIC: Entry-level paid tier ($9.99/month)
- * - PLUS: Enhanced features ($14.99/month)
- * - PREMIUM: Full feature access ($19.99/month)
- * - PREMIUM_PLUS: Power user tier ($29.99/month)
- * - ELITE: VIP tier ($49.99/month)
+ * - free: Basic access
+ * - basic: Entry-level paid tier ($9.99/month)
+ * - plus: Enhanced features ($14.99/month)
+ * - premium: Full feature access ($19.99/month)
+ * - premium_plus: Power user tier ($29.99/month)
+ * - elite: VIP tier ($49.99/month)
+ *
+ * NOTE: Tier values are lowercase to match backend API contract
  */
 import { authTokenService } from './auth-token.service';
+import {
+  normalizeSubscriptionTier,
+  normalizeSubscriptionStatus,
+  toArray,
+  toBoolean,
+  toDateString,
+  SubscriptionTier as NormalizedTier,
+  SubscriptionStatus as NormalizedStatus,
+} from '../utils/api-transformers';
 
-export type SubscriptionTier = 'FREE' | 'BASIC' | 'PLUS' | 'PREMIUM' | 'PREMIUM_PLUS' | 'ELITE';
+// Tier type - normalized to lowercase to match backend
+export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
+
+// Legacy uppercase tier type for backward compatibility with existing UI code
+export type SubscriptionTierUppercase = 'FREE' | 'BASIC' | 'PLUS' | 'PREMIUM' | 'PREMIUM_PLUS' | 'ELITE';
+
 export type BillingCycle = 'monthly' | '3_months' | '6_months' | 'yearly';
-export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'past_due' | 'trialing' | 'grace_period';
+
+// Status type - normalized to US spelling ('canceled' not 'cancelled')
+export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing' | 'grace_period';
+
+/**
+ * Converts tier to uppercase for display purposes
+ */
+export function tierToUppercase(tier: SubscriptionTier): SubscriptionTierUppercase {
+  return tier.toUpperCase() as SubscriptionTierUppercase;
+}
+
+/**
+ * Converts tier to lowercase for API requests
+ */
+export function tierToLowercase(tier: SubscriptionTier | SubscriptionTierUppercase): SubscriptionTier {
+  return tier.toLowerCase() as SubscriptionTier;
+}
 
 export interface Subscription {
   id: string;
@@ -43,23 +75,26 @@ export interface SubscriptionPlan {
   popular?: boolean;
 }
 
-// Feature lists for each tier
-const getFeaturesByTier = (tier: SubscriptionTier): string[] => {
+// Feature lists for each tier (using lowercase tier names to match backend)
+const getFeaturesByTier = (tier: SubscriptionTier | SubscriptionTierUppercase): string[] => {
+  // Normalize to lowercase for lookup
+  const normalizedTier = tier.toLowerCase() as SubscriptionTier;
+
   const features: Record<SubscriptionTier, string[]> = {
-    FREE: [
+    free: [
       '50 daily swipes',
       '1 super like per day',
       'Basic matching algorithm',
       'Limited profile visibility',
     ],
-    BASIC: [
+    basic: [
       'Unlimited swipes',
       '5 super likes per day',
       'See who likes you',
       'Rewind last swipe',
       'No ads',
     ],
-    PLUS: [
+    plus: [
       'Everything in Basic',
       '10 super likes per day',
       'Incognito mode',
@@ -67,7 +102,7 @@ const getFeaturesByTier = (tier: SubscriptionTier): string[] => {
       'Read receipts',
       '1 free boost per month',
     ],
-    PREMIUM: [
+    premium: [
       'Everything in Plus',
       'Unlimited super likes',
       'Passport - swipe anywhere',
@@ -75,7 +110,7 @@ const getFeaturesByTier = (tier: SubscriptionTier): string[] => {
       'Advanced filters',
       '2 free boosts per month',
     ],
-    PREMIUM_PLUS: [
+    premium_plus: [
       'Everything in Premium',
       'Message before matching',
       '1 weekly boost',
@@ -83,7 +118,7 @@ const getFeaturesByTier = (tier: SubscriptionTier): string[] => {
       'See who viewed your profile',
       'Priority customer support',
     ],
-    ELITE: [
+    elite: [
       'Everything in Premium+',
       'VIP badge on profile',
       '3 weekly boosts',
@@ -94,7 +129,7 @@ const getFeaturesByTier = (tier: SubscriptionTier): string[] => {
     ],
   };
 
-  return features[tier] || features.FREE;
+  return features[normalizedTier] || features.free;
 };
 
 // Mock subscription data based on current user
@@ -102,7 +137,8 @@ const getMockSubscription = (): Subscription => {
   const storedUser = localStorage.getItem('currentUser');
   if (storedUser) {
     const user = JSON.parse(storedUser);
-    const tier = (user.premium_tier?.toUpperCase() || 'FREE') as SubscriptionTier;
+    // Normalize tier to lowercase to match backend API contract
+    const tier = normalizeSubscriptionTier(user.premium_tier || user.subscription_tier || 'free');
     return {
       id: `sub-${user.id}`,
       userId: user.id,
@@ -119,13 +155,13 @@ const getMockSubscription = (): Subscription => {
   return {
     id: 'sub-default',
     userId: 'unknown',
-    tier: 'FREE',
+    tier: 'free',
     status: 'active',
     billingCycle: 'monthly',
     startDate: new Date().toISOString(),
     endDate: null,
     autoRenew: false,
-    features: getFeaturesByTier('FREE'),
+    features: getFeaturesByTier('free'),
   };
 };
 
@@ -154,73 +190,73 @@ class SubscriptionService {
   }
 
   async getPlans(): Promise<SubscriptionPlan[]> {
-    // 6-tier subscription plans
+    // 6-tier subscription plans (using lowercase tier names to match backend)
     return [
       {
-        tier: 'FREE',
+        tier: 'free',
         displayName: 'Free',
         description: 'Get started with basic features',
         price: 0,
         priceYearly: 0,
         price3Months: 0,
         price6Months: 0,
-        features: getFeaturesByTier('FREE'),
+        features: getFeaturesByTier('free'),
         trialDays: 0,
       },
       {
-        tier: 'BASIC',
+        tier: 'basic',
         displayName: 'Basic',
         description: 'Unlock unlimited swipes and see who likes you',
         price: 9.99,
         priceYearly: 95.88,
         price3Months: 26.97,
         price6Months: 47.94,
-        features: getFeaturesByTier('BASIC'),
+        features: getFeaturesByTier('basic'),
         trialDays: 7,
       },
       {
-        tier: 'PLUS',
+        tier: 'plus',
         displayName: 'Plus',
         description: 'Enhanced visibility and privacy features',
         price: 14.99,
         priceYearly: 143.88,
         price3Months: 40.47,
         price6Months: 71.94,
-        features: getFeaturesByTier('PLUS'),
+        features: getFeaturesByTier('plus'),
         trialDays: 7,
         popular: true,
       },
       {
-        tier: 'PREMIUM',
+        tier: 'premium',
         displayName: 'Premium',
         description: 'Full feature access with Passport',
         price: 19.99,
         priceYearly: 191.88,
         price3Months: 53.97,
         price6Months: 95.94,
-        features: getFeaturesByTier('PREMIUM'),
+        features: getFeaturesByTier('premium'),
         trialDays: 14,
       },
       {
-        tier: 'PREMIUM_PLUS',
+        tier: 'premium_plus',
         displayName: 'Premium+',
         description: 'Power user features with message before match',
         price: 29.99,
         priceYearly: 287.88,
         price3Months: 80.97,
         price6Months: 143.94,
-        features: getFeaturesByTier('PREMIUM_PLUS'),
+        features: getFeaturesByTier('premium_plus'),
         trialDays: 14,
       },
       {
-        tier: 'ELITE',
+        tier: 'elite',
         displayName: 'Elite',
         description: 'The ultimate VIP dating experience',
         price: 49.99,
         priceYearly: 479.88,
         price3Months: 134.97,
         price6Months: 239.94,
-        features: getFeaturesByTier('ELITE'),
+        features: getFeaturesByTier('elite'),
         trialDays: 14,
       },
     ];

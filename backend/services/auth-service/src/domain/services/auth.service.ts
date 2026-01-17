@@ -311,11 +311,6 @@ class AuthService {
         throw new Error('Invalid token');
       }
 
-      // Remove old refresh token from family
-      if (payload.jti) {
-        await redisCache.removeRefreshToken(payload.userId, payload.jti);
-      }
-
       // Generate new tokens (rotation)
       const tokens = this.generateTokens(user);
 
@@ -323,11 +318,13 @@ class AuthService {
       const decoded = jwtUtils.decodeToken(tokens.refreshToken);
 
       // Store new refresh token with token ID for rotation detection
+      // Pass the old token ID to mark it as used (prevents reuse attacks)
       await redisCache.setRefreshToken(
         user.id,
         tokens.refreshToken,
         7 * 24 * 60 * 60, // 7 days
-        decoded?.jti
+        decoded?.jti,
+        payload.jti // Mark old token as used
       );
 
       logger.info(`Refresh token rotated for user ${user.id}`);

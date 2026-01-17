@@ -84,6 +84,18 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private extractToken(request: any): string | null {
+    // SECURITY: Check httpOnly cookie first (preferred, XSS-safe)
+    // Then fall back to Authorization header for backwards compatibility and mobile apps
+    if (request.cookies?.access_token) {
+      const cookieToken = request.cookies.access_token;
+      // Validate token has JWT structure (header.payload.signature)
+      const parts = cookieToken.split('.');
+      if (parts.length === 3) {
+        return cookieToken;
+      }
+    }
+
+    // Fallback to Authorization header
     const authHeader = request.headers.authorization;
     if (!authHeader) {
       return null;

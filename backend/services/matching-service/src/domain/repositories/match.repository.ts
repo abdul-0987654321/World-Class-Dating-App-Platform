@@ -43,6 +43,30 @@ export class MatchRepository {
   }
 
   /**
+   * Create a new match within a transaction
+   * Used for atomic swipe + match creation
+   */
+  async createWithTransaction(trx: Knex, match: Partial<Match>): Promise<Match> {
+    const [created] = await trx('matches')
+      .insert({
+        user1_id: match.user1Id,
+        user2_id: match.user2Id,
+        status: match.status || MatchStatus.MATCHED,
+        compatibility_score: match.compatibilityScore,
+        matched_at: match.matchedAt || new Date(),
+        last_activity_at: match.lastActivityAt || new Date(),
+        expires_at: match.expiresAt,
+        extended: match.extended || false,
+        extended_at: match.extendedAt,
+        expired: match.expired || false,
+        first_message_sent: match.firstMessageSent || false,
+      })
+      .returning('*');
+
+    return this.mapToMatch(created);
+  }
+
+  /**
    * Find match by ID
    */
   async findById(matchId: string): Promise<Match | null> {
@@ -75,6 +99,26 @@ export class MatchRepository {
       logger.error('Failed to find match by users', error);
       throw error;
     }
+  }
+
+  /**
+   * Find match between two users within a transaction
+   */
+  async findByUsersWithTransaction(
+    trx: Knex,
+    user1Id: string,
+    user2Id: string
+  ): Promise<Match | null> {
+    const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
+
+    const match = await trx('matches')
+      .where({
+        user1_id: sortedUser1,
+        user2_id: sortedUser2,
+      })
+      .first();
+
+    return match ? this.mapToMatch(match) : null;
   }
 
   /**
@@ -178,6 +222,14 @@ export class MatchRepository {
       logger.error('Failed to delete match', error);
       throw error;
     }
+  }
+
+  /**
+   * Delete a match within a transaction
+   */
+  async deleteWithTransaction(trx: Knex, matchId: string): Promise<boolean> {
+    const deleted = await trx('matches').where({ id: matchId }).del();
+    return deleted > 0;
   }
 
   /**

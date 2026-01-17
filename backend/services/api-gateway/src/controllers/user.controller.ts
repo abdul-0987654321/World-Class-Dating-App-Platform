@@ -15,10 +15,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 import { Public } from '../decorators/public.decorator';
 import { ProxyService } from '../services/proxy.service';
+import {
+  UpdateUserProfileDto,
+  UpdateUserPreferencesDto,
+  UpdateUserSettingsDto,
+  UpdateLocationDto,
+  BlockUserDto,
+  ReportUserDto,
+  RequestVerificationDto,
+} from '../dto/user.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -34,7 +43,7 @@ export class UserController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   async getCurrentUser(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me', {
+    return this.proxyService.get('userService', '/api/v1/users/me', {
       Authorization: authorization,
     });
   }
@@ -44,8 +53,9 @@ export class UserController {
    */
   @Put('me')
   @ApiOperation({ summary: 'Update current user profile' })
-  async updateCurrentUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('userService', '/api/users/me', body, {
+  @ApiBody({ type: UpdateUserProfileDto })
+  async updateCurrentUser(@Headers('authorization') authorization: string, @Body() body: UpdateUserProfileDto) {
+    return this.proxyService.put('userService', '/api/v1/users/me', body, {
       Authorization: authorization,
     });
   }
@@ -59,7 +69,7 @@ export class UserController {
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string
   ) {
-    return this.proxyService.get('userService', `/api/users/${userId}`, {
+    return this.proxyService.get('userService', `/api/v1/users/${userId}`, {
       Authorization: authorization,
     });
   }
@@ -69,12 +79,13 @@ export class UserController {
    */
   @Put(':userId')
   @ApiOperation({ summary: 'Update user by ID (admin)' })
+  @ApiBody({ type: UpdateUserProfileDto })
   async updateUser(
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string,
-    @Body() body: Record<string, unknown>
+    @Body() body: UpdateUserProfileDto
   ) {
-    return this.proxyService.put('userService', `/api/users/${userId}`, body, {
+    return this.proxyService.put('userService', `/api/v1/users/${userId}`, body, {
       Authorization: authorization,
     });
   }
@@ -88,7 +99,7 @@ export class UserController {
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string
   ) {
-    return this.proxyService.delete('userService', `/api/users/${userId}`, {
+    return this.proxyService.delete('userService', `/api/v1/users/${userId}`, {
       Authorization: authorization,
     });
   }
@@ -102,7 +113,7 @@ export class UserController {
   @ApiOperation({ summary: 'Upload profile photo' })
   @ApiConsumes('multipart/form-data')
   async uploadPhoto(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('userService', '/api/users/me/photos', body, {
+    return this.proxyService.post('userService', '/api/v1/users/me/photos', body, {
       Authorization: authorization,
     });
   }
@@ -113,7 +124,7 @@ export class UserController {
   @Get('me/photos')
   @ApiOperation({ summary: 'Get current user photos' })
   async getUserPhotos(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me/photos', {
+    return this.proxyService.get('userService', '/api/v1/users/me/photos', {
       Authorization: authorization,
     });
   }
@@ -127,7 +138,7 @@ export class UserController {
     @Headers('authorization') authorization: string,
     @Param('photoId') photoId: string
   ) {
-    return this.proxyService.delete('userService', `/api/users/me/photos/${photoId}`, {
+    return this.proxyService.delete('userService', `/api/v1/users/me/photos/${photoId}`, {
       Authorization: authorization,
     });
   }
@@ -143,7 +154,7 @@ export class UserController {
   ) {
     return this.proxyService.put(
       'userService',
-      `/api/users/me/photos/${photoId}/primary`,
+      `/api/v1/users/me/photos/${photoId}/primary`,
       {},
       {
         Authorization: authorization,
@@ -159,7 +170,7 @@ export class UserController {
   @Get('me/preferences')
   @ApiOperation({ summary: 'Get user preferences' })
   async getPreferences(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me/preferences', {
+    return this.proxyService.get('userService', '/api/v1/users/me/preferences', {
       Authorization: authorization,
     });
   }
@@ -169,8 +180,9 @@ export class UserController {
    */
   @Put('me/preferences')
   @ApiOperation({ summary: 'Update user preferences' })
-  async updatePreferences(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('userService', '/api/users/me/preferences', body, {
+  @ApiBody({ type: UpdateUserPreferencesDto })
+  async updatePreferences(@Headers('authorization') authorization: string, @Body() body: UpdateUserPreferencesDto) {
+    return this.proxyService.put('userService', '/api/v1/users/me/preferences', body, {
       Authorization: authorization,
     });
   }
@@ -183,7 +195,7 @@ export class UserController {
   @Get('me/settings')
   @ApiOperation({ summary: 'Get user settings' })
   async getSettings(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me/settings', {
+    return this.proxyService.get('userService', '/api/v1/users/me/settings', {
       Authorization: authorization,
     });
   }
@@ -193,8 +205,9 @@ export class UserController {
    */
   @Put('me/settings')
   @ApiOperation({ summary: 'Update user settings' })
-  async updateSettings(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('userService', '/api/users/me/settings', body, {
+  @ApiBody({ type: UpdateUserSettingsDto })
+  async updateSettings(@Headers('authorization') authorization: string, @Body() body: UpdateUserSettingsDto) {
+    return this.proxyService.put('userService', '/api/v1/users/me/settings', body, {
       Authorization: authorization,
     });
   }
@@ -206,8 +219,9 @@ export class UserController {
    */
   @Put('me/location')
   @ApiOperation({ summary: 'Update user location' })
-  async updateLocation(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.put('userService', '/api/users/me/location', body, {
+  @ApiBody({ type: UpdateLocationDto })
+  async updateLocation(@Headers('authorization') authorization: string, @Body() body: UpdateLocationDto) {
+    return this.proxyService.put('userService', '/api/v1/users/me/location', body, {
       Authorization: authorization,
     });
   }
@@ -221,7 +235,7 @@ export class UserController {
   @ApiOperation({ summary: 'Block a user' })
   @HttpCode(HttpStatus.CREATED)
   async blockUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('userService', '/api/users/me/blocks', body, {
+    return this.proxyService.post('userService', '/api/v1/users/me/blocks', body, {
       Authorization: authorization,
     });
   }
@@ -232,7 +246,7 @@ export class UserController {
   @Get('me/blocks')
   @ApiOperation({ summary: 'Get blocked users' })
   async getBlockedUsers(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me/blocks', {
+    return this.proxyService.get('userService', '/api/v1/users/me/blocks', {
       Authorization: authorization,
     });
   }
@@ -246,7 +260,7 @@ export class UserController {
     @Headers('authorization') authorization: string,
     @Param('blockedUserId') blockedUserId: string
   ) {
-    return this.proxyService.delete('userService', `/api/users/me/blocks/${blockedUserId}`, {
+    return this.proxyService.delete('userService', `/api/v1/users/me/blocks/${blockedUserId}`, {
       Authorization: authorization,
     });
   }
@@ -258,7 +272,7 @@ export class UserController {
   @ApiOperation({ summary: 'Report a user' })
   @HttpCode(HttpStatus.CREATED)
   async reportUser(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('userService', '/api/users/me/reports', body, {
+    return this.proxyService.post('userService', '/api/v1/users/me/reports', body, {
       Authorization: authorization,
     });
   }
@@ -272,7 +286,7 @@ export class UserController {
   @ApiOperation({ summary: 'Request profile verification' })
   @HttpCode(HttpStatus.CREATED)
   async requestVerification(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('userService', '/api/users/me/verification', body, {
+    return this.proxyService.post('userService', '/api/v1/users/me/verification', body, {
       Authorization: authorization,
     });
   }
@@ -283,7 +297,7 @@ export class UserController {
   @Get('me/verification')
   @ApiOperation({ summary: 'Get verification status' })
   async getVerificationStatus(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('userService', '/api/users/me/verification', {
+    return this.proxyService.get('userService', '/api/v1/users/me/verification', {
       Authorization: authorization,
     });
   }

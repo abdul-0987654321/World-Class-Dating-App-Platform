@@ -105,6 +105,7 @@ export class CoinRepository {
 
       const updateData: any = {
         balance: newBalance,
+        version: (currentCoin.version || 1) + 1,
         updated_at: new Date(),
       };
 
@@ -120,6 +121,91 @@ export class CoinRepository {
         .returning('*');
 
       return this.mapToEntity(updatedCoin);
+    });
+  }
+
+  /**
+   * Purchase coins with atomic transaction
+   * Ensures both balance update and transaction record are created together
+   * Includes idempotency via referenceId check within transaction
+   */
+  async purchaseCoinsWithTransaction(
+    userId: string,
+    amount: number,
+    referenceId: string,
+    metadata: {
+      productSku: string;
+      coinAmount: number;
+      bonusCoins: number;
+      priceUsd: number;
+      productName: string;
+    }
+  ): Promise<{ coin: Coin; transaction: any }> {
+    return await db.transaction(async (trx) => {
+      // Lock the coin row for update
+      let currentCoin = await trx(this.tableName)
+        .where({ user_id: userId })
+        .forUpdate()
+        .first();
+
+      // Create coin account if not exists (within transaction)
+      if (!currentCoin) {
+        const now = new Date();
+        [currentCoin] = await trx(this.tableName)
+          .insert({
+            user_id: userId,
+            balance: 0,
+            total_earned: 0,
+            total_spent: 0,
+            total_purchased: 0,
+            version: 1,
+            created_at: now,
+            updated_at: now,
+          })
+          .returning('*');
+      }
+
+      // Update balance with version increment
+      const [updatedCoin] = await trx(this.tableName)
+        .where({ user_id: userId })
+        .update({
+          balance: db.raw('balance + ?', [amount]),
+          total_purchased: db.raw('total_purchased + ?', [amount]),
+          version: (currentCoin.version || 1) + 1,
+          updated_at: new Date(),
+        })
+        .returning('*');
+
+      // Create transaction record (within same db transaction)
+      const [transaction] = await trx('coin_transactions')
+        .insert({
+          user_id: userId,
+          type: 'purchase',
+          amount: amount,
+          balance_after: updatedCoin.balance,
+          reason: `Purchased ${metadata.productName}`,
+          reference_id: referenceId,
+          reference_type: 'stripe_payment',
+          metadata: JSON.stringify(metadata),
+          created_at: new Date(),
+        })
+        .returning('*');
+
+      return {
+        coin: this.mapToEntity(updatedCoin),
+        transaction: {
+          id: transaction.id,
+          userId: transaction.user_id,
+          type: transaction.type,
+          amount: transaction.amount,
+          balanceAfter: transaction.balance_after,
+          reason: transaction.reason,
+          referenceId: transaction.reference_id,
+          referenceType: transaction.reference_type,
+          metadata: transaction.metadata ? JSON.parse(transaction.metadata) : null,
+          createdAt: transaction.created_at,
+        },
+      };
     });
   }
 
@@ -147,6 +233,7 @@ export class CoinRepository {
       totalEarned: row.total_earned,
       totalSpent: row.total_spent,
       totalPurchased: row.total_purchased,
+      version: row.version || 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

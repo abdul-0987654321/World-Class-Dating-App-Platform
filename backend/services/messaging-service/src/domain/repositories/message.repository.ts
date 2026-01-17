@@ -6,17 +6,43 @@ const logger = createLogger('message-repository');
 
 export class MessageRepository {
   /**
-   * Create a new message
+   * Create a new message with idempotency support
+   * Handles duplicate message prevention via unique message ID
    */
   async create(message: Message): Promise<Message> {
     try {
       logger.info(`Creating message: ${message.id}`);
 
-      const [created] = await postgresClient.messages().insert(message).returning('*');
+      // Use insert with conflict handling for idempotency
+      // If message ID already exists, return existing message
+      const [created] = await postgresClient
+        .messages()
+        .insert(message)
+        .onConflict('id')
+        .ignore()
+        .returning('*');
+
+      // If no row was inserted (conflict), fetch existing
+      if (!created) {
+        const existing = await this.findById(message.id);
+        if (existing) {
+          logger.info(`Message ${message.id} already exists (idempotent)`);
+          return existing;
+        }
+        throw new Error(`Failed to create or find message ${message.id}`);
+      }
 
       logger.info(`Message created: ${message.id}`);
       return created as Message;
     } catch (error: any) {
+      // Handle duplicate key error (idempotency)
+      if (error.code === '23505' || error.message?.includes('duplicate')) {
+        const existing = await this.findById(message.id);
+        if (existing) {
+          logger.info(`Message ${message.id} already exists (duplicate handled)`);
+          return existing;
+        }
+      }
       logger.error(`Failed to create message ${message.id}:`, error);
       throw new Error(`Failed to create message: ${error.message}`);
     }

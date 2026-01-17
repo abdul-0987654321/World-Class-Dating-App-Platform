@@ -8,6 +8,8 @@
  * - Preserves existing correlation IDs from upstream services
  * - Attaches correlation ID to request and response objects
  * - Enables distributed tracing across microservices
+ * - Integrates with structured logging context
+ * - Supports distributed tracing with trace/span IDs
  *
  * The correlation ID is used to:
  * - Track requests across multiple services
@@ -17,6 +19,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { setLogContext, clearLogContext, type LogContext } from '../utils/logger';
 
 /**
  * Header names for correlation ID (in order of preference)
@@ -29,10 +32,13 @@ export const CORRELATION_ID_HEADERS = ['x-correlation-id', 'x-request-id', 'x-tr
 export const CORRELATION_ID_RESPONSE_HEADER = 'X-Correlation-ID';
 
 /**
- * Extended Request interface with correlation ID
+ * Extended Request interface with correlation ID and tracing
  */
 export interface CorrelatedRequest extends Request {
   correlationId: string;
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
 }
 
 /**
@@ -69,6 +75,43 @@ function isValidCorrelationId(id: string): boolean {
 }
 
 /**
+ * Options for correlation ID middleware
+ */
+export interface CorrelationIdOptions {
+  /** Whether to set logging context automatically. Default: true */
+  setLoggingContext?: boolean;
+  /** Whether to extract distributed tracing headers (traceparent, etc.). Default: true */
+  enableDistributedTracing?: boolean;
+  /** Custom ID generator function */
+  idGenerator?: () => string;
+}
+
+/**
+ * Extract W3C traceparent header for distributed tracing
+ * Format: version-traceId-parentId-traceFlags
+ */
+function extractTraceparent(req: Request): { traceId?: string; parentSpanId?: string } {
+  const traceparent = req.headers['traceparent'] as string;
+  if (!traceparent) return {};
+
+  const parts = traceparent.split('-');
+  if (parts.length >= 3) {
+    return {
+      traceId: parts[1],
+      parentSpanId: parts[2],
+    };
+  }
+  return {};
+}
+
+/**
+ * Generate a new span ID (16 character hex string)
+ */
+function generateSpanId(): string {
+  return uuidv4().replace(/-/g, '').substring(0, 16);
+}
+
+/**
  * Correlation ID Middleware
  *
  * Adds a correlation ID to each request for distributed tracing.
@@ -89,24 +132,78 @@ function isValidCorrelationId(id: string): boolean {
  * ```
  */
 export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // Try to extract existing correlation ID from headers
-  let correlationId = extractCorrelationId(req);
+  correlationIdMiddlewareWithOptions()(req, res, next);
+}
 
-  // Validate existing ID or generate new one
-  if (!correlationId || !isValidCorrelationId(correlationId)) {
-    correlationId = generateCorrelationId();
-  }
+/**
+ * Correlation ID Middleware Factory with Options
+ *
+ * Creates middleware with configurable options for correlation ID handling.
+ *
+ * @example
+ * ```typescript
+ * app.use(correlationIdMiddlewareWithOptions({
+ *   setLoggingContext: true,
+ *   enableDistributedTracing: true,
+ * }));
+ * ```
+ */
+export function correlationIdMiddlewareWithOptions(options: CorrelationIdOptions = {}) {
+  const {
+    setLoggingContext: shouldSetLoggingContext = true,
+    enableDistributedTracing = true,
+    idGenerator = generateCorrelationId,
+  } = options;
 
-  // Attach to request object
-  (req as CorrelatedRequest).correlationId = correlationId;
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const correlatedReq = req as CorrelatedRequest;
 
-  // Set response header so clients can reference it
-  res.setHeader(CORRELATION_ID_RESPONSE_HEADER, correlationId);
+    // Try to extract existing correlation ID from headers
+    let correlationId = extractCorrelationId(req);
 
-  // Also set as a lowercase header for consistency
-  res.setHeader('x-correlation-id', correlationId);
+    // Validate existing ID or generate new one
+    if (!correlationId || !isValidCorrelationId(correlationId)) {
+      correlationId = idGenerator();
+    }
 
-  next();
+    // Attach correlation ID to request object
+    correlatedReq.correlationId = correlationId;
+
+    // Extract distributed tracing info if enabled
+    if (enableDistributedTracing) {
+      const { traceId, parentSpanId } = extractTraceparent(req);
+      correlatedReq.traceId = traceId || correlationId;
+      correlatedReq.parentSpanId = parentSpanId;
+      correlatedReq.spanId = generateSpanId();
+    }
+
+    // Set up logging context for this request
+    if (shouldSetLoggingContext) {
+      const logContext: LogContext = {
+        correlationId,
+        traceId: correlatedReq.traceId,
+        spanId: correlatedReq.spanId,
+      };
+      setLogContext(logContext);
+
+      // Clear context when response finishes
+      res.on('finish', () => {
+        clearLogContext();
+      });
+    }
+
+    // Set response headers
+    res.setHeader(CORRELATION_ID_RESPONSE_HEADER, correlationId);
+    res.setHeader('x-correlation-id', correlationId);
+
+    // Set traceparent header for downstream services
+    if (enableDistributedTracing && correlatedReq.traceId && correlatedReq.spanId) {
+      const traceparent = `00-${correlatedReq.traceId}-${correlatedReq.spanId}-01`;
+      res.setHeader('traceparent', traceparent);
+    }
+
+    next();
+  };
 }
 
 /**
@@ -140,11 +237,23 @@ export function getCorrelationId(req: Request): string {
  * ```
  */
 export function createCorrelationHeaders(req: Request): Record<string, string> {
+  const correlatedReq = req as CorrelatedRequest;
   const correlationId = getCorrelationId(req);
-  return {
+
+  const headers: Record<string, string> = {
     'X-Correlation-ID': correlationId,
     'x-correlation-id': correlationId,
   };
+
+  // Add distributed tracing headers if available
+  if (correlatedReq.traceId && correlatedReq.spanId) {
+    // Create traceparent header (W3C Trace Context format)
+    // Format: version-traceId-parentId-traceFlags
+    const traceparent = `00-${correlatedReq.traceId}-${correlatedReq.spanId}-01`;
+    headers['traceparent'] = traceparent;
+  }
+
+  return headers;
 }
 
 /**

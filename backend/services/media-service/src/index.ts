@@ -79,8 +79,8 @@ app.use(
     maxAge: 86400,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // Media service needs larger limit for base64 encoded images
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/health', async (_req: Request, res: Response) => {

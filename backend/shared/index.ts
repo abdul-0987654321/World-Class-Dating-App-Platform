@@ -6,8 +6,23 @@ export * from './types/user.types';
 export * from './types/match.types';
 export * from './types/message.types';
 
-// Utils
-export { default as createLogger } from './utils/logger';
+// Utils - Enhanced Logger with Observability
+export {
+  default as createLogger,
+  createLogger as createObservableLogger,
+  ErrorCategory,
+  categorizeError,
+  setLogContext,
+  getLogContext,
+  clearLogContext,
+  sanitize,
+} from './utils/logger';
+export type {
+  ObservableLogger,
+  LogContext,
+  StructuredLogEntry,
+} from './utils/logger';
+
 export * from './utils/validation';
 export * from './utils/encryption';
 export * from './utils/env-validator';

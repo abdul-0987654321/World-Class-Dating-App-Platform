@@ -76,8 +76,8 @@ app.use(
     maxAge: 86400, // 24 hours - cache preflight
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' })); // Moderation service may receive image data
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {

@@ -86,8 +86,8 @@ app.use(
 app.use('/api/v1/webhooks', webhookRoutes);
 
 // JSON parsing for all other routes
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Mount payment routes
 app.use('/api/v1/payments', paymentRoutes);

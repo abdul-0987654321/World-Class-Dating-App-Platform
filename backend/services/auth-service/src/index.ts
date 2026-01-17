@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import { v4 as uuidv4 } from 'uuid';
 
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import apiRoutes from './api/routes';
@@ -70,6 +71,14 @@ app.use(express.urlencoded({ extended: true }));
 // Cookie parsing (required for httpOnly cookie-based auth)
 app.use(cookieParser());
 
+// Correlation ID middleware - add to every request for distributed tracing
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
+  (req as any).correlationId = correlationId;
+  res.setHeader('X-Correlation-ID', correlationId);
+  next();
+});
+
 // Health check endpoint - MUST be before rate limiting for K8s probes
 app.get('/health', async (req: Request, res: Response) => {
   const checks = {
@@ -126,20 +135,68 @@ app.use(generalLimiter);
 // Mount API routes
 app.use('/api/v1', apiRoutes);
 
-// 404 handler
+// 404 handler - returns standardized error response
 app.use((req: Request, res: Response) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  res.setHeader('X-Correlation-ID', correlationId);
   res.status(404).json({
     success: false,
-    error: 'Not found',
+    error: {
+      code: 'RESOURCE_NOT_FOUND',
+      message: `Cannot ${req.method} ${req.path}`,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 
-// Error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error('Unhandled error', err);
-  res.status(500).json({
+// Global error handler - returns standardized error response
+app.use((err: Error & { statusCode?: number; code?: string }, req: Request, res: Response, _next: NextFunction) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  const statusCode = err.statusCode || 500;
+
+  // Determine error code
+  let errorCode = err.code || 'INTERNAL_ERROR';
+  if (!err.code) {
+    if (statusCode === 400) errorCode = 'VALIDATION_FAILED';
+    else if (statusCode === 401) errorCode = 'AUTH_TOKEN_INVALID';
+    else if (statusCode === 403) errorCode = 'PERM_DENIED';
+    else if (statusCode === 404) errorCode = 'RESOURCE_NOT_FOUND';
+    else if (statusCode === 429) errorCode = 'RATE_LIMIT_EXCEEDED';
+  }
+
+  // Log server errors
+  if (statusCode >= 500) {
+    logger.error('Server error', {
+      error: err.message,
+      stack: err.stack,
+      correlationId,
+      path: req.path,
+      method: req.method,
+    });
+  } else {
+    logger.warn('Client error', {
+      error: err.message,
+      correlationId,
+      path: req.path,
+      method: req.method,
+    });
+  }
+
+  // Sanitize message for production
+  const message = config.nodeEnv === 'production' && statusCode >= 500
+    ? 'An unexpected error occurred. Please try again.'
+    : err.message;
+
+  res.setHeader('X-Correlation-ID', correlationId);
+  res.status(statusCode).json({
     success: false,
-    error: config.nodeEnv === 'production' ? 'Internal server error' : err.message,
+    error: {
+      code: errorCode,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 

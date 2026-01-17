@@ -6,6 +6,86 @@ import { EventSearchParams, EventCategory, Venue, Address } from '../../types';
 
 const logger = createLogger('eventbrite-client');
 
+// Retry configuration
+const MAX_RETRIES = 3;
+const BASE_DELAY = 1000;
+const MAX_DELAY = 10000;
+
+// HTTP status codes that should trigger a retry
+const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];
+
+/**
+ * Circuit Breaker State
+ */
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+
+/**
+ * Simple Circuit Breaker for external API resilience
+ */
+class CircuitBreaker {
+  private state: CircuitState = 'CLOSED';
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private successCount = 0;
+  private readonly threshold = 5;
+  private readonly resetTimeout = 30000;
+  private readonly successThreshold = 2;
+
+  getState(): CircuitState {
+    if (this.state === 'OPEN') {
+      const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+      if (timeSinceLastFailure >= this.resetTimeout) {
+        this.state = 'HALF_OPEN';
+        this.successCount = 0;
+        logger.info('[Eventbrite] Circuit breaker transitioning to HALF_OPEN');
+      }
+    }
+    return this.state;
+  }
+
+  allowRequest(): boolean {
+    return this.getState() !== 'OPEN';
+  }
+
+  recordSuccess(): void {
+    if (this.state === 'HALF_OPEN') {
+      this.successCount++;
+      if (this.successCount >= this.successThreshold) {
+        this.state = 'CLOSED';
+        this.failureCount = 0;
+        logger.info('[Eventbrite] Circuit breaker CLOSED');
+      }
+    } else {
+      this.failureCount = 0;
+    }
+  }
+
+  recordFailure(): void {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+    if (this.state === 'HALF_OPEN' || this.failureCount >= this.threshold) {
+      this.state = 'OPEN';
+      logger.warn(`[Eventbrite] Circuit breaker OPEN: ${this.failureCount} failures`);
+    }
+  }
+}
+
+/**
+ * Calculate exponential backoff with jitter
+ */
+function calculateBackoff(attempt: number): number {
+  const delay = Math.min(BASE_DELAY * Math.pow(2, attempt - 1), MAX_DELAY);
+  // Add jitter: 50-100% of delay
+  return Math.floor(delay * (0.5 + Math.random() * 0.5));
+}
+
+/**
+ * Sleep utility
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // Eventbrite API types
 interface EbEvent {
   id: string;
@@ -119,10 +199,12 @@ export class EventbriteClient {
   private client: AxiosInstance;
   private apiToken: string;
   private affiliateId: string;
+  private circuitBreaker: CircuitBreaker;
 
   constructor(apiToken?: string, affiliateId?: string) {
     this.apiToken = apiToken || process.env.EVENTBRITE_API_TOKEN || '';
     this.affiliateId = affiliateId || process.env.EVENTBRITE_AFFILIATE_ID || '';
+    this.circuitBreaker = new CircuitBreaker();
 
     this.client = axios.create({
       baseURL: process.env.EVENTBRITE_API_URL || 'https://www.eventbriteapi.com/v3',
@@ -150,8 +232,12 @@ export class EventbriteClient {
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        this.circuitBreaker.recordSuccess();
+        return response;
+      },
       (error: AxiosError) => {
+        this.circuitBreaker.recordFailure();
         logger.error('Eventbrite Response Error', {
           status: error.response?.status,
           message: error.message,
@@ -162,10 +248,45 @@ export class EventbriteClient {
   }
 
   /**
+   * Execute request with retry logic and circuit breaker
+   */
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    if (!this.circuitBreaker.allowRequest()) {
+      throw new Error(`Eventbrite circuit breaker is OPEN - ${operationName} blocked`);
+    }
+
+    let lastError: Error | null = null;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        const status = error.response?.status;
+
+        // Don't retry 4xx errors (except 408 and 429)
+        if (status && status >= 400 && status < 500 && !RETRYABLE_STATUS_CODES.includes(status)) {
+          throw error;
+        }
+
+        if (attempt < MAX_RETRIES) {
+          const delay = calculateBackoff(attempt);
+          logger.warn(`[Eventbrite] ${operationName} failed (attempt ${attempt}/${MAX_RETRIES}). Retrying in ${delay}ms...`);
+          await sleep(delay);
+        }
+      }
+    }
+
+    throw lastError || new Error(`${operationName} failed after ${MAX_RETRIES} retries`);
+  }
+
+  /**
    * Search for events
    */
   async searchEvents(params: EventSearchParams): Promise<any[]> {
-    try {
+    return this.executeWithRetry(async () => {
       const queryParams: Record<string, any> = {
         'location.latitude': params.latitude,
         'location.longitude': params.longitude,
@@ -204,34 +325,28 @@ export class EventbriteClient {
           if (params.dateFriendlyOnly && !event.isDateFriendly) return false;
           return true;
         });
-    } catch (error: any) {
-      logger.error('Failed to search Eventbrite events', { error: error.message });
-      throw new Error(`Eventbrite search failed: ${error.message}`);
-    }
+    }, 'searchEvents');
   }
 
   /**
    * Get event details
    */
   async getEvent(eventId: string): Promise<any> {
-    try {
+    return this.executeWithRetry(async () => {
       const response = await this.client.get(`/events/${eventId}/`, {
         params: {
           expand: 'venue,ticket_classes,category,subcategory',
         },
       });
       return this.transformEvent(response.data);
-    } catch (error: any) {
-      logger.error('Failed to get Eventbrite event', { eventId, error: error.message });
-      throw new Error(`Failed to get event: ${error.message}`);
-    }
+    }, `getEvent(${eventId})`);
   }
 
   /**
    * Get ticket classes for an event
    */
   async getTicketClasses(eventId: string): Promise<any[]> {
-    try {
+    return this.executeWithRetry(async () => {
       const response = await this.client.get(`/events/${eventId}/ticket_classes/`);
       return response.data.ticket_classes.map((tc: EbTicketClass) => ({
         id: tc.id,
@@ -244,10 +359,7 @@ export class EventbriteClient {
         isFree: tc.free,
         onSaleStatus: tc.on_sale_status,
       }));
-    } catch (error: any) {
-      logger.error('Failed to get ticket classes', { eventId, error: error.message });
-      throw new Error(`Failed to get ticket classes: ${error.message}`);
-    }
+    }, `getTicketClasses(${eventId})`);
   }
 
   /**

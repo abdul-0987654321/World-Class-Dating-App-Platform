@@ -32,8 +32,11 @@ export {
   errorHandlerMiddleware,
   notFoundHandler,
   initializeGlobalErrorHandlers,
+  getErrorMetrics,
+  resetErrorMetrics,
   type RequestWithCorrelationId,
   type StandardErrorResponse,
+  type ErrorMetrics,
 } from './error-handler.middleware';
 
 // Default export for error handler
@@ -44,6 +47,7 @@ export { default as errorHandler } from './error-handler.middleware';
 // ============================================================================
 export {
   correlationIdMiddleware,
+  correlationIdMiddlewareWithOptions,
   getCorrelationId,
   createCorrelationHeaders,
   requireCorrelationId,
@@ -51,10 +55,26 @@ export {
   CORRELATION_ID_RESPONSE_HEADER,
   type CorrelatedRequest,
   type CorrelationIdMiddleware,
+  type CorrelationIdOptions,
 } from './correlation-id.middleware';
 
 // Default export alias for correlation middleware
 export { default as correlationMiddleware } from './correlation-id.middleware';
+
+// ============================================================================
+// Request Timing Middleware
+// ============================================================================
+export {
+  requestTimingMiddleware,
+  measureAsync,
+  timed,
+  type TimedRequest,
+  type RequestTimingOptions,
+  type RequestTimingData,
+} from './request-timing.middleware';
+
+// Default export for request timing
+export { default as requestTiming } from './request-timing.middleware';
 
 // ============================================================================
 // Async Handler Wrapper

@@ -21,10 +21,78 @@ import {
   getHttpStatus,
   getErrorMessage,
 } from '../errors';
-import createLogger from '../utils/logger';
+import createLogger, {
+  categorizeError,
+  ErrorCategory,
+  type ObservableLogger,
+} from '../utils/logger';
 
 // Create logger for error handling
 const logger = createLogger('error-handler');
+
+/**
+ * Error metrics tracking
+ */
+export interface ErrorMetrics {
+  totalErrors: number;
+  errorsByCategory: Record<ErrorCategory, number>;
+  errorsByStatusCode: Record<number, number>;
+  lastError?: {
+    timestamp: string;
+    correlationId: string;
+    category: ErrorCategory;
+  };
+}
+
+// In-memory error metrics (can be exported to external metrics system)
+const errorMetrics: ErrorMetrics = {
+  totalErrors: 0,
+  errorsByCategory: {} as Record<ErrorCategory, number>,
+  errorsByStatusCode: {},
+};
+
+/**
+ * Get current error metrics
+ */
+export function getErrorMetrics(): ErrorMetrics {
+  return { ...errorMetrics };
+}
+
+/**
+ * Reset error metrics (for testing)
+ */
+export function resetErrorMetrics(): void {
+  errorMetrics.totalErrors = 0;
+  errorMetrics.errorsByCategory = {} as Record<ErrorCategory, number>;
+  errorMetrics.errorsByStatusCode = {};
+  errorMetrics.lastError = undefined;
+}
+
+/**
+ * Update error metrics
+ */
+function updateErrorMetrics(
+  category: ErrorCategory,
+  statusCode: number,
+  correlationId: string
+): void {
+  errorMetrics.totalErrors++;
+
+  // Update category count
+  errorMetrics.errorsByCategory[category] =
+    (errorMetrics.errorsByCategory[category] || 0) + 1;
+
+  // Update status code count
+  errorMetrics.errorsByStatusCode[statusCode] =
+    (errorMetrics.errorsByStatusCode[statusCode] || 0) + 1;
+
+  // Track last error
+  errorMetrics.lastError = {
+    timestamp: new Date().toISOString(),
+    correlationId,
+    category,
+  };
+}
 
 /**
  * Extended Request interface with correlation ID
@@ -196,23 +264,40 @@ function getClientIp(req: RequestWithCorrelationId): string {
 }
 
 /**
- * Log error with appropriate severity
+ * Log error with appropriate severity and categorization
  */
 function logError(error: Error, payload: ErrorLogPayload): void {
+  // Categorize the error
+  const category = categorizeError(error);
+
   const logData = {
     ...payload,
+    errorCategory: category,
     // Only include stack trace in non-production environments
     stack: process.env.NODE_ENV !== 'production' ? payload.stack : undefined,
   };
 
-  // Log based on severity
-  if (payload.statusCode >= 500) {
-    logger.error('Server error occurred', logData);
-  } else if (payload.statusCode >= 400) {
-    logger.warn('Client error occurred', logData);
-  } else {
-    logger.info('Error handled', logData);
-  }
+  // Update metrics
+  updateErrorMetrics(category, payload.statusCode, payload.correlationId);
+
+  // Use the enhanced logger's error logging with categorization
+  logger.logError(error, category, {
+    correlationId: payload.correlationId,
+    method: payload.method,
+    path: payload.path,
+    userId: payload.userId,
+    ip: payload.ip,
+    userAgent: payload.userAgent,
+    statusCode: payload.statusCode,
+    errorCode: payload.errorCode,
+  });
+
+  // Also log a metric for the error
+  logger.logMetric('error_count', 1, {
+    category,
+    statusCode: payload.statusCode.toString(),
+    errorCode: payload.errorCode,
+  });
 }
 
 /**

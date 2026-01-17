@@ -99,8 +99,8 @@ app.use(
     maxAge: 86400, // 24 hours - cache preflight
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Correlation ID middleware - must be early in the chain
 app.use(correlationIdMiddleware);

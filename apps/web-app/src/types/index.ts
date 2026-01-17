@@ -1,7 +1,14 @@
 /**
  * Shared Types for Flamoral Web App
  * These types replace the @flamoral/types package
+ *
+ * NOTE: These types are designed to match the backend API contract.
+ * See utils/api-transformers.ts for handling snake_case/camelCase conversions.
  */
+
+// Gender enum - matches backend validation
+export const VALID_GENDERS = ['male', 'female', 'non-binary', 'other'] as const;
+export type Gender = typeof VALID_GENDERS[number];
 
 // User Types
 export interface User {
@@ -11,7 +18,7 @@ export interface User {
   lastName?: string;
   name?: string;
   age?: number;
-  gender?: string;
+  gender?: Gender;
   bio?: string;
   photos?: string[];
   location?: {
@@ -33,8 +40,12 @@ export interface User {
   };
   subscription?: string;
   premium_tier?: SubscriptionTier;
+  // Support both camelCase and snake_case for backward compatibility
+  premiumTier?: SubscriptionTier;
   coinBalance?: number;
   isVerified?: boolean;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -120,16 +131,23 @@ export interface Like {
 }
 
 // Subscription Types
+// NOTE: Tier values are lowercase to match backend API contract
 export type SubscriptionTier = 'free' | 'basic' | 'plus' | 'premium' | 'premium_plus' | 'elite';
+
+// NOTE: Status uses US spelling 'canceled' (not 'cancelled') to match backend
+export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing' | 'grace_period';
 
 export interface Subscription {
   id: string;
   userId: string;
   tier: SubscriptionTier;
-  status: 'active' | 'cancelled' | 'expired' | 'past_due' | 'trialing';
+  status: SubscriptionStatus;
   startDate: string;
-  endDate?: string;
+  endDate?: string | null;
+  gracePeriodEnd?: string | null;
   autoRenew: boolean;
+  features?: string[];
+  trialEnd?: string | null;
 }
 
 // Settings Types

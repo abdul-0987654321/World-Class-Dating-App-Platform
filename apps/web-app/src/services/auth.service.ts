@@ -5,6 +5,16 @@
 
 import { authTokenService } from './auth-token.service';
 import apiClient, { ApiError } from './api.client';
+import {
+  transformUserResponse,
+  normalizeSubscriptionTier,
+  toArray,
+  toNumber,
+  toBoolean,
+  BackendUserResponse,
+  FrontendUser,
+  SubscriptionTier,
+} from '../utils/api-transformers';
 
 export interface User {
   id: string;
@@ -17,6 +27,49 @@ export interface User {
   premiumTier?: string;
   coinBalance?: number;
   profileCompletion?: number;
+}
+
+/**
+ * Backend user response shape (snake_case)
+ */
+interface BackendUser {
+  id: string;
+  email: string;
+  first_name?: string;
+  firstName?: string;
+  last_name?: string;
+  lastName?: string;
+  photo_url?: string;
+  photoUrl?: string;
+  subscription?: string;
+  subscription_tier?: string;
+  premium_tier?: string;
+  premiumTier?: string;
+  is_email_verified?: boolean;
+  is_verified?: boolean;
+  isVerified?: boolean;
+  coin_balance?: number;
+  coinBalance?: number;
+  profile_completion?: number;
+  profileCompletion?: number;
+}
+
+/**
+ * Transforms backend user to frontend User format
+ */
+function transformBackendUser(data: BackendUser): User {
+  return {
+    id: data.id,
+    email: data.email,
+    firstName: data.first_name || data.firstName || '',
+    lastName: data.last_name || data.lastName,
+    photoUrl: data.photo_url || data.photoUrl,
+    subscription: data.subscription || data.subscription_tier || 'free',
+    isVerified: toBoolean(data.is_email_verified ?? data.is_verified ?? data.isVerified ?? false),
+    premiumTier: normalizeSubscriptionTier(data.premium_tier || data.premiumTier || data.subscription_tier) || undefined,
+    coinBalance: toNumber(data.coin_balance || data.coinBalance, 0),
+    profileCompletion: toNumber(data.profile_completion || data.profileCompletion, 0),
+  };
 }
 
 export interface Entitlements {
@@ -72,16 +125,20 @@ class AuthService {
 
     // Backend returns { success: true, data: { user } }
     // Tokens are now set in httpOnly cookies by the backend (not in response body)
-    const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
+    const response = await apiClient.post<{ success: boolean; data: { user: BackendUser } }>(
       '/api/v1/auth/login',
       { email, password },
       { skipAuth: true, skipCsrf: true }
     );
 
-    // Create LoginResponse with user data only
+    // Transform backend user response to frontend format
+    // Handles snake_case to camelCase conversion and safe defaults
+    const transformedUser = transformBackendUser(response.data.user);
+
+    // Create LoginResponse with transformed user data
     // Tokens are in httpOnly cookies, not accessible to JavaScript (XSS protection)
     const loginResponse: LoginResponse = {
-      user: response.data.user,
+      user: transformedUser,
       // Note: tokens are no longer in the response - they're in httpOnly cookies
     };
 
@@ -126,16 +183,20 @@ class AuthService {
 
     // Backend returns { success: true, data: { user } }
     // Tokens are now set in httpOnly cookies by the backend (not in response body)
-    const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
+    const response = await apiClient.post<{ success: boolean; data: { user: BackendUser } }>(
       '/api/v1/auth/register',
       backendData,
       { skipAuth: true, skipCsrf: true }
     );
 
-    // Create LoginResponse with user data only
+    // Transform backend user response to frontend format
+    // Handles snake_case to camelCase conversion and safe defaults
+    const transformedUser = transformBackendUser(response.data.user);
+
+    // Create LoginResponse with transformed user data
     // Tokens are in httpOnly cookies, not accessible to JavaScript (XSS protection)
     const loginResponse: LoginResponse = {
-      user: response.data.user,
+      user: transformedUser,
       // Note: tokens are no longer in the response - they're in httpOnly cookies
     };
 
@@ -163,7 +224,12 @@ class AuthService {
       return mockApi.getCurrentUser();
     }
 
-    return apiClient.get<User>('/api/v1/auth/me');
+    // Backend may return wrapped response { success, data } or direct user
+    const response = await apiClient.get<{ success: boolean; data: BackendUser } | BackendUser>('/api/v1/auth/me');
+
+    // Handle both wrapped and unwrapped response formats
+    const backendUser = 'success' in response && response.data ? response.data : response as BackendUser;
+    return transformBackendUser(backendUser);
   }
 
   /**

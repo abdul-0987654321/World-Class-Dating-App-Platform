@@ -4,6 +4,14 @@
  */
 
 import { authTokenService } from './auth-token.service';
+import {
+  toArray,
+  toBoolean,
+  toString,
+  toNumber,
+  normalizeSubscriptionTier,
+} from '../utils/api-transformers';
+
 export interface ProfilePhoto {
   url: string;
   is_primary: boolean;
@@ -107,30 +115,41 @@ class DiscoveryService {
     const json = await response.json();
     const data = json.data || json;
 
-    // Transform backend items to frontend DiscoveryProfile format
-    const profiles: DiscoveryProfile[] = (data.items || []).map((item: any) => ({
-      user_id: item.user_id,
-      first_name: item.profile_preview?.display_name || 'User',
-      age: item.profile_preview?.age || 0,
-      bio: item.profile_preview?.bio,
-      occupation: item.profile_preview?.occupation,
-      city: item.profile_preview?.city,
-      distance: item.profile_preview?.distance,
-      photos: (item.profile_preview?.photos || []).map((photo: any, i: number) => ({
-        url: typeof photo === 'string' ? photo : photo.url,
-        is_primary: i === 0,
-      })),
-      prompts: item.profile_preview?.prompts || [],
-      interests: item.profile_preview?.interests || [],
-      is_verified: item.profile_preview?.is_verified || false,
-      premium_tier: item.profile_preview?.premium_tier,
-      compatibility_score: item.profile_preview?.compatibility_score,
-    }));
+    // Transform backend items to frontend DiscoveryProfile format with safe defaults
+    const items = toArray(data.items);
+    const profiles: DiscoveryProfile[] = items.map((item: any) => {
+      const preview = item.profile_preview || {};
+      const rawPhotos = toArray(preview.photos);
+
+      return {
+        user_id: toString(item.user_id),
+        first_name: toString(preview.display_name || preview.first_name, 'User'),
+        age: toNumber(preview.age, 0),
+        bio: toString(preview.bio) || undefined,
+        occupation: toString(preview.occupation) || undefined,
+        city: toString(preview.city) || undefined,
+        distance: preview.distance !== undefined ? toNumber(preview.distance) : undefined,
+        photos: rawPhotos.map((photo: any, i: number) => ({
+          url: typeof photo === 'string' ? photo : toString(photo.url),
+          is_primary: i === 0 || toBoolean(photo.is_primary),
+        })),
+        prompts: toArray(preview.prompts).map((p: any) => ({
+          question: toString(p.question),
+          answer: toString(p.answer),
+        })),
+        interests: toArray(preview.interests),
+        is_verified: toBoolean(preview.is_verified),
+        premium_tier: normalizeSubscriptionTier(preview.premium_tier) || undefined,
+        compatibility_score: preview.compatibility_score !== undefined
+          ? toNumber(preview.compatibility_score)
+          : undefined,
+      };
+    });
 
     return {
       profiles,
       nextCursor: data.next_cursor || null,
-      remainingToday: data.remaining_today ?? 50, // Default to 50 if not provided
+      remainingToday: toNumber(data.remaining_today, 50), // Default to 50 if not provided
     };
   }
 
@@ -317,13 +336,16 @@ class DiscoveryService {
     const json = await response.json();
     const data = json.data || json;
 
-    // Map backend snake_case to frontend camelCase
+    // Map backend snake_case to frontend camelCase with safe defaults
     return {
-      remainingLikes: data.remaining_likes ?? data.remainingLikes ?? 50,
-      remainingSuperLikes: data.remaining_super_likes ?? data.remainingSuperLikes ?? 5,
-      remainingBoosts: data.remaining_boosts ?? data.remainingBoosts ?? 1,
-      likesResetAt: data.likes_reset_at ?? data.likesResetAt ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      isPremium: data.is_premium ?? data.isPremium ?? false,
+      remainingLikes: toNumber(data.remaining_likes ?? data.remainingLikes, 50),
+      remainingSuperLikes: toNumber(data.remaining_super_likes ?? data.remainingSuperLikes, 5),
+      remainingBoosts: toNumber(data.remaining_boosts ?? data.remainingBoosts, 1),
+      likesResetAt: toString(
+        data.likes_reset_at ?? data.likesResetAt,
+        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      ),
+      isPremium: toBoolean(data.is_premium ?? data.isPremium),
     };
   }
 }

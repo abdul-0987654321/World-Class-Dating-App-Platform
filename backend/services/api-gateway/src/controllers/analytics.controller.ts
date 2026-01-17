@@ -27,7 +27,7 @@ export class AnalyticsController {
   @Get('dashboard')
   @ApiOperation({ summary: 'Get user analytics dashboard' })
   async getDashboard(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('analyticsService', '/api/analytics/dashboard', {
+    return this.proxyService.get('analyticsService', '/api/v1/analytics/dashboard', {
       Authorization: authorization,
     });
   }
@@ -46,7 +46,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/profile/views${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/profile/views${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -66,7 +66,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/matches/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/matches/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -86,7 +86,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/messages/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/messages/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -106,7 +106,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/likes/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/likes/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -121,7 +121,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Track analytics event' })
   @HttpCode(HttpStatus.CREATED)
   async trackEvent(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('analyticsService', '/api/analytics/events', body, {
+    return this.proxyService.post('analyticsService', '/api/v1/analytics/events', body, {
       Authorization: authorization,
     });
   }
@@ -133,7 +133,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Track page view' })
   @HttpCode(HttpStatus.CREATED)
   async trackPageView(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('analyticsService', '/api/analytics/pageviews', body, {
+    return this.proxyService.post('analyticsService', '/api/v1/analytics/pageviews', body, {
       Authorization: authorization,
     });
   }
@@ -145,7 +145,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Track user action' })
   @HttpCode(HttpStatus.CREATED)
   async trackAction(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('analyticsService', '/api/analytics/actions', body, {
+    return this.proxyService.post('analyticsService', '/api/v1/analytics/actions', body, {
       Authorization: authorization,
     });
   }
@@ -166,7 +166,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/engagement${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/engagement${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -178,7 +178,7 @@ export class AnalyticsController {
   @Get('engagement/response-rate')
   @ApiOperation({ summary: 'Get message response rate' })
   async getResponseRate(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('analyticsService', '/api/analytics/engagement/response-rate', {
+    return this.proxyService.get('analyticsService', '/api/v1/analytics/engagement/response-rate', {
       Authorization: authorization,
     });
   }
@@ -199,7 +199,7 @@ export class AnalyticsController {
     if (to) queryString.append('to', to);
     if (granularity) queryString.append('granularity', granularity);
 
-    const path = `/api/analytics/activity/timeline${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/activity/timeline${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -221,7 +221,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/platform/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/platform/stats${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -233,7 +233,7 @@ export class AnalyticsController {
   @Get('platform/demographics')
   @ApiOperation({ summary: 'Get user demographics (admin)' })
   async getDemographics(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('analyticsService', '/api/analytics/platform/demographics', {
+    return this.proxyService.get('analyticsService', '/api/v1/analytics/platform/demographics', {
       Authorization: authorization,
     });
   }
@@ -252,7 +252,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/platform/revenue${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/platform/revenue${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -272,7 +272,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/platform/retention${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/platform/retention${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -294,7 +294,7 @@ export class AnalyticsController {
     if (from) queryString.append('from', from);
     if (to) queryString.append('to', to);
 
-    const path = `/api/analytics/funnel${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/analytics/funnel${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('analyticsService', path, {
       Authorization: authorization,
     });
@@ -309,7 +309,7 @@ export class AnalyticsController {
     @Headers('authorization') authorization: string,
     @Param('testId') testId: string
   ) {
-    return this.proxyService.get('analyticsService', `/api/analytics/ab-tests/${testId}`, {
+    return this.proxyService.get('analyticsService', `/api/v1/analytics/ab-tests/${testId}`, {
       Authorization: authorization,
     });
   }
@@ -323,7 +323,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Export analytics data' })
   @HttpCode(HttpStatus.OK)
   async exportData(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('analyticsService', '/api/analytics/export', body, {
+    return this.proxyService.post('analyticsService', '/api/v1/analytics/export', body, {
       Authorization: authorization,
     });
   }

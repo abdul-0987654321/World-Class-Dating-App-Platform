@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { validateQuery, GetMessagesQueryDto } from '../../dto';
 import { messageController } from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { rateLimitMiddleware } from '../middleware/rate-limit.middleware';
 
 import conversationRoutes from './conversation.routes';
 import encryptionKeysRoutes from './encryption-keys.routes';
@@ -13,6 +14,9 @@ import messageRoutes from './message.routes';
 import moderationRoutes from './moderation.routes';
 
 const router = Router();
+
+// Apply rate limiting to all messaging routes
+router.use(rateLimitMiddleware);
 
 // Mount conversation routes (includes typing indicators)
 router.use('/conversations', conversationRoutes);

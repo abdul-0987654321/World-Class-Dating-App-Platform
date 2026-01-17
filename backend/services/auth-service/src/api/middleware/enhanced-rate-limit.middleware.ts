@@ -131,10 +131,18 @@ class EnhancedRateLimiter {
    * Default rate limit handler
    */
   private defaultHandler(req: Request, res: Response): void {
+    // Get TTL and set Retry-After header in seconds (RFC 7231)
+    const resetHeader = res.getHeader('X-RateLimit-Reset');
+    const resetTime = resetHeader ? new Date(resetHeader as string).getTime() : Date.now() + 60000;
+    const retryAfterSeconds = Math.ceil((resetTime - Date.now()) / 1000);
+
+    res.setHeader('Retry-After', Math.max(1, retryAfterSeconds).toString());
+
     res.status(429).json({
       success: false,
-      error: 'Too many requests, please try again later',
-      retryAfter: res.getHeader('X-RateLimit-Reset'),
+      error: 'Too Many Requests',
+      message: 'Too many requests, please try again later',
+      retryAfter: retryAfterSeconds,
     });
   }
 

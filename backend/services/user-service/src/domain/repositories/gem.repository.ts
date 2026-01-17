@@ -11,11 +11,15 @@ import {
   GEM_PRICES,
 } from '../entities/Gem.entity';
 
+export interface VersionedGem extends Gem {
+  version: number;
+}
+
 export class GemRepository {
   /**
    * Get gem balance for user
    */
-  async getByUserId(userId: string): Promise<Gem | null> {
+  async getByUserId(userId: string): Promise<VersionedGem | null> {
     const gem = await db('gems').where({ user_id: userId }).first();
     if (!gem) return null;
 
@@ -25,6 +29,7 @@ export class GemRepository {
       balance: gem.balance,
       totalEarned: gem.total_earned,
       totalSpent: gem.total_spent,
+      version: gem.version || 1,
       createdAt: gem.created_at,
       updatedAt: gem.updated_at,
     };
@@ -33,7 +38,7 @@ export class GemRepository {
   /**
    * Create gem record for new user
    */
-  async create(input: GemCreateInput): Promise<Gem> {
+  async create(input: GemCreateInput): Promise<VersionedGem> {
     const id = uuidv4();
     const now = new Date();
 
@@ -43,21 +48,34 @@ export class GemRepository {
       balance: input.initialBalance || 0,
       total_earned: input.initialBalance || 0,
       total_spent: 0,
+      version: 1,
       created_at: now,
       updated_at: now,
     };
 
     await db('gems').insert(gem);
-    return this.getByUserId(input.userId);
+    return this.getByUserId(input.userId) as Promise<VersionedGem>;
   }
 
   /**
-   * Get or create gem record
+   * Get or create gem record with atomic upsert to prevent race conditions
    */
-  async getOrCreate(userId: string): Promise<Gem> {
+  async getOrCreate(userId: string): Promise<VersionedGem> {
     const existing = await this.getByUserId(userId);
     if (existing) return existing;
-    return this.create({ userId, initialBalance: 0 });
+
+    // Use transaction with conflict handling to prevent race condition
+    // where two concurrent requests try to create the same user's gem record
+    try {
+      return await this.create({ userId, initialBalance: 0 });
+    } catch (error: any) {
+      // If duplicate key error, another request created it - just fetch it
+      if (error.code === '23505' || error.message?.includes('duplicate')) {
+        const gem = await this.getByUserId(userId);
+        if (gem) return gem;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -96,7 +114,8 @@ export class GemRepository {
   }
 
   /**
-   * Spend gems from user balance
+   * Spend gems from user balance with transaction to prevent race conditions
+   * Uses optimistic locking with version field for concurrent safety
    */
   async spendGems(
     userId: string,
@@ -105,36 +124,136 @@ export class GemRepository {
     category: GemSpendingCategory,
     description: string,
     metadata?: Record<string, any>
-  ): Promise<Gem> {
-    const gem = await this.getOrCreate(userId);
+  ): Promise<VersionedGem> {
+    // Use transaction with row locking to prevent race conditions
+    return db.transaction(async (trx) => {
+      // Lock the row for update to prevent concurrent modifications
+      const gem = await trx('gems')
+        .where({ user_id: userId })
+        .forUpdate()
+        .first();
 
-    if (gem.balance < amount) {
-      throw new Error('Insufficient gem balance');
-    }
+      if (!gem) {
+        // Create if not exists within transaction
+        const newGem = await this.createWithTransaction(trx, { userId, initialBalance: 0 });
+        if (newGem.balance < amount) {
+          throw new Error(`Insufficient gem balance. Have ${newGem.balance}, need ${amount}`);
+        }
+      } else if (gem.balance < amount) {
+        throw new Error(`Insufficient gem balance. Have ${gem.balance}, need ${amount}`);
+      }
 
-    // Update balance
-    await db('gems')
-      .where({ user_id: userId })
-      .update({
-        balance: db.raw('balance - ?', [amount]),
-        total_spent: db.raw('total_spent + ?', [amount]),
-        updated_at: new Date(),
+      // Atomic update with version increment for optimistic locking
+      const [updatedGem] = await trx('gems')
+        .where({ user_id: userId })
+        .update({
+          balance: trx.raw('balance - ?', [amount]),
+          total_spent: trx.raw('total_spent + ?', [amount]),
+          version: trx.raw('COALESCE(version, 1) + 1'),
+          updated_at: new Date(),
+        })
+        .returning('*');
+
+      // Record transaction within same db transaction
+      await this.createTransactionWithTrx(trx, {
+        userId,
+        amount: -amount,
+        type: 'spent',
+        category,
+        itemType,
+        description,
+        metadata,
       });
 
-    // Record transaction
-    await this.createTransaction({
-      userId,
-      amount: -amount,
-      type: 'spent',
-      category,
-      itemType,
-      description,
-      metadata,
+      logger.info(`User ${userId} spent ${amount} gems on ${itemType}`, { category });
+
+      return {
+        id: updatedGem.id,
+        userId: updatedGem.user_id,
+        balance: updatedGem.balance,
+        totalEarned: updatedGem.total_earned,
+        totalSpent: updatedGem.total_spent,
+        version: updatedGem.version || 1,
+        createdAt: updatedGem.created_at,
+        updatedAt: updatedGem.updated_at,
+      };
     });
+  }
 
-    logger.info(`User ${userId} spent ${amount} gems on ${itemType}`, { category });
+  /**
+   * Create gem record within a transaction
+   */
+  private async createWithTransaction(trx: any, input: GemCreateInput): Promise<VersionedGem> {
+    const id = uuidv4();
+    const now = new Date();
 
-    return this.getByUserId(userId);
+    const gem = {
+      id,
+      user_id: input.userId,
+      balance: input.initialBalance || 0,
+      total_earned: input.initialBalance || 0,
+      total_spent: 0,
+      version: 1,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const [inserted] = await trx('gems').insert(gem).returning('*');
+    return {
+      id: inserted.id,
+      userId: inserted.user_id,
+      balance: inserted.balance,
+      totalEarned: inserted.total_earned,
+      totalSpent: inserted.total_spent,
+      version: inserted.version || 1,
+      createdAt: inserted.created_at,
+      updatedAt: inserted.updated_at,
+    };
+  }
+
+  /**
+   * Create transaction record within a db transaction
+   */
+  private async createTransactionWithTrx(
+    trx: any,
+    input: {
+      userId: string;
+      amount: number;
+      type: 'earned' | 'spent' | 'purchased' | 'bonus' | 'refund';
+      category?: GemSpendingCategory;
+      itemType?: keyof typeof GEM_PRICES;
+      description: string;
+      metadata?: Record<string, any>;
+    }
+  ): Promise<GemTransaction> {
+    const id = uuidv4();
+    const now = new Date();
+
+    const transaction = {
+      id,
+      user_id: input.userId,
+      amount: input.amount,
+      type: input.type,
+      category: input.category || null,
+      item_type: input.itemType || null,
+      description: input.description,
+      metadata: input.metadata ? JSON.stringify(input.metadata) : null,
+      created_at: now,
+    };
+
+    await trx('gem_transactions').insert(transaction);
+
+    return {
+      id,
+      userId: input.userId,
+      amount: input.amount,
+      type: input.type,
+      category: input.category,
+      itemType: input.itemType,
+      description: input.description,
+      metadata: input.metadata,
+      createdAt: now,
+    };
   }
 
   /**

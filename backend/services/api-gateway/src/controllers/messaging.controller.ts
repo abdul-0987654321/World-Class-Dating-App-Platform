@@ -100,7 +100,7 @@ export class MessagingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/conversations${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/conversations${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('messagingService', path, {
       Authorization: authorization,
     });
@@ -112,7 +112,7 @@ export class MessagingController {
   @Post('conversations')
   @HttpCode(HttpStatus.CREATED)
   async createConversation(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('messagingService', '/api/conversations', body, {
+    return this.proxyService.post('messagingService', '/api/v1/conversations', body, {
       Authorization: authorization,
     });
   }
@@ -125,7 +125,7 @@ export class MessagingController {
     @Headers('authorization') authorization: string,
     @Param('otherUserId') otherUserId: string
   ) {
-    return this.proxyService.get('messagingService', `/api/conversations/with/${otherUserId}`, {
+    return this.proxyService.get('messagingService', `/api/v1/conversations/with/${otherUserId}`, {
       Authorization: authorization,
     });
   }
@@ -182,7 +182,7 @@ export class MessagingController {
     @Headers('authorization') authorization: string,
     @Param('conversationId') conversationId: string
   ) {
-    return this.proxyService.get('messagingService', `/api/conversations/${conversationId}`, {
+    return this.proxyService.get('messagingService', `/api/v1/conversations/${conversationId}`, {
       Authorization: authorization,
     });
   }
@@ -195,7 +195,7 @@ export class MessagingController {
     @Headers('authorization') authorization: string,
     @Param('conversationId') conversationId: string
   ) {
-    return this.proxyService.delete('messagingService', `/api/conversations/${conversationId}`, {
+    return this.proxyService.delete('messagingService', `/api/v1/conversations/${conversationId}`, {
       Authorization: authorization,
     });
   }
@@ -210,7 +210,7 @@ export class MessagingController {
   ) {
     return this.proxyService.put(
       'messagingService',
-      `/api/conversations/${conversationId}/read`,
+      `/api/v1/conversations/${conversationId}/read`,
       {},
       {
         Authorization: authorization,
@@ -232,7 +232,7 @@ export class MessagingController {
     if (limit) queryString.append('limit', limit);
     if (offset) queryString.append('offset', offset);
 
-    const path = `/api/conversations/${conversationId}/messages${queryString.toString() ? '?' + queryString.toString() : ''}`;
+    const path = `/api/v1/conversations/${conversationId}/messages${queryString.toString() ? '?' + queryString.toString() : ''}`;
     return this.proxyService.get('messagingService', path, {
       Authorization: authorization,
     });
@@ -246,7 +246,7 @@ export class MessagingController {
   @Post('messages')
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(@Headers('authorization') authorization: string, @Body() body: Record<string, unknown>) {
-    return this.proxyService.post('messagingService', '/api/messages', body, {
+    return this.proxyService.post('messagingService', '/api/v1/messages', body, {
       Authorization: authorization,
     });
   }
@@ -256,7 +256,7 @@ export class MessagingController {
    */
   @Get('messages/unread-count')
   async getUnreadCount(@Headers('authorization') authorization: string) {
-    return this.proxyService.get('messagingService', '/api/messages/unread-count', {
+    return this.proxyService.get('messagingService', '/api/v1/messages/unread-count', {
       Authorization: authorization,
     });
   }
@@ -272,7 +272,7 @@ export class MessagingController {
   ) {
     return this.proxyService.get(
       'messagingService',
-      `/api/messages/${messageId}?conversationId=${conversationId}`,
+      `/api/v1/messages/${messageId}?conversationId=${conversationId}`,
       { Authorization: authorization }
     );
   }
@@ -286,7 +286,7 @@ export class MessagingController {
     @Param('messageId') messageId: string,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.put('messagingService', `/api/messages/${messageId}`, body, {
+    return this.proxyService.put('messagingService', `/api/v1/messages/${messageId}`, body, {
       Authorization: authorization,
     });
   }
@@ -300,7 +300,7 @@ export class MessagingController {
     @Param('messageId') messageId: string,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.delete('messagingService', `/api/messages/${messageId}`, {
+    return this.proxyService.delete('messagingService', `/api/v1/messages/${messageId}`, {
       Authorization: authorization,
     });
   }
@@ -314,7 +314,7 @@ export class MessagingController {
     @Param('messageId') messageId: string,
     @Body() body: Record<string, unknown>
   ) {
-    return this.proxyService.put('messagingService', `/api/messages/${messageId}/status`, body, {
+    return this.proxyService.put('messagingService', `/api/v1/messages/${messageId}/status`, body, {
       Authorization: authorization,
     });
   }
@@ -329,7 +329,7 @@ export class MessagingController {
     @Headers('authorization') authorization: string,
     @Param('userId') userId: string
   ) {
-    return this.proxyService.get('messagingService', `/api/users/${userId}/status`, {
+    return this.proxyService.get('messagingService', `/api/v1/users/${userId}/status`, {
       Authorization: authorization,
     });
   }

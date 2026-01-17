@@ -52,21 +52,61 @@ import {
 import { UnauthorizedPage } from './pages/Unauthorized';
 
 // Auth check hook - uses httpOnly cookie based authentication
+// SECURITY: Properly handles async auth state initialization
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    // Check auth via authService (uses sessionStorage for user data, httpOnly cookies for tokens)
-    setIsAuthenticated(authService.isAuthenticated());
+    const initAuth = async () => {
+      try {
+        // First check local state (for UI responsiveness)
+        const localAuth = authService.isAuthenticated();
+
+        if (localAuth) {
+          // If we have local auth state, verify it's still valid by checking session
+          // This handles cases where the httpOnly cookie expired
+          try {
+            const session = await authService.getSession();
+            setIsAuthenticated(session?.isAuthenticated ?? false);
+          } catch {
+            // Session check failed, clear local state
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+      } finally {
+        setIsAuthReady(true);
+      }
+    };
+
+    initAuth();
   }, []);
 
-  return { isAuthenticated, setIsAuthenticated };
+  return { isAuthenticated, setIsAuthenticated, isAuthReady };
 };
 
-// Protected Route wrapper - uses authService for authentication check
+// Auth context for sharing auth state across components
+const AuthContext = React.createContext<{
+  isAuthenticated: boolean;
+  isAuthReady: boolean;
+}>({ isAuthenticated: false, isAuthReady: false });
+
+// Protected Route wrapper - uses auth context to ensure auth state is ready
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use authService - authentication is verified via httpOnly cookies
-  if (!authService.isAuthenticated()) {
+  const { isAuthenticated, isAuthReady } = React.useContext(AuthContext);
+
+  // SECURITY: Don't render protected content until auth state is verified
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fm-pink"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
@@ -74,10 +114,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAuthReady } = useAuth();
 
   // Show loading while checking auth
-  if (isAuthenticated === null) {
+  if (!isAuthReady) {
     return (
       <FlamoralBackground fixed withNoise>
         <div className="min-h-screen flex items-center justify-center">
@@ -87,11 +127,18 @@ const App: React.FC = () => {
     );
   }
 
+  // Provide auth context to all child components
+  const authContextValue = React.useMemo(
+    () => ({ isAuthenticated: isAuthenticated ?? false, isAuthReady }),
+    [isAuthenticated, isAuthReady]
+  );
+
   return (
     <BrowserRouter>
       <FlamoralBackground fixed withNoise>
-        <AvatarProvider>
-          <Routes>
+        <AuthContext.Provider value={authContextValue}>
+          <AvatarProvider>
+            <Routes>
           {/* Landing page - public (animated premium design) */}
           <Route path="/" element={
             isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
@@ -220,8 +267,9 @@ const App: React.FC = () => {
         <Route path="*" element={
           <Navigate to={isAuthenticated ? "/discover" : "/"} replace />
         } />
-          </Routes>
-        </AvatarProvider>
+            </Routes>
+          </AvatarProvider>
+        </AuthContext.Provider>
       </FlamoralBackground>
     </BrowserRouter>
   );

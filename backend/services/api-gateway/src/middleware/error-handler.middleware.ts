@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 import logger from '../utils/logger';
 
@@ -6,20 +7,34 @@ export interface ApiError extends Error {
   statusCode?: number;
   isOperational?: boolean;
   errors?: any[];
+  code?: string;
 }
 
 /**
- * Error types classification
+ * Error types classification - maps to shared error codes
  */
 export enum ErrorType {
-  VALIDATION = 'VALIDATION_ERROR',
-  AUTHENTICATION = 'AUTHENTICATION_ERROR',
-  AUTHORIZATION = 'AUTHORIZATION_ERROR',
-  NOT_FOUND = 'NOT_FOUND',
+  VALIDATION = 'VALIDATION_FAILED',
+  AUTHENTICATION = 'AUTH_TOKEN_INVALID',
+  AUTHORIZATION = 'PERM_DENIED',
+  NOT_FOUND = 'RESOURCE_NOT_FOUND',
   RATE_LIMIT = 'RATE_LIMIT_EXCEEDED',
-  SERVER = 'SERVER_ERROR',
-  BAD_REQUEST = 'BAD_REQUEST',
+  SERVER = 'INTERNAL_ERROR',
+  BAD_REQUEST = 'VALIDATION_FAILED',
 }
+
+/**
+ * HTTP status codes for each error type
+ */
+const ERROR_STATUS_CODES: Record<ErrorType, number> = {
+  [ErrorType.VALIDATION]: 400,
+  [ErrorType.AUTHENTICATION]: 401,
+  [ErrorType.AUTHORIZATION]: 403,
+  [ErrorType.NOT_FOUND]: 404,
+  [ErrorType.RATE_LIMIT]: 429,
+  [ErrorType.SERVER]: 500,
+  [ErrorType.BAD_REQUEST]: 400,
+};
 
 /**
  * Custom error class for application errors
@@ -29,6 +44,7 @@ export class AppError extends Error implements ApiError {
   public readonly isOperational: boolean;
   public readonly errors?: any[];
   public readonly errorType: ErrorType;
+  public readonly code: string;
 
   constructor(
     message: string,
@@ -42,10 +58,18 @@ export class AppError extends Error implements ApiError {
     this.statusCode = statusCode;
     this.isOperational = isOperational;
     this.errorType = errorType;
+    this.code = errorType;
     this.errors = errors;
 
     Error.captureStackTrace(this, this.constructor);
   }
+}
+
+/**
+ * Get or generate correlation ID from request
+ */
+function getCorrelationId(req: Request): string {
+  return (req.headers['x-correlation-id'] as string) ?? (req as any).correlationId ?? uuidv4();
 }
 
 /**
@@ -118,6 +142,9 @@ const logError = (error: ApiError, req: Request): void => {
 /**
  * Global error handling middleware
  * MUST be placed after all routes
+ *
+ * Returns standardized error response format:
+ * { success: false, error: { code, message, correlationId, timestamp, details? } }
  */
 export const errorHandler = (
   error: ApiError,
@@ -125,8 +152,20 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ): void => {
+  // Get or generate correlation ID
+  const correlationId = getCorrelationId(req);
+
   // Default to 500 server error if not specified
   const statusCode = error.statusCode || 500;
+
+  // Get error code from error or derive from status
+  const errorCode = error.code || (error as AppError).errorType ||
+    (statusCode === 400 ? ErrorType.BAD_REQUEST :
+     statusCode === 401 ? ErrorType.AUTHENTICATION :
+     statusCode === 403 ? ErrorType.AUTHORIZATION :
+     statusCode === 404 ? ErrorType.NOT_FOUND :
+     statusCode === 429 ? ErrorType.RATE_LIMIT :
+     ErrorType.SERVER);
 
   // Log the error
   logError(error, req);
@@ -134,39 +173,61 @@ export const errorHandler = (
   // Sanitize error message
   const message = sanitizeErrorMessage(error, statusCode);
 
-  // Build error response
-  const errorResponse: any = {
+  // Build standardized error response
+  const errorResponse: {
+    success: false;
+    error: {
+      code: string;
+      message: string;
+      correlationId: string;
+      timestamp: string;
+      details?: any;
+    };
+  } = {
     success: false,
-    error: message,
-    code: (error as AppError).errorType || ErrorType.SERVER,
+    error: {
+      code: errorCode,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   };
 
-  // Include validation errors if present (safe to expose)
+  // Include validation errors if present (safe to expose in non-production)
   if ((error as AppError).errors && process.env.NODE_ENV !== 'production') {
-    errorResponse.details = (error as AppError).errors;
+    errorResponse.error.details = (error as AppError).errors;
   }
 
-  // NEVER include stack trace in response
-  // NEVER include internal error details in response
+  // Set correlation ID header for tracing
+  res.setHeader('X-Correlation-ID', correlationId);
 
-  // Send error response
+  // Send error response with proper HTTP status code
   res.status(statusCode).json(errorResponse);
 };
 
 /**
  * Handle 404 Not Found errors
+ * Returns standardized error response with correlation ID
  */
 export const notFoundHandler = (req: Request, res: Response, _next: NextFunction): void => {
+  const correlationId = getCorrelationId(req);
+
   logger.warn('Route not found', {
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
+    correlationId,
   });
 
+  res.setHeader('X-Correlation-ID', correlationId);
   res.status(404).json({
     success: false,
-    error: 'The requested resource was not found.',
-    code: ErrorType.NOT_FOUND,
+    error: {
+      code: ErrorType.NOT_FOUND,
+      message: 'The requested resource was not found.',
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   });
 };
 

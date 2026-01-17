@@ -3,9 +3,10 @@ import { createServer } from 'http';
 import { createValidator, commonValidations } from '@flamoral/backend-shared';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
+import { v4 as uuidv4 } from 'uuid';
 
 import { generalLimiter } from './api/middleware/rate-limit.middleware';
 import achievementsRoutes from './api/routes/achievements.routes';
@@ -100,6 +101,14 @@ const corsOrigins = process.env.CORS_ORIGINS?.split(',') || (
     : ['http://localhost:3000', 'http://localhost:5173']
 );
 
+// Correlation ID middleware - add to every request for distributed tracing
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
+  (req as any).correlationId = correlationId;
+  res.setHeader('X-Correlation-ID', correlationId);
+  next();
+});
+
 // Middleware
 app.use(helmet());
 app.use(
@@ -128,8 +137,8 @@ app.use(
     maxAge: 86400, // 24 hours - cache preflight
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' })); // Allow larger payloads for profile data
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Rate limiting
 app.use(generalLimiter);
@@ -272,22 +281,70 @@ app.use('/api/v1/gamification', gamificationRoutes);
 // Internal service-to-service routes (no rate limiting)
 app.use('/api/v1/internal', internalRoutes);
 
-// 404 handler
-app.use((_req: Request, res: Response) => {
+// 404 handler - returns standardized error response
+app.use((req: Request, res: Response) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  res.setHeader('X-Correlation-ID', correlationId);
   res.status(404).json({
     success: false,
-    message: 'Endpoint not found',
+    error: {
+      code: 'RESOURCE_NOT_FOUND',
+      message: `Cannot ${req.method} ${req.path}`,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 
-// Error handler
-app.use((err: any, _req: Request, res: Response, _next: any) => {
-  logger.error('Unhandled error:', err);
+// Global error handler - returns standardized error response
+app.use((err: Error & { status?: number; statusCode?: number; code?: string }, req: Request, res: Response, _next: NextFunction) => {
+  const correlationId = (req as any).correlationId || uuidv4();
+  const statusCode = err.status || err.statusCode || 500;
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  res.status(err.status || 500).json({
+  // Determine error code
+  let errorCode = err.code || 'INTERNAL_ERROR';
+  if (!err.code) {
+    if (statusCode === 400) errorCode = 'VALIDATION_FAILED';
+    else if (statusCode === 401) errorCode = 'AUTH_TOKEN_INVALID';
+    else if (statusCode === 403) errorCode = 'PERM_DENIED';
+    else if (statusCode === 404) errorCode = 'RESOURCE_NOT_FOUND';
+    else if (statusCode === 429) errorCode = 'RATE_LIMIT_EXCEEDED';
+  }
+
+  // Log server errors with full details
+  if (statusCode >= 500) {
+    logger.error('Server error:', {
+      error: err.message,
+      stack: err.stack,
+      correlationId,
+      path: req.path,
+      method: req.method,
+      userId: (req as any).user?.userId,
+    });
+  } else {
+    logger.warn('Client error:', {
+      error: err.message,
+      correlationId,
+      path: req.path,
+      method: req.method,
+    });
+  }
+
+  // Sanitize message for production
+  const message = isProduction && statusCode >= 500
+    ? 'An unexpected error occurred. Please try again.'
+    : err.message || 'Internal server error';
+
+  res.setHeader('X-Correlation-ID', correlationId);
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    error: {
+      code: errorCode,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 

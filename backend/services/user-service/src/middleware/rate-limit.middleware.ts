@@ -74,10 +74,19 @@ export class RateLimitMiddleware {
         if (count >= config.maxRequests) {
           logger.warn(`Rate limit exceeded for ${identifier} on ${endpoint}`);
 
+          const retryAfterSeconds = Math.ceil(config.windowMs / 1000);
+
+          // Set Retry-After header (RFC 7231)
+          res.setHeader('Retry-After', retryAfterSeconds.toString());
+          res.setHeader('X-RateLimit-Limit', config.maxRequests.toString());
+          res.setHeader('X-RateLimit-Remaining', '0');
+          res.setHeader('X-RateLimit-Reset', new Date(Date.now() + config.windowMs).toISOString());
+
           return res.status(429).json({
             success: false,
+            error: 'Too Many Requests',
             message: config.message || 'Too many requests. Please try again later.',
-            retryAfter: Math.ceil(config.windowMs / 1000),
+            retryAfter: retryAfterSeconds,
           });
         }
 
@@ -268,9 +277,19 @@ export class RateLimitMiddleware {
         if (count > config.maxRequests) {
           logger.warn(`Sliding window rate limit exceeded for ${identifier} on ${endpoint}`);
 
+          const retryAfterSeconds = Math.ceil(config.windowMs / 1000);
+
+          // Set Retry-After header (RFC 7231)
+          res.setHeader('Retry-After', retryAfterSeconds.toString());
+          res.setHeader('X-RateLimit-Limit', config.maxRequests.toString());
+          res.setHeader('X-RateLimit-Remaining', '0');
+          res.setHeader('X-RateLimit-Reset', (Date.now() + config.windowMs).toString());
+
           return res.status(429).json({
             success: false,
+            error: 'Too Many Requests',
             message: config.message || 'Too many requests. Please try again later.',
+            retryAfter: retryAfterSeconds,
           });
         }
 
@@ -330,9 +349,19 @@ export class RateLimitMiddleware {
         if (tokens < 1) {
           logger.warn(`Token bucket rate limit exceeded for ${identifier} on ${endpoint}`);
 
+          // Calculate time until next token is available
+          const retryAfterSeconds = Math.ceil(1 / config.refillRate);
+
+          // Set Retry-After header (RFC 7231)
+          res.setHeader('Retry-After', retryAfterSeconds.toString());
+          res.setHeader('X-RateLimit-Limit', config.capacity.toString());
+          res.setHeader('X-RateLimit-Remaining', '0');
+
           return res.status(429).json({
             success: false,
+            error: 'Too Many Requests',
             message: config.message || 'Too many requests. Please try again later.',
+            retryAfter: retryAfterSeconds,
           });
         }
 
@@ -357,7 +386,7 @@ export class RateLimitMiddleware {
   }
 
   /**
-   * Rate limiter based on user tier
+   * Rate limiter based on user tier (legacy 3-tier support)
    */
   static tieredRateLimiter(configs: {
     free: RateLimitConfig;
@@ -383,6 +412,51 @@ export class RateLimitMiddleware {
       return RateLimitMiddleware.createRateLimiter(config)(req, res, next);
     };
   }
+
+  /**
+   * Advanced rate limiter with full subscription tier support
+   * Supports all 6 Flamoral subscription tiers
+   */
+  static subscriptionTieredRateLimiter(configs: {
+    free: RateLimitConfig;
+    basic: RateLimitConfig;
+    plus: RateLimitConfig;
+    premium: RateLimitConfig;
+    premium_plus: RateLimitConfig;
+    elite: RateLimitConfig;
+  }) {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
+      // Get subscription tier from user object
+      const user = (req as any).user;
+      const subscriptionTier = user?.subscriptionTier || user?.subscription?.tier || 'free';
+
+      let config: RateLimitConfig;
+      switch (subscriptionTier) {
+        case 'elite':
+          config = configs.elite;
+          break;
+        case 'premium_plus':
+          config = configs.premium_plus;
+          break;
+        case 'premium':
+          config = configs.premium;
+          break;
+        case 'plus':
+          config = configs.plus;
+          break;
+        case 'basic':
+          config = configs.basic;
+          break;
+        default:
+          config = configs.free;
+      }
+
+      // Add tier info to response headers
+      res.setHeader('X-RateLimit-Tier', subscriptionTier);
+
+      return RateLimitMiddleware.createRateLimiter(config)(req, res, next);
+    };
+  }
 }
 
 // Export commonly used rate limiters
@@ -394,5 +468,33 @@ export const photoUploadRateLimiter = RateLimitMiddleware.photoUploadRateLimiter
 export const reportRateLimiter = RateLimitMiddleware.reportRateLimiter();
 export const passwordResetRateLimiter = RateLimitMiddleware.passwordResetRateLimiter();
 export const apiRateLimiter = RateLimitMiddleware.apiRateLimiter();
+
+// Export tiered rate limiters for subscription-based limiting
+export const profileViewRateLimiter = RateLimitMiddleware.subscriptionTieredRateLimiter({
+  free: { windowMs: 60000, maxRequests: 30 },
+  basic: { windowMs: 60000, maxRequests: 60 },
+  plus: { windowMs: 60000, maxRequests: 90 },
+  premium: { windowMs: 60000, maxRequests: 120 },
+  premium_plus: { windowMs: 60000, maxRequests: 150 },
+  elite: { windowMs: 60000, maxRequests: 200 },
+});
+
+export const searchRateLimiter = RateLimitMiddleware.subscriptionTieredRateLimiter({
+  free: { windowMs: 60000, maxRequests: 15 },
+  basic: { windowMs: 60000, maxRequests: 30 },
+  plus: { windowMs: 60000, maxRequests: 45 },
+  premium: { windowMs: 60000, maxRequests: 60 },
+  premium_plus: { windowMs: 60000, maxRequests: 90 },
+  elite: { windowMs: 60000, maxRequests: 120 },
+});
+
+export const locationUpdateRateLimiter = RateLimitMiddleware.subscriptionTieredRateLimiter({
+  free: { windowMs: 60000, maxRequests: 10 },
+  basic: { windowMs: 60000, maxRequests: 20 },
+  plus: { windowMs: 60000, maxRequests: 30 },
+  premium: { windowMs: 60000, maxRequests: 40 },
+  premium_plus: { windowMs: 60000, maxRequests: 50 },
+  elite: { windowMs: 60000, maxRequests: 60 },
+});
 
 export default RateLimitMiddleware;

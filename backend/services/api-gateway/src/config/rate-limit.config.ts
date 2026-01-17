@@ -68,11 +68,35 @@ export const RATE_LIMITS = {
     [SubscriptionTier.ELITE]: { window: '24h', max: -1 }, // unlimited
   } as TieredRateLimitRule,
 
-  // ==================== Messaging Endpoints ====================
-  'POST /messages': { window: '1m', max: 30 },
-  'GET /messages': { window: '1m', max: 60 },
+  // ==================== Messaging Endpoints (Tiered) ====================
+  'POST /messages': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 20 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 40 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 60 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 100 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 150 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 200 },
+  } as TieredRateLimitRule,
+  'GET /messages': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 30 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 60 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 90 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 120 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 150 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 200 },
+  } as TieredRateLimitRule,
   'POST /messages/read': { window: '1m', max: 100 },
-  'GET /conversations': { window: '1m', max: 30 },
+  'GET /conversations': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 20 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 40 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 60 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 100 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 120 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 150 },
+  } as TieredRateLimitRule,
+  'POST /conversations': { window: '1m', max: 10 },
+  'GET /conversations/:id': { window: '1m', max: 60 },
+  'GET /conversations/:id/messages': { window: '1m', max: 60 },
 
   // ==================== Profile Endpoints ====================
   'PUT /profiles': { window: '1h', max: 10 },
@@ -80,14 +104,69 @@ export const RATE_LIMITS = {
   'DELETE /profiles/photos/:id': { window: '1h', max: 20 },
   'PUT /profiles/settings': { window: '15m', max: 30 },
 
-  // ==================== Discovery Endpoints ====================
-  'GET /discovery/recommendations': { window: '1m', max: 60 },
-  'POST /discovery/search': { window: '1m', max: 30 },
-  'GET /discovery/nearby': { window: '1m', max: 30 },
+  // ==================== Discovery Endpoints (Tiered) ====================
+  'GET /discovery/recommendations': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 30 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 60 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 90 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 120 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 150 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 200 },
+  } as TieredRateLimitRule,
+  'POST /discovery/search': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 15 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 30 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 45 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 60 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 90 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 120 },
+  } as TieredRateLimitRule,
+  'GET /discovery/nearby': {
+    [SubscriptionTier.FREE]: { window: '1m', max: 15 },
+    [SubscriptionTier.BASIC]: { window: '1m', max: 30 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 45 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 60 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 90 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: 120 },
+  } as TieredRateLimitRule,
+  'GET /discovery/who-liked-me': {
+    [SubscriptionTier.FREE]: { window: '1h', max: 0 }, // Premium feature
+    [SubscriptionTier.BASIC]: { window: '1m', max: 30 },
+    [SubscriptionTier.PLUS]: { window: '1m', max: 60 },
+    [SubscriptionTier.PREMIUM]: { window: '1m', max: 90 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '1m', max: 120 },
+    [SubscriptionTier.ELITE]: { window: '1m', max: -1 }, // unlimited
+  } as TieredRateLimitRule,
 
   // ==================== Match Endpoints ====================
   'GET /matches': { window: '1m', max: 60 },
   'DELETE /matches/:id': { window: '1h', max: 20 },
+  'POST /matches/:id/unmatch': { window: '1h', max: 20 },
+
+  // ==================== User Endpoints ====================
+  'GET /users/me': { window: '1m', max: 120 },
+  'PUT /users/me': { window: '15m', max: 20 },
+  'GET /users/:id': { window: '1m', max: 60 },
+  'DELETE /users/me': { window: '24h', max: 1 }, // Account deletion
+  'PUT /users/me/preferences': { window: '15m', max: 20 },
+  'PUT /users/me/location': { window: '1m', max: 30 },
+
+  // ==================== Verification Endpoints ====================
+  'POST /verification/phone': { window: '1h', max: 5 },
+  'POST /verification/phone/verify': { window: '15m', max: 5 },
+  'POST /verification/photo': { window: '24h', max: 3 },
+
+  // ==================== Gifts Endpoints (Tiered) ====================
+  'POST /gifts/send': {
+    [SubscriptionTier.FREE]: { window: '24h', max: 5 },
+    [SubscriptionTier.BASIC]: { window: '24h', max: 20 },
+    [SubscriptionTier.PLUS]: { window: '24h', max: 50 },
+    [SubscriptionTier.PREMIUM]: { window: '24h', max: 100 },
+    [SubscriptionTier.PREMIUM_PLUS]: { window: '24h', max: 200 },
+    [SubscriptionTier.ELITE]: { window: '24h', max: -1 }, // unlimited
+  } as TieredRateLimitRule,
+  'GET /gifts/received': { window: '1m', max: 60 },
+  'GET /gifts/sent': { window: '1m', max: 60 },
 
   // ==================== Boost Endpoints (Tiered) ====================
   'POST /boost': {

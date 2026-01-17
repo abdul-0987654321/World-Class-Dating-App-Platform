@@ -1,6 +1,11 @@
 /**
  * Swipe Service
  * Handles swipe mechanics and match creation
+ *
+ * Concurrency Safety:
+ * - Uses atomic swipe creation with conflict handling
+ * - Prevents duplicate swipes and duplicate matches via database constraints
+ * - Match creation is idempotent (returns existing match if already exists)
  */
 
 import { createLogger } from '@flamoral/backend-shared';
@@ -8,6 +13,7 @@ import { createLogger } from '@flamoral/backend-shared';
 import analyticsServiceClient from '../../infrastructure/clients/analytics-service.client';
 import notificationServiceClient from '../../infrastructure/clients/notification-service.client';
 import userServiceClient from '../../infrastructure/clients/user-service.client';
+import db from '../../infrastructure/database/connection';
 import { SwipeAction, SwipeRequest, MatchResponse } from '../../types';
 import { Match } from '../entities/Match.entity';
 import matchRepository from '../repositories/match.repository';
@@ -18,151 +24,191 @@ const logger = createLogger('swipe-service');
 
 export class SwipeService {
   /**
-   * Process a swipe action
+   * Process a swipe action with race condition protection
    * Creates match if mutual like detected
+   *
+   * Race conditions handled:
+   * 1. Duplicate swipe prevention via unique constraint + conflict handling
+   * 2. Match creation race (both users swipe at same time) via atomic check-and-create
    */
   async processSwipe(request: SwipeRequest): Promise<MatchResponse> {
-    try {
-      const { userId, targetUserId, action } = request;
+    const { userId, targetUserId, action } = request;
 
-      logger.info(`User ${userId} swiped ${action} on ${targetUserId}`);
+    logger.info(`User ${userId} swiped ${action} on ${targetUserId}`);
 
-      // Check if user has already swiped on this person
-      const existingSwipe = await swipeRepository.hasUserSwiped(userId, targetUserId);
+    // Use transaction for atomicity of swipe creation and match detection
+    return db.transaction(async (trx) => {
+      try {
+        // Atomic check-and-create for swipe using conflict handling
+        // This prevents race condition where check happens but insert fails due to concurrent insert
+        let createdSwipe;
+        try {
+          createdSwipe = await swipeRepository.createWithTransaction(trx, {
+            userId,
+            targetUserId,
+            action,
+          });
+        } catch (error: any) {
+          // Handle duplicate key violation - swipe already exists
+          if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+            logger.info(`Duplicate swipe detected for ${userId} -> ${targetUserId}`);
+            return {
+              matched: false,
+              message: 'You have already swiped on this user',
+            };
+          }
+          throw error;
+        }
 
-      if (existingSwipe) {
+        // Record in swipe history for rewind feature (non-critical)
+        let swipeHistory;
+        try {
+          swipeHistory = await swipeHistoryRepository.createWithTransaction(trx, {
+            userId,
+            targetUserId,
+            action,
+            originalSwipeId: createdSwipe.id,
+          });
+        } catch (historyError) {
+          logger.warn('Failed to record swipe history', historyError);
+        }
+
+        // Check for mutual like only if current action is like or super_like
+        if (action === SwipeAction.LIKE || action === SwipeAction.SUPER_LIKE) {
+          // Atomic mutual like check within same transaction
+          const isMutualLike = await swipeRepository.checkMutualLikeWithTransaction(
+            trx,
+            userId,
+            targetUserId
+          );
+
+          if (isMutualLike) {
+            // Create match with atomic insert (handles race condition via unique constraint)
+            const match = await this.createMatchWithTransaction(trx, userId, targetUserId);
+
+            logger.info(`Match created: ${match.id}`);
+
+            // Update swipe history with match info
+            if (swipeHistory) {
+              try {
+                await swipeHistoryRepository.updateWithMatchInfoWithTransaction(
+                  trx,
+                  userId,
+                  targetUserId,
+                  match.id
+                );
+              } catch (updateError) {
+                logger.warn('Failed to update swipe history with match info', updateError);
+              }
+            }
+
+            return {
+              matched: true,
+              match,
+              message: "It's a match!",
+            };
+          }
+        }
+
         return {
           matched: false,
-          message: 'You have already swiped on this user',
+          message: 'Swipe recorded',
         };
+      } catch (error) {
+        logger.error('Failed to process swipe', error);
+        throw error;
       }
-
-      // Create swipe record
-      const createdSwipe = await swipeRepository.create({
-        userId,
-        targetUserId,
-        action,
-      });
-
-      // Record in swipe history for rewind feature
-      let swipeHistory;
-      try {
-        swipeHistory = await swipeHistoryRepository.create({
-          userId,
-          targetUserId,
-          action,
-          originalSwipeId: createdSwipe.id,
-        });
-      } catch (historyError) {
-        // Non-critical - log and continue
-        logger.warn('Failed to record swipe history', historyError);
-      }
-
-      // Check for mutual like only if current action is like or super_like
-      if (action === SwipeAction.LIKE || action === SwipeAction.SUPER_LIKE) {
-        const isMutualLike = await swipeRepository.checkMutualLike(userId, targetUserId);
-
-        if (isMutualLike) {
-          // Create match
-          const match = await this.createMatch(userId, targetUserId);
-
-          logger.info(`Match created: ${match.id}`);
-
-          // Update swipe history with match info
-          if (swipeHistory) {
-            try {
-              await swipeHistoryRepository.updateWithMatchInfo(userId, targetUserId, match.id);
-            } catch (updateError) {
-              logger.warn('Failed to update swipe history with match info', updateError);
-            }
-          }
-
-          return {
-            matched: true,
-            match,
-            message: "It's a match!",
-          };
-        }
-      }
-
-      return {
-        matched: false,
-        message: 'Swipe recorded',
-      };
-    } catch (error) {
-      logger.error('Failed to process swipe', error);
-      throw error;
-    }
+    });
   }
 
   /**
-   * Create a match between two users
+   * Create match within a transaction for atomic operation
+   * Handles race condition where both users swipe at same time
    */
-  private async createMatch(user1Id: string, user2Id: string): Promise<Match> {
+  private async createMatchWithTransaction(
+    trx: any,
+    user1Id: string,
+    user2Id: string
+  ): Promise<Match> {
+    // Sort user IDs for consistent ordering (prevents duplicate matches)
+    const [sortedUser1, sortedUser2] = [user1Id, user2Id].sort();
+
+    // Try to find existing match first (within transaction)
+    const existingMatch = await matchRepository.findByUsersWithTransaction(trx, sortedUser1, sortedUser2);
+    if (existingMatch) {
+      return existingMatch;
+    }
+
+    // Get user profiles to determine genders and preferences
+    const userProfiles = await userServiceClient.getUserProfiles([user1Id, user2Id]);
+    const user1Profile = userProfiles.get(user1Id);
+    const user2Profile = userProfiles.get(user2Id);
+
+    // Determine if women-first messaging rule applies
+    const { requiresWomenFirst, womanUserId } = this.determineWomenFirstRule(
+      user1Id,
+      user2Id,
+      user1Profile?.gender,
+      user2Profile?.gender
+    );
+
+    // Create new match with alphabetically sorted user IDs
+    const matchData = Match.createNew(user1Id, user2Id);
+
+    // Add women-first messaging fields
+    const enhancedMatchData = {
+      ...matchData,
+      requiresWomenFirst,
+      womanUserId,
+      conversationInitiated: false,
+      firstMessageSentBy: undefined,
+    };
+
+    // Try atomic insert with conflict handling
+    let match;
     try {
-      // Check if match already exists
-      const existingMatch = await matchRepository.findByUsers(user1Id, user2Id);
-
-      if (existingMatch) {
-        return existingMatch;
+      match = await matchRepository.createWithTransaction(trx, enhancedMatchData);
+    } catch (error: any) {
+      // If duplicate key error, another transaction created the match - fetch it
+      if (error.code === '23505' || error.message?.includes('duplicate')) {
+        const existingMatch = await matchRepository.findByUsersWithTransaction(trx, sortedUser1, sortedUser2);
+        if (existingMatch) {
+          return existingMatch;
+        }
       }
-
-      // Get user profiles to determine genders and preferences
-      const userProfiles = await userServiceClient.getUserProfiles([user1Id, user2Id]);
-      const user1Profile = userProfiles.get(user1Id);
-      const user2Profile = userProfiles.get(user2Id);
-
-      // Determine if women-first messaging rule applies
-      const { requiresWomenFirst, womanUserId } = this.determineWomenFirstRule(
-        user1Id,
-        user2Id,
-        user1Profile?.gender,
-        user2Profile?.gender
-      );
-
-      // Create new match with alphabetically sorted user IDs
-      const matchData = Match.createNew(user1Id, user2Id);
-
-      // Add women-first messaging fields
-      const enhancedMatchData = {
-        ...matchData,
-        requiresWomenFirst,
-        womanUserId,
-        conversationInitiated: false,
-        firstMessageSentBy: undefined,
-      };
-
-      const match = await matchRepository.create(enhancedMatchData);
-
-      // Send notifications to both users
-      await notificationServiceClient.notifyBothUsersOfMatch(user1Id, user2Id, match.id);
-
-      // Trigger match event for analytics
-      // Check if this is the first match for either user to track in funnel
-      const user1MatchCount = await matchRepository.getUserMatchCount(user1Id);
-      const user2MatchCount = await matchRepository.getUserMatchCount(user2Id);
-
-      // Track match analytics for both users
-      await Promise.allSettled([
-        analyticsServiceClient.trackMatch({
-          userId: user1Id,
-          matchedUserId: user2Id,
-          matchId: match.id,
-          isFirstMatch: user1MatchCount === 1,
-        }),
-        analyticsServiceClient.trackMatch({
-          userId: user2Id,
-          matchedUserId: user1Id,
-          matchId: match.id,
-          isFirstMatch: user2MatchCount === 1,
-        }),
-      ]);
-
-      return match;
-    } catch (error) {
-      logger.error('Failed to create match', error);
       throw error;
     }
+
+    // Queue async operations outside transaction
+    setImmediate(async () => {
+      try {
+        // Send notifications to both users
+        await notificationServiceClient.notifyBothUsersOfMatch(user1Id, user2Id, match.id);
+
+        // Track match analytics
+        const user1MatchCount = await matchRepository.getUserMatchCount(user1Id);
+        const user2MatchCount = await matchRepository.getUserMatchCount(user2Id);
+
+        await Promise.allSettled([
+          analyticsServiceClient.trackMatch({
+            userId: user1Id,
+            matchedUserId: user2Id,
+            matchId: match.id,
+            isFirstMatch: user1MatchCount === 1,
+          }),
+          analyticsServiceClient.trackMatch({
+            userId: user2Id,
+            matchedUserId: user1Id,
+            matchId: match.id,
+            isFirstMatch: user2MatchCount === 1,
+          }),
+        ]);
+      } catch (error) {
+        logger.error('Failed to send match notifications/analytics', error);
+      }
+    });
+
+    return match;
   }
 
   /**
@@ -209,53 +255,66 @@ export class SwipeService {
 
   /**
    * Undo last swipe (premium feature)
+   * Uses transaction to ensure atomic deletion of swipe and related match
    */
   async undoLastSwipe(userId: string): Promise<boolean> {
-    try {
-      logger.info(`Undo swipe requested for user ${userId}`);
+    logger.info(`Undo swipe requested for user ${userId}`);
 
-      // Get the most recent swipe
-      const lastSwipe = await swipeRepository.getLastSwipe(userId);
+    return db.transaction(async (trx) => {
+      try {
+        // Get the most recent swipe within transaction
+        const lastSwipe = await swipeRepository.getLastSwipeWithTransaction(trx, userId);
 
-      if (!lastSwipe) {
-        logger.warn(`No swipes found to undo for user ${userId}`);
-        return false;
-      }
-
-      // Check if the swipe resulted in a match
-      if (lastSwipe.isLike()) {
-        const existingMatch = await matchRepository.findByUsers(userId, lastSwipe.targetUserId);
-
-        if (existingMatch) {
-          // If there's a match, we need to delete it
-          await matchRepository.delete(existingMatch.id);
-          logger.info(`Deleted match ${existingMatch.id} as part of undo operation`);
+        if (!lastSwipe) {
+          logger.warn(`No swipes found to undo for user ${userId}`);
+          return false;
         }
+
+        // Check if the swipe resulted in a match
+        if (lastSwipe.isLike()) {
+          const existingMatch = await matchRepository.findByUsersWithTransaction(
+            trx,
+            userId,
+            lastSwipe.targetUserId
+          );
+
+          if (existingMatch) {
+            // Delete match within same transaction (atomic with swipe deletion)
+            await matchRepository.deleteWithTransaction(trx, existingMatch.id);
+            logger.info(`Deleted match ${existingMatch.id} as part of undo operation`);
+          }
+        }
+
+        // Delete the swipe
+        const deleted = await swipeRepository.deleteByIdWithTransaction(trx, lastSwipe.id);
+
+        if (deleted) {
+          logger.info(
+            `Successfully undid swipe ${lastSwipe.id} for user ${userId} on target ${lastSwipe.targetUserId}`
+          );
+
+          // Queue analytics tracking outside transaction
+          setImmediate(async () => {
+            try {
+              await analyticsServiceClient.trackUndoSwipe({
+                userId,
+                targetUserId: lastSwipe.targetUserId,
+                previousAction: lastSwipe.action,
+              });
+            } catch (error) {
+              logger.error('Failed to track undo swipe analytics', error);
+            }
+          });
+
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        logger.error('Failed to undo swipe', error);
+        throw error;
       }
-
-      // Delete the swipe
-      const deleted = await swipeRepository.deleteById(lastSwipe.id);
-
-      if (deleted) {
-        logger.info(
-          `Successfully undid swipe ${lastSwipe.id} for user ${userId} on target ${lastSwipe.targetUserId}`
-        );
-
-        // Track undo event in analytics
-        await analyticsServiceClient.trackUndoSwipe({
-          userId,
-          targetUserId: lastSwipe.targetUserId,
-          previousAction: lastSwipe.action,
-        });
-
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      logger.error('Failed to undo swipe', error);
-      throw error;
-    }
+    });
   }
 
   /**

@@ -40,10 +40,22 @@ export interface ServiceClientConfig {
   retryDelay?: number;
 
   /**
+   * Maximum delay between retry attempts in milliseconds
+   * @default 30000 (30 seconds)
+   */
+  maxRetryDelay?: number;
+
+  /**
    * Whether to use exponential backoff for retries
    * @default true
    */
   exponentialBackoff?: boolean;
+
+  /**
+   * Whether to add jitter to retry delays (prevents thundering herd)
+   * @default true
+   */
+  retryJitter?: boolean;
 
   /**
    * HTTP status codes that should trigger a retry
@@ -69,7 +81,7 @@ export interface ServiceClientConfig {
 
   /**
    * Whether to enable circuit breaker pattern
-   * @default false
+   * @default true (changed from false for better defaults)
    */
   enableCircuitBreaker?: boolean;
 
@@ -81,9 +93,21 @@ export interface ServiceClientConfig {
 
   /**
    * Circuit breaker reset timeout in milliseconds
-   * @default 60000 (60 seconds)
+   * @default 30000 (30 seconds, reduced from 60s for faster recovery)
    */
   circuitBreakerTimeout?: number;
+
+  /**
+   * Number of successful requests in half-open state to close circuit
+   * @default 2
+   */
+  circuitBreakerSuccessThreshold?: number;
+
+  /**
+   * Whether to automatically add idempotency keys for POST requests
+   * @default true
+   */
+  autoIdempotencyKey?: boolean;
 }
 
 /**
@@ -123,11 +147,14 @@ class CircuitBreaker {
   private failureCount = 0;
   private lastFailureTime: number | null = null;
   private successCount = 0;
+  private lastStateChange: Date = new Date();
 
   constructor(
     private threshold: number,
     private timeout: number,
-    private logger: ServiceClientLogger
+    private successThreshold: number,
+    private logger: ServiceClientLogger,
+    private serviceName: string
   ) {}
 
   /**
@@ -141,8 +168,9 @@ class CircuitBreaker {
     if (this.state === CircuitState.OPEN) {
       // Check if timeout has passed
       if (this.lastFailureTime && Date.now() - this.lastFailureTime >= this.timeout) {
-        this.logger.info('Circuit breaker transitioning to HALF_OPEN state');
+        this.logger.info(`[${this.serviceName}] Circuit breaker transitioning to HALF_OPEN state`);
         this.state = CircuitState.HALF_OPEN;
+        this.lastStateChange = new Date();
         this.successCount = 0;
         return true;
       }
@@ -161,9 +189,10 @@ class CircuitBreaker {
 
     if (this.state === CircuitState.HALF_OPEN) {
       this.successCount++;
-      if (this.successCount >= 2) {
-        this.logger.info('Circuit breaker transitioning to CLOSED state');
+      if (this.successCount >= this.successThreshold) {
+        this.logger.info(`[${this.serviceName}] Circuit breaker transitioning to CLOSED state`);
         this.state = CircuitState.CLOSED;
+        this.lastStateChange = new Date();
         this.successCount = 0;
       }
     }
@@ -177,13 +206,15 @@ class CircuitBreaker {
     this.lastFailureTime = Date.now();
 
     if (this.state === CircuitState.HALF_OPEN) {
-      this.logger.warn('Circuit breaker transitioning to OPEN state (failure in HALF_OPEN)');
+      this.logger.warn(`[${this.serviceName}] Circuit breaker OPEN (failure in HALF_OPEN)`);
       this.state = CircuitState.OPEN;
+      this.lastStateChange = new Date();
     } else if (this.failureCount >= this.threshold) {
       this.logger.warn(
-        `Circuit breaker OPEN: ${this.failureCount} failures exceeded threshold ${this.threshold}`
+        `[${this.serviceName}] Circuit breaker OPEN: ${this.failureCount} failures exceeded threshold ${this.threshold}`
       );
       this.state = CircuitState.OPEN;
+      this.lastStateChange = new Date();
     }
   }
 
@@ -193,6 +224,68 @@ class CircuitBreaker {
   public getState(): CircuitState {
     return this.state;
   }
+
+  /**
+   * Get circuit breaker stats for monitoring
+   */
+  public getStats(): {
+    state: CircuitState;
+    failureCount: number;
+    successCount: number;
+    lastStateChange: Date;
+    lastFailureTime: Date | null;
+  } {
+    return {
+      state: this.state,
+      failureCount: this.failureCount,
+      successCount: this.successCount,
+      lastStateChange: this.lastStateChange,
+      lastFailureTime: this.lastFailureTime ? new Date(this.lastFailureTime) : null,
+    };
+  }
+
+  /**
+   * Reset the circuit breaker to closed state
+   */
+  public reset(): void {
+    this.state = CircuitState.CLOSED;
+    this.failureCount = 0;
+    this.successCount = 0;
+    this.lastStateChange = new Date();
+    this.logger.info(`[${this.serviceName}] Circuit breaker manually reset to CLOSED`);
+  }
+}
+
+/**
+ * Calculate delay with exponential backoff and optional jitter
+ */
+function calculateBackoffDelay(
+  attempt: number,
+  baseDelay: number,
+  maxDelay: number,
+  useJitter: boolean
+): number {
+  // Exponential backoff: baseDelay * (2 ^ attempt)
+  const exponentialDelay = baseDelay * Math.pow(2, attempt - 1);
+
+  // Cap at maxDelay
+  let delay = Math.min(exponentialDelay, maxDelay);
+
+  // Add jitter to prevent thundering herd
+  if (useJitter) {
+    // Random jitter between 50% and 100% of calculated delay
+    const jitterAmount = delay * (0.5 + Math.random() * 0.5);
+    delay = Math.floor(jitterAmount);
+  }
+
+  return delay;
+}
+
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -232,14 +325,18 @@ export class ServiceClient {
       timeout: 10000,
       maxRetries: 3,
       retryDelay: 1000,
+      maxRetryDelay: 30000,
       exponentialBackoff: true,
+      retryJitter: true,
       retryableStatusCodes: [408, 429, 500, 502, 503, 504],
       enableLogging: true,
       logger: defaultLogger,
       headers: {},
-      enableCircuitBreaker: false,
+      enableCircuitBreaker: true, // Enabled by default for better resilience
       circuitBreakerThreshold: 5,
-      circuitBreakerTimeout: 60000,
+      circuitBreakerTimeout: 30000,
+      circuitBreakerSuccessThreshold: 2,
+      autoIdempotencyKey: true,
       ...config,
     };
 
@@ -250,7 +347,9 @@ export class ServiceClient {
       this.circuitBreaker = new CircuitBreaker(
         this.config.circuitBreakerThreshold,
         this.config.circuitBreakerTimeout,
-        this.logger
+        this.config.circuitBreakerSuccessThreshold,
+        this.logger,
+        this.config.serviceName
       );
     }
 
@@ -386,8 +485,17 @@ export class ServiceClient {
     if (this.circuitBreaker && !this.circuitBreaker.allowRequest()) {
       const error = new Error('Circuit breaker is OPEN - service temporarily unavailable');
       (error as any).code = 'CIRCUIT_BREAKER_OPEN';
+      (error as any).retryAfterMs = this.config.circuitBreakerTimeout;
       this.logger.warn(`Request blocked by circuit breaker: ${config.method} ${config.url}`);
       throw error;
+    }
+
+    // Add idempotency key for POST requests if enabled
+    if (this.config.autoIdempotencyKey && config.method?.toUpperCase() === 'POST') {
+      config.headers = {
+        ...config.headers,
+        'Idempotency-Key': config.headers?.['Idempotency-Key'] || uuidv4(),
+      };
     }
 
     let lastError: any;
@@ -408,9 +516,14 @@ export class ServiceClient {
           throw this.transformError(error);
         }
 
-        // Calculate delay with exponential backoff
+        // Calculate delay with exponential backoff and jitter
         const delay = this.config.exponentialBackoff
-          ? this.config.retryDelay * Math.pow(2, attempt - 1)
+          ? calculateBackoffDelay(
+              attempt,
+              this.config.retryDelay,
+              this.config.maxRetryDelay,
+              this.config.retryJitter
+            )
           : this.config.retryDelay;
 
         this.logger.warn(
@@ -419,7 +532,7 @@ export class ServiceClient {
         );
 
         // Wait before retrying
-        await this.sleep(delay);
+        await sleep(delay);
       }
     }
 
@@ -479,13 +592,6 @@ export class ServiceClient {
   }
 
   /**
-   * Sleep for a specified duration
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
    * Get the underlying axios instance
    */
   public getAxiosInstance(): AxiosInstance {
@@ -497,6 +603,28 @@ export class ServiceClient {
    */
   public getCircuitBreakerState(): string | null {
     return this.circuitBreaker ? this.circuitBreaker.getState() : null;
+  }
+
+  /**
+   * Get circuit breaker statistics for monitoring
+   */
+  public getCircuitBreakerStats(): {
+    state: string;
+    failureCount: number;
+    successCount: number;
+    lastStateChange: Date;
+    lastFailureTime: Date | null;
+  } | null {
+    return this.circuitBreaker ? this.circuitBreaker.getStats() : null;
+  }
+
+  /**
+   * Reset circuit breaker (use with caution, for recovery scenarios)
+   */
+  public resetCircuitBreaker(): void {
+    if (this.circuitBreaker) {
+      this.circuitBreaker.reset();
+    }
   }
 
   /**

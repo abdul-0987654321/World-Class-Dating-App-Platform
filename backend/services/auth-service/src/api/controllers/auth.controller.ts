@@ -1,9 +1,39 @@
 import { Request, Response, CookieOptions } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 import authService from '../../domain/services/auth.service';
 import twoFactorService from '../../domain/services/two-factor.service';
 import logger from '../../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
+
+/**
+ * Helper to get correlation ID from request
+ */
+function getCorrelationId(req: Request): string {
+  return (req.headers['x-correlation-id'] as string) || (req as any).correlationId || uuidv4();
+}
+
+/**
+ * Helper to send standardized error response
+ */
+function sendError(
+  res: Response,
+  statusCode: number,
+  code: string,
+  message: string,
+  correlationId: string
+): Response {
+  res.setHeader('X-Correlation-ID', correlationId);
+  return res.status(statusCode).json({
+    success: false,
+    error: {
+      code,
+      message,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
+  });
+}
 
 // Cookie configuration for secure token storage
 const isProduction = process.env.NODE_ENV === 'production';
@@ -65,12 +95,14 @@ class AuthController {
    * Sets httpOnly cookies for access and refresh tokens
    */
   async register(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const result = await authService.register(req.body);
 
       // Set httpOnly cookies for tokens (XSS protection)
       this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       // Return user data without exposing tokens in response body
       return res.status(201).json({
         success: true,
@@ -80,12 +112,9 @@ class AuthController {
           // Tokens are now in httpOnly cookies, not exposed to JavaScript
         },
       });
-    } catch (error) {
-      logger.error('Registration failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Registration failed',
-      });
+    } catch (error: any) {
+      logger.error('Registration failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Registration failed', correlationId);
     }
   }
 
@@ -95,6 +124,7 @@ class AuthController {
    * Sets httpOnly cookies for access and refresh tokens
    */
   async login(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       // Extract IP and user agent from request
       const ip = this.getClientIp(req);
@@ -113,6 +143,7 @@ class AuthController {
       // Set httpOnly cookies for tokens (XSS protection)
       this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       // Return user data without exposing tokens in response body
       return res.status(200).json({
         success: true,
@@ -122,25 +153,24 @@ class AuthController {
           // Tokens are now in httpOnly cookies, not exposed to JavaScript
         },
       });
-    } catch (error) {
-      logger.error('Login failed', error);
+    } catch (error: any) {
+      logger.error('Login failed', { error: error.message, correlationId });
 
       // Return specific error messages for lockout scenarios
-      if (error.message.includes('locked') || error.message.includes('attempts remaining')) {
-        return res.status(401).json({
-          success: false,
-          error: error.message,
-        });
+      if (error.message?.includes('locked')) {
+        return sendError(res, 423, 'AUTH_ACCOUNT_LOCKED', error.message, correlationId);
+      }
+
+      if (error.message?.includes('attempts remaining')) {
+        return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', error.message, correlationId);
+      }
+
+      if (error.message === 'Account is deactivated') {
+        return sendError(res, 403, 'AUTH_ACCOUNT_DEACTIVATED', error.message, correlationId);
       }
 
       // Use generic message for security
-      const message =
-        error.message === 'Account is deactivated' ? error.message : 'Invalid credentials';
-
-      return res.status(401).json({
-        success: false,
-        error: message,
-      });
+      return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid credentials', correlationId);
     }
   }
 
@@ -150,6 +180,7 @@ class AuthController {
    * Clears httpOnly authentication cookies
    */
   async logout(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       // Get token from cookie first, fallback to Authorization header for backwards compatibility
@@ -161,18 +192,16 @@ class AuthController {
       // Clear httpOnly cookies
       this.clearAuthCookies(res);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Logout successful',
       });
-    } catch (error) {
-      logger.error('Logout failed', error);
+    } catch (error: any) {
+      logger.error('Logout failed', { error: error.message, correlationId });
       // Still clear cookies even on error
       this.clearAuthCookies(res);
-      return res.status(500).json({
-        success: false,
-        error: 'Logout failed',
-      });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Logout failed', correlationId);
     }
   }
 
@@ -182,15 +211,13 @@ class AuthController {
    * Reads refresh token from httpOnly cookie and sets new tokens in cookies
    */
   async refreshToken(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       // Get refresh token from httpOnly cookie first, fallback to body for backwards compatibility
       const refreshToken = req.cookies?.refresh_token || req.body.refreshToken;
 
       if (!refreshToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'Refresh token is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Refresh token is required', correlationId);
       }
 
       const tokens = await authService.refreshToken(refreshToken);
@@ -198,19 +225,17 @@ class AuthController {
       // Set new httpOnly cookies with rotated tokens
       this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Token refreshed successfully',
         // Tokens are now in httpOnly cookies, not exposed to JavaScript
       });
-    } catch (error) {
-      logger.error('Token refresh failed', error);
+    } catch (error: any) {
+      logger.error('Token refresh failed', { error: error.message, correlationId });
       // Clear cookies on refresh failure (token may be compromised)
       this.clearAuthCookies(res);
-      return res.status(401).json({
-        success: false,
-        error: error.message || 'Invalid refresh token',
-      });
+      return sendError(res, 401, 'AUTH_REFRESH_TOKEN_INVALID', error.message || 'Invalid refresh token', correlationId);
     }
   }
 
@@ -219,28 +244,24 @@ class AuthController {
    * Verify email with token
    */
   async verifyEmail(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { token } = req.body;
 
       if (!token) {
-        return res.status(400).json({
-          success: false,
-          error: 'Verification token is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification token is required', correlationId);
       }
 
       await authService.verifyEmail(token);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Email verified successfully',
       });
-    } catch (error) {
-      logger.error('Email verification failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Email verification failed',
-      });
+    } catch (error: any) {
+      logger.error('Email verification failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'AUTH_TOKEN_INVALID', error.message || 'Email verification failed', correlationId);
     }
   }
 
@@ -249,28 +270,24 @@ class AuthController {
    * Resend verification email
    */
   async resendVerification(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { email } = req.body;
 
       if (!email) {
-        return res.status(400).json({
-          success: false,
-          error: 'Email is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Email is required', correlationId);
       }
 
       await authService.resendVerificationEmail(email);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Verification email sent',
       });
-    } catch (error) {
-      logger.error('Resend verification failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Failed to send verification email',
-      });
+    } catch (error: any) {
+      logger.error('Resend verification failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Failed to send verification email', correlationId);
     }
   }
 
@@ -279,29 +296,25 @@ class AuthController {
    * Request password reset
    */
   async forgotPassword(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { email } = req.body;
 
       if (!email) {
-        return res.status(400).json({
-          success: false,
-          error: 'Email is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Email is required', correlationId);
       }
 
       await authService.requestPasswordReset(email);
 
       // Always return success for security (don't reveal if email exists)
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'If an account exists with this email, a password reset link will be sent',
       });
-    } catch (error) {
-      logger.error('Password reset request failed', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to process password reset request',
-      });
+    } catch (error: any) {
+      logger.error('Password reset request failed', { error: error.message, correlationId });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to process password reset request', correlationId);
     }
   }
 
@@ -310,28 +323,24 @@ class AuthController {
    * Reset password with token
    */
   async resetPassword(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        return res.status(400).json({
-          success: false,
-          error: 'Token and new password are required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Token and new password are required', correlationId);
       }
 
       await authService.resetPassword(token, newPassword);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Password reset successfully',
       });
-    } catch (error) {
-      logger.error('Password reset failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Password reset failed',
-      });
+    } catch (error: any) {
+      logger.error('Password reset failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'AUTH_TOKEN_INVALID', error.message || 'Password reset failed', correlationId);
     }
   }
 
@@ -340,27 +349,23 @@ class AuthController {
    * Get current user info
    */
   async me(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const user = await authService.getUserById(userId);
 
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found',
-        });
+        return sendError(res, 404, 'RESOURCE_NOT_FOUND', 'User not found', correlationId);
       }
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         data: user,
       });
-    } catch (error) {
-      logger.error('Failed to get user info', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to get user info',
-      });
+    } catch (error: any) {
+      logger.error('Failed to get user info', { error: error.message, correlationId });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get user info', correlationId);
     }
   }
 
@@ -369,35 +374,28 @@ class AuthController {
    * Validate an access token (for internal service calls)
    */
   async validateToken(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { token } = req.body;
 
       if (!token) {
-        return res.status(400).json({
-          success: false,
-          error: 'Token is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Token is required', correlationId);
       }
 
       const user = await authService.validateToken(token);
 
       if (!user) {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid token',
-        });
+        return sendError(res, 401, 'AUTH_TOKEN_INVALID', 'Invalid token', correlationId);
       }
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         data: { valid: true, user },
       });
-    } catch (error) {
-      logger.error('Token validation failed', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Token validation failed',
-      });
+    } catch (error: any) {
+      logger.error('Token validation failed', { error: error.message, correlationId });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Token validation failed', correlationId);
     }
   }
 
@@ -427,20 +425,19 @@ class AuthController {
    * Get 2FA status for the authenticated user
    */
   async get2FAStatus(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const status = await twoFactorService.get2FAStatus(userId);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         data: status,
       });
-    } catch (error) {
-      logger.error('Failed to get 2FA status', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to get 2FA status',
-      });
+    } catch (error: any) {
+      logger.error('Failed to get 2FA status', { error: error.message, correlationId });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get 2FA status', correlationId);
     }
   }
 
@@ -450,39 +447,32 @@ class AuthController {
    * SECURITY: Requires password verification before generating secret
    */
   async setup2FA(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const { password } = req.body;
 
       if (!password) {
-        return res.status(400).json({
-          success: false,
-          error: 'Password is required to setup 2FA',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to setup 2FA', correlationId);
       }
 
       const result = await twoFactorService.setup2FA({ userId, password });
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Scan the QR code with your authenticator app, then verify with a code',
         data: result,
       });
-    } catch (error) {
-      logger.error('2FA setup failed', error);
+    } catch (error: any) {
+      logger.error('2FA setup failed', { error: error.message, correlationId });
 
       // Return 401 Unauthorized for password verification failures
       if (error.message === 'Invalid password') {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid password',
-        });
+        return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return res.status(400).json({
-        success: false,
-        error: error.message || '2FA setup failed',
-      });
+      return sendError(res, 400, 'VALIDATION_FAILED', error.message || '2FA setup failed', correlationId);
     }
   }
 
@@ -491,15 +481,13 @@ class AuthController {
    * Verify 2FA token and enable 2FA
    */
   async verify2FA(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const { token, tempSecret } = req.body;
 
       if (!token) {
-        return res.status(400).json({
-          success: false,
-          error: 'Verification token is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification token is required', correlationId);
       }
 
       const result = await twoFactorService.verifyAndEnable2FA({
@@ -509,22 +497,17 @@ class AuthController {
       });
 
       if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          error: result.message,
-        });
+        return sendError(res, 400, 'AUTH_MFA_REQUIRED', result.message, correlationId);
       }
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: result.message,
       });
-    } catch (error) {
-      logger.error('2FA verification failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || '2FA verification failed',
-      });
+    } catch (error: any) {
+      logger.error('2FA verification failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA verification failed', correlationId);
     }
   }
 
@@ -534,22 +517,17 @@ class AuthController {
    * SECURITY: Requires password verification AND valid 2FA token/backup code
    */
   async disable2FA(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const { password, token } = req.body;
 
       if (!password) {
-        return res.status(400).json({
-          success: false,
-          error: 'Password is required to disable 2FA',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to disable 2FA', correlationId);
       }
 
       if (!token) {
-        return res.status(400).json({
-          success: false,
-          error: 'Verification code or backup code is required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Verification code or backup code is required', correlationId);
       }
 
       const result = await twoFactorService.disable2FA({
@@ -559,31 +537,23 @@ class AuthController {
       });
 
       if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          error: result.message,
-        });
+        return sendError(res, 400, 'AUTH_MFA_REQUIRED', result.message, correlationId);
       }
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: result.message,
       });
-    } catch (error) {
-      logger.error('2FA disable failed', error);
+    } catch (error: any) {
+      logger.error('2FA disable failed', { error: error.message, correlationId });
 
       // Return 401 Unauthorized for password verification failures
       if (error.message === 'Invalid password') {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid password',
-        });
+        return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return res.status(400).json({
-        success: false,
-        error: error.message || '2FA disable failed',
-      });
+      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA disable failed', correlationId);
     }
   }
 
@@ -592,35 +562,28 @@ class AuthController {
    * Validate 2FA token during login (for 2FA-enabled accounts)
    */
   async validate2FA(req: Request, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const { userId, token } = req.body;
 
       if (!userId || !token) {
-        return res.status(400).json({
-          success: false,
-          error: 'User ID and verification code are required',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'User ID and verification code are required', correlationId);
       }
 
       const result = await twoFactorService.validate2FALogin({ userId, token });
 
       if (!result.success) {
-        return res.status(401).json({
-          success: false,
-          error: result.message,
-        });
+        return sendError(res, 401, 'AUTH_MFA_REQUIRED', result.message, correlationId);
       }
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: result.message,
       });
-    } catch (error) {
-      logger.error('2FA validation failed', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || '2FA validation failed',
-      });
+    } catch (error: any) {
+      logger.error('2FA validation failed', { error: error.message, correlationId });
+      return sendError(res, 400, 'AUTH_MFA_REQUIRED', error.message || '2FA validation failed', correlationId);
     }
   }
 
@@ -630,39 +593,32 @@ class AuthController {
    * SECURITY: Requires password verification before regenerating
    */
   async regenerateBackupCodes(req: AuthRequest, res: Response): Promise<Response> {
+    const correlationId = getCorrelationId(req);
     try {
       const userId = req.user.userId;
       const { password } = req.body;
 
       if (!password) {
-        return res.status(400).json({
-          success: false,
-          error: 'Password is required to regenerate backup codes',
-        });
+        return sendError(res, 400, 'VALIDATION_FAILED', 'Password is required to regenerate backup codes', correlationId);
       }
 
       const backupCodes = await twoFactorService.regenerateBackupCodes(userId, password);
 
+      res.setHeader('X-Correlation-ID', correlationId);
       return res.status(200).json({
         success: true,
         message: 'Backup codes regenerated successfully. Please store them securely.',
         data: { backupCodes },
       });
-    } catch (error) {
-      logger.error('Backup codes regeneration failed', error);
+    } catch (error: any) {
+      logger.error('Backup codes regeneration failed', { error: error.message, correlationId });
 
       // Return 401 Unauthorized for password verification failures
       if (error.message === 'Invalid password') {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid password',
-        });
+        return sendError(res, 401, 'AUTH_INVALID_CREDENTIALS', 'Invalid password', correlationId);
       }
 
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Failed to regenerate backup codes',
-      });
+      return sendError(res, 400, 'VALIDATION_FAILED', error.message || 'Failed to regenerate backup codes', correlationId);
     }
   }
 }

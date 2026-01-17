@@ -106,8 +106,8 @@ app.use(
     maxAge: 86400, // 24 hours - cache preflight
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {

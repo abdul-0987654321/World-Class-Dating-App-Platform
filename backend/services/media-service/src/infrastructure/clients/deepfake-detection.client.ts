@@ -3,6 +3,11 @@
  *
  * Provides integration with the ML-based deepfake detection service
  * for analyzing photos and videos for AI-generated content.
+ *
+ * RESILIENCE FEATURES:
+ * - Circuit breaker pattern for fault tolerance
+ * - Exponential backoff retry with jitter
+ * - Configurable timeouts
  */
 
 import { createLogger } from '@flamoral/backend-shared';
@@ -13,6 +18,88 @@ const logger = createLogger('deepfake-detection-client');
 // Service configuration
 const DEEPFAKE_SERVICE_URL = process.env.DEEPFAKE_SERVICE_URL || 'http://localhost:8010';
 const DEEPFAKE_TIMEOUT = parseInt(process.env.DEEPFAKE_TIMEOUT || '30000', 10);
+
+// Retry configuration
+const MAX_RETRIES = 3;
+const BASE_DELAY = 1000;
+const MAX_DELAY = 15000;
+const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];
+
+/**
+ * Circuit Breaker State
+ */
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+
+/**
+ * Circuit Breaker for AI service resilience
+ */
+class CircuitBreaker {
+  private state: CircuitState = 'CLOSED';
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private successCount = 0;
+  private readonly threshold = 5;
+  private readonly resetTimeout = 60000; // 1 minute for AI services
+  private readonly successThreshold = 2;
+
+  getState(): CircuitState {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailureTime >= this.resetTimeout) {
+        this.state = 'HALF_OPEN';
+        this.successCount = 0;
+        logger.info('[DeepfakeDetection] Circuit breaker transitioning to HALF_OPEN');
+      }
+    }
+    return this.state;
+  }
+
+  allowRequest(): boolean {
+    return this.getState() !== 'OPEN';
+  }
+
+  recordSuccess(): void {
+    if (this.state === 'HALF_OPEN') {
+      this.successCount++;
+      if (this.successCount >= this.successThreshold) {
+        this.state = 'CLOSED';
+        this.failureCount = 0;
+        logger.info('[DeepfakeDetection] Circuit breaker CLOSED');
+      }
+    } else {
+      this.failureCount = 0;
+    }
+  }
+
+  recordFailure(): void {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+    if (this.state === 'HALF_OPEN' || this.failureCount >= this.threshold) {
+      this.state = 'OPEN';
+      logger.warn(`[DeepfakeDetection] Circuit breaker OPEN: ${this.failureCount} failures`);
+    }
+  }
+
+  reset(): void {
+    this.state = 'CLOSED';
+    this.failureCount = 0;
+    this.successCount = 0;
+  }
+}
+
+/**
+ * Calculate exponential backoff with jitter
+ */
+function calculateBackoff(attempt: number): number {
+  const delay = Math.min(BASE_DELAY * Math.pow(2, attempt - 1), MAX_DELAY);
+  return Math.floor(delay * (0.5 + Math.random() * 0.5));
+}
+
+/**
+ * Sleep utility
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Image analysis request
@@ -74,11 +161,14 @@ export interface DeepfakeDetectionResult {
  */
 export class DeepfakeDetectionClient {
   private client: AxiosInstance;
+  private circuitBreaker: CircuitBreaker;
   private isHealthy: boolean = true;
   private lastHealthCheck: Date | null = null;
   private readonly healthCheckInterval = 60000; // 1 minute
 
   constructor() {
+    this.circuitBreaker = new CircuitBreaker();
+
     this.client = axios.create({
       baseURL: DEEPFAKE_SERVICE_URL,
       timeout: DEEPFAKE_TIMEOUT,
@@ -99,10 +189,15 @@ export class DeepfakeDetectionClient {
       }
     );
 
-    // Response interceptor for error handling
+    // Response interceptor for error handling and circuit breaker
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        this.circuitBreaker.recordSuccess();
+        this.isHealthy = true;
+        return response;
+      },
       (error: AxiosError) => {
+        this.circuitBreaker.recordFailure();
         if (error.response) {
           logger.error(
             `Deepfake API error: ${error.response.status} - ${JSON.stringify(error.response.data)}`
@@ -116,6 +211,58 @@ export class DeepfakeDetectionClient {
         return Promise.reject(error);
       }
     );
+  }
+
+  /**
+   * Execute request with retry logic and circuit breaker
+   */
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    if (!this.circuitBreaker.allowRequest()) {
+      throw new DeepfakeAnalysisError(
+        `Deepfake detection circuit breaker is OPEN - ${operationName} blocked`
+      );
+    }
+
+    let lastError: Error | null = null;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        const status = error.response?.status;
+
+        // Don't retry 4xx errors (except 408 and 429)
+        if (status && status >= 400 && status < 500 && !RETRYABLE_STATUS_CODES.includes(status)) {
+          throw error;
+        }
+
+        if (attempt < MAX_RETRIES) {
+          const delay = calculateBackoff(attempt);
+          logger.warn(`[DeepfakeDetection] ${operationName} failed (attempt ${attempt}/${MAX_RETRIES}). Retrying in ${delay}ms...`);
+          await sleep(delay);
+        }
+      }
+    }
+
+    throw lastError || new DeepfakeAnalysisError(`${operationName} failed after ${MAX_RETRIES} retries`);
+  }
+
+  /**
+   * Get circuit breaker state for monitoring
+   */
+  getCircuitBreakerState(): CircuitState {
+    return this.circuitBreaker.getState();
+  }
+
+  /**
+   * Reset circuit breaker (for recovery scenarios)
+   */
+  resetCircuitBreaker(): void {
+    this.circuitBreaker.reset();
+    logger.info('[DeepfakeDetection] Circuit breaker manually reset');
   }
 
   /**
@@ -152,7 +299,7 @@ export class DeepfakeDetectionClient {
    * Analyze an image for deepfake indicators
    */
   async analyzeImage(request: ImageAnalysisRequest): Promise<DeepfakeDetectionResult> {
-    try {
+    return this.executeWithRetry(async () => {
       logger.info(`Analyzing image for deepfakes: ${request.imageUrl.substring(0, 50)}...`);
 
       const response = await this.client.post<ImageAnalysisResponse>(
@@ -176,17 +323,14 @@ export class DeepfakeDetectionClient {
           ...result.analysis_details,
         },
       };
-    } catch (error) {
-      logger.error('Image deepfake analysis failed', error);
-      throw new DeepfakeAnalysisError('Failed to analyze image for deepfakes', error);
-    }
+    }, 'analyzeImage');
   }
 
   /**
    * Analyze a video for deepfake indicators
    */
   async analyzeVideo(request: VideoAnalysisRequest): Promise<DeepfakeDetectionResult> {
-    try {
+    return this.executeWithRetry(async () => {
       logger.info(`Analyzing video for deepfakes: ${request.videoUrl.substring(0, 50)}...`);
 
       const response = await this.client.post<VideoAnalysisResponse>(
@@ -213,10 +357,7 @@ export class DeepfakeDetectionClient {
           blinkAnalysis: result.blink_analysis,
         },
       };
-    } catch (error) {
-      logger.error('Video deepfake analysis failed', error);
-      throw new DeepfakeAnalysisError('Failed to analyze video for deepfakes', error);
-    }
+    }, 'analyzeVideo');
   }
 
   /**
