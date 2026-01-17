@@ -36,6 +36,7 @@ interface BoostCardProps {
   onPurchaseWithCoins: () => Promise<void>;
   onPurchaseWithMoney: () => Promise<void>;
   onViewHistory: () => void;
+  onNavigateToCoinShop?: () => void;
 }
 
 const BOOST_COST_COINS = 5;
@@ -49,6 +50,7 @@ export const BoostCard: React.FC<BoostCardProps> = ({
   onPurchaseWithCoins,
   onPurchaseWithMoney,
   onViewHistory,
+  onNavigateToCoinShop,
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,7 +111,7 @@ export const BoostCard: React.FC<BoostCardProps> = ({
         `You need ${BOOST_COST_COINS} coins to activate a boost. You currently have ${coinBalance} coins.`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Buy Coins', onPress: () => {} },
+          { text: 'Buy Coins', onPress: () => onNavigateToCoinShop?.() },
         ]
       );
       return;

@@ -28,6 +28,7 @@ interface PrivacySettingsProps {
   onSave: (preferences: PrivacyPreferences) => Promise<void>;
   onRequestDataDownload: () => void;
   onDeleteAccount: () => void;
+  onNavigateToSubscription?: () => void;
 }
 
 export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
@@ -36,6 +37,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
   onSave,
   onRequestDataDownload,
   onDeleteAccount,
+  onNavigateToSubscription,
 }) => {
   const [preferences, setPreferences] = useState<PrivacyPreferences>(initialPreferences);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,7 +77,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({
         'Incognito mode is available for Premium members. Upgrade to browse invisibly.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => {} },
+          { text: 'Upgrade', onPress: () => onNavigateToSubscription?.() },
         ]
       );
       return;

@@ -103,13 +103,23 @@ const DiscoveryScreen = () => {
     }
   }, [currentIndex]);
 
-  const handleBoost = useCallback(() => {
+  const handleBoost = useCallback(async () => {
     Alert.alert(
       'Boost Your Profile',
       'Get up to 10x more profile views for 30 minutes!',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Boost Now', onPress: () => {} },
+        {
+          text: 'Boost Now',
+          onPress: async () => {
+            try {
+              await discoveryService.activateBoost();
+              Alert.alert('Success', 'Your profile is now boosted for 30 minutes!');
+            } catch (err) {
+              Alert.alert('Error', 'Failed to activate boost. Please try again.');
+            }
+          }
+        },
       ]
     );
   }, []);
@@ -145,14 +155,14 @@ const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {   
           </View>
         ) : currentProfile ? (
           <>
-            {/* Show next card behind */}
+            {/* Show next card behind - non-interactive preview */}
             {profiles[currentIndex + 1] && (
-              <View style={[styles.cardBehind, { transform: [{ scale: 0.95 }] }]}>
+              <View style={[styles.cardBehind, { transform: [{ scale: 0.95 }] }]} pointerEvents="none">
                 <SwipeCard
                   profile={profiles[currentIndex + 1]}
-                  onSwipeLeft={() => {}}
-                  onSwipeRight={() => {}}
-                  onSwipeUp={() => {}}
+                  onSwipeLeft={() => { /* Background card - non-interactive */ }}
+                  onSwipeRight={() => { /* Background card - non-interactive */ }}
+                  onSwipeUp={() => { /* Background card - non-interactive */ }}
                 />
               </View>
             )}
