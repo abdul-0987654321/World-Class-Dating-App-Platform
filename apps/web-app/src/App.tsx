@@ -116,18 +116,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const App: React.FC = () => {
   const { isAuthenticated, isAuthReady } = useAuth();
 
-  // Show loading while checking auth
-  if (!isAuthReady) {
-    return (
-      <FlamoralBackground fixed withNoise>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fm-pink"></div>
-        </div>
-      </FlamoralBackground>
-    );
-  }
-
   // Provide auth context to all child components
+  // NOTE: Public routes render immediately, protected routes wait for auth
   const authContextValue = React.useMemo(
     () => ({ isAuthenticated: isAuthenticated ?? false, isAuthReady }),
     [isAuthenticated, isAuthReady]
