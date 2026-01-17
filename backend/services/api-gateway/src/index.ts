@@ -20,10 +20,14 @@ const PORT = process.env.PORT || 4000;
 // Middleware
 app.use(helmet());
 
-// SECURITY: CORS configuration - NO wildcard fallback in production
-const allowedOrigins = process.env.CORS_ORIGINS?.split(',').filter(Boolean) || [];
-if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
-  logger.error('CRITICAL: CORS_ORIGINS not configured in production! Defaulting to strict mode.');
+// SECURITY: CORS configuration - Always include production domains as fallback
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultOrigins = isProduction
+  ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+  : ['http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',').filter(Boolean) || defaultOrigins;
+if (process.env.CORS_ORIGINS === undefined && isProduction) {
+  logger.warn('CORS_ORIGINS not explicitly set in production, using default production domains.');
 }
 app.use(
   cors({

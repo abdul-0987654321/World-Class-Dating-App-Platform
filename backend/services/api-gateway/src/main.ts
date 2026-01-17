@@ -57,11 +57,13 @@ async function bootstrap() {
   }
 
   // CORS - Enhanced configuration for CSRF protection
-  const corsOrigins = configService.get<string[]>('cors.origins') || [
-    'http://localhost:5173',
-    'http://localhost:3000',
-  ];
-  const corsCredentials = configService.get<boolean>('cors.credentials') || true;
+  const isProduction = configService.get<string>('nodeEnv') === 'production';
+  const corsOrigins = configService.get<string[]>('cors.origins') || (
+    isProduction
+      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+      : ['http://localhost:5173', 'http://localhost:3000']
+  );
+  const corsCredentials = configService.get<boolean>('cors.credentials') !== false; // Default to true for cookie-based auth
 
   app.enableCors({
     origin: (origin, callback) => {

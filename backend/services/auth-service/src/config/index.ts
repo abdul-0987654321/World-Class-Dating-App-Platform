@@ -138,12 +138,13 @@ export const config = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
 
-  // CORS
+  // CORS - SECURITY: Always include production domains
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || [
-      'http://localhost:3000',
-      'http://localhost:5173',
-    ],
+    origins: process.env.CORS_ORIGINS?.split(',') || (
+      process.env.NODE_ENV === 'production'
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173']
+    ),
   },
 
   // Rate limiting

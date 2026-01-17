@@ -128,10 +128,14 @@ export default () => ({
     payment: parseInt(process.env.SERVICE_TIMEOUT_PAYMENT, 10) || 45000, // 45 seconds
   },
 
-  // CORS
+  // CORS - SECURITY: Always include production domains
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-    credentials: process.env.CORS_CREDENTIALS === 'true',
+    origins: process.env.CORS_ORIGINS?.split(',') || (
+      process.env.NODE_ENV === 'production'
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173']
+    ),
+    credentials: process.env.CORS_CREDENTIALS !== 'false', // Default to true for cookie-based auth
   },
 
   // Logging
