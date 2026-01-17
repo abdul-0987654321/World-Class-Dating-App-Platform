@@ -1,9 +1,9 @@
 # Flamoral Platform - System Map
 
 ## Executive Summary
-Flamoral is a production-grade microservices-based dating platform deployed on Azure AKS. The system comprises 18+ backend services, web and mobile frontends, with full observability, CI/CD automation, and compliance controls.
+Flamoral is a production-grade microservices-based dating platform deployed on **AWS ECS Fargate**. The system comprises 20+ backend services, web and mobile frontends, with full observability, CI/CD automation, and compliance controls.
 
-**Technology Stack:** Node.js/TypeScript, React/Next.js, React Native, PostgreSQL, Redis, MongoDB, Docker, Kubernetes, Terraform
+**Technology Stack:** Node.js/TypeScript, React/Vite, React Native, PostgreSQL (Aurora), Redis (ElastiCache), Docker, AWS ECS, Terraform
 
 ---
 
@@ -31,31 +31,32 @@ Flamoral is a production-grade microservices-based dating platform deployed on A
 
 | Store | Type | Purpose |
 |-------|------|---------|
-| PostgreSQL | RDBMS | Primary data storage |
-| Redis | Cache | Sessions, caching, job queues |
-| MongoDB/Cosmos | Document | Messages, analytics events |
-| Azure Blob | Object | Profile photos, media |
-| Elasticsearch | Search | Full-text search, analytics |
+| Aurora PostgreSQL | RDBMS | Primary data storage |
+| ElastiCache Redis | Cache | Sessions, caching, job queues |
+| DocumentDB | Document | Messages (MongoDB-compatible) |
+| AWS S3 | Object | Profile photos, media |
+| OpenSearch | Search | Full-text search, analytics |
 
 ---
 
 ## Infrastructure
 
-### Azure Resources (Production)
-- **Resource Group:** `flamoral-prod-rg`
-- **AKS Cluster:** `flamoral-prod-aks`
-- **PostgreSQL:** `flamoral-prod-postgres.postgres.database.azure.com`
-- **Redis:** `flamoral-prod-redis.redis.cache.windows.net`
-- **ACR:** `flamoralprodacr.azurecr.io`
-- **Key Vault:** `flamoral-prod-kv`
+### AWS Resources (Production)
+- **Region:** `us-east-1`
+- **ECS Cluster:** `flamoral-prod-ecs`
+- **Aurora PostgreSQL:** Aurora Serverless v2 cluster
+- **ElastiCache:** Redis cluster
+- **ECR:** `flamoral-*` repositories
+- **Secrets Manager:** `flamoral-*` secrets
+- **S3 Buckets:** `flamoral-media`, `flamoral-backups`
 
 ### External Integrations
 - **Stripe** - Payments
-- **SendGrid** - Email
-- **Twilio** - SMS
-- **Firebase** - Push notifications
+- **AWS SES** - Email (migrated from SendGrid)
+- **AWS SNS** - SMS (migrated from Twilio)
+- **AWS SNS** - Push notifications (migrated from Firebase)
 - **Agora** - Video calls
-- **Sentry** - Error tracking
+- **CloudWatch** - Logging and monitoring
 
 ---
 
@@ -82,11 +83,10 @@ Flamoral is a production-grade microservices-based dating platform deployed on A
 
 ## Observability
 
-- **Logging:** Winston → Azure Log Analytics
-- **Metrics:** Prometheus + Grafana
-- **Tracing:** Jaeger / Application Insights
-- **Errors:** Sentry
-- **Alerts:** AlertManager → PagerDuty/Email
+- **Logging:** Winston → CloudWatch Logs
+- **Metrics:** CloudWatch Container Insights
+- **Tracing:** AWS X-Ray
+- **Alerts:** CloudWatch Alarms → SNS → Email
 
 ---
 
@@ -95,8 +95,8 @@ Flamoral is a production-grade microservices-based dating platform deployed on A
 1. **Code Push** → GitHub Actions
 2. **Lint + Test** → Unit, Integration tests
 3. **Security Scan** → Trivy, SAST
-4. **Build** → Docker images → ACR
-5. **Deploy** → Helm → AKS
+4. **Build** → Docker images → ECR
+5. **Deploy** → ECS Task Definitions → ECS Fargate
 6. **Smoke Tests** → Post-deployment verification
 
 ---
@@ -105,23 +105,30 @@ Flamoral is a production-grade microservices-based dating platform deployed on A
 
 ```
 /apps/
-  web-app/          # React web frontend
+  web-app/          # React (Vite) web frontend
   mobile-app/       # React Native mobile
+  branding/         # Logo, icons, brand assets
 /backend/
   services/         # All microservices
   shared/           # Shared utilities
 /infrastructure/
-  terraform/        # IaC definitions
-  kubernetes/       # K8s manifests
-  helm/             # Helm charts
-  monitoring/       # Grafana, Prometheus
+  terraform/        # IaC definitions (AWS)
+  docker/           # Dockerfiles
+  local-dev/        # Docker Compose for local dev
+  disaster-recovery/# DR runbooks
+  runbooks/         # Operational runbooks
+  scripts/          # Deployment scripts
 /.github/
   workflows/        # CI/CD pipelines
 /docs/
   api/              # OpenAPI specs
-  architecture/     # System documentation
+  01-architecture/  # System documentation
+  02-api/           # API documentation
+  03-security/      # Security documentation
+/packages/
+  shared/           # Shared TypeScript packages
 ```
 
 ---
 
-*Last Updated: 2025-12-22*
+*Last Updated: 2026-01-17*

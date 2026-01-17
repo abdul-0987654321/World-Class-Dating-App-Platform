@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flamoral uses a microservices architecture deployed on Azure Kubernetes Service (AKS). Each service owns its domain, has its own database schema, and communicates via REST APIs and message queues.
+Flamoral uses a microservices architecture deployed on **AWS ECS Fargate**. Each service owns its domain, has its own database schema, and communicates via REST APIs and message queues (AWS SQS/SNS).
 
 ## Architecture Principles
 
@@ -16,20 +16,20 @@ Flamoral uses a microservices architecture deployed on Azure Kubernetes Service 
 
 ```
                                     ┌─────────────────┐
-                                    │   CloudFlare    │
+                                    │   CloudFront    │
                                     │   (CDN + WAF)   │
                                     └────────┬────────┘
                                              │
                                     ┌────────┴────────┐
-                                    │  Azure Front    │
-                                    │     Door        │
+                                    │   AWS ALB       │
+                                    │  (Load Balancer)│
                                     └────────┬────────┘
                                              │
                     ┌────────────────────────┼────────────────────────┐
                     │                        │                        │
            ┌────────┴────────┐     ┌────────┴────────┐     ┌────────┴────────┐
            │   Web App       │     │   API Gateway   │     │  WebSocket      │
-           │   (Static)      │     │   (Kong/NGINX)  │     │   Gateway       │
+           │   (Static)      │     │   (Port 4000)   │     │   Gateway       │
            └─────────────────┘     └────────┬────────┘     └────────┬────────┘
                                             │                       │
                     ┌───────────────────────┼───────────────────────┤
@@ -91,12 +91,12 @@ Flamoral uses a microservices architecture deployed on Azure Kubernetes Service 
                     ┌───────────────────────┴───────────────────────┐
                     │                 Data Layer                     │
                     │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐│
-                    │  │ PostgreSQL  │ │    Redis    │ │Azure Blob   ││
-                    │  │  Cluster    │ │   Cluster   │ │  Storage    ││
+                    │  │ Aurora      │ │ ElastiCache │ │  AWS S3     ││
+                    │  │ PostgreSQL  │ │   (Redis)   │ │  Storage    ││
                     │  └─────────────┘ └─────────────┘ └─────────────┘│
                     │  ┌─────────────┐ ┌─────────────┐               │
-                    │  │Service Bus  │ │Elasticsearch│               │
-                    │  │  (Queues)   │ │  (Search)   │               │
+                    │  │  AWS SQS    │ │   Search    │               │
+                    │  │  (Queues)   │ │  (OpenSearch│               │
                     │  └─────────────┘ └─────────────┘               │
                     └───────────────────────────────────────────────┘
 ```

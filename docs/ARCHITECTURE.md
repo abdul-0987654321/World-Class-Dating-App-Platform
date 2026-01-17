@@ -155,7 +155,7 @@ User Request
      v
 +--------------------+
 |    API Gateway     |  <-- Authentication, Rate Limiting, Routing
-|    (Port 4000)     |
+|    (Port 4000)     |  <-- Main entry point for all API requests
 +--------------------+
      |
      +-------+-------+-------+-------+
@@ -179,11 +179,11 @@ User Request
 ```
 +-----------------------------------------------------------------------------------+
 |                                  API GATEWAY                                       |
-|  NestJS + Express | Port 4000                                                      |
+|  Express + Middleware | Port 4000                                                  |
 |  - JWT validation                                                                  |
 |  - Rate limiting (100 req/15min default)                                           |
-|  - Request routing                                                                 |
-|  - API versioning                                                                  |
+|  - Request routing to backend services                                             |
+|  - CORS, CSRF, security headers                                                    |
 +-----------------------------------------------------------------------------------+
          |                    |                    |                    |
          v                    v                    v                    v
@@ -210,7 +210,7 @@ User Request
 |                |   |                |   |                |   |                |
 | - Stripe       |   | - Push (SNS)   |   | - Upload       |   | - Dashboard    |
 | - Subscriptions|   | - Email (SES)  |   | - Processing   |   | - User mgmt    |
-| - Coins/Gems   |   | - SMS          |   | - CDN delivery |   | - Moderation   |
+| - Coins/Gems   |   | - SMS (SNS)    |   | - S3 delivery  |   | - Moderation   |
 | - IAP          |   | - In-app       |   | - Verification |   | - Analytics    |
 | - Refunds      |   | - Preferences  |   | - Video encode |   | - Reports      |
 +----------------+   +----------------+   +----------------+   +----------------+
@@ -232,13 +232,13 @@ User Request
          |                    |
          v                    v
 +----------------+   +----------------+
-| PARTNERSHIP    |   | AI SERVICES    |
-| Port: 3014     |   | Python         |
+| REALTIME SVC   |   | AI SERVICES    |
+| Port: 8081     |   | Python         |
 |                |   |                |
-| - Restaurants  |   | - Deepfake     |
-| - Events       |   | - ML Recs      |
-| - Date plans   |   | - Face embed   |
-| - Affiliates   |   | - Moderation   |
+| - Presence     |   | - Deepfake     |
+| - WebSocket    |   | - ML Recs      |
+| - Events       |   | - Face embed   |
+| - Live updates |   | - Moderation   |
 +----------------+   +----------------+
 ```
 

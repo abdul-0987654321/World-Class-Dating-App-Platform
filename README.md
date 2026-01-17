@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Flamoral Logo](apps/branding/logo.svg)
+![Flamoral Logo](apps/branding/logo/flamoral-logo.png)
 
 **A production-grade, microservices-based dating platform**
 
@@ -41,41 +41,31 @@ Flamoral is a world-class dating platform featuring web and mobile applications,
 
 ---
 
-## Microservices (27 Total)
+## Microservices Architecture
 
-All services deployed on **AWS ECS Fargate** with ports 3000-3026.
+All services deployed on **AWS ECS Fargate**. The platform uses a microservices architecture with the following core services:
 
 | Service | Port | Description |
 |---------|------|-------------|
-| API Gateway | 3000 | Entry point, routing, rate limiting |
+| API Gateway | 4000 | Entry point, routing, rate limiting, authentication |
 | Auth Service | 3001 | Authentication, JWT, OAuth 2.0, MFA |
 | User Service | 3002 | User account management |
-| Profile Service | 3003 | Profile data, photos, preferences |
-| Matching Service | 3004 | Discovery, swipes, matches |
-| Messaging Service | 3005 | Real-time chat, WebSocket |
-| Notification Service | 3006 | Push, email, SMS notifications |
-| Payment Service | 3007 | Stripe integration, payments |
-| Subscription Service | 3008 | Premium tiers, billing |
+| Matching Service | 3003 | Discovery, swipes, matches, recommendations |
+| Messaging Service | 5000 | Real-time chat, WebSocket |
+| Payment Service | 3005 | Stripe integration, subscriptions |
+| Analytics Service | 3007 | Usage analytics, dashboards |
+| Notification Service | 3008 | Push, email, SMS notifications |
 | Media Service | 3009 | Photo/video upload, processing |
-| Moderation Service | 3010 | AI content moderation |
-| Analytics Service | 3011 | Usage analytics, dashboards |
-| Recommendation Service | 3012 | AI-powered recommendations |
-| Search Service | 3013 | User discovery, filters |
-| Location Service | 3014 | Geolocation, proximity |
-| Verification Service | 3015 | Identity verification |
-| Report Service | 3016 | User reports, safety |
-| Admin Service | 3017 | Admin dashboard |
-| Webhook Service | 3018 | External integrations |
-| Scheduler Service | 3019 | Scheduled jobs, cron |
-| Worker Service | 3020 | Background processing |
-| Email Service | 3021 | Email delivery (SES) |
-| Realtime Service | 3022 | WebSocket connections |
-| Workflow Engine | 3023 | Business workflows |
-| Automation Service | 3024 | Automated actions |
-| Advertising Service | 3025 | Ad campaigns, targeting |
-| Partnership Service | 3026 | Partner integrations |
+| Admin Service | 3010 | Admin dashboard backend |
+| Advertising Service | 3011 | Ad campaigns, targeting |
+| Moderation Service | 3012 | AI content moderation |
+| Automation Service | 3013 | Workflow automation |
+| Realtime Service | 8081 | WebSocket connections, presence |
+| Workflow Engine | 3011 | Business workflows |
 
-See [PORT_MAPPING.md](docs/PORT_MAPPING.md) for complete details.
+**Additional Services:** Profile Service, Subscription Service, Recommendation Service, Search Service, Location Service, Verification Service, Report Service, Webhook Service, Scheduler Service, Worker Service, Email Service, Partnership Service.
+
+See `.env.example` files in each service directory for specific port configurations.
 
 ---
 
@@ -136,8 +126,8 @@ Consistent across Web, iOS, and Android platforms:
 - Staging: 10.0.0.0/22 (public), 10.0.16.0/20 (private)
 - Production: 10.0.4.0/22 (public), 10.0.32.0/20 (private)
 
-### Terraform Modules (29)
-networking, ecs-cluster, ecs-iam, ecs-alb, rds, elasticache, dynamodb, s3, cognito, ecr, secrets, messaging, monitoring, route53, acm, cloudfront, ses, budgets, cicd, ai-security, cost-management, image-signing
+### Terraform Modules (40+)
+networking, ecs, ecs-cluster, ecs-iam, ecs-alb, ecs-service, rds, rds-monitoring, elasticache, cache, dynamodb, s3, cognito, ecr, secrets, secrets-manager, secrets-rotation, messaging, monitoring, cloudwatch-dashboard, route53, acm, cloudfront, cdn, lambda-edge, ses, sns-topics, budgets, cicd, codedeploy, ai-security, cost-management, waf, guardduty, security-hub, xray, backup, synthetics, production-alarms
 
 ---
 
