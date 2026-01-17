@@ -3,10 +3,53 @@
 ios/
 android/
 
+# Backup directories
+ios.backup/
+android.backup/
+
 # Build artifacts
 *.log
 *.tsbuildinfo
+dist/
+build/
 
 # Development files
 .env.local
 .env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test files (not needed for production build)
+__tests__/
+__mocks__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+
+# E2E tests
+e2e/
+
+# Documentation
+*.md
+!README.md
+
+# Detox config (for e2e testing)
+.detoxrc.js
+
+# Temporary and script files
+*.bak
+fix-*.js
+check-ts.js
+run-tsc.js
+rename-security.js
+restore-files.js

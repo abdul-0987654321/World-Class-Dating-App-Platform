@@ -50,3 +50,10 @@ export const getMultipartHeaders = (token: string): Record<string, string> => ({
   'Authorization': `Bearer ${token}`,
   'Content-Type': 'multipart/form-data',
 });
+
+// Export commonly used constants
+export const API_BASE_URL = API_CONFIG.BASE_URL;
+export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_URL || 'wss://api.flamoral.com';
+export const MESSAGING_SERVICE_URL = process.env.EXPO_PUBLIC_MESSAGING_SERVICE_URL || 'http://localhost:3003';
+
+export default API_CONFIG;

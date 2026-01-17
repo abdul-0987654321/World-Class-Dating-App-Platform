@@ -51,11 +51,66 @@ jobs:
 
       - name: Verify deployment
         run: |
-          echo "Website deployed to: ${{ steps.deployment.outputs.page_url }}"
+          SITE_URL="${{ steps.deployment.outputs.page_url }}"
+          echo "Website deployed to: $SITE_URL"
+
           # Wait for deployment to propagate
+          echo "Waiting for deployment to propagate..."
           sleep 30
-          # Verify pages are accessible
-          curl -sf "${{ steps.deployment.outputs.page_url }}" || echo "Homepage check pending propagation"
-          curl -sf "${{ steps.deployment.outputs.page_url }}privacy/" || echo "Privacy page check pending propagation"
-          curl -sf "${{ steps.deployment.outputs.page_url }}terms/" || echo "Terms page check pending propagation"
-          curl -sf "${{ steps.deployment.outputs.page_url }}guidelines/" || echo "Guidelines page check pending propagation"
+
+          # Track verification results
+          HOMEPAGE_OK=false
+          PRIVACY_OK=false
+          TERMS_OK=false
+          GUIDELINES_OK=false
+
+          # Verify pages are accessible (with timeout and retries)
+          for i in 1 2 3; do
+            echo "Verification attempt $i..."
+
+            if curl -sf --max-time 10 "$SITE_URL" > /dev/null 2>&1; then
+              HOMEPAGE_OK=true
+            fi
+            if curl -sf --max-time 10 "${SITE_URL}privacy/" > /dev/null 2>&1; then
+              PRIVACY_OK=true
+            fi
+            if curl -sf --max-time 10 "${SITE_URL}terms/" > /dev/null 2>&1; then
+              TERMS_OK=true
+            fi
+            if curl -sf --max-time 10 "${SITE_URL}guidelines/" > /dev/null 2>&1; then
+              GUIDELINES_OK=true
+            fi
+
+            # If all passed, break
+            if [ "$HOMEPAGE_OK" = true ] && [ "$PRIVACY_OK" = true ] && [ "$TERMS_OK" = true ] && [ "$GUIDELINES_OK" = true ]; then
+              break
+            fi
+
+            # Wait before retry
+            [ $i -lt 3 ] && sleep 15
+          done
+
+          # Report results
+          echo ""
+          echo "=== Deployment Verification Results ==="
+          echo "Homepage: $HOMEPAGE_OK"
+          echo "Privacy Page: $PRIVACY_OK"
+          echo "Terms Page: $TERMS_OK"
+          echo "Guidelines Page: $GUIDELINES_OK"
+
+          # Generate summary
+          echo "## Website Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment URL:** $SITE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Page | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Homepage | $HOMEPAGE_OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Privacy | $PRIVACY_OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terms | $TERMS_OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Guidelines | $GUIDELINES_OK |" >> $GITHUB_STEP_SUMMARY
+
+          # Warn if any page failed (but don't fail the workflow - propagation can take time)
+          if [ "$HOMEPAGE_OK" = false ]; then
+            echo "::warning::Homepage not accessible yet - may need more time to propagate"
+          fi

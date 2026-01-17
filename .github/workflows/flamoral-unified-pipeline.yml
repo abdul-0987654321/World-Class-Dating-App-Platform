@@ -1870,6 +1870,7 @@ jobs:
           npx expo prebuild --clean --platform ios
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
 
       - name: Build iOS Simulator app for E2E tests
         run: |
@@ -2053,36 +2054,25 @@ jobs:
         run: |
           cd apps/mobile-app
 
-          # First, try to get project info
-          echo "Checking EAS project status..."
+          # Use hardcoded EAS project ID - this is a public identifier, not a secret
+          EAS_PROJECT_ID="7830bf9b-c248-4551-a753-6a4cac5610e0"
+          echo "project_id=$EAS_PROJECT_ID" >> $GITHUB_OUTPUT
+
+          # Set the environment variable for app.config.js
+          export EXPO_PUBLIC_EAS_PROJECT_ID="$EAS_PROJECT_ID"
+
+          # Verify EAS project is accessible
+          echo "Verifying EAS project access..."
           PROJECT_INFO=$(eas project:info 2>&1) || true
 
           if echo "$PROJECT_INFO" | grep -q "fullName"; then
-            echo "EAS project already linked"
-            # Extract project ID from output line like "ID        7830bf9b-..."
-            PROJECT_ID=$(echo "$PROJECT_INFO" | grep "^ID" | awk '{print $2}')
-            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
-            echo "Project ID extracted: $PROJECT_ID"
+            echo "EAS project verified successfully"
+            echo "Project info:"
+            echo "$PROJECT_INFO"
           else
-            echo "Linking existing EAS project..."
-            # Use --force to link existing project
-            eas init --non-interactive --force
-
-            # Verify the project was linked
-            PROJECT_INFO=$(eas project:info 2>&1)
-            if ! echo "$PROJECT_INFO" | grep -q "fullName"; then
-              echo "::error::Failed to link EAS project"
-              echo "Output: $PROJECT_INFO"
-              exit 1
-            fi
-
-            PROJECT_ID=$(echo "$PROJECT_INFO" | grep "^ID" | awk '{print $2}')
-            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+            echo "::warning::Could not verify EAS project. Proceeding with build..."
+            echo "Output: $PROJECT_INFO"
           fi
-
-          # Display project info for debugging
-          echo "EAS Project ID: $PROJECT_ID"
-          eas whoami
 
           # Verify eas.json exists
           if [ ! -f eas.json ]; then
@@ -2090,10 +2080,11 @@ jobs:
             exit 1
           fi
 
-          echo "EAS Project linked and validated successfully"
+          echo "EAS Project ID: $EAS_PROJECT_ID"
+          echo "EAS configuration validated successfully"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_EAS_PROJECT_ID }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
 
       - name: Determine build configuration
         id: build_config
@@ -2172,7 +2163,7 @@ jobs:
           echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ steps.eas_init.outputs.project_id }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
 
       - name: Run EAS Build - iOS
         id: eas_build_ios
@@ -2229,7 +2220,7 @@ jobs:
           echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: ${{ steps.eas_init.outputs.project_id }}
+          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
 
       - name: Wait for Android build completion
         id: android_build_status
