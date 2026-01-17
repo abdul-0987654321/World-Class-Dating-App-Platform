@@ -14,7 +14,7 @@ sqlalchemy[asyncio]==2.0.45
 numpy==1.26.3
 pandas==2.1.4
 scikit-learn==1.8.0
-torch==2.1.2
+torch==2.9.1
 transformers==4.57.3
 sentence-transformers==2.2.2
 spacy==3.7.2
