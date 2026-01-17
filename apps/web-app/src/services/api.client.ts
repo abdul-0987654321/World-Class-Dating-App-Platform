@@ -18,7 +18,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
   skipCsrf?: boolean;
+  timeout?: number; // Timeout in milliseconds
 }
+
+// Default timeout for API requests (30 seconds)
+const DEFAULT_TIMEOUT = 30000;
 
 class ApiClient {
   private baseUrl: string;
@@ -168,7 +172,7 @@ class ApiClient {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<T> {
-    const { skipAuth = false, skipCsrf = false, ...fetchOptions } = options;
+    const { skipAuth = false, skipCsrf = false, timeout = DEFAULT_TIMEOUT, ...fetchOptions } = options;
 
     // Determine if CSRF token is needed (for state-changing methods)
     const needsCsrf = !skipCsrf && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(fetchOptions.method || 'GET');
@@ -180,63 +184,104 @@ class ApiClient {
       ...(fetchOptions.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...fetchOptions,
-      headers,
-      credentials: 'include', // Important: include cookies for CSRF
-    });
+    // Create AbortController for timeout if not already provided
+    const controller = new AbortController();
+    const signal = fetchOptions.signal || controller.signal;
 
-    // If CSRF token is invalid, try refreshing it once
-    if (response.status === 403 && needsCsrf) {
-      const errorData = await response.json().catch(() => ({}));
-      if (errorData.message?.toLowerCase().includes('csrf')) {
-        // Refresh token and retry
-        await this.refreshCsrfToken();
-        const retryHeaders = {
-          ...headers,
-          ...(await this.getCsrfHeader(skipCsrf)),
-        };
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
 
-        const retryResponse = await fetch(`${this.baseUrl}${endpoint}`, {
-          ...fetchOptions,
-          headers: retryHeaders,
-          credentials: 'include',
-        });
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...fetchOptions,
+        headers,
+        credentials: 'include', // Important: include cookies for CSRF
+        signal,
+      });
 
-        if (!retryResponse.ok) {
-          const retryErrorData = await retryResponse.json().catch(() => ({}));
-          throw new ApiError(
-            retryErrorData.message || `Request failed with status ${retryResponse.status}`,
-            retryResponse.status,
-            retryErrorData
-          );
+      // If CSRF token is invalid, try refreshing it once
+      if (response.status === 403 && needsCsrf) {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.message?.toLowerCase().includes('csrf')) {
+          // Refresh token and retry
+          await this.refreshCsrfToken();
+          const retryHeaders = {
+            ...headers,
+            ...(await this.getCsrfHeader(skipCsrf)),
+          };
+
+          const retryResponse = await fetch(`${this.baseUrl}${endpoint}`, {
+            ...fetchOptions,
+            headers: retryHeaders,
+            credentials: 'include',
+            signal,
+          });
+
+          if (!retryResponse.ok) {
+            const retryErrorData = await retryResponse.json().catch(() => ({}));
+            throw new ApiError(
+              retryErrorData.message || `Request failed with status ${retryResponse.status}`,
+              retryResponse.status,
+              retryErrorData
+            );
+          }
+
+          const text = await retryResponse.text();
+          if (!text) {
+            return {} as T;
+          }
+
+          return JSON.parse(text);
         }
-
-        const text = await retryResponse.text();
-        if (!text) {
-          return {} as T;
-        }
-
-        return JSON.parse(text);
       }
-    }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          errorData.message || `Request failed with status ${response.status}`,
+          response.status,
+          errorData
+        );
+      }
+
+      // Handle empty responses
+      const text = await response.text();
+      if (!text) {
+        return {} as T;
+      }
+
+      return JSON.parse(text);
+    } catch (error) {
+      // Handle network errors including timeouts
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ApiError(
+          'Request timed out. Please check your connection and try again.',
+          0,
+          { code: 'TIMEOUT', originalError: error }
+        );
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new ApiError(
+          'Unable to connect to server. Please check your internet connection.',
+          0,
+          { code: 'NETWORK_ERROR', originalError: error }
+        );
+      }
+      // Re-throw ApiError as-is
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      // Wrap unknown errors
       throw new ApiError(
-        errorData.message || `Request failed with status ${response.status}`,
-        response.status,
-        errorData
+        'An unexpected error occurred. Please try again.',
+        0,
+        { code: 'UNKNOWN_ERROR', originalError: error }
       );
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    // Handle empty responses
-    const text = await response.text();
-    if (!text) {
-      return {} as T;
-    }
-
-    return JSON.parse(text);
   }
 
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {

@@ -22,12 +22,39 @@ async function bootstrap() {
   // Compression
   app.use(compression());
 
+  // CORS configuration - production domains required
+  const isProduction = process.env.NODE_ENV === 'production';
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || (
+    isProduction
+      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+      : ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173']
+  );
+
   // CORS - Allow internal services and admin panel
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:4000'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    origin: corsOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Internal-Service-Key', 'X-Request-ID'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Internal-Service-Key',
+      'X-Service-Key',
+      'X-Requested-With',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+    ],
+    exposedHeaders: [
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-CSRF-Token',
+    ],
+    maxAge: 86400, // 24 hours - cache preflight
   });
 
   // Global prefix

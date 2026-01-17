@@ -114,7 +114,11 @@ const config: Config = {
   jwtRefreshSecret: requireSecret('JWT_REFRESH_SECRET', 'dev-only-jwt-refresh-secret-32char'),
   serviceApiKey: requireSecret('SERVICE_API_KEY', 'dev-only-service-api-key'),
 
-  corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+  corsOrigins: process.env.CORS_ORIGINS?.split(',') || (
+    isProduction
+      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+      : ['http://localhost:3000', 'http://localhost:5173']
+  ),
 
   logLevel: process.env.LOG_LEVEL || 'info',
 };

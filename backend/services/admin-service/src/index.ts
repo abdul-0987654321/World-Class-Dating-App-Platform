@@ -38,12 +38,40 @@ validator.validateOrThrow();
 const app = express();
 const PORT = process.env.PORT || 3010;
 
+// CORS allowed origins - production domains required
+const isProduction = process.env.NODE_ENV === 'production';
+const corsOrigins = process.env.CORS_ORIGINS?.split(',') || (
+  isProduction
+    ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com', 'https://admin.flamoral.com']
+    : ['http://localhost:3000', 'http://localhost:5173']
+);
+
 // Middleware
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : (() => { throw new Error('CORS_ORIGIN environment variable is required in production'); })()),
+    origin: corsOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Service-Key',
+      'X-Requested-With',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+    ],
+    exposedHeaders: [
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-CSRF-Token',
+    ],
+    maxAge: 86400, // 24 hours - cache preflight
   })
 );
 app.use(express.json());

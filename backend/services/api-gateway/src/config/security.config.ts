@@ -168,8 +168,19 @@ export const securityConfig: SecurityConfig = {
       'X-Requested-With',
       'X-API-Version',
       'X-Device-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+      'X-Request-ID',
+      'X-Correlation-ID',
     ],
-    exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    exposedHeaders: [
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+    ],
     maxAge: 86400, // 24 hours
   },
 

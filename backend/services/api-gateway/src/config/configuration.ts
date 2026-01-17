@@ -132,7 +132,7 @@ export default () => ({
   cors: {
     origins: process.env.CORS_ORIGINS?.split(',') || (
       process.env.NODE_ENV === 'production'
-        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com', 'https://api.flamoral.com']
         : ['http://localhost:3000', 'http://localhost:5173']
     ),
     credentials: process.env.CORS_CREDENTIALS !== 'false', // Default to true for cookie-based auth

@@ -78,9 +78,13 @@ export const config = {
     level: process.env.LOG_LEVEL || 'info',
   },
 
-  // CORS
+  // CORS - production domains required
   cors: {
-    origins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origins: process.env.CORS_ORIGINS?.split(',') || (
+      process.env.NODE_ENV === 'production'
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173']
+    ),
   },
 
   // Service URLs

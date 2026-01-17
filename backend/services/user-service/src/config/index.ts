@@ -76,10 +76,11 @@ export default {
   },
 
   cors: {
-    origins: (
-      process.env.CORS_ORIGINS ||
-      'http://localhost:3000,http://localhost:3001,http://localhost:4000'
-    ).split(','),
+    origins: process.env.CORS_ORIGINS?.split(',') || (
+      isProduction
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:4000']
+    ),
   },
 
   security: {

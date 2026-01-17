@@ -35,11 +35,11 @@ module "alb" {
   # Define default services for target groups
   services = {
     api-gateway = {
-      port     = 3000
+      port     = 4000
       priority = 100
       path_patterns = ["/api/*"]
       health_check = {
-        path                = "/health"
+        path                = "/api/v1/health"
         matcher             = "200"
         interval            = 30
         timeout             = 5

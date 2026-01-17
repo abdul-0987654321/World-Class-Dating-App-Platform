@@ -20,8 +20,24 @@ export const LoginPage: React.FC = () => {
     try {
       await authService.login(email, password);
       navigate('/discover');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      // Provide user-friendly error messages based on error type
+      let errorMessage = 'Login failed. Please try again.';
+
+      if (err instanceof Error) {
+        // Handle specific error types
+        if (err.message.includes('fetch') || err.message.includes('network') || err.message.includes('connect')) {
+          errorMessage = 'Unable to connect to server. Please check your internet connection and try again.';
+        } else if (err.message.includes('timeout') || err.message.includes('timed out')) {
+          errorMessage = 'Request timed out. Please try again.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        errorMessage = (err as { message: string }).message || errorMessage;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

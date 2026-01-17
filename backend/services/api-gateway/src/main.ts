@@ -60,7 +60,7 @@ async function bootstrap() {
   const isProduction = configService.get<string>('nodeEnv') === 'production';
   const corsOrigins = configService.get<string[]>('cors.origins') || (
     isProduction
-      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+      ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com', 'https://api.flamoral.com']
       : ['http://localhost:5173', 'http://localhost:3000']
   );
   const corsCredentials = configService.get<boolean>('cors.credentials') !== false; // Default to true for cookie-based auth

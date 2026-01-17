@@ -76,14 +76,11 @@ export const config = {
     apiKey: requireInProduction('SERVICE_API_KEY', ''),
   },
   cors: {
-    origins: (() => {
-      const origins = process.env.CORS_ORIGINS?.split(',');
-      if (origins) return origins;
-      if (isProduction) {
-        throw new Error('CORS_ORIGINS environment variable is required in production');
-      }
-      return ['http://localhost:3000'];
-    })(),
+    origins: process.env.CORS_ORIGINS?.split(',') || (
+      isProduction
+        ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+        : ['http://localhost:3000', 'http://localhost:5173']
+    ),
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',

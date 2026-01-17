@@ -60,6 +60,26 @@ app.use(
   cors({
     origin: config.corsOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Service-Key',
+      'X-Requested-With',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+    ],
+    exposedHeaders: [
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-CSRF-Token',
+    ],
+    maxAge: 86400, // 24 hours - cache preflight
   })
 );
 app.use(express.json());

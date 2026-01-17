@@ -50,7 +50,7 @@ resource "aws_cloudfront_distribution" "main" {
       custom_origin_config {
         http_port              = 80
         https_port             = 443
-        origin_protocol_policy = "https-only"
+        origin_protocol_policy = "http-only"  # ALB is internal, CloudFront handles SSL termination
         origin_ssl_protocols   = ["TLSv1.2"]
         origin_read_timeout    = 60
       }
@@ -217,7 +217,10 @@ resource "aws_cloudfront_origin_request_policy" "api" {
         "Referer",
         "User-Agent",
         "X-Forwarded-For",
-        "X-Request-Id"
+        "X-Request-Id",
+        "X-CSRF-Token",
+        "X-Correlation-ID",
+        "X-Requested-With"
       ]
     }
   }

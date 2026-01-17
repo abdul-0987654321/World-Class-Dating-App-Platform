@@ -12,10 +12,11 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { authService } from '../../services';
 
-// SECURITY: No localhost fallback - production must have VITE_MODERATION_SERVICE_URL configured
-// In production, moderation calls route through API gateway at /api/moderation
+// SECURITY: Use API gateway URL in production, localhost only in development
+// In production, all API calls route through the main API gateway
 const MODERATION_API_URL = import.meta.env.VITE_MODERATION_SERVICE_URL ||
-  (import.meta.env.PROD ? import.meta.env.VITE_API_URL : 'http://localhost:3008');
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3008' : '');
 
 interface UserModerationStatus {
   userId: string;

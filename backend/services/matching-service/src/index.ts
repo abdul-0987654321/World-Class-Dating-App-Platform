@@ -63,19 +63,40 @@ initializeGlobalErrorHandlers();
 const app: Application = express();
 const PORT = config.port;
 
+// CORS allowed origins - production domains required
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || (
+  isProduction
+    ? ['https://flamoral.com', 'https://www.flamoral.com', 'https://app.flamoral.com']
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000']
+);
+
 // Core middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
-];
 app.use(helmet());
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID', 'X-Request-ID'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Service-Key',
+      'X-Requested-With',
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-CSRF-Token',
+      'x-csrf-token',
+    ],
+    exposedHeaders: [
+      'X-Request-ID',
+      'X-Correlation-ID',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-CSRF-Token',
+    ],
+    maxAge: 86400, // 24 hours - cache preflight
   })
 );
 app.use(express.json());
