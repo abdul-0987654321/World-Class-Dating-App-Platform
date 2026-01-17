@@ -250,7 +250,7 @@ jobs:
     if: github.event.inputs.run_eas_build == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     env:
       # EAS Project ID - public identifier for Flamoral mobile app
-      EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+      EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -297,7 +297,7 @@ jobs:
     if: github.event.inputs.run_eas_build == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     env:
       # EAS Project ID - public identifier for Flamoral mobile app
-      EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+      EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -342,7 +342,7 @@ jobs:
         run: |
           echo "## Mobile Release Gate Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**EAS Project ID:** \`7830bf9b-c248-4551-a753-6a4cac5610e0\`" >> $GITHUB_STEP_SUMMARY
+          echo "**EAS Project ID:** \`5c414d70-8a31-40aa-b669-fbdad07dee70\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY

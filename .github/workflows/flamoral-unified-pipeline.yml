@@ -1870,7 +1870,7 @@ jobs:
           npx expo prebuild --clean --platform ios
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+          EXPO_PUBLIC_EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
 
       - name: Build iOS Simulator app for E2E tests
         run: |
@@ -2055,7 +2055,7 @@ jobs:
           cd apps/mobile-app
 
           # Use hardcoded EAS project ID - this is a public identifier, not a secret
-          EAS_PROJECT_ID="7830bf9b-c248-4551-a753-6a4cac5610e0"
+          EAS_PROJECT_ID="5c414d70-8a31-40aa-b669-fbdad07dee70"
           echo "project_id=$EAS_PROJECT_ID" >> $GITHUB_OUTPUT
 
           # Set the environment variable for app.config.js
@@ -2084,7 +2084,7 @@ jobs:
           echo "EAS configuration validated successfully"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+          EXPO_PUBLIC_EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
 
       - name: Determine build configuration
         id: build_config
@@ -2163,7 +2163,7 @@ jobs:
           echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+          EXPO_PUBLIC_EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
 
       - name: Run EAS Build - iOS
         id: eas_build_ios
@@ -2220,7 +2220,7 @@ jobs:
           echo "View at: https://expo.dev/accounts/flamoral/projects/flamoral/builds/$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
-          EXPO_PUBLIC_EAS_PROJECT_ID: "7830bf9b-c248-4551-a753-6a4cac5610e0"
+          EXPO_PUBLIC_EAS_PROJECT_ID: "5c414d70-8a31-40aa-b669-fbdad07dee70"
 
       - name: Wait for Android build completion
         id: android_build_status
