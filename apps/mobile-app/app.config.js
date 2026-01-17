@@ -61,6 +61,7 @@ export default {
     bundleIdentifier: getUniqueIdentifier(),
     buildNumber: '1',
     supportsTablet: false,
+    appleTeamId: 'VDR79P4T45',
     infoPlist: {
       NSCameraUsageDescription:
         'Take photos to add to your profile and verify your identity',
