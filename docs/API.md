@@ -247,7 +247,7 @@ Authenticate an existing user.
       "lastName": "Doe",
       "isVerified": true,
       "isPremium": true,
-      "premiumTier": "gold",
+      "premiumTier": "premium",
       "lastLoginAt": "2026-01-04T12:00:00Z"
     },
     "tokens": {
@@ -479,7 +479,7 @@ Authorization: Bearer <access_token>
       "isVerified": true,
       "verificationBadges": ["photo", "phone", "id"],
       "isPremium": true,
-      "premiumTier": "gold",
+      "premiumTier": "premium",
       "premiumExpiresAt": "2026-07-04T12:00:00Z",
       "profileCompleteness": 85,
       "createdAt": "2025-06-15T10:30:00Z",
@@ -1502,9 +1502,59 @@ Get available subscription plans.
   "data": {
     "plans": [
       {
-        "id": "plan_gold_monthly",
-        "name": "Gold",
-        "tier": "gold",
+        "id": "plan_basic_monthly",
+        "name": "Basic",
+        "tier": "basic",
+        "interval": "month",
+        "price": {
+          "amount": 999,
+          "currency": "USD",
+          "formatted": "$9.99"
+        },
+        "features": [
+          "Unlimited swipes",
+          "See who likes you"
+        ],
+        "popular": false
+      },
+      {
+        "id": "plan_plus_monthly",
+        "name": "Plus",
+        "tier": "plus",
+        "interval": "month",
+        "price": {
+          "amount": 1499,
+          "currency": "USD",
+          "formatted": "$14.99"
+        },
+        "features": [
+          "All Basic features",
+          "Incognito mode",
+          "Read receipts"
+        ],
+        "popular": false
+      },
+      {
+        "id": "plan_premium_monthly",
+        "name": "Premium",
+        "tier": "premium",
+        "interval": "month",
+        "price": {
+          "amount": 1999,
+          "currency": "USD",
+          "formatted": "$19.99"
+        },
+        "features": [
+          "All Plus features",
+          "Passport mode",
+          "Unlimited super likes"
+        ],
+        "popular": true
+      },
+      {
+        "id": "plan_premium_plus_monthly",
+        "name": "Premium+",
+        "tier": "premium_plus",
         "interval": "month",
         "price": {
           "amount": 2999,
@@ -1512,46 +1562,15 @@ Get available subscription plans.
           "formatted": "$29.99"
         },
         "features": [
-          "Unlimited likes",
-          "See who likes you",
-          "5 Super Likes per day",
-          "1 Boost per month",
-          "Passport mode",
-          "Rewind last swipe",
-          "No ads"
-        ],
-        "popular": true
-      },
-      {
-        "id": "plan_gold_annual",
-        "name": "Gold",
-        "tier": "gold",
-        "interval": "year",
-        "price": {
-          "amount": 19999,
-          "currency": "USD",
-          "formatted": "$199.99"
-        },
-        "savings": {
-          "percentage": 44,
-          "amount": 15989,
-          "formatted": "$159.89"
-        },
-        "features": [
-          "Unlimited likes",
-          "See who likes you",
-          "5 Super Likes per day",
-          "1 Boost per month",
-          "Passport mode",
-          "Rewind last swipe",
-          "No ads"
+          "All Premium features",
+          "Message before matching"
         ],
         "popular": false
       },
       {
-        "id": "plan_platinum_monthly",
-        "name": "Platinum",
-        "tier": "platinum",
+        "id": "plan_elite_monthly",
+        "name": "Elite",
+        "tier": "elite",
         "interval": "month",
         "price": {
           "amount": 4999,
@@ -1559,13 +1578,9 @@ Get available subscription plans.
           "formatted": "$49.99"
         },
         "features": [
-          "All Gold features",
-          "Priority likes",
-          "Message before matching",
-          "Advanced filters",
-          "Unlimited rewinds",
-          "5 Boosts per month",
-          "Profile insights"
+          "All Premium+ features",
+          "VIP badge",
+          "Dedicated support"
         ],
         "popular": false
       }

@@ -159,11 +159,12 @@ This unified backend consolidates the following microservices:
 
 ## External Integrations
 
-All external service integrations are located in `/services/integrations/`:
+All external service integrations:
 
-- Azure (Storage, Face API, Content Moderator)
-- Stripe (Payments)
-- Twilio (SMS)
-- SendGrid (Email)
-- Agora (Video/Voice)
-- Sentry (Error tracking)
+- **AWS S3** - File storage (photos, media)
+- **AWS SES** - Email delivery
+- **AWS SNS** - SMS and push notifications
+- **AWS Rekognition** - Content moderation
+- **Stripe** - Payments and subscriptions
+- **Agora** - Video/Voice calls
+- **CloudWatch** - Logging and monitoring
