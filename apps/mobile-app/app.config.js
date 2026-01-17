@@ -47,7 +47,7 @@ export default {
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'flamoral',
-  owner: 'flamoral',
+  owner: 'citadelai',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   splash: {
