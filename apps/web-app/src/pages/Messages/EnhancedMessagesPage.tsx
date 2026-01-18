@@ -60,12 +60,12 @@ export const EnhancedMessagesPage: React.FC = () => {
 
   // AI Coach Hook
   const {
-    icebreakers,
+    icebreakerSuggestions,
     responseSuggestions,
-    isLoading: coachLoading,
+    loading: coachLoading,
     remainingUses,
-    getIcebreakers,
-    getResponseSuggestions,
+    generateIcebreakers,
+    generateResponses,
     clearSuggestions,
   } = useCoach();
 
@@ -452,7 +452,7 @@ export const EnhancedMessagesPage: React.FC = () => {
   const handleGetIcebreakers = useCallback(async () => {
     if (!selectedParticipant) return;
 
-    await getIcebreakers({
+    await generateIcebreakers({
       targetUserId: selectedParticipant.id,
       targetProfile: {
         name: selectedParticipant.name,
@@ -460,7 +460,7 @@ export const EnhancedMessagesPage: React.FC = () => {
       style: 'casual',
     });
     setShowCoachSuggestions(true);
-  }, [selectedParticipant, getIcebreakers]);
+  }, [selectedParticipant, generateIcebreakers]);
 
   const handleGetResponseSuggestions = useCallback(async () => {
     if (!selectedConversation || !selectedParticipant || messages.length === 0) return;
@@ -471,7 +471,7 @@ export const EnhancedMessagesPage: React.FC = () => {
       timestamp: m.sentAt,
     }));
 
-    await getResponseSuggestions({
+    await generateResponses({
       conversationId: selectedConversation,
       recentMessages,
       targetProfile: {
@@ -480,7 +480,7 @@ export const EnhancedMessagesPage: React.FC = () => {
       tone: 'friendly',
     });
     setShowCoachSuggestions(true);
-  }, [selectedConversation, selectedParticipant, messages, getResponseSuggestions]);
+  }, [selectedConversation, selectedParticipant, messages, generateResponses]);
 
   const handleSelectSuggestion = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -754,13 +754,13 @@ export const EnhancedMessagesPage: React.FC = () => {
               </div>
 
               {/* AI Coach Suggestions */}
-              {showCoachSuggestions && (icebreakers.length > 0 || responseSuggestions.length > 0) && (
+              {showCoachSuggestions && (icebreakerSuggestions.length > 0 || responseSuggestions.length > 0) && (
                 <div className="px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
                   <SuggestionCard
-                    suggestions={icebreakers.length > 0 ? icebreakers : responseSuggestions}
+                    suggestions={icebreakerSuggestions.length > 0 ? icebreakerSuggestions : responseSuggestions}
                     onSelect={handleSelectSuggestion}
                     onDismiss={handleDismissSuggestions}
-                    type={icebreakers.length > 0 ? 'icebreaker' : 'response'}
+                    type={icebreakerSuggestions.length > 0 ? 'icebreaker' : 'response'}
                   />
                 </div>
               )}
@@ -772,14 +772,14 @@ export const EnhancedMessagesPage: React.FC = () => {
                     variant="icebreaker"
                     onClick={handleGetIcebreakers}
                     disabled={coachLoading}
-                    remainingUses={remainingUses}
+                    remainingUses={remainingUses ?? undefined}
                   />
                 ) : (
                   <CoachButton
                     variant="response"
                     onClick={handleGetResponseSuggestions}
                     disabled={coachLoading || messages.length === 0}
-                    remainingUses={remainingUses}
+                    remainingUses={remainingUses ?? undefined}
                   />
                 )}
                 {coachLoading && (

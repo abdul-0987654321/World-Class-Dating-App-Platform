@@ -34,9 +34,9 @@ export const DiscoveryPage: React.FC = () => {
   // AI Coach Hook
   const {
     dateIdeas,
-    isLoading: coachLoading,
+    loading: coachLoading,
     remainingUses,
-    getDateIdeas,
+    generateDateIdeas,
     clearSuggestions,
   } = useCoach();
 
@@ -112,14 +112,14 @@ export const DiscoveryPage: React.FC = () => {
     const profile = profiles[currentIndex];
     if (!profile) return;
 
-    await getDateIdeas({
+    await generateDateIdeas({
       matchId: profile.userId,
       sharedInterests: profile.interests.slice(0, 3),
       budgetRange: 'medium',
       dateNumber: 1,
     });
     setShowDateIdeas(true);
-  }, [profiles, currentIndex, getDateIdeas]);
+  }, [profiles, currentIndex, generateDateIdeas]);
 
   const currentProfile = profiles[currentIndex];
 
@@ -243,11 +243,11 @@ export const DiscoveryPage: React.FC = () => {
                     variant="date"
                     onClick={handleGetDateIdeas}
                     disabled={coachLoading}
-                    remainingUses={remainingUses}
+                    remainingUses={remainingUses ?? undefined}
                   />
 
                   {/* Date Ideas Display */}
-                  {showDateIdeas && dateIdeas.length > 0 && (
+                  {showDateIdeas && dateIdeas?.ideas && dateIdeas.ideas.length > 0 && (
                     <div className="mt-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-fm-text-primary flex items-center gap-2">
@@ -263,7 +263,7 @@ export const DiscoveryPage: React.FC = () => {
                           Dismiss
                         </button>
                       </div>
-                      {dateIdeas.map((idea, idx) => (
+                      {dateIdeas.ideas.map((idea, idx) => (
                         <div
                           key={idx}
                           className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-white/10"
