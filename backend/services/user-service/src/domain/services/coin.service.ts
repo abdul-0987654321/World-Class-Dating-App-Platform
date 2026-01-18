@@ -73,14 +73,14 @@ export class CoinService {
     }
 
     // Check if this payment was already processed (idempotency via stripePaymentId)
-    const existingTransaction = await this.coinTransactionRepository.findByReferenceId(
+    const existingTransactions = await this.coinTransactionRepository.findByReference(
       stripePaymentId,
       REFERENCE_TYPES.STRIPE_PAYMENT
     );
-    if (existingTransaction) {
+    if (existingTransactions.length > 0) {
       // Return existing result for idempotency
       const coin = await this.coinRepository.findByUserId(userId);
-      return { coin: coin!, transaction: existingTransaction };
+      return { coin: coin!, transaction: existingTransactions[0] };
     }
 
     const totalCoins = product.coinAmount + product.bonusCoins;

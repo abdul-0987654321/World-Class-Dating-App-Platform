@@ -501,6 +501,3 @@ export default createLogger;
 
 // Named exports for convenience
 export { createLogger, sanitize };
-
-// Re-export types
-export type { ObservableLogger, LogContext, StructuredLogEntry };

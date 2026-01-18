@@ -5,6 +5,7 @@ export interface Coin {
   totalEarned: number;
   totalSpent: number;
   totalPurchased: number;
+  version: number;
   createdAt: Date;
   updatedAt: Date;
 }
