@@ -36,7 +36,16 @@ export const authenticate = async (
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    const jwtSecret = process.env.JWT_SECRET || 'your-jwt-secret-key';
+    const jwtSecret = process.env.JWT_SECRET;
+
+    // SECURITY: Require JWT secret to be set - fail-closed approach
+    if (!jwtSecret) {
+      logger.error('JWT_SECRET environment variable not set');
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error',
+      });
+    }
 
     try {
       const payload = jwt.verify(token, jwtSecret) as { userId: string; email: string };
@@ -73,7 +82,16 @@ export const internalAuth = async (
 ): Promise<void | Response> => {
   try {
     const serviceKey = req.headers['x-service-key'];
-    const expectedKey = process.env.INTERNAL_SERVICE_KEY || 'internal-service-key';
+    const expectedKey = process.env.INTERNAL_SERVICE_KEY;
+
+    // SECURITY: Require internal service key to be set
+    if (!expectedKey) {
+      logger.error('INTERNAL_SERVICE_KEY environment variable not set');
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error',
+      });
+    }
 
     if (!serviceKey || serviceKey !== expectedKey) {
       return res.status(401).json({

@@ -18,6 +18,7 @@ export { gamificationService } from './gamification.service';
 export { communitiesService } from './communities.service';
 export { speedDatingService } from './speed-dating.service';
 export { referralService } from './referral.service';
+export { coachService } from './coach.service';
 
 // Discovery Feature Services
 export { curatedPicksService } from './curated-picks.service';
@@ -145,6 +146,19 @@ export type {
   PolicyMetadata,
   PolicyVersion,
 } from './policy.service';
+
+// AI Coach Service Types
+export type {
+  IcebreakerRequest,
+  IcebreakerResponse,
+  ResponseSuggestionRequest,
+  ResponseSuggestionResponse,
+  ProfileTipRequest,
+  ProfileTipResponse,
+  DateIdeaRequest,
+  DateIdeaResponse,
+  UsageResponse,
+} from './coach.service';
 
 // AI Services
 export * from './ai';

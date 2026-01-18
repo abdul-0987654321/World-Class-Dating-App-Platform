@@ -102,13 +102,19 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
           subscriptionStatus: payload.subscriptionStatus || 'inactive',
         };
       } catch (dbError) {
-        // If database check fails, log but still allow request (fail open for availability)
-        // In production, consider fail-closed approach
-        logger.error('Database check failed during auth', {
+        // SECURITY: Fail-closed approach - deny access if we can't verify user status
+        // This prevents banned users from gaining access when database is temporarily unavailable
+        logger.error('Database check failed during auth - denying access (fail-closed)', {
           error: dbError,
+          userId: payload.userId,
           correlationId: req.correlationId,
         });
-        req.user = payload;
+        return res.status(503).json({
+          success: false,
+          message: 'Service temporarily unavailable. Please try again.',
+          code: 'SERVICE_UNAVAILABLE',
+          correlationId: req.correlationId,
+        });
       }
 
       return next();
