@@ -1,0 +1,12 @@
+# Railway Configuration for Flamoral Auth Service
+# This file tells Railway how to build and deploy the auth-service
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "backend/services/auth-service/Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
