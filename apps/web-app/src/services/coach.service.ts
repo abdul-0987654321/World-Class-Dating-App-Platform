@@ -105,7 +105,7 @@ class CoachService {
 
     try {
       const response = await apiClient.post<{ success: boolean; data: IcebreakerResponse }>(
-        '/api/v1/coach/icebreakers',
+        '/api/coach/icebreakers',
         request
       );
       return response.data;
@@ -127,7 +127,7 @@ class CoachService {
 
     try {
       const response = await apiClient.post<{ success: boolean; data: ResponseSuggestionResponse }>(
-        '/api/v1/coach/suggest-response',
+        '/api/coach/suggest-response',
         request
       );
       return response.data;
@@ -149,7 +149,7 @@ class CoachService {
 
     try {
       const response = await apiClient.post<{ success: boolean; data: ProfileTipResponse }>(
-        '/api/v1/coach/profile-tips',
+        '/api/coach/profile-tips',
         request
       );
       return response.data;
@@ -171,7 +171,7 @@ class CoachService {
 
     try {
       const response = await apiClient.post<{ success: boolean; data: DateIdeaResponse }>(
-        '/api/v1/coach/date-ideas',
+        '/api/coach/date-ideas',
         request
       );
       return response.data;
@@ -198,7 +198,7 @@ class CoachService {
     }
 
     const response = await apiClient.get<{ success: boolean; data: UsageResponse }>(
-      '/api/v1/coach/usage'
+      '/api/coach/usage'
     );
     return response.data;
   }
