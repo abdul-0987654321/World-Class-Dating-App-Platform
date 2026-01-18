@@ -169,16 +169,21 @@ export function createErrorResponse(
   correlationId: string,
   details?: unknown
 ): StandardErrorResponse {
-  return {
+  const response: StandardErrorResponse = {
     success: false,
     error: {
       code,
       message,
       correlationId,
       timestamp: new Date().toISOString(),
-      ...(details && { details }),
     },
   };
+
+  if (details !== undefined) {
+    response.error.details = details;
+  }
+
+  return response;
 }
 
 /**
