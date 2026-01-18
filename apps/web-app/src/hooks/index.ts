@@ -38,3 +38,6 @@ export {
   type TypingIndicatorOptions,
   type UseTypingIndicatorReturn,
 } from './useTypingIndicator';
+
+// AI Coach Hook
+export { useCoach } from './useCoach';

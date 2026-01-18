@@ -23,6 +23,8 @@ import {
   Reaction,
 } from '../../components/messaging';
 import { authTokenService } from '../../services/auth-token.service';
+import { useCoach } from '../../hooks';
+import { CoachButton, SuggestionCard } from '../../components/coach';
 
 interface Participant {
   id: string;
@@ -56,6 +58,17 @@ export const EnhancedMessagesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // AI Coach Hook
+  const {
+    icebreakers,
+    responseSuggestions,
+    isLoading: coachLoading,
+    remainingUses,
+    getIcebreakers,
+    getResponseSuggestions,
+    clearSuggestions,
+  } = useCoach();
+
   // State
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -63,10 +76,14 @@ export const EnhancedMessagesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [activeReactionMessage, setActiveReactionMessage] = useState<string | null>(null);
+  const [showCoachSuggestions, setShowCoachSuggestions] = useState(false);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUserId = JSON.parse(localStorage.getItem('currentUser') || '{}')?.id || 'test-user-1';
+
+  // Derived state
+  const selectedParticipant = conversations.find((c) => c.id === selectedConversation)?.participant;
 
   // Load conversations
   useEffect(() => {
@@ -431,12 +448,55 @@ export const EnhancedMessagesPage: React.FC = () => {
     }
   }, [selectedConversation]);
 
+  // AI Coach handlers
+  const handleGetIcebreakers = useCallback(async () => {
+    if (!selectedParticipant) return;
+
+    await getIcebreakers({
+      targetUserId: selectedParticipant.id,
+      targetProfile: {
+        name: selectedParticipant.name,
+      },
+      style: 'casual',
+    });
+    setShowCoachSuggestions(true);
+  }, [selectedParticipant, getIcebreakers]);
+
+  const handleGetResponseSuggestions = useCallback(async () => {
+    if (!selectedConversation || !selectedParticipant || messages.length === 0) return;
+
+    const recentMessages = messages.slice(-5).map((m) => ({
+      content: m.content,
+      senderId: m.senderId,
+      timestamp: m.sentAt,
+    }));
+
+    await getResponseSuggestions({
+      conversationId: selectedConversation,
+      recentMessages,
+      targetProfile: {
+        name: selectedParticipant.name,
+      },
+      tone: 'friendly',
+    });
+    setShowCoachSuggestions(true);
+  }, [selectedConversation, selectedParticipant, messages, getResponseSuggestions]);
+
+  const handleSelectSuggestion = (suggestion: string) => {
+    handleSendMessage(suggestion);
+    setShowCoachSuggestions(false);
+    clearSuggestions();
+  };
+
+  const handleDismissSuggestions = () => {
+    setShowCoachSuggestions(false);
+    clearSuggestions();
+  };
+
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  const selectedParticipant = conversations.find((c) => c.id === selectedConversation)?.participant;
 
   if (loading) {
     return (
@@ -691,6 +751,46 @@ export const EnhancedMessagesPage: React.FC = () => {
                   );
                 })}
                 <div ref={messagesEndRef} />
+              </div>
+
+              {/* AI Coach Suggestions */}
+              {showCoachSuggestions && (icebreakers.length > 0 || responseSuggestions.length > 0) && (
+                <div className="px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
+                  <SuggestionCard
+                    suggestions={icebreakers.length > 0 ? icebreakers : responseSuggestions}
+                    onSelect={handleSelectSuggestion}
+                    onDismiss={handleDismissSuggestions}
+                    type={icebreakers.length > 0 ? 'icebreaker' : 'response'}
+                  />
+                </div>
+              )}
+
+              {/* AI Coach Buttons */}
+              <div className="px-4 py-2 bg-white border-t flex items-center gap-2">
+                {messages.length === 0 ? (
+                  <CoachButton
+                    variant="icebreaker"
+                    onClick={handleGetIcebreakers}
+                    disabled={coachLoading}
+                    remainingUses={remainingUses}
+                  />
+                ) : (
+                  <CoachButton
+                    variant="response"
+                    onClick={handleGetResponseSuggestions}
+                    disabled={coachLoading || messages.length === 0}
+                    remainingUses={remainingUses}
+                  />
+                )}
+                {coachLoading && (
+                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Getting suggestions...
+                  </span>
+                )}
               </div>
 
               {/* Enhanced Message Input */}

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { discoveryService, DiscoveryProfile } from '../../services';
 import { Navigation } from '../../components/Navigation';
 import FlamoralBackground from '../../components/theme/FlamoralBackground';
 import { AIAvatarSystem } from '../../components/AIAvatar/AIAvatarSystem';
+import { useCoach } from '../../hooks';
+import { CoachButton } from '../../components/coach';
 
 interface Profile {
   userId: string;
@@ -27,6 +29,16 @@ export const DiscoveryPage: React.FC = () => {
   const [matchedProfile, setMatchedProfile] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showDateIdeas, setShowDateIdeas] = useState(false);
+
+  // AI Coach Hook
+  const {
+    dateIdeas,
+    isLoading: coachLoading,
+    remainingUses,
+    getDateIdeas,
+    clearSuggestions,
+  } = useCoach();
 
   useEffect(() => {
     loadProfiles();
@@ -85,6 +97,8 @@ export const DiscoveryPage: React.FC = () => {
 
   const nextProfile = () => {
     setCurrentPhotoIndex(0);
+    setShowDateIdeas(false);
+    clearSuggestions();
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -92,6 +106,20 @@ export const DiscoveryPage: React.FC = () => {
       setCurrentIndex(0);
     }
   };
+
+  // AI Coach handler for date ideas
+  const handleGetDateIdeas = useCallback(async () => {
+    const profile = profiles[currentIndex];
+    if (!profile) return;
+
+    await getDateIdeas({
+      matchId: profile.userId,
+      sharedInterests: profile.interests.slice(0, 3),
+      budgetRange: 'medium',
+      dateNumber: 1,
+    });
+    setShowDateIdeas(true);
+  }, [profiles, currentIndex, getDateIdeas]);
 
   const currentProfile = profiles[currentIndex];
 
@@ -207,6 +235,67 @@ export const DiscoveryPage: React.FC = () => {
                       </span>
                     ))}
                   </div>
+                </div>
+
+                {/* AI Coach - Date Ideas */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <CoachButton
+                    variant="date"
+                    onClick={handleGetDateIdeas}
+                    disabled={coachLoading}
+                    remainingUses={remainingUses}
+                  />
+
+                  {/* Date Ideas Display */}
+                  {showDateIdeas && dateIdeas.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-fm-text-primary flex items-center gap-2">
+                          <span className="text-lg">💡</span> AI-Powered Date Ideas
+                        </h4>
+                        <button
+                          onClick={() => {
+                            setShowDateIdeas(false);
+                            clearSuggestions();
+                          }}
+                          className="text-xs text-fm-text-secondary hover:text-fm-text-primary"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                      {dateIdeas.map((idea, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-white/10"
+                        >
+                          <h5 className="font-semibold text-fm-text-primary">{idea.title}</h5>
+                          <p className="text-sm text-fm-text-secondary mt-1">{idea.description}</p>
+                          <div className="flex flex-wrap gap-2 mt-2 text-xs text-fm-text-secondary">
+                            <span className="bg-white/10 px-2 py-1 rounded">{idea.category}</span>
+                            <span className="bg-white/10 px-2 py-1 rounded">{idea.estimatedCost}</span>
+                            <span className="bg-white/10 px-2 py-1 rounded">{idea.duration}</span>
+                          </div>
+                          {idea.tips && idea.tips.length > 0 && (
+                            <ul className="mt-2 text-xs text-fm-text-secondary list-disc list-inside">
+                              {idea.tips.map((tip, tidx) => (
+                                <li key={tidx}>{tip}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {coachLoading && (
+                    <div className="mt-3 flex items-center gap-2 text-sm text-fm-text-secondary">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Getting date ideas...
+                    </div>
+                  )}
                 </div>
               </div>
 
