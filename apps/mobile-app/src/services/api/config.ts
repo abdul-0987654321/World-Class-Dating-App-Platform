@@ -5,7 +5,7 @@
 
 export const API_CONFIG = {
   // Base URLs for microservices
-  BASE_URL: process.env.API_BASE_URL || 'https://api.flamoral.com',
+  BASE_URL: process.env.API_BASE_URL || 'https://world-class-dating-app-platform-production.up.railway.app',
 
   // AI Services
   AI_SERVICES: {
@@ -53,7 +53,7 @@ export const getMultipartHeaders = (token: string): Record<string, string> => ({
 
 // Export commonly used constants
 export const API_BASE_URL = API_CONFIG.BASE_URL;
-export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_URL || 'wss://api.flamoral.com';
+export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_URL || 'wss://world-class-dating-app-platform-production.up.railway.app';
 export const MESSAGING_SERVICE_URL = process.env.EXPO_PUBLIC_MESSAGING_SERVICE_URL || 'http://localhost:3003';
 
 export default API_CONFIG;
