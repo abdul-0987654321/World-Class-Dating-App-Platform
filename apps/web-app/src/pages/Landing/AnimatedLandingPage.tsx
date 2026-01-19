@@ -1128,21 +1128,20 @@ const AnimatedLandingPage: React.FC = () => {
         <div className="container">
           <div className="footer-grid">
             <div>
-              <h4 className="footer-column-title">Company</h4>
+              <h4 className="footer-column-title">Product</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/about">About Us</Link></li>
-                <li className="footer-link"><Link to="/careers">Careers</Link></li>
-                <li className="footer-link"><Link to="/press">Press</Link></li>
-                <li className="footer-link"><Link to="/contact">Contact</Link></li>
+                <li className="footer-link"><Link to="/subscription">Premium Plans</Link></li>
+                <li className="footer-link"><Link to="/tier-showcase">Features</Link></li>
+                <li className="footer-link"><Link to="/signup">Sign Up</Link></li>
+                <li className="footer-link"><Link to="/login">Log In</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="footer-column-title">Resources</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/help">Help Center</Link></li>
-                <li className="footer-link"><Link to="/safety-tips">Safety Tips</Link></li>
-                <li className="footer-link"><Link to="/community">Community</Link></li>
-                <li className="footer-link"><Link to="/blog">Dating Blog</Link></li>
+                <li className="footer-link"><Link to="/support">Help Center</Link></li>
+                <li className="footer-link"><Link to="/safety-guidelines">Safety Tips</Link></li>
+                <li className="footer-link"><Link to="/community-guidelines">Community</Link></li>
               </ul>
             </div>
             <div>
@@ -1151,14 +1150,14 @@ const AnimatedLandingPage: React.FC = () => {
                 <li className="footer-link"><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li className="footer-link"><Link to="/terms-of-service">Terms of Service</Link></li>
                 <li className="footer-link"><Link to="/cookie-policy">Cookie Policy</Link></li>
-                <li className="footer-link"><Link to="/community-guidelines">Community Guidelines</Link></li>
+                <li className="footer-link"><Link to="/refund-policy">Refund Policy</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="footer-column-title">Extras</h4>
+              <h4 className="footer-column-title">Connect</h4>
               <ul className="footer-links">
-                <li className="footer-link"><Link to="/gift-cards">Gift Cards</Link></li>
-                <li className="footer-link"><Link to="/safety-hub">Safety Hub</Link></li>
+                <li className="footer-link"><Link to="/support">Contact Us</Link></li>
+                <li className="footer-link"><Link to="/referrals">Referral Program</Link></li>
               </ul>
             </div>
           </div>

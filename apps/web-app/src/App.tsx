@@ -11,6 +11,8 @@ import FuturisticLandingPage from './pages/Landing/FuturisticLandingPage';
 import AnimatedLandingPage from './pages/Landing/AnimatedLandingPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { SignupPage } from './pages/Auth/SignupPage';
+import { ForgotPasswordPage } from './pages/Auth/ForgotPasswordPage';
+import { NotFoundPage } from './pages/NotFound';
 import { DiscoveryPage } from './pages/Discovery/DiscoveryPage';
 import { DiscoveryFeaturePage } from './pages/Discovery/DiscoveryFeaturePage';
 import { MatchesPage } from './pages/Matches/MatchesPage';
@@ -32,6 +34,14 @@ import { NotificationSettingsPage } from './pages/Settings/NotificationSettingsP
 import { PhotoVerificationPage } from './pages/Verification/PhotoVerificationPage';
 import { HelpSupportPage } from './pages/Help/HelpSupportPage';
 import TierShowcase from './pages/TierShowcase';
+
+// Payment Pages
+import { CheckoutPage } from './pages/Payment/CheckoutPage';
+import { PaymentSuccessPage } from './pages/Payment/PaymentSuccessPage';
+import { PaymentCancelPage } from './pages/Payment/PaymentCancelPage';
+
+// Coins
+import { CoinShopPage } from './pages/Coins/CoinShopPage';
 
 // Legal Pages
 import { PrivacyPolicy } from './pages/Legal/PrivacyPolicy';
@@ -152,6 +162,9 @@ const App: React.FC = () => {
         <Route path="/signup" element={
           isAuthenticated ? <Navigate to="/discover" replace /> : <SignupPage />
         } />
+        <Route path="/forgot-password" element={
+          isAuthenticated ? <Navigate to="/discover" replace /> : <ForgotPasswordPage />
+        } />
 
         {/* Public demo route */}
         <Route path="/tier-showcase" element={<TierShowcase />} />
@@ -205,6 +218,18 @@ const App: React.FC = () => {
         <Route path="/subscription" element={
           <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
         } />
+        <Route path="/checkout" element={
+          <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+        } />
+        <Route path="/payment/success" element={
+          <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>
+        } />
+        <Route path="/payment/cancel" element={
+          <ProtectedRoute><PaymentCancelPage /></ProtectedRoute>
+        } />
+        <Route path="/coins" element={
+          <ProtectedRoute><CoinShopPage /></ProtectedRoute>
+        } />
         <Route path="/filters" element={
           <ProtectedRoute><AdvancedFiltersPage /></ProtectedRoute>
         } />
@@ -253,10 +278,8 @@ const App: React.FC = () => {
           <RequireAdmin><AdminSettingsPage /></RequireAdmin>
         } />
 
-        {/* Default redirect */}
-        <Route path="*" element={
-          <Navigate to={isAuthenticated ? "/discover" : "/"} replace />
-        } />
+        {/* 404 Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </AvatarProvider>
         </AuthContext.Provider>
