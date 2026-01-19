@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { authService } from './services';
 import { AvatarProvider } from '@/components/AIAvatar/AIAvatarSystem';
+import { AIAssistantWidget } from '@/components/AIAssistant';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { FlamoralBackground } from '@/components/theme';
 
@@ -136,9 +138,10 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <FlamoralBackground fixed withNoise>
-        <AuthContext.Provider value={authContextValue}>
-          <AvatarProvider>
-            <Routes>
+        <AuthProvider>
+          <AuthContext.Provider value={authContextValue}>
+            <AvatarProvider>
+              <Routes>
           {/* Landing page - public (animated premium design) */}
           <Route path="/" element={
             isAuthenticated ? <Navigate to="/discover" replace /> : <AnimatedLandingPage />
@@ -280,9 +283,13 @@ const App: React.FC = () => {
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </AvatarProvider>
-        </AuthContext.Provider>
+              </Routes>
+
+              {/* AI Assistant Widget - Global */}
+              <AIAssistantWidget position="bottom-right" />
+            </AvatarProvider>
+          </AuthContext.Provider>
+        </AuthProvider>
       </FlamoralBackground>
     </BrowserRouter>
   );
