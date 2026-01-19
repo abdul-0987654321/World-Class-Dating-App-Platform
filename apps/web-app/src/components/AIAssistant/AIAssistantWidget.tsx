@@ -11,7 +11,33 @@ import {
   ChatMessage,
   AssistantAction,
 } from '@/services/assistant.service';
-import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/auth.service';
+
+// Simple auth hook that works without context
+const useSimpleAuth = () => {
+  const [user, setUser] = useState<{ firstName?: string } | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuth = authService.isAuthenticated();
+        setIsAuthenticated(isAuth);
+        if (isAuth) {
+          const session = await authService.getSession();
+          if (session?.user) {
+            setUser(session.user);
+          }
+        }
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  return { user, isAuthenticated };
+};
 
 // ============================================================================
 // TYPES
@@ -66,7 +92,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSimpleAuth();
 
   // Position classes
   const positionClasses = position === 'bottom-right' ? 'right-6' : 'left-6';
