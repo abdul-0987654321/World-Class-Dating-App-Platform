@@ -136,6 +136,9 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
+      {/* AI Assistant Widget - Outside FlamoralBackground to ensure proper fixed positioning */}
+      <AIAssistantWidget position="bottom-right" />
+
       <FlamoralBackground fixed withNoise>
         <AuthContext.Provider value={authContextValue}>
           <AvatarProvider>
@@ -282,9 +285,6 @@ const App: React.FC = () => {
         {/* 404 Not Found */}
         <Route path="*" element={<NotFoundPage />} />
               </Routes>
-
-            {/* AI Assistant Widget - Global */}
-            <AIAssistantWidget position="bottom-right" />
           </AvatarProvider>
         </AuthContext.Provider>
       </FlamoralBackground>
