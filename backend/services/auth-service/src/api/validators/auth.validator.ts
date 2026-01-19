@@ -79,12 +79,11 @@ export const registerSchema = Joi.object({
     'string.min': 'First name must be at least 2 characters',
     'string.max': 'First name must not exceed 50 characters',
   }),
-  // Accept both last_name and lastName (optional fields)
-  last_name: Joi.string().min(2).max(50).optional().allow('').messages({
-    'string.min': 'Last name must be at least 2 characters',
+  // Accept both last_name and lastName (optional fields - no min constraint)
+  last_name: Joi.string().max(50).optional().allow('', null).messages({
     'string.max': 'Last name must not exceed 50 characters',
   }),
-  lastName: Joi.string().max(50).optional().allow('').messages({
+  lastName: Joi.string().max(50).optional().allow('', null).messages({
     'string.max': 'Last name must not exceed 50 characters',
   }),
   // Accept both date_of_birth and dateOfBirth

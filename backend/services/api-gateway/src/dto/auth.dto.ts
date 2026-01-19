@@ -28,12 +28,11 @@ export class RegisterDto {
   @MaxLength(50, { message: 'First name must not exceed 50 characters' })
   firstName: string;
 
-  @ApiProperty({ description: 'User last name' })
+  @ApiPropertyOptional({ description: 'User last name (optional)' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Last name is required' })
-  @MinLength(1, { message: 'Last name must be at least 1 character' })
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
-  lastName: string;
+  lastName?: string;
 
   @ApiPropertyOptional({ description: 'Date of birth in YYYY-MM-DD format' })
   @IsOptional()
