@@ -168,6 +168,24 @@ export const config = {
 
   // Frontend URLs
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+
+  // AI Assistant Configuration
+  ai: {
+    provider: (process.env.AI_PROVIDER || 'openai') as 'openai' | 'anthropic',
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    model: process.env.AI_MODEL || 'gpt-4-turbo-preview',
+    maxTokens: parseInt(process.env.AI_MAX_TOKENS || '1000', 10),
+    temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),
+    // Rate limits per tier (requests per day)
+    rateLimits: {
+      free: parseInt(process.env.AI_RATE_LIMIT_FREE || '20', 10),
+      gold: parseInt(process.env.AI_RATE_LIMIT_GOLD || '100', 10),
+      platinum: parseInt(process.env.AI_RATE_LIMIT_PLATINUM || '250', 10),
+      diamond: parseInt(process.env.AI_RATE_LIMIT_DIAMOND || '500', 10),
+      elite: -1, // unlimited
+    },
+  },
 };
 
 export default config;
