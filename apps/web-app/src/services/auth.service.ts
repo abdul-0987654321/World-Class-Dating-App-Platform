@@ -174,11 +174,11 @@ class AuthService {
     }
 
     // Transform camelCase to snake_case for backend
-    const backendData = {
+    // Only include last_name if it has a value (backend requires min 2 chars if present)
+    const backendData: Record<string, unknown> = {
       email: data.email,
       password: data.password,
       first_name: data.firstName,
-      last_name: data.lastName || '',
       date_of_birth: data.dateOfBirth,
       gender: data.gender,
       consents: {
@@ -187,6 +187,11 @@ class AuthService {
         marketing_emails: data.consents?.marketing ?? false,
       },
     };
+
+    // Only add last_name if provided and not empty
+    if (data.lastName && data.lastName.trim().length >= 2) {
+      backendData.last_name = data.lastName;
+    }
 
     // Backend returns { success: true, data: { user } }
     // Tokens are now set in httpOnly cookies by the backend (not in response body)
