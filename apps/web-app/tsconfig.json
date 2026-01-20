@@ -35,6 +35,7 @@
       "@flamoral/validators": ["../../packages/shared/validators/src/index.ts"],
       "@flamoral/api-client": ["../../packages/shared/api-client/src/index.ts"],
       "@flamoral/video-sdk": ["../../packages/video-sdk/src/index.ts"],
+      "@flamoral/shared/animations": ["../../packages/shared/src/animations/index.ts"],
       "@store/store": ["src/store/index.ts"]
     },
     "types": ["vite/client", "node"]

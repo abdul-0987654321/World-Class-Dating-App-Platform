@@ -2,20 +2,21 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import PhotoVerificationFlow from '../PhotoVerificationFlow';
 
 // Mock fetch API
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 describe('PhotoVerificationFlow E2E Tests', () => {
   const mockUserId = 'test-user-123';
   const mockReferencePhoto = 'https://example.com/reference.jpg';
-  const mockOnComplete = jest.fn();
-  const mockOnCancel = jest.fn();
+  const mockOnComplete = vi.fn();
+  const mockOnCancel = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    vi.clearAllMocks();
+    (global.fetch as Mock).mockClear();
     localStorage.setItem('token', 'mock-jwt-token');
   });
 
@@ -141,13 +142,13 @@ describe('PhotoVerificationFlow E2E Tests', () => {
   describe('Step 2: Processing', () => {
     it('should show processing step after clicking verify', async () => {
       // Mock successful upload
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
       });
 
       // Mock successful verification
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           result: {
@@ -178,7 +179,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show verification steps during processing', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -207,7 +208,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show face matching step when reference photo provided', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -246,7 +247,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
 
   describe('Step 3: Success Result', () => {
     it('should show success result for verified photo', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -302,7 +303,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show liveness check result', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -349,7 +350,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
         },
       };
 
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -387,7 +388,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
 
   describe('Step 3: Failure Results', () => {
     it('should show failure result for no face detected', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -426,7 +427,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show failure result for multiple faces', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -461,7 +462,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show failure result for low quality', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -497,7 +498,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show failure result for failed liveness check', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -533,7 +534,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should show Try Again button on failure', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -565,7 +566,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should reset flow when Try Again is clicked', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -602,7 +603,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle upload errors', async () => {
-      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Upload failed'));
+      (global.fetch as Mock).mockRejectedValueOnce(new Error('Upload failed'));
 
       render(<PhotoVerificationFlow userId={mockUserId} />);
 
@@ -621,7 +622,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should handle verification API errors', async () => {
-      (global.fetch as jest.Mock)
+      (global.fetch as Mock)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ url: 'https://example.com/uploaded.jpg' }),
@@ -644,7 +645,7 @@ describe('PhotoVerificationFlow E2E Tests', () => {
     });
 
     it('should handle network errors', async () => {
-      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      (global.fetch as Mock).mockRejectedValueOnce(new Error('Network error'));
 
       render(<PhotoVerificationFlow userId={mockUserId} />);
 

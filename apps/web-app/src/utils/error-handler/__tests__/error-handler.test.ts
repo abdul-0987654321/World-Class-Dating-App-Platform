@@ -3,6 +3,7 @@
  * Comprehensive tests for the error handling system
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import {
   processApiError,
   handleError,
@@ -24,20 +25,20 @@ import {
 import type { ApiErrorResponse, ProcessedError, ErrorHandlerConfig } from '../types';
 
 describe('Frontend Error Handler', () => {
-  let mockShowToast: jest.Mock;
-  let mockOnAuthRequired: jest.Mock;
-  let mockOnBillingRequired: jest.Mock;
-  let mockOnNotFound: jest.Mock;
-  let mockOnMaintenance: jest.Mock;
-  let mockLogError: jest.Mock;
+  let mockShowToast: Mock;
+  let mockOnAuthRequired: Mock;
+  let mockOnBillingRequired: Mock;
+  let mockOnNotFound: Mock;
+  let mockOnMaintenance: Mock;
+  let mockLogError: Mock;
 
   beforeEach(() => {
-    mockShowToast = jest.fn();
-    mockOnAuthRequired = jest.fn();
-    mockOnBillingRequired = jest.fn();
-    mockOnNotFound = jest.fn();
-    mockOnMaintenance = jest.fn();
-    mockLogError = jest.fn();
+    mockShowToast = vi.fn();
+    mockOnAuthRequired = vi.fn();
+    mockOnBillingRequired = vi.fn();
+    mockOnNotFound = vi.fn();
+    mockOnMaintenance = vi.fn();
+    mockLogError = vi.fn();
 
     // Configure error handler with mocks
     configureErrorHandler({
@@ -51,7 +52,7 @@ describe('Frontend Error Handler', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('processApiError', () => {
@@ -549,8 +550,8 @@ describe('Frontend Error Handler', () => {
 
   describe('createErrorHandler', () => {
     it('should create handler with custom config', () => {
-      const customShowToast = jest.fn();
-      const customOnAuthRequired = jest.fn();
+      const customShowToast = vi.fn();
+      const customOnAuthRequired = vi.fn();
 
       const handler = createErrorHandler({
         showToast: customShowToast,
@@ -568,7 +569,7 @@ describe('Frontend Error Handler', () => {
     });
 
     it('should support suppress flag', () => {
-      const customShowToast = jest.fn();
+      const customShowToast = vi.fn();
 
       const handler = createErrorHandler({
         showToast: customShowToast,
