@@ -86,11 +86,19 @@ router.get('/health', (req, res) => {
  * Webhook test endpoint (for development only)
  * POST /api/webhooks/test
  *
+ * SECURITY: This endpoint is disabled in production.
+ *
  * Use Stripe CLI to test webhooks locally:
  * stripe listen --forward-to localhost:3003/api/webhooks/stripe
  * stripe trigger payment_intent.succeeded
  */
 router.post('/test', express.json(), async (req, res) => {
+  // Security: Only allow test endpoint in development/test environments
+  if (process.env.NODE_ENV === 'production') {
+    logger.warn('Attempted access to test webhook in production');
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   logger.info('Test webhook received:', req.body);
   res.status(200).json({ received: true, message: 'Test webhook received' });
 });

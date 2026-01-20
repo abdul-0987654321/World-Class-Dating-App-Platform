@@ -4,16 +4,37 @@
  */
 
 /**
+ * Validate GTM ID format to prevent XSS attacks
+ * GTM IDs must match format: GTM-XXXXXXX (letters and numbers only)
+ */
+function validateGTMId(gtmId: string): string {
+  if (!gtmId || typeof gtmId !== 'string') {
+    throw new Error('GTM ID is required');
+  }
+
+  // GTM ID format: GTM- followed by alphanumeric characters
+  const gtmIdPattern = /^GTM-[A-Z0-9]{1,10}$/i;
+  const sanitizedId = gtmId.trim().toUpperCase();
+
+  if (!gtmIdPattern.test(sanitizedId)) {
+    throw new Error('Invalid GTM ID format. Expected format: GTM-XXXXXXX');
+  }
+
+  return sanitizedId;
+}
+
+/**
  * Get GTM head snippet (to be placed in <head>)
  */
 export function getGTMHeadSnippet(gtmId: string): string {
+  const validatedId = validateGTMId(gtmId);
   return `
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');</script>
+})(window,document,'script','dataLayer','${validatedId}');</script>
 <!-- End Google Tag Manager -->
   `.trim();
 }
@@ -22,9 +43,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
  * Get GTM body snippet (to be placed immediately after opening <body>)
  */
 export function getGTMBodySnippet(gtmId: string): string {
+  const validatedId = validateGTMId(gtmId);
   return `
 <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}"
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${validatedId}"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
   `.trim();

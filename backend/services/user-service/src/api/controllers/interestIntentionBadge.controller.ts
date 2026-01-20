@@ -79,6 +79,15 @@ export class InterestIntentionBadgeController {
       const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
 
+      // Security: Only allow users to view their own badges
+      // or require admin role to view other users' badges
+      if (targetUserId !== userId && req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only view your own badges profile',
+        });
+      }
+
       const profile = await this.badgeService.getUserBadgesProfile(targetUserId);
 
       return res.status(200).json({
@@ -100,6 +109,15 @@ export class InterestIntentionBadgeController {
       const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
 
+      // Security: Only allow users to view their own interest badges
+      // or require admin role to view other users' badges
+      if (targetUserId !== userId && req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only view your own interest badges',
+        });
+      }
+
       const badges = await this.badgeService.getUserInterestBadges(targetUserId);
 
       return res.status(200).json({
@@ -120,6 +138,15 @@ export class InterestIntentionBadgeController {
     try {
       const userId = req.user.userId;
       const targetUserId = req.params.userId || userId;
+
+      // Security: Only allow users to view their own intention badges
+      // or require admin role to view other users' badges
+      if (targetUserId !== userId && req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only view your own intention badges',
+        });
+      }
 
       const badges = await this.badgeService.getUserIntentionBadges(targetUserId);
 

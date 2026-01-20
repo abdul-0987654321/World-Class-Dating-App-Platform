@@ -1,6 +1,11 @@
+const path = require('path');
+
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'allure-jest/node',
+  testEnvironmentOptions: {
+    resultsDir: process.env.ALLURE_RESULTS_DIR || path.join(__dirname, 'allure-results'),
+  },
   roots: ['<rootDir>/services'],
   testMatch: [
     '**/__tests__/**/*.test.ts',
@@ -43,6 +48,13 @@ module.exports = {
     '/dist/'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: '<rootDir>/test-results',
+      outputName: 'junit.xml',
+    }],
+  ],
   testTimeout: 30000,
   verbose: true,
   maxWorkers: '50%',

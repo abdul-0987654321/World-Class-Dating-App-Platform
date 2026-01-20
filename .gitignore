@@ -48,7 +48,7 @@ infrastructure/config/.env.*
 !infrastructure/config/.env.*.example
 
 # App-specific environments
-apps/*/‌.env
+apps/*/.env
 apps/*/.env.*
 !apps/*/.env.example
 !apps/*/.env.*.example
@@ -59,9 +59,18 @@ backend/.env.*
 !backend/.env.example
 backend/services/**/.env
 backend/services/**/.env.*
+backend/services/**/.env.*.local
 !backend/services/**/.env.example
 !backend/services/**/.env.*.example
 backend/tests/.env.test
+
+# Vercel CLI generated files (contain tokens)
+.env.vercel
+**/.env.vercel
+
+# Railway local overrides
+.env.railway.local
+**/.env.railway.local
 
 # Logs
 logs/
