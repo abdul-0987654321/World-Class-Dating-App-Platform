@@ -223,7 +223,7 @@ class SessionMemoryService {
     }
 
     const key = `${SESSION_PREFIX}${sessionId}`;
-    await redisCache.delete(key);
+    await redisCache.del(key);
 
     logger.info('Deleted assistant session', { sessionId });
   }
@@ -308,7 +308,7 @@ class SessionMemoryService {
       // Delete oldest sessions
       const toDelete = sessions.slice(0, sessions.length - MAX_SESSIONS_PER_USER);
       for (const oldSessionId of toDelete) {
-        await redisCache.delete(`${SESSION_PREFIX}${oldSessionId}`);
+        await redisCache.del(`${SESSION_PREFIX}${oldSessionId}`);
       }
       sessions = sessions.slice(-MAX_SESSIONS_PER_USER);
     }

@@ -6,7 +6,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import { assistantController } from './assistant.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authenticate as authMiddleware } from '../middleware/auth.middleware';
 import { AssistantError } from './assistant.types';
 
 const router = Router();

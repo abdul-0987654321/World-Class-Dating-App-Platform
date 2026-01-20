@@ -174,6 +174,11 @@ export function getNotificationCategory(type: NotificationType): string {
     [NotificationType.REMINDER]: 'engagement',
     [NotificationType.SECURITY_ALERT]: 'security',
     [NotificationType.SPEED_DATING]: 'events',
+    [NotificationType.DATE_SAFETY_CHECK_IN]: 'safety',
+    [NotificationType.DATE_SAFETY_ALERT]: 'safety',
+    [NotificationType.DATE_SAFETY_PANIC]: 'safety',
+    [NotificationType.DATE_SAFETY_STARTED]: 'safety',
+    [NotificationType.DATE_SAFETY_COMPLETED]: 'safety',
   };
 
   return categoryMap[type] || 'default';

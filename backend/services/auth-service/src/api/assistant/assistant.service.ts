@@ -37,6 +37,27 @@ interface AIConfig {
   temperature: number;
 }
 
+// API Response types for type safety
+interface OpenAIResponse {
+  choices: Array<{ message?: { content?: string } }>;
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+  model?: string;
+}
+
+interface OpenAIErrorResponse {
+  error?: { message?: string };
+}
+
+interface AnthropicResponse {
+  content: Array<{ text?: string }>;
+  usage?: { input_tokens?: number; output_tokens?: number };
+  model?: string;
+}
+
+interface AnthropicErrorResponse {
+  error?: { message?: string };
+}
+
 const getAIConfig = (): AIConfig => ({
   provider: (process.env.AI_PROVIDER as 'openai' | 'anthropic') || 'openai',
   openaiApiKey: process.env.OPENAI_API_KEY,
@@ -71,7 +92,7 @@ async function checkRateLimit(
   // Check minute limit
   const minuteCount = parseInt((await redisCache.get(minuteKey)) || '0', 10);
   if (minuteCount >= config.requestsPerMinute) {
-    const ttl = await redisCache.ttl(minuteKey);
+    const ttl = await redisCache.getTTL(minuteKey);
     return {
       allowed: false,
       remaining: 0,
@@ -84,7 +105,7 @@ async function checkRateLimit(
   if (config.requestsPerDay > 0) {
     const dayCount = parseInt((await redisCache.get(dayKey)) || '0', 10);
     if (dayCount >= config.requestsPerDay) {
-      const ttl = await redisCache.ttl(dayKey);
+      const ttl = await redisCache.getTTL(dayKey);
       return {
         allowed: false,
         remaining: 0,
@@ -194,7 +215,7 @@ async function callOpenAI(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
+    const error = await response.json().catch(() => ({})) as OpenAIErrorResponse;
     throw new AssistantError(
       `OpenAI API error: ${error.error?.message || response.statusText}`,
       ErrorCodes.AI_PROVIDER_ERROR,
@@ -203,7 +224,7 @@ async function callOpenAI(
     );
   }
 
-  const data = await response.json();
+  const data = await response.json() as OpenAIResponse;
   return {
     content: data.choices[0]?.message?.content || '',
     tokensUsed: {
@@ -244,7 +265,7 @@ async function callAnthropic(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
+    const error = await response.json().catch(() => ({})) as AnthropicErrorResponse;
     throw new AssistantError(
       `Anthropic API error: ${error.error?.message || response.statusText}`,
       ErrorCodes.AI_PROVIDER_ERROR,
@@ -253,7 +274,7 @@ async function callAnthropic(
     );
   }
 
-  const data = await response.json();
+  const data = await response.json() as AnthropicResponse;
   return {
     content: data.content[0]?.text || '',
     tokensUsed: {
