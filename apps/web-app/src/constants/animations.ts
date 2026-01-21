@@ -20,13 +20,14 @@ export const ANIMATION_CONFIG = {
     gentle: { stiffness: 200, damping: 20 },
     snappy: { stiffness: 400, damping: 30 },
     bouncy: { stiffness: 300, damping: 15 },
+    card: { stiffness: 250, damping: 25 },
   },
 
-  // Easings
+  // Easings - using Framer Motion compatible format
   easings: {
-    exit: [0.32, 0, 0.67, 0],
-    enter: [0.33, 1, 0.68, 1],
-    smooth: [0.4, 0, 0.2, 1],
+    exit: [0.32, 0, 0.67, 0] as [number, number, number, number],
+    enter: [0.33, 1, 0.68, 1] as [number, number, number, number],
+    smooth: [0.4, 0, 0.2, 1] as [number, number, number, number],
   },
 
   // Message bubble animations
