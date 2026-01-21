@@ -20,39 +20,39 @@ config.resolver.nodeModulesPaths = [
 // Ensure sourceExts includes all needed extensions
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
 
-// Custom resolver to redirect fabric module imports to our shims
-const originalResolveRequest = config.resolver.resolveRequest;
+// Use extraNodeModules to completely redirect fabric imports
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+};
+
+// Custom resolver to redirect ALL fabric module imports to our shims
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  // Redirect react-native-screens fabric imports to our shims
-  if (moduleName.includes('react-native-screens') && moduleName.includes('/fabric/')) {
-    const fabricModule = moduleName.split('/fabric/')[1];
-    if (fabricModule) {
-      const shimPath = path.resolve(shimsRoot, 'react-native-screens', 'fabric', fabricModule);
-      return {
-        filePath: shimPath + '.ts',
-        type: 'sourceFile',
-      };
+  // Handle any import that contains 'fabric' from react-native-screens
+  // This catches both direct imports and relative imports
+  if (moduleName.includes('fabric')) {
+    // Extract the module name after 'fabric/'
+    const match = moduleName.match(/fabric[/\\]([^/\\]+)/);
+    if (match) {
+      const fabricModule = match[1].replace(/\.(ts|tsx|js|jsx)$/, '');
+      const shimPath = path.resolve(
+        shimsRoot,
+        'react-native-screens',
+        'fabric',
+        fabricModule + '.ts'
+      );
+      try {
+        require.resolve(shimPath);
+        return {
+          filePath: shimPath,
+          type: 'sourceFile',
+        };
+      } catch {
+        // Shim doesn't exist, continue with default resolution
+      }
     }
   }
 
-  // Handle relative imports from within react-native-screens to fabric modules
-  if (
-    context.originModulePath &&
-    context.originModulePath.includes('react-native-screens') &&
-    moduleName.startsWith('./fabric/')
-  ) {
-    const fabricModule = moduleName.replace('./fabric/', '');
-    const shimPath = path.resolve(shimsRoot, 'react-native-screens', 'fabric', fabricModule);
-    return {
-      filePath: shimPath + '.ts',
-      type: 'sourceFile',
-    };
-  }
-
-  // Fall back to default resolver
-  if (originalResolveRequest) {
-    return originalResolveRequest(context, moduleName, platform);
-  }
+  // Fall back to default resolution
   return context.resolveRequest(context, moduleName, platform);
 };
 

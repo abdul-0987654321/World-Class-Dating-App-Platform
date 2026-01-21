@@ -11,7 +11,7 @@
         "CI": "1"
       },
       "cache": {
-        "key": "flamoral-mobile-v1",
+        "key": "flamoral-mobile-v2",
         "paths": ["node_modules"]
       }
     },
