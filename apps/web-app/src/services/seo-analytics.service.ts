@@ -760,7 +760,7 @@ export async function trackWebVitals(): Promise<void> {
 
   try {
     // Dynamic import with fallback - web-vitals is optional
-    // @ts-expect-error - web-vitals may not be installed
+    // @ts-ignore - web-vitals may not be installed in all environments
     const webVitals = await import('web-vitals').catch(() => null);
     if (!webVitals) {
       console.warn('web-vitals not available, skipping Core Web Vitals tracking');

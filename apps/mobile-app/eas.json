@@ -5,7 +5,10 @@
   },
   "build": {
     "base": {
-      "node": "20.19.0"
+      "node": "20.19.0",
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      }
     },
     "development": {
       "extends": "base",

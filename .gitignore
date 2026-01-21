@@ -22,6 +22,9 @@ packages/shared/**/*.map
 coverage/
 .nyc_output/
 *.lcov
+allure-results/
+playwright-report/
+test-results/
 
 # Environment variables - EXCLUDE ALL .env FILES
 # Only .env.example files should be committed

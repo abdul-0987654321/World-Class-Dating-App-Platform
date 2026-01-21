@@ -1,55 +1,27 @@
-# Ignore incomplete native directories
-# EAS will generate fresh native projects during build
-ios/
-android/
-
-# Backup directories
-ios.backup/
-android.backup/
-
-# Build artifacts
-*.log
-*.tsbuildinfo
-dist/
-build/
-
-# Development files
-.env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE and editor files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# Test files (not needed for production build)
-__tests__/
-__mocks__/
+# Ignore test and build artifacts
+__tests__
 *.test.ts
 *.test.tsx
 *.spec.ts
 *.spec.tsx
 coverage/
+.jest/
 
-# E2E tests
-e2e/
-
-# Documentation
+# Ignore development files
 *.md
 !README.md
+.vscode/
+.idea/
 
-# Detox config (for e2e testing)
-.detoxrc.js
+# Ignore other apps (we only need mobile-app)
+# Note: EAS will upload from monorepo root, these patterns are relative to that
 
-# Temporary and script files
-*.bak
-fix-*.js
-check-ts.js
-run-tsc.js
-rename-security.js
-restore-files.js
+# Ignore large node_modules from other workspaces that aren't needed
+apps/web-app/node_modules/
+apps/branding/node_modules/
+backend/
+docs/
+infrastructure/
+playwright-report/
+test-results/
+allure-results/
