@@ -123,13 +123,29 @@ export default ({ config }) => ({
           buildToolsVersion: '34.0.0',
           kotlinVersion: '1.9.22',
           enableProguardInReleaseBuilds: true,
-          extraProguardRules: '-keep class com.flamoral.** { *; }',
+          extraProguardRules:
+            '-keep class com.flamoral.** { *; }\n-keep class com.google.android.gms.** { *; }\n-keep class com.google.firebase.** { *; }',
           newArchEnabled: false,
         },
         ios: {
           deploymentTarget: '15.1',
           newArchEnabled: false,
+          useFrameworks: 'static',
+          ccacheEnabled: true,
         },
+      },
+    ],
+    // React Native Firebase - requires google-services.json in android/app/
+    '@react-native-firebase/app',
+    // Google Mobile Ads - requires app ID configuration
+    // Test IDs are used as fallback; set EXPO_PUBLIC_ADMOB_*_APP_ID env vars for production
+    [
+      'react-native-google-mobile-ads',
+      {
+        androidAppId:
+          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID || 'ca-app-pub-3940256099942544~3347511713',
+        iosAppId:
+          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID || 'ca-app-pub-3940256099942544~1458002511',
       },
     ],
     [

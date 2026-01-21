@@ -103,9 +103,16 @@
     "typescript": "^5.3.3"
   },
   "resolutions": {
-    "sharp": "0.32.6"
+    "sharp": "0.32.6",
+    "@expo/image-utils/sharp": "0.32.6"
   },
   "overrides": {
+    "sharp": "0.32.6",
+    "@expo/image-utils": {
+      "sharp": "0.32.6"
+    }
+  },
+  "optionalDependencies": {
     "sharp": "0.32.6"
   },
   "engines": {

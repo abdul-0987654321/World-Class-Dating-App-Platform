@@ -180,6 +180,14 @@ android/**/*.iml
 .expo/
 .expo-shared/
 
+# Firebase credentials - IMPORTANT: Never commit real Firebase config files
+# The placeholder files (android/app/google-services.json, ios/*/GoogleService-Info.plist)
+# contain dummy values for EAS Build. Replace with EAS Secrets in CI/CD.
+# For production builds, use EAS secrets:
+#   eas secret:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json
+# Then reference in eas.json with credentialsSource or environment variables
+# DO NOT commit real API keys - the placeholder files use dummy values
+
 # Claude Code local settings (may contain credentials)
 .claude/settings.local.json
 .claude/*.local.*

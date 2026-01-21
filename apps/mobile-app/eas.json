@@ -8,10 +8,14 @@
       "node": "20.19.0",
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-        "CI": "1"
+        "CI": "1",
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
+        "npm_config_platform": "linux",
+        "npm_config_arch": "x64",
+        "npm_config_libc": "glibc"
       },
       "cache": {
-        "key": "flamoral-mobile-v2",
+        "key": "flamoral-mobile-v3",
         "paths": ["node_modules"]
       }
     },
@@ -32,11 +36,26 @@
         "withoutCredentials": true
       }
     },
+    "development:simulator": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "simulator",
+      "channel": "development",
+      "env": {
+        "APP_VARIANT": "development"
+      },
+      "ios": {
+        "simulator": true,
+        "resourceClass": "m-medium"
+      }
+    },
     "development:device": {
       "extends": "development",
+      "distribution": "internal",
       "ios": {
         "simulator": false,
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "credentialsSource": "local"
       },
       "android": {
         "buildType": "apk"
@@ -51,18 +70,31 @@
       },
       "ios": {
         "resourceClass": "m-medium",
-        "credentialsSource": "remote"
+        "credentialsSource": "local"
       },
       "android": {
         "buildType": "apk",
         "withoutCredentials": true
       }
     },
+    "preview:simulator": {
+      "extends": "base",
+      "distribution": "simulator",
+      "channel": "preview",
+      "env": {
+        "APP_VARIANT": "preview"
+      },
+      "ios": {
+        "simulator": true,
+        "resourceClass": "m-medium"
+      }
+    },
     "preview:testflight": {
       "extends": "preview",
       "distribution": "store",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "credentialsSource": "remote"
       }
     },
     "production": {
@@ -73,7 +105,8 @@
         "APP_VARIANT": "production"
       },
       "ios": {
-        "resourceClass": "large"
+        "resourceClass": "large",
+        "credentialsSource": "remote"
       },
       "android": {
         "buildType": "app-bundle"
