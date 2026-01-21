@@ -17,6 +17,15 @@ const logger = createLogger('virtual-gifts-service');
 // Payment service URL for coin transactions
 const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3004';
 
+// Internal service authentication key
+const getInternalServiceKey = (): string => {
+  const key = process.env.INTERNAL_SERVICE_KEY;
+  if (!key && process.env.NODE_ENV === 'production') {
+    throw new Error('INTERNAL_SERVICE_KEY environment variable is required');
+  }
+  return key || 'test-internal-service-key-not-for-production';
+};
+
 export interface VirtualGift {
   id: string;
   name: string;
@@ -353,7 +362,7 @@ class VirtualGiftsService {
           timeout: 10000,
           headers: {
             'Content-Type': 'application/json',
-            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+            'X-Service-Auth': getInternalServiceKey(),
           },
         }
       );
@@ -396,7 +405,7 @@ class VirtualGiftsService {
           timeout: 10000,
           headers: {
             'Content-Type': 'application/json',
-            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+            'X-Service-Auth': getInternalServiceKey(),
           },
         }
       );

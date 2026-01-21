@@ -320,8 +320,12 @@ export class ServiceClient {
   private logger: ServiceClientLogger;
 
   constructor(config: ServiceClientConfig) {
+    const serviceApiKey = process.env.SERVICE_API_KEY;
+    if (!serviceApiKey && process.env.NODE_ENV === 'production') {
+      throw new Error('SERVICE_API_KEY environment variable is required');
+    }
     this.config = {
-      serviceApiKey: process.env.SERVICE_API_KEY || 'internal-service-key',
+      serviceApiKey: serviceApiKey || 'test-internal-service-key-not-for-production',
       timeout: 10000,
       maxRetries: 3,
       retryDelay: 1000,

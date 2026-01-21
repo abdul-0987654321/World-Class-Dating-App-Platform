@@ -13,6 +13,7 @@ import type {
   User,
   ApiError,
 } from '../types';
+import { API_BASE_URL } from '../services/config';
 
 export interface ApiClientConfig {
   baseURL?: string;
@@ -26,7 +27,7 @@ export class ApiClient {
   constructor(config: ApiClientConfig) {
     this.getToken = config.getToken;
     this.axiosInstance = axios.create({
-      baseURL: config.baseURL || 'https://api.flamoral.com',
+      baseURL: config.baseURL || API_BASE_URL,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

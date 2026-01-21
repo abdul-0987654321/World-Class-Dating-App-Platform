@@ -22,12 +22,10 @@ const logger = createLogger('auth-middleware');
  */
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'JWT_ACCESS_SECRET or JWT_SECRET environment variable is required in production'
-    );
+  if (!secret) {
+    throw new Error('JWT_ACCESS_SECRET or JWT_SECRET environment variable is required');
   }
-  return secret || 'dev-only-secret-do-not-use-in-production';
+  return secret;
 };
 
 /**

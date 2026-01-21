@@ -16,7 +16,11 @@ export class RealtimeHttpClient {
 
   constructor() {
     this.baseUrl = config.realtimeServiceUrl || 'http://localhost:8081';
-    this.serviceToken = config.serviceToken || 'dev-service-token-change-in-production';
+    const serviceToken = config.serviceToken || process.env.SERVICE_TOKEN;
+    if (!serviceToken) {
+      throw new Error('SERVICE_TOKEN environment variable or config.serviceToken is required');
+    }
+    this.serviceToken = serviceToken;
 
     this.client = axios.create({
       baseURL: `${this.baseUrl}/api/internal`,

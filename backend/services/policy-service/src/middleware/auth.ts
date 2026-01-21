@@ -27,10 +27,10 @@ interface JwtTokenPayload {
  */
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production');
+  if (!secret) {
+    throw new Error('JWT_SECRET or JWT_ACCESS_SECRET environment variable is required');
   }
-  return secret || 'dev-only-secret-do-not-use-in-production';
+  return secret;
 };
 
 /**
@@ -38,10 +38,10 @@ const getJwtSecret = (): string => {
  */
 const getInternalApiKey = (): string => {
   const apiKey = process.env.INTERNAL_API_KEY;
-  if (!apiKey && process.env.NODE_ENV === 'production') {
-    throw new Error('INTERNAL_API_KEY environment variable is required in production');
+  if (!apiKey) {
+    throw new Error('INTERNAL_API_KEY environment variable is required');
   }
-  return apiKey || 'dev-internal-api-key';
+  return apiKey;
 };
 
 /**

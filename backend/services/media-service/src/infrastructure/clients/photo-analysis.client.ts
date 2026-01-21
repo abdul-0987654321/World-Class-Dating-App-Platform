@@ -178,6 +178,15 @@ export interface PhotoRankingResult {
 // Client Implementation
 // ============================================================================
 
+// Get service API key with validation
+const getServiceApiKey = (): string => {
+  const key = process.env.SERVICE_API_KEY;
+  if (!key && process.env.NODE_ENV === 'production') {
+    throw new Error('SERVICE_API_KEY environment variable is required');
+  }
+  return key || 'test-internal-service-key-not-for-production';
+};
+
 export class PhotoAnalysisClient {
   private client: AxiosInstance;
   private baseUrl: string;
@@ -193,7 +202,7 @@ export class PhotoAnalysisClient {
       timeout: 60000, // 60 seconds for ML processing
       headers: {
         'Content-Type': 'application/json',
-        'X-Service-Key': process.env.SERVICE_API_KEY || 'internal-service-key',
+        'X-Service-Key': getServiceApiKey(),
         'X-Source-Service': 'media-service',
       },
     });

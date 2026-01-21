@@ -35,7 +35,11 @@ export class CSAMAuditService {
   private signingKey: string;
 
   constructor() {
-    this.signingKey = process.env.AUDIT_SIGNING_KEY || 'default-signing-key-change-in-production';
+    const signingKey = process.env.AUDIT_SIGNING_KEY;
+    if (!signingKey) {
+      throw new Error('AUDIT_SIGNING_KEY environment variable is required for CSAM audit service');
+    }
+    this.signingKey = signingKey;
 
     logger.info('CSAM Audit Service initialized');
   }

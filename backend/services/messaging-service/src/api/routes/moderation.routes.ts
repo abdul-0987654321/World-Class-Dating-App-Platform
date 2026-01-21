@@ -14,6 +14,15 @@ import { authenticate } from '../middleware/auth.middleware';
 const router = Router();
 const logger = createLogger('moderation-routes');
 
+// Internal service authentication key
+const getInternalServiceKey = (): string => {
+  const key = process.env.INTERNAL_SERVICE_KEY;
+  if (!key && process.env.NODE_ENV === 'production') {
+    throw new Error('INTERNAL_SERVICE_KEY environment variable is required');
+  }
+  return key || 'test-internal-service-key-not-for-production';
+};
+
 /**
  * POST /api/moderation/report
  * Report a message or conversation
@@ -157,7 +166,7 @@ router.delete('/block/:userId', authenticate, async (req: Request, res: Response
         data: { blockerId },
         timeout: 5000,
         headers: {
-          'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+          'X-Service-Auth': getInternalServiceKey(),
         },
       }
     );
@@ -192,7 +201,7 @@ router.get('/blocked', authenticate, async (req: Request, res: Response) => {
         params: { userId },
         timeout: 5000,
         headers: {
-          'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+          'X-Service-Auth': getInternalServiceKey(),
         },
       }
     );

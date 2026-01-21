@@ -65,7 +65,7 @@ interface UseAchievementsReturn {
   getRarityColor: (rarity: string) => string;
 }
 
-const API_BASE_URL = 'https://api.flamoral.com';
+import { API_BASE_URL } from '../services/config';
 
 const RARITY_COLORS = {
   common: '#95A5A6',

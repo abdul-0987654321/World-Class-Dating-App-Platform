@@ -174,7 +174,11 @@ export const SwipeCardAnimated = memo<SwipeCardAnimatedProps>(
               ease: ANIMATION_CONFIG.easings.exit,
             },
           });
-          direction > 0 ? onSwipeRight(profile) : onSwipeLeft(profile);
+          if (direction > 0) {
+            onSwipeRight(profile);
+          } else {
+            onSwipeLeft(profile);
+          }
           return;
         }
 
@@ -189,7 +193,11 @@ export const SwipeCardAnimated = memo<SwipeCardAnimatedProps>(
               ease: ANIMATION_CONFIG.easings.exit,
             },
           });
-          direction > 0 ? onSwipeRight(profile) : onSwipeLeft(profile);
+          if (direction > 0) {
+            onSwipeRight(profile);
+          } else {
+            onSwipeLeft(profile);
+          }
           return;
         }
 

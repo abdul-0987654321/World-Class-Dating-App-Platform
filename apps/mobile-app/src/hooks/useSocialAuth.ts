@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import Constants from 'expo-constants';
 import { useAuth, TokenStorage, ACCESS_TOKEN_KEY } from './useAuth';
 import axios from 'axios';
+import { API_BASE_URL } from '../services/config';
 
-// Get API URL from app config
-const API_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'https://api.flamoral.com';
+// Get API URL from centralized config (environment-based)
+const API_URL = API_BASE_URL;
 
 interface GoogleTokenPayload {
   code?: string;

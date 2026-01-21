@@ -26,11 +26,11 @@ export interface BiometricAuthRequest extends Request {
 export class BiometricAuthMiddleware {
   private readonly CHALLENGE_EXPIRY_MINUTES = 5;
   private readonly JWT_SECRET = (() => {
-    const secret = process.env.JWT_SECRET;
-    if (!secret && process.env.NODE_ENV === 'production') {
-      throw new Error('JWT_SECRET environment variable is required in production');
+    const secret = process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET or JWT_ACCESS_SECRET environment variable is required');
     }
-    return secret || 'dev-only-secret-do-not-use-in-production';
+    return secret;
   })();
 
   /**

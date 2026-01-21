@@ -13,8 +13,7 @@ import type {
   SpeedDatingMatchesResponse,
   SpeedDatingRegistrationResponse,
 } from '../types/speedDating.types';
-
-const API_BASE_URL = 'https://api.flamoral.com';
+import { API_BASE_URL } from '../services/config';
 
 interface UseSpeedDatingOptions {
   autoRefresh?: boolean;

@@ -16,6 +16,15 @@ const logger = createLogger('chat-moderation');
 const MODERATION_SERVICE_URL =
   process.env.MODERATION_SERVICE_URL || 'http://moderation-service:3008';
 
+// Internal service authentication key
+const getInternalServiceKey = (): string => {
+  const key = process.env.INTERNAL_SERVICE_KEY;
+  if (!key && process.env.NODE_ENV === 'production') {
+    throw new Error('INTERNAL_SERVICE_KEY environment variable is required');
+  }
+  return key || 'test-internal-service-key-not-for-production';
+};
+
 // Redis key prefixes for spam tracking (distributed across all pods)
 const REDIS_KEYS = {
   userMessageCount: (userId: string) => `spam:count:${userId}`,
@@ -353,7 +362,7 @@ class ChatModerationService {
         timeout: 3000,
         headers: {
           'Content-Type': 'application/json',
-          'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+          'X-Service-Auth': getInternalServiceKey(),
         },
       }
     );
@@ -472,7 +481,7 @@ class ChatModerationService {
           timeout: 5000,
           headers: {
             'Content-Type': 'application/json',
-            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+            'X-Service-Auth': getInternalServiceKey(),
           },
         }
       );
@@ -509,7 +518,7 @@ class ChatModerationService {
           timeout: 5000,
           headers: {
             'Content-Type': 'application/json',
-            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+            'X-Service-Auth': getInternalServiceKey(),
           },
         }
       );
@@ -534,7 +543,7 @@ class ChatModerationService {
           params: { userId1, userId2 },
           timeout: 3000,
           headers: {
-            'X-Service-Auth': process.env.INTERNAL_SERVICE_KEY || 'internal-service-key',
+            'X-Service-Auth': getInternalServiceKey(),
           },
         }
       );

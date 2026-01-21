@@ -120,7 +120,7 @@ interface UseGamificationReturn {
   purchaseItem: (productId: string, quantity?: number) => Promise<boolean>;
 }
 
-const API_BASE_URL = 'https://api.flamoral.com';
+import { API_BASE_URL } from '../services/config';
 
 export const useGamification = (): UseGamificationReturn => {
   const { token } = useAuth();

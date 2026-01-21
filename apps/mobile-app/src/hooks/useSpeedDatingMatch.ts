@@ -7,8 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SpeedDatingMatch, SpeedDatingMatchesResponse } from '../types/speedDating.types';
-
-const API_BASE_URL = 'https://api.flamoral.com';
+import { API_BASE_URL } from '../services/config';
 
 interface UseSpeedDatingMatchOptions {
   autoLoad?: boolean;

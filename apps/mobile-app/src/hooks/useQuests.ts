@@ -54,7 +54,7 @@ interface UseQuestsReturn {
   getQuestIcon: (category: string) => string;
 }
 
-const API_BASE_URL = 'https://api.flamoral.com';
+import { API_BASE_URL } from '../services/config';
 
 export const useQuests = (): UseQuestsReturn => {
   const { token } = useAuth();

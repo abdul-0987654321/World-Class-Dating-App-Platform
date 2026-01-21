@@ -11,7 +11,17 @@ import { getDbConnection } from '../infrastructure/database/connection';
 import logger from '../utils/logger';
 
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3004';
-const SERVICE_API_KEY = process.env.INTERNAL_SERVICE_API_KEY || 'internal-service-key';
+
+// Get internal service API key with validation
+const getServiceApiKey = (): string => {
+  const key = process.env.INTERNAL_SERVICE_API_KEY;
+  if (!key && process.env.NODE_ENV === 'production') {
+    throw new Error('INTERNAL_SERVICE_API_KEY environment variable is required');
+  }
+  return key || 'test-internal-service-key-not-for-production';
+};
+
+const SERVICE_API_KEY = getServiceApiKey();
 
 /**
  * Wellness Notification Service
