@@ -122,3 +122,6 @@ export interface MatchResponse {
 
 // Re-export speed dating types
 export * from './speed-dating.types';
+
+// Re-export chemistry matching types
+export * from './chemistry-matching.types';

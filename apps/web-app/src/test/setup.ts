@@ -54,6 +54,9 @@ Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
 });
 
+// Mock Element.scrollIntoView (JSDOM doesn't implement it)
+Element.prototype.scrollIntoView = vi.fn();
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),

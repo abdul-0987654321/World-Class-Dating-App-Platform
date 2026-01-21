@@ -73,3 +73,33 @@ export {
   validateParams,
   ValidationOptions,
 } from './validation.middleware';
+
+// Engagement DTOs (Tier 2 Services)
+export {
+  // Vulnerability Window DTOs
+  InitiateVulnerabilityWindowDto,
+  DeclineVulnerabilityWindowDto,
+  VulnerabilityWindowIdParams,
+  ConversationIdParams,
+  // Conversation Momentum DTOs
+  MomentumParams,
+  MomentumHistoryQueryDto,
+  // Micro-Date DTOs
+  ProposeMicroDateDto,
+  AcceptMicroDateDto,
+  DeclineMicroDateDto,
+  MicroDateIdParams,
+  UpcomingMicroDatesQueryDto,
+  TimeSuggestionsQueryDto,
+  // Ghosting Prevention DTOs
+  GhostingRiskParams,
+  AtRiskConversationsQueryDto,
+  // Response interfaces
+  ApiResponse,
+  VulnerabilityWindowResponse,
+  ThemeResponse,
+  MomentumResponse,
+  MicroDateResponse,
+  GhostingRiskResponse,
+  AtRiskConversationResponse,
+} from './engagement.dto';

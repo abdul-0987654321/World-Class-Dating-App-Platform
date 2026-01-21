@@ -334,7 +334,7 @@ export function getRateLimitRule(
     if (keyMethod !== method) continue;
 
     // Convert route pattern to regex
-    const pattern = keyPath.replace(/:[^\/]+/g, '[^/]+');
+    const pattern = keyPath.replace(/:[^/]+/g, '[^/]+');
     const regex = new RegExp(`^${pattern}$`);
 
     if (regex.test(normalizedPath)) {

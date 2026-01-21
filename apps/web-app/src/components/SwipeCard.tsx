@@ -11,7 +11,10 @@ interface SwipeCardProps {
   onSuperLike: () => void;
 }
 
-const CardContainer = styled.div`
+const CardContainer = styled.div.attrs({
+  'data-testid': 'profile-card',
+  className: 'profile-card swipe-card',
+})`
   position: relative;
   width: 100%;
   max-width: 400px;
@@ -49,13 +52,18 @@ const NameRow = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.xs};
 `;
 
-const Name = styled.h2`
+const Name = styled.h2.attrs({
+  'data-testid': 'profile-name',
+  className: 'profile-name',
+})`
   font-size: ${({ theme }) => theme.fontSize['2xl']};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
   margin: 0;
 `;
 
-const Age = styled.span`
+const Age = styled.span.attrs({
+  className: 'profile-age',
+})`
   font-size: ${({ theme }) => theme.fontSize.xl};
   font-weight: ${({ theme }) => theme.fontWeight.medium};
 `;
@@ -80,7 +88,9 @@ const ContentContainer = styled.div`
   overflow-y: auto;
 `;
 
-const Bio = styled.p`
+const Bio = styled.p.attrs({
+  className: 'profile-bio',
+})`
   font-size: ${({ theme }) => theme.fontSize.md};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: ${({ theme }) => theme.spacing.md};
@@ -165,7 +175,10 @@ const ActionButton = styled.button<{ variant: 'pass' | 'superlike' | 'like' }>`
   }}
 `;
 
-const PhotoDots = styled.div`
+const PhotoDots = styled.div.attrs({
+  'data-testid': 'photo-indicator',
+  className: 'photo-indicators photo-dots',
+})`
   position: absolute;
   top: 10px;
   left: 50%;
@@ -256,13 +269,13 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onLike, onPass, o
       </ContentContainer>
 
       <ActionButtons>
-        <ActionButton variant="pass" onClick={onPass} title="Pass">
+        <ActionButton variant="pass" onClick={onPass} title="Pass" aria-label="Pass" data-action="pass" className="pass-button">
           <FiX />
         </ActionButton>
-        <ActionButton variant="superlike" onClick={onSuperLike} title="Super Like">
+        <ActionButton variant="superlike" onClick={onSuperLike} title="Super Like" aria-label="Super Like" data-action="superlike" className="superlike-button super-like-button">
           <FiStar />
         </ActionButton>
-        <ActionButton variant="like" onClick={onLike} title="Like">
+        <ActionButton variant="like" onClick={onLike} title="Like" aria-label="Like" data-action="like" className="like-button">
           <FiHeart />
         </ActionButton>
       </ActionButtons>

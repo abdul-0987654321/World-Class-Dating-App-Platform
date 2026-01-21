@@ -4,7 +4,19 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  // Force all dependencies to resolve from this workspace's node_modules
+  server: {
+    deps: {
+      fallbackCJS: true,
+    },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'react-redux', '@reduxjs/toolkit'],
+  },
   test: {
+    deps: {
+      inline: [/react-router/, /react-icons/, /react-redux/, /@reduxjs\/toolkit/],
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
@@ -40,6 +52,12 @@ export default defineConfig({
       '@store': path.resolve(__dirname, './src/store'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@utils': path.resolve(__dirname, './src/utils'),
+      // Force React resolution from local workspace to avoid monorepo hoisting issues
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime'),
+      'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime'),
     },
+    dedupe: ['react', 'react-dom'],
   },
 });

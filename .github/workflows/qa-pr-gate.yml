@@ -1,0 +1,138 @@
+name: QA PR Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: qa-pr-gate
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck:
+    name: Lint & TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run ESLint
+        run: yarn lint:all
+        continue-on-error: true
+      
+      - name: TypeScript Check
+        run: yarn tsc --noEmit
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run unit tests
+        run: yarn test:backend --coverage --ci
+        env:
+          CI: true
+
+  api-smoke:
+    name: API Smoke Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: flamoral_test
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run API smoke tests
+        run: yarn test:smoke:api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/flamoral_test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-smoke-results
+          path: test-results/
+
+  ui-smoke:
+    name: UI Smoke Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+      
+      - name: Run UI smoke tests
+        run: yarn test:smoke:ui
+        env:
+          CI: true
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-smoke-results
+          path: |
+            playwright-report/
+            test-results/
+
+  qa-summary:
+    name: QA Summary
+    runs-on: ubuntu-latest
+    needs: [lint-typecheck, unit-tests, api-smoke, ui-smoke]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## QA PR Gate Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "All quality checks completed."

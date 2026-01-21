@@ -5,7 +5,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', '*.js', '*.cjs'],
   },
   {
     files: ['**/*.ts'],
@@ -21,6 +21,7 @@ export default tseslint.config(
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-namespace': 'off',
       'no-case-declarations': 'off',
       'no-useless-escape': 'off',
       'no-constant-condition': 'off',

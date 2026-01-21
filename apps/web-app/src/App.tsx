@@ -222,6 +222,9 @@ const App: React.FC = () => {
         <Route path="/subscription" element={
           <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
         } />
+        <Route path="/premium" element={
+          <ProtectedRoute><SubscriptionPage /></ProtectedRoute>
+        } />
         <Route path="/checkout" element={
           <ProtectedRoute><CheckoutPage /></ProtectedRoute>
         } />

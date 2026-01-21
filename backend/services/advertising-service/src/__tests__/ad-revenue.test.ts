@@ -11,24 +11,28 @@
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
-// Mock the database connection
-jest.mock('../infrastructure/database/connection', () => {
-  const mockDb = jest.fn(() => mockDb);
-  (mockDb as any).where = jest.fn(() => mockDb);
-  (mockDb as any).first = jest.fn();
-  (mockDb as any).select = jest.fn(() => mockDb);
-  (mockDb as any).insert = jest.fn();
-  (mockDb as any).update = jest.fn(() => mockDb);
-  (mockDb as any).increment = jest.fn(() => mockDb);
-  (mockDb as any).whereBetween = jest.fn(() => mockDb);
-  (mockDb as any).groupBy = jest.fn(() => mockDb);
-  (mockDb as any).countDistinct = jest.fn(() => mockDb);
-  (mockDb as any).raw = jest.fn((sql: string) => sql);
-  return { default: mockDb };
-});
+// Mock the database connection - use jest.fn() that can be reconfigured
+const mockDbFn = jest.fn<any>().mockImplementation((tableName: string) => ({
+  where: jest.fn<any>().mockReturnThis(),
+  first: jest.fn<any>(),
+  select: jest.fn<any>().mockReturnThis(),
+  insert: jest.fn<any>(),
+  update: jest.fn<any>().mockReturnThis(),
+  increment: jest.fn<any>().mockReturnThis(),
+  whereBetween: jest.fn<any>().mockReturnThis(),
+  groupBy: jest.fn<any>().mockReturnThis(),
+  countDistinct: jest.fn<any>().mockReturnThis(),
+}));
+(mockDbFn as any).raw = jest.fn<any>((sql: string) => sql);
+
+jest.mock('../infrastructure/database/connection', () => ({
+  __esModule: true,
+  default: mockDbFn,
+}));
 
 // Mock logger
 jest.mock('../utils/logger', () => ({
+  __esModule: true,
   default: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -43,23 +47,8 @@ jest.mock('uuid', () => ({
 
 import db from '../infrastructure/database/connection';
 
-// Type definitions for mocked db - use 'any' to avoid complex generic constraints
-type MockFn = jest.Mock<() => any>;
-
-interface MockDb {
-  where: MockFn;
-  first: MockFn;
-  select: MockFn;
-  insert: MockFn;
-  update: MockFn;
-  increment: MockFn;
-  whereBetween: MockFn;
-  groupBy: MockFn;
-  countDistinct: MockFn;
-  raw: MockFn;
-}
-
-const mockDb = db as unknown as MockFn & MockDb;
+// Type the imported mock - db should be mockDbFn
+const mockDb = db as jest.MockedFunction<typeof db>;
 
 // Helper to create mock date
 const createMockDate = (dateString: string): Date => new Date(dateString);
@@ -70,20 +59,46 @@ const advanceTime = (ms: number): void => {
 };
 
 describe('Ad Revenue Service', () => {
+  // Create a chainable mock query builder
+  // Note: For proper async support, terminal methods should resolve, chainable methods return this
+  let mockQueryBuilder: any;
+
+  const createMockQueryBuilder = () => {
+    const builder: any = {
+      where: jest.fn<any>(),
+      first: jest.fn<any>(),
+      select: jest.fn<any>(),
+      insert: jest.fn<any>(),
+      update: jest.fn<any>(),
+      increment: jest.fn<any>(),
+      whereBetween: jest.fn<any>(),
+      groupBy: jest.fn<any>(),
+      countDistinct: jest.fn<any>(),
+      then: jest.fn<any>(), // Make the builder thenable for await
+    };
+    // Set up chaining - all methods return the builder for chaining
+    builder.where.mockReturnValue(builder);
+    builder.select.mockReturnValue(builder);
+    builder.update.mockReturnValue(builder);
+    builder.increment.mockReturnValue(builder); // Allow chaining .increment().increment()
+    builder.whereBetween.mockReturnValue(builder);
+    builder.groupBy.mockReturnValue(builder);
+    builder.countDistinct.mockReturnValue(builder);
+    // Make builder thenable so await works
+    builder.then.mockImplementation((resolve: any) => resolve(1));
+    return builder;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-01-04T12:00:00Z'));
 
-    // Reset mock chain returns
-    mockDb.mockReturnValue(mockDb);
-    mockDb.where.mockReturnValue(mockDb);
-    mockDb.select.mockReturnValue(mockDb);
-    mockDb.update.mockReturnValue(mockDb);
-    mockDb.increment.mockReturnValue(mockDb);
-    mockDb.whereBetween.mockReturnValue(mockDb);
-    mockDb.groupBy.mockReturnValue(mockDb);
-    mockDb.countDistinct.mockReturnValue(mockDb);
+    // Create fresh mock query builder for each test
+    mockQueryBuilder = createMockQueryBuilder();
+
+    // Set up mockDb to return the query builder
+    (mockDb as any).mockImplementation(() => mockQueryBuilder);
   });
 
   afterEach(() => {
@@ -98,7 +113,7 @@ describe('Ad Revenue Service', () => {
       test('should record a banner ad impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           interstitials_shown_today: 0,
           interstitials_shown_session: 0,
@@ -106,7 +121,7 @@ describe('Ad Revenue Service', () => {
           actions_this_session: 0,
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
 
         const result = await adRevenueService.recordImpression({
           userId: 'user-123',
@@ -135,7 +150,7 @@ describe('Ad Revenue Service', () => {
       test('should record an interstitial ad impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           interstitials_shown_today: 2,
           interstitials_shown_session: 1,
@@ -143,9 +158,9 @@ describe('Ad Revenue Service', () => {
           actions_this_session: 5,
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
-        mockDb.increment.mockReturnValue(mockDb);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        mockQueryBuilder.update.mockResolvedValue(1);
+        mockQueryBuilder.increment.mockReturnThis();
 
         const result = await adRevenueService.recordImpression({
           userId: 'user-123',
@@ -164,13 +179,13 @@ describe('Ad Revenue Service', () => {
 
         expect(result.adType).toBe('interstitial');
         expect(result.network).toBe('facebook');
-        expect(mockDb.insert).toHaveBeenCalled();
+        expect(mockQueryBuilder.insert).toHaveBeenCalled();
       });
 
       test('should record a rewarded video ad impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-789',
           interstitials_shown_today: 0,
           interstitials_shown_session: 0,
@@ -178,9 +193,9 @@ describe('Ad Revenue Service', () => {
           actions_this_session: 10,
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
-        mockDb.increment.mockReturnValue(mockDb);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        mockQueryBuilder.update.mockResolvedValue(1);
+        mockQueryBuilder.increment.mockReturnThis();
 
         const result = await adRevenueService.recordImpression({
           userId: 'user-789',
@@ -204,11 +219,11 @@ describe('Ad Revenue Service', () => {
       test('should track impression time accurately', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
 
         const beforeCall = new Date();
         const result = await adRevenueService.recordImpression({
@@ -237,11 +252,11 @@ describe('Ad Revenue Service', () => {
 
         const networks = ['admob', 'facebook', 'unity', 'applovin', 'custom'] as const;
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
 
         for (const network of networks) {
           const result = await adRevenueService.recordImpression({
@@ -269,15 +284,14 @@ describe('Ad Revenue Service', () => {
       test('should update interstitial counters on impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           interstitials_shown_today: 1,
           interstitials_shown_session: 0,
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
-        mockDb.increment.mockReturnValue(mockDb);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        // Note: Do NOT override update with mockResolvedValue - keep it chainable for .increment()
 
         await adRevenueService.recordImpression({
           userId: 'user-123',
@@ -295,20 +309,19 @@ describe('Ad Revenue Service', () => {
         });
 
         // Verify increment was called for interstitial counters
-        expect(mockDb.increment).toHaveBeenCalled();
+        expect(mockQueryBuilder.increment).toHaveBeenCalled();
       });
 
       test('should update rewarded counters on impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           user_id: 'user-123',
           rewarded_views_today: 2,
           last_reset_date: '2026-01-04',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
-        mockDb.increment.mockReturnValue(mockDb);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        // Note: Do NOT override update with mockResolvedValue - keep it chainable for .increment()
 
         await adRevenueService.recordImpression({
           userId: 'user-123',
@@ -325,7 +338,7 @@ describe('Ad Revenue Service', () => {
           },
         });
 
-        expect(mockDb.increment).toHaveBeenCalled();
+        expect(mockQueryBuilder.increment).toHaveBeenCalled();
       });
     });
   });
@@ -338,14 +351,14 @@ describe('Ad Revenue Service', () => {
       test('should record a click for existing impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           id: 'impression-123',
           user_id: 'user-123',
           ad_type: 'banner',
           network: 'admob',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        mockQueryBuilder.update.mockResolvedValue(1);
 
         const result = await adRevenueService.recordClick({
           impressionId: 'impression-123',
@@ -362,7 +375,7 @@ describe('Ad Revenue Service', () => {
       test('should return null for non-existent impression', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue(null);
+        mockQueryBuilder.first.mockResolvedValue(null);
 
         const result = await adRevenueService.recordClick({
           impressionId: 'non-existent-impression',
@@ -376,14 +389,14 @@ describe('Ad Revenue Service', () => {
       test('should update impression clicked status', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           id: 'impression-456',
           user_id: 'user-456',
           ad_type: 'interstitial',
           clicked: false,
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        mockQueryBuilder.update.mockResolvedValue(1);
 
         await adRevenueService.recordClick({
           impressionId: 'impression-456',
@@ -391,19 +404,19 @@ describe('Ad Revenue Service', () => {
           adType: 'interstitial',
         });
 
-        expect(mockDb.update).toHaveBeenCalled();
+        expect(mockQueryBuilder.update).toHaveBeenCalled();
       });
 
       test('should track click time accurately', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.first.mockResolvedValue({
+        mockQueryBuilder.first.mockResolvedValue({
           id: 'impression-789',
           user_id: 'user-789',
           ad_type: 'banner',
         });
-        mockDb.insert.mockResolvedValue([1]);
-        mockDb.update.mockResolvedValue(1);
+        mockQueryBuilder.insert.mockResolvedValue([1]);
+        mockQueryBuilder.update.mockResolvedValue(1);
 
         const beforeCall = new Date();
         const result = await adRevenueService.recordClick({
@@ -423,8 +436,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate CTR correctly with clicks', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -446,8 +459,8 @@ describe('Ad Revenue Service', () => {
       test('should handle zero impressions gracefully', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([]);
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([]);
 
         const startDate = new Date('2026-01-01');
         const endDate = new Date('2026-01-04');
@@ -469,8 +482,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate total revenue across all networks', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -510,8 +523,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate eCPM correctly', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -533,8 +546,8 @@ describe('Ad Revenue Service', () => {
       test('should break down revenue by ad type', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -574,8 +587,8 @@ describe('Ad Revenue Service', () => {
       test('should break down revenue by network', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -615,8 +628,8 @@ describe('Ad Revenue Service', () => {
       test('should break down revenue by placement', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -663,8 +676,8 @@ describe('Ad Revenue Service', () => {
       test('should correctly attribute impressions to networks', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -713,8 +726,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate network-specific eCPM', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'rewarded',
             network: 'unity',
@@ -745,8 +758,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate network-specific CTR', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'facebook',
@@ -784,8 +797,8 @@ describe('Ad Revenue Service', () => {
       test('should aggregate metrics for daily period', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -810,18 +823,18 @@ describe('Ad Revenue Service', () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
         // First day state
-        mockDb.first.mockResolvedValueOnce({
+        mockQueryBuilder.first.mockResolvedValueOnce({
           user_id: 'user-123',
           interstitials_shown_today: 10,
           rewarded_views_today: 5,
           last_reset_date: '2026-01-03', // Yesterday
         });
-        mockDb.update.mockResolvedValue(1);
+        mockQueryBuilder.update.mockResolvedValue(1);
 
         const state = await adRevenueService.getUserState('user-123');
 
         // When date changes, counters should be reset
-        expect(mockDb.update).toHaveBeenCalled();
+        expect(mockQueryBuilder.update).toHaveBeenCalled();
       });
     });
 
@@ -829,8 +842,8 @@ describe('Ad Revenue Service', () => {
       test('should aggregate metrics for weekly period', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -856,8 +869,8 @@ describe('Ad Revenue Service', () => {
       test('should aggregate metrics for monthly period', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             ad_type: 'banner',
             network: 'admob',
@@ -900,8 +913,8 @@ describe('Ad Revenue Service', () => {
       test('should aggregate reward analytics by type', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             reward_type: 'coins',
             total_earned: '500',
@@ -924,8 +937,8 @@ describe('Ad Revenue Service', () => {
             avg_completion: '96.5',
           },
         ]);
-        mockDb.countDistinct.mockReturnValue(mockDb);
-        mockDb.first.mockResolvedValue({ count: '350' });
+        mockQueryBuilder.countDistinct.mockReturnThis();
+        mockQueryBuilder.first.mockResolvedValue({ count: '350' });
 
         const startDate = new Date('2026-01-01');
         const endDate = new Date('2026-01-04');
@@ -943,8 +956,8 @@ describe('Ad Revenue Service', () => {
       test('should calculate video completion rate', async () => {
         const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-        mockDb.select.mockReturnValue(mockDb);
-        mockDb.groupBy.mockResolvedValue([
+        mockQueryBuilder.select.mockReturnThis();
+        mockQueryBuilder.groupBy.mockResolvedValue([
           {
             reward_type: 'coins',
             total_earned: '100',
@@ -960,8 +973,8 @@ describe('Ad Revenue Service', () => {
             avg_completion: '96.0',
           },
         ]);
-        mockDb.countDistinct.mockReturnValue(mockDb);
-        mockDb.first.mockResolvedValue({ count: '75' });
+        mockQueryBuilder.countDistinct.mockReturnThis();
+        mockQueryBuilder.first.mockResolvedValue({ count: '75' });
 
         const startDate = new Date('2026-01-01');
         const endDate = new Date('2026-01-04');
@@ -981,7 +994,7 @@ describe('Ad Revenue Service', () => {
     test('should enforce interstitial frequency cap', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         interstitials_shown_today: 15, // At daily max
         interstitials_shown_session: 5, // At session max
@@ -1000,7 +1013,7 @@ describe('Ad Revenue Service', () => {
     test('should enforce rewarded video frequency cap', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         interstitials_shown_today: 0,
         interstitials_shown_session: 0,
@@ -1020,7 +1033,7 @@ describe('Ad Revenue Service', () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
       // Last rewarded view was 2 minutes ago (need 5 min cooldown)
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         rewarded_views_today: 5,
         actions_this_session: 10,
@@ -1038,7 +1051,7 @@ describe('Ad Revenue Service', () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
       // Last rewarded view was 10 minutes ago (past 5 min cooldown)
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         interstitials_shown_today: 5,
         interstitials_shown_session: 2,
@@ -1074,7 +1087,7 @@ describe('Ad Revenue Service', () => {
     test('should show ads to free users', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue(null);
+      mockQueryBuilder.first.mockResolvedValue(null);
 
       const shouldShow = await adRevenueService.shouldShowAds('user-123', undefined);
       expect(shouldShow).toBe(true);
@@ -1083,7 +1096,7 @@ describe('Ad Revenue Service', () => {
     test('should respect temporary ad-free period', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         ad_free_until: new Date('2026-01-04T14:00:00Z'), // 2 hours from now
       });
@@ -1095,15 +1108,15 @@ describe('Ad Revenue Service', () => {
     test('should grant ad-free period correctly', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         user_id: 'user-123',
         last_reset_date: '2026-01-04',
       });
-      mockDb.update.mockResolvedValue(1);
+      mockQueryBuilder.update.mockResolvedValue(1);
 
       await adRevenueService.grantAdFreePeriod('user-123', 24); // 24 hours
 
-      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockQueryBuilder.update).toHaveBeenCalled();
     });
   });
 
@@ -1114,8 +1127,8 @@ describe('Ad Revenue Service', () => {
     test('should claim reward after watching video', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue(null); // No existing daily count
-      mockDb.insert.mockResolvedValue([1]);
+      mockQueryBuilder.first.mockResolvedValue(null); // No existing daily count
+      mockQueryBuilder.insert.mockResolvedValue([1]);
 
       const result = await adRevenueService.claimReward({
         userId: 'user-123',
@@ -1148,7 +1161,7 @@ describe('Ad Revenue Service', () => {
     test('should enforce daily reward limits', async () => {
       const { adRevenueService } = await import('../domain/services/ad-revenue.service');
 
-      mockDb.first.mockResolvedValue({
+      mockQueryBuilder.first.mockResolvedValue({
         id: 'count-123',
         user_id: 'user-123',
         reward_id: 'coins',

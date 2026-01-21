@@ -22,6 +22,12 @@ export enum NotificationType {
   REMINDER = 'reminder',
   SECURITY_ALERT = 'security_alert',
   SPEED_DATING = 'speed_dating',
+  // Date Safety Guardian notification types
+  DATE_SAFETY_CHECK_IN = 'date_safety_check_in',
+  DATE_SAFETY_ALERT = 'date_safety_alert',
+  DATE_SAFETY_PANIC = 'date_safety_panic',
+  DATE_SAFETY_STARTED = 'date_safety_started',
+  DATE_SAFETY_COMPLETED = 'date_safety_completed',
 }
 
 export enum NotificationChannel {

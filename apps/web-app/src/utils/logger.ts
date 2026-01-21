@@ -209,7 +209,7 @@ class Logger {
     const formattedMessage = this.formatMessage('DEBUG', message, context);
 
     if (this.isDevelopment) {
-      // eslint-disable-next-line no-console
+       
       console.log(formattedMessage);
     }
   }
@@ -223,7 +223,7 @@ class Logger {
     const formattedMessage = this.formatMessage('INFO', message, context);
 
     if (this.isDevelopment) {
-      // eslint-disable-next-line no-console
+       
       console.info(formattedMessage);
     }
   }
@@ -237,7 +237,7 @@ class Logger {
     const formattedMessage = this.formatMessage('WARN', message, context);
 
     if (this.isDevelopment) {
-      // eslint-disable-next-line no-console
+       
       console.warn(formattedMessage);
     }
 
@@ -263,10 +263,10 @@ class Logger {
     const formattedMessage = this.formatMessage('ERROR', message, errorContext);
 
     if (this.isDevelopment) {
-      // eslint-disable-next-line no-console
+       
       console.error(formattedMessage);
       if (error) {
-        // eslint-disable-next-line no-console
+         
         console.error(error);
       }
     }
@@ -291,10 +291,10 @@ class Logger {
     const formattedMessage = this.formatMessage('FATAL', message, errorContext);
 
     if (this.isDevelopment) {
-      // eslint-disable-next-line no-console
+       
       console.error(formattedMessage);
       if (error) {
-        // eslint-disable-next-line no-console
+         
         console.error(error);
       }
     }

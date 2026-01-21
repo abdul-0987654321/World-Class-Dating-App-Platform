@@ -285,7 +285,7 @@ test.describe('Premium Purchase Flow', () => {
 
     // Verify success
     await expect(page.locator('text=Welcome to Premium!')).toBeVisible({ timeout: 10000 });
-    await expect(page).toHaveURL(/premium/success/);
+    await expect(page).toHaveURL(/premium\/success/);
 
     // Verify premium badge
     await page.goto('/profile');

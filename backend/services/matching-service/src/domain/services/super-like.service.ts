@@ -304,7 +304,8 @@ export class SuperLikeService {
     try {
       // Check if user is premium
       const userProfile = await userServiceClient.getUserProfile(userId);
-      const isPremium = false || false;
+      // TODO: Implement actual premium check based on userProfile
+      const isPremium = userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'platinum';
 
       const dailyLimit = isPremium ? this.PREMIUM_DAILY_LIMIT : this.FREE_DAILY_LIMIT;
 

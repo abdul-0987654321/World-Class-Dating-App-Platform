@@ -13,6 +13,7 @@ import batchRoutes from './api/routes/batch.routes';
 import deviceRoutes from './api/routes/device.routes';
 import internalRoutes from './api/routes/internal.routes';
 import notificationRoutes from './api/routes/notifications.routes';
+import safetyRoutes from './api/routes/safety.routes';
 import { config } from './config';
 import { testConnection } from './config/database';
 import { notificationQueue, getQueueStats, cleanQueue } from './queues/notification.queue';
@@ -168,28 +169,46 @@ app.get('/', (req: Request, res: Response) => {
     status: 'running',
     endpoints: {
       notifications: {
-        send: 'POST /api/notifications/send',
-        list: 'GET /api/notifications',
-        markRead: 'PUT /api/notifications/:id/read',
-        markAllRead: 'PUT /api/notifications/read-all',
-        delete: 'DELETE /api/notifications/:id',
-        preferences: 'GET /api/notifications/preferences',
-        updatePreferences: 'PUT /api/notifications/preferences',
-        unreadCount: 'GET /api/notifications/unread-count',
+        send: 'POST /api/v1/notifications/send',
+        list: 'GET /api/v1/notifications',
+        markRead: 'PUT /api/v1/notifications/:id/read',
+        markAllRead: 'PUT /api/v1/notifications/read-all',
+        delete: 'DELETE /api/v1/notifications/:id',
+        preferences: 'GET /api/v1/notifications/preferences',
+        updatePreferences: 'PUT /api/v1/notifications/preferences',
+        unreadCount: 'GET /api/v1/notifications/unread-count',
       },
       devices: {
-        register: 'POST /api/devices/register',
-        unregister: 'DELETE /api/devices/unregister',
-        update: 'PUT /api/devices/update',
-        list: 'GET /api/devices',
-        stats: 'GET /api/devices/stats',
+        register: 'POST /api/v1/devices/register',
+        unregister: 'DELETE /api/v1/devices/unregister',
+        update: 'PUT /api/v1/devices/update',
+        list: 'GET /api/v1/devices',
+        stats: 'GET /api/v1/devices/stats',
       },
       batch: {
-        send: 'POST /api/batch/send',
-        segment: 'POST /api/batch/segment',
-        status: 'GET /api/batch/job/:jobId',
-        history: 'GET /api/batch/jobs',
-        stats: 'GET /api/batch/stats',
+        send: 'POST /api/v1/batch/send',
+        segment: 'POST /api/v1/batch/segment',
+        status: 'GET /api/v1/batch/job/:jobId',
+        history: 'GET /api/v1/batch/jobs',
+        stats: 'GET /api/v1/batch/stats',
+      },
+      safety: {
+        status: 'GET /api/v1/safety/status',
+        trustedContacts: {
+          add: 'POST /api/v1/safety/trusted-contacts',
+          list: 'GET /api/v1/safety/trusted-contacts',
+          remove: 'DELETE /api/v1/safety/trusted-contacts/:id',
+          verify: 'POST /api/v1/safety/trusted-contacts/:id/verify',
+        },
+        dateSessions: {
+          create: 'POST /api/v1/safety/date-sessions',
+          start: 'POST /api/v1/safety/date-sessions/:id/start',
+          checkIn: 'POST /api/v1/safety/date-sessions/:id/check-in',
+          end: 'POST /api/v1/safety/date-sessions/:id/end',
+          panic: 'POST /api/v1/safety/date-sessions/:id/panic',
+          active: 'GET /api/v1/safety/date-sessions/active',
+          history: 'GET /api/v1/safety/date-sessions/history',
+        },
       },
     },
   });
@@ -199,6 +218,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/devices', deviceRoutes);
 app.use('/api/v1/batch', batchRoutes);
+app.use('/api/v1/safety', safetyRoutes);
 
 // Internal API Routes (service-to-service)
 app.use('/api/v1/internal/notifications', internalRoutes);

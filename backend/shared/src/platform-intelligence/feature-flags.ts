@@ -34,6 +34,25 @@ export interface FeatureFlagConfig {
     womensSafetyFeatures: FeatureFlag;
     emergencyContacts: FeatureFlag;
     enhancedPrivacy: FeatureFlag;
+    dateSafetyGuardian: FeatureFlag;
+  };
+
+  // Engagement & AI Features (Tier 1)
+  engagementFeatures: {
+    smartReplySuggestions: FeatureFlag;
+    aiConversationCoach: FeatureFlag;
+    voiceNotesInChat: FeatureFlag;
+    sharedExperienceGenerator: FeatureFlag;
+    conversationMomentumAnalyzer: FeatureFlag;
+    conflictMediator: FeatureFlag;
+  };
+
+  // Innovative Features (Novel)
+  innovativeFeatures: {
+    blindProfileMode: FeatureFlag;
+    vulnerabilityWindows: FeatureFlag;
+    relationshipTrajectory: FeatureFlag;
+    chemistryMatching: FeatureFlag;
   };
 
   // Self-Healing Flags
@@ -135,6 +154,106 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig = {
       regions: ['MENA', 'SSA'],
       createdAt: '2024-12-24T00:00:00Z',
       updatedAt: '2024-12-24T00:00:00Z',
+    },
+    dateSafetyGuardian: {
+      name: 'safety_date_guardian',
+      description: 'Real-time date safety monitoring with trusted contacts',
+      enabled: true,
+      rolloutPercentage: 25,
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+  },
+
+  engagementFeatures: {
+    smartReplySuggestions: {
+      name: 'engagement_smart_replies',
+      description: 'AI-powered contextual reply suggestions in chat',
+      enabled: true,
+      rolloutPercentage: 50,
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    aiConversationCoach: {
+      name: 'engagement_ai_coach',
+      description: 'Real-time AI coaching for better conversations',
+      enabled: true,
+      rolloutPercentage: 25,
+      userSegments: ['premium', 'elite'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    voiceNotesInChat: {
+      name: 'engagement_voice_notes',
+      description: 'Voice message support in conversations',
+      enabled: true,
+      rolloutPercentage: 100,
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    sharedExperienceGenerator: {
+      name: 'engagement_shared_experience_generator',
+      description: 'AI-curated virtual activities for matches - personalized shared experiences including conversation games, creative challenges, and learning activities',
+      enabled: false,
+      rolloutPercentage: 0,
+      userSegments: ['premium', 'elite'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    conversationMomentumAnalyzer: {
+      name: 'engagement_conversation_momentum',
+      description: 'Real-time conversation momentum tracking with engagement scoring, trend analysis, and actionable alerts to maintain conversation quality',
+      enabled: true,
+      rolloutPercentage: 30,
+      userSegments: ['premium', 'elite'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    conflictMediator: {
+      name: 'engagement_conflict_mediator',
+      description: 'AI-powered conflict mediation for dating conversations - dispute resolution, miscommunication repair, perspective explanation, de-escalation templates, and graceful exit suggestions. Includes safety-first design with abuse detection and victim protection.',
+      enabled: false,
+      rolloutPercentage: 0,
+      userSegments: ['research'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+  },
+
+  innovativeFeatures: {
+    blindProfileMode: {
+      name: 'innovative_blind_profile',
+      description: 'Progressive profile reveal based on conversation depth',
+      enabled: true,
+      rolloutPercentage: 30,
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    vulnerabilityWindows: {
+      name: 'innovative_vulnerability_windows',
+      description: 'Synchronized mutual vulnerability prompts',
+      enabled: false,
+      rolloutPercentage: 0,
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    relationshipTrajectory: {
+      name: 'innovative_trajectory_prediction',
+      description: 'ML-based relationship trajectory predictor analyzing conversation patterns, response times, engagement metrics to forecast relationship outcomes with personalized recommendations',
+      enabled: false,
+      rolloutPercentage: 0,
+      userSegments: ['premium', 'elite'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
+    },
+    chemistryMatching: {
+      name: 'innovative_chemistry_matching',
+      description: 'Pheromone-inspired matching algorithm using behavioral chemistry signals - rhythm sync, engagement patterns, and personality complement analysis',
+      enabled: false,
+      rolloutPercentage: 0,
+      userSegments: ['research'],
+      createdAt: '2026-01-19T00:00:00Z',
+      updatedAt: '2026-01-19T00:00:00Z',
     },
   },
 

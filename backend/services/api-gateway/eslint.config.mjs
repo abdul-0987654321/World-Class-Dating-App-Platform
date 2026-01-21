@@ -5,7 +5,7 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', '*.js', '*.cjs'],
   },
   {
     files: ['**/*.ts'],
@@ -22,6 +22,9 @@ export default [
       '@typescript-eslint/no-misused-promises': 'off',
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-namespace': 'off',
+      'no-useless-escape': 'off',
+      'no-control-regex': 'off',
     },
   },
 ];

@@ -169,7 +169,7 @@ export const CoinShopPage: React.FC = () => {
                   <circle cx="12" cy="12" r="10" />
                   <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#F59E0B">C</text>
                 </svg>
-                <p className="text-4xl font-bold">{balance.balance.toLocaleString()}</p>
+                <p className="coin-balance text-4xl font-bold" data-testid="coins">{balance.balance.toLocaleString()}</p>
               </div>
               {balance.pendingBalance > 0 && (
                 <p className="text-amber-100 text-sm mt-2">
@@ -236,7 +236,8 @@ export const CoinShopPage: React.FC = () => {
           {packages.map((pkg) => (
             <div
               key={pkg.id}
-              className={`bg-white rounded-xl shadow-sm overflow-hidden ${
+              data-testid="coin-package"
+              className={`coin-package package-card bg-white rounded-xl shadow-sm overflow-hidden ${
                 pkg.popular ? 'ring-2 ring-pink-500 transform scale-105' : ''
               }`}
             >

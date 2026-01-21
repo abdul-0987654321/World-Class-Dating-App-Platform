@@ -36,6 +36,7 @@ export default [
         ResponseType: 'readonly',
         NotificationPermission: 'readonly',
         BufferSource: 'readonly',
+        IntersectionObserverInit: 'readonly',
       },
     },
     plugins: {

@@ -85,6 +85,7 @@ export default {
     matchingServiceUrl: process.env.MATCHING_SERVICE_URL || 'http://localhost:3002',
     userServiceUrl: process.env.USER_SERVICE_URL || 'http://localhost:3001',
     notificationServiceUrl: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005',
+    datingCoachServiceUrl: process.env.DATING_COACH_SERVICE_URL || 'http://localhost:3010',
   },
 
   cors: {

@@ -511,10 +511,11 @@ export class ProfileInsightsService {
     const now = new Date();
 
     switch (period) {
-      case 'today':
+      case 'today': {
         const today = new Date(now);
         today.setHours(0, 0, 0, 0);
         return today;
+      }
       case 'week':
         return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       case 'month':

@@ -186,6 +186,14 @@ class PostgresDBClient {
   sessionKeys() {
     return this.db('session_keys');
   }
+
+  /**
+   * Get Knex instance directly for raw queries
+   * Provides access to the underlying Knex instance for complex queries
+   */
+  get knex(): Knex {
+    return this.db;
+  }
 }
 
 // Export singleton instance

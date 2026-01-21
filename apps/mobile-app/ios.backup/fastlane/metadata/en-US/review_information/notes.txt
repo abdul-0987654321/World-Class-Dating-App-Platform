@@ -13,25 +13,83 @@ TESTING INSTRUCTIONS:
 6. Test video call feature with another account (optional)
 7. View Premium features (subscription not required for review)
 
+============================================
+UNIQUE FEATURES - WHAT DIFFERENTIATES FLAMORAL
+============================================
+
+Flamoral is not a generic dating app. It introduces several innovative features not found in competing apps:
+
+1. AI CHEMISTRY PREDICTION
+   - Proprietary algorithm predicts compatibility based on communication patterns
+   - Shows "chemistry score" before matching to help users make informed decisions
+   - Uses NLP analysis of profile responses (not just photos)
+
+2. GHOSTING PREVENTION SYSTEM
+   - AI monitors conversation patterns to detect fading interest
+   - Sends gentle engagement prompts to both users
+   - Match expiration timers encourage meaningful connections
+   - Industry-first feature addressing #1 user complaint in dating
+
+3. EMOTIONAL AVAILABILITY TRACKING
+   - Users can set their current emotional state/dating readiness
+   - Matches shown based on compatible availability levels
+   - Reduces mismatched expectations (serious vs casual)
+
+4. AI DATING COACH
+   - Real-time conversation suggestions during chats
+   - Personalized opening lines based on profile content
+   - Helps users improve their dating communication skills
+
+5. MEETING READINESS DETECTOR
+   - AI determines when both users are ready to meet IRL
+   - Suggests appropriate date ideas based on shared interests
+   - Reduces anxiety around "when to ask to meet"
+
+6. SEMANTIC MATCH SCORING
+   - Goes beyond age/location to analyze values alignment
+   - Uses profile essays and prompt responses for deeper matching
+   - Shows specific compatibility reasons, not just a percentage
+
+7. WOMEN-FIRST MESSAGING WITH AI ENHANCEMENT
+   - In heterosexual matches, women message first
+   - AI suggests quality opening messages
+   - Reduces harassment and improves conversation quality
+
+8. SPEED DATING EVENTS
+   - Live virtual speed dating sessions
+   - Timed video chats with multiple users
+   - Creates urgency and real-time connections
+
+9. TRAVEL MODE
+   - Plan matches for future destinations
+   - Connect with locals before traveling
+   - Schedule availability for specific date ranges
+
+10. GAMIFICATION & ACHIEVEMENTS
+    - Rewards for meaningful engagement (not just swiping)
+    - Streaks for consistent, quality conversations
+    - Levels and badges for positive behaviors
+
 IMPORTANT NOTES:
-• This is a dating app for users 18 years and older
-• Photo verification uses AI but is optional for users
-• Video calls use Agora SDK (approved third-party service)
-• In-app purchases are for Premium and Premium+ subscriptions
-• Push notifications are for matches and messages (users can disable)
-• Location is used only for matching nearby users, not continuously tracked
-• No third-party advertising or user tracking
+- This is a dating app for users 18 years and older
+- Photo verification uses AI but is optional for users
+- Video calls use Agora SDK (approved third-party service)
+- In-app purchases are for Premium and Premium+ subscriptions
+- Push notifications are for matches and messages (users can disable)
+- Location is used only for matching nearby users, not continuously tracked
+- No third-party advertising or user tracking
 
 THIRD-PARTY SERVICES:
-• Firebase: Authentication and push notifications
-• Agora: Video calling functionality
-• Apple In-App Purchase: Payment processing
+- Firebase: Authentication and push notifications
+- Agora: Video calling functionality
+- Apple In-App Purchase: Payment processing
 
 SAFETY FEATURES:
-• All messages are end-to-end encrypted
-• AI content moderation for photos and messages
-• Users can report and block others
-• Photo verification available for authenticity
+- All messages are end-to-end encrypted
+- AI content moderation for photos and messages
+- Users can report and block others
+- Photo verification available for authenticity
+- Toxicity detection prevents harmful content
 
 If you have any questions during review, please contact support@flamoral.com
 

@@ -59,6 +59,11 @@ export enum Permission {
   // System Health
   HEALTH_VIEW = 'health:view',
   HEALTH_MANAGE = 'health:manage',
+
+  // Feature Flags
+  FEATURE_FLAG_VIEW = 'feature_flag:view',
+  FEATURE_FLAG_EDIT = 'feature_flag:edit',
+  FEATURE_FLAG_TOGGLE = 'feature_flag:toggle',
 }
 
 // Role-Permission Mapping
@@ -86,6 +91,9 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     Permission.TICKET_CLOSE,
     Permission.AUDIT_VIEW,
     Permission.HEALTH_VIEW,
+    Permission.FEATURE_FLAG_VIEW,
+    Permission.FEATURE_FLAG_EDIT,
+    Permission.FEATURE_FLAG_TOGGLE,
   ],
 
   [AdminRole.MODERATOR]: [
@@ -113,6 +121,7 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     Permission.REVENUE_VIEW,
     Permission.USER_VIEW,
     Permission.AB_TEST_VIEW,
+    Permission.FEATURE_FLAG_VIEW,
   ],
 };
 

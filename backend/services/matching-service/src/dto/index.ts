@@ -61,3 +61,30 @@ export {
   RatePartnerDto,
   ReportPartnerDto,
 } from './speed-dating.dto';
+
+// Chemistry Matching DTOs
+export {
+  // Request DTOs
+  BuildChemistryProfileDto,
+  GetTopChemistryMatchesQueryDto,
+  FindChemistryMatchesDto,
+  // Nested DTOs
+  BehaviorDataDto,
+  ActivityLogEntryDto,
+  MessageHistoryEntryDto,
+  SwipeHistoryEntryDto,
+  ProfileInteractionEntryDto,
+} from './chemistry.dto';
+
+// Chemistry Response DTOs (interfaces for type safety)
+export type {
+  ChemistryScoreResponseDto,
+  ChemistryExplanationDto,
+  ChemistryFactorDto,
+  ChemistryProfileResponseDto,
+  ChemistryDimensionsResponseDto,
+  ChemistryAntiPatternResponseDto,
+  TopChemistryMatchDto,
+  TopChemistryMatchesResponseDto,
+  ChemistryAvailabilityResponseDto,
+} from './chemistry.dto';

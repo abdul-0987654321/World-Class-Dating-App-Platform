@@ -102,6 +102,20 @@ export {
 } from './push-notification-delivery.service';
 export { CallPushService, callPushService } from './call-push.service';
 
+// Date Safety Guardian Service (uses AWS SNS for SMS)
+export {
+  DateSafetyGuardianService,
+  dateSafetyGuardianService,
+  type TrustedContact,
+  type DateSession,
+  type VenueInfo,
+  type AlertRecord,
+  type CheckInResult,
+  type PanicAlertResult,
+  DateSessionStatus,
+  AlertType,
+} from './date-safety-guardian.service';
+
 // ============================================================================
 // DEPRECATED SERVICES (DO NOT USE - MAINTAINED FOR BACKWARD COMPATIBILITY)
 // ============================================================================

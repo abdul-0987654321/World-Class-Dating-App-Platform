@@ -1,10 +1,15 @@
 /**
  * Jest configuration for API E2E tests
  * Runs against local or staging environments
+ *
+ * Includes Allure reporting for comprehensive test results
  */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'allure-jest/node',
+  testEnvironmentOptions: {
+    resultsDir: process.env.ALLURE_RESULTS_DIR || '<rootDir>/allure-results/api-e2e',
+  },
   rootDir: '../../../',
   roots: ['<rootDir>/tests/e2e/api'],
   testMatch: ['**/*.spec.ts', '**/*.test.ts'],
@@ -27,7 +32,7 @@ module.exports = {
     '!backend/services/**/node_modules/**',
   ],
   coverageDirectory: '<rootDir>/coverage/e2e',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
   reporters: [
     'default',
     ['jest-junit', {

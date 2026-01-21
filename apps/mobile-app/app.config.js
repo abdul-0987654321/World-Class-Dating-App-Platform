@@ -53,7 +53,8 @@ export default {
   ios: {
     bundleIdentifier: getUniqueIdentifier(),
     buildNumber: '1',
-    supportsTablet: false,
+    supportsTablet: true,
+    requireFullScreen: false,
     appleTeamId: 'VDR79P4T45',
     infoPlist: {
       NSCameraUsageDescription:

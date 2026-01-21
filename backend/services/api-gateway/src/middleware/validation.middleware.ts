@@ -82,7 +82,7 @@ export class ValidationMiddleware implements NestMiddleware {
 
     const sanitized: any = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const sanitizedKey = this.sanitizeValue(key);
         sanitized[sanitizedKey] = this.sanitizeObject(obj[key]);
       }

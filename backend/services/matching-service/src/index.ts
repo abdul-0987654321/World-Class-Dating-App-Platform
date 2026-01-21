@@ -13,6 +13,7 @@ import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 
+import chemistryRoutes from './api/routes/chemistry.routes';
 import curatedPicksRoutes from './api/routes/curated-picks.routes';
 import internalRoutes from './api/routes/internal.routes';
 import matchRoutes from './api/routes/match.routes';
@@ -143,6 +144,7 @@ app.get('/', (_req: Request, res: Response) => {
       speedDating: '/api/v1/speed-dating',
       curatedPicks: '/api/v1/discovery/curated-picks',
       passport: '/api/v1/discovery/passport',
+      chemistry: '/api/v1/matching/chemistry',
     },
   });
 });
@@ -156,6 +158,7 @@ app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/speed-dating', speedDatingRoutes);
 app.use('/api/v1/discovery/curated-picks', curatedPicksRoutes);
 app.use('/api/v1/discovery/passport', passportRoutes);
+app.use('/api/v1/matching/chemistry', chemistryRoutes);
 
 // Internal API Routes (service-to-service)
 app.use('/api/v1/internal/matches', internalRoutes);

@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { featureFlagController } from '../controllers/feature-flag.controller';
 import { auditLog, queryAuditLogs } from '../middleware/audit';
 import { authenticateAdmin, requirePermission, requireRole } from '../middleware/auth';
 import { ABTestService } from '../services/abtest.service';
@@ -491,6 +492,111 @@ router.get(
       res.status(500).json({ success: false, error: error.message });
     }
   }
+);
+
+// ==================== Feature Flags ====================
+
+// GET /admin/feature-flags - List all feature flags
+router.get(
+  '/feature-flags',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getAllFlags(req, res)
+);
+
+// GET /admin/feature-flags/categories - List all categories
+router.get(
+  '/feature-flags/categories',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getCategories(req, res)
+);
+
+// GET /admin/feature-flags/category/:category - Get flags by category
+router.get(
+  '/feature-flags/category/:category',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getFlagsByCategory(req, res)
+);
+
+// GET /admin/feature-flags/:category/:name - Get specific flag
+router.get(
+  '/feature-flags/:category/:name',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getFlag(req, res)
+);
+
+// PATCH /admin/feature-flags/:category/:name - Update flag
+router.patch(
+  '/feature-flags/:category/:name',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_EDIT),
+  auditLog('update_feature_flag', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.updateFlag(req, res)
+);
+
+// POST /admin/feature-flags/:category/:name/toggle - Toggle flag enabled/disabled
+router.post(
+  '/feature-flags/:category/:name/toggle',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_TOGGLE),
+  auditLog('toggle_feature_flag', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.toggleFlag(req, res)
+);
+
+// PATCH /admin/feature-flags/:category/:name/rollout - Update rollout percentage
+router.patch(
+  '/feature-flags/:category/:name/rollout',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_EDIT),
+  auditLog('update_feature_flag_rollout', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.updateRollout(req, res)
+);
+
+// PATCH /admin/feature-flags/:category/:name/segments - Update user segments
+router.patch(
+  '/feature-flags/:category/:name/segments',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_EDIT),
+  auditLog('update_feature_flag_segments', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.updateSegments(req, res)
+);
+
+// PATCH /admin/feature-flags/:category/:name/regions - Update regions
+router.patch(
+  '/feature-flags/:category/:name/regions',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_EDIT),
+  auditLog('update_feature_flag_regions', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.updateRegions(req, res)
+);
+
+// GET /admin/feature-flags/:category/:name/metrics - Get usage metrics
+router.get(
+  '/feature-flags/:category/:name/metrics',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getMetrics(req, res)
+);
+
+// GET /admin/feature-flags/:category/:name/history - Get change history
+router.get(
+  '/feature-flags/:category/:name/history',
+  authenticateAdmin,
+  requirePermission(Permission.FEATURE_FLAG_VIEW),
+  (req: AuthRequest, res) => featureFlagController.getHistory(req, res)
+);
+
+// DELETE /admin/feature-flags/:category/:name/override - Remove runtime override
+router.delete(
+  '/feature-flags/:category/:name/override',
+  authenticateAdmin,
+  requireRole(AdminRole.ADMIN),
+  requirePermission(Permission.FEATURE_FLAG_EDIT),
+  auditLog('remove_feature_flag_override', 'feature_flag'),
+  (req: AuthRequest, res) => featureFlagController.removeOverride(req, res)
 );
 
 export default router;

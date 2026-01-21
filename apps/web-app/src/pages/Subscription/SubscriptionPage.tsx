@@ -377,10 +377,11 @@ export const SubscriptionPage: React.FC = () => {
           </p>
 
           {/* Interval Toggle */}
-          <div className="inline-flex items-center rounded-full p-1" style={{ background: 'var(--surface-card)' }}>
+          <div className="billing-toggle inline-flex items-center rounded-full p-1" data-testid="billing-toggle" style={{ background: 'var(--surface-card)' }}>
             <button
               onClick={() => setSelectedInterval('monthly')}
               className="px-6 py-2 rounded-full transition"
+              data-billing="monthly"
               style={{
                 background: selectedInterval === 'monthly' ? 'var(--accent-gradient)' : 'transparent',
                 color: selectedInterval === 'monthly' ? 'white' : 'var(--text-secondary)'
@@ -391,6 +392,7 @@ export const SubscriptionPage: React.FC = () => {
             <button
               onClick={() => setSelectedInterval('yearly')}
               className="px-6 py-2 rounded-full transition flex items-center gap-2"
+              data-billing="yearly"
               style={{
                 background: selectedInterval === 'yearly' ? 'var(--accent-gradient)' : 'transparent',
                 color: selectedInterval === 'yearly' ? 'white' : 'var(--text-secondary)'
@@ -441,7 +443,8 @@ export const SubscriptionPage: React.FC = () => {
             <div
               key={plan.id}
               id={`plan-${plan.id}`}
-              className={`rounded-2xl overflow-hidden transition-all duration-300 ${
+              data-testid="subscription-plan"
+              className={`plan-card rounded-2xl overflow-hidden transition-all duration-300 ${
                 plan.highlighted || highlightedTier === plan.id ? 'ring-2 ring-pink-500 transform scale-105 z-10' : ''
               } ${plan.bestValue ? 'ring-2 ring-green-500' : ''} ${
                 highlightedTier === plan.id ? 'animate-pulse' : ''
@@ -449,12 +452,12 @@ export const SubscriptionPage: React.FC = () => {
               style={{ background: 'var(--surface-card)' }}
             >
               {plan.highlighted && (
-                <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium">
+                <div className="popular recommended bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-1.5 text-xs font-medium" data-recommended="true">
                   MOST POPULAR
                 </div>
               )}
               {plan.bestValue && !plan.highlighted && (
-                <div className="bg-green-500 text-white text-center py-1.5 text-xs font-medium">
+                <div className="best-value bg-green-500 text-white text-center py-1.5 text-xs font-medium" data-best-value="true">
                   BEST VALUE
                 </div>
               )}
@@ -480,7 +483,7 @@ export const SubscriptionPage: React.FC = () => {
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
+                    <li key={idx} className="feature plan-feature flex items-start gap-2" data-testid="feature">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>

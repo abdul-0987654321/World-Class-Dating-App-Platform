@@ -136,7 +136,28 @@ platform :ios do
       devices: [
         "iPhone 15 Pro Max",
         "iPhone 15 Pro",
-        "iPhone 8 Plus"
+        "iPhone 8 Plus",
+        "iPad Pro (12.9-inch) (6th generation)",
+        "iPad Pro (11-inch) (4th generation)"
+      ],
+      languages: [
+        "en-US"
+      ]
+    )
+  end
+
+  desc "Capture iPad-only screenshots"
+  lane :ipad_screenshots do
+    capture_screenshots(
+      workspace: "FlavoralApp.xcworkspace",
+      scheme: "FlavoralApp",
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: false,
+      override_status_bar: true,
+      devices: [
+        "iPad Pro (12.9-inch) (6th generation)",
+        "iPad Pro (11-inch) (4th generation)",
+        "iPad Air (5th generation)"
       ],
       languages: [
         "en-US"

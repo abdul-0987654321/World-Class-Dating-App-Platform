@@ -1,0 +1,122 @@
+name: QA Nightly Regression
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  full-api-regression:
+    name: Full API Regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: flamoral_test
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run full API regression
+        run: yarn test:regression:api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/flamoral_test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-allure-results
+          path: allure-results/
+
+  full-ui-regression:
+    name: Full UI Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Run UI regression
+        run: yarn test:regression:ui
+        env:
+          CI: true
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-allure-results
+          path: |
+            playwright-report/
+            test-results/
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  performance-baseline:
+    name: Performance Baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz | tar xvz
+          sudo mv k6-v0.47.0-linux-amd64/k6 /usr/local/bin/
+      
+      - name: Run load test
+        run: k6 run tests/load/k6-load-test.js --duration 1m --vus 10
+        continue-on-error: true
+
+  generate-report:
+    name: Generate Report
+    runs-on: ubuntu-latest
+    needs: [full-api-regression, full-ui-regression]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results
+      
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v1.7
+        with:
+          allure_results: allure-results
+          allure_history: allure-history

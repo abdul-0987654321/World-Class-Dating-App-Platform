@@ -164,11 +164,12 @@ export const MessagesPage: React.FC = () => {
               {conversations.map((conv) => (
                 <button
                   key={conv.id}
+                  data-testid="match"
                   onClick={() => {
                     setSelectedConversation(conv.id);
                     loadMessages(conv.id);
                   }}
-                  className={`w-full p-4 flex items-center gap-4 hover:bg-white/5 transition text-left ${
+                  className={`conversation-item match-card w-full p-4 flex items-center gap-4 hover:bg-white/5 transition text-left ${
                     selectedConversation === conv.id ? 'bg-fm-pink/20' : ''
                   }`}
                 >
@@ -186,12 +187,12 @@ export const MessagesPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-fm-text-primary">{conv.participant.name}</p>
                       {conv.lastMessage && (
-                        <span className="text-xs text-fm-text-muted">
+                        <span className="timestamp text-xs text-fm-text-muted">
                           {formatTime(conv.lastMessage.sentAt)}
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-fm-text-primary font-medium' : 'text-fm-text-secondary'}`}>
+                    <p className={`message-preview last-message text-sm truncate ${conv.unreadCount > 0 ? 'text-fm-text-primary font-medium' : 'text-fm-text-secondary'}`}>
                       {conv.participant.isTyping ? (
                         <span className="text-fm-pink">Typing...</span>
                       ) : (
@@ -200,7 +201,7 @@ export const MessagesPage: React.FC = () => {
                     </p>
                   </div>
                   {conv.unreadCount > 0 && (
-                    <span className="w-5 h-5 bg-fm-pink rounded-full text-white text-xs flex items-center justify-center">
+                    <span className="unread-badge unread-indicator w-5 h-5 bg-fm-pink rounded-full text-white text-xs flex items-center justify-center" data-testid="unread">
                       {conv.unreadCount}
                     </span>
                   )}
@@ -214,7 +215,7 @@ export const MessagesPage: React.FC = () => {
             {selectedConversation && selectedParticipant ? (
               <>
                 {/* Chat Header */}
-                <div className="bg-fm-surface/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center gap-4">
+                <div className="chat-header bg-fm-surface/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center gap-4" data-testid="chat-header">
                   <button
                     onClick={() => setSelectedConversation(null)}
                     className="md:hidden text-fm-text-secondary"
@@ -229,7 +230,7 @@ export const MessagesPage: React.FC = () => {
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
-                    <p className="font-semibold text-fm-text-primary">{selectedParticipant.name}</p>
+                    <p className="name font-semibold text-fm-text-primary">{selectedParticipant.name}</p>
                     <p className="text-xs text-fm-text-secondary">
                       {selectedParticipant.isOnline ? (
                         <span className="text-green-500">Online</span>
@@ -247,7 +248,8 @@ export const MessagesPage: React.FC = () => {
                     return (
                       <div
                         key={message.id}
-                        className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                        data-testid="message"
+                        className={`message flex ${isMe ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`max-w-[70%] px-4 py-2 rounded-2xl ${

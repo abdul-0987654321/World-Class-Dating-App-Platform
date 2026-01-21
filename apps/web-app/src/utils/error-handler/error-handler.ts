@@ -220,7 +220,7 @@ export function processApiError(
   customMessages?: Partial<Record<ErrorCode | string, string>>
 ): ProcessedError {
   const errorCode = error.errorCode || error.error || '';
-  const status = error.statusCode || 500;
+  const status = error.statusCode !== undefined && error.statusCode !== null ? error.statusCode : 500;
 
   return {
     status,

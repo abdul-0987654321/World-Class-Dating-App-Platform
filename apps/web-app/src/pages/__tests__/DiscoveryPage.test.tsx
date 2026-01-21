@@ -21,9 +21,13 @@ vi.mock('../../services', () => ({
 }));
 
 // Mock components
-vi.mock('../../components/Navigation', () => ({
-  Navigation: () => <nav data-testid="navigation">Navigation</nav>,
-}));
+vi.mock('../../components/Navigation', () => {
+  const Navigation = () => <nav data-testid="navigation">Navigation</nav>;
+  return {
+    Navigation,
+    default: Navigation,
+  };
+});
 
 vi.mock('../../components/theme/FlamoralBackground', () => ({
   default: ({ children }: { children: React.ReactNode }) => (

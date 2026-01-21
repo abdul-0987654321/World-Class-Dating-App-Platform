@@ -244,10 +244,11 @@ export class AnalyticsController {
         case 'day':
           key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
           break;
-        case 'week':
+        case 'week': {
           const weekNum = this.getWeekNumber(date);
           key = `${date.getFullYear()}-W${weekNum}`;
           break;
+        }
         case 'month':
           key = `${date.getFullYear()}-${date.getMonth() + 1}`;
           break;
